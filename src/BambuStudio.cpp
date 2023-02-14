@@ -324,6 +324,11 @@ static void glfw_callback(int error_code, const char* description)
     BOOST_LOG_TRIVIAL(error) << "error_code " <<error_code <<", description: " <<description<< std::endl;
 }
 
+const float bed3d_ax3s_default_stem_radius = 0.5f;
+const float bed3d_ax3s_default_stem_length = 25.0f;
+const float bed3d_ax3s_default_tip_radius = 2.5f * bed3d_ax3s_default_stem_radius;
+const float bed3d_ax3s_default_tip_length = 5.0f;
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -398,6 +403,8 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
+    bool translate_old = false;
+    int current_width, current_depth, current_height;
     const std::vector<std::string>              &load_configs		      = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
@@ -538,6 +545,11 @@ int CLI::run(int argc, char **argv)
                     {
                         orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
+                    }
+
+                    Semver old_version(1, 5, 9);
+                    if ((file_version < old_version) && !config.empty()) {
+                        translate_old = true;
                     }
 
                     /*for (ModelObject *model_object : model.objects)
@@ -1280,7 +1292,15 @@ int CLI::run(int argc, char **argv)
     if (m_models.size() > 0)
     {
         std::string bed_texture;
-        partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), print_height);
+        if (translate_old) {
+            current_width = bedfs[2].x() - bedfs[0].x();
+            current_depth = bedfs[2].y() - bedfs[0].y();
+            current_height = print_height;
+            partplate_list.reset_size(current_width + bed3d_ax3s_default_tip_radius, current_depth + bed3d_ax3s_default_tip_radius, current_height, false);
+        }
+        else {
+            partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), print_height, false);
+        }
         partplate_list.set_shapes(bedfs, excluse_areas, bed_texture, height_to_lid, height_to_rod);
         plate_stride = partplate_list.plate_stride_x();
         BOOST_LOG_TRIVIAL(info) << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< print_height <<"\n";
@@ -1288,6 +1308,20 @@ int CLI::run(int argc, char **argv)
     if (plate_data_src.size() > 0)
     {
         partplate_list.load_from_3mf_structure(plate_data_src);
+        //BBS: translate old 3mf to correct positions
+        if (translate_old) {
+            //translate the objects
+            int plate_count = partplate_list.get_plate_count();
+            for (int index = 1; index < plate_count; index ++) {
+                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+
+                Vec3d cur_origin = cur_plate->get_origin();
+                Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, current_width, current_depth);
+
+                cur_plate->translate_all_instance(new_origin - cur_origin);
+            }
+            partplate_list.reset_size(current_width, current_depth, current_height);
+        }
     }
     /*for (ModelObject *model_object : m_models[0].objects)
         for (ModelInstance *model_instance : model_object->instances)

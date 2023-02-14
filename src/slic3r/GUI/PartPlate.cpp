@@ -1745,6 +1745,29 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 	return result;
 }
 
+//translate instance on the plate
+void PartPlate::translate_all_instance(Vec3d position)
+{
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+    {
+        int obj_id = it->first;
+        int instance_id = it->second;
+
+        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        {
+            ModelObject* object = m_model->objects[obj_id];
+            if ((instance_id >= 0) && (instance_id < object->instances.size()))
+            {
+                ModelInstance* instance = object->instances[instance_id];
+                const Vec3d& offset =  instance->get_offset();
+                instance->set_offset(offset + position);
+            }
+        }
+    }
+    return;
+}
+
+
 //update instance exclude state
 void PartPlate::update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box)
 {
@@ -2467,6 +2490,23 @@ Vec3d PartPlateList::compute_origin(int i, int cols)
 	return origin;
 }
 
+//compute the origin for printable plate with index i using new width
+Vec3d PartPlateList::compute_origin_using_new_size(int i, int new_width, int new_depth)
+{
+	Vec3d origin;
+	int row, col;
+
+	row = i / m_plate_cols;
+	col = i % m_plate_cols;
+
+	origin(0) = col * (new_width * (1. + LOGICAL_PART_PLATE_GAP));
+	origin(1) = -row * (new_depth * (1. + LOGICAL_PART_PLATE_GAP));
+	origin(2) = 0;
+
+	return origin;
+}
+
+
 //compute the origin for printable plate with index i
 Vec3d PartPlateList::compute_origin_for_unprintable()
 {
@@ -2698,7 +2738,7 @@ void PartPlateList::release_icon_textures()
 }
 
 //this may be happened after machine changed
-void PartPlateList::reset_size(int width, int depth, int height)
+void PartPlateList::reset_size(int width, int depth, int height, bool reload_objects)
 {
 	Vec3d origin1, origin2;
 
@@ -2710,7 +2750,10 @@ void PartPlateList::reset_size(int width, int depth, int height)
 		m_plate_depth = depth;
 		m_plate_height = height;
 		update_all_plates_pos_and_size(false, false);
-		reload_all_objects();
+		if (reload_objects)
+			reload_all_objects();
+		else
+			clear(false, false, false, -1);
 	}
 
 	return;

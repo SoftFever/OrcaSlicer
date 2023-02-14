@@ -1394,10 +1394,10 @@ void Sidebar::sync_ams_list()
     if (!ams_filament_ids.empty())
         boost::algorithm::split(list2, ams_filament_ids, boost::algorithm::is_any_of(","));
     struct SyncAmsDialog : MessageDialog {
-        SyncAmsDialog(wxWindow * parent, bool first): MessageDialog(parent, 
+        SyncAmsDialog(wxWindow * parent, bool first): MessageDialog(parent,
             first
                 ? _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?")
-                : _L("Already did a synchronization, do you want to update only changes or resync all?"), 
+                : _L("Already did a synchronization, do you want to update only changes or resync all?"),
             _L("Sync filaments with AMS"), 0)
         {
             if (first) {
@@ -2902,6 +2902,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     std::vector<size_t> empty_result;
     bool dlg_cont = true;
     bool is_user_cancel = false;
+    bool translate_old = false;
+    int current_width, current_depth, current_height;
 
     if (input_files.empty()) { return std::vector<size_t>(); }
 
@@ -3160,7 +3162,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             return empty_result;
                         }
 
+                        Semver old_version(1, 5, 9);
+                        if ((en_3mf_file_type == En3mfType::From_BBS) && (file_version < old_version) && load_model && load_config && !config_loaded.empty()) {
+                            translate_old = true;
+                            partplate_list.get_plate_size(current_width, current_depth, current_height);
+                        }
+
                         if (load_config) {
+                            if (translate_old) {
+                                //set the size back
+                                partplate_list.reset_size(current_width + Bed3D::Axes::DefaultTipRadius, current_depth + Bed3D::Axes::DefaultTipRadius, current_height, false);
+                            }
                             partplate_list.load_from_3mf_structure(plate_data);
                             partplate_list.update_slice_context_to_current_plate(background_process);
                             this->preview->update_gcode_result(partplate_list.get_current_slice_result());
@@ -3551,6 +3563,21 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     if (new_model) delete new_model;
+
+    //BBS: translate old 3mf to correct positions
+    if (translate_old) {
+        //translate the objects
+        int plate_count = partplate_list.get_plate_count();
+        for (int index = 1; index < plate_count; index ++) {
+            PartPlate* cur_plate = (PartPlate *)partplate_list.get_plate(index);
+
+            Vec3d cur_origin = cur_plate->get_origin();
+            Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, current_width, current_depth);
+
+            cur_plate->translate_all_instance(new_origin - cur_origin);
+        }
+        partplate_list.reset_size(current_width, current_depth, current_height);
+    }
 
     //BBS: add gcode loading logic in the end
     q->m_exported_file = false;
@@ -6905,7 +6932,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
         double z = config->opt_float("printable_height");
 
         //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
-        partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
+        partplate_list.reset_size(max.x() - min.x() - Bed3D::Axes::DefaultTipRadius, max.y() - min.y() - Bed3D::Axes::DefaultTipRadius, z);
         partplate_list.set_shapes(shape, exclude_areas, custom_texture, height_to_lid, height_to_rod);
 
         Vec2d new_shape_position = partplate_list.get_current_shape_position();

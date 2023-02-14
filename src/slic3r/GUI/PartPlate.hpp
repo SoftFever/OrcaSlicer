@@ -290,6 +290,9 @@ public:
     //remove instance from plate
     int remove_instance(int obj_id, int instance_id);
 
+    //translate instance on the plate
+    void translate_all_instance(Vec3d position);
+
     //update instance exclude state
     void update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);
 
@@ -568,11 +571,13 @@ public:
     ~PartPlateList();
 
     //this may be happened after machine changed
-    void reset_size(int width, int depth, int height);
+    void reset_size(int width, int depth, int height, bool reload_objects = true);
     //clear all the instances in the plate, but keep the plates
     void clear(bool delete_plates = false, bool release_print_list = false, bool except_locked = false, int plate_index = -1);
     //clear all the instances in the plate, and delete the plates, only keep the first default plate
     void reset(bool do_init);
+    //compute the origin for printable plate with index i using new width
+    Vec3d compute_origin_using_new_size(int i, int new_width, int new_depth);
 
     //reset partplate to init states
     void reinit();
@@ -580,6 +585,11 @@ public:
     //get the plate stride
     double plate_stride_x();
     double plate_stride_y();
+    void get_plate_size(int& width, int& depth, int& height) {
+        width = m_plate_width;
+        depth = m_plate_depth;
+        height = m_plate_height;
+    }
 
     /*basic plate operations*/
     //create an empty plate and return its index
