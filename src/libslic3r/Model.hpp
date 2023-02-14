@@ -650,6 +650,16 @@ private:
     friend class ModelVolume;
 };
 
+struct RaycastResult
+{
+    Vec2d mouse_position = Vec2d::Zero();
+    int   mesh_id        = -1;
+    Vec3f hit            = Vec3f::Zero();
+    Vec3f normal         = Vec3f::Zero();
+
+    template<typename Archive> void serialize(Archive &ar) { ar(mouse_position, mesh_id, hit, normal); }
+};
+
 struct TextInfo
 {
     std::string m_font_name;
@@ -658,9 +668,18 @@ struct TextInfo
     bool        m_bold          = true;
     bool        m_italic        = false;
     float       m_thickness     = 2.f;
+    float       m_embeded_depth = 0.f;
+    float       m_rotate_angle    = 0;
+    float       m_text_gap        = 0.f;
+    bool        m_is_surface_text = false;
+    bool        m_keep_horizontal = false;
     std::string m_text;
 
-    template<typename Archive> void serialize(Archive &ar) { ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_text); }
+    RaycastResult m_rr;
+
+    template<typename Archive> void serialize(Archive &ar) {
+        ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text, m_keep_horizontal, m_text, m_rr);
+    }
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -914,7 +933,8 @@ private:
         ObjectBase(other),
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
-        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets)
+        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
+        m_text_info(other.m_text_info)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());

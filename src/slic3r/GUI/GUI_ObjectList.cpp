@@ -2170,52 +2170,54 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #endif /* _DEBUG */
 }
 
-void ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool center)
+int ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp)
 {
     wxDataViewItem item = GetSelection();
     // we can add volumes for Object or Instance
     if (!item || !(m_objects_model->GetItemType(item) & (itObject | itInstance)))
-        return;
+        return -1;
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
-    if (obj_idx < 0) return;
+    if (obj_idx < 0)
+        return -1;
 
     // Get object item, if Instance is selected
     if (m_objects_model->GetItemType(item) & itInstance)
         item = m_objects_model->GetItemById(obj_idx);
 
-    take_snapshot("Load Mesh Part");
-
     ModelObject* mo = (*m_objects)[obj_idx];
+
+    Geometry::Transformation instance_transformation = mo->instances[0]->get_transformation();
 
     // apply the instance transform to all volumes and reset instance transform except the offset
     apply_object_instance_transfrom_to_all_volumes(mo);
 
-    double old_top_position = mo->mesh().bounding_box().max(2) - mo->instances[0]->get_offset().z();
-    ModelVolume* mv = mo->add_volume(mesh);
-    Vec3d offset = Vec3d(0, 0, old_top_position + mv->get_offset(Axis::Z));
-    mv->set_offset(offset);
+    ModelVolume *mv     = mo->add_volume(mesh);
     mv->name = name.ToStdString();
     if (!text_info.m_text.empty())
         mv->set_text_info(text_info);
 
-    std::vector<ModelVolume*> volumes;
-    volumes.push_back(mv);
-    wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
-        return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
+    if (!is_temp) {
+        std::vector<ModelVolume *> volumes;
+        volumes.push_back(mv);
+        wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume *volume) {
+            return std::find(volumes.begin(), volumes.end(), volume) != volumes.end();
+        });
 
-    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+        wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t) obj_idx);
 
-    if (items.size() > 1) {
-        m_selection_mode = smVolume;
-        m_last_selected_item = wxDataViewItem(nullptr);
+        if (items.size() > 1) {
+            m_selection_mode     = smVolume;
+            m_last_selected_item = wxDataViewItem(nullptr);
+        }
+        select_items(items);
+
+        selection_changed();
     }
-    select_items(items);
-
-    selection_changed();
 
     //BBS: notify partplate the modify
     notify_instance_updated(obj_idx);
+    return mo->volumes.size() - 1;
 }
 
 //BBS
