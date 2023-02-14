@@ -136,16 +136,16 @@ protected:
     void do_go_to_layer(size_t layer_number);
     void correct_lower_value();
     void correct_higher_value();
-    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, const ImVec2& pos, const ImVec2& size, float scale = 1.0);
+    bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, const ImVec2& size, float scale = 1.0);
     void render_go_to_layer_dialog();
     void render_input_custom_gcode();
     void render_menu();
-    void draw_background(const ImRect& groove);
+    void draw_background_and_groove(const ImRect& bg_rect, const ImRect& groove);
     void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
     void draw_ticks(const ImRect& slideable_region);
     bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
         std::string& higher_label, std::string& lower_label,
-        int v_min, int v_max, const ImVec2& pos, const ImVec2& size,
+        int v_min, int v_max, const ImVec2& size,
         SelectedSlider& selection, bool one_layer_flag = false, float scale = 1.0f);
     bool is_wipe_tower_layer(int tick) const;
 
