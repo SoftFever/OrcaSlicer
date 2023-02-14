@@ -2694,7 +2694,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("independent_support_layer_height", coBool);
     def->label = L("Independent support layer height");
     def->category = L("Support");
-    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time.");
+    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time."
+                     "This option will be invalid when the prime tower is enabled.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -4031,10 +4032,12 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
             //if (alh_opt)
             //    alh_opt->value = false;
         }
+        /* BBS: MusangKing - not sure if this is still valid, just comment it out cause "Independent support layer height" is re-opened.
         else {
             if (islh_opt)
                 islh_opt->value = true;
         }
+        */
     }
 }
 
@@ -4120,6 +4123,7 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
             //    //alh_opt->value = false;
             //}
         }
+        /* BBS：MusangKing - use "global->support->Independent support layer height" widget to replace previous assignment
         else {
             if (islh_opt) {
                 if (!islh_opt->value) {
@@ -4129,6 +4133,7 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
                 //islh_opt->value = true;
             }
         }
+        */
     }
 
     return changed_keys;
