@@ -70,6 +70,7 @@ Model& Model::assign_copy(const Model &rhs)
     // BBS: for design info
     this->design_info = rhs.design_info;
     this->model_info = rhs.model_info;
+    this->profile_info = rhs.profile_info;
 
     return *this;
 }
@@ -104,6 +105,8 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.design_info.reset();
     this->model_info = rhs.model_info;
     rhs.model_info.reset();
+    this->profile_info = rhs.profile_info;
+    rhs.profile_info.reset();
     return *this;
 }
 
@@ -868,8 +871,10 @@ void Model::load_from(Model& model)
     next_object_backup_id = model.next_object_backup_id;
     design_info = model.design_info;
     model_info  = model.model_info;
+    profile_info  = model.profile_info;
     model.design_info.reset();
     model.model_info.reset();
+    model.profile_info.reset();
 }
 
 // BBS: backup

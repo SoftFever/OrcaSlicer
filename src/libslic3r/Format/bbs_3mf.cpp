@@ -110,6 +110,7 @@ const std::string BBS_SEAM_PAINTING_VERSION         = "BambuStudio:SeamPaintingV
 const std::string BBS_MM_PAINTING_VERSION           = "BambuStudio:MmPaintingVersion";
 const std::string BBL_MODEL_ID_TAG                  = "model_id";
 const std::string BBL_MODEL_NAME_TAG                = "Title";
+const std::string BBL_ORIGIN_TAG                    = "Origin";
 const std::string BBL_DESIGNER_TAG                  = "Designer";
 const std::string BBL_DESIGNER_USER_ID_TAG          = "DesignerUserId";
 const std::string BBL_DESIGNER_COVER_FILE_TAG       = "DesignerCover";
@@ -120,6 +121,12 @@ const std::string BBL_REGION_TAG                    = "Region";
 const std::string BBL_MODIFICATION_TAG              = "ModificationDate";
 const std::string BBL_CREATION_DATE_TAG             = "CreationDate";
 const std::string BBL_APPLICATION_TAG               = "Application";
+
+const std::string BBL_PROFILE_TITLE_TAG             = "ProfileTitle";
+const std::string BBL_PROFILE_COVER_TAG             = "ProfileCover";
+const std::string BBL_PROFILE_DESCRIPTION_TAG       = "ProfileDescription";
+const std::string BBL_PROFILE_USER_ID_TAG           = "ProfileUserId";
+const std::string BBL_PROFILE_USER_NAME_TAG         = "ProfileUserName";
 
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
@@ -847,7 +854,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string  m_designer_cover;
         ModelInfo    model_info;
         BBLProject   project_info;
-
+        std::string  m_profile_title;
+        std::string  m_profile_cover;
+        std::string  m_Profile_description;
+        std::string  m_profile_user_id;
+        std::string  m_profile_user_name;
+ 
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
         // after returning from XML_Parse() function, thus we keep the error state here.
@@ -1378,6 +1390,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_model->design_info->DesignerUserId = m_designer_user_id;
             m_model->design_info->Designer = m_designer;
         }
+
+        m_model->profile_info = std::make_shared<ModelProfileInfo>();
+        m_model->profile_info->ProfileTile = m_profile_title;
+        m_model->profile_info->ProfileCover = m_profile_cover;
+        m_model->profile_info->ProfileDescription = m_Profile_description;
+        m_model->profile_info->ProfileUserId = m_profile_user_id;
+        m_model->profile_info->ProfileUserName = m_profile_user_name;
+
 
         m_model->model_info = std::make_shared<ModelInfo>();
         m_model->model_info->load(model_info);
@@ -3189,6 +3209,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } else if (m_curr_metadata_name == BBL_MODEL_NAME_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found model name = " << m_curr_characters;
             model_info.model_name = xml_unescape(m_curr_characters);
+        } else if (m_curr_metadata_name == BBL_ORIGIN_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found model name = " << m_curr_characters;
+            model_info.origin = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_DESIGNER_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer = " << m_curr_characters;
             m_designer = xml_unescape(m_curr_characters);
@@ -3210,6 +3233,21 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } else if (m_curr_metadata_name == BBL_REGION_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found region = " << m_curr_characters;
             m_contry_code = xml_unescape(m_curr_characters);
+        } else if (m_curr_metadata_name == BBL_PROFILE_TITLE_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found profile_title = " << m_curr_characters;
+            m_profile_title = xml_unescape(m_curr_characters);
+        } else if (m_curr_metadata_name == BBL_PROFILE_COVER_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found profile_cover = " << m_curr_characters;
+            m_profile_cover = xml_unescape(m_curr_characters);
+        } else if (m_curr_metadata_name == BBL_PROFILE_DESCRIPTION_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found profile_description = " << m_curr_characters;
+            m_Profile_description = xml_unescape(m_curr_characters);
+        } else if (m_curr_metadata_name == BBL_PROFILE_USER_ID_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found profile_user_id = " << m_curr_characters;
+            m_profile_user_id = xml_unescape(m_curr_characters);
+        }else if (m_curr_metadata_name == BBL_PROFILE_USER_NAME_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found profile_user_name = " << m_curr_characters;
+            m_profile_user_name = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_CREATION_DATE_TAG) {
             ;
         } else if (m_curr_metadata_name == BBL_MODIFICATION_TAG) {
@@ -5427,6 +5465,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << " xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\" requiredextensions=\"p\"";
             stream << ">\n";
 
+            std::string origin;
             std::string name;
             std::string user_name;
             std::string user_id;
@@ -5455,6 +5494,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 description  = model.model_info->description;
                 copyright    = model.model_info->copyright;
                 name         = model.model_info->model_name;
+                origin       = model.model_info->origin;
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
             }
             // remember to use metadata_item_map to store metadata info
@@ -5466,6 +5506,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
 
                 metadata_item_map[BBL_MODEL_NAME_TAG]           = xml_escape(name);
+                metadata_item_map[BBL_ORIGIN_TAG]               = xml_escape(origin);
                 metadata_item_map[BBL_DESIGNER_TAG]             = xml_escape(user_name);
                 metadata_item_map[BBL_DESIGNER_USER_ID_TAG]     = user_id;
                 metadata_item_map[BBL_DESIGNER_COVER_FILE_TAG]  = xml_escape(design_cover);

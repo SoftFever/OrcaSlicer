@@ -1257,6 +1257,17 @@ struct GlobalSpeedMap
     Polygon bed_poly;
 };
 
+/* Profile data */
+class ModelProfileInfo
+{
+public:
+    std::string ProfileTile;
+    std::string ProfileCover; 
+    std::string ProfileDescription;
+    std::string ProfileUserId;
+    std::string ProfileUserName;
+};
+
 /* info in ModelDesignInfo can not changed after initialization */
 class ModelDesignInfo
 {
@@ -1275,6 +1286,7 @@ public:
     std::string description;    // utf8 format
     std::string copyright;      // utf8 format
     std::string model_name;     // utf8 format
+    std::string origin;         // utf8 format
 
     std::map<std::string, std::string> metadata_items; // other meta data items
 
@@ -1284,6 +1296,7 @@ public:
         this->description   = info.description;
         this->copyright     = info.copyright;
         this->model_name    = info.model_name;
+        this->origin        = info.origin;
         this->metadata_items = info.metadata_items;
     }
 };
@@ -1310,6 +1323,7 @@ public:
     // DesignInfo of Model
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
+    std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
 
     void SetDesigner(std::string designer, std::string designer_user_id) {
         if (design_info == nullptr) {

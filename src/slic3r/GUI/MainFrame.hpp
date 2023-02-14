@@ -20,6 +20,7 @@
 #include "ParamsPanel.hpp"
 #include "Monitor.hpp"
 #include "Auxiliary.hpp"
+#include "Project.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
@@ -330,7 +331,10 @@ public:
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
     MonitorPanel*         m_monitor{ nullptr };
-    AuxiliaryPanel*       m_auxiliary{ nullptr };
+
+    //AuxiliaryPanel*       m_auxiliary{ nullptr };
+    ProjectPanel*         m_project{ nullptr };
+
     WebViewPanel*         m_webview { nullptr };
     wxLogWindow*          m_log_window { nullptr };
     // BBS

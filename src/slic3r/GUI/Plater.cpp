@@ -3813,7 +3813,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 void Plater::priv::load_auxiliary_files()
 {
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
-    wxGetApp().mainframe->m_auxiliary->Reload(auxiliary_path);
+    //wxGetApp().mainframe->m_project->Reload(auxiliary_path);
 }
 
 fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)

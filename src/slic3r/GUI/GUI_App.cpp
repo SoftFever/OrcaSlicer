@@ -2413,7 +2413,7 @@ bool GUI_App::on_init_inner()
 
     sidebar().obj_list()->init();
     //sidebar().aux_list()->init_auxiliary();
-    mainframe->m_auxiliary->init_auxiliary();
+    //mainframe->m_auxiliary->init_auxiliary();
 
 //     update_mode(); // !!! do that later
     SetTopWindow(mainframe);
@@ -3042,7 +3042,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     // Propagate model objects to object list.
     sidebar().obj_list()->init();
     //sidebar().aux_list()->init_auxiliary();
-    mainframe->m_auxiliary->init_auxiliary();
+    //mainframe->m_auxiliary->init_auxiliary();
     SetTopWindow(mainframe);
 
     dlg.Update(30, _L("Rebuild") + dots);
