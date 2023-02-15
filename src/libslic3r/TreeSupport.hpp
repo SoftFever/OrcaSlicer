@@ -221,7 +221,7 @@ public:
         Node()
          : distance_to_top(0)
          , position(Point(0, 0))
-         , skin_direction(false)
+         , obj_layer_nr(0)
          , support_roof_layers_below(0)
          , support_floor_layers_above(0)
          , to_buildplate(true)
@@ -230,11 +230,11 @@ public:
          , height(0.0)
         {}
 
-        Node(const Point position, const int distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
+        Node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
              coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_=0)
          : distance_to_top(distance_to_top)
          , position(position)
-         , skin_direction(skin_direction)
+         , obj_layer_nr(obj_layer_nr)
          , support_roof_layers_below(support_roof_layers_below)
          , support_floor_layers_above(0)
          , to_buildplate(to_buildplate)
@@ -298,6 +298,7 @@ public:
          */
         int support_roof_layers_below;
         int support_floor_layers_above;
+        int obj_layer_nr;
 
         /*!
          * \brief Whether to try to go towards the build plate.
@@ -362,6 +363,7 @@ public:
         InfillPattern interface_fill_pattern;
         InfillPattern contact_fill_pattern;
         bool          with_sheath;
+        const double thresh_big_overhang = SQ(scale_(10));
     };
 
     int  avg_node_per_layer = 0;

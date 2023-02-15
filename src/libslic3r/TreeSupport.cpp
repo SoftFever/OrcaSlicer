@@ -701,7 +701,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
     support_type                             = m_object_config->support_type;
     is_slim                                  = is_tree_slim(support_type, m_object_config->support_style);
-    MAX_BRANCH_RADIUS                        = is_slim ? 5.0 : 10.0;
+    MAX_BRANCH_RADIUS                        = 10.0;
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
     with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
@@ -1005,8 +1005,10 @@ void TreeSupport::detect_overhangs()
             }
 
 
-            if (bridge_no_support && overhang_areas.size()>0) {
-                m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &overhang_areas, max_bridge_length, true);
+            if (max_bridge_length > 0 && overhang_areas.size()>0) {
+                // do not break bridge for normal part in TreeHybrid
+                bool break_bridge = !(config.support_style == smsTreeHybrid && area(overhang_areas) > m_support_params.thresh_big_overhang);
+                m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &overhang_areas, max_bridge_length, break_bridge);
             }
 
             SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
@@ -2641,7 +2643,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 
             if (node.distance_to_top < 0) {
                 // gap nodes do not merge or move
-                Node* next_node = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, p_node->to_buildplate, p_node,
+                Node* next_node = new Node(p_node->position, p_node->distance_to_top + 1, layer_nr_next, p_node->support_roof_layers_below - 1, p_node->to_buildplate, p_node,
                     print_z_next, height_next);
                 get_max_move_dist(next_node);
                 next_node->is_merged = false;
@@ -2776,7 +2778,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                         parent = neighbour->parent;
 
                     const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(0, layer_nr_next), next_position);
-                    Node *     next_node     = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node,
+                    Node *     next_node     = new Node(next_position, new_distance_to_top, layer_nr_next, new_support_roof_layers_below, to_buildplate, p_node,
                                                print_z_next, height_next, new_dist_mm_to_top);
                     next_node->movement = next_position - node.position;
                     get_max_move_dist(next_node);
@@ -2822,7 +2824,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 if (node.type == ePolygon) {
                     // polygon node do not merge or move
                     const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], p_node->position);
-                    Node *     next_node = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, to_buildplate,
+                    Node *     next_node = new Node(p_node->position, p_node->distance_to_top + 1, layer_nr_next, p_node->support_roof_layers_below - 1, to_buildplate,
                                                p_node, print_z_next, height_next);
                     next_node->max_move_dist = 0;
                     next_node->is_merged     = false;
@@ -2889,13 +2891,13 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 
                         if (is_line_cut_by_contour(node.position, neighbour)) continue;
 
-                        if (is_slim)
+                        if (/*is_slim*/1)
                             sum_direction += direction * (1 / dist2_to_neighbor);
                         else
                             sum_direction += direction;
                     }
 
-                    if (is_slim)
+                    if (/*is_slim*/1)
                         move_to_neighbor_center = sum_direction;
                     else {
                         if (vsize2_with_unscale(sum_direction) <= max_move_distance2) {
@@ -2966,7 +2968,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 }
 
                 const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], next_layer_vertex);// !is_inside_ex(m_ts_data->get_avoidance(m_ts_data->m_xy_distance, layer_nr - 1), next_layer_vertex);
-                Node *     next_node     = new Node(next_layer_vertex, node.distance_to_top + 1, node.skin_direction, node.support_roof_layers_below - 1, to_buildplate, p_node,
+                Node *     next_node     = new Node(next_layer_vertex, node.distance_to_top + 1, layer_nr_next, node.support_roof_layers_below - 1, to_buildplate, p_node,
                     print_z_next, height_next);
                 next_node->movement  = movement;
                 get_max_move_dist(next_node);
@@ -2995,8 +2997,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         {
             const auto& entry = unsupported_branch_leaves.back();
             Node* i_node = entry.second;
-            for (size_t i_layer = entry.first; i_node != nullptr; ++i_layer, i_node = i_node->parent)
+            for (; i_node != nullptr; i_node = i_node->parent)
             {
+                size_t i_layer = i_node->obj_layer_nr;
                 std::vector<Node*>::iterator to_erase = std::find(contact_nodes[i_layer].begin(), contact_nodes[i_layer].end(), i_node);
                 if (to_erase != contact_nodes[i_layer].end())
                 {
@@ -3332,7 +3335,6 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     BoundingBox bounding_box = m_object->bounding_box();
     const Point bounding_box_size = bounding_box.max - bounding_box.min;
     constexpr double rotate_angle = 22.0 / 180.0 * M_PI;
-    constexpr double thresh_big_overhang = SQ(scale_(10));
 
     const auto center = bounding_box_middle(bounding_box);
     const auto sin_angle = std::sin(rotate_angle);
@@ -3392,11 +3394,11 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
         for (const ExPolygon &overhang_part : overhang)
         {
             BoundingBox overhang_bounds = get_extents(overhang_part);
-            if (config.support_style.value==smsTreeHybrid && overhang_part.area() > thresh_big_overhang) {
+            if (config.support_style.value==smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang) {
                 Point candidate = overhang_bounds.center();
                 if (!overhang_part.contains(candidate))
                     move_inside_expoly(overhang_part, candidate);
-                Node *contact_node     = new Node(candidate, -z_distance_top_layers, (layer_nr) % 2, support_roof_layers + z_distance_top_layers, true, Node::NO_PARENT, print_z,
+                Node *contact_node     = new Node(candidate, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, true, Node::NO_PARENT, print_z,
                                               height, z_distance_top);
                 contact_node->type = ePolygon;
                 contact_node->overhang = &overhang_part;
@@ -3424,7 +3426,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                         //if (!is_inside_ex(m_ts_data->get_collision(0, layer_nr), candidate))
                         {
                             constexpr bool to_buildplate = true;
-                            Node *         contact_node  = new Node(candidate, -z_distance_top_layers, (layer_nr) % 2, support_roof_layers + z_distance_top_layers, to_buildplate,
+                            Node *         contact_node  = new Node(candidate, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, to_buildplate,
                                                           Node::NO_PARENT, print_z, height, z_distance_top);
                             contact_node->overhang = &overhang_part;
                             curr_nodes.emplace_back(contact_node);
@@ -3447,7 +3449,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     if (!overhang_part.contains(candidate))
                         move_inside_expoly(overhang_part, candidate);
                     constexpr bool   to_buildplate   = true;
-                    Node *contact_node = new Node(candidate, -z_distance_top_layers, layer_nr % 2, support_roof_layers + z_distance_top_layers, to_buildplate, Node::NO_PARENT,
+                    Node *contact_node = new Node(candidate, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, to_buildplate, Node::NO_PARENT,
                                                   print_z, height, z_distance_top);
                     contact_node->overhang           = &overhang_part;
                     curr_nodes.emplace_back(contact_node);
@@ -3462,7 +3464,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     auto v1 = (pt - points[(i - 1 + nSize) % nSize]).cast<double>().normalized();
                     auto v2 = (pt - points[(i + 1) % nSize]).cast<double>().normalized();
                     if (v1.dot(v2) > -0.7) { // angle smaller than 135 degrees
-                        Node *contact_node     = new Node(pt, -z_distance_top_layers, layer_nr % 2, support_roof_layers + z_distance_top_layers, true, Node::NO_PARENT, print_z,
+                        Node *contact_node     = new Node(pt, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, true, Node::NO_PARENT, print_z,
                                                       height, z_distance_top);
                         contact_node->overhang = &overhang_part;
                         contact_node->is_corner = true;
