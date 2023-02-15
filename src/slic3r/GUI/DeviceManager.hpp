@@ -405,6 +405,7 @@ public:
     std::string dev_ip;
     std::string dev_id;
     bool        local_use_ssl { false };
+    float       nozzle_diameter { 0.0f };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     void set_dev_ip(std::string ip) {dev_ip = ip;};

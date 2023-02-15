@@ -2075,6 +2075,7 @@ void MachineObject::reset()
     last_mc_print_stage = -1;
     m_new_ver_list_exist = false;
     extruder_axis_status = LOAD;
+    nozzle_diameter = 0.0f;
 
     vt_tray.reset();
 
@@ -2660,6 +2661,19 @@ int MachineObject::parse_json(std::string payload)
                         ;
                     }
 #pragma endregion
+
+                    try {
+                        if (jj.contains("nozzle_diameter")) {
+                            if (jj["nozzle_diameter"].is_number_float()) {
+                                nozzle_diameter = jj["nozzle_diameter"].get<float>();
+                            } else if (jj["nozzle_diameter"].is_string()) {
+                                nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                            }
+                        }
+                    }
+                    catch(...) {
+                        ;
+                    }
 
 #pragma region upgrade
                     try {
