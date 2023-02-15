@@ -3451,6 +3451,7 @@ int MachineObject::parse_json(std::string payload)
                         module_vers.emplace(ver_info.name, ver_info);
                     }
                     parse_version_func();
+
                     bool get_version_result = true;
                     if (j["info"].contains("result"))
                         if (j["info"]["result"].get<std::string>() == "fail")

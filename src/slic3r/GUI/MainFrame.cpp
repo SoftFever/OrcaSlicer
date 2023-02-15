@@ -806,6 +806,11 @@ void MainFrame::shutdown()
         m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
     }
 
+    // stop agent
+    NetworkAgent* agent = wxGetApp().getAgent();
+    if (agent)
+        agent->track_enable(false);
+
     // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
     //wxGetApp().removable_drive_manager()->shutdown();
 	//stop listening for messages from other instances

@@ -233,6 +233,19 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
     }
+
+    if (m_failed_code != 0) {
+        json j;
+        j["stage"] = std::to_string(m_last_state);
+        j["dev_id"] = m_machine;
+        j["dev_ip"] = m_lan_ip;
+        j["result"]    = "failed";
+        j["code"]      = m_failed_code;
+        NetworkAgent* agent = wxGetApp().getAgent();
+        if (agent)
+            agent->track_event("start_liveview", j.dump());
+    }
+
     ++m_failed_retry;
     if (m_failed_code != 0 && !m_tutk_support && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
@@ -369,6 +382,18 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         if (size.GetWidth() > 1000) {
             m_last_state = state;
             SetStatus(_L("Playing..."), false);
+
+            // track event
+            json j;
+            j["stage"] =  std::to_string(m_last_state);
+            j["dev_id"] = m_machine;
+            j["dev_ip"] = m_lan_ip;
+            j["result"] = "success";
+            j["code"] = 0;
+            NetworkAgent* agent = wxGetApp().getAgent();
+            if (agent)
+                agent->track_event("start_liveview", j.dump());
+
             m_failed_retry = 0;
             m_failed_code  = 0;
             boost::unique_lock lock(m_mutex);

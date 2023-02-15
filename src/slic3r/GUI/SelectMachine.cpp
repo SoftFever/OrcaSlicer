@@ -2228,6 +2228,11 @@ void SelectMachineDialog::on_ok()
         wxGetApp().show_ip_address_enter_dialog();
      });
 
+    // update ota version
+    NetworkAgent* agent = wxGetApp().getAgent();
+    if (agent)
+        agent->track_update_property("dev_ota_version", obj_->get_ota_version());
+
     m_print_job->start();
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
 }

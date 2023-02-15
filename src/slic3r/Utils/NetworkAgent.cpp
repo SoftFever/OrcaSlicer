@@ -97,6 +97,10 @@ func_get_profile_3mf                NetworkAgent::get_profile_3mf_ptr = nullptr;
 func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
 func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = nullptr;
 func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
+func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
+func_track_event                    NetworkAgent::track_event_ptr = nullptr;
+func_track_header                   NetworkAgent::track_header_ptr = nullptr;
+func_track_update_property          NetworkAgent::track_update_property_ptr = nullptr;
 
 
 NetworkAgent::NetworkAgent()
@@ -240,6 +244,10 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
     get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
+    track_enable_ptr                  =  reinterpret_cast<func_track_enable>(get_network_function("bambu_network_track_enable"));
+    track_event_ptr                   =  reinterpret_cast<func_track_event>(get_network_function("bambu_network_track_event"));
+    track_header_ptr                  =  reinterpret_cast<func_track_header>(get_network_function("bambu_network_track_header"));
+    track_update_property_ptr         = reinterpret_cast<func_track_update_property>(get_network_function("bambu_network_track_update_property"));
 
     return 0;
 }
@@ -336,6 +344,10 @@ int NetworkAgent::unload_network_module()
     get_model_publish_url_ptr         =  nullptr;
     get_model_mall_home_url_ptr       =  nullptr;
     get_my_profile_ptr                =  nullptr;
+    track_enable_ptr                  =  nullptr;
+    track_event_ptr                   =  nullptr;
+    track_header_ptr                  =  nullptr;
+    track_update_property_ptr         =  nullptr;
 
     return 0;
 }
@@ -787,11 +799,11 @@ std::string NetworkAgent::build_login_info()
     return ret;
 }
 
-int NetworkAgent::bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn)
+int NetworkAgent::bind(std::string dev_ip, std::string dev_id, std::string timezone, OnUpdateStatusFn update_fn)
 {
     int ret = 0;
     if (network_agent && bind_ptr) {
-        ret = bind_ptr(network_agent, dev_ip, timezone, update_fn);
+        ret = bind_ptr(network_agent, dev_ip, dev_id, timezone, update_fn);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%, timezone=%4%")
                 %network_agent %ret %dev_ip %timezone;
@@ -1124,6 +1136,50 @@ int NetworkAgent::get_my_profile(std::string token, unsigned int *http_code, std
     int ret = 0;
     if (network_agent && get_my_profile_ptr) {
         ret = get_my_profile_ptr(network_agent, token, http_code, http_body);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::track_enable(bool enable)
+{
+    int ret = 0;
+    if (network_agent && track_enable_ptr) {
+        ret = track_enable_ptr(network_agent, enable);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::track_event(std::string evt_key, std::string content)
+{
+    int ret = 0;
+    if (network_agent && track_event_ptr) {
+        ret = track_event_ptr(network_agent, evt_key, content);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::track_header(std::string header)
+{
+    int ret = 0;
+    if (network_agent && track_header_ptr) {
+        ret = track_header_ptr(network_agent, header);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::track_update_property(std::string name, std::string value, std::string type)
+{
+    int ret = 0;
+    if (network_agent && track_update_property_ptr) {
+        ret = track_update_property_ptr(network_agent, name, value, type);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
     }

@@ -481,14 +481,12 @@ void PrinterFileSystem::DownloadNextFile()
                 download->index = FindFile(download->index, download->name);
             if (download->index != size_t(-1)) {
                 int progress = data.size * 100 / data.total;
-                if (result > CONTINUE)
-                    progress = -2;
                 auto & file = m_file_list[download->index];
                 if (result == ERROR_CANCEL)
                     file.flags &= ~FF_DOWNLOAD;
                 else if (file.progress != progress) {
                     file.progress = progress;
-                    SendChangedEvent(EVT_DOWNLOAD, download->index, file.path, data.size);
+                    SendChangedEvent(EVT_DOWNLOAD, download->index, file.path, result);
                 }
             }
             if (result != CONTINUE) DownloadNextFile();

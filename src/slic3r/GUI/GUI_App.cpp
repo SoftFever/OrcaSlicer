@@ -1127,9 +1127,11 @@ void GUI_App::post_init()
             //BBS: check new version
             this->check_new_version();
             //BBS: check privacy version
-            if (is_user_login())
+            if (is_user_login()) {
                 this->check_privacy_version(0);
 
+                this->check_track_enable();
+            }
         });
     }
 
@@ -3809,12 +3811,29 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
     }
 }
 
+void GUI_App::check_track_enable()
+{
+    if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
+        //enable track event
+        json header_json;
+        header_json["ver"] = SLIC3R_VERSION;
+        wxString os_desc = wxGetOsDescription();
+        int major = 0, minor = 0, micro = 0;
+        header_json["os"] = std::string(os_desc.ToUTF8());
+        if (m_agent) {
+            m_agent->track_header(header_json.dump());
+            m_agent->track_enable(true);
+        }
+    }
+}
+
 void GUI_App::on_user_login(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
     int online_login = evt.GetInt();
     // check privacy before handle
     check_privacy_version(online_login);
+    check_track_enable();
 }
 
 bool GUI_App::is_studio_active()

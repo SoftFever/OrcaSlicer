@@ -45,7 +45,7 @@ typedef std::string (*func_get_user_nickanme)(void *agent);
 typedef std::string (*func_build_login_cmd)(void *agent);
 typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
-typedef int (*func_bind)(void *agent, std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn);
+typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string timezone, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
 typedef std::string (*func_get_user_selected_machine)(void *agent);
@@ -77,6 +77,10 @@ typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
 typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
+typedef int (*func_track_enable)(void *agent, bool enable);
+typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
+typedef int (*func_track_header)(void *agent, std::string header);
+typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
 
 
 //the NetworkAgent class
@@ -130,7 +134,7 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn);
+    int bind(std::string dev_ip, std::string dev_id, std::string timezone, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
     std::string get_user_selected_machine();
@@ -162,6 +166,10 @@ public:
     int get_model_publish_url(std::string* url);
     int get_model_mall_home_url(std::string* url);   
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
+    int track_enable(bool enable);
+    int track_event(std::string evt_key, std::string content);
+    int track_header(std::string header);
+    int track_update_property(std::string name, std::string value, std::string type = "string");
 
 private:
 
@@ -237,6 +245,10 @@ private:
     static func_get_model_publish_url          get_model_publish_url_ptr;
     static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;
+    static func_track_enable                   track_enable_ptr;
+    static func_track_event                    track_event_ptr;
+    static func_track_header                   track_header_ptr;
+    static func_track_update_property          track_update_property_ptr;
 };
 
 }

@@ -79,7 +79,7 @@ void BindJob::process()
     long offset = tz.GetOffset();
     std::string timezone = get_timezone_utc_hm(offset);
 
-    int result = m_agent->bind(m_dev_ip, timezone,
+    int result = m_agent->bind(m_dev_ip, m_dev_id, timezone,
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::BindJobStage::LoginStageConnect) {
                 curr_percent = 15;
