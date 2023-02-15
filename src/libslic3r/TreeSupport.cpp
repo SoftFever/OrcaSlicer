@@ -3000,7 +3000,11 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 std::vector<Node*>::iterator to_erase = std::find(contact_nodes[i_layer].begin(), contact_nodes[i_layer].end(), i_node);
                 if (to_erase != contact_nodes[i_layer].end())
                 {
-                    to_free_node_set.insert(*to_erase);
+                    // update the parent-child chain
+                    if(i_node->parent)
+                        i_node->parent->child = i_node->child;
+                    if(i_node->child)
+                        i_node->child->parent = i_node->parent;
                     contact_nodes[i_layer].erase(to_erase);
                     to_free_node_set.insert(i_node);
 
