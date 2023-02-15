@@ -11,9 +11,9 @@ namespace GUI {
 #define ICON_SIZE       (wxSize(FromDIP(16), FromDIP(16)))
 #define PRINT_ICON_SIZE (wxSize(FromDIP(18), FromDIP(18)))
 
-wxIMPLEMENT_CLASS(SliceInfoPopup, PopupWindow);
+wxIMPLEMENT_CLASS(SliceInfoPopup, wxPopupTransientWindow);
 
-wxBEGIN_EVENT_TABLE(SliceInfoPopup, PopupWindow)
+wxBEGIN_EVENT_TABLE(SliceInfoPopup, wxPopupTransientWindow)
     EVT_MOUSE_EVENTS( SliceInfoPopup::OnMouse )
     EVT_SIZE(SliceInfoPopup::OnSize)
     EVT_SET_FOCUS( SliceInfoPopup::OnSetFocus )
@@ -53,7 +53,7 @@ static wxColour decode_color(const std::string &color)
 
 
 SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *info)
-   : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+   : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -139,20 +139,20 @@ SliceInfoPopup::SliceInfoPopup(wxWindow *parent, wxBitmap bmp, BBLSliceInfo *inf
 }
 
 void SliceInfoPopup::Popup(wxWindow *WXUNUSED(focus)) {
-    PopupWindow::Popup();
+    wxPopupTransientWindow::Popup();
 }
 
 void SliceInfoPopup::OnDismiss() {
-    PopupWindow::OnDismiss();
+    wxPopupTransientWindow::OnDismiss();
 }
 
 bool SliceInfoPopup::ProcessLeftDown(wxMouseEvent &event)
 {
-    return PopupWindow::ProcessLeftDown(event);
+    return wxPopupTransientWindow::ProcessLeftDown(event);
 }
 bool SliceInfoPopup::Show(bool show)
 {
-    return PopupWindow::Show(show);
+    return wxPopupTransientWindow::Show(show);
 }
 
 void SliceInfoPopup::OnSize(wxSizeEvent &event)

@@ -207,7 +207,7 @@ void MaterialItem::doRender(wxDC &dc)
 }
 
  AmsMapingPopup::AmsMapingPopup(wxWindow *parent) 
-    : PopupWindow(parent, wxBORDER_NONE)
+    :wxPopupTransientWindow(parent, wxBORDER_NONE)
  {
      SetSize(wxSize(FromDIP(360), -1));
      SetMinSize(wxSize(FromDIP(360), -1));
@@ -504,7 +504,7 @@ void AmsMapingPopup::OnDismiss()
 
 bool AmsMapingPopup::ProcessLeftDown(wxMouseEvent &event) 
 {
-    return PopupWindow::ProcessLeftDown(event);
+    return wxPopupTransientWindow::ProcessLeftDown(event);
 }
 
 void AmsMapingPopup::paintEvent(wxPaintEvent &evt) 
@@ -639,7 +639,7 @@ void MappingItem::doRender(wxDC &dc)
 }
 
 AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent) 
-    :PopupWindow(parent, wxBORDER_NONE)
+    :wxPopupTransientWindow(parent, wxBORDER_NONE)
 {
     SetBackgroundColour(*wxWHITE);
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
@@ -739,11 +739,11 @@ void AmsMapingTipPopup::paintEvent(wxPaintEvent &evt)
 void AmsMapingTipPopup::OnDismiss() {}
 
 bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) { 
-    return PopupWindow::ProcessLeftDown(event); }
+    return wxPopupTransientWindow::ProcessLeftDown(event); }
 
 
 AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
-    :PopupWindow(parent, wxBORDER_NONE)
+    :wxPopupTransientWindow(parent, wxBORDER_NONE)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -857,11 +857,11 @@ void AmsHumidityTipPopup::paintEvent(wxPaintEvent& evt)
 void AmsHumidityTipPopup::OnDismiss() {}
 
 bool AmsHumidityTipPopup::ProcessLeftDown(wxMouseEvent& event) {
-    return PopupWindow::ProcessLeftDown(event);
+    return wxPopupTransientWindow::ProcessLeftDown(event);
 }
 
 AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
-:PopupWindow(parent, wxBORDER_NONE)
+:wxPopupTransientWindow(parent, wxBORDER_NONE)
 {
     Bind(wxEVT_PAINT, &AmsTutorialPopup::paintEvent, this);
     SetBackgroundColour(*wxWHITE);
@@ -959,12 +959,12 @@ void AmsTutorialPopup::paintEvent(wxPaintEvent& evt)
 void AmsTutorialPopup::OnDismiss() {}
 
 bool AmsTutorialPopup::ProcessLeftDown(wxMouseEvent& event) {
-    return PopupWindow::ProcessLeftDown(event);
+    return wxPopupTransientWindow::ProcessLeftDown(event);
 }
 
 
 AmsIntroducePopup::AmsIntroducePopup(wxWindow* parent)
-:PopupWindow(parent, wxBORDER_NONE)
+:wxPopupTransientWindow(parent, wxBORDER_NONE)
 {
     Bind(wxEVT_PAINT, &AmsIntroducePopup::paintEvent, this);
     SetBackgroundColour(*wxWHITE);
@@ -1044,7 +1044,7 @@ void AmsIntroducePopup::paintEvent(wxPaintEvent& evt)
 void AmsIntroducePopup::OnDismiss() {}
 
 bool AmsIntroducePopup::ProcessLeftDown(wxMouseEvent& event) {
-    return PopupWindow::ProcessLeftDown(event);
+    return wxPopupTransientWindow::ProcessLeftDown(event);
 }
 
 

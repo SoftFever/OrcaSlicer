@@ -4,7 +4,6 @@
 #include <wx/stattext.h>
 #include "../wxExtensions.hpp"
 #include "StateHandler.hpp"
-#include "PopupWindow.hpp"
 
 #define DD_NO_CHECK_ICON    0x0001
 #define DD_NO_TEXT          0x0002
@@ -12,7 +11,7 @@
 
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 
-class DropDown : public PopupWindow
+class DropDown : public wxPopupTransientWindow
 {
     std::vector<wxString> &       texts;
     std::vector<wxBitmap> &     icons;

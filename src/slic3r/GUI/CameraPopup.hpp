@@ -13,7 +13,6 @@
 #include <wx/hyperlink.h>
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/RadioBox.hpp"
-#include "Widgets/PopupWindow.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -21,13 +20,13 @@ namespace GUI {
 wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
 wxDECLARE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
-class CameraPopup : public PopupWindow
+class CameraPopup : public wxPopupTransientWindow
 {
 public:
     CameraPopup(wxWindow *parent, MachineObject* obj = nullptr);
     virtual ~CameraPopup() {}
 
-    // PopupWindow virtual methods are all overridden to log them
+    // wxPopupTransientWindow virtual methods are all overridden to log them
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;

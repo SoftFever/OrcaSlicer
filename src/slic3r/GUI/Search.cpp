@@ -522,7 +522,7 @@ static const std::map<const char, int> icon_idxs = {
 };
 
 SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn) 
-    : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), searcher(searcher)
+    : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), searcher(searcher)
 {
     m_event_tag       = parent;
     search_line       = input;
@@ -622,7 +622,7 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
     search_line->GetTextCtrl()->SetValue(wxString(""));
     //const std::string &line = searcher->search_string();
     //searcher->search(into_u8(line), true);
-    PopupWindow::Popup();
+    wxPopupTransientWindow::Popup();
     search_line->SetFocus();
     update_list();
 }
@@ -649,7 +649,7 @@ void SearchDialog::Dismiss()
 
 void SearchDialog::Die() 
 {
-    PopupWindow::Dismiss();
+    wxPopupTransientWindow::Dismiss();
     wxCommandEvent event(wxCUSTOMEVT_EXIT_SEARCH);
     wxPostEvent(search_line, event);
 }

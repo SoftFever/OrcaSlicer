@@ -2840,9 +2840,9 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     }
 #if __WXOSX__
     // MacOS has focus problem
-    PopupWindow *popUp = new PopupWindow(nullptr);
+    wxPopupTransientWindow *popUp = new wxPopupTransientWindow(nullptr);
 #else
-    PopupWindow *popUp = new PopupWindow(m_switch_speed);
+    wxPopupTransientWindow *popUp = new wxPopupTransientWindow(m_switch_speed);
 #endif
     popUp->SetBackgroundColour(StateColor::darkModeColorFor(0xeeeeee));
     StepCtrl *step = new StepCtrl(popUp, wxID_ANY);

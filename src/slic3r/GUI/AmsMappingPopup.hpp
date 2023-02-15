@@ -34,7 +34,6 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
-#include "Widgets/PopupWindow.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -114,7 +113,7 @@ public:
     void doRender(wxDC &dc);
 };
 
-class AmsMapingPopup : public PopupWindow
+class AmsMapingPopup : public wxPopupTransientWindow
 {
 public:
     AmsMapingPopup(wxWindow *parent);
@@ -147,7 +146,7 @@ public:
     std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 };
 
-class AmsMapingTipPopup : public PopupWindow
+class AmsMapingTipPopup : public wxPopupTransientWindow
 {
 public:
     AmsMapingTipPopup(wxWindow *parent);
@@ -167,7 +166,7 @@ public:
     wxStaticText *   m_tip_disable_ams;
 };
 
-class AmsHumidityTipPopup : public PopupWindow
+class AmsHumidityTipPopup : public wxPopupTransientWindow
 {
 public:
     AmsHumidityTipPopup(wxWindow* parent);
@@ -187,7 +186,7 @@ public:
     Button* m_button_confirm;
 };
 
-class AmsTutorialPopup : public PopupWindow
+class AmsTutorialPopup : public wxPopupTransientWindow
 {
 public:
     Label* text_title;
@@ -209,7 +208,7 @@ public:
 };
 
 
-class AmsIntroducePopup : public PopupWindow
+class AmsIntroducePopup : public wxPopupTransientWindow
 {
 public:
     bool          is_enable_ams = {false};

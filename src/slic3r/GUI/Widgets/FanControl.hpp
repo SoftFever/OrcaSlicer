@@ -5,7 +5,6 @@
 #include "StaticBox.hpp"
 #include "StepCtrl.hpp"
 #include "Button.hpp"
-#include "PopupWindow.hpp"
 #include "../DeviceManager.hpp"
 #include "slic3r/GUI/Event.hpp"
 #include <wx/simplebook.h>
@@ -138,7 +137,7 @@ public:
 /*************************************************
 Description:FanControlPopup
 **************************************************/
-class FanControlPopup : public PopupWindow
+class FanControlPopup : public wxPopupTransientWindow
 {
 public:
     FanControlPopup(wxWindow* parent);

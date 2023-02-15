@@ -1,6 +1,5 @@
 #include "TempInput.hpp"
 #include "Label.hpp"
-#include "PopupWindow.hpp"
 #include "../I18N.hpp"
 #include <wx/dcgraph.h>
 #include "../GUI.hpp"
@@ -191,7 +190,7 @@ void TempInput::Warning(bool warn, WarningType type)
 
     if (warning_mode) {
         if (wdialog == nullptr) {
-            wdialog = new PopupWindow(this);
+            wdialog = new wxPopupTransientWindow(this);
             wdialog->SetBackgroundColour(wxColour(0xFFFFFF));
 
             wdialog->SetSizeHints(wxDefaultSize, wxDefaultSize);

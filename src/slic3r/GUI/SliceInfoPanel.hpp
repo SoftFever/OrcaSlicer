@@ -9,18 +9,17 @@
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/webrequest.h>
-#include "Widgets/PopupWindow.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
-class SliceInfoPopup : public PopupWindow
+class SliceInfoPopup : public wxPopupTransientWindow
 {
 public:
     SliceInfoPopup(wxWindow *parent, wxBitmap bmp= wxNullBitmap, BBLSliceInfo* info=nullptr);
     virtual ~SliceInfoPopup() {}
 
-    // PopupWindow virtual methods are all overridden to log them
+    // wxPopupTransientWindow virtual methods are all overridden to log them
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
