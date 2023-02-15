@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.05.00.13",
+    "version": "01.05.00.14",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -156,7 +156,7 @@
             "sub_path": "process/fdm_process_bbl_0.06_nozzle_0.2.json"
         },
         {
-            "name": "fdm_process_bbl_0.08_nozzle_0.2.json",
+            "name": "fdm_process_bbl_0.08_nozzle_0.2",
             "sub_path": "process/fdm_process_bbl_0.08_nozzle_0.2.json"
         },
         {
@@ -188,7 +188,7 @@
             "sub_path": "process/fdm_process_bbl_0.18_nozzle_0.6.json"
         },
         {
-            "name": "fdm_process_bbl_0.24_nozzle_0.6.json",
+            "name": "fdm_process_bbl_0.24_nozzle_0.6",
             "sub_path": "process/fdm_process_bbl_0.24_nozzle_0.6.json"
         },
         {
@@ -196,7 +196,7 @@
             "sub_path": "process/fdm_process_bbl_0.36_nozzle_0.6.json"
         },
         {
-            "name": "fdm_process_bbl_0.42_nozzle_0.6.json",
+            "name": "fdm_process_bbl_0.42_nozzle_0.6",
             "sub_path": "process/fdm_process_bbl_0.42_nozzle_0.6.json"
         },
         {
