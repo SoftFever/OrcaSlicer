@@ -2342,6 +2342,7 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
+    Bind(EVT_SET_SELECTED_MACHINE, &GUI_App::on_set_selected_machine, this);
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 
     Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
@@ -3709,6 +3710,14 @@ void GUI_App::enable_user_preset_folder(bool enable)
     }
 }
 
+void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev || m_agent) return;
+
+    dev->set_selected_machine(m_agent->get_user_selected_machine());
+}
+
 void GUI_App::on_user_login(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
@@ -3719,8 +3728,12 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     // get machine list
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-    dev->update_user_machine_list_info();
-    dev->set_selected_machine(m_agent->get_user_selected_machine());
+
+    boost::thread update_thread = boost::thread([this, dev] {
+        dev->update_user_machine_list_info();
+        auto evt = new wxCommandEvent(EVT_SET_SELECTED_MACHINE);
+        wxQueueEvent(this, evt);
+    });
 
     if (app_config->get("sync_user_preset") == "true") {
         enable_user_preset_folder(true);
