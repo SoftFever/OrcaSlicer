@@ -1538,6 +1538,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // For a print by objects, find the 1st printing object.
     ToolOrdering tool_ordering;
     unsigned int initial_extruder_id = (unsigned int)-1;
+    //BBS: first non-support filament extruder
+    unsigned int initial_non_support_extruder_id;
     unsigned int final_extruder_id   = (unsigned int)-1;
     bool         has_wipe_tower      = false;
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
@@ -1550,8 +1552,33 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         print_object_instance_sequential_active = print_object_instances_ordering.begin();
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
             tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-            if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1))
+            if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
+                //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
+                initial_non_support_extruder_id = initial_extruder_id;
+                if (tool_ordering.all_extruders().size() > 1 && print.config().filament_is_support.get_at(initial_extruder_id)) {
+                    bool has_non_support_filament = false;
+                    for (unsigned int extruder : tool_ordering.all_extruders()) {
+                        if (!print.config().filament_is_support.get_at(extruder)) {
+                            has_non_support_filament = true;
+                            break;
+                        }
+                    }
+                    //BBS: find the non-support filament extruder of object
+                    if (has_non_support_filament)
+                        for (LayerTools layer_tools : tool_ordering.layer_tools()) {
+                            if (!layer_tools.has_object)
+                                continue;
+                            for (unsigned int extruder : layer_tools.extruders) {
+                                if (print.config().filament_is_support.get_at(extruder))
+                                    continue;
+                                initial_non_support_extruder_id = extruder;
+                                break;
+                            }
+                        }
+                }
+
                 break;
+            }
         }
         if (initial_extruder_id == static_cast<unsigned int>(-1))
             // No object to print was found, cancel the G-code export.
@@ -1580,6 +1607,32 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #else
         initial_extruder_id = tool_ordering.first_extruder();
 #endif
+        //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
+        if (initial_extruder_id != static_cast<unsigned int>(-1)) {
+            initial_non_support_extruder_id = initial_extruder_id;
+            if (tool_ordering.all_extruders().size() > 1 && print.config().filament_is_support.get_at(initial_extruder_id)) {
+                bool has_non_support_filament = false;
+                for (unsigned int extruder : tool_ordering.all_extruders()) {
+                    if (!print.config().filament_is_support.get_at(extruder)) {
+                        has_non_support_filament = true;
+                        break;
+                    }
+                }
+                //BBS: find the non-support filament extruder of object
+                if (has_non_support_filament)
+                    for (LayerTools layer_tools : tool_ordering.layer_tools()) {
+                        if (!layer_tools.has_object)
+                            continue;
+                        for (unsigned int extruder : layer_tools.extruders) {
+                            if (print.config().filament_is_support.get_at(extruder))
+                                continue;
+                            initial_non_support_extruder_id = extruder;
+                            break;
+                        }
+                    }
+            }
+        }
+
         // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
         // Therefore initialize the printing extruders from there.
         this->set_extruders(tool_ordering.all_extruders());
@@ -1589,6 +1642,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
         initial_extruder_id = 0;
+        initial_non_support_extruder_id = 0;
         final_extruder_id   = 0;
     } else {
         final_extruder_id = tool_ordering.last_extruder();
@@ -1612,6 +1666,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Let the start-up script prime the 1st printing tool.
     m_placeholder_parser.set("initial_tool", initial_extruder_id);
     m_placeholder_parser.set("initial_extruder", initial_extruder_id);
+    //BBS
+    m_placeholder_parser.set("initial_no_support_tool", initial_non_support_extruder_id);
+    m_placeholder_parser.set("initial_no_support_extruder", initial_non_support_extruder_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     //Set variable for total layer count so it can be used in custom gcode.
     m_placeholder_parser.set("total_layer_count", m_layer_count);
@@ -1659,13 +1716,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
-            float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
+            float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
             float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
             if (outer_wall_line_width == 0.0) {
                 float default_line_width = print.default_object_config().line_width.value;
-                outer_wall_line_width = default_line_width == 0.0 ? m_config.nozzle_diameter.get_at(initial_extruder_id) : default_line_width;
+                outer_wall_line_width = default_line_width == 0.0 ? m_config.nozzle_diameter.get_at(initial_non_support_extruder_id) : default_line_width;
             }
-            Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_extruder_id));
+            Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_non_support_extruder_id));
             float outer_wall_speed = print.default_region_config().outer_wall_speed.value;
             float outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
             if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
