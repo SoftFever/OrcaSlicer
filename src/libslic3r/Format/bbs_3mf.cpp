@@ -3840,6 +3840,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         //add the shared mesh logic
                         shared_mesh_id = ::atoi(metadata.value.c_str());
                         found_count++;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": line %1%, shared_mesh_id %2%")%__LINE__%shared_mesh_id;
                     }
 
                     if (found_count >= 2)
@@ -3857,6 +3858,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::map<int, ModelVolume*>::iterator iter = m_shared_meshes.find(shared_mesh_id);
                 if (iter != m_shared_meshes.end()) {
                     shared_volume = iter->second;
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": line %1%, found shared mesh, id %2%, mesh %3%")%__LINE__%shared_mesh_id%shared_volume;
                 }
             }
 
@@ -3909,11 +3911,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 volume = object.add_volume(std::move(triangle_mesh));
 
-                m_shared_meshes[sub_object->id] = volume;
+                if (shared_mesh_id != -1)
+                    //for some cases the shared mesh is in other plate and not loaded in cli slicing
+                    //we need to use the first one in the same plate instead
+                    m_shared_meshes[shared_mesh_id] = volume;
+                else
+                    m_shared_meshes[sub_object->id] = volume;
             }
             else {
                 //create volume to use shared mesh
                 volume = object.add_volume_with_shared_mesh(*shared_volume);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": line %1%, create volume using shared_mesh %2%")%__LINE__%shared_volume;
             }
             // stores the volume matrix taken from the metadata, if present
             if (has_transform)
