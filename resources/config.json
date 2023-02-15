@@ -15,7 +15,6 @@
                 "FUNC_VIRTUAL_CAMERA" : false,
                 "FUNC_PRINT_WITHOUT_SD": false,
                 "FUNC_ALTER_RESOLUTION": false,
-                "FUNC_AUTO_SWITCH_FILAMENT": false,
                 "FUNC_CHAMBER_FAN" : false,
                 "FUNC_EXTRUSION_CALI": true,
                 "FUNC_PRINT_ALL" : false

@@ -1316,6 +1316,7 @@ bool MachineObject::is_recording()
 void MachineObject::parse_version_func()
 {
     auto ota_version = module_vers.find("ota");
+    auto esp32_version = module_vers.find("esp32");
     if (printer_type == "BL-P001" ||
         printer_type == "BL-P002") {
         if (ota_version != module_vers.end()) {
@@ -1342,7 +1343,12 @@ void MachineObject::parse_version_func()
         }
     } else if (printer_type == "C11") {
         local_use_ssl = true;
-        is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
+        if (ota_version != module_vers.end()) {
+            is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
+        }
+        if (esp32_version != module_vers.end()) {
+            ams_support_auto_switch_filament_flag = esp32_version->second.sw_ver.compare("00.03.11.50") >= 0;
+        }
     }
 }
 
