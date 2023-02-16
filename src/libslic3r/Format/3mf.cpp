@@ -3182,7 +3182,7 @@ ModelVolumeType type_from_string(const std::string &s)
 
 bool _3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
 {
-    return false;
+    return true;
     //std::string out = "";
 
     //if (!model.custom_gcode_per_print_z.gcodes.empty()) {
