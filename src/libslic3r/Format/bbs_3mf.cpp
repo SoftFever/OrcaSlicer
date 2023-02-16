@@ -3098,7 +3098,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Importer::_handle_start_component(const char** attributes, unsigned int num_attributes)
     {
-        int object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
+        std::string path      = bbs_get_attribute_value_string(attributes, num_attributes, PPATH_ATTR);
+        int         object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
         Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
 
         /*Id id = std::make_pair(m_sub_model_path, object_id);
@@ -3112,7 +3113,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }*/
 
         if (m_curr_object) {
-            Id id = std::make_pair(m_sub_model_path, object_id);
+            Id id = std::make_pair(m_sub_model_path.empty() ? path : m_sub_model_path, object_id);
             m_curr_object->components.emplace_back(id, transform);
         }
 
