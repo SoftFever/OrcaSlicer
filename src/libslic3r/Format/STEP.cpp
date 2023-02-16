@@ -210,13 +210,15 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     }
 }
 
-bool load_step(const char *path, Model *model, ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn)
+bool load_step(const char *path, Model *model, bool& is_cancel, ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn)
 {
     bool cb_cancel = false;
     if (stepFn) {
         stepFn(LOAD_STEP_STAGE_READ_FILE, 0, 1, cb_cancel);
-        if (cb_cancel)
+        is_cancel = cb_cancel;
+        if (cb_cancel) {
             return false;
+        }
     }
 
     if (!StepPreProcessor::isUtf8File(path) && isUtf8Fn)
@@ -248,6 +250,7 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn stepFn, Step
         if (stepFn) {
             if ((iLabel % stage_unit2) == 0) {
                 stepFn(LOAD_STEP_STAGE_GET_SOLID, iLabel, topShapeLength, cb_cancel);
+                is_cancel = cb_cancel;
             }
             if (cb_cancel) {
                 shapeTool.reset(nullptr);
@@ -345,6 +348,7 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn stepFn, Step
         if (stepFn) {
             if ((i % stage_unit3) == 0) {
                 stepFn(LOAD_STEP_STAGE_GET_MESH, i, stl.size(), cb_cancel);
+                is_cancel = cb_cancel;
             }
             if (cb_cancel) {
                 model->delete_object(new_object);

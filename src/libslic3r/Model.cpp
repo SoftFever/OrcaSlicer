@@ -165,10 +165,11 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         file_version = &temp_version;
 
     bool result = false;
+    bool is_cb_cancel = false;
     std::string message;
     if (boost::algorithm::iends_with(input_file, ".stp") ||
         boost::algorithm::iends_with(input_file, ".step"))
-        result = load_step(input_file.c_str(), &model, stepFn, stepIsUtf8Fn);
+        result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
     else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
@@ -188,6 +189,11 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension.");
+
+    if (is_cb_cancel) {
+        Model empty_model;
+        return empty_model;
+    }
 
     if (!result) {
         if (message.empty())
