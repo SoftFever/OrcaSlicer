@@ -86,7 +86,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
         m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
-        m_device_busy   = obj->is_in_prepare();
+        m_device_busy   = obj->is_in_prepare() || obj->is_in_upgrading();
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
