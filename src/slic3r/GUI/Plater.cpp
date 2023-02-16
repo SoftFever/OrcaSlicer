@@ -1397,13 +1397,13 @@ void Sidebar::sync_ams_list()
         SyncAmsDialog(wxWindow * parent, bool first): MessageDialog(parent,
             first
                 ? _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?")
-                : _L("Already did a synchronization, do you want to update only changes or resync all?"),
+                : _L("Already did a synchronization, do you want to sync only changes or resync all?"),
             _L("Sync filaments with AMS"), 0)
         {
             if (first) {
                 add_button(wxID_YES, true, _L("Yes"));
             } else {
-                add_button(wxID_OK, true, _L("Update"));
+                add_button(wxID_OK, true, _L("Sync"));
                 add_button(wxID_YES, false, _L("Resync"));
             }
             add_button(wxID_CANCEL, false, _L("Cancel"));

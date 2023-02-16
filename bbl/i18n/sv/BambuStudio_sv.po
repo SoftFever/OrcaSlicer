@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-16 09:32+0800\n"
+"POT-Creation-Date: 2023-02-16 16:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1593,14 +1593,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -3748,8 +3748,11 @@ msgstr ""
 "inställningar och färger. Vill du fortsätta?"
 
 msgid ""
-"Already did a synchronization, do you want to update only changes or resync "
+"Already did a synchronization, do you want to sync only changes or resync "
 "all?"
+msgstr ""
+
+msgid "Sync"
 msgstr ""
 
 msgid "Resync"
@@ -6723,6 +6726,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
 
@@ -7748,8 +7754,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -8620,12 +8626,6 @@ msgstr ""
 
 #~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 #~ msgstr "Importera geometri data från STL/STEP/3MF/OBJ/AMF filer."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "\n"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-16 09:32+0800\n"
+"POT-Creation-Date: 2023-02-16 16:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1527,13 +1527,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm³"
+msgid "mm\\u00B3"
 msgstr ""
 
 msgid "Start calibration"
@@ -3533,8 +3533,11 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Already did a synchronization, do you want to update only changes or resync "
+"Already did a synchronization, do you want to sync only changes or resync "
 "all?"
+msgstr ""
+
+msgid "Sync"
 msgstr ""
 
 msgid "Resync"
@@ -6209,6 +6212,9 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
+msgstr ""
+
+msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"

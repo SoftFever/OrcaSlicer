@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-16 09:32+0800\n"
+"POT-Creation-Date: 2023-02-16 16:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1621,14 +1621,14 @@ msgstr "Druckbetttemperatur"
 msgid "Max volumetric speed"
 msgstr "Maximale Volumengeschwindigkeit"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Druckbetttemperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starten"
@@ -3814,8 +3814,11 @@ msgstr ""
 "fortfahren?"
 
 msgid ""
-"Already did a synchronization, do you want to update only changes or resync "
+"Already did a synchronization, do you want to sync only changes or resync "
 "all?"
+msgstr ""
+
+msgid "Sync"
 msgstr ""
 
 msgid "Resync"
@@ -6904,6 +6907,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale Wischmenge im Wischturm"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Ladedauer des Filaments"
 
@@ -8845,12 +8851,6 @@ msgstr ""
 
 #~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 #~ msgstr "Importieren Sie Geometriedaten aus STL/STEP/3MF/OBJ/AMF-Dateien."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "\n"

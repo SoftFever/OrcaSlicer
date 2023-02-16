@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-16 09:32+0800\n"
+"POT-Creation-Date: 2023-02-16 16:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1560,14 +1560,14 @@ msgstr "ベッド温度"
 msgid "Max volumetric speed"
 msgstr "最大体積速度"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "u2103"
 
 msgid "Bed temperature"
 msgstr "ベッド温度"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mmu00B3"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -3651,8 +3651,11 @@ msgstr ""
 "AMSと同期する場合、現在のフィラメント設定が上書きされます。続行しますか？"
 
 msgid ""
-"Already did a synchronization, do you want to update only changes or resync "
+"Already did a synchronization, do you want to sync only changes or resync "
 "all?"
+msgstr ""
+
+msgid "Sync"
 msgstr ""
 
 msgid "Resync"
@@ -6496,6 +6499,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "プライムタワー上最小フラッシュ量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "フィラメントロード時間"
 
@@ -8265,12 +8271,6 @@ msgstr ""
 
 #~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 #~ msgstr "STL/STEP/3MF/OBJ/AMF ファイルからジオメトリデータをインポート"
-
-#~ msgid "\\u2103"
-#~ msgstr "u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mmu00B3"
 
 #~ msgid ""
 #~ "\n"
