@@ -84,6 +84,25 @@ public:
 inline bool operator==(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour == rhs.contour && lhs.holes == rhs.holes; }
 inline bool operator!=(const ExPolygon &lhs, const ExPolygon &rhs) { return lhs.contour != rhs.contour || lhs.holes != rhs.holes; }
 
+inline size_t count_points(const ExPolygons& expolys)
+{
+    size_t n_points = 0;
+    for (const auto& expoly : expolys) {
+        n_points += expoly.contour.points.size();
+        for (const auto& hole : expoly.holes)
+            n_points += hole.points.size();
+    }
+    return n_points;
+}
+
+inline size_t count_points(const ExPolygon& expoly)
+{
+    size_t n_points = expoly.contour.points.size();
+    for (const auto& hole : expoly.holes)
+        n_points += hole.points.size();
+    return n_points;
+}
+
 // Count a nuber of polygons stored inside the vector of expolygons.
 // Useful for allocating space for polygons when converting expolygons to polygons.
 inline size_t number_polygons(const ExPolygons &expolys)
@@ -129,6 +148,72 @@ inline Lines to_lines(const ExPolygons &src)
         }
     }
     return lines;
+}
+// Line is from point index(see to_points) to next point.
+// Next point of last point in polygon is first polygon point.
+inline Linesf to_linesf(const ExPolygons& src, uint32_t count_lines = 0)
+{
+    assert(count_lines == 0 || count_lines == count_points(src));
+    if (count_lines == 0)
+        count_lines = count_points(src);
+    Linesf lines;
+    lines.reserve(count_lines);
+    Vec2d prev_pd;
+    auto to_lines = [&lines, &prev_pd](const Points& pts) {
+        assert(pts.size() >= 3);
+        if (pts.size() < 2)
+            return;
+        bool is_first = true;
+        for (const Point& p : pts) {
+            Vec2d pd = p.cast<double>();
+            if (is_first)
+                is_first = false;
+            else
+                lines.emplace_back(prev_pd, pd);
+            prev_pd = pd;
+        }
+        lines.emplace_back(prev_pd, pts.front().cast<double>());
+    };
+    for (const ExPolygon& expoly : src) {
+        to_lines(expoly.contour.points);
+        for (const Polygon& hole : expoly.holes)
+            to_lines(hole.points);
+    }
+    assert(lines.size() == count_lines);
+    return lines;
+}
+
+inline Linesf to_unscaled_linesf(const ExPolygons& src)
+{
+    Linesf lines;
+    lines.reserve(count_points(src));
+    for (ExPolygons::const_iterator it_expoly = src.begin(); it_expoly != src.end(); ++it_expoly) {
+        for (size_t i = 0; i <= it_expoly->holes.size(); ++i) {
+            const Points& points = ((i == 0) ? it_expoly->contour : it_expoly->holes[i - 1]).points;
+            Vec2d unscaled_a = unscaled(points.front());
+            Vec2d unscaled_b = unscaled_a;
+            for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
+                unscaled_b = unscaled(*(it));
+                lines.push_back(Linef(unscaled_a, unscaled_b));
+                unscaled_a = unscaled_b;
+            }
+            lines.push_back(Linef(unscaled_a, unscaled(points.front())));
+        }
+    }
+    return lines;
+}
+
+inline Points to_points(const ExPolygons& src)
+{
+    Points points;
+    size_t count = count_points(src);
+    points.reserve(count);
+    for (const ExPolygon& expolygon : src) {
+        append(points, expolygon.contour.points);
+        for (const Polygon& hole : expolygon.holes)
+            append(points, hole.points);
+    }
+    return points;
 }
 
 inline Polylines to_polylines(const ExPolygon &src)

@@ -659,7 +659,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("75%");
     def->enum_values.emplace_back("95%");
     def->enum_labels.emplace_back("0%");
-    def->enum_labels.emplace_back("10%");
+    def->enum_labels.emplace_back("5%");
     def->enum_labels.emplace_back("25%");
     def->enum_labels.emplace_back("50%");
     def->enum_labels.emplace_back("75%");
@@ -718,10 +718,10 @@ void PrintConfigDef::init_fff_params()
 
 
     def = this->add("precise_outer_wall",coBool);
-    def->label = L("Precise wall");
+    def->label = L("Precise wall(experimental)");
     def->category = L("Quality");
-    def->tooltip = L("Improve outer wall precesion by adjusting outer wall spacing");
-    def->set_default_value(new ConfigOptionBool{true});
+    def->tooltip = L("Improve shell precesion by adjusting outer wall spacing. This also improves layer consistency.");
+    def->set_default_value(new ConfigOptionBool{false});
     
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
@@ -734,6 +734,13 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Use only one wall on first layer, to give more space to the bottom infill pattern");
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("overhang_speed_classic", coBool);
+    def->label = L("Classic mode");
+    def->category = L("Speed");
+    def->tooltip = L("Enable this option to use classic mode");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{ false });
 
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
@@ -1019,7 +1026,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
@@ -1052,23 +1059,23 @@ void PrintConfigDef::init_fff_params()
     def = this->add("small_perimeter_speed", coFloatOrPercent);
     def->label = L("Small perimeters");
     def->category = L("Speed");
-    def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= 6.5mm "
+    def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold "
                    "(usually holes). If expressed as percentage (for example: 80%) it will be calculated "
                    "on the outer wall speed setting above. Set to zero for auto.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
     def = this->add("small_perimeter_threshold", coFloat);
     def->label = L("Small perimeters threshold");
     def->category = L("Speed");
-    def->tooltip = L("This sets the threshold for small perimeter length. Default threshold is 6.5mm");
+    def->tooltip = L("This sets the threshold for small perimeter length. Default threshold is 0mm");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(6.5));
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
@@ -3280,7 +3287,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Classic"));
     def->enum_labels.push_back(L("Arachne"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
+    def->set_default_value(new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Arachne));
 
     def = this->add("wall_transition_length", coPercent);
     def->label = L("Wall transition length");

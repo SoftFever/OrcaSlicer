@@ -1919,7 +1919,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
+        optgroup->append_single_option_line("gap_infill_speed");
+        optgroup->append_single_option_line("support_speed");
+        optgroup->append_single_option_line("support_interface_speed");
+        optgroup = page->new_optgroup(L("Overhang speed"), L"param_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
+        optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
         Line line = { L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing down for the overhang degree range and wall speed is used") };
         line.label_path = "slow-down-for-overhang";
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
@@ -1928,9 +1933,6 @@ void TabPrint::build()
         line.append_option(optgroup->get_option("overhang_4_4_speed"));
         optgroup->append_line(line);
         optgroup->append_single_option_line("bridge_speed");
-        optgroup->append_single_option_line("gap_infill_speed");
-        optgroup->append_single_option_line("support_speed");
-        optgroup->append_single_option_line("support_interface_speed");
 
         optgroup = page->new_optgroup(L("Travel speed"), L"param_travel_speed", 15);
         optgroup->append_single_option_line("travel_speed");
@@ -1945,7 +1947,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("accel_to_decel_enable");
         optgroup->append_single_option_line("accel_to_decel_factor");
 
-        optgroup = page->new_optgroup(L("Jerk(XY)"));
+        optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_speed", 15);
         optgroup->append_single_option_line("default_jerk");
         optgroup->append_single_option_line("outer_wall_jerk");
         optgroup->append_single_option_line("inner_wall_jerk");

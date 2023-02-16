@@ -238,7 +238,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     // end temp
     auto end_temp_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_temp_text = new wxStaticText(this, wxID_ANY, end_temp_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiEnd = new TextInput(this, std::to_string(200), _L("\u2103"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
+    m_tiEnd = new TextInput(this, std::to_string(190), _L("\u2103"), "", wxDefaultPosition, ti_size, wxTE_CENTRE);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_temp_sizer->Add(end_temp_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     end_temp_sizer->Add(m_tiEnd, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -338,11 +338,11 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
     switch(selection)
     {
         case tABS_ASA:
-            start = 260;
+            start = 270;
             end = 230;
             break;
         case tPETG:
-            start = 250;
+            start = 260;
             end = 230;
             break;
         case tTPU:
@@ -360,7 +360,7 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
         case tPLA:
         case tCustom:
             start = 230;
-            end = 200;
+            end = 190;
             break;
     }
     

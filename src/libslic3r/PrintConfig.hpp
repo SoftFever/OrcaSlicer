@@ -763,6 +763,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 wipe_on_loops))
     ((ConfigOptionEnum<WallInfillOrder>, wall_infill_order))
     ((ConfigOptionBool,                 precise_outer_wall))
+    ((ConfigOptionBool,                 overhang_speed_classic))
+
 
 
 
