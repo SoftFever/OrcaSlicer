@@ -8129,7 +8129,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
 
     auto max_lh = printer_config->option<ConfigOptionFloats>("max_layer_height");
     if (max_lh->values[0] < layer_height)
-        *max_lh = { layer_height };
+        max_lh->values[0] = { layer_height };
 
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
