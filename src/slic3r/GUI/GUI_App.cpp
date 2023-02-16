@@ -2153,7 +2153,7 @@ bool GUI_App::on_init_inner()
 #endif // __APPLE__
 
 
-    bool init_dark_color_mode = app_config->get("dark_color_mode") == "1";
+    bool init_dark_color_mode = dark_mode();
     bool init_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
 #ifdef __WINDOWS__
      NppDarkMode::InitDarkMode(init_dark_color_mode, init_sys_menu_enabled);
@@ -2168,7 +2168,7 @@ bool GUI_App::on_init_inner()
 
 #ifdef _MSW_DARK_MODE
     // app_config can be updated in check_older_app_config(), so check if dark_color_mode and sys_menu_enabled was changed
-    if (bool new_dark_color_mode = app_config->get("dark_color_mode") == "1";
+    if (bool new_dark_color_mode = dark_mode();
         init_dark_color_mode != new_dark_color_mode) {
 
 #ifdef __WINDOWS__
@@ -2832,6 +2832,7 @@ void GUI_App::UpdateDarkUIWin(wxWindow* win)
 void GUI_App::Update_dark_mode_flag()
 {
     m_is_dark_mode = dark_mode();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": switch the current dark mode status to %1% ")%m_is_dark_mode;
 }
 
 void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
@@ -3217,7 +3218,7 @@ void GUI_App::force_colors_update()
 {
 #ifdef _MSW_DARK_MODE
 #ifdef __WINDOWS__
-    NppDarkMode::SetDarkMode(app_config->get("dark_color_mode") == "1");
+    NppDarkMode::SetDarkMode(dark_mode());
     if (WXHWND wxHWND = wxToolTip::GetToolTipCtrl())
         NppDarkMode::SetDarkExplorerTheme((HWND)wxHWND);
     NppDarkMode::SetDarkTitleBar(mainframe->GetHWND());
