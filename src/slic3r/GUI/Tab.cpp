@@ -2078,7 +2078,7 @@ void TabPrint::toggle_options()
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         auto &           opt             = const_cast<ConfigOptionDef &>(field->m_opt);
         auto             cb              = dynamic_cast<ComboBox *>(choice->window);
-        int              n               = cb->GetSelection();
+        auto             n               = cb->GetValue();
         opt.enum_values.clear();
         opt.enum_labels.clear();
         cb->Clear();
@@ -2087,7 +2087,7 @@ void TabPrint::toggle_options()
             opt.enum_labels.push_back(def->enum_labels[i]);
             cb->Append(_(def->enum_labels[i]));
         }
-        cb->SetSelection(n >= cb->GetCount() ? cb->GetCount() - 1 : n);
+        cb->SetValue(n);
     }
 }
 
