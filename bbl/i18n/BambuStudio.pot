@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-10 19:23+0800\n"
+"POT-Creation-Date: 2023-02-16 09:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -531,6 +531,9 @@ msgid ""
 msgstr ""
 
 msgid "Login information expired. Please login again."
+msgstr ""
+
+msgid "Privacy Policy"
 msgstr ""
 
 msgid "Loading"
@@ -1974,6 +1977,11 @@ msgid ""
 "No  - reset density to default non 100% value automaticlly"
 msgstr ""
 
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, reset the skirt layer to 1 to avoid that."
+msgstr ""
+
 msgid "Auto bed leveling"
 msgstr ""
 
@@ -2134,9 +2142,6 @@ msgstr ""
 msgid "Layer Time"
 msgstr ""
 
-msgid "Layer Time (log)"
-msgstr ""
-
 msgid "Height: "
 msgstr ""
 
@@ -2150,9 +2155,6 @@ msgid "Flow: "
 msgstr ""
 
 msgid "Layer Time: "
-msgstr ""
-
-msgid "Layer Time(log): "
 msgstr ""
 
 msgid "Fan Speed: "
@@ -2170,7 +2172,22 @@ msgstr ""
 msgid "Generating geometry index data"
 msgstr ""
 
+msgid "Statistics of All Plates"
+msgstr ""
+
 msgid "Display"
+msgstr ""
+
+msgid "Flushed"
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "Total Time Estimation"
+msgstr ""
+
+msgid "Total time"
 msgstr ""
 
 msgid "up to"
@@ -2215,16 +2232,7 @@ msgstr ""
 msgid "Layer Time (s)"
 msgstr ""
 
-msgid "Layer Time (log) (s)"
-msgstr ""
-
 msgid "Used filament"
-msgstr ""
-
-msgid "Flushed"
-msgstr ""
-
-msgid "Total"
 msgstr ""
 
 msgid "Travel"
@@ -2288,9 +2296,6 @@ msgid "Prepare time"
 msgstr ""
 
 msgid "Model printing time"
-msgstr ""
-
-msgid "Total time"
 msgstr ""
 
 msgid "Switch to silent mode"
@@ -2408,6 +2413,12 @@ msgid "Assembly View"
 msgstr ""
 
 msgid "Select Plate"
+msgstr ""
+
+msgid "All Plates"
+msgstr ""
+
+msgid "Stats"
 msgstr ""
 
 msgid "Assembly Return"
@@ -3521,6 +3532,14 @@ msgid ""
 "colors. Do you want to continue?"
 msgstr ""
 
+msgid ""
+"Already did a synchronization, do you want to update only changes or resync "
+"all?"
+msgstr ""
+
+msgid "Resync"
+msgstr ""
+
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 
@@ -3596,6 +3615,12 @@ msgstr ""
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software."
+msgstr ""
+
+msgid "Invalid values found in the 3mf:"
+msgstr ""
+
+msgid "Please correct them in the param tabs"
 msgstr ""
 
 msgid "The 3mf is not compatible, load geometry data only!"
@@ -3821,7 +3846,7 @@ msgstr ""
 msgid "Invalid number"
 msgstr ""
 
-msgid "Select Bed Type"
+msgid "Plate Settings"
 msgstr ""
 
 #, possible-boost-format
@@ -4378,21 +4403,6 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
-msgid "Same as Global Bed Type"
-msgstr ""
-
-msgid "Cool Plate"
-msgstr ""
-
-msgid "Engineering Plate"
-msgstr ""
-
-msgid "High Temp Plate"
-msgstr ""
-
-msgid "Textured PEI Plate"
-msgstr ""
-
 msgid "Log in printer"
 msgstr ""
 
@@ -4587,9 +4597,15 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 
+msgid "High Temp Plate"
+msgstr ""
+
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
+msgstr ""
+
+msgid "Textured PEI Plate"
 msgstr ""
 
 msgid ""
@@ -4953,7 +4969,7 @@ msgstr ""
 msgid "Objects list"
 msgstr ""
 
-msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
 msgid "Copy to clipboard"
@@ -5785,6 +5801,12 @@ msgid ""
 msgstr ""
 
 msgid "Bed types supported by the printer"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr ""
+
+msgid "Engineering Plate"
 msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
@@ -7383,6 +7405,22 @@ msgid ""
 "This option will auto detect narrow internal solid infill area. If enabled, "
 "concentric pattern will be used for the area to speed printing up. "
 "Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+
+msgid "invalid value "
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid " doesn't work at 100%% density "
+msgstr ""
+
+msgid "Invalid value when spiral vase mode is enabled: "
+msgstr ""
+
+msgid "too large line width "
+msgstr ""
+
+msgid " not in range "
 msgstr ""
 
 msgid "Export 3MF"
