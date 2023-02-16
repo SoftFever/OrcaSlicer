@@ -6028,6 +6028,8 @@ void Plater::priv::on_action_add_plate(SimpleEvent&)
     if (q != nullptr) {
         take_snapshot("add partplate");
         this->partplate_list.create_plate();
+        int new_plate = this->partplate_list.get_plate_count() - 1;
+        this->partplate_list.select_plate(new_plate);
         update();
 
         // BBS set default view
