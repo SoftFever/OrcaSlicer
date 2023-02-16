@@ -31,9 +31,7 @@ public:
         long style = wxPD_APP_MODAL| wxCAPTION
     );
     wxWebView* CreateTipView(wxWindow* parent);
-    void OnLoaded(wxWebViewEvent& event);
-    void OnTitleChanged(wxWebViewEvent& event);
-    void OnError(wxWebViewEvent& event);
+    void OnNavigating(wxWebViewEvent& event);
     bool ShowReleaseNote(std::string content);
     void RunScript(std::string script);
     void set_text(std::string str) { m_mkdown_text = str; };
@@ -50,6 +48,7 @@ public:
     Button* m_button_ok;
     Button* m_button_cancel;
     std::string m_mkdown_text;
+    std::string m_host_url;
 };
 
 }} // namespace Slic3r::GUI

@@ -57,16 +57,16 @@ PrivacyUpdateDialog::PrivacyUpdateDialog(wxWindow* parent, wxWindowID id, const 
     m_vebview_release_note->SetSize(wxSize(FromDIP(540), FromDIP(340)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(540), FromDIP(340)));
 
-	fs::path ph(data_dir());
-	ph /= "resources/tooltip/privacyupdate.html";
-	if (!fs::exists(ph)) {
-		ph = resources_dir();
-		ph /= "tooltip/privacyupdate.html";
-	}
-	auto url = ph.string();
-	std::replace(url.begin(), url.end(), '\\', '/');
-	url = "file:///" + url;
-    m_vebview_release_note->LoadURL(from_u8(url));
+    fs::path ph(data_dir());
+    ph /= "resources/tooltip/privacyupdate.html";
+    if (!fs::exists(ph)) {
+        ph = resources_dir();
+        ph /= "tooltip/privacyupdate.html";
+    }
+    m_host_url = ph.string();
+    std::replace(m_host_url.begin(), m_host_url.end(), '\\', '/');
+    m_host_url = "file:///" + m_host_url;
+    m_vebview_release_note->LoadURL(from_u8(m_host_url));
     m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
@@ -84,7 +84,10 @@ PrivacyUpdateDialog::PrivacyUpdateDialog(wxWindow* parent, wxWindowID id, const 
          if (!m_mkdown_text.empty()) {
              ShowReleaseNote(m_mkdown_text);
          }
+         e.Skip();
     });
+
+    m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING , &PrivacyUpdateDialog::OnNavigating, this);
 
     m_button_ok = new Button(this, _L("Accept"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -140,27 +143,22 @@ PrivacyUpdateDialog::PrivacyUpdateDialog(wxWindow* parent, wxWindowID id, const 
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void PrivacyUpdateDialog::OnLoaded(wxWebViewEvent& event)
-{
-    event.Skip();
-}
-
-void PrivacyUpdateDialog::OnTitleChanged(wxWebViewEvent& event)
-{
-    event.Skip();
-}
-void PrivacyUpdateDialog::OnError(wxWebViewEvent& event)
-{
-    event.Skip();
-}
-
 wxWebView* PrivacyUpdateDialog::CreateTipView(wxWindow* parent)
 {
 	wxWebView* tipView = WebView::CreateWebView(parent, "");
-	tipView->Bind(wxEVT_WEBVIEW_LOADED, &PrivacyUpdateDialog::OnLoaded, this);
-	tipView->Bind(wxEVT_WEBVIEW_NAVIGATED, &PrivacyUpdateDialog::OnTitleChanged, this);
-	tipView->Bind(wxEVT_WEBVIEW_ERROR, &PrivacyUpdateDialog::OnError, this);
 	return tipView;
+}
+
+void PrivacyUpdateDialog::OnNavigating(wxWebViewEvent& event)
+{
+    wxString jump_url = event.GetURL();
+    if (jump_url != m_host_url) {
+        event.Veto();
+        wxLaunchDefaultBrowser(jump_url);
+    }
+    else {
+        event.Skip();
+    }
 }
 
 bool PrivacyUpdateDialog::ShowReleaseNote(std::string content)

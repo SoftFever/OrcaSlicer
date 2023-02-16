@@ -287,6 +287,15 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
                     wxLaunchDefaultBrowser(url);
                     });
             }
+        }
+        else if (strCmd == "new_webpage") {
+            if (j["data"].contains("url")) {
+                std::string jump_url = j["data"]["url"].get<std::string>();
+                CallAfter([this, jump_url] {
+                    wxString url = wxString::FromUTF8(jump_url);
+                    wxLaunchDefaultBrowser(url);
+                    });
+            }
             return;
         }
     } catch (std::exception &e) {
