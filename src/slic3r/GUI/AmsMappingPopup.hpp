@@ -42,7 +42,7 @@ namespace Slic3r { namespace GUI {
 
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(64), FromDIP(34))
 #define MATERIAL_ITEM_REAL_SIZE wxSize(FromDIP(62), FromDIP(32))
-#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(68), FromDIP(76))
+#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(45))
 #define AMS_TOTAL_COUNT 4
 
 enum TrayType {

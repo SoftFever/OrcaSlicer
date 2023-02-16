@@ -209,9 +209,9 @@ void MaterialItem::doRender(wxDC &dc)
  AmsMapingPopup::AmsMapingPopup(wxWindow *parent) 
     : PopupWindow(parent, wxBORDER_NONE)
  {
-     SetSize(wxSize(FromDIP(360), -1));
-     SetMinSize(wxSize(FromDIP(360), -1));
-     SetMaxSize(wxSize(FromDIP(360), -1));
+     SetSize(wxSize(FromDIP(252), -1));
+     SetMinSize(wxSize(FromDIP(252), -1));
+     SetMaxSize(wxSize(FromDIP(252), -1));
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
 
@@ -245,11 +245,11 @@ void MaterialItem::doRender(wxDC &dc)
      m_sizer_list = new wxBoxSizer(wxVERTICAL);
      for (auto i = 0; i < AMS_TOTAL_COUNT; i++) {
          auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-         auto ams_mapping_item_container = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_mapping_container", this, 130), wxDefaultPosition,
-             wxSize(FromDIP(328), FromDIP(130)), 0);
+         auto ams_mapping_item_container = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_mapping_container", this, 78), wxDefaultPosition,
+             wxSize(FromDIP(230), FromDIP(78)), 0);
          ams_mapping_item_container->SetSizer(sizer_mapping_list);
          ams_mapping_item_container->Layout();
-         ams_mapping_item_container->Hide();
+         //ams_mapping_item_container->Hide();
          m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
          m_amsmapping_container_list.push_back(ams_mapping_item_container);
          m_sizer_list->Add(ams_mapping_item_container, 0, wxALIGN_CENTER_HORIZONTAL|wxTOP|wxBOTTOM, FromDIP(5));
@@ -260,17 +260,18 @@ void MaterialItem::doRender(wxDC &dc)
      m_warning_text->SetFont(::Label::Body_12);
      auto cant_not_match_tip = _L("Note: Only the AMS slots loaded with the same material type can be selected.");
      m_warning_text->SetLabel(format_text(cant_not_match_tip));
-     m_warning_text->SetMinSize(wxSize(FromDIP(280), FromDIP(-1)));
-     m_warning_text->Wrap(FromDIP(280));
+     m_warning_text->SetMinSize(wxSize(FromDIP(248), FromDIP(-1)));
+     m_warning_text->Wrap(FromDIP(248));
 
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
-     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(8));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
      m_sizer_main->Add(m_sizer_list, 0, wxEXPAND | wxALL, FromDIP(0));
-     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(8));
-     m_sizer_main->Add(m_warning_text, 0, wxEXPAND | wxALL, FromDIP(10));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+     m_sizer_main->Add(m_warning_text, 0, wxEXPAND | wxALL, FromDIP(6));
 
      SetSizer(m_sizer_main);
      Layout();
+     Fit();
  }
 
  wxString AmsMapingPopup::format_text(wxString &m_msg)
@@ -434,7 +435,7 @@ std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, Am
 
 void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* container, wxBoxSizer* sizer)
 { 
-    sizer->Add(0,0,0,wxLEFT,FromDIP(8));
+    sizer->Add(0,0,0,wxLEFT,FromDIP(6));
     for (auto i = 0; i < tray_data.size(); i++) {
 
         // set number
@@ -446,9 +447,9 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* 
 
         // set button
         MappingItem *m_mapping_item = new MappingItem(container);
-        m_mapping_item->SetSize(wxSize(FromDIP(68), FromDIP(100)));
-        m_mapping_item->SetMinSize(wxSize(FromDIP(68), FromDIP(100)));
-        m_mapping_item->SetMaxSize(wxSize(FromDIP(68), FromDIP(100)));
+        m_mapping_item->SetSize(wxSize(FromDIP(68 * 0.7), FromDIP(100 * 0.6)));
+        m_mapping_item->SetMinSize(wxSize(FromDIP(68 * 0.7), FromDIP(100 * 0.6)));
+        m_mapping_item->SetMaxSize(wxSize(FromDIP(68 * 0.7), FromDIP(100 * 0.6)));
         //m_mapping_item->SetCornerRadius(5);
         m_mapping_item->SetFont(::Label::Body_12);
         m_mapping_item_list.push_back(m_mapping_item);
@@ -491,8 +492,8 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* 
         //sizer_mapping_item->Add(number, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         //sizer_mapping_item->Add(m_mapping_item, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id));
-        sizer->Add(0,0,0,wxRIGHT,FromDIP(8));
-        sizer->Add(m_mapping_item, 0, wxTOP, FromDIP(2));
+        sizer->Add(0,0,0,wxRIGHT,FromDIP(6));
+        sizer->Add(m_mapping_item, 0, wxTOP, FromDIP(1));
     }
 
 }
@@ -576,7 +577,7 @@ void MappingItem::render(wxDC &dc)
 #endif
 
     // materials name
-    dc.SetFont(::Label::Head_14);
+    dc.SetFont(::Label::Head_13);
 
     auto txt_colour = m_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
     txt_colour      = m_unmatch ? wxColour(0xCE, 0xCE, 0xCE) : txt_colour;
@@ -589,12 +590,12 @@ void MappingItem::render(wxDC &dc)
     }*/
 
     auto txt_size = dc.GetTextExtent(m_tray_index);
-    auto top = (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2 + FromDIP(16);
+    auto top = (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2 + FromDIP(8);
     dc.DrawText(m_tray_index, wxPoint((GetSize().x - txt_size.x) / 2, top));
 
 
-    top += txt_size.y + FromDIP(12);
-    dc.SetFont(::Label::Head_13);
+    top += txt_size.y + FromDIP(7);
+    dc.SetFont(::Label::Body_12);
     txt_size = dc.GetTextExtent(m_name);
     dc.DrawText(m_name, wxPoint((GetSize().x - txt_size.x) / 2, top));
 }
