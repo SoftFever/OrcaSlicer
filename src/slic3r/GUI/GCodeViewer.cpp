@@ -4122,6 +4122,10 @@ void GCodeViewer::render_shells()
 void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessorResult*>& gcode_result_list, bool show /*= true*/) const {
     if (!show)
         return;
+    for (auto gcode_result : gcode_result_list) {
+        if (gcode_result->moves.size() == 0)
+            return;
+    }
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);

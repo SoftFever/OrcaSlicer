@@ -7162,7 +7162,14 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         if (slice_failed)
             all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
 
-        if (all_plates_stats_item->selected && all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICED) {
+        // Changing parameters does not invalid all plates, need extra logic to validate
+        bool gcode_result_valid = true;
+        for (auto gcode_result : plate_list.get_nonempty_plates_slice_results()) {
+            if (gcode_result->moves.size() == 0) {
+                gcode_result_valid = false;
+            }
+        }
+        if (all_plates_stats_item->selected && all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICED && gcode_result_valid) {
             m_gcode_viewer.render_all_plates_stats(plate_list.get_nonempty_plates_slice_results());
             m_render_preview = false;
         }
