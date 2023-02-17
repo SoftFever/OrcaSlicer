@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-25 22:42+0800\n"
+"POT-Creation-Date: 2023-02-17 23:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1683,6 +1683,9 @@ msgstr ""
 msgid "File"
 msgstr ""
 
+msgid "Calibration"
+msgstr ""
+
 msgid ""
 "Failed to download the plug-in. Please check your firewall settings and vpn "
 "software, check and retry."
@@ -1915,14 +1918,12 @@ msgid ""
 "No  - Give up using spiral mode this time"
 msgstr ""
 
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
+msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
 msgstr ""
 
 msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
+"Turn off classic mode automatically? \n"
+"Yes - Enable arachne with classic mode off\n"
 "No  - Give up using arachne this time"
 msgstr ""
 
@@ -2430,9 +2431,6 @@ msgid ""
 "confirming that the height is within the build volume."
 msgstr ""
 
-msgid "Calibration"
-msgstr ""
-
 msgid "Calibration step selection"
 msgstr ""
 
@@ -2783,6 +2781,9 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
+msgid "Temperature Calibration"
+msgstr ""
+
 msgid "Pass 1"
 msgstr ""
 
@@ -2798,13 +2799,25 @@ msgstr ""
 msgid "Flow rate"
 msgstr ""
 
-msgid "Pressure Advance"
+msgid "Pressure advance"
+msgstr ""
+
+msgid "Max flowrate"
+msgstr ""
+
+msgid "VFA"
+msgstr ""
+
+msgid "More..."
 msgstr ""
 
 msgid "Tutorial"
 msgstr ""
 
 msgid "Calibration help"
+msgstr ""
+
+msgid "More calibrations"
 msgstr ""
 
 msgid "3D Models"
@@ -5847,6 +5860,12 @@ msgid ""
 "external bridges. Use 180°for zero angle."
 msgstr ""
 
+msgid "Bridge density"
+msgstr ""
+
+msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr ""
 
@@ -5869,6 +5888,14 @@ msgstr ""
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
 
+msgid "Precise wall(experimental)"
+msgstr ""
+
+msgid ""
+"Improve shell precesion by adjusting outer wall spacing. This also improves "
+"layer consistency."
+msgstr ""
+
 msgid "Only one wall on top surfaces"
 msgstr ""
 
@@ -5883,6 +5910,12 @@ msgstr ""
 msgid ""
 "Use only one wall on first layer, to give more space to the bottom infill "
 "pattern"
+msgstr ""
+
+msgid "Classic mode"
+msgstr ""
+
+msgid "Enable this option to use classic mode"
 msgstr ""
 
 msgid "Slow down for overhang"
@@ -6103,8 +6136,9 @@ msgstr ""
 
 msgid ""
 "This separate setting will affect the speed of perimeters having radius <= "
-"6.5mm (usually holes). If expressed as percentage (for example: 80%) it will "
-"be calculated on the outer wall speed setting above. Set to zero for auto."
+"small_perimeter_threshold (usually holes). If expressed as percentage (for "
+"example: 80%) it will be calculated on the outer wall speed setting above. "
+"Set to zero for auto."
 msgstr ""
 
 msgid "mm/s or %"
@@ -6114,8 +6148,7 @@ msgid "Small perimeters threshold"
 msgstr ""
 
 msgid ""
-"This sets the threshold for small perimeter length. Default threshold is "
-"6.5mm"
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr ""
 
 msgid "Order of inner wall/outer wall/infil"
@@ -6194,9 +6227,6 @@ msgstr ""
 msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
 "enabled."
-msgstr ""
-
-msgid "Pressure advance"
 msgstr ""
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
@@ -6409,18 +6439,17 @@ msgid ""
 "adhensive"
 msgstr ""
 
-msgid "Adjust accel to decel"
+msgid "Enable accel_to_decel"
 msgstr ""
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "% of acceleration"
+msgid "accel_to_decel"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Klipper's Max_accel_to_decel will be adjusted to this % of acceleration"
+msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr ""
 
 msgid "Jerk of outer walls"
@@ -7015,27 +7044,37 @@ msgid "Seam gap"
 msgstr ""
 
 msgid ""
-"When extruding a closed loop, the loop is interrupted and shortened a bit to "
-"reduce the seam.\n"
-"Can be a mm or a % of the current extruder diameter. Default value is 15%"
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"his amount can be specified in millimeters or as a percentage of the current "
+"extruder diameter. The default value for this parameter is 15%."
 msgstr ""
 
 msgid "Role base wipe speed"
 msgstr ""
 
 msgid ""
-"The wipe speed is same as the current extrusion role's speed.\n"
-"e.g. if wipe action is followed by a outer wall extrusion, the outer wall "
-"speed will be used for this wipe action."
+"The wipe speed is determined by the speed of the current extrusion role.e.g. "
+"if a wipe action is executed immediately following an outer wall extrusion, "
+"the speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
+
+msgid "Wipe on loops"
+msgstr ""
+
+msgid ""
+"To minimize the visibility of the seam in a closed loop extrusion, a small "
+"inward movement is executed before the extruder leaves the loop."
 msgstr ""
 
 msgid "Wipe speed"
 msgstr ""
 
 msgid ""
-"This setting will affect the speed of wipe. If expressed as percentage (for "
-"example: 80%) it will be calculated on the travel speed setting above. "
-"Default value is 80%"
+"The wipe speed is determined by the speed setting specified in this "
+"configuration.If the value is expressed as a percentage (e.g. 80%), it will "
+"be calculated based on the travel speed setting above.The default value for "
+"this parameter is 80%"
 msgstr ""
 
 msgid "Skirt distance"
@@ -7765,6 +7804,119 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Support: propagate branches at layer %d"
+msgstr ""
+
+msgid "PA Calibration"
+msgstr ""
+
+msgid "DDE"
+msgstr ""
+
+msgid "Bowden"
+msgstr ""
+
+msgid "Extruder type"
+msgstr ""
+
+msgid "PA Tower"
+msgstr ""
+
+msgid "PA Line"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Start PA: "
+msgstr ""
+
+msgid "End PA: "
+msgstr ""
+
+msgid "PA step: "
+msgstr ""
+
+msgid "Print numbers"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
+msgstr ""
+
+msgid "Temperature calibration"
+msgstr ""
+
+msgid "PLA"
+msgstr ""
+
+msgid "ABS/ASA"
+msgstr ""
+
+msgid "PETG"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+msgid "PA-CF"
+msgstr ""
+
+msgid "PET-CF"
+msgstr ""
+
+msgid "Filament type"
+msgstr ""
+
+msgid "Start temp: "
+msgstr ""
+
+msgid "End end: "
+msgstr ""
+
+msgid "Temp step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
+msgstr ""
+
+msgid "Max volumetric speed test"
+msgstr ""
+
+msgid "Start volumetric speed: "
+msgstr ""
+
+msgid "End volumetric speed: "
+msgstr ""
+
+msgid "step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 0 step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "VFA test"
+msgstr ""
+
+msgid "Start speed: "
+msgstr ""
+
+msgid "End speed: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 10 step >= 0\n"
+"end > start + step)"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]

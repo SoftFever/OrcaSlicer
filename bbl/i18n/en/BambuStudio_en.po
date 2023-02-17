@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-19 13:01+0800\n"
+"POT-Creation-Date: 2023-02-17 23:01+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -424,11 +424,8 @@ msgstr ""
 msgid "V"
 msgstr "V"
 
-msgid "Internal Version"
+msgid "SoftFever Version"
 msgstr ""
-
-msgid "Version"
-msgstr "Version"
 
 msgid ""
 "BambuStudio will terminate because of running out of memory.It may be a bug. "
@@ -514,8 +511,8 @@ msgstr "Choose one file (3mf):"
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr ""
 
-msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
-msgstr "Choose one file (.gcode/.gco/.g/.ngc/ngc):"
+msgid "Choose one file (gcode/3mf):"
+msgstr ""
 
 msgid "Some presets are modified."
 msgstr "Some presets are modified."
@@ -1479,6 +1476,9 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
+msgid "Version"
+msgstr "Version"
+
 msgid "AMS Materials Setting"
 msgstr ""
 
@@ -1736,6 +1736,9 @@ msgstr ""
 msgid "File"
 msgstr "File"
 
+msgid "Calibration"
+msgstr "Calibration"
+
 msgid ""
 "Failed to download the plug-in. Please check your firewall settings and vpn "
 "software, check and retry."
@@ -1951,13 +1954,6 @@ msgstr ""
 "It has been reset to 0.2"
 
 msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"Layer height too large\n"
-"It has been reset to 0.2"
-
-msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -2014,14 +2010,12 @@ msgstr ""
 "Yes - Change these settings and enable spiral/vase mode automatically\n"
 "No  - Cancel enabling spiral mode"
 
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
+msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
 msgstr ""
 
 msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
+"Turn off classic mode automatically? \n"
+"Yes - Enable arachne with classic mode off\n"
 "No  - Give up using arachne this time"
 msgstr ""
 
@@ -2230,6 +2224,12 @@ msgstr "Flow"
 msgid "Tool"
 msgstr "Tool"
 
+msgid "Layer Time"
+msgstr ""
+
+msgid "Layer Time (log)"
+msgstr ""
+
 msgid "Height: "
 msgstr ""
 
@@ -2240,6 +2240,9 @@ msgid "Speed: "
 msgstr ""
 
 msgid "Flow: "
+msgstr ""
+
+msgid "Layer Time: "
 msgstr ""
 
 msgid "Fan Speed: "
@@ -2535,9 +2538,6 @@ msgid ""
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
-
-msgid "Calibration"
-msgstr "Calibration"
 
 msgid "Calibration step selection"
 msgstr ""
@@ -2893,6 +2893,45 @@ msgstr "View"
 
 msgid "Help"
 msgstr "Help"
+
+msgid "Temperature Calibration"
+msgstr ""
+
+msgid "Pass 1"
+msgstr ""
+
+msgid "Flow rate test - Pass 1"
+msgstr ""
+
+msgid "Pass 2"
+msgstr ""
+
+msgid "Flow rate test - Pass 2"
+msgstr ""
+
+msgid "Flow rate"
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid "Max flowrate"
+msgstr ""
+
+msgid "VFA"
+msgstr ""
+
+msgid "More..."
+msgstr ""
+
+msgid "Tutorial"
+msgstr ""
+
+msgid "Calibration help"
+msgstr ""
+
+msgid "More calibrations"
+msgstr ""
 
 msgid "3D Models"
 msgstr ""
@@ -3675,7 +3714,7 @@ msgstr "You should update your software.\n"
 msgid "Newer 3mf version"
 msgstr "Newer 3mf version"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software."
@@ -4606,6 +4645,9 @@ msgstr "Travel speed"
 msgid "Acceleration"
 msgstr "Acceleration"
 
+msgid "Jerk(XY)"
+msgstr ""
+
 msgid "Raft"
 msgstr ""
 
@@ -4619,6 +4661,9 @@ msgid "Special mode"
 msgstr "Special mode"
 
 msgid "G-code output"
+msgstr ""
+
+msgid "Post-processing Scripts"
 msgstr ""
 
 msgid "Frequent"
@@ -4665,6 +4710,9 @@ msgstr "Recommended temperature range"
 
 msgid "Print temperature"
 msgstr "Print temperature"
+
+msgid "Chamber temperature"
+msgstr ""
 
 msgid "Nozzle"
 msgstr "Nozzle"
@@ -4803,6 +4851,15 @@ msgstr "Layer height limits"
 
 msgid "Retraction when switching material"
 msgstr "Retraction when switching material"
+
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+
+msgid "Firmware Retraction"
+msgstr ""
 
 msgid "Detached"
 msgstr "Detached"
@@ -6032,6 +6089,12 @@ msgid ""
 "external bridges. Use 180°for zero angle."
 msgstr ""
 
+msgid "Bridge density"
+msgstr ""
+
+msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr "Bridge flow"
 
@@ -6042,6 +6105,28 @@ msgstr ""
 "Decrease this value slightly (for example 0.9) to reduce the amount of "
 "material extruded for bridges to avoid sagging."
 
+msgid "Top surface flow ratio"
+msgstr ""
+
+msgid ""
+"This factor affects the amount of material for top solid infill. You can "
+"decrease it slightly to have smooth surface finish"
+msgstr ""
+
+msgid "Bottom surface flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr ""
+
+msgid "Precise wall(experimental)"
+msgstr ""
+
+msgid ""
+"Improve shell precesion by adjusting outer wall spacing. This also improves "
+"layer consistency."
+msgstr ""
+
 msgid "Only one wall on top surfaces"
 msgstr "Only one wall on top surfaces"
 
@@ -6051,6 +6136,20 @@ msgid ""
 msgstr ""
 "Use only one wall on flat top surfaces, to give more space to the top infill "
 "pattern"
+
+msgid "Only one wall on first layer"
+msgstr ""
+
+msgid ""
+"Use only one wall on first layer, to give more space to the bottom infill "
+"pattern"
+msgstr ""
+
+msgid "Classic mode"
+msgstr ""
+
+msgid "Enable this option to use classic mode"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "Slow down for overhangs"
@@ -6083,6 +6182,15 @@ msgstr ""
 "This controls brim position including outer side of models, inner side of "
 "holes, or both. Auto means both the brim position and brim width are "
 "analyzed and calculated automatically."
+
+msgid "outer_only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Brim-object gap"
@@ -6283,6 +6391,26 @@ msgstr ""
 "This is the printing speed for the outer walls of parts. These are generally "
 "printed slower than inner walls for higher quality."
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This separate setting will affect the speed of perimeters having radius <= "
+"small_perimeter_threshold (usually holes). If expressed as percentage (for "
+"example: 80%) it will be calculated on the outer wall speed setting above. "
+"Set to zero for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimeters threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of inner wall/outer wall/infil"
 msgstr "Order of inner wall/outer wall/infill"
 
@@ -6300,6 +6428,9 @@ msgstr "infill/inner/outer"
 
 msgid "infill/outer/inner"
 msgstr "infill/outer/inner"
+
+msgid "inner-outer-inner/infill"
+msgstr ""
 
 msgid "Height to rod"
 msgstr "Height to rod"
@@ -6354,6 +6485,17 @@ msgstr ""
 "in G-code proportionally. The recommended value range is between 0.95 and "
 "1.05. You may be able to tune this value to get a nice flat surface if there "
 "is slight overflow or underflow."
+
+msgid "Enable pressure advance"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled."
+msgstr ""
+
+msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
+msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "Default line width for line widths set to 0"
@@ -6412,6 +6554,14 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge on wipe tower"
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
 
 msgid "Filament load time"
 msgstr "Filament load time"
@@ -6499,6 +6649,14 @@ msgstr ""
 "This is the angle for sparse infill pattern, which controls the start or "
 "main direction of lines."
 
+msgid "Bridge infill direction"
+msgstr ""
+
+msgid ""
+"Angle for bridge infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
 msgid "Sparse infill density"
 msgstr "Sparse infill density"
 
@@ -6544,6 +6702,15 @@ msgstr ""
 msgid "Lightning"
 msgstr ""
 
+msgid "Acceleration of outer walls"
+msgstr ""
+
+msgid "Acceleration of inner walls"
+msgstr ""
+
+msgid "Acceleration of travel moves"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -6560,6 +6727,37 @@ msgid ""
 msgstr ""
 "This is the printing acceleration for the first layer. Using limited "
 "acceleration can improve build plate adhesion."
+
+msgid "Enable accel_to_decel"
+msgstr ""
+
+msgid "Klipper's max_accel_to_decel will be adjusted automatically"
+msgstr ""
+
+msgid "accel_to_decel"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgstr ""
+
+msgid "Jerk of outer walls"
+msgstr ""
+
+msgid "Jerk of inner walls"
+msgstr ""
+
+msgid "Jerk for top surface"
+msgstr ""
+
+msgid "Jerk for infill"
+msgstr ""
+
+msgid "Jerk for initial layer"
+msgstr ""
+
+msgid "Jerk for travel"
+msgstr ""
 
 msgid "Line width of initial layer"
 msgstr "Line width of ﻿first layer"
@@ -6626,6 +6824,17 @@ msgid ""
 msgstr ""
 "The average distance between the random points introduced on each line "
 "segment"
+
+msgid "Filter out tiny gaps"
+msgstr ""
+
+msgid "Layers and Perimeters"
+msgstr ""
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't "
+"affact top/bottom layers"
+msgstr ""
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -6703,6 +6912,9 @@ msgstr "G-code flavor"
 msgid "What kind of gcode the printer is compatible with"
 msgstr "What kind of G-code the printer is compatible with."
 
+msgid "Klipper"
+msgstr ""
+
 msgid "Infill combination"
 msgstr "Infill combination"
 
@@ -6732,6 +6944,15 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "This is the speed for internal sparse infill."
+
+msgid "Interface shells"
+msgstr ""
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Ironing type"
@@ -7010,6 +7231,14 @@ msgstr "This is the speed for inner walls."
 msgid "Number of walls of every layer"
 msgstr "This is the number of walls per layer."
 
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and they can access the Slic3r config settings by reading "
+"environment variables."
+msgstr ""
+
 msgid "Raft contact Z distance"
 msgstr "Raft contact Z distance"
 
@@ -7106,6 +7335,19 @@ msgstr ""
 "hitting the print when traveling more. Using spiral lines to lift z can "
 "prevent stringing."
 
+msgid "Extra length on restart"
+msgstr ""
+
+msgid ""
+"When the retraction is compensated after the travel move, the extruder will "
+"push this additional amount of filament. This setting is rarely needed."
+msgstr ""
+
+msgid ""
+"When the retraction is compensated after changing tool, the extruder will "
+"push this additional amount of filament."
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "Retraction speed"
 
@@ -7121,6 +7363,14 @@ msgid ""
 msgstr ""
 "The speed for reloading filament into the extruder after a retraction; "
 "setting this to 0 means that it will be the same speed as the retraction."
+
+msgid "Use firmware retraction"
+msgstr ""
+
+msgid ""
+"This experimental setting uses G10 and G11 commands to have the firmware "
+"handle the retraction. This is only supported in recent Marlin."
+msgstr ""
 
 msgid "Seam position"
 msgstr "Seam position"
@@ -7138,6 +7388,43 @@ msgid "Back"
 msgstr "Back"
 
 msgid "Random"
+msgstr ""
+
+msgid "Seam gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"his amount can be specified in millimeters or as a percentage of the current "
+"extruder diameter. The default value for this parameter is 15%."
+msgstr ""
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by the speed of the current extrusion role.e.g. "
+"if a wipe action is executed immediately following an outer wall extrusion, "
+"the speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
+
+msgid "Wipe on loops"
+msgstr ""
+
+msgid ""
+"To minimize the visibility of the seam in a closed loop extrusion, a small "
+"inward movement is executed before the extruder leaves the loop."
+msgstr ""
+
+msgid "Wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by the speed setting specified in this "
+"configuration.If the value is expressed as a percentage (e.g. 80%), it will "
+"be calculated based on the travel speed setting above.The default value for "
+"this parameter is 80%"
 msgstr ""
 
 msgid "Skirt distance"
@@ -7472,6 +7759,19 @@ msgstr "Tree support wall loops"
 msgid "This setting specify the count of walls around tree support"
 msgstr "This setting specifies the wall count around tree support."
 
+msgid "Tree support with infill"
+msgstr "Tree support with infill"
+
+msgid ""
+"This setting specifies whether to add infill inside large hollows of tree "
+"support"
+msgstr ""
+"This setting specifies whether to add infill inside large hollows of tree "
+"support."
+
+msgid "Target chamber temperature"
+msgstr ""
+
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Nozzle temperature after the first layer"
 
@@ -7551,6 +7851,15 @@ msgstr ""
 "This moves the nozzle along the last extrusion path when retracting to clean "
 "any leaked material on the nozzle. This can minimize blobs when printing a "
 "new part after traveling."
+
+msgid "Z hop type"
+msgstr ""
+
+msgid "NormalLift"
+msgstr ""
+
+msgid "SpiralLift"
+msgstr ""
 
 msgid "Wipe Distance"
 msgstr "Wipe distance"
@@ -7636,6 +7945,24 @@ msgstr ""
 "value. Positive values make contours bigger, and negative values make "
 "contours smaller. This function is used to adjust sizes slightly when "
 "objects have assembly issues."
+
+msgid "G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
+"following format: \"XxY, XxY, ...\""
+msgstr ""
+
+msgid "Use relative E distances"
+msgstr ""
+
+msgid ""
+"Relative extrusion is recommended when using \"label_objects\" option.Some "
+"extruders work better with this option unckecked (absolute extrusion mode). "
+"Wipe tower is only compatible with relative mode. It is always enabled on "
+"BambuLab printers. Default is checked"
+msgstr ""
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -7888,6 +8215,119 @@ msgstr "Support: fix holes at layer %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
 
+msgid "PA Calibration"
+msgstr ""
+
+msgid "DDE"
+msgstr ""
+
+msgid "Bowden"
+msgstr ""
+
+msgid "Extruder type"
+msgstr ""
+
+msgid "PA Tower"
+msgstr ""
+
+msgid "PA Line"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Start PA: "
+msgstr ""
+
+msgid "End PA: "
+msgstr ""
+
+msgid "PA step: "
+msgstr ""
+
+msgid "Print numbers"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
+msgstr ""
+
+msgid "Temperature calibration"
+msgstr ""
+
+msgid "PLA"
+msgstr ""
+
+msgid "ABS/ASA"
+msgstr ""
+
+msgid "PETG"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+msgid "PA-CF"
+msgstr ""
+
+msgid "PET-CF"
+msgstr ""
+
+msgid "Filament type"
+msgstr ""
+
+msgid "Start temp: "
+msgstr ""
+
+msgid "End end: "
+msgstr ""
+
+msgid "Temp step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
+msgstr ""
+
+msgid "Max volumetric speed test"
+msgstr ""
+
+msgid "Start volumetric speed: "
+msgstr ""
+
+msgid "End volumetric speed: "
+msgstr ""
+
+msgid "step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 0 step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "VFA test"
+msgstr ""
+
+msgid "Start speed: "
+msgstr ""
+
+msgid "End speed: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 10 step >= 0\n"
+"end > start + step)"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -8071,6 +8511,16 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
+#~ msgstr "Choose one file (.gcode/.gco/.g/.ngc/ngc):"
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr ""
+#~ "Layer height too large\n"
+#~ "It has been reset to 0.2"
 
 #~ msgid ""
 #~ "\n"
@@ -8616,13 +9066,6 @@ msgstr ""
 #~ "mixed as a result."
 
 #~ msgid ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support"
-#~ msgstr ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support."
-
-#~ msgid ""
 #~ "This setting stands for how much volume of filament can be melted and "
 #~ "extruded per second. Printing speed is limited by max volumetric speed, "
 #~ "in case of too high and unreasonable speed setting. Zero means no limit"
@@ -8636,9 +9079,6 @@ msgstr ""
 
 #~ msgid "Translation"
 #~ msgstr "Translation"
-
-#~ msgid "Tree support with infill"
-#~ msgstr "Tree support with infill"
 
 #~ msgid "Unable to create zip file"
 #~ msgstr "Unable to create zip file"

@@ -40,15 +40,15 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     SetSizer(v_sizer);
 	wxBoxSizer* choice_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxString m_rbExtruderTypeChoices[] = { wxT("DDE"), wxT("Bowden") };
+    wxString m_rbExtruderTypeChoices[] = { _L("DDE"), _L("Bowden") };
 	int m_rbExtruderTypeNChoices = sizeof(m_rbExtruderTypeChoices) / sizeof(wxString);
-	m_rbExtruderType = new wxRadioBox(this, wxID_ANY, wxT("Extruder type"), wxDefaultPosition, wxDefaultSize, m_rbExtruderTypeNChoices, m_rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
+	m_rbExtruderType = new wxRadioBox(this, wxID_ANY, _L("Extruder type"), wxDefaultPosition, wxDefaultSize, m_rbExtruderTypeNChoices, m_rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
 	m_rbExtruderType->SetSelection(0);
 	choice_sizer->Add(m_rbExtruderType, 0, wxALL, 5);
 	choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
-	wxString m_rbMethodChoices[] = { wxT("Tower"), wxT("Line") };
+	wxString m_rbMethodChoices[] = { _L("PA Tower"), _L("PA Line") };
 	int m_rbMethodNChoices = sizeof(m_rbMethodChoices) / sizeof(wxString);
-	m_rbMethod = new wxRadioBox(this, wxID_ANY, wxT("Method"), wxDefaultPosition, wxDefaultSize, m_rbMethodNChoices, m_rbMethodChoices, 2, wxRA_SPECIFY_COLS);
+	m_rbMethod = new wxRadioBox(this, wxID_ANY, _L("Method"), wxDefaultPosition, wxDefaultSize, m_rbMethodNChoices, m_rbMethodChoices, 2, wxRA_SPECIFY_COLS);
 	m_rbMethod->SetSelection(0);
 	choice_sizer->Add(m_rbMethod, 0, wxALL, 5);
 
@@ -63,14 +63,14 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 	text_size.IncTo(wxWindow::GetTextExtent(end_pa_str));
 	text_size.IncTo(wxWindow::GetTextExtent(PA_step_str));
 	text_size.x = text_size.x * 1.5;
-	wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, L"Settings");
+	wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
 	auto st_size = FromDIP(wxSize(text_size.x, -1));
 	auto ti_size = FromDIP(wxSize(90, -1));
     // start PA
     auto start_PA_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_pa_text = new wxStaticText(this, wxID_ANY, start_pa_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiStartPA = new TextInput(this, wxString::FromDouble(0.0), _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiStartPA = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
 	start_PA_sizer->Add(start_pa_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -80,7 +80,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // end PA
     auto end_PA_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_pa_text = new wxStaticText(this, wxID_ANY, end_pa_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiEndPA = new TextInput(this, wxString::FromDouble(0.1), _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiEndPA = new TextInput(this, wxString::FromDouble(0.1), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_PA_sizer->Add(end_pa_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     end_PA_sizer->Add(m_tiEndPA, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -89,13 +89,13 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // PA step
     auto PA_step_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto PA_step_text = new wxStaticText(this, wxID_ANY, PA_step_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiPAStep = new TextInput(this, wxString::FromDouble(0.002), _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiPAStep = new TextInput(this, wxString::FromDouble(0.002), "", "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     PA_step_sizer->Add(PA_step_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     PA_step_sizer->Add(m_tiPAStep, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     settings_sizer->Add(PA_step_sizer);
 
-	settings_sizer->Add(create_item_checkbox(L"Print numbers", this, &m_params.print_numbers, m_cbPrintNum));
+	settings_sizer->Add(create_item_checkbox(_L("Print numbers"), this, &m_params.print_numbers, m_cbPrintNum));
 
     v_sizer->Add(settings_sizer);
 	v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
@@ -201,14 +201,14 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     SetSizer(v_sizer);
     wxBoxSizer* choice_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxString m_rbFilamentTypeChoices[] = { wxT("PLA"), wxT("ABS/ASA"), wxT("PETG"), wxT("TPU"), wxT("PA-CF"), wxT("PET-CF"), wxT("Custom") };
+    wxString m_rbFilamentTypeChoices[] = { _L("PLA"), _L("ABS/ASA"), _L("PETG"), _L("TPU"), _L("PA-CF"), _L("PET-CF"), _L("Custom") };
     int m_rbFilamentTypeNChoices = sizeof(m_rbFilamentTypeChoices) / sizeof(wxString);
-    m_rbFilamentType = new wxRadioBox(this, wxID_ANY, wxT("Filament type"), wxDefaultPosition, wxDefaultSize, m_rbFilamentTypeNChoices, m_rbFilamentTypeChoices, 2, wxRA_SPECIFY_COLS);
+    m_rbFilamentType = new wxRadioBox(this, wxID_ANY, _L("Filament type"), wxDefaultPosition, wxDefaultSize, m_rbFilamentTypeNChoices, m_rbFilamentTypeChoices, 2, wxRA_SPECIFY_COLS);
     m_rbFilamentType->SetSelection(0);
     m_rbFilamentType->Select(0);
     choice_sizer->Add(m_rbFilamentType, 0, wxALL, 5);
     choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
-    wxString m_rbMethodChoices[] = { wxT("Tower"), wxT("Line") };
+    wxString m_rbMethodChoices[] = { _L("PA Tower"), _L("PA Line") };
 
     v_sizer->Add(choice_sizer);
 
@@ -221,7 +221,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     text_size.IncTo(wxWindow::GetTextExtent(end_temp_str));
     text_size.IncTo(wxWindow::GetTextExtent(temp_step_str));
     text_size.x = text_size.x * 1.5;
-    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, L"Settings");
+    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
     auto st_size = FromDIP(wxSize(text_size.x, -1));
     auto ti_size = FromDIP(wxSize(90, -1));
@@ -394,7 +394,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     text_size.IncTo(wxWindow::GetTextExtent(end_vol_str));
     text_size.IncTo(wxWindow::GetTextExtent(vol_step_str));
     text_size.x = text_size.x * 1.5;
-    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, L"Settings");
+    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
     auto st_size = FromDIP(wxSize(text_size.x, -1));
     auto ti_size = FromDIP(wxSize(90, -1));
@@ -499,7 +499,7 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     text_size.IncTo(wxWindow::GetTextExtent(end_vol_str));
     text_size.IncTo(wxWindow::GetTextExtent(vol_step_str));
     text_size.x = text_size.x * 1.5;
-    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, L"Settings");
+    wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Settings"));
 
     auto st_size = FromDIP(wxSize(text_size.x, -1));
     auto ti_size = FromDIP(wxSize(90, -1));
