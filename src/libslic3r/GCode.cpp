@@ -2462,6 +2462,7 @@ namespace Skirt {
 #if 0
                 // Prime just the first printing extruder. This is original Slic3r's implementation.
                 skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirt_loops.value);
+                skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirt_loops.value);
 #else
                 // Prime all extruders planned for this layer, see
                 skirt_loops_per_extruder_all_printing(print, layer_tools, skirt_loops_per_extruder_out);
@@ -2617,14 +2618,10 @@ GCode::LayerResult GCode::process_layer(
         gcode += writer().set_temperature(print.calib_params().start - offset);
     } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
         auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
-        DynamicConfig config;
-        config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-        const_cast<Print*>(&print)->print_regions_mutable()[0]->config_apply_only(config, { "outer_wall_speed" });
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
         auto _speed = print.calib_params().start + print_z * print.calib_params().step;
-        DynamicConfig config;
-        config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-        const_cast<Print*>(&print)->print_regions_mutable()[0]->config_apply_only(config, { "outer_wall_speed" });
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     }
 
     //BBS
@@ -3706,7 +3703,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // compensate retraction
     gcode += this->unretract();
-
+    m_config.apply(m_calib_config);
     // adjust acceleration
     if (m_config.default_acceleration.value > 0) {
         double acceleration;
