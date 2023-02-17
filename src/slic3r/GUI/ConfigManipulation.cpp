@@ -323,31 +323,30 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     //BBS
     if (config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne &&
-        config->opt_bool("enable_overhang_speed"))
+        config->opt_bool("overhang_speed_classic"))
     {
-        wxString msg_text = _(L("Arachne engine only works when overhang slowing down is disabled.\n"
-                               "This may cause decline in the quality of overhang surface when print fastly")) + "\n";
+        wxString msg_text = _(L("Arachne engine doesn't work with classic overhang speed mode.\n")) + "\n";
         if (is_global_config)
-            msg_text += "\n" + _(L("Disable overhang slowing down automatically? \n"
-                "Yes - Enable arachne and disable overhang slowing down\n"
+            msg_text += "\n" + _(L("Turn off classic mode automatically? \n"
+                "Yes - Enable arachne with classic mode off\n"
                 "No  - Give up using arachne this time"));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
             wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         auto answer = dialog.ShowModal();
-        bool enable_overhang_slow_down = true;
+        bool enable_overhang_slow_down_legacy = false;
         if (!is_global_config || answer == wxID_YES) {
-            new_conf.set_key_value("enable_overhang_speed", new ConfigOptionBool(false));
-            enable_overhang_slow_down = false;
+            new_conf.set_key_value("overhang_speed_classic", new ConfigOptionBool(false));
+            enable_overhang_slow_down_legacy = true;
         }
         else {
             new_conf.set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
         }
         apply(config, &new_conf);
         if (cb_value_change) {
-            if (!enable_overhang_slow_down)
-                cb_value_change("enable_overhang_speed", false);
+            if (!enable_overhang_slow_down_legacy)
+                cb_value_change("overhang_speed_classic", false);
         }
         is_msg_dlg_already_exist = false;
     }
@@ -639,7 +638,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
 
     bool has_overhang_speed = config->opt_bool("enable_overhang_speed");
-    for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
+    for (auto el :
+         {"overhang_speed_classic", "overhang_1_4_speed",
+          "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed);
 
     toggle_line("flush_into_objects", !is_global_config);
@@ -657,7 +658,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "min_feature_size", "min_bead_width", "wall_distribution_count" })
         toggle_line(el, have_arachne);
     toggle_field("detect_thin_wall", !have_arachne);
-    toggle_field("enable_overhang_speed", !have_arachne);
     toggle_field("only_one_wall_top", !have_arachne);
     
     // SoftFever

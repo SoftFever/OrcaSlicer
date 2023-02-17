@@ -46,13 +46,13 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: .\build_release.bat studio
 
-      - name: pack app
-        working-directory: ${{ github.workspace }}/build
-        shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio-SoftFever_dev_build.zip ${{ github.workspace }}/build/BambuStudio-SoftFever'
+      # - name: pack app
+      #   working-directory: ${{ github.workspace }}/build
+      #   shell: cmd
+      #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio-SoftFever_dev_build.zip ${{ github.workspace }}/build/BambuStudio-SoftFever'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: BambuStudio-SoftFever_Win64
-          path: ${{ github.workspace }}/build/BambuStudio-SoftFever_dev_build.zip
+          name: BambuStudio-SoftFever_Win64_nightly
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever

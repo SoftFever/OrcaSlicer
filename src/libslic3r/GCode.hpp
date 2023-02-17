@@ -18,6 +18,7 @@
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/ObjectID.hpp"
+#include "GCode/ExtrusionProcessor.hpp"
 
 #include <memory>
 #include <map>
@@ -178,6 +179,7 @@ public:
     const Point&    last_pos() const { return m_last_pos; }
     Vec2d           point_to_gcode(const Point &point) const;
     Point           gcode_to_point(const Vec2d &point) const;
+    Vec2d point_to_gcode_quantized(const Point& point) const;
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
@@ -412,11 +414,15 @@ private:
     // Cache for custom seam enforcers/blockers for each layer.
     SeamPlacer                          m_seam_placer;
 
+    ExtrusionQualityEstimator m_extrusion_quality_estimator;
+
+
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
        methods. */
     Vec2d                               m_origin;
     FullPrintConfig                     m_config;
+    DynamicConfig                       m_calib_config;
     // scaled G-code resolution
     double                              m_scaled_resolution;
     GCodeWriter                         m_writer;

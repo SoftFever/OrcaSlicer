@@ -134,6 +134,7 @@ set(lisbslic3r_sources
     GCode/GCodeProcessor.hpp
     GCode/AvoidCrossingPerimeters.cpp
     GCode/AvoidCrossingPerimeters.hpp
+    GCode/ExtrusionProcessor.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
@@ -246,6 +247,10 @@ set(lisbslic3r_sources
     SlicingAdaptive.hpp
     SupportMaterial.cpp
     SupportMaterial.hpp
+    PrincipalComponents2D.cpp
+    PrincipalComponents2D.hpp
+    SupportSpotsGenerator.cpp
+    SupportSpotsGenerator.hpp
     TreeSupport.hpp
     TreeSupport.cpp
     MinimumSpanningTree.hpp

@@ -670,7 +670,6 @@ public:
     const PrintConfig&          config() const { return m_config; }
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig& default_region_config() const { return m_default_region_config; }
-    PrintRegionConfig& default_region_config() { return m_default_region_config; }
     ConstPrintObjectPtrsAdaptor objects() const { return ConstPrintObjectPtrsAdaptor(&m_objects); }
     PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }

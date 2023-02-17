@@ -2515,7 +2515,7 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More"));
+    m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
 
     // help 
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
@@ -2581,7 +2581,7 @@ void MainFrame::init_menubar_as_editor()
             m_vfa_test_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_submenu(calib_menu, advance_menu, wxID_ANY, _L("More"), _L("More calibrations"), "",
+    append_submenu(calib_menu, advance_menu, wxID_ANY, _L("More..."), _L("More calibrations"), "",
         [this]() {return m_plater->is_view3D_shown();; });
     // help
     append_menu_item(calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),

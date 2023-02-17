@@ -28,6 +28,8 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
                      print_config.gcode_flavor.value == gcfRepRapFirmware;
     m_max_acceleration = std::lrint(use_mach_limits ? print_config.machine_max_acceleration_extruding.values.front() : 0);
     m_max_jerk = std::lrint(use_mach_limits ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
+    m_max_jerk_z = print_config.machine_max_jerk_z.values.front();
+    m_max_jerk_e = print_config.machine_max_jerk_e.values.front();
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -190,13 +192,13 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
+std::string GCodeWriter::set_jerk_xy(double jerk)
 {
     // Clamp the jerk to the allowed maximum.
     if (m_max_jerk > 0 && jerk > m_max_jerk)
         jerk = m_max_jerk;
 
-    if (jerk < 1 || jerk == m_last_jerk)
+    if (jerk < 0.01 || is_approx(jerk, m_last_jerk))
         return std::string();
     
     m_last_jerk = jerk;
@@ -206,7 +208,10 @@ std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
         gcode << "SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=" << jerk;
     else
         gcode << "M205 X" << jerk << " Y" << jerk;
-        
+      
+    if (m_is_bbl_printers)
+        gcode << std::setprecision(2) << " Z" << m_max_jerk_z << " E" << m_max_jerk_e;
+
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust jerk";
     gcode << "\n";
 

@@ -15,6 +15,7 @@
 #include "LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
 #include "Time.hpp"
+#include "GCode/ExtrusionProcessor.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <chrono>
@@ -1661,7 +1662,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         if (m_config.default_jerk.value > 0) {
             double jerk = m_config.outer_wall_jerk.value;
-            gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+            gcode += m_writer.set_jerk_xy(jerk);
         }
 
         calib_pressure_advance pa_test(this);
@@ -2461,6 +2462,7 @@ namespace Skirt {
 #if 0
                 // Prime just the first printing extruder. This is original Slic3r's implementation.
                 skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirt_loops.value);
+                skirt_loops_per_extruder_out[layer_tools.extruders.front()] = std::pair<size_t, size_t>(0, print.config().skirt_loops.value);
 #else
                 // Prime all extruders planned for this layer, see
                 skirt_loops_per_extruder_all_printing(print, layer_tools, skirt_loops_per_extruder_out);
@@ -2616,14 +2618,10 @@ GCode::LayerResult GCode::process_layer(
         gcode += writer().set_temperature(print.calib_params().start - offset);
     } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
         auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
-        DynamicConfig config;
-        config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-        const_cast<Print*>(&print)->print_regions_mutable()[0]->config_apply_only(config, { "outer_wall_speed" });
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
         auto _speed = print.calib_params().start + print_z * print.calib_params().step;
-        DynamicConfig config;
-        config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-        const_cast<Print*>(&print)->print_regions_mutable()[0]->config_apply_only(config, { "outer_wall_speed" });
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     }
 
     //BBS
@@ -2636,7 +2634,7 @@ GCode::LayerResult GCode::process_layer(
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
             double jerk = m_config.initial_layer_jerk.value;
-            gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+            gcode += m_writer.set_jerk_xy(jerk);
         }
 
     }
@@ -2665,7 +2663,7 @@ GCode::LayerResult GCode::process_layer(
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
             double jerk = m_config.default_jerk.value;
-            gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+            gcode += m_writer.set_jerk_xy(jerk);
         }
 
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
@@ -2698,6 +2696,11 @@ GCode::LayerResult GCode::process_layer(
     skirt_loops_per_extruder = first_layer ?
         Skirt::make_skirt_loops_per_extruder_1st_layer(print, layer_tools, m_skirt_done) :
         Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
+
+    for (const auto& layer_to_print : layers) {
+        m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.object_layer);
+    }
+
 
     // Group extrusions by an extruder, then by an object, an island and a region.
     std::map<unsigned int, std::vector<ObjectByExtruder>> by_extruder;
@@ -3084,6 +3087,8 @@ GCode::LayerResult GCode::process_layer(
                     if (!m_config.use_relative_e_distances)
                         gcode += m_writer.reset_e(true);
                 }
+                m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
+
                 // When starting a new object, use the external motion planner for the first travel move.
                 const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
@@ -3450,7 +3455,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         if (m_config.default_acceleration.value > 0)
             gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
         if (m_config.default_jerk.value > 0)
-            gcode += m_writer.set_jerk_xy((unsigned int)(m_config.default_jerk.value + 0.5));
+            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
     }
     return gcode;
 }
@@ -3480,7 +3485,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         // reset acceleration
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
         if(m_config.default_jerk.value > 0)
-            gcode += m_writer.set_jerk_xy((unsigned int)floor(m_config.default_jerk.value + 0.5));
+            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
         }
     return gcode;
 }
@@ -3511,7 +3516,7 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
         // reset acceleration
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
         if(m_config.default_jerk.value > 0)
-            gcode += m_writer.set_jerk_xy((unsigned int)floor(m_config.default_jerk.value + 0.5));
+            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
         }
     return gcode;
@@ -3698,7 +3703,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // compensate retraction
     gcode += this->unretract();
-
+    m_config.apply(m_calib_config);
     // adjust acceleration
     if (m_config.default_acceleration.value > 0) {
         double acceleration;
@@ -3739,7 +3744,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         else {
             jerk = m_config.default_jerk.value;
         }
-        gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+        gcode += m_writer.set_jerk_xy(jerk);
     }
 
     // calculate extrusion length per distance unit
@@ -3752,13 +3757,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         int overhang_degree = path.get_overhang_degree();
         if (path.role() == erPerimeter) {
             speed = m_config.get_abs_value("inner_wall_speed");
-            if (m_config.enable_overhang_speed.value && overhang_degree > 0 && overhang_degree <= 5) {
+            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value && overhang_degree > 0 &&
+                overhang_degree <= 5) {
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("outer_wall_speed");
-            if (m_config.enable_overhang_speed.value && overhang_degree > 0 && overhang_degree <= 5) {
+            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value &&
+                overhang_degree > 0 && overhang_degree <= 5) {
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
@@ -3812,6 +3819,35 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm
         );
     }
+
+    
+    bool variable_speed = false;
+    std::vector<ProcessedPoint> new_points {};
+
+    if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
+        (is_bridge(path.role()) || is_perimeter(path.role()))) {
+        ConfigOptionPercents overhang_overlap_levels({75, 50, 25, 5});
+        ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
+            {(m_config.get_abs_value("overhang_1_4_speed") < 0.5)
+                 ? FloatOrPercent{100, true}
+                 : FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed"), false},
+             (m_config.get_abs_value("overhang_2_4_speed") < 0.5)
+                 ? FloatOrPercent{100, true}
+                 : FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed"), false},
+             (m_config.get_abs_value("overhang_3_4_speed") < 0.5)
+                 ? FloatOrPercent{100, true}
+                 : FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed"), false},
+             (m_config.get_abs_value("overhang_4_4_speed") < 0.5)
+                 ? FloatOrPercent{100, true}
+                 : FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed"), false}});
+
+        new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(
+            path, overhang_overlap_levels, dynamic_overhang_speeds, m_config.get_abs_value("outer_wall_speed"), speed);
+
+        variable_speed = std::any_of(new_points.begin(), new_points.end(),
+                                     [speed](const ProcessedPoint &p) { return p.speed != speed; });
+    }
+
     double F = speed * 60;  // convert mm/sec to mm/min
 
     // extrude arc or line
@@ -3862,108 +3898,150 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         gcode += buf;
     }
 
+    auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
+    auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
+
+
+    //    { "0%", Overhang_threshold_none },
+    //    { "5%", Overhang_threshold_1_4 },
+    //    { "25%", Overhang_threshold_2_4 },
+    //    { "50%", Overhang_threshold_3_4 },
+    //    { "75%", Overhang_threshold_4_4 },
+    //    { "95%", Overhang_threshold_bridge }
+    auto check_overhang_fan = [&overhang_fan_threshold](float overlap) {
+      switch (overhang_fan_threshold) {
+      case (int)Overhang_threshold_1_4:
+        return overlap <= 0.95f;
+        break;
+      case (int)Overhang_threshold_2_4:
+        return overlap <= 0.75f;
+        break;
+      case (int)Overhang_threshold_3_4:
+        return overlap <= 0.5f;
+        break;
+      case (int)Overhang_threshold_4_4:
+        return overlap <= 0.25f;
+        break;
+      case (int)Overhang_threshold_bridge:
+        return overlap <= 0.05f;
+        break;
+      case (int)Overhang_threshold_none:
+      default:
+        return true;
+      }
+    };
+
     std::string comment;
     if (m_enable_cooling_markers) {
-        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
-            //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
-            int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
-                Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
-                gcode += ";_OVERHANG_FAN_START\n";
-                comment = ";_EXTRUDE_SET_SPEED";
-            } else if (path.get_overhang_degree() > overhang_threshold ||
-                is_bridge(path.role()))
-                gcode += ";_OVERHANG_FAN_START\n";
-            else
-                comment = ";_EXTRUDE_SET_SPEED";
-        }
-        else {
-            comment = ";_EXTRUDE_SET_SPEED";
-        }
-
+        comment = ";_EXTRUDE_SET_SPEED";
         if (path.role() == erExternalPerimeter)
             comment += ";_EXTERNAL_PERIMETER";
     }
-
-    // F is mm per minute.
-    gcode += m_writer.set_speed(F, "", comment);
-    double path_length = 0.;
-    {
-        std::string comment = GCodeWriter::full_gcode_comment ? description : "";
-        //BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
-        //Attention: G2 and G3 is not supported in spiral_mode mode
-        if (!m_config.enable_arc_fitting ||
-            path.polyline.fitting_result.empty() ||
-            m_config.spiral_mode) {
-            for (const Line& line : path.polyline.lines()) {
-                const double line_length = line.length() * SCALING_FACTOR;
-                path_length += line_length;
-                gcode += m_writer.extrude_to_xy(
-                    this->point_to_gcode(line.b),
-                    e_per_mm * line_length,
-                    comment, path.is_force_no_extrusion());
-            }
-        } else {
-            // BBS: start to generate gcode from arc fitting data which includes line and arc
-            const std::vector<PathFittingData>& fitting_result = path.polyline.fitting_result;
-            for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++) {
-                switch (fitting_result[fitting_index].path_type) {
-                case EMovePathType::Linear_move: {
-                    size_t start_index = fitting_result[fitting_index].start_point_index;
-                    size_t end_index = fitting_result[fitting_index].end_point_index;
-                    for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
-                        const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
-                        const double line_length = line.length() * SCALING_FACTOR;
-                        path_length += line_length;
-                        gcode += m_writer.extrude_to_xy(
-                            this->point_to_gcode(line.b),
-                            e_per_mm * line_length,
-                            comment, path.is_force_no_extrusion());
-                    }
-                    break;
+    bool is_overhang_fan_on = false;
+    if (!variable_speed) {
+        // F is mm per minute.
+        gcode += m_writer.set_speed(F, "", comment);
+        double path_length = 0.;
+        {
+            if (m_enable_cooling_markers && enable_overhang_bridge_fan && m_config.overhang_speed_classic) {
+                // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
+                // perimeter
+                int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
+                                                                                           : overhang_fan_threshold - 1;
+                if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role())) ||
+                    (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
+                    gcode += ";_OVERHANG_FAN_START\n";
+                    is_overhang_fan_on = true;
                 }
-                case EMovePathType::Arc_move_cw:
-                case EMovePathType::Arc_move_ccw: {
-                    const ArcSegment& arc = fitting_result[fitting_index].arc_data;
-                    const double arc_length = fitting_result[fitting_index].arc_data.length * SCALING_FACTOR;
-                    const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
-                    path_length += arc_length;
-                    gcode += m_writer.extrude_arc_to_xy(
+            } 
+            // BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
+            // Attention: G2 and G3 is not supported in spiral_mode mode
+            if (!m_config.enable_arc_fitting || path.polyline.fitting_result.empty() || m_config.spiral_mode) {
+                for (const Line& line : path.polyline.lines()) {
+                    const double line_length = line.length() * SCALING_FACTOR;
+                    path_length += line_length;
+                    gcode += m_writer.extrude_to_xy(
+                        this->point_to_gcode(line.b),
+                        e_per_mm * line_length,
+                        GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                }
+            } else {
+                // BBS: start to generate gcode from arc fitting data which includes line and arc
+                const std::vector<PathFittingData>& fitting_result = path.polyline.fitting_result;
+                for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++) {
+                    switch (fitting_result[fitting_index].path_type) {
+                    case EMovePathType::Linear_move: {
+                        size_t start_index = fitting_result[fitting_index].start_point_index;
+                        size_t end_index = fitting_result[fitting_index].end_point_index;
+                        for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
+                            const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
+                            const double line_length = line.length() * SCALING_FACTOR;
+                            path_length += line_length;
+                            gcode += m_writer.extrude_to_xy(
+                                this->point_to_gcode(line.b),
+                                e_per_mm * line_length,
+                                GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                        }
+                        break;
+                    }
+                    case EMovePathType::Arc_move_cw:
+                    case EMovePathType::Arc_move_ccw: {
+                        const ArcSegment& arc = fitting_result[fitting_index].arc_data;
+                        const double arc_length = fitting_result[fitting_index].arc_data.length * SCALING_FACTOR;
+                        const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
+                        path_length += arc_length;
+                        gcode += m_writer.extrude_arc_to_xy(
                             this->point_to_gcode(arc.end_point),
                             center_offset,
                             e_per_mm * arc_length,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
-                            comment, path.is_force_no_extrusion());
-                    break;
+                            GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                        break;
+                    }
+                    default:
+                        // BBS: should never happen that a empty path_type has been stored
+                        assert(0);
+                        break;
+                    }
                 }
-                default:
-                    //BBS: should never happen that a empty path_type has been stored
-                    assert(0);
-                    break;
+            }
+            if (is_overhang_fan_on) {
+                is_overhang_fan_on = false;
+                gcode += ";_OVERHANG_FAN_END\n";
+            }
+        }
+    } else {
+        double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
+
+        gcode += m_writer.set_speed(last_set_speed, "", comment);
+        Vec2d prev = this->point_to_gcode_quantized(new_points[0].p);
+        for (size_t i = 1; i < new_points.size(); i++) {
+            const ProcessedPoint &processed_point = new_points[i];
+            Vec2d p = this->point_to_gcode_quantized(processed_point.p);
+            const double line_length = (p - prev).norm();
+            if (m_enable_cooling_markers && enable_overhang_bridge_fan) {
+                if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap)) {
+                    gcode += ";_OVERHANG_FAN_START\n";
+                    is_overhang_fan_on = true;
                 }
+            }
+            gcode +=
+                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
+            if (is_overhang_fan_on) {
+                is_overhang_fan_on = false;
+                gcode += ";_OVERHANG_FAN_END\n";
+            }
+            prev = p;
+            double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), processed_point.speed) * 60.0;
+            if (last_set_speed != new_speed) {
+                gcode += m_writer.set_speed(new_speed, "", comment);
+                last_set_speed = new_speed;
             }
         }
     }
     if (m_enable_cooling_markers) {
-        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
-            //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
-            int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
-                Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
-                gcode += ";_EXTRUDE_END\n";
-                gcode += ";_OVERHANG_FAN_END\n";
-
-            } else if (path.get_overhang_degree() > overhang_threshold ||
-                is_bridge(path.role()))
-                gcode += ";_OVERHANG_FAN_END\n";
-            else
-                gcode += ";_EXTRUDE_END\n";
-        }
-        else {
-            gcode += ";_EXTRUDE_END\n";
-        }
+        gcode += ";_EXTRUDE_END\n";
     }
-
     this->set_last_pos(path.last_point());
     return gcode;
 }
@@ -3986,22 +4064,22 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // SoftFever
     if (this->on_first_layer()) {
-        if(m_config.default_acceleration.value > 0)
-        {        
-            auto jerk = (unsigned int)floor(m_config.initial_layer_jerk.value + 0.5);
+        if (m_config.default_acceleration.value > 0) {
             auto accel = (unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5);
-            if(jerk > 0)
-                gcode += m_writer.set_jerk_xy(jerk);
-            
-            if(accel > 0)
+            if (accel > 0)
                 gcode += m_writer.set_acceleration(accel);
+        }
+        if (m_config.default_jerk.value > 0) {
+            auto jerk = m_config.initial_layer_jerk.value;
+            if (jerk > 0)
+                gcode += m_writer.set_jerk_xy(jerk);
         }
     }
     else
     {
         if(m_config.default_jerk.value > 0)
         {
-            auto jerk = (unsigned int)floor(m_config.travel_jerk.value + 0.5);
+            auto jerk = m_config.travel_jerk.value;
             auto accel = (unsigned int)floor(m_config.travel_acceleration.value + 0.5);
             if(jerk > 0)
                 gcode += m_writer.set_jerk_xy(jerk);
@@ -4336,6 +4414,13 @@ Point GCode::gcode_to_point(const Vec2d &point) const
         scale_(point(0) - m_origin(0) + extruder_offset(0)),
         scale_(point(1) - m_origin(1) + extruder_offset(1)));
 }
+
+Vec2d GCode::point_to_gcode_quantized(const Point& point) const
+{
+    Vec2d p = this->point_to_gcode(point);
+    return { GCodeFormatter::quantize_xyzf(p.x()), GCodeFormatter::quantize_xyzf(p.y()) };
+}
+
 
 // Goes through by_region std::vector and returns reference to a subvector of entities, that are to be printed
 // during infill/perimeter wiping, or normally (depends on wiping_entities parameter)
