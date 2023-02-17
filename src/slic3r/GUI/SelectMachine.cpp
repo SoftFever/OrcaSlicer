@@ -751,8 +751,11 @@ void SelectMachinePopup::update_user_devices()
             }
             op->Bind(EVT_UNBIND_MACHINE, [this, dev, mobj](wxCommandEvent& e) {
                 dev->set_selected_machine("");
-                if (mobj)
+                if (mobj) {
                     mobj->set_access_code("");
+                    mobj->set_user_access_code("");
+                }
+
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);
                 if (msg_wingow.ShowModal() == wxOK) { return; }
                 });
