@@ -26,6 +26,7 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_FUNC, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
@@ -586,18 +587,38 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        wxCommandEvent evt(EVT_SECONDARY_CHECK_CANCEL);
-        e.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(evt);
-        this->on_hide();
+            wxCommandEvent evt(EVT_SECONDARY_CHECK_CANCEL);
+            e.SetEventObject(this);
+            GetEventHandler()->ProcessEvent(evt);
+            this->on_hide();
         });
 
-    if (btn_style != CONFIRM_AND_CANCEL)
-        m_button_cancel->Hide();
-    else
+    m_button_fn = new Button(this, _L("Done"));
+    m_button_fn->SetBackgroundColor(btn_bg_white);
+    m_button_fn->SetBorderColor(wxColour(38, 46, 48));
+    m_button_fn->SetFont(Label::Body_12);
+    m_button_fn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_fn->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_fn->SetCornerRadius(FromDIP(12));
+
+    m_button_fn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            post_event(wxCommandEvent(EVT_SECONDARY_CHECK_FUNC));
+            e.Skip();
+        });
+
+    if (btn_style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
+        m_button_fn->Hide();
+    } else if (btn_style == CONFIRM_AND_FUNC) {
+        m_button_cancel->Hide();
+        m_button_fn->Show();
+    } else {
+        m_button_cancel->Hide();
+        m_button_fn->Hide();
+    }
 
     sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_fn, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     sizer_button->Add(FromDIP(5),0, 0, 0);
@@ -617,6 +638,16 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
 
     CenterOnParent();
     wxGetApp().UpdateFrameDarkUI(this);
+}
+
+void SecondaryCheckDialog::post_event(wxCommandEvent&& event)
+{
+    if (event_parent) {
+        event.SetString("");
+        event.SetEventObject(event_parent);
+        wxPostEvent(event_parent, event);
+        event.Skip();
+    }
 }
 
 void SecondaryCheckDialog::update_text(wxString text)
@@ -679,6 +710,33 @@ void SecondaryCheckDialog::on_hide()
         wxGetApp().mainframe->Show();
         wxGetApp().mainframe->Raise();
     }
+}
+
+void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent)
+{
+    SetTitle(title);
+
+    event_parent = parent;
+
+    if (style == CONFIRM_AND_CANCEL) {
+        m_button_cancel->Show();
+        m_button_fn->Hide();
+    }
+    else if (style == CONFIRM_AND_FUNC) {
+        m_button_cancel->Hide();
+        m_button_fn->Show();
+    }
+    else {
+        m_button_cancel->Hide();
+        m_button_fn->Hide();
+    }
+    Layout();
+}
+
+void SecondaryCheckDialog::update_func_btn(wxString func_btn_text)
+{
+    m_button_fn->SetLabel(func_btn_text);
+    rescale();
 }
 
 void SecondaryCheckDialog::update_btn_label(wxString ok_btn_text, wxString cancel_btn_text)

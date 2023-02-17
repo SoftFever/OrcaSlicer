@@ -1562,9 +1562,8 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
     std::string gcode = "";
     if (tray_index == 255) {
         gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
-    } else if (tray_index == VIRTUAL_TRAY_ID) {
-        gcode = DeviceManager::load_gcode(printer_type, "vt_load.gcode");
     } else {
+        // include VIRTUAL_TRAY_ID
         gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
         boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
         boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
@@ -1668,7 +1667,7 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
 int MachineObject::command_ams_control(std::string action)
 {
     //valid actions
-    if (action == "resume" || action == "reset" || action == "pause") {
+    if (action == "resume" || action == "reset" || action == "pause" || action == "done") {
         json j;
         j["print"]["command"] = "ams_control";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);

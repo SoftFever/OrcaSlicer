@@ -312,7 +312,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(wxString msg);
+    void show_error_message(wxString msg, std::string print_error_str = "");
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -348,6 +348,7 @@ protected:
     void on_ams_selected(wxCommandEvent &event);
     void on_ams_guide(wxCommandEvent &event);
     void on_ams_retry(wxCommandEvent &event);
+    void on_print_error_func(wxCommandEvent& event);
 
     void on_fan_changed(wxCommandEvent& event);
     void on_switch_speed(wxCommandEvent& event);

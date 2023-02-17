@@ -59,47 +59,52 @@ void PrintJob::on_success(std::function<void()> success)
 
 wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
 {
-    int code = 0;
-    std::string error;
-    std::string message;
-    wxString result;
-    if (status >= 400 && status < 500)
-        try {
-        json j = json::parse(body);
-        if (j.contains("code")) {
-            if (!j["code"].is_null())
-                code = j["code"].get<int>();
+    try {
+        int code = 0;
+        std::string error;
+        std::string message;
+        wxString result;
+        if (status >= 400 && status < 500)
+            try {
+            json j = json::parse(body);
+            if (j.contains("code")) {
+                if (!j["code"].is_null())
+                    code = j["code"].get<int>();
+            }
+            if (j.contains("error")) {
+                if (!j["error"].is_null())
+                    error = j["error"].get<std::string>();
+            }
+            if (j.contains("message")) {
+                if (!j["message"].is_null())
+                    message = j["message"].get<std::string>();
+            }
+            switch (status) {
+                ;
+            }
         }
-        if (j.contains("error")) {
-            if (!j["error"].is_null())
-                error = j["error"].get<std::string>();
-        }
-        if (j.contains("message")) {
-            if (!j["message"].is_null())
-                message = j["message"].get<std::string>();
-        }
-        switch (status) {
+        catch (...) {
             ;
         }
-    }
-    catch (...) {
+        else if (status == 503) {
+            return _L("Service Unavailable");
+        }
+        else {
+            wxString unkown_text = _L("Unkown Error.");
+            unkown_text += wxString::Format("status=%u, body=%s", status, body);
+            BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
+            return unkown_text;
+        }
+
+        BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
+
+        result = wxString::Format("code=%u, error=%s", code, from_u8(error));
+        return result;
+    } catch(...) {
         ;
     }
-    else if (status == 503) {
-        return _L("Service Unavailable");
-    }
-    else {
-        wxString unkown_text = _L("Unkown Error.");
-        unkown_text += wxString::Format("status=%u, body=%s", status, body);
-        BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
-        return unkown_text;
-    }
-
-    BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
-
-    result = wxString::Format("code=%u, error=%s", code, from_u8(error));
-    return result;
-}
+    return wxEmptyString;
+} 
 
 void PrintJob::process()
 {

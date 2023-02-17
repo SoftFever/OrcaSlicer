@@ -1274,7 +1274,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_GUIDE_WIKI, &StatusPanel::on_ams_guide, this);
     Bind(EVT_AMS_RETRY, &StatusPanel::on_ams_retry, this);
     Bind(EVT_FAN_CHANGED, &StatusPanel::on_fan_changed, this);
-
+    Bind(EVT_SECONDARY_CHECK_FUNC, &StatusPanel::on_print_error_func, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -1591,7 +1591,7 @@ void StatusPanel::show_recenter_dialog() {
         obj->command_go_home();
 }
 
-void StatusPanel::show_error_message(wxString msg)
+void StatusPanel::show_error_message(wxString msg, std::string print_error_str)
 {
     if (msg.IsEmpty()) {
         if (m_panel_error_txt->IsShown()) {
@@ -1610,6 +1610,12 @@ void StatusPanel::show_error_message(wxString msg)
         BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
         if (m_print_error_dlg == nullptr) {
             m_print_error_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+        }
+        if (print_error_str == "07FF 8007") {
+            m_print_error_dlg->update_func_btn("Done");
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_FUNC, this);
+        } else {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
         }
         m_print_error_dlg->update_text(msg);
         m_print_error_dlg->on_show();
@@ -1638,7 +1644,7 @@ void StatusPanel::update_error_message()
                 error_msg = wxString::Format("%s[%s]",
                     error_msg,
                     print_error_str);
-                show_error_message(error_msg);
+                show_error_message(error_msg, print_error_str);
             } else {
                 BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
             }
@@ -1951,90 +1957,109 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+    bool is_vt_tray = false;
+    if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_ID))
+        is_vt_tray = true;
 
-    if (m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_ID)) {
-        m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_NONE, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-    }
-    else if (m_ams_control->GetCurentAms() != obj->m_ams_id) {
-        m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    // set segment 1, 2
+    if (m_ams_control->GetCurentAms() != std::to_string(VIRTUAL_TRAY_ID)) {
+        if (obj->m_tray_now != "255" && obj->is_filament_at_extruder()) {
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+        }
+        else if (obj->m_tray_now != "255") {
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+        }
+        else {
+            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        }
     } else {
-        if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    }
+
+    // set segment 3
+    if (m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_ID)) {
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), obj->vt_tray.get_color());
+    } else {
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), m_ams_control->GetCanColour(curr_ams_id, obj->m_tray_id));
+    }
+
+    if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_ID)
+            && (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID) || obj->m_tray_now != "255")
+            ) {
             // wait to heat hotend
             if (obj->ams_status_sub == 0x02) {
-
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_VT_LOAD);
+            }
+            else if (obj->ams_status_sub == 0x05) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_FEED_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
+            }
+            else if (obj->ams_status_sub == 0x06) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_CONFIRM_EXTRUDED, FilamentStepType::STEP_TYPE_VT_LOAD);
+            }
+            else if (obj->ams_status_sub == 0x07) {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
+            }
+            else {
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_VT_LOAD);
+            }
+        } else {
+            // wait to heat hotend
+            if (obj->ams_status_sub == 0x02) {
                 if (curr_ams_id == obj->m_ams_id) {
                     if (!obj->is_ams_unload()) {
-                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, true);
-                        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_LOAD);
                     } else {
-                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, false);
-                        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_UNLOAD);
                     }
+                } else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (obj->ams_status_sub == 0x03) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, true);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, false);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
-
             } else if (obj->ams_status_sub == 0x04) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, true);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
-                    //FilamentStep::STEP_PULL_CURR_FILAMENT);
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, false);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (obj->ams_status_sub == 0x05) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, true);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 }
                 else {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, false);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (obj->ams_status_sub == 0x06) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, true);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-                } else {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, false);
-                    m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                }
+                else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (obj->ams_status_sub == 0x07) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT);
-                } else {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, false);
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 }
-
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
+                else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                }
             } else {
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-            }
-        } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE);
-            if (obj->is_filament_move()) {
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-            } else {
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-            }
-        } else {
-            m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, false);
-            if (obj->is_filament_move()) {
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-            } else {
-                m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
             }
         }
+    } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
+        m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
+    } else {
+        m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
     }
+    
 
     for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ams_it++) {
         std::string ams_id = ams_it->first;
@@ -2796,7 +2821,6 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
             update_ams_control_state(curr_ams_id, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
         }
     }
-
 }
 
 void StatusPanel::on_ams_guide(wxCommandEvent& event)
@@ -2810,6 +2834,17 @@ void StatusPanel::on_ams_retry(wxCommandEvent& event)
     BOOST_LOG_TRIVIAL(info) << "on_ams_retry";
     if (obj) {
         obj->command_ams_control("resume");
+    }
+}
+
+void StatusPanel::on_print_error_func(wxCommandEvent& event)
+{
+    BOOST_LOG_TRIVIAL(info) << "on_print_error_func";
+    if (obj) {
+        obj->command_ams_control("done");
+        if (m_print_error_dlg) {
+            m_print_error_dlg->on_hide();
+        }
     }
 }
 
