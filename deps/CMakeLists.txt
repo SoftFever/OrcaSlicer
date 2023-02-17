@@ -23,6 +23,10 @@
 project(BambuStudio-deps)
 cmake_minimum_required(VERSION 3.2)
 
+if(POLICY CMP0135) # DOWNLOAD_EXTRACT_TIMESTAMP
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 include(ExternalProject)
 include(ProcessorCount)
 
