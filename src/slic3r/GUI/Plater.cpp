@@ -2081,6 +2081,7 @@ struct Plater::priv
 
     bool can_delete() const;
     bool can_delete_all() const;
+    bool can_edit_text() const;
     bool can_add_plate() const;
     bool can_delete_plate() const;
     bool can_increase_instances() const;
@@ -6975,6 +6976,24 @@ bool Plater::priv::can_delete_all() const
     return !model.objects.empty();
 }
 
+bool Plater::priv::can_edit_text() const
+{
+    const Selection &selection = view3D->get_canvas3d()->get_selection();
+    if (selection.is_single_full_instance())
+        return true;
+
+    if (selection.is_single_volume()) {
+        const GLVolume *gl_volume      = selection.get_volume(*selection.get_volume_idxs().begin());
+        int             out_object_idx = gl_volume->object_idx();
+        ModelObject *   model_object   = selection.get_model()->objects[out_object_idx];
+        int             out_volume_idx = gl_volume->volume_idx();
+        ModelVolume *   model_volume   = model_object->volumes[out_volume_idx];
+        if (model_volume)
+            return !model_volume->get_text_info().m_text.empty();
+    }
+    return false;
+}
+
 bool Plater::priv::can_add_plate() const
 {
     return q->get_partplate_list().get_plate_count() < PartPlateList::MAX_PLATES_COUNT;
@@ -11399,6 +11418,14 @@ void Plater::show_status_message(std::string s)
     BOOST_LOG_TRIVIAL(trace) << "show_status_message:" << s;
 }
 
+void Plater::edit_text()
+{
+    auto &manager = get_view3D_canvas3D()->get_gizmos_manager();
+    manager.open_gizmo(GLGizmosManager::Text);
+    update();
+}
+
+bool Plater::can_edit_text() const { return p->can_edit_text(); }
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_add_model() const { return !is_background_process_slicing(); }

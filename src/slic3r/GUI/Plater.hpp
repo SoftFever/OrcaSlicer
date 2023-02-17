@@ -447,6 +447,10 @@ public:
     //BBS:
     void fill_color(int extruder_id);
 
+    //BBS:
+    void edit_text();
+    bool can_edit_text() const;
+
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_add_model() const;
