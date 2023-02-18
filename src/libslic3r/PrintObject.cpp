@@ -782,7 +782,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
-            || opt_key == "internal_bridge_support_thickness") {
+            || opt_key == "internal_bridge_support_thickness"
+            || opt_key == "bridge_density") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
@@ -830,7 +831,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_speed_classic") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bridge_flow" || opt_key == "bridge_density") {
+        } else if (opt_key == "bridge_flow") {
             if (m_config.support_top_z_distance > 0.) {
             	// Only invalidate due to bridging if bridging is enabled.
             	// If later "support_top_z_distance" is modified, the complete PrintObject is invalidated anyway.
