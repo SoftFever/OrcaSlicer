@@ -3041,13 +3041,13 @@ msgid "Pressure advance"
 msgstr "Pressure advance"
 
 msgid "Max flowrate"
-msgstr ""
+msgstr "Maximale Durchflussrate"
 
 msgid "VFA"
 msgstr ""
 
 msgid "More..."
-msgstr ""
+msgstr "Mehr..."
 
 msgid "Tutorial"
 msgstr "Anleitung"
@@ -3056,7 +3056,7 @@ msgid "Calibration help"
 msgstr "Kalibrierungshilfe"
 
 msgid "More calibrations"
-msgstr ""
+msgstr "Weitere Kalibrierungen"
 
 msgid "3D Models"
 msgstr "3D Modelle"
@@ -5918,7 +5918,7 @@ msgid "Bottom surface"
 msgstr "Untere Oberfläche"
 
 msgid "Bridge"
-msgstr "Überbrückung"
+msgstr "Überbrückungen"
 
 msgid "Gap infill"
 msgstr "Lückenfüllung"
@@ -6486,10 +6486,10 @@ msgstr ""
 "Nullwinkel."
 
 msgid "Bridge density"
-msgstr ""
+msgstr "Brückendichte"
 
 msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
-msgstr ""
+msgstr "Die Standard-Einstellung für Density of external bridges ist 100%, was bedeutet, dass die Brücke als massives Material gedruckt wird. Diese Einstellung kann jedoch je nach Druckanforderungen und Objekt variieren und angepasst werden."
 
 msgid "Bridge flow"
 msgstr "Durchflussverhältnis für Brücken"
@@ -6520,12 +6520,13 @@ msgstr ""
 "Dieser Faktor beeinflusst die Menge des Materials für die untere Füllung"
 
 msgid "Precise wall(experimental)"
-msgstr ""
+msgstr "Exakte Wand (experimentell)"
 
 msgid ""
 "Improve shell precesion by adjusting outer wall spacing. This also improves "
 "layer consistency."
 msgstr ""
+"Durch Anpassen des Abstands der Außenwand kann die Präzision der Schale verbessert werden. Dadurch wird auch die Schichtkonsistenz verbessert."
 
 msgid "Only one wall on top surfaces"
 msgstr "Nur eine Wand auf der oberen Fläche"
@@ -6548,10 +6549,10 @@ msgstr ""
 "Füllung mehr Platz zu geben"
 
 msgid "Classic mode"
-msgstr ""
+msgstr "Klassicher Modus"
 
 msgid "Enable this option to use classic mode"
-msgstr ""
+msgstr "Diese Option aktivieren, um den klassischen Modus zu verwenden"
 
 msgid "Slow down for overhang"
 msgstr "Verlangsamen bei Überhängen"
@@ -6823,6 +6824,7 @@ msgstr "Schwelle für kleine Strukturen"
 msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr ""
+"Dies legt die Schwelle für eine kleine Umfangslänge fest. Der Standardwert für die Schwelle beträgt 0 mm."
 
 msgid "Order of inner wall/outer wall/infil"
 msgstr "Reihenfolge Innenwand/Außenwand/Füllung"
@@ -7909,7 +7911,7 @@ msgstr ""
 "Wischenaktion verwendet."
 
 msgid "Wipe on loops"
-msgstr "Reinigen auf Schleife"
+msgstr "Wischbewegung nach innen"
 
 msgid ""
 "To minimize the visibility of the seam in a closed loop extrusion, a small "
@@ -8842,7 +8844,7 @@ msgid "Bowden"
 msgstr ""
 
 msgid "Extruder type"
-msgstr ""
+msgstr "Extruder Typ"
 
 msgid "PA Tower"
 msgstr ""
@@ -8851,7 +8853,7 @@ msgid "PA Line"
 msgstr ""
 
 msgid "Method"
-msgstr ""
+msgstr "Methode"
 
 msgid "Start PA: "
 msgstr "Start PA: "
@@ -8863,7 +8865,7 @@ msgid "PA step: "
 msgstr "PA Schritte:"
 
 msgid "Print numbers"
-msgstr ""
+msgstr "Anzahl der Drucke"
 
 msgid ""
 "Please input valid values:\n"
@@ -8877,7 +8879,7 @@ msgstr ""
 "PA Schritt: >= 0.001"
 
 msgid "Temperature calibration"
-msgstr ""
+msgstr "Temperatur Test"
 
 msgid "PLA"
 msgstr ""
@@ -8898,16 +8900,16 @@ msgid "PET-CF"
 msgstr ""
 
 msgid "Filament type"
-msgstr ""
+msgstr "Filamenttyp"
 
 msgid "Start temp: "
-msgstr ""
+msgstr "Starttemperatur"
 
 msgid "End end: "
-msgstr ""
+msgstr "Endtemperatur"
 
 msgid "Temp step: "
-msgstr ""
+msgstr "Temp Schrittweite"
 
 msgid ""
 "Please input valid values:\n"
@@ -8915,39 +8917,49 @@ msgid ""
 "End temp: >= 180\n"
 "Start temp > End temp + 5)"
 msgstr ""
+"Bitte geben Sie gültige Werte ein:\n" 
+"Start Temp: <= 350\n"
+"End Temp: >= 180\n"
+"Start Temp > End Temp + 5)"
 
 msgid "Max volumetric speed test"
-msgstr ""
+msgstr "Test zur maximalen Volumengeschwindigkeit"
 
 msgid "Start volumetric speed: "
-msgstr ""
+msgstr "Start-Volumengeschwindigkeit"
 
 msgid "End volumetric speed: "
-msgstr ""
+msgstr "End-Volumengeschwindigkeit"
 
 msgid "step: "
-msgstr ""
+msgstr "Schrittweite"
 
 msgid ""
 "Please input valid values:\n"
 "start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Bitte geben Sie gültige Werte ein:\n" 
+"Start > 0 Schrittweite >= 0\n"
+"Ende > Start + Schrittweite)"
 
 msgid "VFA test"
-msgstr ""
+msgstr "VFA TEST"
 
 msgid "Start speed: "
-msgstr ""
+msgstr "Startgeschwindigkeit"
 
 msgid "End speed: "
-msgstr ""
+msgstr "Endgeschwindigkeit"
 
 msgid ""
 "Please input valid values:\n"
 "start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Bitte geben Sie gültige Werte ein:\n" 
+"Start > 10 Schrittweite >= 0\n"
+"Ende > Start + Schrittweite)"
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -9370,14 +9382,14 @@ msgstr ""
 #~ msgid "Show All"
 #~ msgstr "Alles anzeigen"
 
-#~ msgid "Hide Others"
-#~ msgstr "Andere ausblenden"
+msgid "Hide Others"
+msgstr "Andere ausblenden"
 
-#~ msgid "Hide BambuStudio-SoftFever"
-#~ msgstr "BambuStudio-SoftFever ausblenden"
+msgid "Hide BambuStudio-SoftFever"
+msgstr "BambuStudio-SoftFever ausblenden"
 
-#~ msgid "Select presets to compare"
-#~ msgstr "Wähle Voreinstellungen zum Vergleich aus"
+msgid "Select presets to compare"
+msgstr "Wähle Voreinstellungen zum Vergleich aus"
 
 #~ msgid "only one wall on first Layer"
 #~ msgstr "Nur eine Wand in der ersten Schicht"
@@ -9955,3 +9967,7 @@ msgstr ""
 
 #~ msgid "tree"
 #~ msgstr "Baum"
+
+msgid "Recently opened"
+msgstr "Kürzlich geöffnet"
+
