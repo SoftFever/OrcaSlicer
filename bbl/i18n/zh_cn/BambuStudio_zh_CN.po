@@ -6049,7 +6049,7 @@ msgid "Precise wall(experimental)"
 msgstr "精准外墙尺寸(试验)"
 
 msgid ""
-"Improve shell precesion by adjusting outer wall spacing. This also improves "
+"Improve shell precision by adjusting outer wall spacing. This also improves "
 "layer consistency."
 msgstr "优化外墙刀路以提高外墙精度。这个优化同时减少层纹"
 

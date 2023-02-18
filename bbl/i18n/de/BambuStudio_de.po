@@ -6523,7 +6523,7 @@ msgid "Precise wall(experimental)"
 msgstr "Exakte Wand (experimentell)"
 
 msgid ""
-"Improve shell precesion by adjusting outer wall spacing. This also improves "
+"Improve shell precision by adjusting outer wall spacing. This also improves "
 "layer consistency."
 msgstr ""
 "Durch Anpassen des Abstands der Außenwand kann die Präzision der Schale verbessert werden. Dadurch wird auch die Schichtkonsistenz verbessert."

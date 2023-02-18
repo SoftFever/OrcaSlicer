@@ -6123,7 +6123,7 @@ msgid "Precise wall(experimental)"
 msgstr ""
 
 msgid ""
-"Improve shell precesion by adjusting outer wall spacing. This also improves "
+"Improve shell precision by adjusting outer wall spacing. This also improves "
 "layer consistency."
 msgstr ""
 
