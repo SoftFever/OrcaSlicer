@@ -104,6 +104,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "inner_wall_acceleration",
         "initial_layer_acceleration",
         "top_surface_acceleration",
+        "bridge_acceleration",
         "travel_acceleration",
         // BBS
         "cool_plate_temp_initial_layer",

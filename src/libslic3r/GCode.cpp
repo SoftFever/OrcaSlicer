@@ -3712,9 +3712,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 #if 0
         } else if (this->object_layer_over_raft() && m_config.first_layer_acceleration_over_raft.value > 0) {
             acceleration = m_config.first_layer_acceleration_over_raft.value;
-        } else if (m_config.bridge_acceleration.value > 0 && is_bridge(path.role())) {
-            acceleration = m_config.bridge_acceleration.value;
 #endif
+        } else if (m_config.get_abs_value("bridge_acceleration") > 0 && is_bridge(path.role())) {
+            acceleration = m_config.get_abs_value("bridge_acceleration");
         } else if (m_config.outer_wall_acceleration.value > 0 && is_external_perimeter(path.role())) {
              acceleration = m_config.outer_wall_acceleration.value;
         } else if (m_config.inner_wall_acceleration.value > 0 && is_internal_perimeter(path.role())) {

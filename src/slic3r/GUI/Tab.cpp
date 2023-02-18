@@ -1941,6 +1941,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("default_acceleration");
         optgroup->append_single_option_line("outer_wall_acceleration");
         optgroup->append_single_option_line("inner_wall_acceleration");
+        optgroup->append_single_option_line("bridge_acceleration");
         optgroup->append_single_option_line("initial_layer_acceleration");
         optgroup->append_single_option_line("top_surface_acceleration");
         optgroup->append_single_option_line("travel_acceleration");

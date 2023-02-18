@@ -909,6 +909,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              inner_wall_acceleration))
     ((ConfigOptionFloat,              top_surface_acceleration))
     ((ConfigOptionFloat,              initial_layer_acceleration))
+    ((ConfigOptionFloatOrPercent,     bridge_acceleration))
     ((ConfigOptionFloat,              travel_acceleration))
     ((ConfigOptionFloat,              initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))

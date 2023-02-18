@@ -1467,6 +1467,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500));
 
+    def = this->add("bridge_acceleration", coFloatOrPercent);
+    def->label = L("Bridge");
+    def->tooltip = L("Acceleration of bridges. If the value is expressed as a percentage (e.g. 50%), it will be calculated based on the outer wall acceleration.");
+    def->sidetext = L("mm/s² or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->ratio_over = "outer_wall_acceleration";
+    def->set_default_value(new ConfigOptionFloatOrPercent(50,true));
+
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
     def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhensive");
@@ -4629,17 +4638,6 @@ std::string validate(const FullPrintConfig &cfg)
     for (double em : cfg.filament_flow_ratio.values)
         if (em <= 0)
             return "Invalid value for --filament-flow-ratio";
-
-    // The following test was commented out after 482841b, see also https://github.com/prusa3d/PrusaSlicer/pull/6743.
-    // The backend should now handle this case correctly. I.e., zero default_acceleration behaves as if all others
-    // were zero too. This is now consistent with what the UI said would happen.
-    // The UI already grays the fields out, there is no more reason to reject it here. This function validates the
-    // config before exporting, leaving this check in would mean that config would be rejected before export
-    // (although both the UI and the backend handle it).
-    // --default-acceleration
-    //if ((cfg.outer_wall_acceleration != 0. || cfg.infill_acceleration != 0. || cfg.bridge_acceleration != 0. || cfg.initial_layer_acceleration != 0.) &&
-    //    cfg.default_acceleration == 0.)
-    //    return "Invalid zero value for --default-acceleration when using other acceleration settings";
 
     // --spiral-vase
     if (cfg.spiral_mode) {
