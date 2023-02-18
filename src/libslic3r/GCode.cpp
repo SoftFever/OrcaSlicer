@@ -3943,7 +3943,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         gcode += m_writer.set_speed(F, "", comment);
         double path_length = 0.;
         {
-            if (m_enable_cooling_markers && enable_overhang_bridge_fan && m_config.overhang_speed_classic) {
+            if (m_enable_cooling_markers && enable_overhang_bridge_fan) {
                 // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
                 // perimeter
                 int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
@@ -4020,23 +4020,31 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             Vec2d p = this->point_to_gcode_quantized(processed_point.p);
             const double line_length = (p - prev).norm();
             if (m_enable_cooling_markers && enable_overhang_bridge_fan) {
-                if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap)) {
-                    gcode += ";_OVERHANG_FAN_START\n";
+                if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap) ) {
+                    if(!is_overhang_fan_on)
+                        gcode += ";_OVERHANG_FAN_START\n";
                     is_overhang_fan_on = true;
-                }
+                }else {
+                    if (is_overhang_fan_on) {
+                        gcode += ";_OVERHANG_FAN_END\n";
+                        is_overhang_fan_on = false;
+                    }
+                    
+        }
             }
             gcode +=
                 m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
-            if (is_overhang_fan_on) {
-                is_overhang_fan_on = false;
-                gcode += ";_OVERHANG_FAN_END\n";
-            }
+
             prev = p;
             double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), processed_point.speed) * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
             }
+        }
+        if (is_overhang_fan_on) {
+            is_overhang_fan_on = false;
+            gcode += ";_OVERHANG_FAN_END\n";
         }
     }
     if (m_enable_cooling_markers) {
