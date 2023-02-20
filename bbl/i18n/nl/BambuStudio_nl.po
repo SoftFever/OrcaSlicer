@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:01+0800\n"
+"POT-Creation-Date: 2023-02-20 09:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -369,6 +369,12 @@ msgstr "Naad schilderen"
 msgid "Remove selection"
 msgstr "Verwijder selectie"
 
+msgid "Shift + Mouse movement"
+msgstr ""
+
+msgid "Rotate preview text"
+msgstr ""
+
 msgid "Text shape"
 msgstr "Tekstvorm"
 
@@ -381,11 +387,20 @@ msgstr "Dikte"
 msgid "Input text"
 msgstr "Tekst invoeren"
 
-msgid "Modify"
-msgstr "Aanpassen"
+msgid "Embeded depth"
+msgstr ""
 
-msgid "Add"
-msgstr "Toevoegen"
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Keep horizontal"
+msgstr ""
 
 msgid "Notice"
 msgstr "Let op"
@@ -551,7 +566,7 @@ msgstr ""
 msgid "Login information expired. Please login again."
 msgstr "Uw inlog is verlopen. Log alstublieft opnieuw in."
 
-msgid "Privacy Policy"
+msgid "Privacy Policy Update"
 msgstr ""
 
 msgid "Loading"
@@ -583,6 +598,24 @@ msgstr "Lopende uploads"
 
 msgid "Select a G-code file:"
 msgstr "Selecteer een G-code bestand:"
+
+msgid "Import File"
+msgstr ""
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Choose files"
+msgstr "Kies bestanden"
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr "Open"
+
+msgid "Rename"
+msgstr "Naam wijzigen"
 
 msgid "Bambu Studio GUI initialization failed"
 msgstr "Initialisatie van Bambu Studio GUI is mislukt"
@@ -669,11 +702,11 @@ msgstr "Verbergen"
 msgid "Show"
 msgstr "Weergeven"
 
-msgid "Delete"
-msgstr "Verwijderen"
-
 msgid "Delete the selected object"
 msgstr "Verwijder het geselecteerde object"
+
+msgid "Edit Text"
+msgstr ""
 
 msgid "Load..."
 msgstr "Laden..."
@@ -701,9 +734,6 @@ msgstr "Instellen als individuele objecten"
 
 msgid "Printable"
 msgstr "Afdrukbaar"
-
-msgid "Rename"
-msgstr "Naam wijzigen"
 
 msgid "Fix model"
 msgstr "Repareer model"
@@ -1453,6 +1483,58 @@ msgstr "Log uit en log opnieuw in op de printer."
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr "Uploaden van printbestand is mislukt. Voer het IP-adres opnieuw in."
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr ""
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr ""
+
+msgid "Attention!"
+msgstr "Let op!"
 
 msgid "Downloading"
 msgstr "Downloaden"
@@ -2605,6 +2687,9 @@ msgstr "Sta verschillende materiaalsoorten op hetzelfde printbed toe"
 msgid "Avoid extrusion calibration region"
 msgstr "Vermijd het extrusie kalibratie gebied"
 
+msgid "Add"
+msgstr "Toevoegen"
+
 msgid "Add plate"
 msgstr "Printbed toevoegen"
 
@@ -2790,9 +2875,8 @@ msgstr "Ja"
 msgid "No"
 msgstr "Nee"
 
-msgid " will be closed before creating a new model. Do you want to continue?"
+msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr ""
-" wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
 
 msgid "Slice plate"
 msgstr "Slice printbed"
@@ -3926,9 +4010,6 @@ msgstr ""
 "Vanwege niet-ondersteunde tekstcodering kunnen er onjuiste tekens "
 "verschijnen!"
 
-msgid "Attention!"
-msgstr "Let op!"
-
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -4459,6 +4540,39 @@ msgstr "Materialen toevoegen/verwijderen"
 
 msgid "Add/Remove printers"
 msgstr "Printers toevoegen/verwijderen"
+
+msgid "Same as Global Print Sequence"
+msgstr ""
+
+msgid "Print sequence"
+msgstr "Afdrukvolgorde"
+
+msgid "Same as Global Bed Type"
+msgstr "Hetzelfde als Global Bed Type"
+
+msgid "Cool Plate"
+msgstr "Cool (koud) printbed"
+
+msgid "Engineering Plate"
+msgstr "Engineering plate (technisch printbed)"
+
+msgid "High Temp Plate"
+msgstr "High Temp Plate (hoge temperatuur printbed)"
+
+msgid "Textured PEI Plate"
+msgstr "PEI plaat met structuur"
+
+msgid "By Layer"
+msgstr ""
+
+msgid "By Object"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -5015,9 +5129,6 @@ msgstr ""
 "waarde van 0 betekent dat het filament afdrukken op de Engineering Plate "
 "niet ondersteunt."
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate (hoge temperatuur printbed)"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
@@ -5025,9 +5136,6 @@ msgstr ""
 "Dit is de bedtemperatuur wanneer de hogetemperatuurplaat is geïnstalleerd. "
 "Een waarde van 0 betekent dat het filament printen op de High Temp Plate "
 "niet ondersteunt."
-
-msgid "Textured PEI Plate"
-msgstr "PEI plaat met structuur"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5319,9 +5427,6 @@ msgstr "Materiaal rekening"
 
 msgid "Assembly Guide"
 msgstr "Montagehandleiding"
-
-msgid "Choose files"
-msgstr "Kies bestanden"
 
 msgid "Author"
 msgstr "Auteur"
@@ -6379,12 +6484,6 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Printbedden ondersteund door de printer"
 
-msgid "Cool Plate"
-msgstr "Cool (koud) printbed"
-
-msgid "Engineering Plate"
-msgstr "Engineering plate (technisch printbed)"
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
 "De G-code wordt bij iedere laagwisseling toegevoegd voor het optillen van Z"
@@ -6544,9 +6643,6 @@ msgstr "Geschikte proces profielen"
 
 msgid "Compatible process profiles condition"
 msgstr "Conditie van -geschikte proces profielen"
-
-msgid "Print sequence"
-msgstr "Afdrukvolgorde"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr ""
@@ -8809,6 +8905,14 @@ msgstr ""
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
 
+#~ msgid "Modify"
+#~ msgstr "Aanpassen"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr ""
+#~ " wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
+
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"
 
@@ -9305,9 +9409,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Opmerking: De locatie van IP en toegangscode op de machine zijn als volgt:"
 
-#~ msgid "Open"
-#~ msgstr "Open"
-
 #~ msgid "Open &PrusaSlicer"
 #~ msgstr "Open &PrusaSlicer"
 
@@ -9454,9 +9555,6 @@ msgstr ""
 
 #~ msgid "Rotation:"
 #~ msgstr "Rotatie:"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "Hetzelfde als Global Bed Type"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Bewaar configuratie als:"

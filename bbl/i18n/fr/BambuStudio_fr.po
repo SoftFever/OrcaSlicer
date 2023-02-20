@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:01+0800\n"
+"POT-Creation-Date: 2023-02-20 09:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -369,6 +369,12 @@ msgstr "Seam painting"
 msgid "Remove selection"
 msgstr "Remove selection"
 
+msgid "Shift + Mouse movement"
+msgstr ""
+
+msgid "Rotate preview text"
+msgstr ""
+
 msgid "Text shape"
 msgstr "Text shape"
 
@@ -381,11 +387,20 @@ msgstr "Thickness"
 msgid "Input text"
 msgstr "Input text"
 
-msgid "Modify"
-msgstr "Modify"
+msgid "Embeded depth"
+msgstr ""
 
-msgid "Add"
-msgstr "Ajouter"
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Keep horizontal"
+msgstr ""
 
 msgid "Notice"
 msgstr "Remarquer"
@@ -555,7 +570,7 @@ msgstr ""
 msgid "Login information expired. Please login again."
 msgstr "Les informations de connexion ont expiré. Veuillez vous reconnecter."
 
-msgid "Privacy Policy"
+msgid "Privacy Policy Update"
 msgstr ""
 
 msgid "Loading"
@@ -587,6 +602,24 @@ msgstr "Ongoing uploads"
 
 msgid "Select a G-code file:"
 msgstr "Sélectionnez un fichier G-code :"
+
+msgid "Import File"
+msgstr ""
+
+msgid "Delete"
+msgstr "Effacer"
+
+msgid "Choose files"
+msgstr "Choisir des fichiers"
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr "Open"
+
+msgid "Rename"
+msgstr "Renommer"
 
 msgid "Bambu Studio GUI initialization failed"
 msgstr "L'initialisation de l'interface de Bambu Studio a échoué"
@@ -673,11 +706,11 @@ msgstr "Hide"
 msgid "Show"
 msgstr "Show"
 
-msgid "Delete"
-msgstr "Effacer"
-
 msgid "Delete the selected object"
 msgstr "Supprimer l'objet sélectionné"
+
+msgid "Edit Text"
+msgstr ""
 
 msgid "Load..."
 msgstr "Charger..."
@@ -705,9 +738,6 @@ msgstr "Définir en tant qu'objets individuels"
 
 msgid "Printable"
 msgstr "Imprimable"
-
-msgid "Rename"
-msgstr "Renommer"
 
 msgid "Fix model"
 msgstr "Réparer le modèle"
@@ -1442,6 +1472,58 @@ msgstr "Please log out and login to the printer again."
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr "Failed uploading print file. Please enter IP address again."
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr ""
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr ""
+
+msgid "Attention!"
+msgstr "Attention !"
 
 msgid "Downloading"
 msgstr "Downloading"
@@ -2568,6 +2650,9 @@ msgstr "Autoriser plusieurs matériaux sur la même plaque"
 msgid "Avoid extrusion calibration region"
 msgstr "Éviter la région d'étalonnage de l'extrusion"
 
+msgid "Add"
+msgstr "Ajouter"
+
 msgid "Add plate"
 msgstr "Ajouter une assiette"
 
@@ -2754,8 +2839,8 @@ msgstr "Oui"
 msgid "No"
 msgstr "Non"
 
-msgid " will be closed before creating a new model. Do you want to continue?"
-msgstr " will be closed before creating a new model. Do you want to continue?"
+msgid "will be closed before creating a new model. Do you want to continue?"
+msgstr ""
 
 msgid "Slice plate"
 msgstr "Assiette à trancher"
@@ -3868,9 +3953,6 @@ msgstr ""
 msgid "The name may show garbage characters!"
 msgstr "Le nom peut afficher des caractères inutiles !"
 
-msgid "Attention!"
-msgstr "Attention !"
-
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -4397,6 +4479,39 @@ msgstr "Add/Remove materials"
 
 msgid "Add/Remove printers"
 msgstr "Add/Remove printers"
+
+msgid "Same as Global Print Sequence"
+msgstr ""
+
+msgid "Print sequence"
+msgstr "Séquence d'impression"
+
+msgid "Same as Global Bed Type"
+msgstr "Same as Global Bed Type"
+
+msgid "Cool Plate"
+msgstr "Assiette froide"
+
+msgid "Engineering Plate"
+msgstr "Plaque d'ingénierie"
+
+msgid "High Temp Plate"
+msgstr "Plaque haute température"
+
+msgid "Textured PEI Plate"
+msgstr "Textured PEI Plate"
+
+msgid "By Layer"
+msgstr ""
+
+msgid "By Object"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -4946,9 +5061,6 @@ msgstr ""
 "(\"Engineering plate\") est installé. Une valeur à 0 signifie que ce "
 "filament ne peut pas être imprimé sur le plateau technique."
 
-msgid "High Temp Plate"
-msgstr "Plaque haute température"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
@@ -4956,9 +5068,6 @@ msgstr ""
 "Il s'agit de la température du plateau lorsque le plateau haute température "
 "(\"Cool plate\") est installé. Une valeur à 0 signifie que ce filament ne "
 "peut pas être imprimé sur le plateau haute température."
-
-msgid "Textured PEI Plate"
-msgstr "Textured PEI Plate"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5249,9 +5358,6 @@ msgstr "Nomenclature"
 
 msgid "Assembly Guide"
 msgstr "Guide d'assemblage"
-
-msgid "Choose files"
-msgstr "Choisir des fichiers"
 
 msgid "Author"
 msgstr "Author"
@@ -6303,12 +6409,6 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Types de lit pris en charge par l'imprimante"
 
-msgid "Cool Plate"
-msgstr "Assiette froide"
-
-msgid "Engineering Plate"
-msgstr "Plaque d'ingénierie"
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Ce G-code est inséré à chaque changement de couche avant de soulever z"
 
@@ -6469,9 +6569,6 @@ msgstr "Profils de processus compatibles"
 
 msgid "Compatible process profiles condition"
 msgstr "Condition de profils de processus compatibles"
-
-msgid "Print sequence"
-msgstr "Séquence d'impression"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "Séquence d'impression, couche par couche ou objet par objet"
@@ -8714,6 +8811,14 @@ msgstr ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 
+#~ msgid "Modify"
+#~ msgstr "Modify"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"
 
@@ -9210,9 +9315,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Note: The location of IP and access code on the machine is as follows:"
 
-#~ msgid "Open"
-#~ msgstr "Open"
-
 #~ msgid "Open &PrusaSlicer"
 #~ msgstr "Ouvrir &PrusaSlicer"
 
@@ -9358,9 +9460,6 @@ msgstr ""
 
 #~ msgid "Rotation:"
 #~ msgstr "Rotation :"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "Same as Global Bed Type"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Enregistrer la configuration sous :"

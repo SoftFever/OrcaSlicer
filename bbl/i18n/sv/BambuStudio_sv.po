@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:01+0800\n"
+"POT-Creation-Date: 2023-02-20 09:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -368,6 +368,12 @@ msgstr "Målning av sömmar"
 msgid "Remove selection"
 msgstr "Ta bort val"
 
+msgid "Shift + Mouse movement"
+msgstr ""
+
+msgid "Rotate preview text"
+msgstr ""
+
 msgid "Text shape"
 msgstr "Text form"
 
@@ -380,11 +386,20 @@ msgstr "Tjocklek"
 msgid "Input text"
 msgstr "Skriv in text"
 
-msgid "Modify"
-msgstr "Modifiera"
+msgid "Embeded depth"
+msgstr ""
 
-msgid "Add"
-msgstr "Lägg till"
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Keep horizontal"
+msgstr ""
 
 msgid "Notice"
 msgstr "Iakttag"
@@ -548,7 +563,7 @@ msgstr ""
 msgid "Login information expired. Please login again."
 msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
 
-msgid "Privacy Policy"
+msgid "Privacy Policy Update"
 msgstr ""
 
 msgid "Loading"
@@ -580,6 +595,24 @@ msgstr "Pågående uppladdningar"
 
 msgid "Select a G-code file:"
 msgstr "Välj en G-kod fil:"
+
+msgid "Import File"
+msgstr ""
+
+msgid "Delete"
+msgstr "Radera"
+
+msgid "Choose files"
+msgstr "Välj filer"
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr "Öppna"
+
+msgid "Rename"
+msgstr "Döp om"
 
 msgid "Bambu Studio GUI initialization failed"
 msgstr "Bambu Studio GUI-initiering misslyckades"
@@ -666,11 +699,11 @@ msgstr "Dölj"
 msgid "Show"
 msgstr "Visa"
 
-msgid "Delete"
-msgstr "Radera"
-
 msgid "Delete the selected object"
 msgstr "Radera det valda objektet"
+
+msgid "Edit Text"
+msgstr ""
 
 msgid "Load..."
 msgstr "Ladda..."
@@ -698,9 +731,6 @@ msgstr "Ställ in som enskilda objekt"
 
 msgid "Printable"
 msgstr "Utskriftsbar"
-
-msgid "Rename"
-msgstr "Döp om"
 
 msgid "Fix model"
 msgstr "Fixa modell"
@@ -1431,6 +1461,58 @@ msgstr "Logga ut och logga in på skrivaren igen."
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr "Det gick inte att ladda upp utskriftsfilen. Ange IP-adress igen."
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr ""
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr ""
+
+msgid "Attention!"
+msgstr "Observera!"
 
 msgid "Downloading"
 msgstr "Laddar ner"
@@ -2571,6 +2653,9 @@ msgstr "Tillåt multipla material på samma byggplatta"
 msgid "Avoid extrusion calibration region"
 msgstr "Undvik kalibrerings området"
 
+msgid "Add"
+msgstr "Lägg till"
+
 msgid "Add plate"
 msgstr "Lägg till byggplata"
 
@@ -2755,8 +2840,8 @@ msgstr "Ja"
 msgid "No"
 msgstr "Nej"
 
-msgid " will be closed before creating a new model. Do you want to continue?"
-msgstr " avslutas innan en ny modell skapas. Vill du fortsätta?"
+msgid "will be closed before creating a new model. Do you want to continue?"
+msgstr ""
 
 msgid "Slice plate"
 msgstr "Bered plattan"
@@ -3870,9 +3955,6 @@ msgstr "Komponent namnet i step filen är inte UTF8 format!"
 msgid "The name may show garbage characters!"
 msgstr "På grund av textkodning som inte stöds så kan skräptecken visas!"
 
-msgid "Attention!"
-msgstr "Observera!"
-
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -4385,6 +4467,39 @@ msgstr "Lägg till/Ta bort material"
 
 msgid "Add/Remove printers"
 msgstr "Lägg till/Ta bort skrivare"
+
+msgid "Same as Global Print Sequence"
+msgstr ""
+
+msgid "Print sequence"
+msgstr "Utskrifts sekvens"
+
+msgid "Same as Global Bed Type"
+msgstr "Samma som Global Bed Type"
+
+msgid "Cool Plate"
+msgstr "Cool Plate"
+
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
+
+msgid "High Temp Plate"
+msgstr "High Temp Plate"
+
+msgid "Textured PEI Plate"
+msgstr "Texturerad PEI-platta"
+
+msgid "By Layer"
+msgstr ""
+
+msgid "By Object"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "Bered alla plattor för att mottaga tid och filament uppskattning"
@@ -4925,18 +5040,12 @@ msgstr ""
 "Detta är byggplattans temperatur när Engineering Plate är installerad. Ett "
 "värde på 0 betyder att filamentet inte stöder utskrift på Engineering Plate."
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
 "Detta är byggplattans temperatur när High Temp Plate är installerad. Värdet "
 "0 betyder att filamentet inte stöder utskrift på High Temp Plate."
-
-msgid "Textured PEI Plate"
-msgstr "Texturerad PEI-platta"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5225,9 +5334,6 @@ msgstr "Materialförteckning"
 
 msgid "Assembly Guide"
 msgstr "Monterings Guide"
-
-msgid "Choose files"
-msgstr "Välj filer"
 
 msgid "Author"
 msgstr "Författare"
@@ -6243,12 +6349,6 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Byggplattans typ stöds av skrivaren"
 
-msgid "Cool Plate"
-msgstr "Cool Plate"
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Denna G-kod används för varje lager innan Z axis lyfts"
 
@@ -6404,9 +6504,6 @@ msgstr "Kompatibla process profiler"
 
 msgid "Compatible process profiles condition"
 msgstr "Kompatibla process profilers status"
-
-msgid "Print sequence"
-msgstr "Utskrifts sekvens"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "Utskrifts sekvens, lager för lager eller objekt för objekt"
@@ -8609,6 +8706,13 @@ msgstr ""
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
 
+#~ msgid "Modify"
+#~ msgstr "Modifiera"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr " avslutas innan en ny modell skapas. Vill du fortsätta?"
+
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"
 
@@ -9096,9 +9200,6 @@ msgstr ""
 #~ "Note : The location of IP and access code on the machine is as follows :"
 #~ msgstr "Obs: Placeringen av IP och åtkomstkod på maskinen är som följer:"
 
-#~ msgid "Open"
-#~ msgstr "Öppna"
-
 #~ msgid "Open &PrusaSlicer"
 #~ msgstr "Öppna &PrusaSlicer"
 
@@ -9244,9 +9345,6 @@ msgstr ""
 
 #~ msgid "Rotation:"
 #~ msgstr "Rotation:"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "Samma som Global Bed Type"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Spara konfigurationen som:"

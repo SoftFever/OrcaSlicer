@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:01+0800\n"
+"POT-Creation-Date: 2023-02-20 09:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -367,6 +367,12 @@ msgstr ""
 msgid "Remove selection"
 msgstr ""
 
+msgid "Shift + Mouse movement"
+msgstr ""
+
+msgid "Rotate preview text"
+msgstr ""
+
 msgid "Text shape"
 msgstr ""
 
@@ -379,10 +385,19 @@ msgstr ""
 msgid "Input text"
 msgstr ""
 
-msgid "Modify"
+msgid "Embeded depth"
 msgstr ""
 
-msgid "Add"
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Keep horizontal"
 msgstr ""
 
 msgid "Notice"
@@ -533,7 +548,7 @@ msgstr ""
 msgid "Login information expired. Please login again."
 msgstr ""
 
-msgid "Privacy Policy"
+msgid "Privacy Policy Update"
 msgstr ""
 
 msgid "Loading"
@@ -564,6 +579,24 @@ msgid "Ongoing uploads"
 msgstr ""
 
 msgid "Select a G-code file:"
+msgstr ""
+
+msgid "Import File"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Choose files"
+msgstr ""
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Rename"
 msgstr ""
 
 msgid "Bambu Studio GUI initialization failed"
@@ -651,10 +684,10 @@ msgstr ""
 msgid "Show"
 msgstr ""
 
-msgid "Delete"
+msgid "Delete the selected object"
 msgstr ""
 
-msgid "Delete the selected object"
+msgid "Edit Text"
 msgstr ""
 
 msgid "Load..."
@@ -682,9 +715,6 @@ msgid "Set as individual objects"
 msgstr ""
 
 msgid "Printable"
-msgstr ""
-
-msgid "Rename"
 msgstr ""
 
 msgid "Fix model"
@@ -1381,6 +1411,58 @@ msgid "Please log out and login to the printer again."
 msgstr ""
 
 msgid "Failed uploading print file. Please enter ip address again."
+msgstr ""
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr ""
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr ""
+
+msgid "Attention!"
 msgstr ""
 
 msgid "Downloading"
@@ -2391,6 +2473,9 @@ msgstr ""
 msgid "Avoid extrusion calibration region"
 msgstr ""
 
+msgid "Add"
+msgstr ""
+
 msgid "Add plate"
 msgstr ""
 
@@ -2567,7 +2652,7 @@ msgstr ""
 msgid "No"
 msgstr ""
 
-msgid " will be closed before creating a new model. Do you want to continue?"
+msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr ""
 
 msgid "Slice plate"
@@ -3638,9 +3723,6 @@ msgstr ""
 msgid "The name may show garbage characters!"
 msgstr ""
 
-msgid "Attention!"
-msgstr ""
-
 #, possible-boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -4129,6 +4211,39 @@ msgstr ""
 msgid "Add/Remove printers"
 msgstr ""
 
+msgid "Same as Global Print Sequence"
+msgstr ""
+
+msgid "Print sequence"
+msgstr ""
+
+msgid "Same as Global Bed Type"
+msgstr ""
+
+msgid "Cool Plate"
+msgstr ""
+
+msgid "Engineering Plate"
+msgstr ""
+
+msgid "High Temp Plate"
+msgstr ""
+
+msgid "Textured PEI Plate"
+msgstr ""
+
+msgid "By Layer"
+msgstr ""
+
+msgid "By Object"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
+
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
 
@@ -4600,15 +4715,9 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 
-msgid "High Temp Plate"
-msgstr ""
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
-msgstr ""
-
-msgid "Textured PEI Plate"
 msgstr ""
 
 msgid ""
@@ -4867,9 +4976,6 @@ msgid "Bill of Materials"
 msgstr ""
 
 msgid "Assembly Guide"
-msgstr ""
-
-msgid "Choose files"
 msgstr ""
 
 msgid "Author"
@@ -5806,12 +5912,6 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr ""
 
-msgid "Cool Plate"
-msgstr ""
-
-msgid "Engineering Plate"
-msgstr ""
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
 
@@ -5936,9 +6036,6 @@ msgid "Compatible process profiles"
 msgstr ""
 
 msgid "Compatible process profiles condition"
-msgstr ""
-
-msgid "Print sequence"
 msgstr ""
 
 msgid "Print sequence, layer by layer or object by object"

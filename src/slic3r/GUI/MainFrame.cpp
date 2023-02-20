@@ -1000,7 +1000,7 @@ bool MainFrame::preview_only_hint()
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
         auto filename = m_plater->get_preview_only_filename();
 
-        confirm_dlg.update_text(filename + _L(" will be closed before creating a new model. Do you want to continue?"));
+        confirm_dlg.update_text(filename + " " + _L("will be closed before creating a new model. Do you want to continue?"));
         confirm_dlg.on_show();
         if (preview_only_to_editor) {
             m_plater->new_project();

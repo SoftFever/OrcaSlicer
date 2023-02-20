@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:01+0800\n"
+"POT-Creation-Date: 2023-02-20 09:30+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -367,6 +367,12 @@ msgstr "Z缝绘制"
 msgid "Remove selection"
 msgstr "移除绘制"
 
+msgid "Shift + Mouse movement"
+msgstr ""
+
+msgid "Rotate preview text"
+msgstr ""
+
 msgid "Text shape"
 msgstr "文本形状"
 
@@ -379,11 +385,20 @@ msgstr "厚度"
 msgid "Input text"
 msgstr "输入文本"
 
-msgid "Modify"
-msgstr "修改"
+msgid "Embeded depth"
+msgstr ""
 
-msgid "Add"
-msgstr "添加"
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Keep horizontal"
+msgstr ""
 
 msgid "Notice"
 msgstr "通知"
@@ -538,8 +553,8 @@ msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用
 msgid "Login information expired. Please login again."
 msgstr "登录信息过期。请重新登录。"
 
-msgid "Privacy Policy"
-msgstr ""
+msgid "Privacy Policy Update"
+msgstr "隐私协议更新"
 
 msgid "Loading"
 msgstr "载入中"
@@ -570,6 +585,24 @@ msgstr "正在进行的上传"
 
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
+
+msgid "Import File"
+msgstr "导入文件"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Choose files"
+msgstr "选择文件"
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Rename"
+msgstr "重命名"
 
 msgid "Bambu Studio GUI initialization failed"
 msgstr "Bambu Studio图形界面初始化失败"
@@ -656,11 +689,11 @@ msgstr ""
 msgid "Show"
 msgstr ""
 
-msgid "Delete"
-msgstr "删除"
-
 msgid "Delete the selected object"
 msgstr "删除所选对象"
+
+msgid "Edit Text"
+msgstr ""
 
 msgid "Load..."
 msgstr "加载..."
@@ -688,9 +721,6 @@ msgstr "设置为独立对象"
 
 msgid "Printable"
 msgstr "可打印的"
-
-msgid "Rename"
-msgstr "重命名"
 
 msgid "Fix model"
 msgstr "修复模型"
@@ -1390,6 +1420,58 @@ msgstr "请先退出登录然后再重新登录打印机。"
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr "上传打印文件失败，请重新输入IP地址。"
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr "导入文件"
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr "请在预设更改之前检查对象列表。"
+
+msgid "Attention!"
+msgstr "注意！"
 
 msgid "Downloading"
 msgstr "下载中"
@@ -2475,6 +2557,9 @@ msgstr "允许同一盘中包含多种材料"
 msgid "Avoid extrusion calibration region"
 msgstr "避开挤出标定区域"
 
+msgid "Add"
+msgstr "添加"
+
 msgid "Add plate"
 msgstr "添加新盘"
 
@@ -2657,8 +2742,8 @@ msgstr "是"
 msgid "No"
 msgstr "否"
 
-msgid " will be closed before creating a new model. Do you want to continue?"
-msgstr "将会被关闭以创建新模型。是否继续？"
+msgid "will be closed before creating a new model. Do you want to continue?"
+msgstr "将会被关闭以创建新模型，是否继续?"
 
 msgid "Slice plate"
 msgstr "切片单盘"
@@ -3740,9 +3825,6 @@ msgstr "step 文件中的部件名称包含非UTF8格式的字符！"
 msgid "The name may show garbage characters!"
 msgstr "此名称可能显示乱码字符！"
 
-msgid "Attention!"
-msgstr "注意！"
-
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "加载文件“%1%”失败。发现无效配置。"
@@ -4243,6 +4325,39 @@ msgstr "添加/删除材料"
 msgid "Add/Remove printers"
 msgstr "添加/删除打印机"
 
+msgid "Same as Global Print Sequence"
+msgstr "跟随全局打印顺序"
+
+msgid "Print sequence"
+msgstr "打印顺序"
+
+msgid "Same as Global Bed Type"
+msgstr "跟随全局热床类型"
+
+msgid "Cool Plate"
+msgstr "低温打印热床"
+
+msgid "Engineering Plate"
+msgstr "工程材料热床"
+
+msgid "High Temp Plate"
+msgstr "高温打印热床"
+
+msgid "Textured PEI Plate"
+msgstr "纹理PEI热床"
+
+msgid "By Layer"
+msgstr "逐层"
+
+msgid "By Object"
+msgstr "逐件"
+
+msgid "Accept"
+msgstr "接受"
+
+msgid "Log Out"
+msgstr "登出"
+
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "正在切片以获取切片信息和预估打印时间"
 
@@ -4742,16 +4857,10 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr "安装工程材料热床时的热床温度。0值表示这个耗材丝不支持工程材料热床"
 
-msgid "High Temp Plate"
-msgstr "高温打印热床"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
-
-msgid "Textured PEI Plate"
-msgstr "纹理PEI热床"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5015,9 +5124,6 @@ msgstr "物料清单"
 
 msgid "Assembly Guide"
 msgstr "组装指南"
-
-msgid "Choose files"
-msgstr "选择文件"
 
 msgid "Author"
 msgstr "作者"
@@ -5968,12 +6074,6 @@ msgstr "首层热床温度。0值表示这个耗材丝不支持纹理PEI热床"
 msgid "Bed types supported by the printer"
 msgstr "打印机所支持的热床类型"
 
-msgid "Cool Plate"
-msgstr "低温打印热床"
-
-msgid "Engineering Plate"
-msgstr "工程材料热床"
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
 
@@ -6113,9 +6213,6 @@ msgstr "兼容的切片配置"
 
 msgid "Compatible process profiles condition"
 msgstr "兼容的切片配置的条件"
-
-msgid "Print sequence"
-msgstr "打印顺序"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "打印顺序，逐层打印或者逐件打印"
@@ -6701,7 +6798,7 @@ msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
 "flat surface more smooth. This setting controls which layer being ironed"
 msgstr ""
-"熨烫指的是使用小流量在表面的同高度打印，进而是的平面更加光滑。这个设置用于设"
+"熨烫指的是使用小流量在表面的同高度打印，从而使平面更加光滑。这个设置用于设"
 "置哪些层进行熨烫。"
 
 msgid "No ironing"
@@ -6965,7 +7062,7 @@ msgid "Speed of inner wall"
 msgstr "内圈墙打印速度"
 
 msgid "Number of walls of every layer"
-msgstr "每一层的外墙"
+msgstr "每一层的墙层数"
 
 msgid "Raft contact Z distance"
 msgstr "筏层Z间距"
@@ -8128,6 +8225,13 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
+#~ msgid "Modify"
+#~ msgstr "修改"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr "将会被关闭以创建新模型。是否继续？"
+
 #~ msgid "Layer Time (log)"
 #~ msgstr "层时间（log）"
 
@@ -8139,9 +8243,6 @@ msgstr ""
 
 #~ msgid "Select Bed Type"
 #~ msgstr "选择热床类型"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "跟随全局热床类型"
 
 #~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 #~ msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
@@ -8592,9 +8693,6 @@ msgstr ""
 
 #~ msgid "Choose save directory"
 #~ msgstr "选择保存目录"
-
-#~ msgid "Open"
-#~ msgstr "打开"
 
 #~ msgid "preparing, export 3mf failed!"
 #~ msgstr "正在准备中，导出 3mf 失败！"
@@ -11388,9 +11486,6 @@ msgstr ""
 
 #~ msgid "Physical Printer"
 #~ msgstr "物理打印机"
-
-#~ msgid "Please check your object list before preset changing."
-#~ msgstr "请在预设更改之前检查对象列表。"
 
 #~ msgid "Convert from imperial units"
 #~ msgstr "从英制转换"

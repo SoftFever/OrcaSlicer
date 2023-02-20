@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:01+0800\n"
+"POT-Creation-Date: 2023-02-20 09:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -365,6 +365,12 @@ msgstr "継ぎ目ペイント"
 msgid "Remove selection"
 msgstr "選択を削除"
 
+msgid "Shift + Mouse movement"
+msgstr ""
+
+msgid "Rotate preview text"
+msgstr ""
+
 msgid "Text shape"
 msgstr "文字形状"
 
@@ -377,11 +383,20 @@ msgstr "太さ"
 msgid "Input text"
 msgstr "テキスト"
 
-msgid "Modify"
-msgstr "修正"
+msgid "Embeded depth"
+msgstr ""
 
-msgid "Add"
-msgstr "追加"
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Keep horizontal"
+msgstr ""
 
 msgid "Notice"
 msgstr "通知"
@@ -539,7 +554,7 @@ msgstr ""
 msgid "Login information expired. Please login again."
 msgstr "サインイン情報の有効期限切れ、もう一度サインインしてください"
 
-msgid "Privacy Policy"
+msgid "Privacy Policy Update"
 msgstr ""
 
 msgid "Loading"
@@ -571,6 +586,24 @@ msgstr "進行中のアップロード"
 
 msgid "Select a G-code file:"
 msgstr "G-codeファイルを選択"
+
+msgid "Import File"
+msgstr ""
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Choose files"
+msgstr "ファイルを選択"
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr "開く"
+
+msgid "Rename"
+msgstr "名前を変更"
 
 msgid "Bambu Studio GUI initialization failed"
 msgstr "GUI初期化に失敗した"
@@ -657,11 +690,11 @@ msgstr "非表示"
 msgid "Show"
 msgstr "表示"
 
-msgid "Delete"
-msgstr "削除"
-
 msgid "Delete the selected object"
 msgstr "選択したオブジェクトを削除"
+
+msgid "Edit Text"
+msgstr ""
 
 msgid "Load..."
 msgstr "ファイルを読込む"
@@ -689,9 +722,6 @@ msgstr "個別オブジェクトとして設定"
 
 msgid "Printable"
 msgstr "造形可能"
-
-msgid "Rename"
-msgstr "名前を変更"
 
 msgid "Fix model"
 msgstr "モデルを修復"
@@ -1404,6 +1434,58 @@ msgstr "一旦サインアウトし、再度サインインしてください"
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr "造型ファイルをアップロードできませんでした、ご確認ください。"
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr ""
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr ""
+
+msgid "Attention!"
+msgstr "注意！"
 
 msgid "Downloading"
 msgstr "ダウンロード中"
@@ -2490,6 +2572,9 @@ msgstr "一つのプレートに複数の材料を使用可能"
 msgid "Avoid extrusion calibration region"
 msgstr "押出しキャリブレーション領域を避ける"
 
+msgid "Add"
+msgstr "追加"
+
 msgid "Add plate"
 msgstr "プレートを追加"
 
@@ -2671,8 +2756,8 @@ msgstr "はい"
 msgid "No"
 msgstr "いいえ"
 
-msgid " will be closed before creating a new model. Do you want to continue?"
-msgstr "を閉じてから新しいモデルを作成します、続行しますか？"
+msgid "will be closed before creating a new model. Do you want to continue?"
+msgstr ""
 
 msgid "Slice plate"
 msgstr "スライス"
@@ -3767,9 +3852,6 @@ msgstr "ファイルのエンコーディング方式はUTF8形式ではあり�
 msgid "The name may show garbage characters!"
 msgstr "文字化けがあるようです、ご確認ください"
 
-msgid "Attention!"
-msgstr "注意！"
-
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "ファイル %1% を読み込めませんでした。"
@@ -4275,6 +4357,39 @@ msgstr "素材を追加/削除"
 msgid "Add/Remove printers"
 msgstr "プリンターを追加/削除"
 
+msgid "Same as Global Print Sequence"
+msgstr ""
+
+msgid "Print sequence"
+msgstr "造形シーケンス"
+
+msgid "Same as Global Bed Type"
+msgstr "全般設定の「ベッドタイプ」と同様"
+
+msgid "Cool Plate"
+msgstr "常温プレート"
+
+msgid "Engineering Plate"
+msgstr "エンジニアリングプレート"
+
+msgid "High Temp Plate"
+msgstr "高温プレート"
+
+msgid "Textured PEI Plate"
+msgstr "PEIプレート"
+
+msgid "By Layer"
+msgstr ""
+
+msgid "By Object"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
+
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "全プレートをスライスし、造形時間を推測します"
 
@@ -4774,18 +4889,12 @@ msgstr ""
 "エンジニアリングプレートが装着時のベッド温度です。値が0の場合、フィラメントが"
 "エンジニアリングプレートに使用できない意味です。"
 
-msgid "High Temp Plate"
-msgstr "高温プレート"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
 "高温プレートが装着時のベッド温度です。値が0の場合、フィラメントが高温プレート"
 "に使用できない意味です。"
-
-msgid "Textured PEI Plate"
-msgstr "PEIプレート"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5057,9 +5166,6 @@ msgstr "部品表"
 
 msgid "Assembly Guide"
 msgstr "アセンブリガイド"
-
-msgid "Choose files"
-msgstr "ファイルを選択"
 
 msgid "Author"
 msgstr "作成者"
@@ -6047,12 +6153,6 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "適応ベッド種類"
 
-msgid "Cool Plate"
-msgstr "常温プレート"
-
-msgid "Engineering Plate"
-msgstr "エンジニアリングプレート"
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "積層が変わる直前に実行するG-codeです。"
 
@@ -6198,9 +6298,6 @@ msgstr "互換性のあるプロセスプロファイル"
 
 msgid "Compatible process profiles condition"
 msgstr "互換性のあるプロセスプロファイル条件"
-
-msgid "Print sequence"
-msgstr "造形シーケンス"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "造形の順番を設定します、積層順かオブジェクト順にしてください"
@@ -8254,6 +8351,13 @@ msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
 
+#~ msgid "Modify"
+#~ msgstr "修正"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr "を閉じてから新しいモデルを作成します、続行しますか？"
+
 #~ msgid "\\u2103"
 #~ msgstr "u2103"
 
@@ -8706,9 +8810,6 @@ msgstr ""
 #~ "Note : The location of IP and access code on the machine is as follows :"
 #~ msgstr "注: IPアドレス とアクセスコードの確認場所は次の通り"
 
-#~ msgid "Open"
-#~ msgstr "開く"
-
 #~ msgid "Open &PrusaSlicer"
 #~ msgstr "PrusaSlicerを開く"
 
@@ -8842,9 +8943,6 @@ msgstr ""
 
 #~ msgid "Rotation:"
 #~ msgstr "回転:"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "全般設定の「ベッドタイプ」と同様"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "構成を名前付けで保存"

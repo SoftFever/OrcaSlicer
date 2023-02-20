@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:01+0800\n"
+"POT-Creation-Date: 2023-02-20 09:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -370,6 +370,12 @@ msgstr "Naht aufmalen"
 msgid "Remove selection"
 msgstr "Auswahl entfernen"
 
+msgid "Shift + Mouse movement"
+msgstr ""
+
+msgid "Rotate preview text"
+msgstr ""
+
 msgid "Text shape"
 msgstr "Form des Textes"
 
@@ -382,11 +388,20 @@ msgstr "Dicke"
 msgid "Input text"
 msgstr "Text eingeben"
 
-msgid "Modify"
-msgstr "Ändern"
+msgid "Embeded depth"
+msgstr ""
 
-msgid "Add"
-msgstr "Hinzufügen"
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Keep horizontal"
+msgstr ""
 
 msgid "Notice"
 msgstr "Hinweis"
@@ -556,7 +571,7 @@ msgstr ""
 msgid "Login information expired. Please login again."
 msgstr "Login abgelaufen. Bitte neu einloggen."
 
-msgid "Privacy Policy"
+msgid "Privacy Policy Update"
 msgstr ""
 
 msgid "Loading"
@@ -588,6 +603,24 @@ msgstr "Laufende Uploads"
 
 msgid "Select a G-code file:"
 msgstr "Wähle eine G-Code Datei:"
+
+msgid "Import File"
+msgstr ""
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Choose files"
+msgstr "Dateien auswählen"
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Rename"
+msgstr "Umbenennen"
 
 msgid "Bambu Studio GUI initialization failed"
 msgstr "Initialisierung der Bambu Studio GUI ist fehlgeschlagen"
@@ -674,11 +707,11 @@ msgstr "Ausblenden"
 msgid "Show"
 msgstr "Anzeigen"
 
-msgid "Delete"
-msgstr "Löschen"
-
 msgid "Delete the selected object"
 msgstr "Ausgewähltes Objekt löschen"
+
+msgid "Edit Text"
+msgstr ""
 
 msgid "Load..."
 msgstr "Laden..."
@@ -706,9 +739,6 @@ msgstr "Als eigene Objekte definieren"
 
 msgid "Printable"
 msgstr "Druckbar"
-
-msgid "Rename"
-msgstr "Umbenennen"
 
 msgid "Fix model"
 msgstr "Modell reparieren"
@@ -1459,6 +1489,58 @@ msgid "Failed uploading print file. Please enter ip address again."
 msgstr ""
 "Hochladen der Druckdatei fehlgeschlagen. Bitte geben Sie die IP-Adresse "
 "erneut ein."
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr ""
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr ""
+
+msgid "Attention!"
+msgstr "Achtung!"
 
 msgid "Downloading"
 msgstr ""
@@ -2622,6 +2704,9 @@ msgstr "Erlaube mehrere Materialien auf einer Druckplatte"
 msgid "Avoid extrusion calibration region"
 msgstr "Vermeiden Sie den Bereich der Extrusionskalibrierung"
 
+msgid "Add"
+msgstr "Hinzufügen"
+
 msgid "Add plate"
 msgstr "Druckplatte hinzufügen"
 
@@ -2808,10 +2893,8 @@ msgstr "Ja"
 msgid "No"
 msgstr "Nein"
 
-msgid " will be closed before creating a new model. Do you want to continue?"
+msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr ""
-" wird vor der Erstellung eines neuen Modells geschlossen. Möchten Sie "
-"fortfahren?"
 
 msgid "Slice plate"
 msgstr "Druckplatte slicen"
@@ -3941,9 +4024,6 @@ msgstr "Der Name der Komponenten in der Step-Datei ist nicht im UTF8-Format!"
 msgid "The name may show garbage characters!"
 msgstr "Der Name könnte Müllzeichen enthalten!"
 
-msgid "Attention!"
-msgstr "Achtung!"
-
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -4475,6 +4555,39 @@ msgstr "Materialien hinzufügen/entfernen"
 
 msgid "Add/Remove printers"
 msgstr "Drucker hinzufügen/entfernen"
+
+msgid "Same as Global Print Sequence"
+msgstr ""
+
+msgid "Print sequence"
+msgstr "Druckreihenfolge"
+
+msgid "Same as Global Bed Type"
+msgstr "Entspricht dem allgemeinen Bettyp"
+
+msgid "Cool Plate"
+msgstr "kalte Druckplatte"
+
+msgid "Engineering Plate"
+msgstr "technische Druckplatte"
+
+msgid "High Temp Plate"
+msgstr "Hochtemperaturdruckplatte"
+
+msgid "Textured PEI Plate"
+msgstr "Texturierte PEI-Platte"
+
+msgid "By Layer"
+msgstr ""
+
+msgid "By Object"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -5038,9 +5151,6 @@ msgstr ""
 "wird. Ein Wert von 0 bedeutet, dass das Filament das Drucken auf der "
 "technischen Druckplatte nicht unterstützt."
 
-msgid "High Temp Plate"
-msgstr "Hochtemperaturdruckplatte"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
@@ -5048,9 +5158,6 @@ msgstr ""
 "Dies ist die Betttemperatur, wenn die Hochtemperaturdruckplatte installiert "
 "ist. Ein Wert von 0 bedeutet, dass das Filament das Drucken auf der "
 "Hochtemperaturdruckplatte nicht unterstützt."
-
-msgid "Textured PEI Plate"
-msgstr "Texturierte PEI-Platte"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5343,9 +5450,6 @@ msgstr "Materialliste"
 
 msgid "Assembly Guide"
 msgstr "Montageanleitung"
-
-msgid "Choose files"
-msgstr "Dateien auswählen"
 
 msgid "Author"
 msgstr "Autor"
@@ -6409,12 +6513,6 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Vom Drucker unterstützte Druckbettypen"
 
-msgid "Cool Plate"
-msgstr "kalte Druckplatte"
-
-msgid "Engineering Plate"
-msgstr "technische Druckplatte"
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
 "Dieser G-Code wird bei jedem Schichtwechsel vor dem Heben von Z eingefügt"
@@ -6577,9 +6675,6 @@ msgstr "Kompatible Prozessprofile"
 
 msgid "Compatible process profiles condition"
 msgstr "Kompatible Prozessprofile Bedingung"
-
-msgid "Print sequence"
-msgstr "Druckreihenfolge"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "Druckreihenfolge, Schicht für Schicht oder Objekt für Objekt"
@@ -8834,6 +8929,15 @@ msgstr ""
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
 
+#~ msgid "Modify"
+#~ msgstr "Ändern"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr ""
+#~ " wird vor der Erstellung eines neuen Modells geschlossen. Möchten Sie "
+#~ "fortfahren?"
+
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"
 
@@ -9337,9 +9441,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Hinweis: Die IP und der Zugangscode befinden sich wie folgt auf dem Gerät:"
 
-#~ msgid "Open"
-#~ msgstr "Öffnen"
-
 #~ msgid "Open &PrusaSlicer"
 #~ msgstr "Öffne &PrusaSlicer"
 
@@ -9491,9 +9592,6 @@ msgstr ""
 
 #~ msgid "Rotation:"
 #~ msgstr "Drehung:"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "Entspricht dem allgemeinen Bettyp"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Konfiguration speichern unter:"
