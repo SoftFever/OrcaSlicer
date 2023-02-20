@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-16 16:32+0800\n"
+"POT-Creation-Date: 2023-02-20 08:36+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8590,21 +8590,6 @@ msgstr ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 
-#~ msgid "Layer Time (log)"
-#~ msgstr "Layer Time (log)"
-
-#~ msgid "Layer Time(log): "
-#~ msgstr "Layer Time(log): "
-
-#~ msgid "Select Bed Type"
-#~ msgstr "Select Bed Type"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "Same as Global Bed Type"
-
-#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
-#~ msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9014,6 +8999,9 @@ msgstr ""
 #~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
 #~ msgstr "Import 3MF/STL/STEP/OBJ/AMF"
 
+#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+#~ msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "In the calibration of extrusion flow"
 
@@ -9035,6 +9023,12 @@ msgstr ""
 #~ msgstr ""
 #~ "It seems object %s needs support to print. Please enable support "
 #~ "generation."
+
+#~ msgid "Layer Time(log): "
+#~ msgstr "Layer Time(log): "
+
+#~ msgid "Layer Time (log)"
+#~ msgstr "Layer Time (log)"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Layers and Perimeters"
@@ -9230,8 +9224,14 @@ msgstr ""
 #~ msgid "Rotation:"
 #~ msgstr "Rotation:"
 
+#~ msgid "Same as Global Bed Type"
+#~ msgstr "Same as Global Bed Type"
+
 #~ msgid "Save configuration as:"
 #~ msgstr "Save configuration as:"
+
+#~ msgid "Select Bed Type"
+#~ msgstr "Select Bed Type"
 
 #~ msgid "Sending"
 #~ msgstr "Sending"

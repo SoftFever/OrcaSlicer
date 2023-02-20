@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-16 16:32+0800\n"
+"POT-Creation-Date: 2023-02-20 08:36+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8669,21 +8669,6 @@ msgstr ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 
-#~ msgid "Layer Time (log)"
-#~ msgstr "Layer Time (log)"
-
-#~ msgid "Layer Time(log): "
-#~ msgstr "Layer Time(log): "
-
-#~ msgid "Select Bed Type"
-#~ msgstr "Select Bed Type"
-
-#~ msgid "Same as Global Bed Type"
-#~ msgstr "Same as Global Bed Type"
-
-#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
-#~ msgstr "Geometriai adatok importálása STL/STEP/3MF/OBJ/AMF fájlokból."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9098,6 +9083,9 @@ msgstr ""
 #~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
 #~ msgstr "3MF/STL/STEP/OBJ/AMF importálása"
 
+#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+#~ msgstr "Geometriai adatok importálása STL/STEP/3MF/OBJ/AMF fájlokból."
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "Az anyagáramlás kalibrálásában"
 
@@ -9119,6 +9107,12 @@ msgstr ""
 #~ msgstr ""
 #~ "Úgy tűnik %s objektumnak támaszra lenne szüksége a nyomtatáshoz. Kérjük, "
 #~ "engedélyezd a támasz generálását."
+
+#~ msgid "Layer Time(log): "
+#~ msgstr "Layer Time(log): "
+
+#~ msgid "Layer Time (log)"
+#~ msgstr "Layer Time (log)"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Layers and Perimeters"
@@ -9315,8 +9309,14 @@ msgstr ""
 #~ msgid "Rotation:"
 #~ msgstr "Forgatás:"
 
+#~ msgid "Same as Global Bed Type"
+#~ msgstr "Same as Global Bed Type"
+
 #~ msgid "Save configuration as:"
 #~ msgstr "Konfiguráció mentése mint:"
+
+#~ msgid "Select Bed Type"
+#~ msgstr "Select Bed Type"
 
 #~ msgid "Sending"
 #~ msgstr "Küldés"
