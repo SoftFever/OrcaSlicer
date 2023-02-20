@@ -3960,6 +3960,16 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
     BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << dev_id;
     auto my_machine_list = get_my_machine_list();
     auto it = my_machine_list.find(dev_id);
+
+    // disconnect last
+    auto last_selected = my_machine_list.find(selected_machine);
+    if (last_selected != my_machine_list.end()) {
+        if (last_selected->second->connection_type() == "lan") {
+            m_agent->disconnect_printer();
+        }
+    }
+
+    // connect curr
     if (it != my_machine_list.end()) {
         if (selected_machine == dev_id) {
             if (it->second->connection_type() != "lan") {
@@ -3969,7 +3979,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
             } else {
                 // lan mode printer reconnect printer
                 if (m_agent) {
-                    m_agent->disconnect_printer();
                     it->second->reset();
                     it->second->connect();
                     it->second->set_lan_mode_connection_state(true);
@@ -3986,7 +3995,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
                         it->second->reset_update_time();
                     }
                 } else {
-                    m_agent->disconnect_printer();
                     it->second->reset();
                     it->second->connect();
                     it->second->set_lan_mode_connection_state(true);
