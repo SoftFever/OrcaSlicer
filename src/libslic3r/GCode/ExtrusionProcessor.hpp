@@ -250,10 +250,10 @@ class ExtrusionQualityEstimator
 public:
     void set_current_object(const PrintObject *object) { current_object = object; }
 
-    void prepare_for_new_layer(const Layer *layer)
+    void prepare_for_new_layer(const PrintObject * obj, const Layer *layer)
     {
         if (layer == nullptr) return;
-        const PrintObject *object     = layer->object();
+        const PrintObject *object = obj;
         prev_layer_boundaries[object] = next_layer_boundaries[object];
         next_layer_boundaries[object] = AABBTreeLines::LinesDistancer<Linef>{to_unscaled_linesf(layer->lslices)};
     }

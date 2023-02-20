@@ -2698,7 +2698,7 @@ GCode::LayerResult GCode::process_layer(
         Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
 
     for (const auto& layer_to_print : layers) {
-        m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.object_layer);
+      m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object, layer_to_print.object_layer);
     }
 
 
