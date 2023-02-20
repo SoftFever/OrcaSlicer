@@ -2046,6 +2046,7 @@ void GLCanvas3D::set_selected_visible(bool visible)
         volume->visible = visible;
         volume->color[3] = visible ? 1.f : GLVolume::MODEL_HIDDEN_COL[3];
         volume->render_color[3] = volume->color[3];
+        volume->force_native_color = !visible;
     }
 }
 
