@@ -674,16 +674,14 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     float size_cap = m_imgui->calc_text_size(_L("Size")).x;
     float thickness_cap = m_imgui->calc_text_size(_L("Thickness")).x;
     float input_cap = m_imgui->calc_text_size(_L("Input text")).x;
-    float depth_cap = m_imgui->calc_text_size(_L("Embeded depth")).x;
+    float depth_cap = m_imgui->calc_text_size(_L("Embeded")).x;
     float caption_size  = std::max(std::max(font_cap, size_cap), std::max(depth_cap, input_cap)) + space_size + ImGui::GetStyle().WindowPadding.x;
 
     float input_text_size = m_imgui->scaled(10.0f);
     float button_size = ImGui::GetFrameHeight();
 
     ImVec2 selectable_size(std::max((input_text_size + ImGui::GetFrameHeight() * 2), m_combo_width + SELECTABLE_INNER_OFFSET * currt_scale), m_combo_height);
-    //float list_width = selectable_size.x + ImGui::GetStyle().ScrollbarSize + 2 * currt_scale;
-
-    float list_width  = m_imgui->scaled(10.0f);
+    float list_width = selectable_size.x + ImGui::GetStyle().ScrollbarSize + 2 * currt_scale;
 
     float input_size = list_width - button_size * 2 - ImGui::GetStyle().ItemSpacing.x * 4;
 
@@ -779,17 +777,17 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (m_thickness < 0.1f)
         m_thickness = 0.1f;
 
-    const float sliders_width     = m_imgui->scaled(7.0f);
     const float slider_icon_width = m_imgui->get_slider_icon_size().x;
-    const float drag_left_width   = ImGui::GetStyle().WindowPadding.x + sliders_width + space_size;
+    const float slider_width      = list_width - 1.5 * slider_icon_width - space_size;
+    const float drag_left_width   = caption_size + slider_width + space_size;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Text Gap"));
     ImGui::SameLine(caption_size);
-    ImGui::PushItemWidth(list_width);
+    ImGui::PushItemWidth(slider_width);
     if (m_imgui->bbl_slider_float_style("##text_gap", &m_text_gap, -100, 100, "%.2f", 1.0f, true))
         m_need_update_text = true;
-    ImGui::SameLine(drag_left_width + list_width);
+    ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     if (ImGui::BBLDragFloat("##text_gap_input", &m_text_gap, 0.05f, 0.0f, 0.0f, "%.2f"))
         m_need_update_text = true;
@@ -797,16 +795,16 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Angle"));
     ImGui::SameLine(caption_size);
-    ImGui::PushItemWidth(list_width);
+    ImGui::PushItemWidth(slider_width);
     if (m_imgui->bbl_slider_float_style("##angle", &m_rotate_angle, 0, 360, "%.2f", 1.0f, true))
         m_need_update_text = true;
-    ImGui::SameLine(drag_left_width + list_width);
+    ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     if (ImGui::BBLDragFloat("##angle_input", &m_rotate_angle, 0.05f, 0.0f, 0.0f, "%.2f"))
         m_need_update_text = true;
 
     ImGui::AlignTextToFramePadding();
-    m_imgui->text(_L("Embeded depth"));
+    m_imgui->text(_L("Embeded\ndepth"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(list_width);
     if (ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f"))
@@ -821,12 +819,6 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     if(ImGui::InputText("", m_text, sizeof(m_text)))
         m_need_update_text = true;
-    
-    if (m_imgui->bbl_checkbox(_L("Surface"), m_is_surface_text))
-        m_need_update_text = true;
-
-    if (m_imgui->bbl_checkbox(_L("Keep horizontal"), m_keep_horizontal))
-        m_need_update_text = true;
 
     ImGui::Separator();
 
@@ -836,6 +828,16 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
+    
+    ImGui::SameLine(caption_size);
+    ImGui::AlignTextToFramePadding();
+    if (m_imgui->bbl_checkbox(_L("Surface"), m_is_surface_text))
+        m_need_update_text = true;
+
+    ImGui::SameLine();
+    ImGui::AlignTextToFramePadding();
+    if (m_imgui->bbl_checkbox(_L("Horizontal"), m_keep_horizontal))
+        m_need_update_text = true;
 
     //ImGui::SameLine();
     //ImGui::AlignTextToFramePadding();
@@ -843,7 +845,8 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     //float status_cap = m_imgui->calc_text_size(_L("Status:")).x + space_size + ImGui::GetStyle().WindowPadding.x;
     //ImGui::SameLine();
     //m_imgui->text(m_is_modify ? _L("Modify") : _L("Add"));
-    //ImGui::PopStyleVar(2);
+
+    ImGui::PopStyleVar(2);
 
 #if 0
     ImGuiIO& io = ImGui::GetIO();
