@@ -146,7 +146,7 @@ bool GLGizmoText::on_init()
     reset_text_info();
 
     m_desc["rotate_text_caption"] = _L("Shift + Mouse movement");
-    m_desc["rotate_text"]         = _L("Rotate preview text");
+    m_desc["rotate_text"]         = _L("Rotate text");
 
     m_grabbers.push_back(Grabber());
     return true;
@@ -236,7 +236,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         }
     }
     if (action == SLAGizmoEventType::Moving) {
-        if (shift_down) {
+        if (shift_down && !alt_down && !control_down) {
             float angle = m_rotate_angle + 0.5 * (m_mouse_position - mouse_position).y();
             if (angle == 0)
                 return false;
@@ -968,14 +968,6 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     m_mouse_position_world = trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
     m_mouse_normal_world   = rotate_trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.normal(0), m_rr.normal(1), m_rr.normal(2));
 
-    auto is_point_on_line = [](const Line &line, const Point &point) {
-        double value       = abs((point.x() - line.a.x()) * (line.b.y() - line.a.y()) - (line.b.x() - line.a.x()) * (point.y() - line.a.y()));
-        bool   cross_value = value < 1e9;
-        bool   in_rectange = (std::min(line.a.x(), line.b.x()) - 1000) <= point.x() && point.x() <= (std::max(line.a.x(), line.b.x()) + 1000) &&
-                           (std::min(line.a.y(), line.b.y()) - 1000) <= point.y() && point.y() <= (std::max(line.a.y(), line.b.y()) + 1000);
-        return cross_value && in_rectange;
-    };
-
     TriangleMesh slice_meshs;
     int mesh_index = 0;
     for (int i = 0; i < mo->volumes.size(); ++i) {
@@ -1095,7 +1087,15 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
     Polygons polys = temp_polys;
 
+    auto point_in_line_rectange = [](const Line &line, const Point &point, double& distance) {
+        distance = abs((point.x() - line.a.x()) * (line.b.y() - line.a.y()) - (line.b.x() - line.a.x()) * (point.y() - line.a.y()));
+        bool   in_rectange = (std::min(line.a.x(), line.b.x()) - 1000) <= point.x() && point.x() <= (std::max(line.a.x(), line.b.x()) + 1000) &&
+                           (std::min(line.a.y(), line.b.y()) - 1000) <= point.y() && point.y() <= (std::max(line.a.y(), line.b.y()) + 1000);
+        return in_rectange;
+    };
+
     int            index     = 0;
+    double  min_distance = 1e12;
     Polygon        hit_ploy;
     for (const Polygon poly : polys) {
         if (poly.points.size() == 0)
@@ -1104,9 +1104,13 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
         Lines lines = poly.lines();
         for (int i = 0; i < lines.size(); ++i) {
             Line line = lines[i];
-            if (is_point_on_line(line, Point(m_mouse_position_world.x(), m_mouse_position_world.y()))) {
-                index = i;
-                hit_ploy = poly;
+            double distance = min_distance;
+            if (point_in_line_rectange(line, Point(m_mouse_position_world.x(), m_mouse_position_world.y()), distance)) {
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    index = i;
+                    hit_ploy = poly;
+                }
             }
         }
     }
@@ -1348,7 +1352,7 @@ TriangleMesh GLGizmoText::get_text_mesh(const char* text_str, const Vec3d &posit
     auto   center      = mesh.bounding_box().center();
     double mesh_offset = center.z();
 
-    mesh.translate(-center.x(), -center.y(), -center.z());
+    mesh.translate(-center.x(), -m_font_size / 4, -center.z());
 
     double   phi;
     Vec3d    rotation_axis;
