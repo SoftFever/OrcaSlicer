@@ -299,6 +299,10 @@ void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, 
         m_is_wipe_tower = false;
     else 
         m_is_wipe_tower = m_mode != SingleExtruder;
+
+    auto config = wxGetApp().preset_bundle->full_config();
+    m_is_spiral_vase = config.option<ConfigOptionBool>("spiral_mode")->value;
+
     m_can_change_color = can_change_color;
 
     // close opened menu window after reslice
@@ -1157,7 +1161,7 @@ void IMSlider::render_menu()
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            if (!m_can_change_color || m_draw_mode == dmSequentialFffPrint) {
+            if (!m_can_change_color || m_draw_mode == dmSequentialFffPrint || m_is_spiral_vase) {
                 begin_menu(_u8L("Change Filament").c_str(), false);
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {

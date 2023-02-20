@@ -186,6 +186,7 @@ private:
     bool m_enable_action_icon = true;
     bool m_enable_cog_icon    = false;
     bool m_is_wipe_tower      = false; // This flag indicates that there is multiple extruder print with wipe tower
+    bool m_is_spiral_vase     = false;
     bool m_display_lower      = true;
     bool m_display_higher     = true;
     int  m_selected_tick_value = -1;
