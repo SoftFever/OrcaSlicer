@@ -137,7 +137,7 @@ using Slic3r::Preset;
 using Slic3r::GUI::format_wxstr;
 using namespace nlohmann;
 
-static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 256, 256 };
+static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 512, 512 };
 
 namespace Slic3r {
 namespace GUI {
