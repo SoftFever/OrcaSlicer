@@ -92,6 +92,9 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
         // detect the current mouse position here, to pass it to list_manipulation() method
         // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
+        if (!GetScreenRect().Contains(wxGetMousePosition())) {
+            return;
+        }
 #ifndef __WXOSX__
         const wxPoint mouse_pos = this->get_mouse_position_in_control();
 #endif
