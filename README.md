@@ -6,7 +6,7 @@ It also supports Anycubic, Anker, Creality, Prusa MK3S, RatRig and Voron printer
 You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/releases
 
 ## BambuStudio SoftFever change notes:
-
+ 
 ### [V1.4.2 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.2):
 - Change the color theme :)
 - Fixed a crash issue when selecting vase mode on some machines
