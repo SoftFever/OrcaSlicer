@@ -90,7 +90,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     // give safe value in case there is no start_end_points in config
     std::vector<Vec2d> out_points;
     out_points.emplace_back(Vec2d(54, 0));
-    out_points.emplace_back(Vec2d(54, 120));
+    out_points.emplace_back(Vec2d(54, 0));
     out_points.emplace_back(Vec2d(54, 245));
 
     // get the start_end_points from config (20, -3) (54, 245)
@@ -195,7 +195,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         out_point_3 = Vec2d(new_path, end_y_position);
     } else {
         out_point_1 = Vec2d(new_path, 0);
-        out_point_2 = Vec2d(new_path, end_y_position / 2);
+        out_point_2 = Vec2d(new_path, 0);
         out_point_3 = Vec2d(new_path, end_y_position);
     }
 
