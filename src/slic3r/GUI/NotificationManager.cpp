@@ -1264,7 +1264,7 @@ void NotificationManager::SlicingProgressNotification::set_status_text(const std
 		break;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_COMPLETED:
 	{
-		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slice ok."), m_is_fff ? _u8L("Export G-Code.") : _u8L("Export.") };
+		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slice ok.") };
 		update(data);
 		m_state = EState::Shown;
 	}
