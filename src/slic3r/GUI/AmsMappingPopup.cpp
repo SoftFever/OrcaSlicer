@@ -331,6 +331,10 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
     m_has_unmatch_filament = false;
     //m_mapping_item_list.clear();
 
+    for (auto& ams_container : m_amsmapping_container_list) {
+        ams_container->Hide();
+    }
+
 
     for (wxWindow *mitem : m_mapping_item_list) {
         mitem->Destroy();
