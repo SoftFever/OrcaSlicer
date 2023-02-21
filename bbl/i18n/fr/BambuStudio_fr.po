@@ -4503,7 +4503,7 @@ msgid "Add/Remove materials"
 msgstr "Ajouter/supprimer des matériaux"
 
 msgid "Add/Remove printers"
-msgstr "Ajout/Suppression d'imprimantesAjout/Suppression d'imprimantes"
+msgstr "Ajout/Suppression d'imprimantes"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
