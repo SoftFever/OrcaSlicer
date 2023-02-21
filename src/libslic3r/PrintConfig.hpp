@@ -150,9 +150,9 @@ enum SLAPillarConnectionMode {
 enum BrimType {
     btAutoBrim,  // BBS
     btOuterOnly,
-    btNoBrim,
     btInnerOnly,
     btOuterAndInner,
+    btNoBrim,
 };
 
 enum TimelapseType : int {
