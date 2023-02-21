@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.05.00.14",
+    "version": "01.05.00.15",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -656,6 +656,10 @@
         {
             "name":"Generic PLA @BBL P1P",
             "sub_path":"filament/P1P/Generic PLA @BBL P1P.json"
+        },
+        {
+            "name":"Generic PLA Silk @BBL P1P",
+            "sub_path":"filament/P1P/Generic PLA Silk @BBL P1P.json"
         },
         {
             "name": "Generic ABS @BBL P1P 0.2 nozzle",
