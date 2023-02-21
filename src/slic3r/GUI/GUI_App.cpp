@@ -1667,9 +1667,9 @@ void GUI_App::init_networking_callbacks()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter, m_agent=%1%")%m_agent;
     if (m_agent) {
         //set callbacks
-        m_agent->set_on_user_login_fn([this](int online_login, bool login) {
-            GUI::wxGetApp().request_user_handle(online_login);
-            });
+        //m_agent->set_on_user_login_fn([this](int online_login, bool login) {
+        //    GUI::wxGetApp().request_user_handle(online_login);
+        //    });
 
         m_agent->set_on_server_connected_fn([this]() {
             if (m_is_closing) {
