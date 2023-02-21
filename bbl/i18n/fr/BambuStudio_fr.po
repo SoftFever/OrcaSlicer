@@ -4029,7 +4029,7 @@ msgid "Please select a file"
 msgstr "Veuillez sélectionner un fichier"
 
 msgid "Slicing"
-msgstr "Tranchage"
+msgstr "Découpe"
 
 msgid "There are warnings after slicing models:"
 msgstr "Il y a des avertissements après le découpage des modèles :"
@@ -4041,7 +4041,7 @@ msgid "Invalid data"
 msgstr "Données invalides"
 
 msgid "Slicing Canceled"
-msgstr "Tranchage annulé"
+msgstr "Découpe annulée"
 
 #, possible-c-format, possible-boost-format
 #, c-format, boost-format
@@ -7986,6 +7986,9 @@ msgstr ""
 msgid "Role base wipe speed"
 msgstr "Vitesse d'essuyage En cours"
 
+msgid "Select presets to compare"
+msgstr "Sélectionner les préréglages à comparer"
+
 msgid ""
 "The wipe speed is determined by the speed of the current extrusion role.e.g. "
 "if a wipe action is executed immediately following an outer wall extrusion, "
@@ -8371,21 +8374,21 @@ msgid ""
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
 "Ce paramètre détermine l'angle de porte-à-faux maximum que les branches du "
-"support d'arbre peuvent faire. Si l'angle est augmenté, les branches peuvent "
+"support arborecent peuvent faire. Si l'angle est augmenté, les branches peuvent "
 "être imprimées plus horizontalement, ce qui leur permet d'atteindre plus "
 "loin."
 
 msgid "Tree support branch distance"
-msgstr "Distance des branches de support d'arbre"
+msgstr "Distance des branches des supports arborecents"
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr ""
-"Ce paramètre détermine la distance entre les nœuds de support d'arbre "
+"Ce paramètre détermine la distance entre les nœuds des supports arborecents "
 "voisins."
 
 msgid "Tree support branch diameter"
-msgstr "Diamètre de la branche de support d'arbre"
+msgstr "Diamètre de la branche des supports arborecents"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Ce paramètre détermine le diamètre initial des nœuds de support."
@@ -8394,17 +8397,17 @@ msgid "Tree support wall loops"
 msgstr "Nb paroi de support arborescent"
 
 msgid "This setting specify the count of walls around tree support"
-msgstr "Ce paramètre spécifie le nombre de murs autour du support d'arbre"
+msgstr "Ce paramètre spécifie le nombre de murs autour du support arborecent"
 
 msgid "Tree support with infill"
-msgstr "Support d'arbre avec remplissage"
+msgstr "Support arborescent avec remplissage"
 
 msgid ""
 "This setting specifies whether to add infill inside large hollows of tree "
 "support"
 msgstr ""
 "Ce paramètre spécifie s'il faut ajouter un remplissage à l'intérieur des "
-"grands creux du support d'arbre"
+"grands creux du support arborecent"
 
 msgid "Target chamber temperature"
 msgstr "Température cible de la chambre"
@@ -9179,7 +9182,7 @@ msgid ""
 "one time?"
 msgstr ""
 "Définir des paramètres pour plusieurs objets\n"
-"Saviez-vous que vous pouvez définir des paramètres de tranchage pour tous "
+"Saviez-vous que vous pouvez définir des paramètres de découpe pour tous "
 "les objets sélectionnés en même temps ?"
 
 msgid ""
