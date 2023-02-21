@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-29 11:08+0100\n"
-"PO-Revision-Date: 2023-02-21 19:03+0200\n"
+"PO-Revision-Date: 2023-02-21 21:56+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
 "Language: fr\n"
@@ -21,7 +21,7 @@ msgid "Supports Painting"
 msgstr "Peinture des supports"
 
 msgid "Alt + Mouse wheel"
-msgstr "Alt + molette de la souris"
+msgstr "Alt + Molette de la souris"
 
 msgid "Section view"
 msgstr "Vue en coupe"
@@ -30,7 +30,7 @@ msgid "Reset direction"
 msgstr "Réinitialisation de la direction"
 
 msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + molette de la souris"
+msgstr "Ctrl + Molette de la souris"
 
 msgid "Pen size"
 msgstr "Taille du pinceau"
@@ -368,13 +368,13 @@ msgid "Brush shape"
 msgstr "Forme du pinceau"
 
 msgid "Enforce seam"
-msgstr "Appliquer la jointure"
+msgstr "Forcer la jointure"
 
 msgid "Block seam"
-msgstr "Empêcher la jointure"
+msgstr "Bloquer la jointure"
 
 msgid "Seam painting"
-msgstr "Peinture des jointures"
+msgstr "Peinture de jointure"
 
 msgid "Remove selection"
 msgstr "Supprimer la sélection"
@@ -448,7 +448,7 @@ msgid ""
 "BambuStudio will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"Bambu Studio va se terminer à cause d'un manque de mémoire. Il peut s'agir "
+"BambuStudio va se terminer à cause d'un manque de mémoire. Il peut s'agir "
 "d'un bogue. Nous vous serions reconnaissants de signaler le problème à notre "
 "équipe."
 
@@ -459,7 +459,7 @@ msgid ""
 "BambuStudio will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
-"Bambu Studio va s'arrêter à cause d'une erreur de localisation. Il sera "
+"BambuStudio va s'arrêter à cause d'une erreur de localisation. Il sera "
 "apprécié si vous signalez le scénario spécifique dans lequel ce problème "
 "s'est produit."
 
@@ -486,7 +486,7 @@ msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
 msgstr ""
-"Le fichier de configuration de Bambu Studio est peut-être corrompu et ne "
+"Le fichier de configuration de BambuStudio est peut-être corrompu et ne "
 "peut pas être analysé. Veuillez supprimer le fichier et réessayer."
 
 #, possible-c-format, possible-boost-format
@@ -1315,15 +1315,15 @@ msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-orient on these objects."
 msgstr ""
-"Tous les objets sélectionnés sont sur le plateau verrouillé, on ne peut pas "
-"faire d'auto-orientation sur ces objets"
+"Tous les objets sélectionnés sont sur le plateau verrouillé,\n"
+"On ne peut pas faire d'auto-orientation sur ces objets."
 
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-orient on this plate."
 msgstr ""
-"Ce plateau est verrouillée, il n’est pas possible d’exécuter l’auto-"
-"orientation."
+"Ce plateau est verrouillée,\n"
+"Il n’est pas possible d’exécuter l’auto-orientation."
 
 msgid "Orienting..."
 msgstr "Orienter..."
@@ -1823,6 +1823,18 @@ msgstr ""
 "L'AMS passe automatiquement à une autre bobine avec les mêmes propriétés de "
 "filament lorsque le filament actuel est épuisé."
 
+msgid "Recent"
+msgstr "Récent"
+
+msgid "User Manual"
+msgstr "Manuel d'utilisation"
+
+msgid "Recently opened"
+msgstr "Récemment ouvert"
+
+msgid "Clear all"
+msgstr "Effacer tout"
+
 msgid "File"
 msgstr "Dossier"
 
@@ -1977,7 +1989,7 @@ msgid "Remove"
 msgstr "Retirer"
 
 msgid "Not found:"
-msgstr "Pas trouvé:"
+msgstr "Introuvable:"
 
 msgid "Model"
 msgstr "Modèle"
@@ -3035,16 +3047,22 @@ msgid "Help"
 msgstr "Aide"
 
 msgid "Pass 1"
-msgstr "Passe 1"
+msgstr "Test 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr "Test de débit - Passe 1"
+msgstr "Test de débit - Test 1"
 
 msgid "Pass 2"
-msgstr "Passe 2"
+msgstr "Test 2"
 
 msgid "Flow rate test - Pass 2"
-msgstr "Test de débit - Passe 2"
+msgstr "Test de débit - Test 2"
+
+msgid "Extruder type"
+msgstr "Type d'extrudeuse"
+
+msgid "Method"
+msgstr "Méthode"
 
 msgid "Flow rate"
 msgstr "Débit"
@@ -8939,17 +8957,65 @@ msgstr "Support : Correction des trous dans la couche %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support : propagation des branches à la couche %d"
 
+msgid "Temperature calibration"
+msgstr "Calibration température"
+
+msgid "Filament type"
+msgstr "Type de filament"
+
+msgid "Start temp: "
+msgstr "Température Début: "
+
+msgid "End end: "
+msgstr "Température Fin: "
+
+msgid "Temp step: "
+msgstr "Pas de température: "
+
+msgid "Max flowrate"
+msgstr "Débit maximal"
+
+msgid "Max volumetric speed test"
+msgstr "Test de vitesse volumétrique maximale"
+
+msgid "Start volumetric speed: "
+msgstr "Vitesse volumétrique Début: "
+
+msgid "End volumetric speed: "
+msgstr "Vitesse volumétrique Fin: "
+
 msgid "PA Calibration"
 msgstr "PA Calibration"
 
+msgid "PA Line"
+msgstr "PA Ligne"
+
+msgid "PA Tower"
+msgstr "PA Tour"
+
+msgid "Start speed: "
+msgstr "Vitesse Début: "
+
+msgid "End speed: "
+msgstr "Vitesse Fin: "
+
+msgid "step: "
+msgstr "Pas: "
+
 msgid "Start PA: "
-msgstr "Commencez PA :"
+msgstr "PA Début: "
 
 msgid "End PA: "
-msgstr "Fin PA: "
+msgstr "PA Fin: "
 
 msgid "PA step: "
-msgstr "Pas PA:"
+msgstr "PA Pas: "
+
+msgid "Print numbers"
+msgstr "Imprimer nombres"
+
+msgid "More..."
+msgstr "Plus..."
 
 msgid ""
 "Please input valid values:\n"
@@ -9186,6 +9252,11 @@ msgstr ""
 "les objets sélectionnés en même temps ?"
 
 msgid ""
+"Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
+"Améliorez la précision de la coque en ajustant l'espacement des parois extérieures. Cela améliore également la cohérence des couches."
+
+msgid ""
 "Stack objects\n"
 "Did you know that you can stack objects as a whole one?"
 msgstr ""
@@ -9322,8 +9393,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid "Plate %d: %s does not support filament %s\n"
 #~ msgstr "Plateau %d : %s ne prend pas en charge le filament %s.\n"
-
-
 
 #~ msgid ""
 #~ "\n"
