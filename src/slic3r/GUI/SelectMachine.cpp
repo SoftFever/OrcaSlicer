@@ -2187,6 +2187,7 @@ void SelectMachineDialog::on_ok()
     m_print_job->m_access_code   = obj_->get_access_code();
     m_print_job->m_local_use_ssl = obj_->local_use_ssl;
     m_print_job->connection_type = obj_->connection_type();
+    m_print_job->cloud_print_only= obj_->is_cloud_print_only;
     m_print_job->set_project_name(m_current_project_name.utf8_string());
 
     if (obj_->is_support_ams_mapping()) {
