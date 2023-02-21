@@ -8130,7 +8130,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
         max_lh->values[0] = { layer_height };
 
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
-    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
+    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{0.0});
     
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
@@ -8167,10 +8167,11 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     }
 
     auto new_params = params;
-    Flow wall_flow = Flow(line_width, layer_height, nozzle_diameter);
-    new_params.end = params.end / wall_flow.mm3_per_mm();
-    new_params.start = params.start / wall_flow.mm3_per_mm();
-    new_params.step = params.step / wall_flow.mm3_per_mm();
+    auto mm3_per_mm = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() *
+                      filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    new_params.end = params.end / mm3_per_mm;
+    new_params.start = params.start / mm3_per_mm;
+    new_params.step = params.step / mm3_per_mm;
 
 
     p->background_process.fff_print()->set_calib_params(new_params);
