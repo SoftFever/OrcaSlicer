@@ -967,10 +967,10 @@ void PrintObject::slice_volumes()
         // If XY Size compensation is also enabled, notify the user that XY Size compensation
         // would not be used because the object is multi-material painted.
         if (m_config.xy_hole_compensation.value != 0.f || m_config.xy_contour_compensation.value != 0.f) {
-            //this->active_step_add_warning(
-            //    PrintStateBase::WarningLevel::CRITICAL,
-            //    L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
-            //      "compensation cannot be combined with multi-material painting."));
+            this->active_step_add_warning(
+                PrintStateBase::WarningLevel::CRITICAL,
+                L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
+                  "compensation cannot be combined with multi-material painting."));
             BOOST_LOG_TRIVIAL(info) << "xy compensation will not work for object " << this->model_object()->name << " for multi filament.";
         }
 
