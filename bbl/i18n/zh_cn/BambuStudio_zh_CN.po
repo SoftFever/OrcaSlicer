@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:30+0800\n"
+"POT-Creation-Date: 2023-02-21 18:18+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -385,7 +385,7 @@ msgstr "厚度"
 msgid "Input text"
 msgstr "输入文本"
 
-msgid "Embeded depth"
+msgid "Embeded"
 msgstr ""
 
 msgid "Text Gap"
@@ -394,10 +394,15 @@ msgstr ""
 msgid "Angle"
 msgstr ""
 
+msgid ""
+"Embeded\n"
+"depth"
+msgstr ""
+
 msgid "Surface"
 msgstr ""
 
-msgid "Keep horizontal"
+msgid "Horizontal"
 msgstr ""
 
 msgid "Notice"
@@ -684,10 +689,10 @@ msgid "Select settings"
 msgstr "选择设置"
 
 msgid "Hide"
-msgstr ""
+msgstr "隐藏"
 
 msgid "Show"
-msgstr ""
+msgstr "显示"
 
 msgid "Delete the selected object"
 msgstr "删除所选对象"
@@ -1188,6 +1193,12 @@ msgstr "送出新的耗材丝到挤出机"
 
 msgid "Purge old filament"
 msgstr "冲刷旧耗材丝"
+
+msgid "Feed new filament from external spool"
+msgstr ""
+
+msgid "Confirm whether the filament has been extruded"
+msgstr ""
 
 msgid "?"
 msgstr "?"
@@ -1700,7 +1711,7 @@ msgid ""
 "Green means that AMS humidity is normal, orange represent humidity is high, "
 "red represent humidity is too high.(Hygrometer: lower the better.)"
 msgstr ""
-"绿色表示 AMS 湿度正常，橙色表示湿度高，红色表示湿度过高。(湿度计:越低越好。)"
+"绿色表示 AMS 湿度正常，橙色表示湿度高，红色表示湿度过高。(湿度计：越低越好。)"
 
 msgid "Desiccant status"
 msgstr "干燥剂状态"
@@ -1708,7 +1719,7 @@ msgstr "干燥剂状态"
 msgid ""
 "A desiccant status lower than two bars indicates that desiccant may be "
 "inactive. Please change the desiccant.(The bars: higher the better.)"
-msgstr "干燥剂状态低于两格表示干燥剂可能不活跃。请更换干燥剂。(杠: 越高越好)。"
+msgstr "干燥剂状态低于两格表示干燥剂可能不活跃。请更换干燥剂。(杠：越高越好)。"
 
 msgid ""
 "Note: When the lid is open or the desiccant pack is changed, it can take "
@@ -2350,7 +2361,7 @@ msgid "Total"
 msgstr "总计"
 
 msgid "Total Time Estimation"
-msgstr ""
+msgstr "总时间预估"
 
 msgid "Total time"
 msgstr "总时间"
@@ -2598,6 +2609,10 @@ msgstr "返回"
 
 msgid "Paint Toolbar"
 msgstr "上色工具条"
+
+#, boost-format
+msgid "Shortcut key %1%"
+msgstr "快捷键 %1%"
 
 msgid "Explosion Ratio"
 msgstr "爆炸比例"
@@ -5472,6 +5487,9 @@ msgstr "新版本的Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
 
+msgid "Done"
+msgstr ""
+
 msgid "LAN Connection Failed (Sending print file)"
 msgstr ""
 
@@ -6798,8 +6816,8 @@ msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
 "flat surface more smooth. This setting controls which layer being ironed"
 msgstr ""
-"熨烫指的是使用小流量在表面的同高度打印，从而使平面更加光滑。这个设置用于设"
-"置哪些层进行熨烫。"
+"熨烫指的是使用小流量在表面的同高度打印，从而使平面更加光滑。这个设置用于设置"
+"哪些层进行熨烫。"
 
 msgid "No ironing"
 msgstr "不熨烫"

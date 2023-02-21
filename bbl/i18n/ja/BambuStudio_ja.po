@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:30+0800\n"
+"POT-Creation-Date: 2023-02-21 18:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -383,7 +383,7 @@ msgstr "太さ"
 msgid "Input text"
 msgstr "テキスト"
 
-msgid "Embeded depth"
+msgid "Embeded"
 msgstr ""
 
 msgid "Text Gap"
@@ -392,10 +392,15 @@ msgstr ""
 msgid "Angle"
 msgstr ""
 
+msgid ""
+"Embeded\n"
+"depth"
+msgstr ""
+
 msgid "Surface"
 msgstr ""
 
-msgid "Keep horizontal"
+msgid "Horizontal"
 msgstr ""
 
 msgid "Notice"
@@ -1193,6 +1198,12 @@ msgstr "フィラメントを押出機に押入れる"
 
 msgid "Purge old filament"
 msgstr "古いフィラメントを排出"
+
+msgid "Feed new filament from external spool"
+msgstr ""
+
+msgid "Confirm whether the filament has been extruded"
+msgstr ""
 
 msgid "?"
 msgstr "?"
@@ -2613,6 +2624,10 @@ msgstr "戻る"
 
 msgid "Paint Toolbar"
 msgstr "ペイント ツールバー"
+
+#, boost-format
+msgid "Shortcut key %1%"
+msgstr ""
 
 msgid "Explosion Ratio"
 msgstr "分解比率"
@@ -5513,6 +5528,9 @@ msgstr "新バージョン"
 
 msgid "Don't remind me of this version again"
 msgstr "今後このバージョンの通知をしません"
+
+msgid "Done"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN接続失敗 (造形ファイル送信)"

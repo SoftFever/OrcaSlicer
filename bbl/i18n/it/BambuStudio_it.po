@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-20 09:30+0800\n"
+"POT-Creation-Date: 2023-02-21 18:18+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -383,7 +383,7 @@ msgstr "Thickness"
 msgid "Input text"
 msgstr "Input text"
 
-msgid "Embeded depth"
+msgid "Embeded"
 msgstr ""
 
 msgid "Text Gap"
@@ -392,10 +392,15 @@ msgstr ""
 msgid "Angle"
 msgstr ""
 
+msgid ""
+"Embeded\n"
+"depth"
+msgstr ""
+
 msgid "Surface"
 msgstr ""
 
-msgid "Keep horizontal"
+msgid "Horizontal"
 msgstr ""
 
 msgid "Notice"
@@ -1205,6 +1210,12 @@ msgstr "Push new filament into extruder"
 
 msgid "Purge old filament"
 msgstr "Purge old filament"
+
+msgid "Feed new filament from external spool"
+msgstr ""
+
+msgid "Confirm whether the filament has been extruded"
+msgstr ""
 
 msgid "?"
 msgstr "?"
@@ -2676,6 +2687,10 @@ msgstr "return"
 
 msgid "Paint Toolbar"
 msgstr "Paint Toolbar"
+
+#, boost-format
+msgid "Shortcut key %1%"
+msgstr ""
 
 msgid "Explosion Ratio"
 msgstr "Explosion Ratio"
@@ -5656,6 +5671,9 @@ msgstr "New version of Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "Don't remind me about this version again."
+
+msgid "Done"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN Connection Failed (Sending print file)"

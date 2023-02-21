@@ -7603,7 +7603,7 @@ void GLCanvas3D::_render_paint_toolbar() const
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
-            ImGui::TextUnformatted(_L((boost::format("Shortcut key %1%") % (i + 1)).str()).ToUTF8().data());
+            ImGui::TextUnformatted((boost::format(_u8L("Shortcut key %1%")) % (i + 1)).str().c_str());
             ImGui::PopStyleColor(1);
             ImGui::PopTextWrapPos();
             ImGui::EndTooltip();
