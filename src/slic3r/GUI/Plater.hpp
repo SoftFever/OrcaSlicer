@@ -678,6 +678,13 @@ public:
 
     std::string get_preview_only_filename() { return m_preview_only_filename; };
 
+    bool last_arrange_job_is_finished()
+    {
+        bool prevRunning = false;
+        return m_arrange_running.compare_exchange_strong(prevRunning, true);
+    };
+    std::atomic<bool> m_arrange_running{false};
+
 private:
     struct priv;
     std::unique_ptr<priv> p;

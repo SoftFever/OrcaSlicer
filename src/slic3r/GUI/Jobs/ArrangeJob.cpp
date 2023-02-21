@@ -750,6 +750,7 @@ void ArrangeJob::finalize() {
     m_plater->update();
 
     Job::finalize();
+    m_plater->m_arrange_running.store(false);
 }
 
 std::optional<arrangement::ArrangePolygon>

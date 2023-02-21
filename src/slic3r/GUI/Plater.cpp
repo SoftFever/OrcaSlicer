@@ -11098,8 +11098,10 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         ret = select_plate(plate_index);
         if (!ret)
         {
-            set_prepare_state(Job::PREPARE_STATE_MENU);
-            arrange();
+            if (last_arrange_job_is_finished()) {
+                set_prepare_state(Job::PREPARE_STATE_MENU);
+                arrange();
+            }
         }
         else
         {
