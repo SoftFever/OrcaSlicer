@@ -1048,7 +1048,7 @@ msgid "Support Enforcer"
 msgstr "Générateur de Support"
 
 msgid "Type:"
-msgstr "Taper:"
+msgstr "Type:"
 
 msgid "Choose part type"
 msgstr "Choisissez le type de pièce"
