@@ -240,8 +240,10 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
 
     auto init_info_label = [this, parent, grid_sizer](wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
+        text->SetForegroundColour(*wxBLACK);
         text->SetFont(wxGetApp().small_font());
         auto info_label = new wxStaticText(parent, wxID_ANY, "N/A");
+        info_label->SetForegroundColour(*wxBLACK);
         info_label->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(info_label, 0);
@@ -1849,7 +1851,7 @@ struct Plater::priv
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
 
     void set_current_canvas_as_dirty();
-    GLCanvas3D* get_current_canvas3D();
+    GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
 
@@ -2039,7 +2041,6 @@ struct Plater::priv
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
     void on_action_send_gcode(SimpleEvent&);
-    void on_action_upload_gcode(SimpleEvent&);
     void on_action_export_sliced_file(SimpleEvent&);
     void on_action_export_all_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
@@ -2449,7 +2450,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         q->Bind(EVT_GLTOOLBAR_SEND_GCODE, &priv::on_action_send_gcode, this);
-        q->Bind(EVT_GLTOOLBAR_UPLOAD_GCODE, &priv::on_action_upload_gcode, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE, &priv::on_action_export_all_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
@@ -2896,7 +2896,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     if (input_files.empty()) { return std::vector<size_t>(); }
     
     // SoftFever: ugly fix so we can exist pa calib mode
-    background_process.fff_print()->calib_mode() = Calib_None;
+    background_process.fff_print()->calib_mode() = CalibMode::Calib_None;
 
 
     // BBS
@@ -3092,8 +3092,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                     } else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
-                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"),
+                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
                                                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                            text += "\n";
                             bool     first = true;
                             // std::string context = into_u8(text);
                             wxString context = text;
@@ -3112,8 +3113,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         else {
                             //if the minor version is not matched
                             if (file_version.min() != app_version.min()) {
-                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software.\n"),
+                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software."),
                                                  file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                text += "\n";
                                 show_info(q, text, _L("Newer 3mf version"));
                             }
                         }
@@ -6105,19 +6107,11 @@ void Plater::priv::on_action_export_gcode(SimpleEvent&)
     }
 }
 
-void Plater::priv::on_action_upload_gcode(SimpleEvent&)
-{
-    if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n";
-        q->send_gcode_legacy(-1, nullptr, true);
-    }
-}
-
 void Plater::priv::on_action_send_gcode(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n" ;
-        q->send_gcode_legacy(-1, nullptr, false);
+        q->send_gcode_legacy();
     }
 }
 
@@ -6621,11 +6615,11 @@ void Plater::priv::set_current_canvas_as_dirty()
         assemble_view->set_as_dirty();
 }
 
-GLCanvas3D* Plater::priv::get_current_canvas3D()
+GLCanvas3D* Plater::priv::get_current_canvas3D(bool exclude_preview)
 {
     if (current_panel == view3D)
         return view3D->get_canvas3d();
-    else if (current_panel == preview)
+    else if (!exclude_preview && (current_panel == preview))
         return preview->get_canvas3d();
     else if (current_panel == assemble_view)
         return assemble_view->get_canvas3d();
@@ -7901,18 +7895,16 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
     }
 }
 
-void Plater::calib_pa(bool line_method, bool bowden) {
+void Plater::calib_pa(const Calib_Params& params) {
     
-    const auto calib_pa_name = wxString::Format(L"Pressure Advance Test - %s%s", line_method ? L"Line" : L"Tower", bowden ? L"Bowden" : L"DDE");
+    const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    if (line_method) {
-        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/pressure_advance_test.stl");
-        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
+    if (params.mode == CalibMode::Calib_PA_Line) {
+        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
     }
     else {
-        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/tower_with_seam.stl");
-        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Tower_Bowden: Calib_PA_Tower_DDE;
+        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
         auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
         auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
         auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -7920,15 +7912,26 @@ void Plater::calib_pa(bool line_method, bool bowden) {
         print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
         print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
         print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
-        print_config->set_key_value("top_surface_jerk", new ConfigOptionFloat(1.0f));
         model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
 
         changed_objects({ 0 });
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
-        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 
+        auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
+        auto obj_bb = model().objects[0]->bounding_box();
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts;
+            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
+            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
+            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
+            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        }
 
         // automatic selection of added objects
         // update printable state for new volumes on canvas3D
@@ -7944,8 +7947,8 @@ void Plater::calib_pa(bool line_method, bool bowden) {
         if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
             // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
             p->view3D->get_canvas3d()->update_gizmos_on_off_state();
-
     }
+    p->background_process.fff_print()->set_calib_params(params);
 
 
 }
@@ -8032,12 +8035,191 @@ void Plater::calib_flowrate(int pass) {
     //filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
-    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 
 }
 
+void Plater::calib_temp(const Calib_Params& params) {
+    const auto calib_temp_name = wxString::Format(L"Nozzle temperature test");
+    new_project(false, false, calib_temp_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode != CalibMode::Calib_Temp_Tower)
+        return;
+    
+    add_model(false, Slic3r::resources_dir() + "/calib/temperature_tower/temperature_tower.stl");
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    auto start_temp = lround(params.start);
+    filament_config->set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts(1,(int)start_temp));
+    filament_config->set_key_value("nozzle_temperature", new ConfigOptionInts(1,(int)start_temp));
+    model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
+    model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
+    model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+
+    changed_objects({ 0 });
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+
+    // cut upper
+    auto obj_bb = model().objects[0]->bounding_box();
+    auto block_count = lround((350 - params.end) / 5 + 1);
+    if(block_count > 0){
+        auto new_height = block_count * 10.0;
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts;
+            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
+            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
+            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
+            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        }
+    }
+    
+    // cut bottom
+    obj_bb = model().objects[0]->bounding_box();
+    block_count = lround((350 - params.start) / 5);
+    if(block_count > 0){
+        auto new_height = block_count * 10.0;
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts;
+            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
+            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
+            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
+            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepUpper);
+        }
+    }
+    
+    p->background_process.fff_print()->set_calib_params(params);
+}
+
+void Plater::calib_max_vol_speed(const Calib_Params& params)
+{
+    const auto calib_vol_speed_name = wxString::Format(L"Max volumetric speed test");
+    new_project(false, false, calib_vol_speed_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode != CalibMode::Calib_Vol_speed_Tower)
+        return;
+
+    add_model(false, Slic3r::resources_dir() + "/calib/volumetric_speed/SpeedTestStructure.step");
+
+    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto obj = model().objects[0];
+
+    auto bed_shape = printer_config->option<ConfigOptionPoints>("printable_area")->values;
+    BoundingBoxf bed_ext = get_extents(bed_shape);
+    auto scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box().size().x();
+    if (scale_obj < 1.0)
+        obj->scale(scale_obj, 1, 1);
+
+    const ConfigOptionFloats* nozzle_diameter_config = printer_config->option<ConfigOptionFloats>("nozzle_diameter");
+    assert(nozzle_diameter_config->values.size() > 0);
+    double nozzle_diameter = nozzle_diameter_config->values[0];
+    double line_width = nozzle_diameter * 1.75;
+    double layer_height = nozzle_diameter * 0.8;
+
+    auto max_lh = printer_config->option<ConfigOptionFloats>("max_layer_height");
+    if (max_lh->values[0] < layer_height)
+        max_lh->values[0] = { layer_height };
+
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
+    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{0.0});
+    
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
+    print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+    print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+    print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
+    print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloat(line_width));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    obj->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
+    obj->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
+    obj->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+
+    changed_objects({ 0 });
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+
+    //  cut upper
+    auto obj_bb = obj->bounding_box();
+    auto height = (params.end - params.start + 1) / params.step;
+    if (height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts;
+        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
+        plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
+        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
+        plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
+        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    auto new_params = params;
+    auto mm3_per_mm = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() *
+                      filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    new_params.end = params.end / mm3_per_mm;
+    new_params.start = params.start / mm3_per_mm;
+    new_params.step = params.step / mm3_per_mm;
+
+
+    p->background_process.fff_print()->set_calib_params(new_params);
+}
+void Plater::calib_VFA(const Calib_Params& params)
+{
+    const auto calib_vfa_name = wxString::Format(L"VFA test");
+    new_project(false, false, calib_vfa_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode != CalibMode::Calib_VFA_Tower)
+        return;
+
+    add_model(false, Slic3r::resources_dir() + "/calib/vfa/VFA.stl");
+    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
+    print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+    print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+    print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
+    model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
+    model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
+    model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+
+    changed_objects({ 0 });
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
+
+    // cut upper
+    auto obj_bb = model().objects[0]->bounding_box();
+    auto height = 5 * ((params.end - params.start) / params.step + 1);
+    if (height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts;
+        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
+        plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
+        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
+        plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
+        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    p->background_process.fff_print()->set_calib_params(params);
+}
 void Plater::import_sl1_archive()
 {
     if (!p->m_ui_jobs.is_any_running())
@@ -8340,7 +8522,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     wxBoxSizer *m_sizer_right  = new wxBoxSizer(wxHORIZONTAL);
 
     m_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
     m_confirm->SetBackgroundColor(btn_bg_green);
@@ -9914,7 +10096,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
-void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool upload_only)
+void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
 {
     // if physical_printer is selected, send gcode for this printer
     // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
@@ -10449,9 +10631,9 @@ GLCanvas3D* Plater::get_assmeble_canvas3D()
     return nullptr;
 }
 
-GLCanvas3D* Plater::get_current_canvas3D()
+GLCanvas3D* Plater::get_current_canvas3D(bool exclude_preview)
 {
-    return p->get_current_canvas3D();
+    return p->get_current_canvas3D(exclude_preview);
 }
 
 void Plater::arrange()
@@ -11135,6 +11317,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             PartPlate* curr_plate = p->partplate_list.get_curr_plate();
             dlg.sync_bed_type(curr_plate->get_bed_type(false));
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
+                PartPlate *curr_plate = p->partplate_list.get_curr_plate();
+                BedType old_bed_type = curr_plate->get_bed_type(false);
                 auto type = (BedType)(e.GetInt());
                 p->partplate_list.get_curr_plate()->set_bed_type(type);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
@@ -11308,7 +11492,8 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
                         break;
                     }
                 }
-                err.string = format(L("Plate %d: %s does not support filament %s (%s).\n"), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string = format(_L("Plate %d: %s does not support filament %s (%s)."), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string += "\n";
             }
         } catch (...) {
             ;

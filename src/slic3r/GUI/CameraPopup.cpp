@@ -161,6 +161,7 @@ wxWindow* CameraPopup::create_item_radiobox(wxString title, wxWindow* parent, wx
         });
 
     wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
+    text->SetForegroundColour(*wxBLACK);
     resolution_texts.push_back(text);
     text->SetPosition(wxPoint(padding_left + radiobox->GetSize().GetWidth() + 10, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2));
     text->SetFont(Label::Body_13);

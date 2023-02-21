@@ -306,9 +306,34 @@ void MachineObject::set_access_code(std::string code)
 {
     this->access_code = code;
     AppConfig *config = GUI::wxGetApp().app_config;
-    if (config) {
+    if (config && !code.empty()) {
         GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
     }
+}
+
+std::string MachineObject::get_access_code()
+{
+    if (get_user_access_code().empty())
+        return access_code;
+    return get_user_access_code();
+}
+
+void MachineObject::set_user_access_code(std::string code)
+{
+    this->user_access_code = code;
+    AppConfig* config = GUI::wxGetApp().app_config;
+    if (config) {
+        GUI::wxGetApp().app_config->set_str("user_access_code", dev_id, code);
+    }
+}
+
+std::string MachineObject::get_user_access_code()
+{
+    AppConfig* config = GUI::wxGetApp().app_config;
+    if (config) {
+        return GUI::wxGetApp().app_config->get("user_access_code", dev_id);
+    }
+    return "";
 }
 
 bool MachineObject::is_lan_mode_printer()
@@ -325,7 +350,8 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     dev_ip(ip),
     subtask_(nullptr),
     slice_info(nullptr),
-    m_is_online(false)
+    m_is_online(false),
+    vt_tray(std::to_string(VIRTUAL_TRAY_ID))
 {
     m_agent = agent;
 
@@ -424,6 +450,40 @@ bool MachineObject::check_valid_ip()
 void MachineObject::_parse_print_option_ack(int option)
 {
     xcam_auto_recovery_step_loss = ((option >> (int)PRINT_OP_AUTO_RECOVERY) & 0x01) != 0;
+}
+
+bool MachineObject::is_in_extrusion_cali()
+{
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_extrusion_cali_start_time);
+    if (diff.count() < EXTRUSION_OMIT_TIME) {
+        mc_print_percent = 0;
+        return true;
+    }
+
+    if (is_in_printing_status(print_status)
+        && print_type == "system"
+        && boost::contains(m_gcode_file, "extrusion_cali")
+        )
+    {
+        return true;
+    }
+    return false;
+}
+
+bool MachineObject::is_extrusion_cali_finished()
+{
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_extrusion_cali_start_time);
+    if (diff.count() < EXTRUSION_OMIT_TIME) {
+        return false;
+    }
+    
+    if (boost::contains(m_gcode_file, "extrusion_cali")
+        && this->mc_print_percent == 100)
+        return true;
+    else
+        return false;
 }
 
 void MachineObject::_parse_tray_now(std::string tray_now)
@@ -1284,6 +1344,12 @@ void MachineObject::parse_version_func()
                 is_support_ai_monitoring                = true;
                 is_support_ams_humidity                 = true;
             }
+            local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+        }
+    } else if (printer_type == "C11") {
+        local_use_ssl = true;
+        if (ota_version != module_vers.end()) {
+            is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
         }
     }
 }
@@ -1470,7 +1536,7 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
         // unload gcode
         gcode = "M620 S255\nM104 S250\nG28 X\nG91\nG1 Z3.0 F1200\nG90\n"
                 "G1 X70 F12000\nG1 Y245\nG1 Y265 F3000\nM109 S250\nG1 X120 F12000\n"
-                "G1 X20 Y50 F12000\nG1 Y-3\nT255\nM104 S25\nG1 X165 F5000\nG1 Y245\n"
+                "G1 X20 Y50 F12000\nG1 Y-3\nT255\nM104 S0\nG1 X165 F5000\nG1 Y245\n"
                 "G91\nG1 Z-3.0 F1200\nG90\nM621 S255\n";
     } else {
         // load gcode
@@ -1546,21 +1612,22 @@ int MachineObject::command_ams_calibrate(int ams_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
+int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
 {
     BOOST_LOG_TRIVIAL(info) << "command_ams_filament_settings, ams_id = " << ams_id << ", tray_id = " << tray_id << ", tray_color = " << tray_color
-                            << ", tray_type = " << tray_type;
+                            << ", tray_type = " << tray_type << ", setting_id = " << setting_id;
     json j;
-    j["print"]["command"] = "ams_filament_setting";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["ams_id"]      = ams_id;
-    j["print"]["tray_id"]     = tray_id;
-    j["print"]["tray_info_idx"] = setting_id;
+    j["print"]["command"]       = "ams_filament_setting";
+    j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["ams_id"]        = ams_id;
+    j["print"]["tray_id"]       = tray_id;
+    j["print"]["tray_info_idx"] = filament_id;
+    j["print"]["setting_id"]    = setting_id;
     // format "FFFFFFFF"   RGBA
-    j["print"]["tray_color"]    = tray_color;
+    j["print"]["tray_color"]        = tray_color;
     j["print"]["nozzle_temp_min"]   = nozzle_temp_min;
-    j["print"]["nozzle_temp_max"] = nozzle_temp_max;
-    j["print"]["tray_type"] = tray_type;
+    j["print"]["nozzle_temp_max"]   = nozzle_temp_max;
+    j["print"]["tray_type"]         = tray_type;
 
     return this->publish_json(j.dump());
 }
@@ -1622,6 +1689,57 @@ int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int 
 
     return this->publish_json(j.dump());
 }
+
+int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id)
+{
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali: tray_id = " << tray_index << ", nozzle_temp = " << nozzle_temp << ", bed_temp = " << bed_temp
+                            << ", max_volumetric_speed = " << max_volumetric_speed;
+
+    json j;
+    j["print"]["command"] = "extrusion_cali";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["tray_id"] = tray_index;
+    //j["print"]["setting_id"] = setting_id;
+    //j["print"]["name"] = "";
+    j["print"]["nozzle_temp"] = nozzle_temp;
+    j["print"]["bed_temp"] = bed_temp;
+    j["print"]["max_volumetric_speed"] = max_volumetric_speed;
+
+    // enter extusion cali
+    last_extrusion_cali_start_time = std::chrono::system_clock::now();
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_stop_extrusion_cali()
+{
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali: stop";
+    if (is_in_extrusion_cali()) {
+        return command_task_abort();
+    }
+    return 0;
+}
+
+int MachineObject::command_extrusion_cali_set(int tray_index, std::string setting_id, std::string name, float k, float n, int bed_temp, int nozzle_temp, float max_volumetric_speed)
+{
+    BOOST_LOG_TRIVIAL(info) << "extrusion_cali: tray_id = " << tray_index << ", setting_id = " << setting_id << ", k = " << k
+                            << ", n = " << n;
+    json j;
+    j["print"]["command"] = "extrusion_cali_set";
+    j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["tray_id"]       = tray_index;
+    //j["print"]["setting_id"]    = setting_id;
+    //j["print"]["name"]          = name;
+    j["print"]["k_value"]       = k;
+    j["print"]["n_coef"]        = 1.4f;     // fixed n
+    //j["print"]["n_coef"]        = n;
+    if (bed_temp >= 0 && nozzle_temp >= 0 && max_volumetric_speed >= 0) {
+        j["print"]["bed_temp"]      = bed_temp;
+        j["print"]["nozzle_temp"]   = nozzle_temp;
+        j["print"]["max_volumetric_speed"] = max_volumetric_speed;
+    }
+    return this->publish_json(j.dump());
+}
+
 
 int MachineObject::command_set_printing_speed(PrintingSpeedLevel lvl)
 {
@@ -2081,6 +2199,14 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_CHAMBER_FAN:
         func_name = "FUNC_CHAMBER_FAN";
         break;
+    case FUNC_EXTRUSION_CALI:
+        if (!ams_support_virtual_tray)
+            return false;
+        func_name = "FUNC_EXTRUSION_CALI";
+        break;
+    case FUNC_PRINT_ALL:
+        func_name = "FUNC_PRINT_ALL";
+        break;
     default:
         return true;
     }
@@ -2279,6 +2405,19 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("subtask_name")) {
                         subtask_name = jj["subtask_name"].get<std::string>();
                     }
+                    if (jj.contains("layer_num")) {
+                        curr_layer = jj["layer_num"].get<int>();
+                    }
+                    if (jj.contains("total_layer_num")) {
+                        total_layers = jj["total_layer_num"].get<int>();
+                        if (total_layers == 0)
+                            is_support_layer_num = false;
+                        else
+                            is_support_layer_num = true;
+                    } else {
+                        is_support_layer_num = false;
+                    }
+
                     if (jj.contains("gcode_state")) {
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
@@ -2924,14 +3063,33 @@ int MachineObject::parse_json(std::string payload)
                                         } else {
                                             curr_tray->remain = -1;
                                         }
+                                        int ams_id_int = 0;
+                                        int tray_id_int = 0;
                                         try {
                                             if (!ams_id.empty() && !curr_tray->id.empty()) {
-                                                int ams_id_int = atoi(ams_id.c_str());
-                                                int tray_id_int = atoi(curr_tray->id.c_str());
+                                                ams_id_int = atoi(ams_id.c_str());
+                                                tray_id_int = atoi(curr_tray->id.c_str());
                                                 curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
                                             }
                                         }
                                         catch (...) {
+                                        }
+                                        if (tray_it->contains("setting_id")) {
+                                            curr_tray->filament_setting_id = (*tray_it)["setting_id"].get<std::string>();
+                                        }
+
+                                        
+                                        auto curr_time = std::chrono::system_clock::now();
+                                        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+                                        if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+                                            || ams_id_int != (extrusion_cali_set_tray_id / 4)
+                                            || tray_id_int != (extrusion_cali_set_tray_id % 4)) {
+                                            if (tray_it->contains("k")) {
+                                                curr_tray->k = (*tray_it)["k"].get<float>();
+                                            }
+                                            if (tray_it->contains("n")) {
+                                                curr_tray->n = (*tray_it)["n"].get<float>();
+                                            }
                                         }
                                     }
                                     // remove not in trayList
@@ -2955,6 +3113,29 @@ int MachineObject::parse_json(std::string payload)
                                 }
                             }
                         }
+                    }
+
+                    /* vitrual tray*/
+                    try {
+                        if (jj.contains("vt_tray")) {
+                            if (jj["vt_tray"].contains("id"))
+                                vt_tray.id = jj["vt_tray"]["id"].get<std::string>();
+                            auto curr_time = std::chrono::system_clock::now();
+                            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+                            if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+                                || extrusion_cali_set_tray_id != VIRTUAL_TRAY_ID) {
+                                if (jj["vt_tray"].contains("k"))
+                                    vt_tray.k = jj["vt_tray"]["k"].get<float>();
+                                if (jj["vt_tray"].contains("n"))
+                                    vt_tray.n = jj["vt_tray"]["n"].get<float>();
+                            }
+                            ams_support_virtual_tray = true;
+                        } else {
+                            ams_support_virtual_tray = false;
+                        }
+                    }
+                    catch (...) {
+                        ;
                     }
 #pragma endregion
 
@@ -3036,7 +3217,7 @@ int MachineObject::parse_json(std::string payload)
                             }
                         }
                     }
-                }else if(jj["command"].get<std::string>() == "print_option") {
+                } else if(jj["command"].get<std::string>() == "print_option") {
                      try {
                           if (jj.contains("option")) {
                               if (jj["option"].is_number()) {
@@ -3050,6 +3231,49 @@ int MachineObject::parse_json(std::string payload)
                      }
                      catch(...) {
                      }
+                } else if (jj["command"].get<std::string>() == "extrusion_cali") {
+                    if (jj.contains("result") && jj["result"].get<std::string>() == "success") {
+                        // enter extrusion cali
+                    }
+                } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
+                    int ams_id = -1;
+                    int tray_id = -1;
+                    int curr_tray_id = -1;
+                    if (jj.contains("tray_id")) {
+                        try {
+                            curr_tray_id = jj["tray_id"].get<int>();
+                            if (curr_tray_id == VIRTUAL_TRAY_ID)
+                                tray_id = curr_tray_id;
+                            else if (curr_tray_id >= 0 && curr_tray_id < 16){
+                                ams_id = curr_tray_id / 4;
+                                tray_id = curr_tray_id % 4;
+                            } else {
+                                BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_set: unsupported tray_id = " << curr_tray_id;
+                            }
+                        }
+                        catch(...) {
+                            ;
+                        }
+                    }
+                    if (tray_id == VIRTUAL_TRAY_ID) {
+                        if (jj.contains("k_value"))
+                            vt_tray.k = jj["k_value"].get<float>();
+                        if (jj.contains("n_coef"))
+                            vt_tray.n = jj["n_coef"].get<float>();
+                    } else {
+                        auto ams_item = this->amsList.find(std::to_string(ams_id));
+                        if (ams_item != this->amsList.end()) {
+                            auto tray_item = ams_item->second->trayList.find(std::to_string(tray_id));
+                            if (tray_item != ams_item->second->trayList.end()) {
+                                if (jj.contains("k_value"))
+                                    tray_item->second->k = jj["k_value"].get<float>();
+                                if (jj.contains("n_coef"))
+                                    tray_item->second->n = jj["n_coef"].get<float>();
+                            }
+                        }
+                    }
+                    extrusion_cali_set_tray_id = curr_tray_id;
+                    extrusion_cali_set_hold_start = std::chrono::system_clock::now();
                 }
             }
         }
@@ -3403,6 +3627,11 @@ void DeviceManager::on_machine_alive(std::string json_str)
             BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
             obj->last_alive = Slic3r::Utils::get_current_time_utc();
             obj->m_is_online = true;
+
+            /* if (!obj->dev_ip.empty()) {
+                 Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
+                 Slic3r::GUI::wxGetApp().app_config->save();
+             }*/
         }
         else {
             /* insert a new machine */
@@ -3415,9 +3644,14 @@ void DeviceManager::on_machine_alive(std::string json_str)
             //load access code
             AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
             if (config) {
-                obj->access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id);
+                obj->set_access_code(Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id));
             }
             localMachineList.insert(std::make_pair(dev_id, obj));
+
+            /* if (!obj->dev_ip.empty()) {
+                 Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
+                 Slic3r::GUI::wxGetApp().app_config->save();
+             }*/
 
 
             BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;
@@ -3680,6 +3914,7 @@ void DeviceManager::parse_user_print_info(std::string body)
                     if (m_agent) {
                         obj->set_bind_status(m_agent->get_user_name());
                     }
+                    obj->dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", dev_id);
                     userMachineList.insert(std::make_pair(dev_id, obj));
                 }
 

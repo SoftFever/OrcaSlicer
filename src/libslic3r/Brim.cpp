@@ -952,8 +952,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                             // BBS: inner and outer boundary are offset from the same polygon incase of round off error.
                             auto innerExpoly = offset_ex(ex_poly.contour, brim_offset, jtRound, SCALED_RESOLUTION);
                             append(brim_area_object, diff_ex(offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION), innerExpoly));
-                            // BBS: brim should be apart from holes
-                            append(no_brim_area_object, diff_ex(ex_poly_holes_reversed, offset_ex(ex_poly_holes_reversed, -scale_(5.))));
                         }
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner) {
                             append(brim_area_object, diff_ex(offset_ex(ex_poly_holes_reversed, -brim_offset), offset_ex(ex_poly_holes_reversed, -brim_width - brim_offset)));

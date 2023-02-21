@@ -270,7 +270,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             Polylines remain_polines;
 
-            if (perimeter_generator.config->enable_overhang_speed) {
+            //BBS: don't calculate overhang degree when enable fuzzy skin. It's unmeaning
+            if (perimeter_generator.config->overhang_speed_classic && perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
                 for (auto it = lower_polygons_series->begin();
                     it != lower_polygons_series->end(); it++)
                 {
@@ -630,12 +631,17 @@ void PerimeterGenerator::process_classic()
     m_mm3_per_mm               		= this->perimeter_flow.mm3_per_mm();
     coord_t perimeter_width         = this->perimeter_flow.scaled_width();
     coord_t perimeter_spacing       = this->perimeter_flow.scaled_spacing();
-    
+
     // external perimeters
     m_ext_mm3_per_mm           		= this->ext_perimeter_flow.mm3_per_mm();
     coord_t ext_perimeter_width     = this->ext_perimeter_flow.scaled_width();
+
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
-    coord_t ext_perimeter_spacing2  = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
+    coord_t ext_perimeter_spacing2;
+    if(config->precise_outer_wall)
+        ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
+    else
+        ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
     
     // overhang perimeters
     m_mm3_per_mm_overhang      		= this->overhang_flow.mm3_per_mm();
@@ -953,16 +959,16 @@ void PerimeterGenerator::process_classic()
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
             bool is_outer_wall_first =
-                this->print_config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-                this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
-                this->print_config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
+                this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
+                this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
+                this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
                     this->object_config->brim_type == BrimType::btOuterOnly &&
                     this->object_config->brim_width.value > 0))
             {
-                if (this->print_config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
+                if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
                     if (entities.entities.size() > 1) {
                         std::vector<int> extPs;
                         for (int i = 0; i < entities.entities.size(); ++i) {
@@ -1015,14 +1021,11 @@ void PerimeterGenerator::process_classic()
                 ++ irun;
             }
 #endif
-            // SoftFever: don't filter out tiny gap fills for first and top layer. So that the print looks better :)
-            if (this->layer_id != 0 && this->upper_slices != nullptr)
-            {
-                polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
-                    [&](const ThickPolyline& p) {
-                        return p.length() < scale_(config->filter_out_gap_fill.value);
-                    }), polylines.end());
-            }
+            // SoftFever: filter out tiny gap fills
+            polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
+                [&](const ThickPolyline& p) {
+                    return p.length() < scale_(config->filter_out_gap_fill.value);
+                }), polylines.end());
 
 
             if (! polylines.empty()) {
@@ -1112,7 +1115,6 @@ void PerimeterGenerator::process_arachne()
     coord_t ext_perimeter_width = this->ext_perimeter_flow.scaled_width();
     coord_t ext_perimeter_spacing = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
-
     // overhang perimeters
     m_mm3_per_mm_overhang = this->overhang_flow.mm3_per_mm();
 
@@ -1131,11 +1133,16 @@ void PerimeterGenerator::process_arachne()
     // we need to process each island separately because we might have different
     // extra perimeters for each one
     for (const Surface& surface : this->slices->surfaces) {
+        coord_t bead_width_0 = ext_perimeter_spacing;
+        if (config->precise_outer_wall)
+            bead_width_0 = ext_perimeter_width + this->perimeter_flow.scaled_width() - perimeter_spacing;
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
-        ExPolygons last = offset_ex(surface.expolygon.simplify_p(m_scaled_resolution), -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
+        ExPolygons last = offset_ex(surface.expolygon.simplify_p(m_scaled_resolution),
+                      config->precise_outer_wall ? -float(ext_perimeter_width / 2. - bead_width_0 / 2.)
+                                                 : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         Polygons   last_p = to_polygons(last);
-
+        
         double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
         Arachne::WallToolPathsParams input_params;
         {
@@ -1154,8 +1161,14 @@ void PerimeterGenerator::process_arachne()
             input_params.wall_transition_angle = this->object_config->wall_transition_angle.value;
             input_params.wall_distribution_count = this->object_config->wall_distribution_count.value;
         }
+        coord_t wall_0_inset = 0;
+        //if (config->precise_outer_wall)
+        //    wall_0_inset = 0.5 * (ext_perimeter_width + this->perimeter_flow.scaled_width() - ext_perimeter_spacing -
+        //                           perimeter_spacing);
 
-        Arachne::WallToolPaths wallToolPaths(last_p, ext_perimeter_spacing, perimeter_spacing, coord_t(loop_number + 1), 0, layer_height, input_params);
+        Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(loop_number + 1),
+                                             wall_0_inset, layer_height, input_params);
+
         std::vector<Arachne::VariableWidthLines> perimeters = wallToolPaths.getToolPaths();
         loop_number = int(perimeters.size()) - 1;
 
@@ -1182,8 +1195,8 @@ void PerimeterGenerator::process_arachne()
         int direction = -1;
 
         bool is_outer_wall_first =
-            this->print_config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-            this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+            this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
+            this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
         if (is_outer_wall_first) {
             start_perimeter = 0;
             end_perimeter = int(perimeters.size());
@@ -1311,7 +1324,7 @@ void PerimeterGenerator::process_arachne()
         }
 
         
-        if (this->print_config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
+        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
             if (ordered_extrusions.size() > 1) {
                 std::vector<int> extPs;
                 for (int i = 0; i < ordered_extrusions.size(); ++i) {
@@ -1397,6 +1410,7 @@ std::map<int, Polygons> PerimeterGenerator::generate_lower_polygons_series(float
     // BBS: increase start_offset a little to avoid to calculate 90 degree as overhang
     offset_series[0] = start_offset + 0.5 * (end_offset - start_offset) / (overhang_sampling_number - 1);
     offset_series[overhang_sampling_number - 2] = end_offset;
+    offset_series.back() = 0.1 * nozzle_diameter;
 
     std::map<int, Polygons> lower_polygons_series;
     if (this->lower_slices == NULL) {

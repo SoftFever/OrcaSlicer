@@ -103,8 +103,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "outer_wall_acceleration",
         "inner_wall_acceleration",
         "initial_layer_acceleration",
-        "outer_wall_acceleration",
         "top_surface_acceleration",
+        "bridge_acceleration",
         "travel_acceleration",
         // BBS
         "cool_plate_temp_initial_layer",
@@ -152,7 +152,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         // SoftFever
         "seam_gap",
         "role_based_wipe_speed",
-        "wipe_speed"
+        "wipe_speed",
+        "use_relative_e_distances",
+        "accel_to_decel_enable",
+        "accel_to_decel_factor",
+        "wipe_on_loops"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -256,6 +260,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             invalidated |= object->invalidate_step(ostep);
 
     return invalidated;
+}
+
+void Print::set_calib_params(const Calib_Params& params) {
+    m_calib_params = params;
+    m_calib_params.mode = params.mode;
 }
 
 bool Print::invalidate_step(PrintStep step)
@@ -765,14 +774,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         convex_hulls_temp.push_back(convex_hull);
         if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
             if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.") + "\n";
                 warning->object = inst->model_instance->get_object();
             }
         }
         if (!intersection(exclude_polys, convex_hull).empty()) {
-            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n"), inst->model_instance->get_object()};
+            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n", inst->model_instance->get_object()};
             /*if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n";
                 warning->object = inst->model_instance->get_object();
             }*/
         }
@@ -917,7 +926,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 // BBS: remove L()
                 return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
-
+        
+        if (! m_config.use_relative_e_distances)
+            return { ("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
+        
         if (m_config.ooze_prevention)
             return { ("Ooze prevention is currently not supported with the prime tower enabled.") };
 
@@ -1120,32 +1132,34 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
     }
 
-
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);
 
-    const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
-    for (unsigned int extruder_id : extruders) {
-        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+    if (is_BBL_printer()) {
+        const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
         for (unsigned int extruder_id : extruders) {
-            int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
-            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
-                std::string bed_type_name;
-                for (auto item : *bed_type_keys_map) {
-                    if (item.second == m_config.curr_bed_type) {
-                        bed_type_name = item.first;
-                        break;
+            const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+            for (unsigned int extruder_id : extruders) {
+                int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
+                if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+                    std::string bed_type_name;
+                    for (auto item : *bed_type_keys_map) {
+                        if (item.second == m_config.curr_bed_type) {
+                            bed_type_name = item.first;
+                            break;
+                        }
                     }
-                }
 
-                StringObjectException except;
-                except.string = format(L("Plate %d: %s does not support filament %s\n"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
-                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
-                except.params.push_back(std::to_string(this->get_plate_index() + 1));
-                except.params.push_back(L(bed_type_name));
-                except.params.push_back(std::to_string(extruder_id+1));
-                except.object = nullptr;
-                return except;
+                    StringObjectException except;
+                    except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                    except.string += "\n";
+                    except.type = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
+                    except.params.push_back(std::to_string(this->get_plate_index() + 1));
+                    except.params.push_back(L(bed_type_name));
+                    except.params.push_back(std::to_string(extruder_id + 1));
+                    except.object = nullptr;
+                    return except;
+                }
             }
         }
     }
@@ -1394,6 +1408,8 @@ void Print::process(bool use_cache)
             if (model_volume1.type() != model_volume2.type())
                 return false;
             if (model_volume1.mesh_ptr() != model_volume2.mesh_ptr())
+                return false;
+            if (!(model_volume1.get_transformation() == model_volume2.get_transformation()))
                 return false;
             has_extruder1 = model_volume1.config.has("extruder");
             has_extruder2 = model_volume2.config.has("extruder");

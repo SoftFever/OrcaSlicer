@@ -46,7 +46,7 @@ public:
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
-    std::string set_jerk_xy(unsigned int jerk);
+    std::string set_jerk_xy(double jerk);
     std::string set_pressure_advance(double pa) const;
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
@@ -107,8 +107,10 @@ private:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
-    unsigned int    m_max_jerk;
-    unsigned int    m_last_jerk;
+    double          m_max_jerk;
+    double          m_last_jerk;
+    double          m_max_jerk_z;
+    double          m_max_jerk_e;
 
     unsigned int  m_travel_acceleration;
     unsigned int  m_travel_jerk;
@@ -170,6 +172,13 @@ public:
 //    static constexpr const int XYZF_EXPORT_DIGITS = 6;
 //    static constexpr const int E_EXPORT_DIGITS    = 9;
 #endif
+    static constexpr const std::array<double, 10> pow_10 { 1., 10., 100., 1000., 10000., 100000., 1000000., 10000000., 100000000., 1000000000. };
+    static constexpr const std::array<double, 10> pow_10_inv { 1. / 1., 1. / 10., 1. / 100., 1. / 1000., 1. / 10000., 1. / 100000., 1. / 1000000., 1. / 10000000., 1. / 100000000., 1. / 1000000000. };
+
+    // Quantize doubles to a resolution of the G-code.
+    static double quantize(double v, size_t ndigits) { return std::round(v * pow_10[ndigits]) * pow_10_inv[ndigits]; }
+    static double quantize_xyzf(double v) { return quantize(v, XYZF_EXPORT_DIGITS); }
+    static double quantize_e(double v) { return quantize(v, E_EXPORT_DIGITS); }
 
     void emit_axis(const char axis, const double v, size_t digits);
 

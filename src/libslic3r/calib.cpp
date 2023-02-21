@@ -7,9 +7,9 @@
 
 namespace Slic3r {
 
-    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6) {}
+    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6), m_draw_numbers(true) {}
 
-    std::string calib_pressure_advance::generate_test(double start_pa/*= 0*/, double step_pa /*= 0.005*/, int count/*= 10*/) {
+    std::string calib_pressure_advance::generate_test(double start_pa/*= 0*/, double step_pa /*= 0.002*/, int count/*= 10*/) {
         auto bed_sizes = mp_gcodegen->config().printable_area.values;
         auto w = bed_sizes[2].x() - bed_sizes[0].x();
         auto h = bed_sizes[2].y() - bed_sizes[0].y();
@@ -64,17 +64,17 @@ namespace Slic3r {
         }
         gcode << writer.set_pressure_advance(0.0);
 
-        // draw indicator lines
-        gcode << writer.set_speed(fast);
-        gcode << move_to(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 2));
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 7), e * 7);
-        gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7));
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), e * 7);
+        if (m_draw_numbers) {
+            // draw indicator lines
+            gcode << writer.set_speed(fast);
+            gcode << move_to(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 2));
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 7), e * 7);
+            gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7));
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), e * 7);
 
-
-        for (int i = 0; i < num; i += 2) {
-            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa);
-
+            for (int i = 0; i < num; i += 2) {
+                gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa);
+            }
         }
         return gcode.str();
     }
@@ -203,4 +203,5 @@ namespace Slic3r {
 
         return gcode.str();
     }
+    Calib_Params::Calib_Params() : mode(CalibMode::Calib_None) {}
 } // namespace Slic3r

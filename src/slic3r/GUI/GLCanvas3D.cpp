@@ -3282,7 +3282,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
                     //post_event(SimpleEvent(EVT_GLCANVAS_TAB));
                 }
-                else if (keyCode == WXK_TAB && evt.ShiftDown() && ! wxGetApp().is_gcode_viewer()) {
+                else if (keyCode == WXK_TAB && evt.ShiftDown() && !evt.ControlDown() && ! wxGetApp().is_gcode_viewer()) {
                     // Collapse side-panel with Shift+Tab
                     post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
                 }
@@ -6608,12 +6608,14 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
         }
         layers_slider->set_as_dirty(false);
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
+        m_gcode_viewer.update_marker_curr_move();
     }
 
     if (moves_slider->is_dirty()) {
         moves_slider->set_as_dirty(false);
         m_gcode_viewer.update_sequential_view_current((moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(moves_slider->GetHigherValueD() - 1.0));
         post_event(SimpleEvent(EVT_GLCANVAS_UPDATE));
+        m_gcode_viewer.update_marker_curr_move();
     }
 }
 

@@ -21,6 +21,15 @@
 extern "C" {
 #endif // __cplusplus
 
+#ifndef __cplusplus
+#include <stdbool.h>
+
+/* We need these workarounds since we're compiling C source, not C++. */
+typedef enum Bambu_StreamType Bambu_StreamType;
+typedef struct Bambu_StreamInfo Bambu_StreamInfo;
+typedef struct Bambu_Sample Bambu_Sample;
+#endif
+
 #ifdef _WIN32
     typedef wchar_t tchar;
 #else

@@ -164,6 +164,7 @@ void PrintJob::process()
 
     // local print access
     params.dev_ip = m_dev_ip;
+    params.use_ssl  = m_local_use_ssl;
     params.username = "bblp";
     params.password = m_access_code;
     wxString error_text;

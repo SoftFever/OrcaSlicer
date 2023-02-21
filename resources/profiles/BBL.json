@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.04.01.01",
+    "version": "01.04.01.04",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -202,6 +202,18 @@
             "sub_path": "filament/Bambu PLA Basic @base.json"
         },
         {
+            "name": "Bambu PLA Tough @base",
+            "sub_path": "filament/Bambu PLA Tough @base.json"
+        },
+        {
+            "name": "Bambu PLA Marble @base",
+            "sub_path": "filament/Bambu PLA Marble @base.json"
+        },
+        {
+            "name": "Bambu PLA Sparkle @base",
+            "sub_path": "filament/Bambu PLA Sparkle @base.json"
+        },
+        {
             "name": "Bambu PLA Impact @base",
             "sub_path": "filament/Bambu PLA Impact @base.json"
         },
@@ -374,6 +386,34 @@
             "sub_path": "filament/Bambu PLA Basic @BBL X1.json"
         },
         {
+            "name": "Bambu PLA Tough @BBL X1C",
+            "sub_path": "filament/Bambu PLA Tough @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Tough @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Tough @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Tough @BBL X1",
+            "sub_path": "filament/Bambu PLA Tough @BBL X1.json"
+        },
+        {
+            "name": "Bambu PLA Marble @BBL X1",
+            "sub_path": "filament/Bambu PLA Marble @BBL X1.json"
+        },
+        {
+            "name": "Bambu PLA Marble @BBL X1C",
+            "sub_path": "filament/Bambu PLA Marble @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Sparkle @BBL X1",
+            "sub_path": "filament/Bambu PLA Sparkle @BBL X1.json"
+        },
+        {
+            "name": "Bambu PLA Sparkle @BBL X1C",
+            "sub_path": "filament/Bambu PLA Sparkle @BBL X1C.json"
+        },
+        {
             "name": "Bambu ABS @BBL X1C",
             "sub_path": "filament/Bambu ABS @BBL X1C.json"
         },
@@ -470,10 +510,26 @@
             "sub_path":"filament/P1P/Bambu PLA Basic @BBL P1P.json"
         },
         {
+            "name":"Bambu PLA Tough @BBL P1P 0.2 nozzle",
+            "sub_path":"filament/P1P/Bambu PLA Tough @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name":"Bambu PLA Tough @BBL P1P",
+            "sub_path":"filament/P1P/Bambu PLA Tough @BBL P1P.json"
+        },
+        {
+            "name":"Bambu PLA Marble @BBL P1P",
+            "sub_path":"filament/P1P/Bambu PLA Marble @BBL P1P.json"
+        },
+        {
+            "name":"Bambu PLA Sparkle @BBL P1P",
+            "sub_path":"filament/P1P/Bambu PLA Sparkle @BBL P1P.json"
+        },
+        {
             "name": "Bambu ABS @BBL P1P",
             "sub_path": "filament/P1P/Bambu ABS @BBL P1P.json"
         },
-		{
+        {
             "name": "Bambu PC @BBL P1P",
             "sub_path": "filament/P1P/Bambu PC @BBL P1P.json"
         },

@@ -313,19 +313,29 @@ if (SLIC3R_PROFILE)
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
-# Disable optimization even with debugging on.
-if (0)
-    message(STATUS "Perl compiled without optimization. Disabling optimization for the BambuStudio build.")
-    message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
-    message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
-    message("Old CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_C_FLAGS "/MD /Od /Zi /DWIN32 /DTBB_USE_ASSERT")
+# Disable optimization for RelWithDebInfo
+if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/O2")
+    string(REGEX REPLACE "/O2" "/Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 endif()
+
+if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "/O2")
+    string(REGEX REPLACE "/O2" "/Od" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
+
+if(MSVC)
+    if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/Ob1")
+        string(REGEX REPLACE "/Ob1" "/Ob0" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+    endif()
+    if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "/Ob1")
+        string(REGEX REPLACE "/Ob1" "/Ob0" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    endif()
+
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /RTC1")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /RTC1")
+endif()
+
+list(REMOVE_DUPLICATES CMAKE_C_FLAGS_RELWITHDEBINFO)
+list(REMOVE_DUPLICATES CMAKE_CXX_FLAGS_RELWITHDEBINFO)
 
 # Find and configure boost
 if(SLIC3R_STATIC)
@@ -484,16 +494,7 @@ if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
     set(GLEW_VERBOSE ON)
 endif()
 
-find_package(GLEW)
-if (NOT TARGET GLEW::GLEW)
-    message(STATUS "GLEW not found, using bundled version.")
-    add_library(glew STATIC ${LIBDIR}/glew/src/glew.c)
-    set(GLEW_FOUND TRUE)
-    set(GLEW_INCLUDE_DIRS ${LIBDIR}/glew/include/)
-    target_compile_definitions(glew PUBLIC GLEW_STATIC)
-    target_include_directories(glew PUBLIC ${GLEW_INCLUDE_DIRS})
-    add_library(GLEW::GLEW ALIAS glew)
-endif ()
+find_package(GLEW REQUIRED)
 
 find_package(glfw3 REQUIRED)
 

@@ -324,7 +324,7 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
         wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
         //pos.x = pos.x < 0? 0:pos.x;
-        m_select_machine.Position(pos, wxSize(0, 0));
+        m_select_machine.Move(pos);
 
 #ifdef __linux__
         m_select_machine.SetSize(wxSize(m_side_tools->GetSize().x, -1));

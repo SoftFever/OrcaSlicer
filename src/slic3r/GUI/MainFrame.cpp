@@ -72,6 +72,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 // BBS: backup
@@ -194,8 +195,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     panel_topbar->SetSizer(sizer_tobar);
     panel_topbar->Layout();
 #endif
-
-
 
     //wxAuiToolBar* toolbar = new wxAuiToolBar();
 /*
@@ -1450,7 +1449,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             SidePopup* p = new SidePopup(this);
-	    
+
             if (wxGetApp().preset_bundle
                 && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
                 // ThirdParty Buttons
@@ -1524,15 +1523,15 @@ wxBoxSizer* MainFrame::create_side_tools()
                     });
 
                 SideButton* send_to_printer_all_btn = new SideButton(p, _L("Send all"), "");
-                    send_to_printer_all_btn->SetCornerRadius(0);
-                    send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                        m_print_btn->SetLabel(_L("Send all"));
-                        m_print_select = eSendToPrinterAll;
-                        m_print_enable = get_enable_print_status();
-                        m_print_btn->Enable(m_print_enable);
-                        this->Layout();
-                        p->Dismiss();
-                        });
+                send_to_printer_all_btn->SetCornerRadius(0);
+                send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Send all"));
+                    m_print_select = eSendToPrinterAll;
+                    m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
 
                 export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export plate sliced file"));
@@ -2470,30 +2469,53 @@ void MainFrame::init_menubar_as_editor()
     // SoftFever calibrations
 
     // Flowrate
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Temperature"), _L("Temperature Calibration"),
+        [this](wxCommandEvent&) {
+            if (!m_temp_calib_dlg)
+                m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_temp_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
     auto flowrate_menu = new wxMenu();
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+    append_menu_item(
+        flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
+        [this](wxCommandEvent&) {
+            if (!m_pa_calib_dlg)
+                m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_pa_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
-    // PA
-    auto pa_menu = new wxMenu();
-    append_menu_item(pa_menu, wxID_ANY, _L("Line method - DDE"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, false); }, "", nullptr,
+    // Advance calibrations
+    auto advance_menu = new wxMenu();
+
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
+        [this](wxCommandEvent&) {
+            if (!m_vol_test_dlg)
+                m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vol_test_dlg->ShowModal();
+        },
+        "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Line method - Bowden"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, true); }, "", nullptr,
+
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
+        [this](wxCommandEvent&) {
+            if (!m_vfa_test_dlg)
+                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vfa_test_dlg->ShowModal();
+        },
+        "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - DDE"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, false); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - Bowden"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, true); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    m_topbar->GetCalibMenu()->AppendSubMenu(pa_menu, _L("Presure/Linear Advance"));
+    m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
 
     // help 
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
@@ -2512,6 +2534,15 @@ void MainFrame::init_menubar_as_editor()
     // SoftFever calibrations
     auto calib_menu = new wxMenu();
 
+    // PA
+    append_menu_item(calib_menu, wxID_ANY, _L("Temperature"), _L("Temperature"),
+        [this](wxCommandEvent&) {
+            if (!m_temp_calib_dlg)
+                m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_temp_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+        
     // Flowrate
     auto flowrate_menu = new wxMenu();
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
@@ -2520,24 +2551,38 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    calib_menu->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+    append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
+                   [this]() {return m_plater->is_view3D_shown();; });
 
     // PA
-    auto pa_menu = new wxMenu();
-    append_menu_item(pa_menu, wxID_ANY, _L("Line method - DDE"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, false); }, "", nullptr,
+    append_menu_item(calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
+        [this](wxCommandEvent&) {
+            if (!m_pa_calib_dlg)
+                m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_pa_calib_dlg->ShowModal();
+        }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Line method - Bowden"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, true); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - DDE"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, false); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - Bowden"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, true); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    calib_menu->AppendSubMenu(pa_menu, _L("Presure/Linear Advance"));
 
+    // Advance calibrations
+    auto advance_menu = new wxMenu();
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
+        [this](wxCommandEvent&) { 
+            if (!m_vol_test_dlg)
+                m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vol_test_dlg->ShowModal(); 
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
+        [this](wxCommandEvent&) { 
+            if (!m_vfa_test_dlg)
+                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vfa_test_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_submenu(calib_menu, advance_menu, wxID_ANY, _L("More..."), _L("More calibrations"), "",
+        [this]() {return m_plater->is_view3D_shown();; });
     // help
     append_menu_item(calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
         [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/BambuStudio-SoftFever/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
@@ -3236,7 +3281,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                         "It contains the following information:\n"
                         "1. The Process presets\n"
                         "2. The Filament presets\n"
-                        "3. The Printer presets\n"),
+                        "3. The Printer presets"),
                     _L("Synchronization"),
                     wxCENTER |
                     wxYES_DEFAULT | wxYES_NO |

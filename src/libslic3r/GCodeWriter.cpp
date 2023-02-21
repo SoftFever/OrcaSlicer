@@ -28,6 +28,8 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
                      print_config.gcode_flavor.value == gcfRepRapFirmware;
     m_max_acceleration = std::lrint(use_mach_limits ? print_config.machine_max_acceleration_extruding.values.front() : 0);
     m_max_jerk = std::lrint(use_mach_limits ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
+    m_max_jerk_z = print_config.machine_max_jerk_z.values.front();
+    m_max_jerk_e = print_config.machine_max_jerk_e.values.front();
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -61,11 +63,9 @@ std::string GCodeWriter::preamble()
         FLAVOR_IS(gcfSmoothie) ||
         FLAVOR_IS(gcfKlipper))
     {
-        if (RELATIVE_E_AXIS) {
-            gcode << "M83 ; only support relative e\n";
+        if (this->config.use_relative_e_distances) {
+            gcode << "M83 ; use relative distances for extrusion\n";
         } else {
-            //BBS: don't support absolute e distance
-            assert(0);
             gcode << "M82 ; use absolute distances for extrusion\n";
         }
         gcode << this->reset_e(true);
@@ -176,10 +176,15 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
         // This is new MarlinFirmware with separated print/retraction/travel acceleration.
         // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
         gcode << "M204 P" << acceleration;
-    } else {
-        // M204: Set default acceleration
+    } else if (FLAVOR_IS(gcfKlipper) && this->config.accel_to_decel_enable) {
+        gcode << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << acceleration * this->config.accel_to_decel_factor / 100;
+        if (GCodeWriter::full_gcode_comment)
+            gcode << " ; adjust max_accel_to_decel to chosen % of new accel value\n";
         gcode << "M204 S" << acceleration;
-    }
+        // Set max accel to decel to half of acceleration
+    } else
+        gcode << "M204 S" << acceleration;
+    
     //BBS
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust acceleration";
     gcode << "\n";
@@ -187,13 +192,13 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
+std::string GCodeWriter::set_jerk_xy(double jerk)
 {
     // Clamp the jerk to the allowed maximum.
     if (m_max_jerk > 0 && jerk > m_max_jerk)
         jerk = m_max_jerk;
 
-    if (jerk < 1 || jerk == m_last_jerk)
+    if (jerk < 0.01 || is_approx(jerk, m_last_jerk))
         return std::string();
     
     m_last_jerk = jerk;
@@ -203,7 +208,10 @@ std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
         gcode << "SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=" << jerk;
     else
         gcode << "M205 X" << jerk << " Y" << jerk;
-        
+      
+    if (m_is_bbl_printers)
+        gcode << std::setprecision(2) << " Z" << m_max_jerk_z << " E" << m_max_jerk_e;
+
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust jerk";
     gcode << "\n";
 
@@ -246,7 +254,7 @@ std::string GCodeWriter::reset_e(bool force)
         m_extruder->reset_E();
     }
 
-    if (! RELATIVE_E_AXIS) {
+    if (! this->config.use_relative_e_distances) {
         std::ostringstream gcode;
         gcode << "G92 E0";
         //BBS

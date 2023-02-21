@@ -240,7 +240,7 @@ else ()
         set(MACOSX_BUNDLE_ICON_FILE Icon.icns)
         set(MACOSX_BUNDLE_BUNDLE_NAME "Bambu Studio")
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${SLIC3R_VERSION})
-        set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2022-2032 Bambu Lab")
+        set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2021-2023 Lunkuo All Rights Reserved")
     endif()
     add_custom_command(TARGET BambuStudio POST_BUILD
         COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"

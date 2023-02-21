@@ -30,6 +30,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEND_JOB_SUCCESS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 
 
 void SendToPrinterDialog::stripWhiteSpace(std::string& str)
@@ -234,7 +235,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SendToPrinterDialog::on_selection_changed, this);
 
     m_sizer_printer->Add(m_comboBox_printer, 1, wxEXPAND | wxRIGHT, FromDIP(5));
-    btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
                                std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
     m_button_refresh = new Button(this, _L("Refresh"));
@@ -249,6 +250,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
     m_statictext_printer_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_printer_msg->SetFont(::Label::Body_13);
+    m_statictext_printer_msg->SetForegroundColour(*wxBLACK);
     m_statictext_printer_msg->Hide();
 
     // line schedule
@@ -336,6 +338,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
 
     m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, 0);
+    m_rename_text->SetForegroundColour(*wxBLACK);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
     m_rename_button = new Button(m_rename_normal_panel, "", "ams_editable", wxBORDER_NONE, FromDIP(10));
@@ -531,6 +534,7 @@ void SendToPrinterDialog::init_model()
 void SendToPrinterDialog::init_bind()
 {
     Bind(wxEVT_TIMER, &SendToPrinterDialog::on_timer, this);
+    Bind(EVT_CLEAR_IPADDRESS, &SendToPrinterDialog::clear_ip_address_config, this);
 }
 
 void SendToPrinterDialog::init_timer()
@@ -645,23 +649,42 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
     m_send_job                      = std::make_shared<SendJob>(m_status_bar, m_plater, m_printer_last_select);
     m_send_job->m_dev_ip            = obj_->dev_ip;
-    m_send_job->m_access_code       = obj_->access_code;
+    
+    m_send_job->m_access_code = obj_->get_access_code();
+    m_send_job->m_local_use_ssl     = obj_->local_use_ssl;
     m_send_job->connection_type     = obj_->connection_type();
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();
     m_send_job->set_project_name(m_current_project_name.utf8_string());
 
+    /*m_send_job->on_check_ip_address_success([this, obj_]() {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
+        wxQueueEvent(this, evt);
+    });*/
 
-    m_send_job->on_success([this]() {
-        //enable_prepare_mode = true;enable_prepare_mode
-        m_status_bar->reset();
-        prepare_mode();
-        //EndModal(wxID_CLOSE);
+    m_send_job->on_check_ip_address_fail([this]() {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
+        wxQueueEvent(this, evt);
+        wxGetApp().show_ip_address_enter_dialog();
     });
 
     enable_prepare_mode = false;
     m_send_job->start();
     BOOST_LOG_TRIVIAL(info) << "send_job: send print job";
+}
+
+
+void SendToPrinterDialog::clear_ip_address_config(wxCommandEvent& e)
+{
+    enable_prepare_mode = true;
+    prepare_mode();
+    /*DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    if (!dev->get_selected_machine()) return;
+    auto obj = dev->get_selected_machine();
+    Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, "");
+    Slic3r::GUI::wxGetApp().app_config->save();
+    wxGetApp().show_ip_address_enter_dialog();*/
 }
 
 void SendToPrinterDialog::update_user_machine_list()
@@ -845,6 +868,17 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         return;
     }
 
+    //check ip address
+    if (obj->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD)) {
+        if (obj->dev_ip.empty() || obj->get_access_code().empty()) {
+            BOOST_LOG_TRIVIAL(info) << "MachineObject IP is empty ";
+            std::string app_config_dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", obj->dev_id);
+            if (app_config_dev_ip.empty() || obj->get_access_code().empty()) {
+                wxGetApp().show_ip_address_enter_dialog();
+            }
+        }
+    }
+    
     update_show_status();
 }
 

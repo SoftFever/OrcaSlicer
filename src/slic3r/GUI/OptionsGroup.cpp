@@ -17,6 +17,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "I18N.hpp"
+#include <locale>
 
 namespace Slic3r { namespace GUI {
 
@@ -1232,8 +1233,14 @@ void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const
 
 wxString OptionsGroup::get_url(const std::string& path_end)
 {
-    //BBS
-    return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", from_u8(path_end));
+    // Softfever: point to sf wiki for seam parameters
+    if (path_end == "Seam") {
+        return wxString::Format(L"https://github.com/SoftFever/BambuStudio-SoftFever/wiki/%s", from_u8(path_end));
+    }
+    else {
+        //BBS
+        return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", from_u8(path_end));
+    }
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)

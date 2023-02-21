@@ -22,6 +22,8 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
 
     init_bitmap();
 
+    SetBackgroundColour(*wxWHITE);
+
     auto* main_sizer = new wxBoxSizer(wxVERTICAL);
     auto* button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -32,7 +34,7 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     m_button_confirm->SetFont(Label::Body_14);
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
-    StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(confirm_btn_bg);
     m_button_confirm->SetBorderColor(wxColour(0, 150, 136));

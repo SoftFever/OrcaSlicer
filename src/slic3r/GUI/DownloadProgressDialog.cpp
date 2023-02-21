@@ -67,6 +67,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     wxBoxSizer* sizer_download_failed = new wxBoxSizer(wxVERTICAL);
 
     auto m_statictext_download_failed = new wxStaticText(m_panel_download_failed, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_statictext_download_failed->SetForegroundColour(*wxBLACK);
     m_statictext_download_failed->SetLabel(format_text(m_statictext_download_failed, download_failed_msg, FromDIP(360)));
     m_statictext_download_failed->Wrap(FromDIP(360));
 
@@ -87,6 +88,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     wxBoxSizer* sizer_install_failed = new wxBoxSizer(wxVERTICAL);
 
     auto m_statictext_install_failed = new wxStaticText(m_panel_install_failed, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_statictext_install_failed->SetForegroundColour(*wxBLACK);
     m_statictext_install_failed->SetLabel(format_text(m_statictext_install_failed, install_failed_msg,FromDIP(360)));
     m_statictext_install_failed->Wrap(FromDIP(360));
 

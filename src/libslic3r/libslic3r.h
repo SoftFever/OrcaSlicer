@@ -78,10 +78,6 @@ static constexpr double BRIDGE_INFILL_MARGIN = 1;
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define unscale_(val) ((val) * SCALING_FACTOR)
 
-//BBS: BBS only support relative E and can't been changed by user at the moment. because
-//BBS need to support skip object when printing.
-static constexpr bool RELATIVE_E_AXIS = 1;
-
 #define SCALED_EPSILON scale_(EPSILON)
 
 #ifndef UNUSED
@@ -94,7 +90,7 @@ static constexpr bool g_config_remove_small_overhangs = true;
 static constexpr float g_config_tree_support_collision_resolution = 0.2;
 
 // Write slices as SVG images into out directory during the 2D processing of the slices.
-// #define SLIC3R_DEBUG_SLICE_PROCESSING
+//#define SLIC3R_DEBUG_SLICE_PROCESSING
 
 namespace Slic3r {
 

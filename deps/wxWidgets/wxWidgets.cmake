@@ -1,7 +1,6 @@
 set(_wx_git_tag v3.1.5)
 
 set(_wx_toolkit "")
-set(_wx_glcanvas_egl "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_gtk_ver 2)
     if (DEP_WX_GTK3)
@@ -9,7 +8,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif ()
     set(_wx_toolkit "-DwxBUILD_TOOLKIT=gtk${_gtk_ver}")
     set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=1")
-    set(_wx_glcanvas_egl "-DwxUSE_GLCANVAS_EGL=OFF")
 else ()
     set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=0")
 endif()
@@ -20,10 +18,21 @@ else ()
     set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
 endif ()
 
+if (MSVC)
+    set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch)
+else ()
+    set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch && touch WXWIDGETS_PATCHED)
+endif ()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch)
+endif ()
+
+
 bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
     GIT_TAG ${_wx_git_tag}
-    PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch
+    PATCH_COMMAND ${_patch_cmd}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
@@ -51,7 +60,6 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_LIBJPEG=sys
         -DwxUSE_LIBTIFF=sys
         -DwxUSE_EXPAT=sys
-	${_wx_glcanvas_egl}
 )
 
 if (MSVC)

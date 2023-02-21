@@ -157,6 +157,7 @@ protected:
 	void                     update_printer_combobox(wxCommandEvent& event);
 	void                     on_cancel(wxCloseEvent& event);
 	void                     on_ok(wxCommandEvent& event);
+	void                     clear_ip_address_config(wxCommandEvent& e);
 	void                     on_refresh(wxCommandEvent& event);
 	void                     on_print_job_cancel(wxCommandEvent& evt);
 	void                     set_default();
@@ -170,6 +171,7 @@ protected:
 	std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
 
+wxDECLARE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 }
 }
 

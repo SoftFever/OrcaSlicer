@@ -497,6 +497,9 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     double height = m_height;
     ImGui::PushItemWidth(caption_size);
     ImGui::AlignTextToFramePadding();
+    // only allow setting height when cut plane is horizontal
+    Vec3d plane_normal = get_plane_normal();
+    m_imgui->disabled_begin(std::abs(plane_normal(0)) > EPSILON || std::abs(plane_normal(1)) > EPSILON);
     m_imgui->text(_L("Height") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
@@ -513,6 +516,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
         m_buffered_height = height;
     }
     ImGui::PopStyleVar(1);
+    m_imgui->disabled_end();
     ImGui::Separator();
     // Part selection
     m_imgui->bbl_checkbox(_L("Keep upper part"), m_keep_upper);

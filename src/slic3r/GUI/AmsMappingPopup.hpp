@@ -161,6 +161,26 @@ public:
     wxStaticText *   m_tip_disable_ams;
 };
 
+class AmsHumidityTipPopup : public wxPopupTransientWindow
+{
+public:
+    AmsHumidityTipPopup(wxWindow* parent);
+    ~AmsHumidityTipPopup() {};
+    void paintEvent(wxPaintEvent& evt);
+
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+
+public:
+    wxStaticBitmap* m_img;
+    Label* m_staticText1;
+    Label* m_staticText2;
+    Label* m_staticText3;
+    Label* m_staticText4;
+    Label* m_staticText_note;
+    Button* m_button_confirm;
+};
+
 class AmsTutorialPopup : public wxPopupTransientWindow
 {
 public:
@@ -177,6 +197,25 @@ public:
     AmsTutorialPopup(wxWindow* parent);
     ~AmsTutorialPopup() {};
 
+    void paintEvent(wxPaintEvent& evt);
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+};
+
+
+class AmsIntroducePopup : public wxPopupTransientWindow
+{
+public:
+    bool          is_enable_ams = {false};
+    Label* m_staticText_top;
+    Label* m_staticText_bottom;
+    wxStaticBitmap* m_img_enable_ams;
+    wxStaticBitmap* m_img_disable_ams;
+
+    AmsIntroducePopup(wxWindow* parent);
+    ~AmsIntroducePopup() {};
+
+    void set_mode(bool enable_ams);
     void paintEvent(wxPaintEvent& evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;

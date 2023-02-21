@@ -29,6 +29,7 @@
 
 
 #include "PrinterWebView.hpp"
+#include "calib_dlg.hpp"
 
 #define ENABEL_PRINT_ALL 0
 
@@ -330,6 +331,11 @@ public:
     //SoftFever
     void show_device(bool bBBLPrinter);
 
+    PA_Calibration_Dlg* m_pa_calib_dlg{ nullptr };
+    Temp_Calibration_Dlg* m_temp_calib_dlg{ nullptr };
+    MaxVolumetricSpeed_Test_Dlg* m_vol_test_dlg { nullptr };
+    VFA_Test_Dlg* m_vfa_test_dlg { nullptr };
+
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
@@ -380,6 +386,7 @@ public:
 
 wxDECLARE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDECLARE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 } // GUI

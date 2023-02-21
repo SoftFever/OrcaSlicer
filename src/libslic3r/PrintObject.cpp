@@ -682,6 +682,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_wall_overlap"
             || opt_key == "seam_gap"
             || opt_key == "role_based_wipe_speed"
+            || opt_key == "wipe_on_loops"
             || opt_key == "wipe_speed") {
             steps.emplace_back(posPerimeters);
         } else if (opt_key == "gap_infill_speed"
@@ -781,7 +782,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
-            || opt_key == "internal_bridge_support_thickness") {
+            || opt_key == "internal_bridge_support_thickness"
+            || opt_key == "bridge_density") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
@@ -824,7 +826,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "detect_overhang_wall"
             //BBS
             || opt_key == "enable_overhang_speed"
-            || opt_key == "detect_thin_wall") {
+            || opt_key == "detect_thin_wall"
+            || opt_key == "precise_outer_wall"
+            || opt_key == "overhang_speed_classic") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow") {
@@ -2817,7 +2821,7 @@ void PrintObject::project_and_append_custom_facets(
 {
     // BBS: Approve adding enforcer support on vertical faces
     SlabSlicingConfig config;
-    config.isVertical = true;
+    config.isVertical = type == EnforcerBlockerType::ENFORCER ? true : false;
 
     for (const ModelVolume* mv : this->model_object()->volumes)
         if (mv->is_model_part()) {

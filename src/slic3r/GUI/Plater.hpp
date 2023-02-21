@@ -24,6 +24,8 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintBase.hpp"
 
+#include "libslic3r/calib.hpp"
+
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
 class wxButton;
@@ -227,8 +229,11 @@ public:
     void refresh_print();
 
     // SoftFever
-    void calib_pa(bool line_method = true, bool bowden = false);
+    void calib_pa(const Calib_Params& params);
     void calib_flowrate(int pass);
+    void calib_temp(const Calib_Params& params);
+    void calib_max_vol_speed(const Calib_Params& params);
+    void calib_VFA(const Calib_Params& params);
 
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }
@@ -350,7 +355,7 @@ public:
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
     int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
-    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool upload_only = false);
+    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);
@@ -406,7 +411,7 @@ public:
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
     const GLCanvas3D * canvas3D() const;
-    GLCanvas3D* get_current_canvas3D();
+    GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     GLCanvas3D* get_view3D_canvas3D();
     GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();

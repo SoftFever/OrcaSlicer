@@ -41,9 +41,11 @@ public:
     void update();
     void enable_confirm_button(bool en);
     bool Show(bool show) override;
-    void Popup(wxString filament = wxEmptyString, wxString sn = wxEmptyString, wxString temp_min = wxEmptyString, wxString temp_max = wxEmptyString);
+    void Popup(wxString filament = wxEmptyString, wxString sn = wxEmptyString,
+               wxString temp_min = wxEmptyString, wxString temp_max = wxEmptyString,
+               wxString k = wxEmptyString, wxString n = wxEmptyString);
 
-	void post_select_event();
+    void post_select_event();
 
     void set_color(wxColour color);
 
@@ -52,6 +54,7 @@ public:
     int            tray_id { 0 };       /* 0 ~ 3 */
 
     std::string    ams_filament_id;
+    std::string    ams_setting_id;
 
     bool           m_is_third;
     wxString       m_brand_filament;
@@ -61,15 +64,20 @@ public:
     std::string    m_filament_type;
 
 protected:
+    void create_panel_normal(wxWindow* parent);
+    void create_panel_kn(wxWindow* parent);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
     void on_select_ok(wxCommandEvent &event);
     void on_select_close(wxCommandEvent &event);
     void on_clr_picker(wxCommandEvent &event);
+    bool is_virtual_tray();
+    void update_widgets();
 
 protected:
     StateColor          m_btn_bg_green;
     StateColor          m_btn_bg_gray;
+    wxPanel *           m_panel_normal;
     wxPanel *           m_panel_SN;
     wxStaticText *      m_sn_number;
     wxStaticText *      warning_text;
@@ -77,7 +85,6 @@ protected:
     wxStaticText *      m_title_filament;
     wxStaticText *      m_title_colour;
     wxStaticText *      m_title_temperature;
-    wxStaticText *      m_label_other;
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
     Button *            m_button_confirm;
@@ -85,8 +92,15 @@ protected:
     Button *            m_button_close;
     Button *            m_clr_picker;
     wxColourData *      m_clrData;
+
+    wxPanel *           m_panel_kn;
+    wxStaticText*       m_k_param;
+    TextInput*          m_input_k_val;
+    wxStaticText*       m_n_param;
+    TextInput*          m_input_n_val;
+
 #ifdef __APPLE__
-    wxComboBox *m_comboBox_filament_mac;
+    wxComboBox *m_comboBox_filament;
 #else
     ComboBox *m_comboBox_filament;
 #endif

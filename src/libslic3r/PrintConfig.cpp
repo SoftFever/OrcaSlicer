@@ -659,7 +659,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("75%");
     def->enum_values.emplace_back("95%");
     def->enum_labels.emplace_back("0%");
-    def->enum_labels.emplace_back("10%");
+    def->enum_labels.emplace_back("5%");
     def->enum_labels.emplace_back("25%");
     def->enum_labels.emplace_back("50%");
     def->enum_labels.emplace_back("75%");
@@ -676,6 +676,16 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("bridge_density", coPercent);
+    def->label = L("Bridge density");
+    def->category = L("Strength");
+    def->tooltip = L("Density of external bridges. 100% means solid bridge. Default is 100%.");
+    def->sidetext = L("%");
+    def->min = 10;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
 
     def = this->add("bridge_flow", coFloat);
     def->label = L("Bridge flow");
@@ -706,6 +716,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+
+    def = this->add("precise_outer_wall",coBool);
+    def->label = L("Precise wall(experimental)");
+    def->category = L("Quality");
+    def->tooltip = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.");
+    def->set_default_value(new ConfigOptionBool{false});
     
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
@@ -718,6 +734,13 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Use only one wall on first layer, to give more space to the bottom infill pattern");
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("overhang_speed_classic", coBool);
+    def->label = L("Classic mode");
+    def->category = L("Speed");
+    def->tooltip = L("Enable this option to use classic mode");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{ false });
 
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
@@ -795,15 +818,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
     def->enum_values.emplace_back("outer_only");
+    def->enum_values.emplace_back("inner_only");
+    def->enum_values.emplace_back("outer_and_inner");
     def->enum_values.emplace_back("no_brim");
-    //def->enum_values.emplace_back("inner_only");
-    //def->enum_values.emplace_back("outer_and_inner");
     def->enum_labels.emplace_back(L("Auto"));
-    def->enum_labels.emplace_back(L("Manual"));
+    def->enum_labels.emplace_back(L("outer_only"));
+    def->enum_labels.emplace_back(L("Inner brim only"));
+    def->enum_labels.emplace_back(L("Outer and inner brim"));
     def->enum_labels.emplace_back(L("No-brim"));
-    // BBS: The following two types are disabled
-    //def->enum_labels.emplace_back(L("Inner brim only"));
-    //def->enum_labels.emplace_back(L("Outer and inner brim"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<BrimType>(btAutoBrim));
 
@@ -1004,7 +1026,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
@@ -1037,23 +1059,23 @@ void PrintConfigDef::init_fff_params()
     def = this->add("small_perimeter_speed", coFloatOrPercent);
     def->label = L("Small perimeters");
     def->category = L("Speed");
-    def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= 6.5mm "
+    def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold "
                    "(usually holes). If expressed as percentage (for example: 80%) it will be calculated "
                    "on the outer wall speed setting above. Set to zero for auto.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
     def = this->add("small_perimeter_threshold", coFloat);
     def->label = L("Small perimeters threshold");
     def->category = L("Speed");
-    def->tooltip = L("This sets the threshold for small perimeter length. Default threshold is 6.5mm");
+    def->tooltip = L("This sets the threshold for small perimeter length. Default threshold is 0mm");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(6.5));
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
@@ -1169,7 +1191,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("pressure_advance", coFloats);
     def->label = L("Pressure advance");
-    def->tooltip = L("Pressure advnce(Klipper) AKA Linear advance factor(Marlin)");
+    def->tooltip = L("Pressure advance(Klipper) AKA Linear advance factor(Marlin)");
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
@@ -1445,6 +1467,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500));
 
+    def = this->add("bridge_acceleration", coFloatOrPercent);
+    def->label = L("Bridge");
+    def->tooltip = L("Acceleration of bridges. If the value is expressed as a percentage (e.g. 50%), it will be calculated based on the outer wall acceleration.");
+    def->sidetext = L("mm/s² or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->ratio_over = "outer_wall_acceleration";
+    def->set_default_value(new ConfigOptionFloatOrPercent(50,true));
+
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
     def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhensive");
@@ -1453,6 +1484,21 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
 
+    def = this->add("accel_to_decel_enable", coBool);
+    def->label = L("Enable accel_to_decel");
+    def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("accel_to_decel_factor", coPercent);
+    def->label = L("accel_to_decel");
+    def->tooltip = L("Klipper's max_accel_to_decel will be adjusted to this % of acceleration");
+    def->sidetext = L("%");
+    def->min = 1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(50));
+    
     def = this->add("default_jerk", coFloat);
     def->label = L("Default");
     def->tooltip = L("Default");
@@ -1480,6 +1526,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("top_surface_jerk", coFloat);
     def->label = L("Top surface");
     def->tooltip = L("Jerk for top surface");
+    def->sidetext = L("mm/s");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def = this->add("infill_jerk", coFloat);
+    def->label = L("Infill");
+    def->tooltip = L("Jerk for infill");
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
@@ -2315,7 +2369,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
-    def->label = "Extra length on restart";
     def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
                   "this additional amount of filament. This setting is rarely needed.");
     def->sidetext = L("mm");
@@ -2324,7 +2377,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("retract_restart_extra_toolchange", coFloats);
     def->label = L("Extra length on restart");
-    def->label = "Extra length on restart";
     def->tooltip = L("When the retraction is compensated after changing tool, the extruder will push "
                   "this additional amount of filament.");
     def->sidetext = L("mm");
@@ -2372,8 +2424,8 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("seam_gap", coFloatOrPercent);
     def->label = L("Seam gap");
-    def->tooltip = L("When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam."
-                    "\nCan be a mm or a % of the current extruder diameter. Default value is 15%");
+    def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n"
+                     "his amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 15%.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2381,16 +2433,22 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");
-    def->tooltip = L("The wipe speed is same as the current extrusion role's speed.\n"
-                     "e.g. if wipe action is followed by a outer wall extrusion, the outer wall speed will be used for this wipe action.");
+    def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role."
+                     "e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
     
+    def = this->add("wipe_on_loops", coBool);
+    def->label = L("Wipe on loops");
+    def->tooltip = L("To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("wipe_speed", coFloatOrPercent);
     def->label = L("Wipe speed");
-    def->tooltip = L("This setting will affect the speed of wipe."
-                   " If expressed as percentage (for example: 80%) it will be calculated "
-                   "on the travel speed setting above. Default value is 80%");
+    def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration."
+                   "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above."
+                   "The default value for this parameter is 80%");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "travel_speed";
     def->min = 0;
@@ -3216,7 +3274,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{Vec2d(300, 300)});
-    
+
+    def = this->add("use_relative_e_distances", coBool);
+    def->label = L("Use relative E distances");
+    def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option."
+                   "Some extruders work better with this option unckecked (absolute extrusion mode). "
+                   "Wipe tower is only compatible with relative mode. It is always enabled on "
+                   "BambuLab printers. Default is checked");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("wall_generator", coEnum);
     def->label = L("Wall generator");
     def->category = L("Quality");
@@ -3229,7 +3296,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Classic"));
     def->enum_labels.push_back(L("Arachne"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
+    def->set_default_value(new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Arachne));
 
     def = this->add("wall_transition_length", coPercent);
     def->label = L("Wall transition length");
@@ -4571,17 +4638,6 @@ std::string validate(const FullPrintConfig &cfg)
     for (double em : cfg.filament_flow_ratio.values)
         if (em <= 0)
             return "Invalid value for --filament-flow-ratio";
-
-    // The following test was commented out after 482841b, see also https://github.com/prusa3d/PrusaSlicer/pull/6743.
-    // The backend should now handle this case correctly. I.e., zero default_acceleration behaves as if all others
-    // were zero too. This is now consistent with what the UI said would happen.
-    // The UI already grays the fields out, there is no more reason to reject it here. This function validates the
-    // config before exporting, leaving this check in would mean that config would be rejected before export
-    // (although both the UI and the backend handle it).
-    // --default-acceleration
-    //if ((cfg.outer_wall_acceleration != 0. || cfg.infill_acceleration != 0. || cfg.bridge_acceleration != 0. || cfg.initial_layer_acceleration != 0.) &&
-    //    cfg.default_acceleration == 0.)
-    //    return "Invalid zero value for --default-acceleration when using other acceleration settings";
 
     // --spiral-vase
     if (cfg.spiral_mode) {
