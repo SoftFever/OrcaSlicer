@@ -7112,8 +7112,11 @@ void GLCanvas3D::_render_main_toolbar()
 //when rendering, {0, 0} is at the center, {-0.5, 0.5} at the left-up
 void GLCanvas3D::_render_imgui_select_plate_toolbar()
 {
-    if (!m_sel_plate_toolbar.is_enabled())
+    if (!m_sel_plate_toolbar.is_enabled()) {
+        if (!m_render_preview)
+            m_render_preview = true;
         return;
+    }
 
     IMToolbarItem* all_plates_stats_item = m_sel_plate_toolbar.m_all_plates_stats_item;
 

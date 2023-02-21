@@ -707,7 +707,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
     if (IsShown()) {
         m_canvas->set_selected_extruder(0);
         bool is_slice_result_valid = wxGetApp().plater()->get_partplate_list().get_curr_plate()->is_slice_result_valid();
-        if (gcode_preview_data_valid && is_slice_result_valid) {
+        if (gcode_preview_data_valid && (is_slice_result_valid || m_only_gcode)) {
             // Load the real G-code preview.
             //BBS: add more log
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
