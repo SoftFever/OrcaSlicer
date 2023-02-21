@@ -771,9 +771,23 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_angle"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bottom_shell_layers") {
+        } else if (
+               opt_key == "bottom_shell_layers"
+            || opt_key == "top_shell_layers") {
+            
             steps.emplace_back(posPrepareInfill);
-            if (m_print->config().spiral_mode) {
+
+            const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
+            const auto *new_shell_layers = new_config.option<ConfigOptionInt>(opt_key);
+            assert(old_shell_layers && new_shell_layers);
+
+            bool value_changed = (old_shell_layers->value == 0 && new_shell_layers->value > 0) ||
+                                 (old_shell_layers->value > 0 && new_shell_layers->value == 0);
+
+            if (value_changed && this->object_extruders().size() > 1) {
+                steps.emplace_back(posSlice);
+            }               
+            else if (m_print->config().spiral_mode && opt_key == "bottom_shell_layers") {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
@@ -782,7 +796,6 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
             || opt_key == "bottom_shell_thickness"
-            || opt_key == "top_shell_layers"
             || opt_key == "top_shell_thickness"
             || opt_key == "minimum_sparse_infill_area"
             || opt_key == "sparse_infill_filament"
