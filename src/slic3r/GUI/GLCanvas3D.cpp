@@ -7550,53 +7550,52 @@ void GLCanvas3D::_render_paint_toolbar() const
     float f_scale = 1.0;
 #endif
     std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-    auto canvas_w = float(get_canvas_size().get_width());
     int extruder_num = colors.size();
+
+    std::vector<std::string> filament_text_first_line;
+    std::vector<std::string> filament_text_second_line;
+    {
+        auto preset_bundle = wxGetApp().preset_bundle;
+        for (auto filament_name : preset_bundle->filament_presets) {
+            for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
+                if (filament_name.compare(iter->name) == 0) {
+                    std::string display_filament_type;
+                    iter->config.get_filament_type(display_filament_type);
+                    auto pos = display_filament_type.find(' ');
+                    if (pos != std::string::npos) {
+                        filament_text_first_line.push_back(display_filament_type.substr(0, pos));
+                        filament_text_second_line.push_back(display_filament_type.substr(pos + 1));
+                    }
+                    else {
+                        filament_text_first_line.push_back(display_filament_type);
+                        filament_text_second_line.push_back("");
+                    }
+                }
+            }
+        }
+    }
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    float canvas_w = float(get_canvas_size().get_width());
     int item_spacing = 8 * wxGetApp().toolbar_icon_scale() * f_scale;
+    float button_size = GLToolbar::Default_Icons_Size * f_scale * wxGetApp().toolbar_icon_scale() + item_spacing;
 
-    std::vector<std::string> filament_types;
-   {
-       auto preset_bundle = wxGetApp().preset_bundle;
-       for (auto filament_name : preset_bundle->filament_presets) {
-           for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
-               if (filament_name.compare(iter->name) == 0) {
-                   std::string display_filament_type;
-                   iter->config.get_filament_type(display_filament_type);
-                   filament_types.push_back(display_filament_type);
-               }
-           }
-       }
-   }
-
-    float button_size  = GLToolbar::Default_Icons_Size * f_scale * wxGetApp().toolbar_icon_scale() + item_spacing;
-
-    imgui.set_next_window_pos(0.5f * (canvas_w + (button_size + item_spacing) * extruder_num), button_size + item_spacing * 2, ImGuiCond_Always, 1.0f, 1.0f);
+    imgui.set_next_window_pos(0.5f * canvas_w, 0, ImGuiCond_Always, 0.5f, 0.0f);
     imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
     bool disabled = !wxGetApp().plater()->can_fillcolor();
     unsigned char rgb[3];
+    float cursor_y = ImGui::GetCursorPosY();
 
-    float max_text = 0;
     for (int i = 0; i < extruder_num; i++) {
-        std::string item_text = (boost::format("%1%%2%") % (i + 1) % filament_types[i]).str();
-        ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-        if (label_size.x > button_size)
-               label_size.x  = button_size * 0.6;
-        max_text = std::max(max_text,label_size.x);
-    }
-    for (int i = 0; i < extruder_num; i++) {
-        if (filament_types.size() <= i) continue;
-
-        ImGui::SameLine(item_spacing / 2 + (button_size - max_text) / 2 + (button_size + item_spacing) * i);
-        ImGui::PushID(i);
+        if (i > 0)
+            ImGui::SameLine(0.0f, item_spacing);
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         ImGui::PushStyleColor(ImGuiCol_Button, ImColor(rgb[0], rgb[1], rgb[2]).Value);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(rgb[0], rgb[1], rgb[2]).Value);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(rgb[0], rgb[1], rgb[2]).Value);
         if (disabled)
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-
-        if (ImGui::Button("", ImVec2(button_size, button_size))) {
+        if (ImGui::Button(("##filament_button" + std::to_string(i)).c_str(), ImVec2(button_size, button_size))) {
             wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
         }
         if (ImGui::IsItemHovered()) {
@@ -7611,82 +7610,30 @@ void GLCanvas3D::_render_paint_toolbar() const
         ImGui::PopStyleColor(3);
         if (disabled)
             ImGui::PopItemFlag();
-        ImGui::PopID();
     }
+
+    float text_offset_y = 3.0f * f_scale;
     for (int i = 0; i < extruder_num; i++){
-        if (filament_types.size() <= i) continue;
-        //TODO use filament type from filament management, current use PLA by default
-        std::string item_text = (boost::format("%1%%2%") % (i + 1) % filament_types[i]).str();
-        const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-
-        int len = strlen(filament_types[i].c_str());
-
-        ImGui::SameLine(item_spacing / 2 + (button_size - max_text) / 2 + (button_size + item_spacing) * i);
-
-        int count = 0;
-        if (label_size.x > button_size)
-        {
-            for (int j = 0; j < filament_types[i].size(); j++)
-            {
-                 if(std::isalpha(filament_types[i][j]))
-                    count++;
-                 else
-                     break;
-            }
-        }
-
-        if (i > 8)
-        {
-            if (label_size.x > button_size)
-            {
-                if(count * ImGui::GetFontSize() > button_size){
-                    if ((len - (count + 1)) <= 3)
-                        item_text = "\t" + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count) + "\n" + "\t" + filament_types[i].substr(count, len);
-                    else
-                        item_text = "\t" + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n"+ filament_types[i].substr(count + 1, len);
-                } else {
-                    if (count <= 4)
-                        item_text = "\t" + std::to_string(i + 1) + "\n" + "   " + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
-                    else
-                        item_text = "\t" + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
-                }
-            }
-            else
-            {
-                item_text = (boost::format("\t%1%\n   %2%") % (i + 1) % filament_types[i]).str();
-            }
-        }
-        else
-        {
-            if (label_size.x > button_size)
-            {
-                if(count * ImGui::GetFontSize() > button_size){
-                    if ((len - (count + 1)) <= 3)
-                        item_text = "\t " + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count) + "\n" + "\t" + filament_types[i].substr(count, len);
-                    else
-                        item_text = "\t " + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n"+ filament_types[i].substr(count + 1, len);
-                } else {
-                    if (count <= 4)
-                        item_text = "\t " + std::to_string(i + 1) + "\n" + "   " + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
-                    else
-                        item_text = "\t " + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
-                }
-            }
-            else
-            {
-               item_text = (boost::format("\t  %1%\n\t%2%") % (i + 1) % filament_types[i]).str();
-            }
-        }
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+        ImVec4 text_color = gray < 80 ? ImVec4(255, 255, 255, 255) : ImVec4(0, 0, 0, 255);
+        
+        ImVec2 number_label_size = ImGui::CalcTextSize(std::to_string(i + 1).c_str());
+        ImGui::SetCursorPosY(cursor_y + text_offset_y);
+        ImGui::SetCursorPosX(item_spacing + i * (item_spacing + button_size) + (button_size - number_label_size.x) / 2);
+        ImGui::TextColored(text_color, std::to_string(i + 1).c_str());
 
-        if (gray < 80){
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
-        } else{
-                ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
-        }
+        ImVec2 filament_first_line_label_size = ImGui::CalcTextSize(filament_text_first_line[i].c_str());
+        ImGui::SetCursorPosY(cursor_y + text_offset_y + number_label_size.y);
+        ImGui::SetCursorPosX(item_spacing + i * (item_spacing + button_size) + (button_size - filament_first_line_label_size.x) / 2);
+        ImGui::TextColored(text_color, filament_text_first_line[i].c_str());
+
+        ImVec2 filament_second_line_label_size = ImGui::CalcTextSize(filament_text_second_line[i].c_str());
+        ImGui::SetCursorPosY(cursor_y + text_offset_y + number_label_size.y + filament_first_line_label_size.y);
+        ImGui::SetCursorPosX(item_spacing + i * (item_spacing + button_size) + (button_size - filament_second_line_label_size.x) / 2);
+        ImGui::TextColored(text_color, filament_text_second_line[i].c_str());
     }
-    ImGui::AlignTextToFramePadding();
+
     imgui.end();
 }
 
