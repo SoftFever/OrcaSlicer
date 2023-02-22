@@ -478,6 +478,9 @@ bool MonitorPanel::Show(bool show)
             obj = dev->get_selected_machine();
             if (obj == nullptr) {
                 dev->load_last_machine();
+                obj = dev->get_selected_machine();
+                if (obj) 
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
             } else {
                 obj->reset_update_time();
             }

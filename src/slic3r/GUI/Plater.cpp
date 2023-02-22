@@ -1374,6 +1374,7 @@ void Sidebar::load_ams_list(std::string const &device, std::map<std::string, Ams
         }
     }
     p->ams_list_device = device;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1% items") % filament_ams_list.size();
     wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
     for (auto c : p->combos_filament)
         c->update();
