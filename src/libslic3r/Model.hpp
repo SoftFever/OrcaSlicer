@@ -1433,6 +1433,7 @@ public:
     void          load_from(Model & model);
     bool          is_need_backup() { return need_backup;  }
     void          set_need_backup();
+    void          remove_backup_path_if_exist();
 
     // Checks if any of objects is painted using the fdm support painting gizmo.
     bool          is_fdm_support_painted() const;

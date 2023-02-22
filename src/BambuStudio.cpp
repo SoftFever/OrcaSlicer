@@ -311,11 +311,17 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
     g_cli_callback_mgr.stop();\
     boost::nowide::cout.flush();\
     boost::nowide::cerr.flush();\
+    for (Model &model : m_models) {\
+       model.remove_backup_path_if_exist();\
+    }\
     return(ret);}
 #else
 #define flush_and_exit(ret)     { boost::nowide::cout << __FUNCTION__ << " found error, exit" << std::endl;\
     boost::nowide::cout.flush();\
     boost::nowide::cerr.flush();\
+    for (Model &model : m_models) {\
+       model.remove_backup_path_if_exist();\
+    }\
     return(ret);}
 #endif
 
@@ -2371,6 +2377,9 @@ int CLI::run(int argc, char **argv)
     g_cli_callback_mgr.stop();
 #endif
 
+    for (Model &model : m_models) {
+	model.remove_backup_path_if_exist();
+    }
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
     boost::nowide::cout.flush();
