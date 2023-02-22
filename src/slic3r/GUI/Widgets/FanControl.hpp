@@ -113,15 +113,17 @@ protected:
     MachineObject::FanType m_type;
     MachineObject* m_obj;
     wxStaticText* m_static_name{ nullptr };
-    wxStaticBitmap* m_switch_button{ nullptr };
     ScalableBitmap* m_bitmap_toggle_off{ nullptr };
     ScalableBitmap* m_bitmap_toggle_on{ nullptr };
 
     Fan* m_fan{ nullptr };
     FanOperate* m_fan_operate{ nullptr };
     bool m_switch_fan{ false };
+    bool m_update_already{false};
     int  m_current_speed{0};
 public:
+    wxStaticBitmap* m_switch_button{ nullptr };
+    void update_obj_state(bool stat) {m_update_already = stat;};
     void command_control_fan();
     void set_machine_obj(MachineObject* obj);
     void set_type(MachineObject::FanType type);

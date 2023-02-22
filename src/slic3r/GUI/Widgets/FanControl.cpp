@@ -45,44 +45,26 @@ void Fan::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSi
     //auto m_bitmap_pointer  = ScalableBitmap(this, "fan_pointer", FromDIP(25));
     //m_img_pointer     = m_bitmap_pointer.bmp().ConvertToImage();
 
-    /*m_bitmap_scale_0  = ScalableBitmap(this, "fan_dash_board_level_0", FromDIP(13));
-    m_bitmap_scale_1  = ScalableBitmap(this, "fan_dash_board_level_1", FromDIP(13));
-    m_bitmap_scale_2  = ScalableBitmap(this, "fan_dash_board_level_2", FromDIP(13));
-    m_bitmap_scale_3  = ScalableBitmap(this, "fan_dash_board_level_3", FromDIP(10));
-    m_bitmap_scale_4  = ScalableBitmap(this, "fan_dash_board_level_4", FromDIP(5));
-    m_bitmap_scale_5  = ScalableBitmap(this, "fan_dash_board_level_5", FromDIP(5));
-    m_bitmap_scale_6  = ScalableBitmap(this, "fan_dash_board_level_6", FromDIP(10));
-    m_bitmap_scale_7  = ScalableBitmap(this, "fan_dash_board_level_7", FromDIP(13));
-    m_bitmap_scale_8  = ScalableBitmap(this, "fan_dash_board_level_8", FromDIP(13));
-    m_bitmap_scale_9  = ScalableBitmap(this, "fan_dash_board_level_9", FromDIP(13));*/ 
-    
     m_bitmap_bk  = ScalableBitmap(this, "fan_dash_bk", FromDIP(80));
 
     for (auto i = 0; i <= 10; i++) {
-        auto a = wxString::Format("fan_scale_%d", i);
+#ifdef __APPLE__
+        auto m_bitmap_scale  = ScalableBitmap(this, wxString::Format("fan_scale_%d", i).ToStdString(), FromDIP(60));
+        m_bitmap_scales.push_back(m_bitmap_scale);
+#else
         auto m_bitmap_scale  = ScalableBitmap(this, wxString::Format("fan_scale_%d", i).ToStdString(), FromDIP(46));
         m_bitmap_scales.push_back(m_bitmap_scale);
+#endif
+        
     }
 
-    /* m_bitmap_scale_0  = ScalableBitmap(this, "fan_scale_0", FromDIP(60));
-     m_bitmap_scale_1  = ScalableBitmap(this, "fan_scale_1", FromDIP(60));
-     m_bitmap_scale_2  = ScalableBitmap(this, "fan_scale_2", FromDIP(60));
-     m_bitmap_scale_3  = ScalableBitmap(this, "fan_scale_3", FromDIP(60));
-     m_bitmap_scale_4  = ScalableBitmap(this, "fan_scale_4", FromDIP(60));
-     m_bitmap_scale_5  = ScalableBitmap(this, "fan_scale_5", FromDIP(60));
-     m_bitmap_scale_6 = ScalableBitmap(this, "fan_scale_6", FromDIP(60));
-     m_bitmap_scale_7 = ScalableBitmap(this, "fan_scale_7", FromDIP(60));
-     m_bitmap_scale_8  = ScalableBitmap(this, "fan_scale_8", FromDIP(60));
-     m_bitmap_scale_9  = ScalableBitmap(this, "fan_scale_9", FromDIP(60));
-     m_bitmap_scale_10  = ScalableBitmap(this, "fan_scale_10", FromDIP(60));*/
-
-#ifdef __APPLE__
-    SetMinSize(wxSize(FromDIP(94), FromDIP(81) + FromDIP(6)));
-    SetMaxSize(wxSize(FromDIP(94), FromDIP(81) + FromDIP(6)));
-#else
+//#ifdef __APPLE__
+//    SetMinSize(wxSize(FromDIP(100), FromDIP(100) + FromDIP(6)));
+//    SetMaxSize(wxSize(FromDIP(100), FromDIP(100) + FromDIP(6)));
+//#else
     SetMinSize(wxSize(m_bitmap_bk.GetBmpSize().x, m_bitmap_bk.GetBmpSize().y + FromDIP(6)));
     SetMaxSize(wxSize(m_bitmap_bk.GetBmpSize().x, m_bitmap_bk.GetBmpSize().y + FromDIP(6)));
-#endif // __APPLE__
+//#endif // __APPLE__
     
     Bind(wxEVT_PAINT, &Fan::paintEvent, this);
 }
@@ -412,15 +394,16 @@ void FanControl::command_control_fan()
 {
     if (m_current_speed < 0 || m_current_speed > 10) { return; }
     int speed = floor(m_current_speed * float(25.5));
-    m_obj->command_control_fan_val(m_type, speed);
-    post_event(wxCommandEvent(EVT_FAN_CHANGED)); 
+    if (m_update_already) {
+        m_obj->command_control_fan_val(m_type, speed);
+        post_event(wxCommandEvent(EVT_FAN_CHANGED));
+    }
 }
 
 void FanControl::on_swith_fan(wxMouseEvent& evt)
 {
     int speed = 0;
     if (m_switch_fan) {
-        speed = 0;
         m_switch_button->SetBitmap(m_bitmap_toggle_off->bmp());
         m_switch_fan = false;
     }
@@ -428,7 +411,7 @@ void FanControl::on_swith_fan(wxMouseEvent& evt)
         speed = 255;
         m_switch_button->SetBitmap(m_bitmap_toggle_on->bmp());
         m_switch_fan = true;
-    } 
+    }
 
     set_fan_speed(speed);
     command_control_fan();
@@ -447,6 +430,7 @@ void FanControl::on_swith_fan(bool on)
 
 void FanControl::set_machine_obj(MachineObject* obj)
 {
+    m_update_already = true;
     m_obj = obj;
 }
 
@@ -543,6 +527,9 @@ FanControlPopup::FanControlPopup(wxWindow* parent)
     Bind(wxEVT_LEFT_DOWN, &FanControlPopup::on_left_down, this);
 #endif
 
+#ifdef __WXOSX__
+    Bind(wxEVT_IDLE, [](wxIdleEvent& evt) {});
+#endif
 
     Bind(wxEVT_SHOW, &FanControlPopup::on_show, this);
     SetBackgroundColour(*wxWHITE);
@@ -596,7 +583,25 @@ void FanControlPopup::update_fan_data(MachineObject::FanType type, MachineObject
 void FanControlPopup::on_left_down(wxMouseEvent& evt)
 {
     auto mouse_pos = ClientToScreen(evt.GetPosition());
-
+    
+    auto win_pos =  m_part_fan->m_switch_button->ClientToScreen(wxPoint(0, 0));
+    auto size =  m_part_fan->m_switch_button->GetSize();
+    if (mouse_pos.x > win_pos.x && mouse_pos.x < (win_pos.x +  m_part_fan->m_switch_button->GetSize().x) && mouse_pos.y > win_pos.y && mouse_pos.y < (win_pos.y +  m_part_fan->m_switch_button->GetSize().y)) {
+        m_part_fan->on_swith_fan(evt);
+    }
+    
+    win_pos =  m_aux_fan->m_switch_button->ClientToScreen(wxPoint(0, 0));
+    size =  m_aux_fan->m_switch_button->GetSize();
+    if (mouse_pos.x > win_pos.x && mouse_pos.x < (win_pos.x +  m_aux_fan->m_switch_button->GetSize().x) && mouse_pos.y > win_pos.y && mouse_pos.y < (win_pos.y +  m_aux_fan->m_switch_button->GetSize().y)) {
+        m_aux_fan->on_swith_fan(evt);
+    }
+    
+    win_pos =  m_cham_fan->m_switch_button->ClientToScreen(wxPoint(0, 0));
+    size =  m_cham_fan->m_switch_button->GetSize();
+    if (mouse_pos.x > win_pos.x && mouse_pos.x < (win_pos.x +  m_cham_fan->m_switch_button->GetSize().x) && mouse_pos.y > win_pos.y && mouse_pos.y < (win_pos.y +  m_cham_fan->m_switch_button->GetSize().y)) {
+        m_cham_fan->on_swith_fan(evt);
+    }
+    
     auto part_tag_pos = m_part_fan->ScreenToClient(mouse_pos);
     evt.SetPosition(part_tag_pos);
     m_part_fan->on_left_down(evt);
@@ -613,7 +618,9 @@ void FanControlPopup::on_left_down(wxMouseEvent& evt)
 
 void FanControlPopup::OnDismiss()
 {
-
+    m_part_fan->update_obj_state(false);
+    m_aux_fan->update_obj_state(false);
+    m_cham_fan->update_obj_state(false);
 }
 
 void FanControlPopup::post_event(int fan_type, wxString speed)
