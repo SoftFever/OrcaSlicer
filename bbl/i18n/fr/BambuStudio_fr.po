@@ -6,19 +6,22 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-17 23:01+0800\n"
+"POT-Creation-Date: 2023-01-29 11:08+0100\n"
+"PO-Revision-Date: 2023-02-21 21:56+0200\n"
+"Last-Translator: 5axes <5axes@free.fr>\n"
+"Language-Team: 5axes\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
-"Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Virtaal 0.7.1\n"
 
 msgid "Supports Painting"
 msgstr "Peinture des supports"
 
 msgid "Alt + Mouse wheel"
-msgstr "Alt + molette de la souris"
+msgstr "Alt + Molette de la souris"
 
 msgid "Section view"
 msgstr "Vue en coupe"
@@ -27,7 +30,7 @@ msgid "Reset direction"
 msgstr "Réinitialisation de la direction"
 
 msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + molette de la souris"
+msgstr "Ctrl + Molette de la souris"
 
 msgid "Pen size"
 msgstr "Taille du pinceau"
@@ -89,10 +92,10 @@ msgstr "Remplir"
 msgid "Gap Fill"
 msgstr "Remplissage des espaces"
 
+#, possible-boost-format
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
-msgstr ""
-"Permet de peindre uniquement sur les facettes sélectionnées par : \"%1%\""
+msgstr "Permet de peindre uniquement sur les facettes sélectionnées par : \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Mettez en surbrillance les faces en fonction de l'angle de surplomb."
@@ -106,6 +109,7 @@ msgstr "Supports générés"
 msgid "Lay on face"
 msgstr "Aligner la face"
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Filament count exceeds the maximum number that painting tool supports. only "
@@ -169,6 +173,7 @@ msgstr "Plage de hauteur"
 msgid "Remove painted color"
 msgstr "Supprimer la couleur peinte"
 
+#, possible-boost-format
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Peint avec : filament %1%"
@@ -290,6 +295,7 @@ msgstr "Niveau de détail"
 msgid "Decimate ratio"
 msgstr "Ratio de décimation"
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Processing model '%1%' with more than 1M triangles could be slow. It is "
@@ -327,6 +333,7 @@ msgstr "Bas"
 msgid "Extra low"
 msgstr "Très basse"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%d triangles"
 msgstr "%d triangles"
@@ -334,6 +341,7 @@ msgstr "%d triangles"
 msgid "Show wireframe"
 msgstr "Afficher le fil de fer"
 
+#, possible-boost-format
 #, boost-format
 msgid "%1%"
 msgstr "%1%"
@@ -360,13 +368,13 @@ msgid "Brush shape"
 msgstr "Forme du pinceau"
 
 msgid "Enforce seam"
-msgstr "Appliquer la jointure"
+msgstr "Forcer la jointure"
 
 msgid "Block seam"
-msgstr "Empêcher la jointure"
+msgstr "Bloquer la jointure"
 
 msgid "Seam painting"
-msgstr "Peinture des jointures"
+msgstr "Peinture de jointure"
 
 msgid "Remove selection"
 msgstr "Supprimer la sélection"
@@ -395,6 +403,7 @@ msgstr "Avertissement"
 msgid "Undefined"
 msgstr "Erreur indéfinie"
 
+#, possible-boost-format
 #, boost-format
 msgid "%1% was replaced with %2%"
 msgstr "%1% a été remplacé par %2%"
@@ -421,24 +430,25 @@ msgstr ""
 "Le package de configuration a été chargé, mais certaines valeurs n'ont pas "
 "été reconnues."
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr ""
-"Le fichier de configuration \"%1%\" a été chargé, mais certaines valeurs "
-"n'ont pas été reconnues."
+"Le fichier de configuration \"%1%\" a été chargé, mais certaines valeurs n'ont "
+"pas été reconnues."
 
 msgid "V"
 msgstr "V"
 
 msgid "SoftFever Version"
-msgstr ""
+msgstr "Version SoftFever "
 
 msgid ""
 "BambuStudio will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"Bambu Studio va se terminer à cause d'un manque de mémoire. Il peut s'agir "
+"BambuStudio va se terminer à cause d'un manque de mémoire. Il peut s'agir "
 "d'un bogue. Nous vous serions reconnaissants de signaler le problème à notre "
 "équipe."
 
@@ -449,13 +459,14 @@ msgid ""
 "BambuStudio will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
-"Bambu Studio va s'arrêter à cause d'une erreur de localisation. Il sera "
+"BambuStudio va s'arrêter à cause d'une erreur de localisation. Il sera "
 "apprécié si vous signalez le scénario spécifique dans lequel ce problème "
 "s'est produit."
 
 msgid "Critical error"
 msgstr "Erreur critique"
 
+#, possible-boost-format
 #, boost-format
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studio a reçu une exception non gérée : %1%"
@@ -466,6 +477,7 @@ msgstr "Téléchargement du plug-in réseau Bambu"
 msgid "Incorrect password"
 msgstr "Mot de passe incorrect"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "La connexion de %s a échoué ! [SN:%s, code=%s]"
@@ -474,9 +486,10 @@ msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
 msgstr ""
-"Le fichier de configuration de Bambu Studio est peut-être corrompu et ne "
+"Le fichier de configuration de BambuStudio est peut-être corrompu et ne "
 "peut pas être analysé. Veuillez supprimer le fichier et réessayer."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -489,6 +502,7 @@ msgstr "Se souvenir de mon choix"
 msgid "Loading configuration"
 msgstr "Chargement de la configuration"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Click to download new version in default browser: %s"
 msgstr ""
@@ -523,7 +537,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Choisissez un ou plusieurs fichiers (3mf/step/stl/svg/obj/amf) :"
 
 msgid "Choose one file (gcode/3mf):"
-msgstr ""
+msgstr "Choisissez un fichier (gcode/3mf):"
 
 msgid "Some presets are modified."
 msgstr "Certains préréglages sont modifiés."
@@ -589,6 +603,7 @@ msgstr "Sélectionnez un fichier G-code :"
 msgid "Bambu Studio GUI initialization failed"
 msgstr "L'initialisation de l'interface de Bambu Studio a échoué"
 
+#, possible-boost-format
 #, boost-format
 msgid "Fatal error, exception catched: %1%"
 msgstr "Erreur fatale, exception interceptée : %1%"
@@ -728,6 +743,7 @@ msgstr "Définir le filament pour les éléments sélectionnés"
 msgid "Default"
 msgstr "Défaut"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Filament %d"
 msgstr "Filament %d"
@@ -910,11 +926,13 @@ msgstr "Nom"
 msgid "Fila."
 msgstr "Fila."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d erreur réparée"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
@@ -923,6 +941,7 @@ msgstr[0] "Erreur : %1$d arête non multiple."
 msgid "Remaining errors"
 msgstr "Erreurs restantes"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
@@ -1029,7 +1048,7 @@ msgid "Support Enforcer"
 msgstr "Générateur de Support"
 
 msgid "Type:"
-msgstr "Taper:"
+msgstr "Type:"
 
 msgid "Choose part type"
 msgstr "Choisissez le type de pièce"
@@ -1192,13 +1211,13 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "AMS not connected"
-msgstr ""
+msgstr "AMS non connecté"
 
 msgid "Cali"
-msgstr ""
+msgstr "Calib"
 
 msgid "Calibration of extrusion"
-msgstr ""
+msgstr "Étalonnage de l'extrusion"
 
 msgid "Load Filament"
 msgstr "Charger"
@@ -1207,7 +1226,7 @@ msgid "Unload Filament"
 msgstr "Déchargement"
 
 msgid "Ext Spool"
-msgstr ""
+msgstr "Bobine Ext"
 
 msgid "Tips"
 msgstr "Astuces"
@@ -1235,8 +1254,8 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filiament."
 msgstr ""
-"Choisissez un slot AMS puis appuyez sur le bouton \"charger\" ou\"Décharger"
-"\" pour charger ou décharger automatiquement le filament."
+"Choisissez un slot AMS puis appuyez sur le bouton \"charger\" ou\"Décharger\" "
+"pour charger ou décharger automatiquement le filament."
 
 msgid "Edit"
 msgstr "Éditer"
@@ -1282,6 +1301,7 @@ msgstr ""
 msgid "Arranging done."
 msgstr "Rangement fait."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Arrangement ignored the following objects which can't fit into a single "
@@ -1295,15 +1315,15 @@ msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-orient on these objects."
 msgstr ""
-"Tous les objets sélectionnés sont sur le plateau verrouillé, on ne peut pas "
-"faire d'auto-orientation sur ces objets"
+"Tous les objets sélectionnés sont sur le plateau verrouillé,\n"
+"On ne peut pas faire d'auto-orientation sur ces objets."
 
 msgid ""
 "This plate is locked,\n"
 "We can not do auto-orient on this plate."
 msgstr ""
-"Ce plateau est verrouillée, il n’est pas possible d’exécuter l’auto-"
-"orientation."
+"Ce plateau est verrouillée,\n"
+"Il n’est pas possible d’exécuter l’auto-orientation."
 
 msgid "Orienting..."
 msgstr "Orienter..."
@@ -1353,7 +1373,8 @@ msgstr "Tâche annulée"
 
 msgid "Upload task timed out. Please check the network problem and try again"
 msgstr ""
-"La tâche de téléchargement a expiré. Veuillez vérifier le réseau et réessayer"
+"La tâche de téléchargement a expiré. Veuillez vérifier le réseau et "
+"réessayer"
 
 msgid "Cloud service connection failed. Please try again."
 msgstr "La connexion au service cloud a échoué. Veuillez réessayer."
@@ -1389,6 +1410,7 @@ msgstr "Erreur inconnue."
 msgid "Sending print configuration"
 msgstr "Envoi de la configuration d'impression"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
@@ -1413,6 +1435,7 @@ msgstr "Envoi d'un fichier G-Code via un service de Cloud"
 msgid "Sending gcode file to sdcard"
 msgstr "Envoi du fichier G-Code sur la carte SD"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
 msgstr "Envoyé avec succès. Fermer la page actuelle dans %s s"
@@ -1425,6 +1448,8 @@ msgstr "Veuillez vous déconnecter et vous reconnecter à l'imprimante."
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr ""
+"Échec du téléchargement du fichier d'impression. Veuillez entrer l'adresse "
+"IP à nouveau."
 
 msgid "Downloading"
 msgstr "Téléchargement"
@@ -1477,6 +1502,7 @@ msgstr ""
 "Ce logiciel utilise des composants open source dont les droits d'auteur et "
 "autres droits de propriété appartiennent à leurs propriétaires respectifs"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "About %s"
 msgstr "Au sujet de %s"
@@ -1537,6 +1563,7 @@ msgstr "max"
 msgid "min"
 msgstr "min"
 
+#, possible-boost-format
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
 msgstr "La valeur saisie doit être supérieure à %1% et inférieure à %2%"
@@ -1550,46 +1577,50 @@ msgstr ""
 "l'impression n'est pas prise en charge."
 
 msgid "Factors of dynamic flow cali"
-msgstr ""
+msgstr "Facteurs de calibration du débit dynamique"
 
 msgid "Factor K"
-msgstr ""
+msgstr "Facteur K"
 
 msgid "Factor N"
-msgstr ""
+msgstr "Facteur N"
 
 msgid "Please input a valid value (K in 0~0.5)"
-msgstr ""
+msgstr "Veuillez entrer une valeur valide (K entre 0~0.5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-msgstr ""
+msgstr "Veuillez entrer une valeur valide (K entre 0~0.5, N entre 0.6~2.0)"
 
 msgid "Dynamic flow calibration"
-msgstr ""
+msgstr "Calibration dynamique du débit"
 
 msgid ""
 "The nozzle temp and max volumetric speed will affect the calibration "
 "results. Please fill in the same values as the actual printing. They can be "
 "auto-filled by selecting a filament preset."
 msgstr ""
+"La température de la buse et la vitesse volumétrique maximale affecteront "
+"les résultats de l'étalonnage. Veuillez indiquer les mêmes valeurs que pour "
+"l'impression réelle. Elles peuvent être remplies automatiquement en "
+"sélectionnant un préréglage de filament."
 
 msgid "Nozzle Diameter"
-msgstr ""
+msgstr "Diamètre de buse"
 
 msgid "Bed Type"
-msgstr ""
+msgstr "Type de plateau"
 
 msgid "Nozzle temperature"
 msgstr "Température de buse"
 
 msgid "Bed Temperature"
-msgstr ""
+msgstr "Température du plateau"
 
 msgid "Max volumetric speed"
 msgstr "Vitesse volumétrique max"
 
 msgid "℃"
-msgstr ""
+msgstr "℃"
 
 msgid "Bed temperature"
 msgstr "Température du lit"
@@ -1598,42 +1629,45 @@ msgid "mm³"
 msgstr "mm³"
 
 msgid "Start calibration"
-msgstr ""
+msgstr "Démarrer Calibration"
 
 msgid "Next"
-msgstr ""
+msgstr "Suite"
 
 msgid ""
 "Calibration completed. Please find the most uniform extrusion line on your "
 "hot bed like the picture below, and fill the value on its left side into the "
 "factor K input box."
 msgstr ""
+"Calibrage terminé. Veuillez trouver la ligne d'extrusion la plus uniforme "
+"sur votre lit chaud comme dans l'image ci-dessous, et entrez la valeur sur "
+"son côté gauche dans le champ de saisie du facteur K."
 
 msgid "Save"
 msgstr "sauvegarder"
 
 msgid "Last Step"
-msgstr ""
+msgstr "Dernière étape"
 
 msgid "Example"
-msgstr ""
+msgstr "Exemple"
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid "Calibrating... %d%%"
-msgstr ""
+msgstr "Calibration... %d%%"
 
 msgid "Calibration completed"
-msgstr ""
+msgstr "Calibration terminé"
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid "%s does not support %s"
-msgstr ""
+msgstr "%s ne prend pas en charge %s"
 
 msgid "Dynamic flow Calibration"
-msgstr ""
+msgstr "Calibration dynamique du débit"
 
 msgid "Step"
-msgstr ""
+msgstr "Pas"
 
 msgid "AMS Slots"
 msgstr "Logements AMS"
@@ -1657,21 +1691,27 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "Imprimer avec le filament monté à l'arrière du châssis"
 
 msgid "Cabin humidity"
-msgstr ""
+msgstr "Humidité de la cabine"
 
 msgid ""
 "Green means that AMS humidity is normal, orange represent humidity is high, "
 "red represent humidity is too high.(Hygrometer: lower the better, The bars: "
 "higher the better)"
 msgstr ""
+"Le vert signifie que l'humidité de l'AMS est normale, l'orange représente "
+"l'humidité élevée, le rouge représente l'humidité trop élevée. (Hygromètre : "
+"plus il est bas, plus il est élevé, les barres : plus il est élevé)."
 
 msgid "Desiccant status"
-msgstr ""
+msgstr "État du dessiccateur"
 
 msgid ""
 "A desiccant status lower than two bars indicates that desiccant may be "
 "inactive. Please change the desiccant. (Higher is better)"
 msgstr ""
+"Un état du dessiccateur inférieur à deux barres indique que le dessiccateur "
+"est peut-être inactif. Veuillez changer le déshydratant. (Plus haut, c'est "
+"mieux)"
 
 msgid ""
 "Note: When the lid is open or the desiccant pack is changed, it can take "
@@ -1679,6 +1719,10 @@ msgid ""
 "process. During this time, the indicator may not represent the chamber "
 "accurately."
 msgstr ""
+"Note: When the lid is open or the desiccant pack is changed, it can take "
+"hours or a night to absorb the moisture. Low temperatures also slow down the "
+"process. During this time, the indicator may not represent the chamber "
+"accurately."
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -1696,19 +1740,19 @@ msgid "Click to select AMS slot manually"
 msgstr "Cliquez pour sélectionner manuellement l'emplacement AMS"
 
 msgid "Do not Enable AMS"
-msgstr ""
+msgstr "Ne pas activer l'AMS"
 
 msgid "Print using materials mounted on the back of the case"
-msgstr ""
+msgstr "Imprimez à l'aide des matériaux montés au dos du boîtier"
 
 msgid "Print with filaments in ams"
-msgstr ""
+msgstr "Imprimer avec les filaments dans l'AMS"
 
 msgid "Print with filaments mounted on the back of the chassis"
-msgstr ""
+msgstr "Imprimer avec le filament monté à l'arrière du boîtier"
 
 msgid "AMS Settings"
-msgstr "Paramètres AMS"
+msgstr "Imprimez à l'aide des matériaux montés au dos du boîtierParamètres AMS"
 
 msgid "Insertion update"
 msgstr "Insertion de la mise à jour"
@@ -1778,6 +1822,18 @@ msgid ""
 msgstr ""
 "L'AMS passe automatiquement à une autre bobine avec les mêmes propriétés de "
 "filament lorsque le filament actuel est épuisé."
+
+msgid "Recent"
+msgstr "Récent"
+
+msgid "User Manual"
+msgstr "Manuel d'utilisation"
+
+msgid "Recently opened"
+msgstr "Récemment ouvert"
+
+msgid "Clear all"
+msgstr "Effacer tout"
 
 msgid "File"
 msgstr "Dossier"
@@ -1856,6 +1912,7 @@ msgstr "Débordement de pile"
 msgid "Unknown error when export G-code."
 msgstr "Erreur inconnue lors de l'exportation du G-Code."
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Failed to save gcode file.\n"
@@ -1866,6 +1923,7 @@ msgstr ""
 "Message d'erreur : %1%.\n"
 "Fichier source %2%."
 
+#, possible-boost-format
 #, boost-format
 msgid "Succeed to export G-code to %1%"
 msgstr "Succès! G-code exporté vers %1%"
@@ -1876,6 +1934,7 @@ msgstr "Exécution de scripts de post-traitement"
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "La copie du G-Code temporaire vers le G-Code de sortie a échoué."
 
+#, possible-boost-format
 #, boost-format
 msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
@@ -1930,7 +1989,7 @@ msgid "Remove"
 msgstr "Retirer"
 
 msgid "Not found:"
-msgstr "Pas trouvé:"
+msgstr "Introuvable:"
 
 msgid "Model"
 msgstr "Modèle"
@@ -1956,8 +2015,8 @@ msgstr ""
 
 msgid "Choose a file to import bed texture from (PNG/SVG):"
 msgstr ""
-"Choisissez un fichier à partir duquel importer la texture du plateau (PNG/"
-"SVG) :"
+"Choisissez un fichier à partir duquel importer la texture du plateau "
+"(PNG/SVG) :"
 
 msgid "Choose an STL file to import bed model from:"
 msgstr ""
@@ -1975,6 +2034,7 @@ msgstr ""
 "recommandée.\n"
 "Veuillez vous assurer d'utiliser la température pour imprimer.\n"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Recommended nozzle temperature of this filament type is [%d, %d] degree "
@@ -1983,6 +2043,7 @@ msgstr ""
 "La température de buse recommandée pour ce type de filament est de [%d, %d] "
 "°C"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Bed temperature of other layer is lower than bed temperature of initial "
@@ -2074,14 +2135,23 @@ msgstr ""
 "Oui - Modifiez ces paramètres et activez automatiquement le mode spirale.\n"
 "Non - Renoncer à utiliser le mode spirale cette fois-ci"
 
-msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
+msgid ""
+"Arachne engine only works when overhang slowing down is disabled.\n"
+"This may cause decline in the quality of overhang surface when print fastly"
 msgstr ""
+"Le moteur Arachne ne fonctionne que lorsque le ralentissement du surplomb "
+"est désactivé.\n"
+"Cela peut entraîner une baisse de la qualité de la surface du surplomb "
+"lorsque l'impression est rapide."
 
 msgid ""
-"Turn off classic mode automatically? \n"
-"Yes - Enable arachne with classic mode off\n"
+"Disable overhang slowing down automatically? \n"
+"Yes - Enable arachne and disable overhang slowing down\n"
 "No  - Give up using arachne this time"
 msgstr ""
+"Désactiver automatiquement le ralentissement du surplomb ? \n"
+"Oui - Activez Arachne et désactivez le ralentissement en surplomb.\n"
+"Non - Renoncer à utiliser Arachne cette fois-ci"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2119,6 +2189,7 @@ msgstr ""
 "OUI - Conserver la tour de purge\n"
 "NON - Conserver la hauteur de la couche de support indépendante"
 
+#, possible-boost-format
 #, boost-format
 msgid "%1% infill pattern doesn't support 100%% density."
 msgstr ""
@@ -2196,7 +2267,8 @@ msgstr "Pause en raison d'un dysfonctionnement de la température de la buse"
 
 msgid "Paused due to heat bed temperature malfunction"
 msgstr ""
-"Pause en raison d'un dysfonctionnement de la température du plateau chauffant"
+"Pause en raison d'un dysfonctionnement de la température du plateau "
+"chauffant"
 
 msgid "MC"
 msgstr "MC"
@@ -2249,10 +2321,12 @@ msgstr "N/A"
 msgid "Invalid numeric."
 msgstr "Chiffre non valide."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s ne peut pas être un pourcentage"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
 msgstr "La valeur %s est hors plage, continuer ?"
@@ -2263,6 +2337,7 @@ msgstr "Validation des paramètres"
 msgid "Value is out of range."
 msgstr "La valeur est hors plage."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Is it %s%% or %s %s?\n"
@@ -2273,6 +2348,7 @@ msgstr ""
 "OUI pour %s%%, \n"
 "NON pour %s %s."
 
+#, possible-boost-format
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Format invalide. Format vectoriel attendu : \"%1%\""
@@ -2314,7 +2390,7 @@ msgid "Flow: "
 msgstr "Débit: "
 
 msgid "Layer Time: "
-msgstr ""
+msgstr "Temps de couche:"
 
 msgid "Fan Speed: "
 msgstr "Vitesse du ventilateur: "
@@ -2771,6 +2847,7 @@ msgstr "Vérifier les mises à jour"
 msgid "Open Network Test"
 msgstr "Ouvrir l’outil de test réseau"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&À propos de %s"
@@ -2969,20 +3046,23 @@ msgstr "Vue"
 msgid "Help"
 msgstr "Aide"
 
-msgid "Temperature Calibration"
-msgstr ""
-
 msgid "Pass 1"
-msgstr "Passe 1"
+msgstr "Test 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr ""
+msgstr "Test de débit - Test 1"
 
 msgid "Pass 2"
-msgstr "Passe 2"
+msgstr "Test 2"
 
 msgid "Flow rate test - Pass 2"
-msgstr ""
+msgstr "Test de débit - Test 2"
+
+msgid "Extruder type"
+msgstr "Type d'extrudeuse"
+
+msgid "Method"
+msgstr "Méthode"
 
 msgid "Flow rate"
 msgstr "Débit"
@@ -2990,23 +3070,11 @@ msgstr "Débit"
 msgid "Pressure advance"
 msgstr "Avance de pression"
 
-msgid "Max flowrate"
-msgstr ""
-
-msgid "VFA"
-msgstr ""
-
-msgid "More..."
-msgstr ""
-
 msgid "Tutorial"
 msgstr "Didacticiel"
 
 msgid "Calibration help"
-msgstr ""
-
-msgid "More calibrations"
-msgstr ""
+msgstr "Aide Calibration"
 
 msgid "3D Models"
 msgstr "Modèles 3D"
@@ -3038,6 +3106,7 @@ msgstr "Ouvrir Studio"
 msgid "&Quit"
 msgstr "&Quitter"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "Quitter %s"
@@ -3063,6 +3132,7 @@ msgstr "Non à tout"
 msgid "Choose a directory"
 msgstr "Choisissez un répertoire"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
@@ -3079,6 +3149,7 @@ msgstr "Résultat d’exportation"
 msgid "Select profile to load:"
 msgstr "Sélectionnez le profil à charger :"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural ""
@@ -3109,8 +3180,7 @@ msgid ""
 "2. The Filament presets\n"
 "3. The Printer presets"
 msgstr ""
-"Voulez-vous synchroniser vos données personnelles à partir de Bambu "
-"Cloud ? \n"
+"Voulez-vous synchroniser vos données personnelles à partir de Bambu Cloud ? \n"
 "Il contient les informations suivantes :\n"
 "1. Les réglages d’impression\n"
 "2. Les réglages de filaments\n"
@@ -3139,6 +3209,8 @@ msgstr "L'initialisation a échoué (Non accessible en mode LAN uniquement) !"
 
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr ""
+"L'imprimante est occupée à télécharger, veuillez attendre la fin du "
+"téléchargement."
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "L'initialisation a échoué (IP LAN manquant de l'imprimante) !"
@@ -3146,6 +3218,7 @@ msgstr "L'initialisation a échoué (IP LAN manquant de l'imprimante) !"
 msgid "Initialize failed (Not supported by printer)!"
 msgstr "L'initialisation a échoué (non supporté par l'imprimante) !"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
 msgstr "L'initialisation a échoué (%s) !"
@@ -3153,6 +3226,7 @@ msgstr "L'initialisation a échoué (%s) !"
 msgid "Network unreachable"
 msgstr "Réseau inaccessible"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Stopped [%d]!"
 msgstr "Arrêté [%d] !"
@@ -3161,7 +3235,7 @@ msgid "Stopped."
 msgstr "Arrêté."
 
 msgid "LAN Connection Failed (Failed to start liveview)"
-msgstr ""
+msgstr "Échec de la connexion au réseau local (échec du démarrage de liveview)"
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -3182,6 +3256,7 @@ msgstr ""
 "Bambu Studio ne prend en charge qu'une seule caméra virtuelle.\n"
 "Voulez-vous arrêter cette caméra virtuelle ?"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
 msgstr "L'initialisation de la caméra virtuelle a échoué (%s) !"
@@ -3192,6 +3267,7 @@ msgstr "Information"
 msgid "Playing..."
 msgstr "Lecture..."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Load failed [%d]!"
 msgstr "Le chargement a échoué [%d] !"
@@ -3250,6 +3326,7 @@ msgstr "Non pris en charge par ce modèle d'imprimante !"
 msgid "Connecting..."
 msgstr "Connecting..."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
 msgstr "Connection failed [%d]!"
@@ -3266,6 +3343,7 @@ msgstr "Non accessible en mode LAN uniquement !"
 msgid "Missing LAN ip of printer!"
 msgstr "L'ip LAN de l'imprimante est manquante !"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Le fichier '%s' a été perdu ! Veuillez le télécharger à nouveau."
@@ -3282,6 +3360,7 @@ msgstr "Open Folder"
 msgid "Download finished"
 msgstr "Téléchargement terminé"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Téléchargement de %d%%..."
@@ -3329,7 +3408,7 @@ msgid "0"
 msgstr "0"
 
 msgid "Layers: N/A"
-msgstr ""
+msgstr "Couches : N/A"
 
 msgid "Clean"
 msgstr "Nettoyer"
@@ -3376,6 +3455,7 @@ msgstr "Annuler l'impression"
 msgid "Are you sure you want to cancel this print?"
 msgstr "Êtes-vous sûr de vouloir annuler cette impression ?"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
@@ -3384,6 +3464,7 @@ msgstr ""
 "Déconnecté de l'imprimante [%s] car le mode LAN est désactivé. Veuillez "
 "reconnecter l'imprimante en vous connectant avec votre compte utilisateur."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
@@ -3399,13 +3480,13 @@ msgstr "Téléchargement..."
 msgid "Cloud Slicing..."
 msgstr "Découpage depuis le Cloud..."
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid "Layers: %s"
-msgstr ""
+msgstr "Couches: %s"
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid "Layers: %d/%d"
-msgstr ""
+msgstr "Couches: %d/%d"
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
@@ -3419,9 +3500,10 @@ msgstr "Charge encore"
 
 msgid "AMS settings are not supported for external spool"
 msgstr ""
+"Les paramètres AMS ne sont pas pris en charge pour les bobines externes."
 
 msgid "Please select an AMS slot before calibration"
-msgstr ""
+msgstr "Veuillez sélectionner un emplacement AMS avant la calibration"
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -3469,26 +3551,32 @@ msgstr "Échec de la connexion à l'imprimante"
 msgid "Don't show again"
 msgstr "Ne plus afficher"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s error"
 msgstr "%s erreur"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s has encountered an error"
 msgstr "%s a rencontré une erreur"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s warning"
 msgstr "%s avertissement"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s a un avertissement"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s infos"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s informations"
@@ -3535,12 +3623,14 @@ msgstr "Allez sur la page de téléchargement."
 msgid "Open Folder."
 msgstr "Dossier ouvert."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
 msgstr[0] "%1$d Objet a des supports personnalisés."
 msgstr[1] "%1$d Objets ont des supports personnalisés."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
@@ -3611,8 +3701,7 @@ msgstr "Intervalle"
 msgid ""
 "The application cannot run normally because OpenGL version is lower than "
 "2.0.\n"
-msgstr ""
-"L'application ne peut pas fonctionner normalement car la version d'OpenGL "
+msgstr "L'application ne peut pas fonctionner normalement car la version d'OpenGL "
 "est inférieure à 2.0.\n"
 
 msgid "Please upgrade your graphics card driver."
@@ -3621,6 +3710,7 @@ msgstr "Veuillez mettre à jour le pilote de votre carte graphique."
 msgid "Unsupported OpenGL version"
 msgstr "Version OpenGL non prise en charge"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Unable to load shaders:\n"
@@ -3682,6 +3772,7 @@ msgstr "Réglages du filament"
 msgid "Printer settings"
 msgstr "Paramètres de l'imprimante"
 
+#, possible-boost-format
 #, boost-format
 msgid " plate %1%:"
 msgstr " plateau %1% :"
@@ -3767,10 +3858,12 @@ msgstr ""
 msgid "Untitled"
 msgstr "Sans titre"
 
+#, possible-boost-format
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "Voulez-vous enregistrer les modifications apportées à \"%1%\" ?"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Successfully unmounted. The device %s(%s) can now be safely removed from the "
@@ -3779,6 +3872,7 @@ msgstr ""
 "Ejection réussi. Le périphérique %s(%s) peut maintenant être retiré de "
 "l'ordinateur en toute sécurité."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "L'éjection du périphérique %s(%s) a échoué."
@@ -3808,14 +3902,16 @@ msgstr ""
 "défaut de la buse de l'imprimante. Veuillez remplacer la buse ou le "
 "filament, sinon la buse sera usée ou endommagée."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Chargement du fichier : %s"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr ""
-"Le 3mf ne provient pas de Bambu Lab, Chargement uniquement des données "
-"géométriques."
+"La version %s de 3mf est plus récente que la version %s de %s. Les clés "
+"suivantes ne sont pas reconnues :Le 3mf ne provient pas de Bambu Lab, "
+"Chargement uniquement des données géométriques."
 
 msgid "Load 3mf"
 msgstr "Charger 3mf"
@@ -3828,11 +3924,13 @@ msgstr ""
 "Le 3mf est généré par l'ancien Bambu Studio, Chargementuniquement des "
 "données géométriques."
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
 "unrecognized:"
 msgstr ""
+"La version %s de 3mf est plus récente que la version %s de %s. Les "
+"paramètres suivants ne sont pas reconnus :"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Vous feriez mieux de mettre à jour votre logiciel.\n"
@@ -3840,11 +3938,13 @@ msgstr "Vous feriez mieux de mettre à jour votre logiciel.\n"
 msgid "Newer 3mf version"
 msgstr "Nouvelle version 3mf"
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software."
 msgstr ""
+"La version 3mf %s  est plus récente que la version %s, Nou suggerons de "
+"mettre à jour votre logiciel."
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -3865,6 +3965,7 @@ msgstr "Le nom peut afficher des caractères inutiles !"
 msgid "Attention!"
 msgstr "Attention !"
 
+#, possible-boost-format
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr ""
@@ -3877,6 +3978,7 @@ msgstr "Objets avec zéro volume supprimé"
 msgid "The volume of the object is zero"
 msgstr "Le volume de l'objet est nul"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "The object from file %s is too small, and maybe in meters or inches.\n"
@@ -3945,7 +4047,7 @@ msgid "Please select a file"
 msgstr "Veuillez sélectionner un fichier"
 
 msgid "Slicing"
-msgstr "Tranchage"
+msgstr "Découpe"
 
 msgid "There are warnings after slicing models:"
 msgstr "Il y a des avertissements après le découpage des modèles :"
@@ -3957,8 +4059,9 @@ msgid "Invalid data"
 msgstr "Données invalides"
 
 msgid "Slicing Canceled"
-msgstr "Tranchage annulé"
+msgstr "Découpe annulée"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Plateau à découper %d"
@@ -4012,6 +4115,7 @@ msgstr "préparer le fichier 3mf..."
 msgid "downloading project ..."
 msgstr "téléchargement du projet ..."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Projet téléchargé %d%%"
@@ -4073,6 +4177,7 @@ msgstr "Enregistrer le fichier G-Code sous :"
 msgid "Save Sliced file as:"
 msgstr "Enregistrer le fichier découpé sous :"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "The file %s has been sent to the printer's storage space and can be viewed "
@@ -4105,30 +4210,37 @@ msgstr "Numéro invalide"
 msgid "Select Bed Type"
 msgstr "Sélectionnez le type de plateau"
 
+#, possible-boost-format
 #, boost-format
 msgid "Part name: %1%\n"
 msgstr "Nom de la pièce : %1%\n"
 
+#, possible-boost-format
 #, boost-format
 msgid "Object name: %1%\n"
 msgstr "Nom de l'objet : %1%\n"
 
+#, possible-boost-format
 #, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr "Taille : %1% x %2% x %3% in\n"
 
+#, possible-boost-format
 #, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr "Taille : %1% x %2% x %3% mm\n"
 
+#, possible-boost-format
 #, boost-format
 msgid "Volume: %1% in³\n"
 msgstr "Volume : %1% in³\n"
 
+#, possible-boost-format
 #, boost-format
 msgid "Volume: %1% mm³\n"
 msgstr "Volume : %1% mm³\n"
 
+#, possible-boost-format
 #, boost-format
 msgid "Triangles: %1%\n"
 msgstr "Triangles : %1%\n"
@@ -4144,9 +4256,9 @@ msgstr ""
 "Windows. Veuillez réparer le modèle sur Bambu Studio(windows) ou sur des "
 "logiciels de CAO."
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid "Plate %d: %s does not support filament %s (%s)."
-msgstr ""
+msgstr "Le plateau %d : %s ne prend pas en charge le filament %s (%s)."
 
 msgid "Switching the language requires application restart.\n"
 msgstr "Le changement de langue nécessite le redémarrage de l'application.\n"
@@ -4222,8 +4334,8 @@ msgstr "Synchronisation utilisateur"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
-"Synchronisation automatique des pré-réglages utilisateur (Imprimante/"
-"Filament/Processus)"
+"Synchronisation automatique des pré-réglages utilisateur "
+"(Imprimante/Filament/Processus)"
 
 msgid "User Sync"
 msgstr "Synchronisation utilisateur"
@@ -4391,7 +4503,7 @@ msgid "Add/Remove materials"
 msgstr "Ajouter/supprimer des matériaux"
 
 msgid "Add/Remove printers"
-msgstr "Ajout/Suppression d'imprimantesAjout/Suppression d'imprimantes"
+msgstr "Ajout/Suppression d'imprimantes"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -4409,7 +4521,8 @@ msgstr "Accéder à la page internet de publication des modèles"
 
 msgid "Note: The preparation may takes several minutes. Please be patiant."
 msgstr ""
-"Remarque : La préparation peut prendre plusieurs minutes. Veuillez patienter."
+"Remarque : La préparation peut prendre plusieurs minutes. Veuillez "
+"patienter."
 
 msgid "Publish"
 msgstr "Publier"
@@ -4426,6 +4539,7 @@ msgstr "Collecte des  données  3mf"
 msgid "Jump to webpage"
 msgstr "Ouvrir la page internet"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Save %s as"
 msgstr "Enregistrer %s sous"
@@ -4451,10 +4565,12 @@ msgstr "Le nom n'est pas disponible."
 msgid "Overwrite a system profile is not allowed"
 msgstr "Remplacer un profil système n'est pas autorisé"
 
+#, possible-boost-format
 #, boost-format
 msgid "Preset \"%1%\" already exists."
 msgstr "Le préréglage \"%1%\" existe déjà."
 
+#, possible-boost-format
 #, boost-format
 msgid "Preset \"%1%\" already exists and is incompatible with current printer."
 msgstr ""
@@ -4483,24 +4599,28 @@ msgctxt "PresetName"
 msgid "Copy"
 msgstr "Copie"
 
+#, possible-boost-format
 #, boost-format
 msgid "Printer \"%1%\" is selected with preset \"%2%\""
 msgstr "L'imprimante \"%1%\" est sélectionnée avec le préréglage \"%2%\""
 
+#, possible-boost-format
 #, boost-format
 msgid "Please choose an action with \"%1%\" preset after saving."
 msgstr ""
-"Veuillez choisir une action avec le préréglage \"%1%\" après "
-"l'enregistrement."
+"Veuillez choisir une action avec le préréglage \"%1%\" après l'enregistrement."
 
+#, possible-boost-format
 #, boost-format
 msgid "For \"%1%\", change \"%2%\" to \"%3%\" "
 msgstr "Pour \"%1%\", remplacez \"%2%\" par \"%3%\" "
 
+#, possible-boost-format
 #, boost-format
 msgid "For \"%1%\", add \"%2%\" as a new preset"
 msgstr "Pour \"%1%\", ajoutez \"%2%\" comme nouveau préréglage"
 
+#, possible-boost-format
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "Passez simplement à \"%1%\""
@@ -4580,6 +4700,7 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr "L'imprimante est occupée par un autre travail d'impression."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
@@ -4612,6 +4733,7 @@ msgstr ""
 "Veuillez cliquer sur chaque filament ci-dessus pour indiquer son emplacement "
 "AMS avant d'envoyer la tâche d'impression."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
@@ -4654,6 +4776,7 @@ msgstr "Impossible d'envoyer le travail d'impression pour un plateau vide"
 
 msgid "This printer does not support printing all plates"
 msgstr ""
+"Cette imprimante ne prend pas en charge l'impression de tous les plateaux"
 
 msgid "Errors"
 msgstr "Erreurs"
@@ -4670,7 +4793,12 @@ msgid ""
 "currently selected physical printer. It is recommend to re-slice by "
 "selecting the same printer type."
 msgstr ""
+"Le type d'imprimante utilisé pour générer le code G n'est pas le même que "
+"celui de l'imprimante physique actuellement sélectionnée. Il est recommandé "
+"de procéder à un nouveau découpage en sélectionnant le même type "
+"d'imprimante."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "The %s filament is too soft to be used with the AMS"
 msgstr "Le filament %s est trop mou pour être utilisé avec l'AMS."
@@ -4699,12 +4827,12 @@ msgstr ""
 "cours."
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
-msgstr ""
-"L'imprimante doit se trouver sur le même réseau local que Bambu Studio."
+msgstr "L'imprimante doit se trouver sur le même réseau local que Bambu Studio."
 
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
-"L'imprimante ne prend pas en charge l'envoi vers la carte SD de l'imprimante."
+"L'imprimante ne prend pas en charge l'envoi vers la carte SD de "
+"l'imprimante."
 
 msgid "Same as Global Bed Type"
 msgstr "Identique au type de plateau global"
@@ -4749,6 +4877,7 @@ msgid "Failed to log out."
 msgstr "Échec de la déconnexion."
 
 #. TRN "Save current Settings"
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Save current %s"
 msgstr "Enregistrer le %s actuel"
@@ -4785,6 +4914,10 @@ msgid ""
 "support volume but weaker strength.\n"
 "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
 msgstr ""
+"Nous avons ajouté un style expérimental \"Arbre fin\" qui présente un volume "
+"de support plus petit mais une force plus faible.\n"
+"Nous recommandons de l'utiliser avec : 0 couches d'interface, 0 distance "
+"supérieure, 2 murs."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -4800,18 +4933,25 @@ msgid ""
 "settings: at least 2 interface layers, at least 0.1mm top z distance or "
 "using support materials on interface."
 msgstr ""
+"Pour les styles \"Arbre fort\" et \"Arbre hybride\", nous recommandons les "
+"réglages suivants : au moins 2 couches d'interface, au moins 0,1 mm de "
+"distance entre le haut et le z ou l'utilisation de matériaux de support sur "
+"l'interface."
 
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
 "0 top z distance, 0 interface spacing, concentric pattern."
 msgstr ""
+"Lorsque vous utilisez un matériau de support pour l'interface de support, "
+"nous recommandons les réglages suivants :\n"
+"0 distance z supérieure, 0 espacement d'interface, motif concentrique."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Lorsque vous enregistrez un timelapse sans tête d'outil, il est recommandé "
 "d'ajouter une \"Tour d'essuyage timelapse\". \n"
@@ -4880,11 +5020,12 @@ msgid "G-code output"
 msgstr "G-Code de sortie"
 
 msgid "Post-processing Scripts"
-msgstr ""
+msgstr "Scripts de post-traitement"
 
 msgid "Frequent"
 msgstr "Fréquent"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Following line %s contains reserved keywords.\n"
@@ -4945,9 +5086,9 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr ""
-"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool plate"
-"\") est installé. Une valeur à 0 signifie que ce filament ne peut pas être "
-"imprimé sur le plateau froid."
+"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool "
+"plate\") est installé. Une valeur à 0 signifie que ce filament ne peut pas "
+"être imprimé sur le plateau froid."
 
 msgid "Engineering plate"
 msgstr "Plateau revêtu"
@@ -4957,16 +5098,16 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Il s'agit de la température du plateau lorsque le plateau technique "
-"(\"Engineering plate\") est installé. Une valeur à 0 signifie que ce "
-"filament ne peut pas être imprimé sur le plateau technique."
+"(\"Engineering plate\") est installé. Une valeur à 0 signifie que ce filament "
+"ne peut pas être imprimé sur le plateau technique."
 
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
 "Il s'agit de la température du plateau lorsque le plateau haute température "
-"(\"Cool plate\") est installé. Une valeur à 0 signifie que ce filament ne "
-"peut pas être imprimé sur le plateau haute température."
+"(\"Cool plate\") est installé. Une valeur à 0 signifie que ce filament ne peut "
+"pas être imprimé sur le plateau haute température."
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5082,9 +5223,13 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
+"L'option d'essuyage n'est pas disponible lorsque vous utilisez le mode de "
+"rétraction du micrologiciel.\n"
+"\n"
+"Dois-je la désactiver afin d'activer l'option Firmware Retraction ?"
 
 msgid "Firmware Retraction"
-msgstr ""
+msgstr "Rétraction du firmware"
 
 msgid "Detached"
 msgstr "Détaché"
@@ -5094,11 +5239,13 @@ msgid_plural "Following presets will be deleted too."
 msgstr[0] "Le préréglage suivant sera également supprimé."
 msgstr[1] "Les préréglages suivant seront également supprimés."
 
+#, possible-boost-format
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Êtes-vous sûr de %1% le préréglage sélectionné ?"
 
 #. TRN  Remove/Delete
+#, possible-boost-format
 #, boost-format
 msgid "%1% Preset"
 msgstr "%1% prédéfini"
@@ -5167,12 +5314,14 @@ msgstr ""
 "Transférez les options sélectionnées vers le préréglage nouvellement "
 "sélectionné."
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Save the selected options to preset \n"
 "\"%1%\"."
 msgstr "Enregistrez les options sélectionnées dans le préréglage \"%1%\"."
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Transfer the selected options to the newly selected preset \n"
@@ -5181,27 +5330,31 @@ msgstr ""
 "Transférez les options sélectionnées vers le préréglage nouvellement "
 "sélectionné \"%1%\"."
 
+#, possible-boost-format
 #, boost-format
 msgid "Preset \"%1%\" contains the following unsaved changes:"
 msgstr ""
 "Le préréglage \"%1%\" contient les modifications non enregistrées suivantes :"
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Preset \"%1%\" is not compatible with the new printer profile and it "
 "contains the following unsaved changes:"
 msgstr ""
-"Le préréglage \"%1%\" n'est pas compatible avec le nouveau profil "
-"d'imprimante et contient les modifications non enregistrées suivantes :"
+"Le préréglage \"%1%\" n'est pas compatible avec le nouveau profil d'imprimante "
+"et contient les modifications non enregistrées suivantes :"
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "Preset \"%1%\" is not compatible with the new process profile and it "
 "contains the following unsaved changes:"
 msgstr ""
-"Le préréglage \"%1%\" n'est pas compatible avec le nouveau profil de "
-"processus et contient les modifications non enregistrées suivantes :"
+"Le préréglage \"%1%\" n'est pas compatible avec le nouveau profil de processus "
+"et contient les modifications non enregistrées suivantes :"
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "You have changed some settings of preset \"%1%\". \n"
@@ -5249,6 +5402,7 @@ msgstr "Définir comme couverture"
 msgid "Cover"
 msgstr "Couverture"
 
+#, possible-boost-format
 #, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "Le nom \"%1%\" existe déjà."
@@ -5274,6 +5428,7 @@ msgstr "Auteur"
 msgid "Model Name"
 msgstr "Nom du modèle"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "%s Update"
 msgstr "Mise à jour %s"
@@ -5298,6 +5453,7 @@ msgid "the configuration package is incompatible with current application."
 msgstr ""
 "le package de configuration est incompatible avec l'application actuelle."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "The configuration package is incompatible with current application.\n"
@@ -5306,6 +5462,7 @@ msgstr ""
 "Le package de configuration est incompatible avec l'application actuelle. %s "
 "mettra à jour le package de configuration, sinon il ne pourra pas démarrer"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Exit %s"
 msgstr "Quitter %s"
@@ -5338,10 +5495,12 @@ msgstr "Multiplicateur"
 msgid "Actual Volume = Flushing Volume * Multiplier"
 msgstr "Volume réel = Volume de purge * Multiplicateur"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Suggestion: Actual Volume in range [%d, %d]"
 msgstr "Suggestion : Volume réel compris entre [%d, %d]"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Le multiplicateur doit être compris entre [%.2f, %.2f]."
@@ -5571,8 +5730,7 @@ msgid "Space"
 msgstr "Espace"
 
 msgid "Select the object/part and press space to change the name"
-msgstr ""
-"Sélectionnez l'objet/la pièce et appuyez sur espace pour changer le nom"
+msgstr "Sélectionnez l'objet/la pièce et appuyez sur espace pour changer le nom"
 
 msgid "Mouse click"
 msgstr "Clic de souris"
@@ -5608,6 +5766,7 @@ msgstr "Maj + Molette de la souris"
 msgid "Release Note"
 msgstr "Note de mise à jour"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "version %s update information :"
 msgstr "version %s informations de mise à jour :"
@@ -5621,6 +5780,7 @@ msgstr ""
 "Cliquez sur OK pour mettre à jour le plug-in Réseau au prochain lancement de "
 "Bambu Studio."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr ""
@@ -5633,28 +5793,32 @@ msgid "Don't remind me of this version again"
 msgstr "Ne me rappelez plus cette version"
 
 msgid "LAN Connection Failed (Sending print file)"
-msgstr ""
+msgstr "LAN Connection Failed (Sending print file)"
 
 msgid ""
 "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
+"Étape 1, veuillez confirmer que Bambu Studio et votre imprimante se trouvent "
+"sur le même réseau local."
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
+"Étape 2, si l'IP et le code d'accès ci-dessous sont différents des valeurs "
+"réelles de votre imprimante, veuillez les corriger."
 
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 msgid "Access Code"
-msgstr ""
+msgstr "Code d'accès"
 
 msgid "Where to find your printer's IP and Access Code?"
-msgstr ""
+msgstr "Où trouver l'IP et le code d'accès de votre imprimante ?"
 
 msgid "Error: IP or Access Code are not correct"
-msgstr ""
+msgstr "Error: IP or Access Code are not correct"
 
 msgid "Model:"
 msgstr "Modèle:"
@@ -5691,7 +5855,8 @@ msgid ""
 "turn off the power while the printer is updating."
 msgstr ""
 "Êtes-vous sûr de vouloir faire une mise à jour ? Cela prendra environ 10 "
-"minutes. Ne coupez pas l'alimentation pendant la mise à jour de l'imprimante."
+"minutes. Ne coupez pas l'alimentation pendant la mise à jour de "
+"l'imprimante."
 
 msgid ""
 "An important update was detected and needs to be run before printing can "
@@ -5764,10 +5929,12 @@ msgstr "Réparation terminée"
 msgid "Repair canceled"
 msgstr "Réparation annulée"
 
+#, possible-boost-format
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
 msgstr "Échec de la copie du fichier %1% vers %2% : %3%"
 
+#, possible-boost-format
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "Échec de la copie du répertoire %1% vers %2% : %3%"
@@ -5790,11 +5957,12 @@ msgstr ""
 "Un objet a une première couche vide et ne peut pas être imprimé. Veuillez "
 "couper le bas ou activer les supports."
 
+#, possible-boost-format
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
-msgstr ""
-"L'objet ne peut pas être imprimé pour une couche vide entre %1% et %2%."
+msgstr "L'objet ne peut pas être imprimé pour une couche vide entre %1% et %2%."
 
+#, possible-boost-format
 #, boost-format
 msgid "Object: %1%"
 msgstr "Objet : %1%"
@@ -5812,14 +5980,14 @@ msgstr "Aucun objet ne peut être imprimé. Peut-être trop petit"
 msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
-msgstr ""
-"Échec de la génération du G-Code pour un G-Code personnalisé non valide.\n"
+msgstr "Échec de la génération du G-Code pour un G-Code personnalisé non valide.\n"
 
 msgid "Please check the custom G-code or use the default custom G-code."
 msgstr ""
 "Veuillez vérifier le G-Code personnalisé ou utiliser le G-Code personnalisé "
 "par défaut."
 
+#, possible-boost-format
 #, boost-format
 msgid "Generating G-code: layer %1%"
 msgstr "Génération du G-Code : couche %1%"
@@ -5860,6 +6028,7 @@ msgstr "Soutenir la transition"
 msgid "Multiple"
 msgstr "Plusieurs"
 
+#, possible-boost-format
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
 msgstr ""
@@ -5959,6 +6128,7 @@ msgstr "validation échouée"
 msgid "write callback failed"
 msgstr "échec d’écriture de la fonction de rappel"
 
+#, possible-boost-format
 #, boost-format
 msgid ""
 "%1% is too close to exclusion area, there may be collisions when printing."
@@ -5966,31 +6136,34 @@ msgstr ""
 "%1% est trop proche de la zone d'exclusion, il peut y avoir des collisions "
 "lors de l'impression."
 
+#, possible-boost-format
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
-msgstr ""
-"%1% est trop proche des autres, cela pourrait provoquer des collisions."
+msgstr "%1% est trop proche des autres, cela pourrait provoquer des collisions."
 
+#, possible-boost-format
 #, boost-format
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% est trop grand, cela pourrait provoquer des collisions."
 
 msgid " is too close to others, there may be collisions when printing."
 msgstr ""
+" est trop proche des autres, il peut y avoir des collisions lors de "
+"l'impression."
 
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
+" est trop proche de la zone d'exclusion, il peut y avoir des collisions lors "
+"de l'impression."
 
 msgid "Prime Tower"
 msgstr "Tour de purge"
 
 msgid " is too close to others, and collisions may be caused.\n"
-msgstr ""
-" est trop proche des autres. Des collisions risquent d'être provoquées.\n"
+msgstr " est trop proche des autres. Des collisions risquent d'être provoquées.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
-msgstr ""
-" est trop proche d'une zone d'exclusion. Cela va entraîner des collisions.\n"
+msgstr " est trop proche d'une zone d'exclusion. Cela va entraîner des collisions.\n"
 
 msgid ""
 "Can not print multiple filaments which have large difference of temperature "
@@ -6089,9 +6262,9 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "La hauteur de la couche ne peut pas dépasser le diamètre de la buse"
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid "Plate %d: %s does not support filament %s"
-msgstr ""
+msgstr "Le plateau %d : %s ne supporte pas le filament %s"
 
 msgid "Generating skirt & brim"
 msgstr "Génération jupe et bordure"
@@ -6167,8 +6340,8 @@ msgstr ""
 "champ doit contenir le nom d'hôte, l'adresse IP ou l'URL de l'instance de "
 "l'hôte d'impression. L'hôte d'impression derrière HAProxy avec "
 "l'authentification de base activée est accessible en mettant le nom "
-"d'utilisateur et le mot de passe dans l'URL au format suivant : https://"
-"username:password@votre-octopi-address/"
+"d'utilisateur et le mot de passe dans l'URL au format suivant : "
+"https://username:password@votre-octopi-address/"
 
 msgid "API Key / Password"
 msgstr "Clé API / Mot de passe"
@@ -6308,17 +6481,17 @@ msgid ""
 "support to print on the Engineering Plate"
 msgstr ""
 "Il s'agit de la température du plateau pour la première couche. Une valeur à "
-"0 signifie que ce filament ne peut pas être imprimé sur le plateau technique "
-"(\"Engineering plate\")."
+"0 signifie que ce filament ne peut pas être imprimé sur le plateau "
+"technique (\"Engineering plate\")."
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the High Temp Plate"
 msgstr ""
 "Il s'agit de la tempérTempérature du lit de la couche initiale. La valeur 0 "
-"signifie que le filament ne peut pas être imprimé sur la plaque PEI texturée."
-"Température du lit de la couche initiale. La valeur 0 signifie que le "
-"filament ne peut pas être imprimé sur la plaque PEI texturée.ature du "
+"signifie que le filament ne peut pas être imprimé sur la plaque PEI "
+"texturée.Température du lit de la couche initiale. La valeur 0 signifie que "
+"le filament ne peut pas être imprimé sur la plaque PEI texturée.ature du "
 "plateau pour la première couche. Une valeur à 0 signifie que ce filament ne "
 "peut pas être imprimé sur le plateau haute température (\"High Temp plate\")."
 
@@ -6392,13 +6565,18 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Seuil de dépassement de refroidissement"
 
-#, c-format
+#, possible-c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
 "of the line without support from lower layer. 0% means forcing cooling for "
 "all outer wall no matter how much overhang degree"
 msgstr ""
+"Force le ventilateur de refroidissement à avoir une vitesse spécifique "
+"lorsque le degré de surplomb de la pièce imprimée dépasse cette valeur. "
+"Exprimé en pourcentage, il indique la largeur de la ligne sans support de la "
+"couche inférieure. 0% signifie forcer le refroidissement de toute la paroi "
+"extérieure, quel que soit le degré de surplomb."
 
 msgid "Bridge direction"
 msgstr "Direction du pont"
@@ -6411,12 +6589,6 @@ msgstr ""
 "Annulation de l'angle de pontage. S'il est laissé à zéro, l'angle de pontage "
 "sera calculé automatiquement. Sinon, l'angle fourni sera utilisé pour les "
 "ponts externes. Utilisez 180° pour un angle nul."
-
-msgid "Bridge density"
-msgstr ""
-
-msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
-msgstr ""
 
 msgid "Bridge flow"
 msgstr "Débit des ponts"
@@ -6435,20 +6607,17 @@ msgid ""
 "This factor affects the amount of material for top solid infill. You can "
 "decrease it slightly to have smooth surface finish"
 msgstr ""
+"Ce facteur affecte la quantité de matériau pour le remplissage plein "
+"supérieur. Vous pouvez le diminuer légèrement pour obtenir une finition de "
+"surface lisse."
 
 msgid "Bottom surface flow ratio"
 msgstr "Rapport de débit de la surface du fond"
 
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
-
-msgid "Precise wall(experimental)"
-msgstr ""
-
-msgid ""
-"Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
-msgstr ""
+"Ce facteur affecte la quantité de matériau pour le remplissage plein du "
+"fond."
 
 msgid "Only one wall on top surfaces"
 msgstr "Une seule paroi sur les surfaces supérieures"
@@ -6469,12 +6638,6 @@ msgid ""
 msgstr ""
 "N'utilisez qu'une seule paroi sur la première couche, afin de donner plus "
 "d'espace au motif de remplissage du bas."
-
-msgid "Classic mode"
-msgstr ""
-
-msgid "Enable this option to use classic mode"
-msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "Ralentir pour le surplomb"
@@ -6510,16 +6673,19 @@ msgstr ""
 "automatiquement"
 
 msgid "outer_only"
-msgstr ""
+msgstr "externe seulement"
 
 msgid "Inner brim only"
-msgstr ""
+msgstr "Bordure intérieure uniquement"
 
 msgid "Outer and inner brim"
-msgstr ""
+msgstr "Bordure extérieure et intérieure"
 
 msgid "Brim-object gap"
-msgstr "Écart bordure-objet"
+msgstr "Espace bordure-objet"
+
+msgid "Bridge density"
+msgstr "Densité des ponts"
 
 msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
@@ -6610,7 +6776,7 @@ msgid "layers"
 msgstr "couches"
 
 msgid "Don't support bridges"
-msgstr "Ne supporte pas les ponts"
+msgstr "Ne pas supporter les ponts"
 
 msgid ""
 "Don't support the whole bridge area which make support very large. Bridge "
@@ -6733,24 +6899,30 @@ msgstr ""
 "une meilleure qualité."
 
 msgid "Small perimeters"
-msgstr ""
+msgstr "Périmètres courts"
 
 msgid ""
 "This separate setting will affect the speed of perimeters having radius <= "
-"small_perimeter_threshold (usually holes). If expressed as percentage (for "
-"example: 80%) it will be calculated on the outer wall speed setting above. "
-"Set to zero for auto."
+"6.5mm (usually holes). If expressed as percentage (for example: 80%) it will "
+"be calculated on the outer wall speed setting above. Set to zero for auto."
 msgstr ""
+"Ce paramètre séparé affectera la vitesse des périmètres ayant un rayon <= "
+"6,5mm (généralement des trous). S'il est exprimé en pourcentage (par exemple "
+": 80%), il sera calculé sur le paramètre de vitesse de la paroi extérieure "
+"ci-dessus. Réglez à zéro pour automatique."
 
 msgid "mm/s or %"
-msgstr ""
+msgstr "mm/s ou %"
 
 msgid "Small perimeters threshold"
-msgstr ""
+msgstr "Seuil des petits périmètres"
 
 msgid ""
-"This sets the threshold for small perimeter length. Default threshold is 0mm"
+"This sets the threshold for small perimeter length. Default threshold is "
+"6.5mm"
 msgstr ""
+"Ceci définit le seuil de la longueur du petit périmètre. Le seuil par défaut "
+"est de 6,5 mm"
 
 msgid "Order of inner wall/outer wall/infil"
 msgstr "Ordre Paroi intérieur/extérieur/remplissage"
@@ -6843,9 +7015,11 @@ msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
 "enabled."
 msgstr ""
+"Activer l'avance de pression, le résultat de l'auto-calibration sera écrasé "
+"une fois activé."
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
-msgstr ""
+msgstr "Avance de pression (Klipper) AKA Facteur d'avance linéaire (Marlin)"
 
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
@@ -6920,6 +7094,12 @@ msgid ""
 "object, Slic3r will always prime this amount of material into the wipe tower "
 "to produce successive infill or sacrificial object extrusions reliably."
 msgstr ""
+"Après un changement d'outil, la position exacte du filament nouvellement "
+"chargé dans la buse peut ne pas être connue, et la pression du filament "
+"n'est probablement pas encore stable. Avant de purger la tête d'impression "
+"dans un remplissage ou un objet sacrificiel, Slic3r amorcera toujours cette "
+"quantité de matériau dans la tour d'essuyage pour produire de manière fiable "
+"les extrusions successives de remplissage ou d'objet sacrificiel."
 
 msgid "Filament load time"
 msgstr "Temps de chargement du filament"
@@ -7016,10 +7196,13 @@ msgid ""
 "Angle for bridge infill pattern, which controls the start or main direction "
 "of line"
 msgstr ""
+"Angle pour le motif de remplissage du pont, qui contrôle le début ou la "
+"direction principale de la ligne"
 
 msgid "Sparse infill density"
 msgstr "Densité de remplissage"
 
+#, possible-c-format
 #, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Densité du remplissage interne, 100%% signifie remplissage plein"
@@ -7061,13 +7244,13 @@ msgid "Lightning"
 msgstr "Éclair"
 
 msgid "Acceleration of outer walls"
-msgstr ""
+msgstr "Accélération des parois extérieures"
 
 msgid "Acceleration of inner walls"
-msgstr ""
+msgstr "Accélération des parois intérieures"
 
 msgid "Acceleration of travel moves"
-msgstr ""
+msgstr "Accélération des déplacements"
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
@@ -7090,35 +7273,35 @@ msgstr ""
 "peut améliorer l'adhérence sur le plateau"
 
 msgid "Enable accel_to_decel"
-msgstr ""
+msgstr "Activer accel_to_decel"
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically"
-msgstr ""
+msgstr "Le max_accel_to_decel de Klipper sera ajusté automatiquement."
 
 msgid "accel_to_decel"
-msgstr ""
+msgstr "accel_to_decel"
 
-#, c-format, boost-format
+#, possible-c-format, possible-boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
-msgstr ""
+msgstr "Le max_accel_to_decel de Klipper sera ajusté à ce % d'accélération."
 
 msgid "Jerk of outer walls"
-msgstr ""
+msgstr "Saccade des parois extérieures"
 
 msgid "Jerk of inner walls"
-msgstr ""
+msgstr "Saccade des parois intérieures"
 
 msgid "Jerk for top surface"
-msgstr ""
+msgstr "Saccade pour la surface supérieure"
 
 msgid "Jerk for infill"
-msgstr ""
+msgstr "Sacca pour le remplissage"
 
 msgid "Jerk for initial layer"
-msgstr ""
+msgstr "Saccade pour la couche initiale"
 
 msgid "Jerk for travel"
-msgstr ""
+msgstr "Saccade pour les déplacements"
 
 msgid "Line width of initial layer"
 msgstr "Largeur de ligne de la couche initiale"
@@ -7136,7 +7319,8 @@ msgstr ""
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr ""
-"Vitesse de la couche initiale à l'exception de la partie de remplissage plein"
+"Vitesse de la couche initiale à l'exception de la partie de remplissage "
+"plein"
 
 msgid "Initial layer infill"
 msgstr "Remplissage de la couche initiale"
@@ -7190,15 +7374,17 @@ msgstr ""
 "segment de ligne"
 
 msgid "Filter out tiny gaps"
-msgstr ""
+msgstr "Filtrer les très petits trous"
 
 msgid "Layers and Perimeters"
-msgstr ""
+msgstr "Couches et Périmètres"
 
 msgid ""
 "Filter out gaps smaller than the threshold specified. This setting won't "
 "affact top/bottom layers"
 msgstr ""
+"Filtre les espaces plus petits que le seuil spécifié. Ce paramètre n'affecte "
+"pas les couches supérieures et inférieures."
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -7282,7 +7468,7 @@ msgid "What kind of gcode the printer is compatible with"
 msgstr "Avec quel type de G-Code l'imprimante est-elle compatible"
 
 msgid "Klipper"
-msgstr ""
+msgstr "Klipper"
 
 msgid "Infill combination"
 msgstr "Combinaison de remplissage"
@@ -7316,13 +7502,16 @@ msgid "Speed of internal sparse infill"
 msgstr "Vitesse de remplissage interne"
 
 msgid "Interface shells"
-msgstr ""
+msgstr "Coques d'interface"
 
 msgid ""
 "Force the generation of solid shells between adjacent materials/volumes. "
 "Useful for multi-extruder prints with translucent materials or manual "
 "soluble support material"
 msgstr ""
+"Force la génération de coques pleines entre les matériaux/volumes adjacents. "
+"Utile pour les impressions multi-extrudeurs avec des matériaux translucides "
+"ou des matériaux de support solubles manuellement."
 
 msgid "Ironing Type"
 msgstr "Type de lissage"
@@ -7604,14 +7793,15 @@ msgstr ""
 msgid "Detect overhang wall"
 msgstr "Détecter un périmètre en surplomb"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "Detect the overhang percentage relative to line width and use different "
 "speed to print. For 100%% overhang, bridge speed is used."
 msgstr ""
 "Détectez le pourcentage de surplomb par rapport à la largeur de la ligne et "
-"utilisez une vitesse différente pour imprimer. Pour un porte-à-faux de "
-"100%%, la vitesse du pont est utilisée."
+"utilisez une vitesse différente pour imprimer. Pour un porte-à-faux de 100%%"
+", la vitesse du pont est utilisée."
 
 msgid "Line width of inner wall"
 msgstr "Largeur de ligne du périmètre intérieur"
@@ -7629,6 +7819,12 @@ msgid ""
 "argument, and they can access the Slic3r config settings by reading "
 "environment variables."
 msgstr ""
+"Si vous souhaitez traiter le code G de sortie par le biais de scripts "
+"personnalisés, il suffit d'indiquer leurs chemins absolus ici. Séparez "
+"plusieurs scripts par un point-virgule. Les scripts recevront le chemin "
+"absolu du fichier G-code comme premier argument, et ils peuvent accéder aux "
+"paramètres de configuration de Slic3r en lisant les variables "
+"d'environnement."
 
 msgid "Raft contact Z distance"
 msgstr "Distance Z de contact du radeau"
@@ -7735,11 +7931,17 @@ msgid ""
 "When the retraction is compensated after the travel move, the extruder will "
 "push this additional amount of filament. This setting is rarely needed."
 msgstr ""
+"Lorsque la rétraction est compensée après le déplacement, l'extrudeuse "
+"pousse cette quantité supplémentaire de filament. Ce réglage est rarement "
+"nécessaire."
 
 msgid ""
 "When the retraction is compensated after changing tool, the extruder will "
 "push this additional amount of filament."
 msgstr ""
+"Lorsque la rétraction est compensée après le déplacement, l'extrudeuse "
+"pousse cette quantité supplémentaire de filament. Ce réglage est rarement "
+"nécessaire."
 
 msgid "Retraction Speed"
 msgstr "Vitesse de rétraction"
@@ -7764,6 +7966,9 @@ msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
 "handle the retraction. This is only supported in recent Marlin."
 msgstr ""
+"Ce réglage expérimental utilise les commandes G10 et G11 pour que le "
+"firmware gère la rétraction. Ceci n'est supporté que dans les Marlin "
+"récents."
 
 msgid "Seam position"
 msgstr "Position de la jointure"
@@ -7784,7 +7989,7 @@ msgid "Random"
 msgstr "Aléatoire"
 
 msgid "Seam gap"
-msgstr ""
+msgstr "Espace entre les coutures"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
@@ -7792,26 +7997,39 @@ msgid ""
 "his amount can be specified in millimeters or as a percentage of the current "
 "extruder diameter. The default value for this parameter is 15%."
 msgstr ""
+"Ce réglage expérimental utilise les commandes G10 et G11 pour que le "
+"firmware gère la rétraction. Ceci n'est supporté que dans les Marlin "
+"récents."
 
 msgid "Role base wipe speed"
-msgstr ""
+msgstr "Vitesse d'essuyage En cours"
+
+msgid "Select presets to compare"
+msgstr "Sélectionner les préréglages à comparer"
 
 msgid ""
 "The wipe speed is determined by the speed of the current extrusion role.e.g. "
 "if a wipe action is executed immediately following an outer wall extrusion, "
 "the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
+"La vitesse d'essuyage est déterminée par la vitesse d'extrusion en "
+"cours, par exemple, si une action d'essuyage est exécutée immédiatement "
+"après une extrusion de paroi extérieure, la vitesse de l'extrusion de paroi "
+"extérieure sera utilisée pour l'action d'essuyage."
 
 msgid "Wipe on loops"
-msgstr ""
+msgstr "Essuyez sur les boucles"
 
 msgid ""
 "To minimize the visibility of the seam in a closed loop extrusion, a small "
 "inward movement is executed before the extruder leaves the loop."
 msgstr ""
+"Pour minimiser la visibilité de la couture dans une extrusion en boucle "
+"fermée, un petit mouvement vers l'intérieur est exécuté avant que "
+"l'extrudeuse ne quitte la boucle."
 
 msgid "Wipe speed"
-msgstr ""
+msgstr "Vitesse d'essuyage"
 
 msgid ""
 "The wipe speed is determined by the speed setting specified in this "
@@ -7819,6 +8037,13 @@ msgid ""
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 msgstr ""
+"La vitesse d'essuyage est déterminée par le paramètre de vitesse spécifié "
+"dans cette configuration.Si la valeur est exprimée en pourcentage (par "
+"exemple 80 %), elle sera calculée sur la base du paramètre de vitesse de "
+"déplacement ci-dessus.La valeur par défaut de ce paramètre est 80 %."
+
+msgid "Skirt"
+msgstr "Jupe"
 
 msgid "Skirt distance"
 msgstr "Distance jupe"
@@ -7917,9 +8142,9 @@ msgid ""
 "resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
 "Les espaces inférieures à 2x le rayon de fermeture de l'espace sont remplies "
-"pendant le découpage du maillage. L'opération de remplissage des interstices "
-"peut réduire la résolution finale de l'impression, il est donc conseillé de "
-"maintenir une valeur raisonnablement basse."
+"pendant le découpage du maillage. L'opération de remplissage des "
+"interstices peut réduire la résolution finale de l'impression, il est donc "
+"conseillé de maintenir une valeur raisonnablement basse."
 
 msgid "Slicing Mode"
 msgstr "Mode de découpe"
@@ -7928,8 +8153,8 @@ msgid ""
 "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
 "close all holes in the model."
 msgstr ""
-"Utilisez \"Pair-Impair\" pour les modèles d'avion 3DLabPrint. Utilisez "
-"\"Fermer les trous\" pour fermer tous les trous du modèle."
+"Utilisez \"Pair-Impair\" pour les modèles d'avion 3DLabPrint. Utilisez \"Fermer "
+"les trous\" pour fermer tous les trous du modèle."
 
 msgid "Regular"
 msgstr "Ordinaire"
@@ -7951,8 +8176,7 @@ msgid ""
 "normal(manual) or tree(manual) is selected, only support enforcers are "
 "generated"
 msgstr ""
-"Auto Normal/Arborescent est utilisé pour générer le support "
-"automatiquement.\n"
+"Auto Normal/Arborescent est utilisé pour générer le support automatiquement.\n"
 "Manu Normal/Arborescent est utilisé pour générer les supports que "
 "l’utilisateur a créé soit par peinture soit par forceur de support"
 
@@ -8039,8 +8263,8 @@ msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
 "for support interface and current filament is used"
 msgstr ""
-"Filament pour l'interface de support d'impression. \"Default\" signifie "
-"qu'il n'y a pas de filament spécifique pour l'interface de support et que le "
+"Filament pour l'interface de support d'impression. \"Default\" signifie qu'il "
+"n'y a pas de filament spécifique pour l'interface de support et que le "
 "filament actuel est utilisé."
 
 msgid "Top interface layers"
@@ -8168,21 +8392,21 @@ msgid ""
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
 "Ce paramètre détermine l'angle de porte-à-faux maximum que les branches du "
-"support d'arbre peuvent faire. Si l'angle est augmenté, les branches peuvent "
+"support arborecent peuvent faire. Si l'angle est augmenté, les branches peuvent "
 "être imprimées plus horizontalement, ce qui leur permet d'atteindre plus "
 "loin."
 
 msgid "Tree support branch distance"
-msgstr "Distance des branches de support d'arbre"
+msgstr "Distance des branches des supports arborecents"
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr ""
-"Ce paramètre détermine la distance entre les nœuds de support d'arbre "
+"Ce paramètre détermine la distance entre les nœuds des supports arborecents "
 "voisins."
 
 msgid "Tree support branch diameter"
-msgstr "Diamètre de la branche de support d'arbre"
+msgstr "Diamètre de la branche des supports arborecents"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Ce paramètre détermine le diamètre initial des nœuds de support."
@@ -8191,20 +8415,20 @@ msgid "Tree support wall loops"
 msgstr "Nb paroi de support arborescent"
 
 msgid "This setting specify the count of walls around tree support"
-msgstr "Ce paramètre spécifie le nombre de murs autour du support d'arbre"
+msgstr "Ce paramètre spécifie le nombre de murs autour du support arborecent"
 
 msgid "Tree support with infill"
-msgstr "Support d'arbre avec remplissage"
+msgstr "Support arborescent avec remplissage"
 
 msgid ""
 "This setting specifies whether to add infill inside large hollows of tree "
 "support"
 msgstr ""
 "Ce paramètre spécifie s'il faut ajouter un remplissage à l'intérieur des "
-"grands creux du support d'arbre"
+"grands creux du support arborecent"
 
 msgid "Target chamber temperature"
-msgstr ""
+msgstr "Température cible de la chambre"
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Température de la buse pour les couches après la première"
@@ -8297,10 +8521,10 @@ msgid "Z hop type"
 msgstr "Type de saut Z"
 
 msgid "NormalLift"
-msgstr ""
+msgstr "Retrait Normal"
 
 msgid "SpiralLift"
-msgstr ""
+msgstr "Retriat Spiral"
 
 msgid "Wipe Distance"
 msgstr "Distance d'essuyage"
@@ -8401,15 +8625,17 @@ msgstr ""
 "légèrement la taille lorsque l'objet a un problème d'assemblage"
 
 msgid "G-code thumbnails"
-msgstr ""
+msgstr "Vignettes G-code"
 
 msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
 "following format: \"XxY, XxY, ...\""
 msgstr ""
+"Les tailles des images doivent être enregistrées dans un fichier .gcode et "
+".sl1 / .sl1s, au format suivant : \"XxY, XxY, ...\""
 
 msgid "Use relative E distances"
-msgstr ""
+msgstr "Utiliser des valeurs E relatives"
 
 msgid ""
 "Relative extrusion is recommended when using \"label_objects\" option.Some "
@@ -8417,6 +8643,11 @@ msgid ""
 "Wipe tower is only compatible with relative mode. It is always enabled on "
 "BambuLab printers. Default is checked"
 msgstr ""
+"L'extrusion relative est recommandée lors de l'utilisation de l'option "
+"\"label_objects\". Certains extrudeurs fonctionnent mieux avec cette option "
+"non validée (mode d'extrusion absolue). La tour d'essuyage n'est compatible "
+"qu'avec le mode relatif. Elle est toujours activée sur les imprimantes "
+"BambuLab. Par défaut, elle est cochée"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -8468,7 +8699,7 @@ msgstr ""
 "pourcentage par rapport au diamètre de la buse."
 
 msgid "Wall transitioning threshold angle"
-msgstr "Angle du seuil de transition du mur"
+msgstr "Angle du seuil de transition de paroi"
 
 msgid ""
 "When to create transitions between even and odd numbers of walls. A wedge "
@@ -8511,7 +8742,10 @@ msgstr ""
 "exprimée en pourcentage par rapport au diamètre de la buse."
 
 msgid "Minimum wall width"
-msgstr "Largeur minimale Paroi"
+msgstr "Largeur minimale paroi"
+
+msgid "Precise wall(experimental)"
+msgstr "Mur précis (expérimental)"
 
 msgid ""
 "Width of the wall that will replace thin features (according to the Minimum "
@@ -8519,10 +8753,10 @@ msgid ""
 "thickness of the feature, the wall will become as thick as the feature "
 "itself. It's expressed as a percentage over nozzle diameter"
 msgstr ""
-"Largeur du mur qui remplacera les éléments fins (selon la taille minimale de "
+"Largeur de la paroi qui remplacera les éléments fins (selon la taille minimale de "
 "l'élément) du modèle. Si la largeur minimale de la paroi est inférieure à "
-"l'épaisseur de l'élément, la paroi sera aussi épaisse que l'élément lui-"
-"même. Elle est exprimée en pourcentage du diamètre de la buse."
+"l'épaisseur de l'élément, la paroi sera aussi épaisse que l'élément "
+"lui-même. Elle est exprimée en pourcentage du diamètre de la buse."
 
 msgid "Detect narrow internal solid infill"
 msgstr "Détecter un remplissage plein interne étroit"
@@ -8618,7 +8852,8 @@ msgstr "Charger les paramètres de filament"
 
 msgid "Load filament settings from the specified file list"
 msgstr ""
-"Charger les paramètres de filament à partir de la liste de fichiers spécifiée"
+"Charger les paramètres de filament à partir de la liste de fichiers "
+"spécifiée"
 
 msgid "Output directory"
 msgstr "Répertoire de sortie"
@@ -8632,9 +8867,8 @@ msgstr "Niveau de débogage"
 msgid ""
 "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
-msgstr ""
-"Définit le niveau de journalisation du débogage. 0 :fatal, 1 :erreur, 2 :"
-"avertissement, 3 :info, 4 :débogage, 5 :trace\n"
+msgstr "Définit le niveau de journalisation du débogage. 0 :fatal, 1 :erreur, 2 "
+":avertissement, 3 :info, 4 :débogage, 5 :trace\n"
 
 msgid "Error in zip archive"
 msgstr "Erreur dans l'archive zip"
@@ -8654,6 +8888,7 @@ msgstr "Génération des supports"
 msgid "Checking support necessity"
 msgstr "Vérification de la nécessité du support"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "It seems object %s has completely floating regions. Please re-orient the "
@@ -8662,6 +8897,7 @@ msgstr ""
 "Il semble que l'objet %s ait des régions complètement flottantes. Veuillez "
 "réorienter l'objet ou activer la génération de support."
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid ""
 "It seems object %s has large overhangs. Please enable support generation."
@@ -8683,6 +8919,7 @@ msgstr "Le modèle a trop de couches vides."
 msgid "Slicing mesh"
 msgstr "Maillage de découpe"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Support : génération du parcours d'impression à la couche %d"
@@ -8702,50 +8939,83 @@ msgstr "Support : traçage de polygones"
 msgid "Support: generate toolpath"
 msgstr "Support : génération du parcours d'impression"
 
+msgid "Skirt height"
+msgstr "Hauteur de la bordure"
+
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
 msgstr "Support : génération des polygones à la couche %d"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Support: fix holes at layer %d"
 msgstr "Support : Correction des trous dans la couche %d"
 
+#, possible-c-format, possible-boost-format
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support : propagation des branches à la couche %d"
 
+msgid "Temperature calibration"
+msgstr "Calibration température"
+
+msgid "Filament type"
+msgstr "Type de filament"
+
+msgid "Start temp: "
+msgstr "Température Début: "
+
+msgid "End end: "
+msgstr "Température Fin: "
+
+msgid "Temp step: "
+msgstr "Pas de température: "
+
+msgid "Max flowrate"
+msgstr "Débit maximal"
+
+msgid "Max volumetric speed test"
+msgstr "Test de vitesse volumétrique maximale"
+
+msgid "Start volumetric speed: "
+msgstr "Vitesse volumétrique Début: "
+
+msgid "End volumetric speed: "
+msgstr "Vitesse volumétrique Fin: "
+
 msgid "PA Calibration"
-msgstr ""
-
-msgid "DDE"
-msgstr ""
-
-msgid "Bowden"
-msgstr ""
-
-msgid "Extruder type"
-msgstr ""
-
-msgid "PA Tower"
-msgstr ""
+msgstr "PA Calibration"
 
 msgid "PA Line"
-msgstr ""
+msgstr "PA Ligne"
 
-msgid "Method"
-msgstr ""
+msgid "PA Tower"
+msgstr "PA Tour"
+
+msgid "Start speed: "
+msgstr "Vitesse Début: "
+
+msgid "End speed: "
+msgstr "Vitesse Fin: "
+
+msgid "step: "
+msgstr "Pas: "
 
 msgid "Start PA: "
-msgstr ""
+msgstr "PA Début: "
 
 msgid "End PA: "
-msgstr ""
+msgstr "PA Fin: "
 
 msgid "PA step: "
-msgstr ""
+msgstr "PA Pas: "
 
 msgid "Print numbers"
-msgstr ""
+msgstr "Imprimer nombres"
+
+msgid "More..."
+msgstr "Plus..."
 
 msgid ""
 "Please input valid values:\n"
@@ -8753,81 +9023,11 @@ msgid ""
 "End PA: > Start PA\n"
 "PA step: >= 0.001)"
 msgstr ""
+"Veuillez saisir des valeurs valides :\n"
+"Début PA : >= 0.0\n"
+"PA final : > Début PA\n"
+"Pas PA : >= 0.001)"
 
-msgid "Temperature calibration"
-msgstr ""
-
-msgid "PLA"
-msgstr ""
-
-msgid "ABS/ASA"
-msgstr ""
-
-msgid "PETG"
-msgstr ""
-
-msgid "TPU"
-msgstr ""
-
-msgid "PA-CF"
-msgstr ""
-
-msgid "PET-CF"
-msgstr ""
-
-msgid "Filament type"
-msgstr ""
-
-msgid "Start temp: "
-msgstr ""
-
-msgid "End end: "
-msgstr ""
-
-msgid "Temp step: "
-msgstr ""
-
-msgid ""
-"Please input valid values:\n"
-"Start temp: <= 350\n"
-"End temp: >= 180\n"
-"Start temp > End temp + 5)"
-msgstr ""
-
-msgid "Max volumetric speed test"
-msgstr ""
-
-msgid "Start volumetric speed: "
-msgstr ""
-
-msgid "End volumetric speed: "
-msgstr ""
-
-msgid "step: "
-msgstr ""
-
-msgid ""
-"Please input valid values:\n"
-"start > 0 step >= 0\n"
-"end > start + step)"
-msgstr ""
-
-msgid "VFA test"
-msgstr ""
-
-msgid "Start speed: "
-msgstr ""
-
-msgid "End speed: "
-msgstr ""
-
-msgid ""
-"Please input valid values:\n"
-"start > 10 step >= 0\n"
-"end > start + step)"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
 "Did you know how to control view and object/part selection with mouse and "
@@ -8837,7 +9037,6 @@ msgstr ""
 "Saviez-vous comment contrôler la vue et la sélection d'objets/de pièces avec "
 "la souris et l'écran tactile dans la scène 3D ?"
 
-#: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
 "Cut Tool\n"
 "Did you know that you can cut a model at any angle and position with the "
@@ -8847,7 +9046,6 @@ msgstr ""
 "Saviez-vous que vous pouvez couper un modèle à n'importe quel angle et "
 "position avec l'outil de coupe ?"
 
-#: resources/data/hints.ini: [hint:Fix Model]
 msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
@@ -8857,7 +9055,6 @@ msgstr ""
 "Saviez-vous que vous pouvez réparer un modèle 3D corrompu pour éviter de "
 "nombreux problèmes de découpage ?"
 
-#: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
 "Timelapse\n"
 "Did you know that you can generate a timelapse video during each print?"
@@ -8866,7 +9063,6 @@ msgstr ""
 "Saviez-vous que vous pouvez générer une vidéo timelapse lors de chaque "
 "impression ?"
 
-#: resources/data/hints.ini: [hint:Auto-Arrange]
 msgid ""
 "Auto-Arrange\n"
 "Did you know that you can auto-arrange all objects in your project?"
@@ -8875,7 +9071,6 @@ msgstr ""
 "Saviez-vous que vous pouvez classer automatiquement tous les objets de votre "
 "projet ?"
 
-#: resources/data/hints.ini: [hint:Auto-Orient]
 msgid ""
 "Auto-Orient\n"
 "Did you know that you can rotate objects to an optimal orientation for "
@@ -8885,7 +9080,6 @@ msgstr ""
 "Saviez-vous que vous pouvez faire pivoter des objets dans une orientation "
 "optimale pour l'impression par un simple clic ?"
 
-#: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
 "Lay on Face\n"
 "Did you know that you can quickly orient a model so that one of its faces "
@@ -8897,7 +9091,6 @@ msgstr ""
 "qu'une de ses faces se trouve sur le plateau d'impression ? Sélectionnez la "
 "fonction \"Placer à plat\" ou appuyez sur la touche <b>F</b>."
 
-#: resources/data/hints.ini: [hint:Object List]
 msgid ""
 "Object List\n"
 "Did you know that you can view all objects/parts in a list and change "
@@ -8907,7 +9100,6 @@ msgstr ""
 "Saviez-vous que vous pouvez visualiser tous les objets/pièces dans une liste "
 "et modifier les paramètres de chaque objet/pièce ?"
 
-#: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
 "Simplify Model\n"
 "Did you know that you can reduce the number of triangles in a mesh using the "
@@ -8920,7 +9112,6 @@ msgstr ""
 "droit de la souris sur le modèle et sélectionnez Simplifier le modèle. Pour "
 "en savoir plus, consultez la documentation."
 
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
 "Slicing Parameter Table\n"
 "Did you know that you can view all objects/parts on a table and change "
@@ -8930,7 +9121,6 @@ msgstr ""
 "Saviez-vous que vous pouvez visualiser tous les objets/parties d'une table "
 "et modifier les paramètres de chaque objet/partie ?"
 
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
 msgid ""
 "Split to Objects/Parts\n"
 "Did you know that you can split a big object into small ones for easy "
@@ -8940,7 +9130,6 @@ msgstr ""
 "Saviez-vous que vous pouvez diviser un grand objet en petits objets pour "
 "faciliter la colorisation ou l'impression ?"
 
-#: resources/data/hints.ini: [hint:Subtract a Part]
 msgid ""
 "Subtract a Part\n"
 "Did you know that you can subtract one mesh from another using the Negative "
@@ -8953,7 +9142,6 @@ msgstr ""
 "exemple, créer des trous facilement redimensionnables directement dans Bambu "
 "Studio. Pour en savoir plus, consultez la documentation."
 
-#: resources/data/hints.ini: [hint:STEP]
 msgid ""
 "STEP\n"
 "Did you know that you can improve your print quality by slicing a STEP file "
@@ -8968,7 +9156,6 @@ msgstr ""
 "d'obtenir des résultats plus fluides qu'avec un STL de moindre résolution. "
 "Essayez-le !"
 
-#: resources/data/hints.ini: [hint:Z seam location]
 msgid ""
 "Z seam location\n"
 "Did you know that you can customize the location of the Z seam, and even "
@@ -8980,7 +9167,6 @@ msgstr ""
 "en le peignant directement sur votre impression afin de le rendre moins "
 "visible ? Cela améliore l’aspect général de votre modèle. Découvrez-le !"
 
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
 "Fine-tuning for flow rate\n"
 "Did you know that flow rate can be fine-tuned for even better-looking "
@@ -8993,7 +9179,6 @@ msgstr ""
 "améliorer la finition générale du modèle imprimé en procédant à un réglage "
 "fin."
 
-#: resources/data/hints.ini: [hint:Split your prints into plates]
 msgid ""
 "Split your prints into plates\n"
 "Did you know that you can split a model that has a lot of parts into "
@@ -9005,8 +9190,6 @@ msgstr ""
 "pièces en plusieurs plateaux individuels prêts à être imprimés ? Cela "
 "simplifie le processus de suivi de toutes les pièces."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive "
@@ -9016,7 +9199,6 @@ msgstr ""
 "Saviez-vous que vous pouvez imprimer un modèle encore plus rapidement en "
 "utilisant l'option Adaptive Layer Height ? Vérifiez-le !"
 
-#: resources/data/hints.ini: [hint:Support painting]
 msgid ""
 "Support painting\n"
 "Did you know that you can paint the location of your supports? This feature "
@@ -9028,7 +9210,6 @@ msgstr ""
 "fonction permet de placer facilement le matériel de support uniquement sur "
 "les sections du modèle qui en ont réellement besoin."
 
-#: resources/data/hints.ini: [hint:Different types of supports]
 msgid ""
 "Different types of supports\n"
 "Did you know that you can choose from multiple types of supports? Tree "
@@ -9041,7 +9222,6 @@ msgstr ""
 "économisant du filament et en améliorant la vitesse d'impression. Découvrez-"
 "les !"
 
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
 msgid ""
 "Printing Silk Filament\n"
 "Did you know that Silk filament needs special consideration to print it "
@@ -9053,7 +9233,6 @@ msgstr ""
 "pour être imprimé avec succès ? Une température plus élevée et une vitesse "
 "plus faible sont toujours recommandées pour obtenir les meilleurs résultats."
 
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
 "Brim for better adhesion\n"
 "Did you know that when printing models have a small contact interface with "
@@ -9063,17 +9242,20 @@ msgstr ""
 "Saviez-vous que lorsque les modèles d'impression ont une petite interface de "
 "contact avec la surface d'impression, il est recommandé d'utiliser un bord ?"
 
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
 msgid ""
 "Set parameters for multiple objects\n"
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
 "Définir des paramètres pour plusieurs objets\n"
-"Saviez-vous que vous pouvez définir des paramètres de tranchage pour tous "
+"Saviez-vous que vous pouvez définir des paramètres de découpe pour tous "
 "les objets sélectionnés en même temps ?"
 
-#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
+msgstr ""
+"Améliorez la précision de la coque en ajustant l'espacement des parois extérieures. Cela améliore également la cohérence des couches."
+
 msgid ""
 "Stack objects\n"
 "Did you know that you can stack objects as a whole one?"
@@ -9081,7 +9263,6 @@ msgstr ""
 "Empiler des objets\n"
 "Saviez-vous que vous pouvez empiler des objets pour en faire un seul ?"
 
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
 msgid ""
 "Flush into support/objects/infill\n"
 "Did you know that you can save the wasted filament by flushing them into "
@@ -9091,7 +9272,6 @@ msgstr ""
 "Saviez-vous que vous pouvez économiser le filament gaspillé en le purgeant "
 "dans le support/objets/remplissage pendant le changement de filament ?"
 
-#: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
@@ -9114,25 +9294,6 @@ msgstr ""
 #~ "Too large layer height.\n"
 #~ "Reset to 0.2"
 #~ msgstr "Hauteur de couche trop grande. Réinitialiser à 0.2"
-
-#~ msgid ""
-#~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print "
-#~ "fastly"
-#~ msgstr ""
-#~ "Le moteur Arachne ne fonctionne que lorsque le ralentissement du surplomb "
-#~ "est désactivé.\n"
-#~ "Cela peut entraîner une baisse de la qualité de la surface du surplomb "
-#~ "lorsque l'impression est rapide."
-
-#~ msgid ""
-#~ "Disable overhang slowing down automatically? \n"
-#~ "Yes - Enable arachne and disable overhang slowing down\n"
-#~ "No  - Give up using arachne this time"
-#~ msgstr ""
-#~ "Désactiver automatiquement le ralentissement du surplomb ? \n"
-#~ "Oui - Activez Arachne et désactivez le ralentissement en surplomb.\n"
-#~ "Non - Renoncer à utiliser Arachne cette fois-ci"
 
 #~ msgid "Line method - DDE"
 #~ msgstr "Méthode Ligne - DDE"
@@ -9232,9 +9393,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid "Plate %d: %s does not support filament %s\n"
 #~ msgstr "Plateau %d : %s ne prend pas en charge le filament %s.\n"
-
-#~ msgid "Skirt height"
-#~ msgstr "Hauteur de la bordure"
 
 #~ msgid ""
 #~ "\n"
