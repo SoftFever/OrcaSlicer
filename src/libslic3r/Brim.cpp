@@ -868,7 +868,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         double brimWidthRaw = configBrimWidthByVolumeGroups(adhension, maxSpeed, groupVolumePtrs, volumeGroup.slices, groupHeight);
                         brim_width = scale_(floor(brimWidthRaw / flowWidth / 2) * flowWidth * 2);
                     }
-
                     for (const ExPolygon& ex_poly : volumeGroup.slices) {
                         // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated
                         float brim_width_mod;
@@ -984,9 +983,11 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         bedExPoly.front().translate(scale_(plateOffset.x()), scale_(plateOffset.y()));
         no_brim_area.push_back(bedExPoly.front());
     }
-    for (const PrintObject* object : print.objects())
-        if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
+    for (const PrintObject* object : print.objects()) {
+        if (brimAreaMap.find(object->id()) != brimAreaMap.end())
+        {
             brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], no_brim_area);
+        }
 
         if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
             supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], no_brim_area);

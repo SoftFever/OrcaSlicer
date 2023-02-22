@@ -763,8 +763,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_type", coEnum);
     def->label = L("Brim type");
     def->category = L("Support");
-    def->tooltip = L("This controls brim position including outer side of models, inner side of holes or both. "
-                     "Auto means both the brim position and brim width is analysed and calculated automatically");
+    def->tooltip = L("This controls the generation of the brim at outer side of models. "
+                     "Auto means the brim width is analysed and calculated automatically.");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
     def->enum_values.emplace_back("outer_only");
