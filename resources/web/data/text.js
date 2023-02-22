@@ -1,5 +1,5 @@
 var LangText={
- "en_EN":{
+ "en":{
 		"t1":"Welcome to Bambu Studio",
 		"t2":"Bambu Studio will be setup in several steps. Let's start!",
 		"t3":"User Agreement",
