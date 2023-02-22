@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-22 10:33+0800\n"
+"POT-Creation-Date: 2023-02-22 18:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1620,13 +1620,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm\\u00B3"
+msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -6022,9 +6022,8 @@ msgid "Brim type"
 msgstr ""
 
 msgid ""
-"This controls brim position including outer side of models, inner side of "
-"holes or both. Auto means both the brim position and brim width is analysed "
-"and calculated automatically"
+"This controls the generation of the brim at outer side of models. Auto means "
+"the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "Brim-object gap"
@@ -6321,9 +6320,6 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"
