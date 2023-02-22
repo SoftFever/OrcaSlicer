@@ -367,6 +367,13 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
     else {
         m_comboBox_filament->Show(en);
         m_readonly_filament->Show(!en);
+
+        if ( !is_virtual_tray() ) {
+            m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
+        }
+        else {
+            m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
+        }
         m_tip_readonly->Show(!en);
     }
 }
