@@ -23,3 +23,6 @@ deps/build-linux/*
 install_*
 build_*/
 SVG
+Dockerfile
+DockerBuild.sh
+DockerRun.sh
