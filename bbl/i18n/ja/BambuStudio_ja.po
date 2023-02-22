@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-21 18:18+0800\n"
+"POT-Creation-Date: 2023-02-22 10:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -365,10 +365,10 @@ msgstr "継ぎ目ペイント"
 msgid "Remove selection"
 msgstr "選択を削除"
 
-msgid "Shift + Mouse movement"
+msgid "Shift + Mouse move up or dowm"
 msgstr ""
 
-msgid "Rotate preview text"
+msgid "Rotate text"
 msgstr ""
 
 msgid "Text shape"
@@ -400,7 +400,7 @@ msgstr ""
 msgid "Surface"
 msgstr ""
 
-msgid "Horizontal"
+msgid "Horizontal text"
 msgstr ""
 
 msgid "Notice"
@@ -1653,14 +1653,14 @@ msgstr "ベッド温度"
 msgid "Max volumetric speed"
 msgstr "最大体積速度"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "u2103"
 
 msgid "Bed temperature"
 msgstr "ベッド温度"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mmu00B3"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -3565,12 +3565,6 @@ msgstr "アップロードを取消し"
 
 msgid "Slice ok."
 msgstr "スライス完了"
-
-msgid "Export G-Code."
-msgstr "G-codeにエクスポート"
-
-msgid "Export."
-msgstr "エクスポート"
 
 msgid "Jump to"
 msgstr "確認"
@@ -6614,6 +6608,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "プライムタワー上最小フラッシュ量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "フィラメントロード時間"
 
@@ -8099,6 +8096,12 @@ msgid ""
 "their size or thickness and retry.\n"
 msgstr ""
 
+msgid ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "サポート: 積層%dのツールパスを生成"
@@ -8369,18 +8372,18 @@ msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
 
+#~ msgid "Export G-Code."
+#~ msgstr "G-codeにエクスポート"
+
+#~ msgid "Export."
+#~ msgstr "エクスポート"
+
 #~ msgid "Modify"
 #~ msgstr "修正"
 
 #~ msgid ""
 #~ " will be closed before creating a new model. Do you want to continue?"
 #~ msgstr "を閉じてから新しいモデルを作成します、続行しますか？"
-
-#~ msgid "\\u2103"
-#~ msgstr "u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mmu00B3"
 
 #~ msgid ""
 #~ "\n"

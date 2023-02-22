@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-21 18:18+0800\n"
+"POT-Creation-Date: 2023-02-22 10:33+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -367,11 +367,11 @@ msgstr "Z缝绘制"
 msgid "Remove selection"
 msgstr "移除绘制"
 
-msgid "Shift + Mouse movement"
-msgstr ""
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + 鼠标上移或下移"
 
-msgid "Rotate preview text"
-msgstr ""
+msgid "Rotate text"
+msgstr "旋转文字"
 
 msgid "Text shape"
 msgstr "文本形状"
@@ -389,21 +389,21 @@ msgid "Embeded"
 msgstr ""
 
 msgid "Text Gap"
-msgstr ""
+msgstr "文字间距"
 
 msgid "Angle"
-msgstr ""
+msgstr "角度"
 
 msgid ""
 "Embeded\n"
 "depth"
-msgstr ""
+msgstr "内嵌深度"
 
 msgid "Surface"
-msgstr ""
+msgstr "附着曲面"
 
-msgid "Horizontal"
-msgstr ""
+msgid "Horizontal text"
+msgstr "水平文字"
 
 msgid "Notice"
 msgstr "通知"
@@ -1636,14 +1636,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -3551,12 +3551,6 @@ msgstr "取消上传"
 
 msgid "Slice ok."
 msgstr "切片完成."
-
-msgid "Export G-Code."
-msgstr "导出G-Code."
-
-msgid "Export."
-msgstr "导出。"
 
 msgid "Jump to"
 msgstr "跳转到"
@@ -6527,6 +6521,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -7967,6 +7964,14 @@ msgid ""
 msgstr ""
 "没有检测到层。您可能需要修复STL文件，或检查模型尺寸、厚度等，之后再重试。\n"
 
+msgid ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
+msgstr ""
+"对象的XY尺寸补偿不会生效，因为在此对象上做过涂色操作。\n"
+"XY尺寸补偿不能与涂色功能一起使用。"
+
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "支撑：正在生成层%d的走线路径"
@@ -8242,6 +8247,12 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Export G-Code."
+#~ msgstr "导出G-Code."
+
+#~ msgid "Export."
+#~ msgstr "导出。"
 
 #~ msgid "Modify"
 #~ msgstr "修改"

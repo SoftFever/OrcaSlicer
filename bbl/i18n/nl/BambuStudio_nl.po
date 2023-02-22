@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-21 18:18+0800\n"
+"POT-Creation-Date: 2023-02-22 10:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -369,10 +369,10 @@ msgstr "Naad schilderen"
 msgid "Remove selection"
 msgstr "Verwijder selectie"
 
-msgid "Shift + Mouse movement"
+msgid "Shift + Mouse move up or dowm"
 msgstr ""
 
-msgid "Rotate preview text"
+msgid "Rotate text"
 msgstr ""
 
 msgid "Text shape"
@@ -404,7 +404,7 @@ msgstr ""
 msgid "Surface"
 msgstr ""
 
-msgid "Horizontal"
+msgid "Horizontal text"
 msgstr ""
 
 msgid "Notice"
@@ -1712,14 +1712,14 @@ msgstr "Bed Temperatuur"
 msgid "Max volumetric speed"
 msgstr "Maximale volumetrische snelheid"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Printbed temperatuur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -3706,12 +3706,6 @@ msgstr "Upload annuleren"
 
 msgid "Slice ok."
 msgstr "Slice gelukt"
-
-msgid "Export G-Code."
-msgstr "Exporteer naar G-Code"
-
-msgid "Export."
-msgstr "Exporteer."
 
 msgid "Jump to"
 msgstr "Ga naar"
@@ -6993,6 +6987,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Filament laadt tijd"
 
@@ -8624,6 +8621,12 @@ msgid ""
 "their size or thickness and retry.\n"
 msgstr ""
 
+msgid ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Support: toolpad genereren op laag %d"
@@ -8923,6 +8926,12 @@ msgstr ""
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
 
+#~ msgid "Export G-Code."
+#~ msgstr "Exporteer naar G-Code"
+
+#~ msgid "Export."
+#~ msgstr "Exporteer."
+
 #~ msgid "Modify"
 #~ msgstr "Aanpassen"
 
@@ -8930,12 +8939,6 @@ msgstr ""
 #~ " will be closed before creating a new model. Do you want to continue?"
 #~ msgstr ""
 #~ " wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "\n"

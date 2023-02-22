@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-21 18:18+0800\n"
+"POT-Creation-Date: 2023-02-22 10:33+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -367,10 +367,10 @@ msgstr ""
 msgid "Remove selection"
 msgstr ""
 
-msgid "Shift + Mouse movement"
+msgid "Shift + Mouse move up or dowm"
 msgstr ""
 
-msgid "Rotate preview text"
+msgid "Rotate text"
 msgstr ""
 
 msgid "Text shape"
@@ -402,7 +402,7 @@ msgstr ""
 msgid "Surface"
 msgstr ""
 
-msgid "Horizontal"
+msgid "Horizontal text"
 msgstr ""
 
 msgid "Notice"
@@ -1620,13 +1620,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm³"
+msgid "mm\\u00B3"
 msgstr ""
 
 msgid "Start calibration"
@@ -3452,12 +3452,6 @@ msgid "Cancel upload"
 msgstr ""
 
 msgid "Slice ok."
-msgstr ""
-
-msgid "Export G-Code."
-msgstr ""
-
-msgid "Export."
 msgstr ""
 
 msgid "Jump to"
@@ -6329,6 +6323,9 @@ msgstr ""
 msgid "Minimal purge on wipe tower"
 msgstr ""
 
+msgid "mm³"
+msgstr ""
+
 msgid "Filament load time"
 msgstr ""
 
@@ -7683,6 +7680,12 @@ msgstr ""
 msgid ""
 "No layers were detected. You might want to repair your STL file(s) or check "
 "their size or thickness and retry.\n"
+msgstr ""
+
+msgid ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
 msgstr ""
 
 #, possible-c-format, possible-boost-format

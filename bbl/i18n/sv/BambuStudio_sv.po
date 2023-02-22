@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-21 18:18+0800\n"
+"POT-Creation-Date: 2023-02-22 10:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -368,10 +368,10 @@ msgstr "Målning av sömmar"
 msgid "Remove selection"
 msgstr "Ta bort val"
 
-msgid "Shift + Mouse movement"
+msgid "Shift + Mouse move up or dowm"
 msgstr ""
 
-msgid "Rotate preview text"
+msgid "Rotate text"
 msgstr ""
 
 msgid "Text shape"
@@ -403,7 +403,7 @@ msgstr ""
 msgid "Surface"
 msgstr ""
 
-msgid "Horizontal"
+msgid "Horizontal text"
 msgstr ""
 
 msgid "Notice"
@@ -1686,14 +1686,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -3659,12 +3659,6 @@ msgstr "Avbryt uppladdning"
 
 msgid "Slice ok."
 msgstr "Beredning klar."
-
-msgid "Export G-Code."
-msgstr "Exportera G-kod."
-
-msgid "Export."
-msgstr "Exportera."
 
 msgid "Jump to"
 msgstr "Hoppa till"
@@ -6841,6 +6835,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
 
@@ -7866,8 +7863,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -8426,6 +8423,12 @@ msgid ""
 "their size or thickness and retry.\n"
 msgstr ""
 
+msgid ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Support: generera verktygsbana vid lager %d"
@@ -8724,18 +8727,18 @@ msgstr ""
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
 
+#~ msgid "Export G-Code."
+#~ msgstr "Exportera G-kod."
+
+#~ msgid "Export."
+#~ msgstr "Exportera."
+
 #~ msgid "Modify"
 #~ msgstr "Modifiera"
 
 #~ msgid ""
 #~ " will be closed before creating a new model. Do you want to continue?"
 #~ msgstr " avslutas innan en ny modell skapas. Vill du fortsätta?"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "\n"

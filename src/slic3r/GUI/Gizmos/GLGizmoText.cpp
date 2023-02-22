@@ -145,7 +145,7 @@ bool GLGizmoText::on_init()
 
     reset_text_info();
 
-    m_desc["rotate_text_caption"] = _L("Shift + Mouse movement");
+    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or dowm");
     m_desc["rotate_text"]         = _L("Rotate text");
 
     m_grabbers.push_back(Grabber());
@@ -836,7 +836,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
-    if (m_imgui->bbl_checkbox(_L("Horizontal"), m_keep_horizontal))
+    if (m_imgui->bbl_checkbox(_L("Horizontal text"), m_keep_horizontal))
         m_need_update_text = true;
 
     //ImGui::SameLine();

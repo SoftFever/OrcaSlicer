@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-21 18:18+0800\n"
+"POT-Creation-Date: 2023-02-22 10:33+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -365,10 +365,10 @@ msgstr "Seam painting"
 msgid "Remove selection"
 msgstr "Remove selection"
 
-msgid "Shift + Mouse movement"
+msgid "Shift + Mouse move up or dowm"
 msgstr ""
 
-msgid "Rotate preview text"
+msgid "Rotate text"
 msgstr ""
 
 msgid "Text shape"
@@ -400,7 +400,7 @@ msgstr ""
 msgid "Surface"
 msgstr ""
 
-msgid "Horizontal"
+msgid "Horizontal text"
 msgstr ""
 
 msgid "Notice"
@@ -1671,14 +1671,14 @@ msgstr "Bed Temperature"
 msgid "Max volumetric speed"
 msgstr "Massima velocità volumetrica"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Temperatura piano"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -3641,12 +3641,6 @@ msgstr "Cancel upload"
 
 msgid "Slice ok."
 msgstr "Slice complete"
-
-msgid "Export G-Code."
-msgstr "Esporta G-code."
-
-msgid "Export."
-msgstr "Esporta."
 
 msgid "Jump to"
 msgstr "Jump to"
@@ -6829,6 +6823,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Spurgo minimo sulla torre di pulitura"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Durata caricamento filamento"
 
@@ -8407,6 +8404,12 @@ msgid ""
 "their size or thickness and retry.\n"
 msgstr ""
 
+msgid ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Support: generate toolpath at layer %d"
@@ -8705,6 +8708,12 @@ msgstr ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 
+#~ msgid "Export G-Code."
+#~ msgstr "Esporta G-code."
+
+#~ msgid "Export."
+#~ msgstr "Esporta."
+
 #~ msgid "Modify"
 #~ msgstr "Modify"
 
@@ -8712,12 +8721,6 @@ msgstr ""
 #~ " will be closed before creating a new model. Do you want to continue?"
 #~ msgstr ""
 #~ " will be closed before creating a new model. Do you want to continue?"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "\n"
