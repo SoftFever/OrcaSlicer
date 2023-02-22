@@ -809,14 +809,13 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
     }
 
     ReleaseNoteDialog dlg;
-
-    if (!next_version_release_note.empty()) { 
+    if (!m_obj->ota_new_version_number.empty()) {
         dlg.update_release_note(next_version_release_note, version_number);
         dlg.ShowModal();
         return;
     }
 
-    if (!now_version_release_note.empty()) {
+    if (!m_obj->get_ota_version().empty()) {
         dlg.update_release_note(now_version_release_note, version_number);
         dlg.ShowModal();
         return;
