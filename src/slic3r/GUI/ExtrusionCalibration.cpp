@@ -660,8 +660,6 @@ void ExtrusionCalibration::update_combobox_filaments()
         }
 
         for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
-            if (filament_it->setting_id.empty()) continue;
-
             ConfigOption* printer_opt = filament_it->config.option("compatible_printers");
             ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
             for (auto printer_str : printer_strs->values) {
