@@ -35,6 +35,13 @@
 
 namespace Slic3r { namespace GUI {
 
+enum ActionButton {
+    ACTION_BTN_CALI     = 0,
+    ACTION_BTN_LOAD     = 1,
+    ACTION_BTN_UNLOAD   = 2,
+    ACTION_BTN_COUNT    = 3
+};
+
 enum class AMSRoadMode : int {
     AMS_ROAD_MODE_LEFT,
     AMS_ROAD_MODE_LEFT_RIGHT,
@@ -524,7 +531,7 @@ public:
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
     bool m_is_none_ams_mode{false};
-	void SetActionState(AMSAction action, bool support_virtual_tray = true);
+	void SetActionState(bool button_status[]);
     void EnterNoneAMSMode(bool support_vt_load = false);
     void ExitNoneAMSMode();
 

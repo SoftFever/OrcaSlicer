@@ -383,7 +383,7 @@ protected:
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
-    void update_ams_control_state(std::string ams_id, bool is_support_virtual_tray);
+    void update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();

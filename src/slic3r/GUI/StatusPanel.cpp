@@ -1962,8 +1962,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_vt_tray = true;
 
     // set segment 1, 2
-    if (m_ams_control->GetCurentAms() != std::to_string(VIRTUAL_TRAY_ID)) {
-        if (obj->m_tray_now != "255" && obj->is_filament_at_extruder()) {
+    if (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID)) {
+        if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
             m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
         }
         else if (obj->m_tray_now != "255") {
@@ -1977,7 +1977,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     // set segment 3
-    if (m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_ID)) {
+    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
         m_ams_control->SetExtruder(obj->is_filament_at_extruder(), obj->vt_tray.get_color());
     } else {
         m_ams_control->SetExtruder(obj->is_filament_at_extruder(), m_ams_control->GetCanColour(curr_ams_id, obj->m_tray_id));
@@ -2078,34 +2078,67 @@ void StatusPanel::update_ams(MachineObject *obj)
         } catch (...) {}
     }
 
-    update_ams_control_state(curr_ams_id, is_support_extrusion_cali);
-}
-
-void StatusPanel::update_ams_control_state(std::string ams_id, bool is_support_virtual_tray)
-{
-    // update load/unload enable state
-    if (obj->is_in_extrusion_cali()) {
-        m_ams_control->SetActionState(AMSAction::AMS_ACTION_CALI, is_support_virtual_tray);
-    }
-    else if (!obj->has_ams()) {
-        m_ams_control->SetActionState(AMSAction::AMS_ACTION_NOAMS, is_support_virtual_tray);
-    }
-    else if (obj->is_in_printing() && !obj->can_resume()) {
-        m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING, is_support_virtual_tray);
-    }
-    else {
-        if (obj->ams_status_main != AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-            if (obj->m_tray_now == "255") {
-                m_ams_control->SetActionState(AMSAction::AMS_ACTION_LOAD, is_support_virtual_tray);
-            }
-            else {
-                m_ams_control->SetActionState(AMSAction::AMS_ACTION_NORMAL, is_support_virtual_tray);
-            }
+    bool is_curr_tray_selected = false;
+    if (!curr_ams_id.empty() && !curr_can_id.empty()) {
+        if (curr_can_id == obj->m_tray_now) {
+            is_curr_tray_selected = true;
         }
         else {
-            m_ams_control->SetActionState(AMSAction::AMS_ACTION_PRINTING, is_support_virtual_tray);
+
+            std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
+            if (it == obj->amsList.end()) {
+                BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
+                return;
+            }
+            auto tray_it = it->second->trayList.find(curr_can_id);
+            if (tray_it == it->second->trayList.end()) {
+                BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_can_id << " failed";
+                return;
+            }
+
+            if (!tray_it->second->is_exists) {
+                is_curr_tray_selected = true;
+            }
         }
     }
+    else {
+        is_curr_tray_selected = true;
+    }
+        
+    update_ams_control_state(is_support_extrusion_cali, is_curr_tray_selected);
+}
+
+void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected)
+{
+    bool enable[ACTION_BTN_COUNT];
+
+    // set default value to true
+
+    if (obj->is_in_printing() && !obj->can_resume()) {
+        enable[ACTION_BTN_LOAD] = false;
+        enable[ACTION_BTN_UNLOAD] = false;
+    }
+
+    if (!is_support_virtual_tray) {
+        enable[ACTION_BTN_CALI] = false;
+    } else {
+        // update load/unload enable state
+        if (obj->is_in_extrusion_cali()) {
+            enable[ACTION_BTN_LOAD] = false;
+            enable[ACTION_BTN_UNLOAD] = false;
+        }
+    }
+    
+    // select current
+    if (is_curr_tray_selected) {
+        enable[ACTION_BTN_LOAD] = false;
+    }
+
+    if (obj->m_tray_now == "255") {
+        enable[ACTION_BTN_UNLOAD] = false;
+    }
+
+    m_ams_control->SetActionState(enable);
 }
 
 void StatusPanel::update_cali(MachineObject *obj)
@@ -2739,12 +2772,27 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
         m_filament_setting_dlg->obj = obj;
         try {
             m_filament_setting_dlg->tray_id = VIRTUAL_TRAY_ID;
+            std::string sn_number;
+            std::string filament;
+            std::string temp_max;
+            std::string temp_min;
             wxString k_val;
             wxString n_val;
             k_val = wxString::Format("%.3f", obj->vt_tray.k);
             n_val = wxString::Format("%.3f", obj->vt_tray.n);
+            wxColor color = AmsTray::decode_color(obj->vt_tray.color);
+            m_filament_setting_dlg->set_color(color);
+            m_filament_setting_dlg->ams_filament_id = obj->vt_tray.setting_id;
+            m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_tray.tag_uid);
+            if (!m_filament_setting_dlg->m_is_third) {
+                sn_number = obj->vt_tray.uuid;
+                filament = obj->vt_tray.sub_brands;
+                temp_max = obj->vt_tray.nozzle_temp_max;
+                temp_min = obj->vt_tray.nozzle_temp_min;
+            }
+
             m_filament_setting_dlg->SetPosition(m_ams_control->GetScreenPosition());
-            m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
+            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
         }
         catch (...) {
             ;
@@ -2798,7 +2846,7 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
     if (obj) {
         std::string curr_ams_id = m_ams_control->GetCurentAms();
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            update_ams_control_state(curr_ams_id, true);
+            //update_ams_control_state(curr_ams_id, true);
             return;
         } else {
             std::string curr_can_id = event.GetString().ToStdString();
@@ -2818,7 +2866,7 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
             } catch (...) {
                 ;
             }
-            update_ams_control_state(curr_ams_id, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
+            //update_ams_control_state(curr_ams_id, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
         }
     }
 }

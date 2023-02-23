@@ -1471,11 +1471,10 @@ void AmsCans::PlayRridLoading(wxString canid)
 
 std::string AmsCans::GetCurrentCan()
 {
-    if (m_canlib_selection > -1 && m_canlib_selection < m_can_lib_list.size()) {
-        CanLibs *lib = m_can_lib_list[m_canlib_selection];
-        return lib->canLib->m_info.can_id;
-    }
-    return "";
+    if (m_canlib_selection < 0)
+        return "";
+
+    return wxString::Format("%d", m_canlib_selection).ToStdString();
 }
 
 void AmsCans::StopRridLoading(wxString canid)
@@ -2028,48 +2027,16 @@ wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
     return col;
 }
 
-void AMSControl::SetActionState(AMSAction action, bool support_virtual_tray)
+void AMSControl::SetActionState(bool button_status[])
 {
-    m_button_area->Layout();
-    m_button_area->Fit();
+    if (button_status[ActionButton::ACTION_BTN_CALI]) m_button_extrusion_cali->Enable();
+    else m_button_extrusion_cali->Disable();
 
-    switch (action) {
-    case Slic3r::GUI::AMSAction::AMS_ACTION_NONE: break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_LOAD: 
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Enable();
-        m_button_extruder_back->Disable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_UNLOAD: 
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Enable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_PRINTING: 
-        m_button_extrusion_cali->Disable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Disable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_NORMAL:
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Enable();
-        m_button_extruder_back->Enable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_CALI:
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Disable();
-        break; 
-    case Slic3r::GUI::AMSAction::AMS_ACTION_NOAMS:
-        if (support_virtual_tray)
-            m_button_extrusion_cali->Enable();
-        else
-            m_button_extrusion_cali->Disable();
-        m_button_extruder_feed->Enable();
-        m_button_extruder_back->Enable();
-        break;
-    default: break;
-    }
+    if (button_status[ActionButton::ACTION_BTN_LOAD]) m_button_extruder_feed->Enable();
+    else m_button_extruder_feed->Disable();
+
+    if (button_status[ActionButton::ACTION_BTN_UNLOAD]) m_button_extruder_back->Enable();
+    else m_button_extruder_back->Disable();
 }
 
 void AMSControl::EnterNoneAMSMode(bool support_vt_load)
