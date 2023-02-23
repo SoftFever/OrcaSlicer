@@ -1641,9 +1641,11 @@ void StatusPanel::update_error_message()
 
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
             if (!error_msg.IsEmpty()) {
-                error_msg = wxString::Format("%s[%s]",
+                auto time = wxDateTime::Now();
+                auto show_time = time.Format("%H%M%S");
+                error_msg = wxString::Format("%s[%s %s]",
                     error_msg,
-                    print_error_str);
+                    print_error_str, show_time);
                 show_error_message(error_msg, print_error_str);
             } else {
                 BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
