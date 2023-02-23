@@ -710,11 +710,9 @@ void GCodeViewer::SequentialView::render(const bool has_render_path, float legen
     if (wxGetApp().is_editor())
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
 #endif
-    //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
-    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
-        if (has_render_path)
-            gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
-    }
+    if (has_render_path)
+        gcode_window.render(legend_height + 2, std::max(10.f, (float)canvas_height - 40), (float)canvas_width,
+                            static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -994,11 +992,10 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_gcode_result = &gcode_result;
     m_only_gcode_in_preview = only_gcode;
 
-    if (mode == ConfigOptionMode::comDevelop) {
-        m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
-            // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).
-            std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
-    }
+    m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
+                                              // Stealing out lines_ends should be safe because this gcode_result is
+                                              // processed only once (see the 1st if in this function).
+                                              std::move(const_cast<std::vector<size_t> &>(gcode_result.lines_ends)));
 
     //BBS: add only gcode mode
     //if (wxGetApp().is_gcode_viewer())
@@ -1018,6 +1015,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_settings_ids = gcode_result.settings_ids;
     m_filament_diameters = gcode_result.filament_diameters;
     m_filament_densities = gcode_result.filament_densities;
+    m_sequential_view.m_show_gcode_window = false;
 
     //BBS: always load shell at preview
     /*if (wxGetApp().is_editor())
@@ -1282,14 +1280,15 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 
     //BBS fixed bottom_margin for space to render horiz slider
     int bottom_margin = 64;
-
-    //BBS always render the hotend-marker
-    //if (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path) {
+    m_sequential_view.m_show_gcode_window =
+        m_sequential_view.m_show_gcode_window ||
+        (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path);
+    if (m_sequential_view.m_show_gcode_window) {
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
         m_sequential_view.render(!m_no_render_path, legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type);
-    //}
+    }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
