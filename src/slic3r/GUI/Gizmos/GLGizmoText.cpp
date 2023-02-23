@@ -214,7 +214,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 {
     std::string text = std::string(m_text);
     if (text.empty())
-        return false;
+        return true;
 
     const ModelObject *  mo        = m_c->selection_info()->model_object();
     if (m_is_modify) {
@@ -222,7 +222,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         mo                         = selection.get_model()->objects[m_object_idx];
     }
     if (mo == nullptr)
-        return false;
+        return true;
 
     const Selection &    selection = m_parent.get_selection();
     const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
@@ -239,7 +239,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         if (shift_down && !alt_down && !control_down) {
             float angle = m_rotate_angle + 0.5 * (m_mouse_position - mouse_position).y();
             if (angle == 0)
-                return false;
+                return true;
 
             while (angle < 0)
                 angle += 360;
@@ -263,7 +263,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         }
 
         if (m_is_modify)
-            return false;
+            return true;
 
         Vec3f  normal                       = Vec3f::Zero();
         Vec3f  hit                          = Vec3f::Zero();
@@ -298,13 +298,13 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         }
 
         if (closest_hit == Vec3f::Zero() && closest_normal == Vec3f::Zero())
-            return false;
+            return true;
 
         m_rr = {mouse_position, closest_hit_mesh_id, closest_hit, closest_normal};
 
         Plater *plater = wxGetApp().plater();
         if (!plater)
-            return false;
+            return true;
 
         ModelObject *model_object = selection.get_model()->objects[m_object_idx];
         if (m_preview_text_volume_id > 0) {
@@ -324,7 +324,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 void GLGizmoText::on_set_state()
 {
     if (m_state == EState::On) {
-        if (m_parent.get_selection().is_single_volume()) {
+        if (m_parent.get_selection().is_single_volume() || m_parent.get_selection().is_single_modifier()) {
             ModelVolume *model_volume = get_selected_single_volume(m_object_idx, m_volume_idx);
             TextInfo     text_info    = model_volume->get_text_info();
             if (!text_info.m_text.empty()) {
@@ -643,7 +643,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
             m_volume_idx = -1;
             reset_text_info();
         }
-    } else if (selection.is_single_volume()) {
+    } else if (selection.is_single_volume() || selection.is_single_modifier()) {
         int object_idx, volume_idx;
         ModelVolume *model_volume = get_selected_single_volume(object_idx, volume_idx);
         if ((object_idx != m_object_idx || (object_idx == m_object_idx && volume_idx != m_volume_idx))
@@ -895,7 +895,7 @@ void GLGizmoText::show_tooltip_information(float x, float y)
 
 ModelVolume *GLGizmoText::get_selected_single_volume(int &out_object_idx, int &out_volume_idx) const
 {
-    if (m_parent.get_selection().is_single_volume()) {
+    if (m_parent.get_selection().is_single_volume() || m_parent.get_selection().is_single_modifier()) {
         const Selection &selection = m_parent.get_selection();
         const GLVolume * gl_volume = selection.get_volume(*selection.get_volume_idxs().begin());
         out_object_idx             = gl_volume->object_idx();
@@ -1460,6 +1460,7 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         ModelVolume *    new_model_volume = model_object->add_volume(std::move(mesh));
         new_model_volume->set_text_info(text_info);
         new_model_volume->name = model_volume->name;
+        new_model_volume->set_type(model_volume->type());
         if (model_volume->config.option("extruder"))
             new_model_volume->config.set("extruder", model_volume->config.extruder());
 
