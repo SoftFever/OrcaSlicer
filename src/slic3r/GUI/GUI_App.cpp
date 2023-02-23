@@ -1878,10 +1878,8 @@ void GUI_App::init_download_path()
         fs::path dp(down_path);
         if (!fs::exists(dp)) {
 
-            if (!fs::create_directory(dp)) {
-                std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
-                app_config->set("download_path", user_down_path);
-            }
+            std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
+            app_config->set("download_path", user_down_path);
         }
     }
 }
