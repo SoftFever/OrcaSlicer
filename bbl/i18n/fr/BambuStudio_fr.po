@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-22 18:04+0800\n"
+"POT-Creation-Date: 2023-02-23 17:50+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1218,27 +1218,6 @@ msgstr "Pas d'imprimante"
 msgid "..."
 msgstr ""
 
-msgid "Heat the nozzle"
-msgstr "Heat the nozzle"
-
-msgid "Cut filament"
-msgstr "filament coupé"
-
-msgid "Pull back current filament"
-msgstr "Retirer le filament actuel"
-
-msgid "Push new filament into extruder"
-msgstr "Push new filament into extruder"
-
-msgid "Purge old filament"
-msgstr "Purger l'ancien filament"
-
-msgid "Feed new filament from external spool"
-msgstr ""
-
-msgid "Confirm whether the filament has been extruded"
-msgstr ""
-
 msgid "?"
 msgstr "?"
 
@@ -1287,6 +1266,27 @@ msgstr "Etalonner de nouveau"
 
 msgid "Cancel calibration"
 msgstr "Annuler l'étalonnage"
+
+msgid "Heat the nozzle"
+msgstr "Heat the nozzle"
+
+msgid "Cut filament"
+msgstr "filament coupé"
+
+msgid "Pull back current filament"
+msgstr "Retirer le filament actuel"
+
+msgid "Push new filament into extruder"
+msgstr "Push new filament into extruder"
+
+msgid "Purge old filament"
+msgstr "Purger l'ancien filament"
+
+msgid "Feed new filament from external spool"
+msgstr ""
+
+msgid "Confirm whether the filament has been extruded"
+msgstr ""
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1661,6 +1661,9 @@ msgstr "Factor K"
 
 msgid "Factor N"
 msgstr "Factor N"
+
+msgid "Setting Virtual slot information while printing is not supported"
+msgstr ""
 
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Please input a valid value (K in 0~0.5)"

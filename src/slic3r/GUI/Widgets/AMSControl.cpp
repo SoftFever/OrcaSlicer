@@ -15,27 +15,6 @@ static const int VT_LOAD_STEP_COUNT = 4;
 
 static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
 
-static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
-    _L("Heat the nozzle"),
-    _L("Cut filament"), 
-    _L("Pull back current filament"),
-    _L("Push new filament into extruder"),
-    _L("Purge old filament"),
-};
-
-static wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
-    _L("Heat the nozzle"),
-    _L("Feed new filament from external spool"),
-    _L("Confirm whether the filament has been extruded"),
-    _L("Purge old filament"),
-};
-
-static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {
-    _L("Heat the nozzle"),
-    _L("Cut filament"),
-    _L("Pull back current filament")
-};
-
 wxDEFINE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
@@ -2154,6 +2133,27 @@ void AMSControl::msw_rescale()
 
 void AMSControl::UpdateStepCtrl()
 {
+    static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
+        _L("Heat the nozzle"),
+        _L("Cut filament"),
+        _L("Pull back current filament"),
+        _L("Push new filament into extruder"),
+        _L("Purge old filament"),
+    };
+
+    static wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
+        _L("Heat the nozzle"),
+        _L("Feed new filament from external spool"),
+        _L("Confirm whether the filament has been extruded"),
+        _L("Purge old filament"),
+    };
+
+    static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {
+        _L("Heat the nozzle"),
+        _L("Cut filament"),
+        _L("Pull back current filament")
+    };
+
     for (int i = 0; i < LOAD_STEP_COUNT; i++) {
         m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
     }

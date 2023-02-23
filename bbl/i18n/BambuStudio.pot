@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-22 18:04+0800\n"
+"POT-Creation-Date: 2023-02-23 17:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1179,27 +1179,6 @@ msgstr ""
 msgid "..."
 msgstr ""
 
-msgid "Heat the nozzle"
-msgstr ""
-
-msgid "Cut filament"
-msgstr ""
-
-msgid "Pull back current filament"
-msgstr ""
-
-msgid "Push new filament into extruder"
-msgstr ""
-
-msgid "Purge old filament"
-msgstr ""
-
-msgid "Feed new filament from external spool"
-msgstr ""
-
-msgid "Confirm whether the filament has been extruded"
-msgstr ""
-
 msgid "?"
 msgstr ""
 
@@ -1246,6 +1225,27 @@ msgid "Calibrate again"
 msgstr ""
 
 msgid "Cancel calibration"
+msgstr ""
+
+msgid "Heat the nozzle"
+msgstr ""
+
+msgid "Cut filament"
+msgstr ""
+
+msgid "Pull back current filament"
+msgstr ""
+
+msgid "Push new filament into extruder"
+msgstr ""
+
+msgid "Purge old filament"
+msgstr ""
+
+msgid "Feed new filament from external spool"
+msgstr ""
+
+msgid "Confirm whether the filament has been extruded"
 msgstr ""
 
 msgid ""
@@ -1588,6 +1588,9 @@ msgid "Factor K"
 msgstr ""
 
 msgid "Factor N"
+msgstr ""
+
+msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
 msgid "Please input a valid value (K in 0~0.5)"

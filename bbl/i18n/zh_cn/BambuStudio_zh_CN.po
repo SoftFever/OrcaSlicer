@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-22 18:04+0800\n"
+"POT-Creation-Date: 2023-02-23 17:50+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1179,27 +1179,6 @@ msgstr "无打印机"
 msgid "..."
 msgstr ""
 
-msgid "Heat the nozzle"
-msgstr "加热喷嘴"
-
-msgid "Cut filament"
-msgstr "切断耗材丝"
-
-msgid "Pull back current filament"
-msgstr "抽回耗材丝"
-
-msgid "Push new filament into extruder"
-msgstr "送出新的耗材丝到挤出机"
-
-msgid "Purge old filament"
-msgstr "冲刷旧耗材丝"
-
-msgid "Feed new filament from external spool"
-msgstr ""
-
-msgid "Confirm whether the filament has been extruded"
-msgstr ""
-
 msgid "?"
 msgstr "?"
 
@@ -1247,6 +1226,27 @@ msgstr "重新校准"
 
 msgid "Cancel calibration"
 msgstr "取消校准"
+
+msgid "Heat the nozzle"
+msgstr "加热喷嘴"
+
+msgid "Cut filament"
+msgstr "切断耗材丝"
+
+msgid "Pull back current filament"
+msgstr "抽回耗材丝"
+
+msgid "Push new filament into extruder"
+msgstr "送出新的耗材丝到挤出机"
+
+msgid "Purge old filament"
+msgstr "冲刷旧耗材丝"
+
+msgid "Feed new filament from external spool"
+msgstr "从外部料盘送入新的耗材丝"
+
+msgid "Confirm whether the filament has been extruded"
+msgstr "确认耗材丝是否已被挤出"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1593,7 +1593,7 @@ msgid "SN"
 msgstr "序列号"
 
 msgid "Setting AMS slot information while printing is not supported"
-msgstr "不支持在打印时修改AMS槽位信息"
+msgstr "不支持在打印时设置AMS槽位信息"
 
 msgid "Factors of dynamic flow cali"
 msgstr "动态流量标定系数"
@@ -1603,6 +1603,9 @@ msgstr "系数K"
 
 msgid "Factor N"
 msgstr "系数N"
+
+msgid "Setting Virtual slot information while printing is not supported"
+msgstr "不支持在打印时设置虚拟槽位信息"
 
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "请输入有效的数值 (K的范围为0~0.5）"
@@ -1750,10 +1753,10 @@ msgid "Print using materials mounted on the back of the case"
 msgstr ""
 
 msgid "Print with filaments in ams"
-msgstr ""
+msgstr "采用AMS里的材料打印"
 
 msgid "Print with filaments mounted on the back of the chassis"
-msgstr ""
+msgstr "采用挂载在机箱背部的材料打印"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -6198,8 +6201,7 @@ msgstr "Brim类型"
 msgid ""
 "This controls the generation of the brim at outer side of models. Auto means "
 "the brim width is analysed and calculated automatically."
-msgstr ""
-"设置外墙brim的生成方式，选择自动意味着brim的宽度会被自动分析计算。"
+msgstr "设置外墙brim的生成方式，选择自动意味着brim的宽度会被自动分析计算。"
 
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
