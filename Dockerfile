@@ -39,11 +39,22 @@ RUN apt-get update && apt-get install  -y \
     libwayland-dev \
     libwebkit2gtk-4.0-dev \
     libxkbcommon-dev \
+    locales \
+    locales-all \
     m4 \
     pkgconf \
     sudo \
     wayland-protocols \
     wget 
+
+# Change your locale here if you want.  See the output
+# of `locale -a` to pick the correct string formatting.
+ENV LC_ALL=en_US.utf8
+RUN locale-gen $LC_ALL
+
+# Set this so that Bambu Studio doesn't complain about
+# the CA cert path on every startup
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 COPY ./ BambuStudio
 
@@ -62,3 +73,20 @@ RUN ./BuildLinux.sh -s
 # Build AppImage
 ENV container podman
 RUN ./BuildLinux.sh -i
+
+# It's easier to run Bambu Studio as the same username,
+# UID and GID as your workstation.  Since we bind mount
+# your home directory into the container, it's handy
+# to keep permissions the same.  Just in case, defaults
+# are root.
+SHELL ["/bin/bash", "-l", "-c"]
+ARG USER=root
+ARG UID=0
+ARG GID=0
+RUN [[ "$UID" != "0" ]] \
+  && groupadd -g $GID $USER \
+  && useradd -u $UID -g $GID $USER
+
+# Using an entrypoint instead of CMD because the binary
+# accepts several command line arguments.
+ENTRYPOINT ["/BambuStudio/build/package/bin/bambu-studio"]
