@@ -932,6 +932,8 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
         filaments.select_preset_by_name(selected_filament_name, false);
     }
 
+    update_compatible(PresetSelectCompatibleType::Always);
+
     /* set selected preset */
     for (size_t i = 0; i < filament_presets.size(); ++i)
     {
@@ -1373,6 +1375,7 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", PRESET_FILAMENT_NAME,     filament_presets.front());
     for (unsigned i = 1; i < filament_presets.size(); ++i) {
         char name[64];
+        assert(!filament_presets[i].empty());
         sprintf(name, "filament_%02u", i);
         config.set("presets", name, filament_presets[i]);
     }
