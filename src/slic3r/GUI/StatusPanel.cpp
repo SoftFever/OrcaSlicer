@@ -1962,7 +1962,10 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_vt_tray = true;
 
     // set segment 1, 2
-    if (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID)) {
+    if ( obj->m_ams_id != curr_ams_id || obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID) ) {
+         m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    }
+    else {
         if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
             m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
         }
@@ -1972,8 +1975,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         else {
             m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         }
-    } else {
-        m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
     // set segment 3
