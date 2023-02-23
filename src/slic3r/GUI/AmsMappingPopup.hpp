@@ -114,6 +114,17 @@ public:
     void doRender(wxDC &dc);
 };
 
+class MappingContainer : public wxPanel
+{
+public:
+    wxBitmap  ams_mapping_item_container;
+    MappingContainer(wxWindow* parent);
+    ~MappingContainer();
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+};
+
 class AmsMapingPopup : public PopupWindow
 {
 public:

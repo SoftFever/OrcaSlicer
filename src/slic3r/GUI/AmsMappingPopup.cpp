@@ -245,8 +245,9 @@ void MaterialItem::doRender(wxDC &dc)
      m_sizer_list = new wxBoxSizer(wxVERTICAL);
      for (auto i = 0; i < AMS_TOTAL_COUNT; i++) {
          auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-         auto ams_mapping_item_container = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_mapping_container", this, 78), wxDefaultPosition,
-             wxSize(FromDIP(230), FromDIP(78)), 0);
+         /*auto ams_mapping_item_container = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_mapping_container", this, 78), wxDefaultPosition,
+             wxSize(FromDIP(230), FromDIP(78)), 0);*/
+         auto ams_mapping_item_container = new MappingContainer(this);
          ams_mapping_item_container->SetSizer(sizer_mapping_list);
          ams_mapping_item_container->Layout();
          //ams_mapping_item_container->Hide();
@@ -1052,5 +1053,57 @@ bool AmsIntroducePopup::ProcessLeftDown(wxMouseEvent& event) {
     return PopupWindow::ProcessLeftDown(event);
 }
 
+
+MappingContainer::MappingContainer(wxWindow* parent)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    Bind(wxEVT_PAINT, &MappingContainer::paintEvent, this);
+
+    ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container", this, 78);
+
+    SetMinSize(wxSize(FromDIP(230), FromDIP(78)));
+    SetMaxSize(wxSize(FromDIP(230), FromDIP(78)));
+}
+
+MappingContainer::~MappingContainer()
+{
+}
+
+
+void MappingContainer::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void MappingContainer::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void MappingContainer::doRender(wxDC& dc)
+{
+    dc.DrawBitmap(ams_mapping_item_container, 0, 0);
+}
 
 }} // namespace Slic3r::GUI
