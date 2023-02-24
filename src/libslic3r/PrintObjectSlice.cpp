@@ -563,15 +563,18 @@ void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons 
     std::vector<int> epsIndex;
     epsIndex.resize(eps.size(), -1);
     for (int ie = 0; ie != eps.size(); ie++) {
+        if (eps[ie].area() <= 0)
+            continue;
+        double minArea = eps[ie].area();
         for (int iv = 0; iv != gvss.size(); iv++) {
             auto clipedExPolys = diff_ex(eps[ie], gvss[iv].slices);
             double area = 0;
             for (const auto& ce : clipedExPolys) {
                 area += ce.area();
             }
-            if (eps[ie].area() > 0 && area / eps[ie].area() < 0.3) {
+            if (area < minArea) {
+                minArea = area;
                 epsIndex[ie] = iv;
-                break;
             }
         }
     }
