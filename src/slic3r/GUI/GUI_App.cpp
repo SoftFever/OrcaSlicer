@@ -4066,6 +4066,7 @@ void GUI_App::reload_settings()
         m_agent->get_user_presets(&user_presets);
         preset_bundle->load_user_presets(*app_config, user_presets, ForwardCompatibilitySubstitutionRule::Enable);
         preset_bundle->save_user_presets(*app_config, get_delete_cache_presets());
+        mainframe->update_side_preset_ui();
     }
 }
 
