@@ -1983,13 +1983,11 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
         m_ams_control->SetExtruder(obj->is_filament_at_extruder(), obj->vt_tray.get_color());
     } else {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), m_ams_control->GetCanColour(curr_ams_id, obj->m_tray_id));
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
     }
 
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-        if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_ID)
-            && (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID) || obj->m_tray_now != "255")
-            ) {
+        if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_ID) && (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID) || obj->m_tray_now != "255")) {
             // wait to heat hotend
             if (obj->ams_status_sub == 0x02) {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_VT_LOAD);
@@ -2082,12 +2080,11 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     bool is_curr_tray_selected = false;
-    if (!curr_ams_id.empty() && !curr_can_id.empty()) {
+    if (!curr_ams_id.empty() && !curr_can_id.empty() && (curr_ams_id != std::to_string(VIRTUAL_TRAY_ID)) ) {
         if (curr_can_id == obj->m_tray_now) {
             is_curr_tray_selected = true;
         }
         else {
-
             std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
             if (it == obj->amsList.end()) {
                 BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
@@ -2103,8 +2100,11 @@ void StatusPanel::update_ams(MachineObject *obj)
                 is_curr_tray_selected = true;
             }
         }
-    }
-    else {
+    }else if (curr_ams_id == std::to_string(VIRTUAL_TRAY_ID)) {
+        if (curr_ams_id == obj->m_tray_now) {
+            is_curr_tray_selected = true;
+        }
+    }else {
         is_curr_tray_selected = true;
     }
         
@@ -2113,33 +2113,44 @@ void StatusPanel::update_ams(MachineObject *obj)
 
 void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected)
 {
-    bool enable[ACTION_BTN_COUNT];
-
     // set default value to true
+    bool enable[ACTION_BTN_COUNT];
+    enable[ACTION_BTN_CALI] = true;
+    enable[ACTION_BTN_LOAD] = true;
+    enable[ACTION_BTN_UNLOAD] = true;
+
+    if (!is_support_virtual_tray) {
+        enable[ACTION_BTN_CALI] = false;
+    }
+    else {
+        if (obj->is_in_extrusion_cali()) {
+            enable[ACTION_BTN_LOAD] = false;
+            enable[ACTION_BTN_UNLOAD] = false;
+        }
+    }
 
     if (obj->is_in_printing() && !obj->can_resume()) {
         enable[ACTION_BTN_LOAD] = false;
         enable[ACTION_BTN_UNLOAD] = false;
     }
 
-    if (!is_support_virtual_tray) {
-        enable[ACTION_BTN_CALI] = false;
-    } else {
-        // update load/unload enable state
-        if (obj->is_in_extrusion_cali()) {
-            enable[ACTION_BTN_LOAD] = false;
-            enable[ACTION_BTN_UNLOAD] = false;
-        }
-    }
-    
+    /*if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        enable[ACTION_BTN_LOAD] = false;
+        enable[ACTION_BTN_UNLOAD] = false;
+    }*/
+
     // select current
     if (is_curr_tray_selected) {
         enable[ACTION_BTN_LOAD] = false;
     }
 
-    if (obj->m_tray_now == "255") {
+    /*if (!obj->is_filament_at_extruder()) {
         enable[ACTION_BTN_UNLOAD] = false;
     }
+
+    if (obj->m_tray_now == "255") {
+        enable[ACTION_BTN_UNLOAD] = false;
+    }*/
 
     m_ams_control->SetActionState(enable);
 }
