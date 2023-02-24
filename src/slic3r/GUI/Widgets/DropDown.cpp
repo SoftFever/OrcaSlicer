@@ -3,6 +3,10 @@
 
 #include <wx/dcgraph.h>
 
+#ifdef __WXGTK__
+#include <gtk/gtk.h>
+#endif
+
 wxDEFINE_EVENT(EVT_DISMISS, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(DropDown, PopupWindow)
@@ -343,6 +347,10 @@ void DropDown::messureSize()
     szContent.y *= std::min((size_t)15, texts.size());
     szContent.y += texts.size() > 15 ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
+#ifdef __WXGTK__
+    // Gtk has a wrapper window for popup widget
+    gtk_window_resize (GTK_WINDOW (m_widget), szContent.x, szContent.y);
+#endif
     need_sync = false;
 }
 
