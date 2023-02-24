@@ -455,7 +455,7 @@ private:
     void OnEditingDone(wxDataViewEvent &event);
 
     // apply the instance transform to all volumes and reset instance transform except the offset
-    void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object);
+    void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix = true);
 
     std::vector<int> m_columns_width;
 };
