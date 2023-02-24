@@ -326,10 +326,12 @@ void GLGizmoText::on_set_state()
     if (m_state == EState::On) {
         if (m_parent.get_selection().is_single_volume() || m_parent.get_selection().is_single_modifier()) {
             ModelVolume *model_volume = get_selected_single_volume(m_object_idx, m_volume_idx);
-            TextInfo     text_info    = model_volume->get_text_info();
-            if (!text_info.m_text.empty()) {
-                load_from_text_info(text_info);
-                m_is_modify = true;
+            if (model_volume) {
+                TextInfo text_info = model_volume->get_text_info();
+                if (!text_info.m_text.empty()) {
+                    load_from_text_info(text_info);
+                    m_is_modify = true;
+                }
             }
         }
     }
@@ -901,8 +903,8 @@ ModelVolume *GLGizmoText::get_selected_single_volume(int &out_object_idx, int &o
         out_object_idx             = gl_volume->object_idx();
         ModelObject *model_object  = selection.get_model()->objects[out_object_idx];
         out_volume_idx             = gl_volume->volume_idx();
-        ModelVolume *model_volume  = model_object->volumes[out_volume_idx];
-        return model_volume;
+        if (out_volume_idx < model_object->volumes.size())
+            return model_object->volumes[out_volume_idx];
     }
     return nullptr;
 }
