@@ -1220,6 +1220,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PA-CF");
     def->enum_values.push_back("PLA-CF");
     def->enum_values.push_back("PET-CF");
+    def->enum_values.push_back("PETG-CF");
     def->enum_values.push_back("PVA");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
