@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-23 17:50+0800\n"
+"POT-Creation-Date: 2023-02-24 10:26+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1715,14 +1715,14 @@ msgstr "Bed Temperatuur"
 msgid "Max volumetric speed"
 msgstr "Maximale volumetrische snelheid"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Printbed temperatuur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -6986,6 +6986,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Filament laadt tijd"
 
@@ -8922,36 +8925,6 @@ msgstr ""
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
 
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid ""
-#~ "This controls brim position including outer side of models, inner side of "
-#~ "holes or both. Auto means both the brim position and brim width is "
-#~ "analysed and calculated automatically"
-#~ msgstr ""
-#~ "Dit regelt de randpositie inclusief de buitenkant van de modellen, "
-#~ "binnenkant van gaten of beide. Automatisch betekent dat zowel de "
-#~ "randpositie als de randbreedte automatisch worden geanalyseerd en "
-#~ "berekend."
-
-#~ msgid "Export G-Code."
-#~ msgstr "Exporteer naar G-Code"
-
-#~ msgid "Export."
-#~ msgstr "Exporteer."
-
-#~ msgid "Modify"
-#~ msgstr "Aanpassen"
-
-#~ msgid ""
-#~ " will be closed before creating a new model. Do you want to continue?"
-#~ msgstr ""
-#~ " wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9203,6 +9176,12 @@ msgstr ""
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Fout op laag %1%:\n"
 
+#~ msgid "Export."
+#~ msgstr "Exporteer."
+
+#~ msgid "Export G-Code."
+#~ msgstr "Exporteer naar G-Code"
+
 #~ msgid "Export Sliced File"
 #~ msgstr "Exporteer het \"sliced\" bestand"
 
@@ -9421,6 +9400,9 @@ msgstr ""
 #~ msgstr ""
 #~ "Maximale omleidingsafstand om beweging over muren te vermijden. Als de "
 #~ "afstand groter is dan deze waarde, is er geen omleiding."
+
+#~ msgid "Modify"
+#~ msgstr "Aanpassen"
 
 #~ msgid "Module"
 #~ msgstr "Module"
@@ -9746,6 +9728,16 @@ msgstr ""
 #~ "raadzaam om opnieuw te slicen door hetzelfde printertype te selecteren.\n"
 
 #~ msgid ""
+#~ "This controls brim position including outer side of models, inner side of "
+#~ "holes or both. Auto means both the brim position and brim width is "
+#~ "analysed and calculated automatically"
+#~ msgstr ""
+#~ "Dit regelt de randpositie inclusief de buitenkant van de modellen, "
+#~ "binnenkant van gaten of beide. Automatisch betekent dat zowel de "
+#~ "randpositie als de randbreedte automatisch worden geanalyseerd en "
+#~ "berekend."
+
+#~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
 #~ "save filament and decrease the print time. Colours of the objects will be "
 #~ "mixed as a result"
@@ -9867,6 +9859,11 @@ msgstr ""
 #~ msgstr ""
 #~ " bevindt zich te dichtbij andere objecten, er zullen botsingen optreden "
 #~ "tijdens het printen.\n"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr ""
+#~ " wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
 
 #~ msgid "default value"
 #~ msgstr "Standaardwaarde"

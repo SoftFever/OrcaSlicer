@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-23 17:50+0800\n"
-"PO-Revision-Date: 2023-01-12 14:46+0800\n"
+"POT-Creation-Date: 2023-02-24 10:26+0800\n"
+"PO-Revision-Date: 2023-02-24 10:40+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.1\n"
+"X-Generator: Poedit 3.2.2\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -698,7 +698,7 @@ msgid "Delete the selected object"
 msgstr "删除所选对象"
 
 msgid "Edit Text"
-msgstr ""
+msgstr "编辑文字"
 
 msgid "Load..."
 msgstr "加载..."
@@ -1639,14 +1639,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -1669,7 +1669,7 @@ msgid "Last Step"
 msgstr "上一步"
 
 msgid "Example"
-msgstr ""
+msgstr "示例"
 
 #, c-format, boost-format
 msgid "Calibrating... %d%%"
@@ -2352,7 +2352,7 @@ msgid "Generating geometry index data"
 msgstr "正在生成几何索引数据"
 
 msgid "Statistics of All Plates"
-msgstr ""
+msgstr "所有盘切片信息"
 
 msgid "Display"
 msgstr "显示"
@@ -2599,7 +2599,7 @@ msgid "Select Plate"
 msgstr "选择盘"
 
 msgid "All Plates"
-msgstr ""
+msgstr "所有盘"
 
 msgid "Stats"
 msgstr ""
@@ -2624,7 +2624,7 @@ msgid "Section View"
 msgstr "剖面视图"
 
 msgid "Assemble Control"
-msgstr ""
+msgstr "拼装视图控制"
 
 msgid "Total Volume:"
 msgstr "总体积："
@@ -3159,7 +3159,7 @@ msgid "Stopped."
 msgstr "已经停止。"
 
 msgid "LAN Connection Failed (Failed to start liveview)"
-msgstr "局域网连接失败（无法启动预览）"
+msgstr "局域网连接失败（无法启动直播）"
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -4054,7 +4054,7 @@ msgid "Invalid number"
 msgstr "无效数字"
 
 msgid "Plate Settings"
-msgstr ""
+msgstr "盘参数设置"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -4482,7 +4482,7 @@ msgid "Offline"
 msgstr "离线"
 
 msgid "(LAN)"
-msgstr ""
+msgstr "（局域网）"
 
 msgid "My Device"
 msgstr "我的设备"
@@ -4650,7 +4650,7 @@ msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
 
 msgid "An SD card needs to be inserted before send to printer SD card."
-msgstr ""
+msgstr "发送到打印机需要插入SD卡"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "打印机需要与Bambu Studio在同一个局域网内。"
@@ -5485,31 +5485,31 @@ msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
 
 msgid "Done"
-msgstr ""
+msgstr "完成"
 
 msgid "LAN Connection Failed (Sending print file)"
-msgstr ""
+msgstr "LAN连接失败(发送打印文件)"
 
 msgid ""
 "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-msgstr ""
+msgstr "第1步，请确认Bambu Studio和您的打印机在同一个LAN上。"
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr ""
+msgstr "第2步，如果下方的IP和访问代码与打印机上的实际值不同,请更正。"
 
 msgid "IP"
 msgstr ""
 
 msgid "Access Code"
-msgstr ""
+msgstr "访问码"
 
 msgid "Where to find your printer's IP and Access Code?"
-msgstr ""
+msgstr "在哪里可以找到打印机的IP和访问代码?"
 
 msgid "Error: IP or Access Code are not correct"
-msgstr ""
+msgstr "错误:IP或访问代码不正确"
 
 msgid "Model:"
 msgstr "型号："
@@ -6520,6 +6520,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"

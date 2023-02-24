@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-23 17:50+0800\n"
+"POT-Creation-Date: 2023-02-24 10:26+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1717,14 +1717,14 @@ msgstr "Druckbetttemperatur"
 msgid "Max volumetric speed"
 msgstr "Maximale Volumengeschwindigkeit"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Druckbetttemperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starten"
@@ -5701,25 +5701,25 @@ msgid "Select all objects"
 msgstr "Alle Objekte auswählen"
 
 msgid "Gizmo move"
-msgstr "Gizmo move"
+msgstr "Bewegen"
 
 msgid "Gizmo scale"
-msgstr "Gizmo scale"
+msgstr "Skalieren"
 
 msgid "Gizmo rotate"
-msgstr "Gizmo rotate"
+msgstr "Rotieren"
 
 msgid "Gizmo cut"
-msgstr "Gizmo cut"
+msgstr "Schneiden"
 
 msgid "Gizmo Place face on bed"
-msgstr "Gizmo Place face on bed"
+msgstr "Fläche auf Druckbett platzieren "
 
 msgid "Gizmo SLA support points"
-msgstr "Gizmo SLA support points"
+msgstr "SLA Support Punkte"
 
 msgid "Gizmo FDM paint-on seam"
-msgstr "Gizmo FDM paint-on seam"
+msgstr "FDM Naht aufmalen "
 
 msgid "Plater"
 msgstr "Druckplatte"
@@ -7011,6 +7011,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale Wischmenge im Wischturm"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Ladedauer des Filaments"
@@ -8945,37 +8948,6 @@ msgstr ""
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
 
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid ""
-#~ "This controls brim position including outer side of models, inner side of "
-#~ "holes or both. Auto means both the brim position and brim width is "
-#~ "analysed and calculated automatically"
-#~ msgstr ""
-#~ "Dies steuert die Position der Umrandung, einschließlich der Außenseite "
-#~ "der Modelle, der Innenseite der Löcher oder beides. Auto bedeutet, dass "
-#~ "sowohl die Randposition als auch die Breite des Randes automatisch "
-#~ "analysiert und berechnet werden"
-
-#~ msgid "Export G-Code."
-#~ msgstr "G-Code exportieren."
-
-#~ msgid "Export."
-#~ msgstr "Exportieren."
-
-#~ msgid "Modify"
-#~ msgstr "Ändern"
-
-#~ msgid ""
-#~ " will be closed before creating a new model. Do you want to continue?"
-#~ msgstr ""
-#~ " wird vor der Erstellung eines neuen Modells geschlossen. Möchten Sie "
-#~ "fortfahren?"
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9228,6 +9200,12 @@ msgstr ""
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Fehler auf Zeile %1%:\n"
 
+#~ msgid "Export."
+#~ msgstr "Exportieren."
+
+#~ msgid "Export G-Code."
+#~ msgstr "G-Code exportieren."
+
 #~ msgid "Export Sliced File"
 #~ msgstr "Geslicete Datei exportieren"
 
@@ -9452,6 +9430,9 @@ msgstr ""
 #~ msgstr ""
 #~ "Maximale Umleitungsstrecke zur Vermeidung einer querenden Wand. Keine "
 #~ "Umleitung, wenn die Umleitungsstrecke größer als dieser Wert ist"
+
+#~ msgid "Modify"
+#~ msgstr "Ändern"
 
 #~ msgid "Module"
 #~ msgstr "Modul"
@@ -9786,6 +9767,16 @@ msgstr ""
 #~ "empfohlen, den gleichen Druckertyp auszuwählen und erneut zu slicen.\n"
 
 #~ msgid ""
+#~ "This controls brim position including outer side of models, inner side of "
+#~ "holes or both. Auto means both the brim position and brim width is "
+#~ "analysed and calculated automatically"
+#~ msgstr ""
+#~ "Dies steuert die Position der Umrandung, einschließlich der Außenseite "
+#~ "der Modelle, der Innenseite der Löcher oder beides. Auto bedeutet, dass "
+#~ "sowohl die Randposition als auch die Breite des Randes automatisch "
+#~ "analysiert und berechnet werden"
+
+#~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
 #~ "save filament and decrease the print time. Colours of the objects will be "
 #~ "mixed as a result"
@@ -9907,6 +9898,12 @@ msgstr ""
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr " zu nahe an anderen, es kommt beim Drucken zu Kollisionen.\n"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr ""
+#~ " wird vor der Erstellung eines neuen Modells geschlossen. Möchten Sie "
+#~ "fortfahren?"
 
 #~ msgid "default value"
 #~ msgstr "Standartwert"

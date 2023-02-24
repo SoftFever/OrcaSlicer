@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-23 17:50+0800\n"
+"POT-Creation-Date: 2023-02-24 10:26+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1689,14 +1689,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -6834,6 +6834,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
 
@@ -7859,8 +7862,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -8723,34 +8726,6 @@ msgstr ""
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
 
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid ""
-#~ "This controls brim position including outer side of models, inner side of "
-#~ "holes or both. Auto means both the brim position and brim width is "
-#~ "analysed and calculated automatically"
-#~ msgstr ""
-#~ "Detta kontrollerar brim positionen inklusive yttre sidorna av modellen, "
-#~ "insidan av hål eller bägge. Auto betyder att brim positionen och brim "
-#~ "bredden är analyserad och beräknas automatiskt"
-
-#~ msgid "Export G-Code."
-#~ msgstr "Exportera G-kod."
-
-#~ msgid "Export."
-#~ msgstr "Exportera."
-
-#~ msgid "Modify"
-#~ msgstr "Modifiera"
-
-#~ msgid ""
-#~ " will be closed before creating a new model. Do you want to continue?"
-#~ msgstr " avslutas innan en ny modell skapas. Vill du fortsätta?"
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -8994,6 +8969,12 @@ msgstr ""
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Fel i linje %1%:\n"
 
+#~ msgid "Export."
+#~ msgstr "Exportera."
+
+#~ msgid "Export G-Code."
+#~ msgstr "Exportera G-kod."
+
 #~ msgid "Export Sliced File"
 #~ msgstr "Exportera Beredd fil"
 
@@ -9212,6 +9193,9 @@ msgstr ""
 #~ msgstr ""
 #~ "Max undvikande förflyttnings avstånd för att undvika väggar. Om avståndet "
 #~ "överstiger detta värde, kommer ingen undvikande förflyttning att ske"
+
+#~ msgid "Modify"
+#~ msgstr "Modifiera"
 
 #~ msgid "Module"
 #~ msgstr "Modul"
@@ -9531,6 +9515,15 @@ msgstr ""
 #~ "en ny beredning genom att välja samma skrivartyp.\n"
 
 #~ msgid ""
+#~ "This controls brim position including outer side of models, inner side of "
+#~ "holes or both. Auto means both the brim position and brim width is "
+#~ "analysed and calculated automatically"
+#~ msgstr ""
+#~ "Detta kontrollerar brim positionen inklusive yttre sidorna av modellen, "
+#~ "insidan av hål eller bägge. Auto betyder att brim positionen och brim "
+#~ "bredden är analyserad och beräknas automatiskt"
+
+#~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
 #~ "save filament and decrease the print time. Colours of the objects will be "
 #~ "mixed as a result"
@@ -9647,6 +9640,10 @@ msgstr ""
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr " för tätt inpå andra, utskriften kolliderar.\n"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr " avslutas innan en ny modell skapas. Vill du fortsätta?"
 
 #~ msgid "default value"
 #~ msgstr "Standardvärde"
