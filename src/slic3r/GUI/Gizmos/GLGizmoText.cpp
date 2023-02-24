@@ -931,8 +931,14 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 {
     std::vector<double> text_lengths;
     for (int i = 0; i < texts.size(); ++i) {
+        std::string alpha;
+        if (texts[i] == " ") {
+            alpha = "i";
+        } else {
+            alpha = texts[i];
+        }
         TriangleMesh mesh;
-        load_text_shape(texts[i].c_str(), m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, mesh);
+        load_text_shape(alpha.c_str(), m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, mesh);
         auto   center      = mesh.bounding_box().center();
         double half_x_length = center.x();
         text_lengths.emplace_back(half_x_length);
