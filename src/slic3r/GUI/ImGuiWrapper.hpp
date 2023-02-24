@@ -160,6 +160,8 @@ public:
 
     // set font
     const std::vector<std::string> get_fonts_names() const { return m_fonts_names; }
+    bool push_bold_font();
+    bool pop_bold_font();
     bool push_font_by_name(std::string font_name);
     bool pop_font_by_name(std::string font_name);
     void load_fonts_texture();

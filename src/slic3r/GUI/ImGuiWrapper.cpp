@@ -1669,7 +1669,24 @@ void ImGuiWrapper::bold_text(const std::string& str)
         text(str);
     }
 }
-
+bool ImGuiWrapper::push_bold_font() {
+    if (bold_font) {
+        ImGui::PushFont(bold_font);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+bool ImGuiWrapper::pop_bold_font() {
+    if (bold_font) {
+        ImGui::PopFont();
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 bool ImGuiWrapper::push_font_by_name(std::string font_name)
 {
     auto sys_font = im_fonts_map.find(font_name);

@@ -68,6 +68,9 @@
 #include <algorithm>
 #include <cmath>
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 #include <imgui/imgui_internal.h>
 
 static constexpr const float TRACKBALLSIZE = 0.8f;
@@ -7648,11 +7651,12 @@ void GLCanvas3D::_render_paint_toolbar() const
 #if ENABLE_RETINA_GL
     float f_scale = m_retina_helper->get_scale_factor();
 #else
-    float f_scale = 1.0;
+    float f_scale = 1.0f;
 #endif
+    int em_unit = wxGetApp().em_unit() / 10;
+
     std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
     int extruder_num = colors.size();
-
     std::vector<std::string> filament_text_first_line;
     std::vector<std::string> filament_text_second_line;
     {
@@ -7677,65 +7681,108 @@ void GLCanvas3D::_render_paint_toolbar() const
     }
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    float canvas_w = float(get_canvas_size().get_width());
-    int item_spacing = 8 * wxGetApp().toolbar_icon_scale() * f_scale;
-    float button_size = GLToolbar::Default_Icons_Size * f_scale * wxGetApp().toolbar_icon_scale() + item_spacing;
+    const float canvas_w = float(get_canvas_size().get_width());
+    const ImVec2 button_size = ImVec2(64.0f, 48.0f) * f_scale * em_unit;
+    const float spacing = 4.0f * em_unit * f_scale;
+    const float return_button_margin = 130.0f * em_unit * f_scale;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(spacing, spacing));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, 0));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.4f });
 
     imgui.set_next_window_pos(0.5f * canvas_w, 0, ImGuiCond_Always, 0.5f, 0.0f);
-    imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
+    float constraint_window_width = canvas_w - 2 * return_button_margin;
+    ImGui::SetNextWindowSizeConstraints({ 0, 0 }, { constraint_window_width, FLT_MAX });
+    imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    
+    const float cursor_y = ImGui::GetCursorPosY();
+    const ImVec2 arrow_button_size = ImVec2(0.375f * button_size.x, ImGui::GetWindowHeight());
+    const ImRect left_arrow_button = ImRect(ImGui::GetCurrentWindow()->Pos, ImGui::GetCurrentWindow()->Pos + arrow_button_size);
+    const ImRect right_arrow_button = ImRect(ImGui::GetCurrentWindow()->Pos + ImGui::GetWindowSize() - arrow_button_size, ImGui::GetCurrentWindow()->Pos + ImGui::GetWindowSize());
+    ImU32 left_arrow_button_color = IM_COL32(0, 0, 0, 0.4f * 255);
+    ImU32 right_arrow_button_color = IM_COL32(0, 0, 0, 0.4f * 255);
+    ImU32 arrow_color = IM_COL32(255, 255, 255, 255);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImGuiContext& context = *GImGui;
     bool disabled = !wxGetApp().plater()->can_fillcolor();
     unsigned char rgb[3];
-    float cursor_y = ImGui::GetCursorPosY();
 
     for (int i = 0; i < extruder_num; i++) {
         if (i > 0)
-            ImGui::SameLine(0.0f, item_spacing);
+            ImGui::SameLine();
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         ImGui::PushStyleColor(ImGuiCol_Button, ImColor(rgb[0], rgb[1], rgb[2]).Value);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(rgb[0], rgb[1], rgb[2]).Value);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(rgb[0], rgb[1], rgb[2]).Value);
         if (disabled)
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-        if (ImGui::Button(("##filament_button" + std::to_string(i)).c_str(), ImVec2(button_size, button_size))) {
-            wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
+        if (ImGui::Button(("##filament_button" + std::to_string(i)).c_str(), button_size)) {
+            if (!ImGui::IsMouseHoveringRect(left_arrow_button.Min, left_arrow_button.Max) && !ImGui::IsMouseHoveringRect(right_arrow_button.Min, right_arrow_button.Max))
+                wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
         }
         if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
-            ImGui::TextUnformatted((boost::format(_u8L("Shortcut key %1%")) % (i + 1)).str().c_str());
-            ImGui::PopStyleColor(1);
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
+            if (!ImGui::IsMouseHoveringRect(left_arrow_button.Min, left_arrow_button.Max) && !ImGui::IsMouseHoveringRect(right_arrow_button.Min, right_arrow_button.Max)) {
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 20.0f * f_scale, 10.0f * f_scale });
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * f_scale);
+                imgui.tooltip(_L("Shortcut Key ") + std::to_string(i + 1), ImGui::GetFontSize() * 20.0f);
+                ImGui::PopStyleVar(2);
+            }
         }
         ImGui::PopStyleColor(3);
         if (disabled)
             ImGui::PopItemFlag();
     }
 
-    float text_offset_y = 3.0f * f_scale;
+    const float text_offset_y = 4.0f * em_unit * f_scale;
     for (int i = 0; i < extruder_num; i++){
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
-        ImVec4 text_color = gray < 80 ? ImVec4(255, 255, 255, 255) : ImVec4(0, 0, 0, 255);
-
+        ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
+        
+        imgui.push_bold_font();
         ImVec2 number_label_size = ImGui::CalcTextSize(std::to_string(i + 1).c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y);
-        ImGui::SetCursorPosX(item_spacing + i * (item_spacing + button_size) + (button_size - number_label_size.x) / 2);
+        ImGui::SetCursorPosX(spacing + i * (spacing + button_size.x) + (button_size.x - number_label_size.x) / 2);
         ImGui::TextColored(text_color, std::to_string(i + 1).c_str());
+        imgui.pop_bold_font();
 
         ImVec2 filament_first_line_label_size = ImGui::CalcTextSize(filament_text_first_line[i].c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y + number_label_size.y);
-        ImGui::SetCursorPosX(item_spacing + i * (item_spacing + button_size) + (button_size - filament_first_line_label_size.x) / 2);
+        ImGui::SetCursorPosX(spacing + i * (spacing + button_size.x) + (button_size.x - filament_first_line_label_size.x) / 2);
         ImGui::TextColored(text_color, filament_text_first_line[i].c_str());
 
         ImVec2 filament_second_line_label_size = ImGui::CalcTextSize(filament_text_second_line[i].c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y + number_label_size.y + filament_first_line_label_size.y);
-        ImGui::SetCursorPosX(item_spacing + i * (item_spacing + button_size) + (button_size - filament_second_line_label_size.x) / 2);
+        ImGui::SetCursorPosX(spacing + i * (spacing + button_size.x) + (button_size.x - filament_second_line_label_size.x) / 2);
         ImGui::TextColored(text_color, filament_text_second_line[i].c_str());
     }
 
+    if (ImGui::GetWindowWidth() == constraint_window_width) {
+        if (ImGui::IsMouseHoveringRect(left_arrow_button.Min, left_arrow_button.Max)) {
+            left_arrow_button_color = IM_COL32(0, 0, 0, 0.64f * 255);
+            if (context.IO.MouseClicked[ImGuiMouseButton_Left]) {
+                ImGui::SetScrollX(ImGui::GetScrollX() - button_size.x);
+                imgui.set_requires_extra_frame();
+            }
+        }
+        draw_list->AddRectFilled(left_arrow_button.Min, left_arrow_button.Max, left_arrow_button_color);
+        ImGui::BBLRenderArrow(draw_list, left_arrow_button.GetCenter() - ImVec2(draw_list->_Data->FontSize, draw_list->_Data->FontSize) * 0.5f, arrow_color, ImGuiDir_Left, 2.0f);
+
+        if (ImGui::IsMouseHoveringRect(right_arrow_button.Min, right_arrow_button.Max)) {
+            right_arrow_button_color = IM_COL32(0, 0, 0, 0.64f * 255);
+            if (context.IO.MouseClicked[ImGuiMouseButton_Left]) {
+                ImGui::SetScrollX(ImGui::GetScrollX() + button_size.x);
+                imgui.set_requires_extra_frame();
+            }
+        }
+        draw_list->AddRectFilled(right_arrow_button.Min, right_arrow_button.Max, right_arrow_button_color);
+        ImGui::BBLRenderArrow(draw_list, right_arrow_button.GetCenter() - ImVec2(draw_list->_Data->FontSize, draw_list->_Data->FontSize) * 0.5f, arrow_color, ImGuiDir_Right, 2.0f);
+    }
+
     imgui.end();
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor();
 }
 
 //BBS
@@ -7761,7 +7808,7 @@ void GLCanvas3D::_render_assemble_control() const
     const float item_spacing = imgui->get_item_spacing().x;
     ImVec2 window_padding = ImGui::GetStyle().WindowPadding;
 
-    imgui->set_next_window_pos(canvas_w / 2, canvas_h - 13.0f * get_scale(), ImGuiCond_Always, 0.5f, 1.0f);
+    imgui->set_next_window_pos(canvas_w / 2, canvas_h - 10.0f * get_scale(), ImGuiCond_Always, 0.5f, 1.0f);
     imgui->begin(_L("Assemble Control"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     ImGui::AlignTextToFramePadding();
@@ -7830,24 +7877,18 @@ void GLCanvas3D::_render_assemble_info() const
     ImGuiWrapper* imgui = wxGetApp().imgui();
     auto canvas_w = float(get_canvas_size().get_width());
     auto canvas_h = float(get_canvas_size().get_height());
-    float window_height = 130.0f;
     float space_size = imgui->get_style_scaling() * 8.0f;
     float caption_max = imgui->calc_text_size(_L("Total Volume:")).x + 3 * space_size;
     char buf[3][64];
-    float merged_max = 0.0;
-    for (int i = 0; i < 3; i++) {
-        ImGui::DataTypeFormatString(buf[i], IM_ARRAYSIZE(buf[i]), ImGuiDataType_Double, (void *) &volumes_bounding_box().size()(i), "%.2f");
-        merged_max += ImGui::CalcTextSize(buf[i]).x;
-        if (i < 2) merged_max += ImGui::CalcTextSize(" x ").x;
-    }
-    float window_width = merged_max + caption_max + ImGui::GetFrameHeight();
+
     ImGuiIO& io = ImGui::GetIO();
     ImFont* font = io.Fonts->Fonts[0];
     float origScale = font->Scale;
     font->Scale = 1.2;
     ImGui::PushFont(font);
     ImGui::PopFont();
-    imgui->set_next_window_pos(canvas_w - window_width, 0.0f, ImGuiCond_Always, 0, 0);
+    float margin = 10.0f * get_scale();
+    imgui->set_next_window_pos(canvas_w - margin, canvas_h - margin, ImGuiCond_Always, 1.0f, 1.0f);
     ImGuiWrapper::push_toolbar_style(get_scale());
     imgui->begin(_L("Assembly Info"), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     font->Scale = origScale;
