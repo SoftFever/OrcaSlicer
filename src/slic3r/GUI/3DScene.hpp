@@ -501,9 +501,6 @@ public:
     Transform3d         world_matrix() const;
     bool                is_left_handed() const;
 
-    //BBS: world_matrix with scale factor
-    Transform3d         world_matrix(float scale_factor) const;
-
     const BoundingBoxf3& transformed_bounding_box() const;
     // non-caching variant
     BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;

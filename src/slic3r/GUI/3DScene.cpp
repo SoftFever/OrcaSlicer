@@ -569,26 +569,6 @@ Transform3d GLVolume::world_matrix() const
     return m;
 }
 
-//BBS: scaled_matrix
-Transform3d GLVolume::world_matrix( float scale_factor) const
-{
-    //const Vec3d& volume_translation = m_volume_transformation.get_offset();
-    //Vec3d scaling_factor = { scale_factor, scale_factor, scale_factor };
-    Vec3d ofs2ass = m_offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
-    Vec3d volofs2obj = m_volume_transformation.get_offset() * (GLVolume::explosion_ratio - 1.0);
-
-    Transform3d volume_matrix = Geometry::assemble_transform(
-        m_volume_transformation.get_offset() + ofs2ass + volofs2obj,
-        m_volume_transformation.get_rotation(),
-        m_volume_transformation.get_scaling_factor() * scale_factor,
-        m_volume_transformation.get_mirror()
-    );
-    Transform3d m = m_instance_transformation.get_matrix() * volume_matrix;
-
-    //m.translation()(2) += m_sla_shift_z;
-    return m;
-}
-
 bool GLVolume::is_left_handed() const
 {
     const Vec3d &m1 = m_instance_transformation.get_mirror();
@@ -834,8 +814,6 @@ void GLVolume::render(bool with_outline) const
                 fclose(file);
             }
 #endif
-
-            Transform3d matrix = world_matrix();
             render_body();
             //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render body, shader name %2%")%__LINE__ %shader->get_name();
 
@@ -887,7 +865,8 @@ void GLVolume::render(bool with_outline) const
             glsafe(::glPopMatrix());
             glsafe(::glPushMatrix());
 
-            matrix = world_matrix(scale);
+            Transform3d matrix = world_matrix();
+            matrix.scale(scale);
             glsafe(::glMultMatrixd(matrix.data()));
             this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
             //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render for body, shader name %2%")%__LINE__ %shader->get_name();
