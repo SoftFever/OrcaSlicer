@@ -1012,6 +1012,7 @@ int CLI::run(int argc, char **argv)
         for (const t_config_option_key &opt_key : config.keys()) {
             if (!diff_key_sets.empty() && (diff_key_sets.find(opt_key) != diff_key_sets.end())) {
                 //uptodate, diff keys, continue
+                BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                 continue;
             }
             const ConfigOption *source_opt = config.option(opt_key);
@@ -1056,6 +1057,7 @@ int CLI::run(int argc, char **argv)
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
+        BOOST_LOG_TRIVIAL(info) << boost::format("update printer config to newest, different size %1%")%different_keys_set.size();
         int ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
         if (ret)
             flush_and_exit(ret);
@@ -1093,6 +1095,7 @@ int CLI::run(int argc, char **argv)
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
+        BOOST_LOG_TRIVIAL(info) << boost::format("update process config to newest, different size %1%")%different_keys_set.size();
         int ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
         if (ret)
             flush_and_exit(ret);
@@ -1158,9 +1161,11 @@ int CLI::run(int argc, char **argv)
             //parse the filament value to index th
             //loop through options and apply them
             std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
+            BOOST_LOG_TRIVIAL(info) << boost::format("update filament %1%'s config to newest, different size %2%")%filament_index%different_keys_set.size();
             for (const t_config_option_key &opt_key : config.keys()) {
                 if (!different_keys_set.empty() && (different_keys_set.find(opt_key) != different_keys_set.end())) {
                     //uptodate, diff keys, continue
+                    BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                     continue;
                 }
                 // Create a new option with default value for the key.
@@ -1170,7 +1175,7 @@ int CLI::run(int argc, char **argv)
                 const ConfigOption *source_opt = config.option(opt_key);
                 if (source_opt == nullptr) {
                     // The key was not found in the source config, therefore it will not be initialized!
-                    boost::nowide::cerr << "can not found option " <<opt_key<<"from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                    BOOST_LOG_TRIVIAL(error) << boost::format("can not find %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];
                     flush_and_exit(CLI_CONFIG_FILE_ERROR);
                 }
                 if (source_opt->is_scalar()) {
@@ -1190,7 +1195,7 @@ int CLI::run(int argc, char **argv)
                     }
                     else {
                         //skip the scalar values
-                        BOOST_LOG_TRIVIAL(warning) << "skip scalar option " <<opt_key<<" from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("skip scalar option %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];;
                         continue;
                     }
                 }
@@ -1200,7 +1205,7 @@ int CLI::run(int argc, char **argv)
                     if (opt == nullptr) {
                         // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
                         // This is only possible if other is of DynamicConfig type.
-                        boost::nowide::cerr << "can not create option " <<opt_key<<"to config, from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                        BOOST_LOG_TRIVIAL(error) << boost::format("can not create option %1% to config, from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
                     }
                     ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
