@@ -1,6 +1,10 @@
 name: Build Win64
 
-on: [pull_request,push]
+on: 
+    push:
+      branches: 
+       - SoftFever
+        
 
 jobs:
   build_win64:

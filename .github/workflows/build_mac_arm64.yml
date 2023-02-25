@@ -1,7 +1,10 @@
 name: Build Mac arm64
 
-on: [pull_request,push]
-
+on: 
+    push:
+      branches: 
+       - SoftFever
+    
 jobs:
   build_win64:
     name: Build Mac arm64

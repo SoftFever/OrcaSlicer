@@ -1,7 +1,10 @@
 name: Build Linux
 
-on: [pull_request,push]
-
+on: 
+    push:
+      branches: 
+       - SoftFever
+    
 jobs:
   appimage-builder:
     name: Linux AppImage Build
