@@ -8069,7 +8069,8 @@ void Plater::calib_temp(const Calib_Params& params) {
     auto obj_bb = model().objects[0]->bounding_box();
     auto block_count = lround((350 - params.end) / 5 + 1);
     if(block_count > 0){
-        auto new_height = block_count * 10.0;
+        // add EPSILON offset to avoid cutting at the exact location where the flat surface is
+        auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
             std::array<Vec3d, 4> plane_pts;
             plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
@@ -8084,7 +8085,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     obj_bb = model().objects[0]->bounding_box();
     block_count = lround((350 - params.start) / 5);
     if(block_count > 0){
-        auto new_height = block_count * 10.0;
+        auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
             std::array<Vec3d, 4> plane_pts;
             plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
