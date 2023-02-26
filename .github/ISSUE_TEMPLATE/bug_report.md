@@ -14,17 +14,15 @@ A clear and concise description of what the bug is.
 If it is related to slicing, please append the 3mf file. It could be extremely helpful to solve the issue.
 
 **To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Steps to reproduce the behavior
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
+
+**Printer model**
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS, Windows]
