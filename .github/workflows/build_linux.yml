@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libgl1-mesa-dev libgtk-3-dev libxkbcommon-dev libunwind-dev libfuse2 -y
+          sudo apt-get install cmake libgl1-mesa-dev libgtk-3-dev libxkbcommon-dev libunwind-dev libfuse2 automake -y
       - name: Install dependencies from BuildLinux.sh
         shell: bash
         run: sudo ./BuildLinux.sh -ur
