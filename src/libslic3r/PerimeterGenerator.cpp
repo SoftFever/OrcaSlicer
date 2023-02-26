@@ -1138,6 +1138,11 @@ void PerimeterGenerator::process_arachne()
             bead_width_0 = ext_perimeter_width + this->perimeter_flow.scaled_width() - perimeter_spacing;
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+        if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
+            loop_number = 0;
+        // BBS: set the topmost layer to be one wall
+        if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
+            loop_number = 0;
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(m_scaled_resolution),
                       config->precise_outer_wall ? -float(ext_perimeter_width / 2. - bead_width_0 / 2.)
                                                  : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
