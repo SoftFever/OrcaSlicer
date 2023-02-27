@@ -121,12 +121,13 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
-    m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_READONLY);
+    m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_READONLY | wxRIGHT);
     m_readonly_filament->SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int)StateColor::Focused), std::make_pair(0x00AE42, (int)StateColor::Hovered),
         std::make_pair(0xDBDBDB, (int)StateColor::Normal)));
-    m_readonly_filament->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto& e) {
-        ;
-        });
+    m_readonly_filament->SetFont(::Label::Body_14);
+    m_readonly_filament->SetLabelColor(AMS_MATERIALS_SETTING_GREY800);
+    m_readonly_filament->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto& e) {});
+    m_readonly_filament->GetTextCtrl()->Hide();
     m_sizer_filament->Add(m_readonly_filament, 1, wxALIGN_CENTER, 0);
     m_readonly_filament->Hide();
 
@@ -623,7 +624,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             m_panel_SN->Show();
             m_comboBox_filament->Hide();
             m_readonly_filament->Show();
-            m_readonly_filament->GetTextCtrl()->SetLabel("Bambu " + filament);
+            //m_readonly_filament->GetTextCtrl()->SetLabel("Bambu " + filament);
+            m_readonly_filament->SetLabel("Bambu " + filament);
             m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
             m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
 

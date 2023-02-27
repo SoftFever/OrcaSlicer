@@ -105,7 +105,7 @@ protected:
 #else
     ComboBox *m_comboBox_filament;
 #endif
-    TextInput*          m_readonly_filament;
+    TextInput*       m_readonly_filament;
 };
 
 }} // namespace Slic3r::GUI
