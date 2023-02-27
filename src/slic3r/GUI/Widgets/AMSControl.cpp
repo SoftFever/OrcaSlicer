@@ -2133,7 +2133,7 @@ void AMSControl::msw_rescale()
 
 void AMSControl::UpdateStepCtrl()
 {
-    static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
+    wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
         _L("Heat the nozzle"),
         _L("Cut filament"),
         _L("Pull back current filament"),
@@ -2141,14 +2141,14 @@ void AMSControl::UpdateStepCtrl()
         _L("Purge old filament"),
     };
 
-    static wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
+    wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
         _L("Heat the nozzle"),
         _L("Feed new filament from external spool"),
         _L("Confirm whether the filament has been extruded"),
         _L("Purge old filament"),
     };
 
-    static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {
+    wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {
         _L("Heat the nozzle"),
         _L("Cut filament"),
         _L("Pull back current filament")
