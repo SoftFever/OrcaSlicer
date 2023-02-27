@@ -664,11 +664,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance"})
         toggle_line(el, has_fuzzy_skin);
 
-    // C11 printer is not support smooth timelapse
-    PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
-    std::string str_preset_type = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-    toggle_field("timelapse_type", str_preset_type != "C11");
-
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
         "min_feature_size", "min_bead_width", "wall_distribution_count" })
