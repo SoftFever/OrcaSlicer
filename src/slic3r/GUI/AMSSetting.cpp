@@ -163,7 +163,7 @@ void AMSSetting::create()
     m_checkbox_switch_filament->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_switch_filament, this);
     m_sizer_switch_filament->Add(m_checkbox_switch_filament, 0, wxTOP, 1);
     m_sizer_switch_filament->Add(0, 0, 0, wxLEFT, 12);
-    m_title_switch_filament = new wxStaticText(m_panel_body, wxID_ANY, _L("AMS auto switch filament"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_switch_filament = new wxStaticText(m_panel_body, wxID_ANY, _L("AMS filament backup"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_switch_filament->SetFont(::Label::Head_13);
     m_title_switch_filament->SetForegroundColour(AMS_SETTING_GREY800);
     m_title_switch_filament->Wrap(AMS_SETTING_BODY_WIDTH);
