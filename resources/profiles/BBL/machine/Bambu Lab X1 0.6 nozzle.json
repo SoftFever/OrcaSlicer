@@ -30,6 +30,7 @@
     "nozzle_type": "hardened_steel",
     "nozzle_hrc": "55",
     "upward_compatible_machine":[
+        "Bambu Lab P1P 0.6 nozzle",
         "Bambu Lab X1 Carbon 0.6 nozzle"
     ]
 }

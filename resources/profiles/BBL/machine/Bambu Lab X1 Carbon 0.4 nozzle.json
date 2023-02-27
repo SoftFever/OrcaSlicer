@@ -33,5 +33,9 @@
   "machine_unload_filament_time": "28",
   "nozzle_type": "hardened_steel",
   "nozzle_hrc": "55",
-  "auxiliary_fan": "1"
+  "auxiliary_fan": "1",
+  "upward_compatible_machine":[
+      "Bambu Lab P1P 0.4 nozzle",
+      "Bambu Lab X1 0.4 nozzle"
+  ]
 }
