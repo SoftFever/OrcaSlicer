@@ -439,7 +439,7 @@
         },
         {
             "name": "Generic PETG-CF @BBL P1P",
-            "sub_path": "filament/Generic PETG-CF @BBL P1P.json"
+            "sub_path": "filament/P1P/Generic PETG-CF @BBL P1P.json"
         },
         {
             "name": "Generic PVA @0.2 nozzle",
