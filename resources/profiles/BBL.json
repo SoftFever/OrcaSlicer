@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.05.00.16",
+    "version": "01.05.00.17",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -428,6 +428,18 @@
         {
             "name": "Generic PVA @base",
             "sub_path": "filament/Generic PVA @base.json"
+        },
+        {
+            "name": "Generic PETG-CF @base",
+            "sub_path": "filament/Generic PETG-CF @base.json"
+        },
+        {
+            "name": "Generic PETG-CF @BBL X1C",
+            "sub_path": "filament/Generic PETG-CF @BBL X1C.json"
+        },
+        {
+            "name": "Generic PETG-CF @BBL P1P",
+            "sub_path": "filament/Generic PETG-CF @BBL P1P.json"
         },
         {
             "name": "Generic PVA @0.2 nozzle",
