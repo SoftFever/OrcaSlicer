@@ -2442,7 +2442,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
             // update slice and print button
             wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, false);
-            set_need_update(true);
+            update();
         });
     }
     if (wxGetApp().is_gcode_viewer())
