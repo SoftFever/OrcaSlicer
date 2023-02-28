@@ -3580,7 +3580,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             cur_plate->translate_all_instance(new_origin - cur_origin);
         }
-        partplate_list.reset_size(current_width, current_depth, current_height);
+        partplate_list.reset_size(current_width, current_depth, current_height, true, true);
     }
 
     //BBS: add gcode loading logic in the end

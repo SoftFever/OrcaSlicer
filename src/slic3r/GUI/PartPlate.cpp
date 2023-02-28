@@ -2032,17 +2032,27 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
-	if ((m_shape == shape)&&(m_exclude_area == exclude_areas)
+	Pointfs new_shape, new_exclude_areas;
+
+	for (const Vec2d& p : shape) {
+		new_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+	}
+
+	for (const Vec2d& p : exclude_areas) {
+		new_exclude_areas.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+	}
+	if ((m_shape == new_shape)&&(m_exclude_area == new_exclude_areas)
 		&&(m_height_to_lid == height_to_lid)&&(m_height_to_rod == height_to_rod)) {
-		BOOST_LOG_TRIVIAL(trace) << "PartPlate same shape";
+		BOOST_LOG_TRIVIAL(info) << "PartPlate same shape, skip directly";
 		return false;
 	}
+
 	m_height_to_lid =  height_to_lid;
 	m_height_to_rod =  height_to_rod;
 
-	if ((m_shape != shape) || (m_exclude_area != exclude_areas))
+	if ((m_shape != new_shape) || (m_exclude_area != new_exclude_areas))
 	{
-		m_shape.clear();
+		/*m_shape.clear();
 		for (const Vec2d& p : shape) {
 			m_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 		}
@@ -2050,7 +2060,9 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		m_exclude_area.clear();
 		for (const Vec2d& p : exclude_areas) {
 			m_exclude_area.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
-		}
+		}*/
+		m_shape = std::move(new_shape);
+		m_exclude_area = std::move(new_exclude_areas);
 
 		calc_bounding_boxes();
 
@@ -2738,7 +2750,7 @@ void PartPlateList::release_icon_textures()
 }
 
 //this may be happened after machine changed
-void PartPlateList::reset_size(int width, int depth, int height, bool reload_objects)
+void PartPlateList::reset_size(int width, int depth, int height, bool reload_objects, bool update_shapes)
 {
 	Vec3d origin1, origin2;
 
@@ -2750,6 +2762,9 @@ void PartPlateList::reset_size(int width, int depth, int height, bool reload_obj
 		m_plate_depth = depth;
 		m_plate_height = height;
 		update_all_plates_pos_and_size(false, false);
+		if (update_shapes) {
+			set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
+		}
 		if (reload_objects)
 			reload_all_objects();
 		else
@@ -3145,11 +3160,11 @@ int PartPlateList::select_plate(int index)
 
 	m_current_plate = index;
 	m_plate_list[m_current_plate]->set_selected();
-  
+
 	//BBS
 	if(m_model)
 		m_model->curr_plate_index = index;
-  
+
 	//BBS update bed origin
 	if (m_intialized && m_plater) {
 		Vec2d pos = compute_shape_position(index, m_plate_cols);

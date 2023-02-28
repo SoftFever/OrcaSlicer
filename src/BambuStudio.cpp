@@ -550,6 +550,7 @@ int CLI::run(int argc, char **argv)
                     Semver old_version(1, 5, 9);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
                     }
 
                     /*for (ModelObject *model_object : model.objects)
@@ -1294,13 +1295,14 @@ int CLI::run(int argc, char **argv)
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
     double plate_stride;
+    std::string bed_texture;
     if (m_models.size() > 0)
     {
-        std::string bed_texture;
         if (translate_old) {
             current_width = bedfs[2].x() - bedfs[0].x();
             current_depth = bedfs[2].y() - bedfs[0].y();
             current_height = print_height;
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch to old bed size,{%1%, %2%, %3%}")%(current_width + bed3d_ax3s_default_tip_radius)%(current_depth+bed3d_ax3s_default_tip_radius) %current_height;
             partplate_list.reset_size(current_width + bed3d_ax3s_default_tip_radius, current_depth + bed3d_ax3s_default_tip_radius, current_height, false);
         }
         else {
@@ -1325,7 +1327,8 @@ int CLI::run(int argc, char **argv)
 
                 cur_plate->translate_all_instance(new_origin - cur_origin);
             }
-            partplate_list.reset_size(current_width, current_depth, current_height);
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch back to current bed size,{%1%, %2%, %3%}")%current_width %current_depth %current_height;
+            partplate_list.reset_size(current_width, current_depth, current_height, true, true);
         }
     }
     /*for (ModelObject *model_object : m_models[0].objects)
