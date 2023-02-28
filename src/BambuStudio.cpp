@@ -60,6 +60,7 @@ using namespace nlohmann;
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
 
@@ -1735,6 +1736,7 @@ int CLI::run(int argc, char **argv)
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir;
     std::string outfile_dir = m_config.opt_string("outputdir");
     std::vector<ThumbnailData*> calibration_thumbnails;
+    int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0;
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
             this->print_help();
@@ -1767,6 +1769,10 @@ int CLI::run(int argc, char **argv)
             }
         } else if (opt_key == "uptodate") {
             //already processed before
+        } else if (opt_key == "mtcpp") {
+            max_triangle_count_per_plate = m_config.option<ConfigOptionInt>("mtcpp")->value;
+        } else if (opt_key == "mstpp") {
+            max_slicing_time_per_plate = m_config.option<ConfigOptionInt>("mstpp")->value;
         } else if (opt_key == "export_stl") {
             for (auto &model : m_models)
                 model.add_default_instances();
@@ -1836,6 +1842,8 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << "Skip plate " << index+1 << std::endl;
                         continue;
                     }
+                    long long start_time = 0, end_time = 0;
+                    start_time = (long long)Slic3r::Utils::get_current_time_utc();
                     //get the current partplate
                     Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
                     part_plate->get_print(&print, &gcode_result, &print_index);
@@ -1866,13 +1874,32 @@ int CLI::run(int argc, char **argv)
                         flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
                     }
                     else {
+                        long long triangle_count = 0;
                         for (ModelObject* model_object : model.objects)
                             for (ModelInstance *i : model_object->instances)
+                            {
                                 if (i->print_volume_state == ModelInstancePVS_Partly_Outside)
                                 {
                                     BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Found Object " << model_object->name <<" partly inside, can not be sliced." << std::endl;
                                     flush_and_exit(CLI_OBJECTS_PARTLY_INSIDE);
                                 }
+                                else if ((max_triangle_count_per_plate != 0) && (i->print_volume_state == ModelInstancePVS_Inside))
+                                {
+                                    for (const ModelVolume* vol : model_object->volumes)
+                                    {
+                                        if (vol->is_model_part()) {
+                                            size_t volume_triangle_count = vol->mesh().facets_count();
+                                            triangle_count += volume_triangle_count;
+                                            BOOST_LOG_TRIVIAL(info) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
+                                            if (triangle_count > max_triangle_count_per_plate)
+                                            {
+                                                BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": triangle count " << triangle_count <<" exceeds the limit:" << max_triangle_count_per_plate;
+                                                flush_and_exit(CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                     }
                     // BBS: TODO
                     //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
@@ -1998,6 +2025,15 @@ int CLI::run(int argc, char **argv)
                                     export_slicedata_error = true;
                                     if (fs::exists(plate_dir))
                                         fs::remove_all(plate_dir);
+                                }
+                            }
+                            if (max_slicing_time_per_plate != 0) {
+                                end_time = (long long)Slic3r::Utils::get_current_time_utc();
+                                long long time_cost = end_time - start_time;
+                                if (time_cost > max_slicing_time_per_plate) {
+                                    BOOST_LOG_TRIVIAL(error) << boost::format("plate %1%'s slice time %2% exceeds the limit %3%, return error.")
+                                        %(index+1) %time_cost %max_slicing_time_per_plate;
+                                    flush_and_exit(CLI_SLICING_TIME_EXCEEDS_LIMIT);
                                 }
                             }
                         } catch (const std::exception &ex) {

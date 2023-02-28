@@ -4582,6 +4582,20 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli = "uptodate";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("mtcpp", coInt);
+    def->label = L("mtcpp");
+    def->tooltip = L("max triangle count per plate for slicing.");
+    def->cli = "mtcpp";
+    def->cli_params = "count";
+    def->set_default_value(new ConfigOptionInt(1000000));
+
+    def = this->add("mstpp", coInt);
+    def->label = L("mstpp");
+    def->tooltip = L("max slicing time per plate in seconds.");
+    def->cli = "mstpp";
+    def->cli_params = "time";
+    def->set_default_value(new ConfigOptionInt(300));
+
     /*def = this->add("help_fff", coBool);
     def->label = L("Help (FFF options)");
     def->tooltip = L("Show the full list of print/G-code configuration options.");
