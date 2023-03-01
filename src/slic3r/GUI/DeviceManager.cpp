@@ -3966,6 +3966,8 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
     auto last_selected = my_machine_list.find(selected_machine);
     if (last_selected != my_machine_list.end()) {
         if (last_selected->second->connection_type() == "lan") {
+            if (last_selected->second->is_connecting())
+                return false;
             m_agent->disconnect_printer();
         }
     }
