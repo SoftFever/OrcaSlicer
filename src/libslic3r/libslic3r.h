@@ -76,6 +76,8 @@ static constexpr double BRIDGE_INFILL_MARGIN = 1;
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define unscale_(val) ((val) * SCALING_FACTOR)
+//BBS
+static constexpr double SIMPLIFY_SLICES_RESOLUTION = 0.1;
 
 //BBS: BBS only support relative E and can't been changed by user at the moment. because
 //BBS need to support skip object when printing.
