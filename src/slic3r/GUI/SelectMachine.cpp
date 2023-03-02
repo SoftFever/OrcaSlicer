@@ -1989,7 +1989,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     std::vector<wxString> confirm_text;
     confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:") + "\n");
 
-#if 0
+#if 1
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type)
