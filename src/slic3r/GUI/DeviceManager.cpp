@@ -3956,7 +3956,7 @@ void DeviceManager::clean_user_info()
     userMachineList.clear();
 }
 
-bool DeviceManager::set_selected_machine(std::string dev_id)
+bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnect)
 {
     BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << dev_id;
     auto my_machine_list = get_my_machine_list();
@@ -3966,7 +3966,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
     auto last_selected = my_machine_list.find(selected_machine);
     if (last_selected != my_machine_list.end()) {
         if (last_selected->second->connection_type() == "lan") {
-            if (last_selected->second->is_connecting())
+            if (last_selected->second->is_connecting() && !need_disconnect)
                 return false;
             m_agent->disconnect_printer();
         }

@@ -2575,7 +2575,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     if (obj && !obj->get_lan_mode_connection_state()) {
         obj->command_get_version();
         obj->command_request_push_all();
-        dev->set_selected_machine(m_printer_last_select);
+        dev->set_selected_machine(m_printer_last_select, true);
         // Has changed machine unrecoverably
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
         update_select_layout(obj);
