@@ -376,13 +376,13 @@ int CLI::run(int argc, char **argv)
     char *debug_argv[] = {
         "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--slice",
-        "9",
+        "0",
         //"--load-settings",
         //"machine.json;process.json",
         //"--load-filaments",
         //"filament.json",
         "--export-3mf=output.3mf",
-        "test_outside.3mf"
+        "test_cube.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -1800,6 +1800,10 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "slice") {
             //BBS: slice 0 means all plates, i means plate i;
             plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
+            bool pre_check = (plate_to_slice == 0)?true:false;
+            if (partplate_list.get_plate_count() == 1)
+                pre_check = false;
+            bool finished = false;
             /*if (opt_key == "export_gcode" && printer_technology == ptSLA) {
                 boost::nowide::cerr << "error: cannot export G-code for an FFF configuration" << std::endl;
                 flush_and_exit(1);
@@ -1822,226 +1826,208 @@ int CLI::run(int argc, char **argv)
                 // and all instances will be rearranged (unless --dont-arrange is supplied).
                 std::string outfile;
                 Print       fff_print;
-                /*SLAPrint    sla_print;
-                SL1Archive  sla_archive(sla_print.printer_config());
-                sla_print.set_printer(&sla_archive);
-                sla_print.set_status_callback(
-                            [](const PrintBase::SlicingStatus& s)
-                {
-                    if(s.percent >= 0) // FIXME: is this sufficient?
-                        printf("%3d%s %s\n", s.percent, "% =>", s.text.c_str());
-                });*/
 
-                //BBS: slice every partplate one by one
-                PrintBase  *print=NULL;
-                Slic3r::GUI::GCodeResult *gcode_result = NULL;
-                int print_index;
-                for (int index = 0; index < partplate_list.get_plate_count(); index ++)
+                while(!finished)
                 {
-                    if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
-                        BOOST_LOG_TRIVIAL(info) << "Skip plate " << index+1 << std::endl;
-                        continue;
-                    }
-                    long long start_time = 0, end_time = 0;
-                    start_time = (long long)Slic3r::Utils::get_current_time_utc();
-                    //get the current partplate
-                    Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
-                    part_plate->get_print(&print, &gcode_result, &print_index);
-                    /*if (outfile_config.empty())
+                    //BBS: slice every partplate one by one
+                    PrintBase  *print=NULL;
+                    Slic3r::GUI::GCodeResult *gcode_result = NULL;
+                    int print_index;
+                    for (int index = 0; index < partplate_list.get_plate_count(); index ++)
                     {
-                        outfile = "plate_" + std::to_string(index + 1) + ".gcode";
-                    }
-                    else
-                    {
-                        outfile = "plate_" + std::to_string(index + 1) + "_" + outfile_config + ".gcode";
-                    }*/
+                        if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
+                            BOOST_LOG_TRIVIAL(info) << "Skip plate " << index+1 << std::endl;
+                            continue;
+                        }
+                        long long start_time = 0, end_time = 0;
+                        start_time = (long long)Slic3r::Utils::get_current_time_utc();
+                        //get the current partplate
+                        Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
+                        part_plate->get_print(&print, &gcode_result, &print_index);
+                        /*if (outfile_config.empty())
+                        {
+                            outfile = "plate_" + std::to_string(index + 1) + ".gcode";
+                        }
+                        else
+                        {
+                            outfile = "plate_" + std::to_string(index + 1) + "_" + outfile_config + ".gcode";
+                        }*/
 
-                    //update plate's bounding box to model
+                        //update plate's bounding box to model
 #if 0
-                    BoundingBoxf3   print_volume = part_plate->get_bounding_box(false);
-                    print_volume.max(2) = z;
-                    print_volume.min(2) = -1e10;
-                    model.update_print_volume_state(print_volume);
-                    BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
-                        % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) << std::endl;
+                        BoundingBoxf3   print_volume = part_plate->get_bounding_box(false);
+                        print_volume.max(2) = z;
+                        print_volume.min(2) = -1e10;
+                        model.update_print_volume_state(print_volume);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
+                            % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) << std::endl;
 #else
-                    BuildVolume build_volume(part_plate->get_shape(), print_height);
-                    model.update_print_volume_state(build_volume);
-                    unsigned int count = model.update_print_volume_state(build_volume);
+                        BuildVolume build_volume(part_plate->get_shape(), print_height);
+                        model.update_print_volume_state(build_volume);
+                        unsigned int count = model.update_print_volume_state(build_volume);
 
-                    if (count == 0) {
-                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume before apply." << std::endl;
-                        flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
-                    }
-                    else {
-                        long long triangle_count = 0;
-                        for (ModelObject* model_object : model.objects)
-                            for (ModelInstance *i : model_object->instances)
-                            {
-                                if (i->print_volume_state == ModelInstancePVS_Partly_Outside)
+                        if (count == 0) {
+                            BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume before apply." << std::endl;
+                            flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
+                        }
+                        else {
+                            long long triangle_count = 0;
+                            for (ModelObject* model_object : model.objects)
+                                for (ModelInstance *i : model_object->instances)
                                 {
-                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Found Object " << model_object->name <<" partly inside, can not be sliced." << std::endl;
-                                    flush_and_exit(CLI_OBJECTS_PARTLY_INSIDE);
-                                }
-                                else if ((max_triangle_count_per_plate != 0) && (i->print_volume_state == ModelInstancePVS_Inside))
-                                {
-                                    for (const ModelVolume* vol : model_object->volumes)
+                                    if (i->print_volume_state == ModelInstancePVS_Partly_Outside)
                                     {
-                                        if (vol->is_model_part()) {
-                                            size_t volume_triangle_count = vol->mesh().facets_count();
-                                            triangle_count += volume_triangle_count;
-                                            BOOST_LOG_TRIVIAL(info) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
-                                            if (triangle_count > max_triangle_count_per_plate)
-                                            {
-                                                BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": triangle count " << triangle_count <<" exceeds the limit:" << max_triangle_count_per_plate;
-                                                flush_and_exit(CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT);
+                                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Found Object " << model_object->name <<" partly inside, can not be sliced." << std::endl;
+                                        flush_and_exit(CLI_OBJECTS_PARTLY_INSIDE);
+                                    }
+                                    else if ((max_triangle_count_per_plate != 0) && (i->print_volume_state == ModelInstancePVS_Inside))
+                                    {
+                                        for (const ModelVolume* vol : model_object->volumes)
+                                        {
+                                            if (vol->is_model_part()) {
+                                                size_t volume_triangle_count = vol->mesh().facets_count();
+                                                triangle_count += volume_triangle_count;
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
+                                                if (triangle_count > max_triangle_count_per_plate)
+                                                {
+                                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": triangle count " << triangle_count <<" exceeds the limit:" << max_triangle_count_per_plate;
+                                                    flush_and_exit(CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT);
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                    }
-                    // BBS: TODO
-                    //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
-                    //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
+                        }
+                        // BBS: TODO
+                        //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
+                        //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
 #endif
+                        DynamicPrintConfig new_print_config = m_print_config;
+                        new_print_config.apply(*part_plate->config());
+                        new_print_config.apply(m_extra_config, true);
+                        print->apply(model, new_print_config);
+                        StringObjectException warning;
+                        auto err = print->validate(&warning);
+                        if (!err.string.empty()) {
+                            BOOST_LOG_TRIVIAL(info) << "got error when validate: "<< err.string << std::endl;
+                            boost::nowide::cerr << err.string << std::endl;
+                            //BBS: continue for other plates
+                            //continue;
+                            flush_and_exit(CLI_VALIDATE_ERROR);
+                        }
+                        else if (!warning.string.empty())
+                            BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
 
-                    //PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
-                    /*if (! m_config.opt_bool("dont_arrange")) {
-                        if (user_center_specified) {
-                            Vec2d c = m_config.option<ConfigOptionPoint>("center")->value;
-                            arrange_objects(model, InfiniteBed{scaled(c)}, arrange_cfg);
-                        } else
-                            arrange_objects(model, bed, arrange_cfg);
-                    }*/
-                    /*if (printer_technology == ptFFF) {
-                        for (auto* mo : model.objects)
-                            (dynamic_cast<Print*>(print))->auto_assign_extruders(mo);
-                    } else {
-                        // The default for "filename_format" is good for FDM: "[input_filename_base].gcode"
-                        // Replace it with a reasonable SLA default.
-                        std::string &format = m_print_config.opt_string("filename_format", true);
-                        if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("filename_format")->default_value.get())->value)
-                            format = "[input_filename_base].SL1";
-                    }*/
-                    DynamicPrintConfig new_print_config = m_print_config;
-                    new_print_config.apply(*part_plate->config());
-                    new_print_config.apply(m_extra_config, true);
-                    print->apply(model, new_print_config);
-                    StringObjectException warning;
-                    auto err = print->validate(&warning);
-                    if (!err.string.empty()) {
-                        BOOST_LOG_TRIVIAL(info) << "got error when validate: "<< err.string << std::endl;
-                        boost::nowide::cerr << err.string << std::endl;
-                        //BBS: continue for other plates
-                        //continue;
-                        flush_and_exit(CLI_VALIDATE_ERROR);
-                    }
-                    else if (!warning.string.empty())
-                        BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
-
-                    if (print->empty()) {
-                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume after apply." << std::endl;
-                        flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
-                    }
-                    else
-                        try {
-                            std::string outfile_final;
-                            BOOST_LOG_TRIVIAL(info) << "start Print::process for partplate "<<index+1 << std::endl;
+                        if (print->empty()) {
+                            BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume after apply." << std::endl;
+                            flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
+                        }
+                        else {
+                            if (pre_check) //continue to next plate directly
+                                continue;
+                            try {
+                                std::string outfile_final;
+                                BOOST_LOG_TRIVIAL(info) << "start Print::process for partplate "<<index+1 << std::endl;
 #if defined(__linux__) || defined(__LINUX__)
-                            BOOST_LOG_TRIVIAL(info) << "cli callback mgr started:  "<<g_cli_callback_mgr.m_started << std::endl;
-                            if (g_cli_callback_mgr.is_started()) {
-                                BOOST_LOG_TRIVIAL(info) << "set print's callback to cli_status_callback.";
-                                print->set_status_callback(cli_status_callback);
-                                g_cli_callback_mgr.set_plate_info(index+1, (plate_to_slice== 0)?partplate_list.get_plate_count():1);
-                                if (!warning.string.empty()) {
-                                    PrintBase::SlicingStatus slicing_status{2, warning.string, 0, 0};
-                                    cli_status_callback(slicing_status);
+                                BOOST_LOG_TRIVIAL(info) << "cli callback mgr started:  "<<g_cli_callback_mgr.m_started << std::endl;
+                                if (g_cli_callback_mgr.is_started()) {
+                                    BOOST_LOG_TRIVIAL(info) << "set print's callback to cli_status_callback.";
+                                    print->set_status_callback(cli_status_callback);
+                                    g_cli_callback_mgr.set_plate_info(index+1, (plate_to_slice== 0)?partplate_list.get_plate_count():1);
+                                    if (!warning.string.empty()) {
+                                        PrintBase::SlicingStatus slicing_status{2, warning.string, 0, 0};
+                                        cli_status_callback(slicing_status);
+                                    }
                                 }
-                            }
 #endif
-                            if (load_slicedata) {
-                                std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
-                                int ret = print->load_cached_data(plate_dir);
-                                if (ret) {
-                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
-                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
+                                if (load_slicedata) {
+                                    std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
+                                    int ret = print->load_cached_data(plate_dir);
+                                    if (ret) {
+                                        BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
+                                        BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
+                                        print->process();
+                                    }
+                                    else {
+                                        BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
+                                        print->process(true);
+                                        BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
+                                    }
+                                }
+                                else {
                                     print->process();
                                 }
-                                else {
-                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
-                                    print->process(true);
-                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
-                                }
-                            }
-                            else {
-                                print->process();
-                            }
-                            if (printer_technology == ptFFF) {
-                                // The outfile is processed by a PlaceholderParser.
-                                //outfile = part_plate->get_tmp_gcode_path();
-                                if (outfile_dir.empty()) {
-                                    outfile = part_plate->get_tmp_gcode_path();
-                                }
-                                else {
-                                    outfile = outfile_dir + "/plate_" + std::to_string(index + 1) + ".gcode";
-                                    part_plate->set_tmp_gcode_path(outfile);
-                                }
-                                BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
-                                //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
-                                //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-                            }/* else {
-                                outfile = sla_print.output_filepath(outfile);
-                                // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
-                                outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
-                                sla_archive.export_print(outfile_final, sla_print);
-                            }*/
-                            /*if (outfile != outfile_final) {
-                                if (Slic3r::rename_file(outfile, outfile_final)) {
-                                    boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
-                                    flush_and_exit(1);
-                                }
-                                outfile = outfile_final;
-                            }*/
-                            // Run the post-processing scripts if defined.
-                            //BBS: TODO, maybe need to open this function later
-                            //run_post_process_scripts(outfile, print->full_print_config());
-                            BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
-                            part_plate->update_slice_result_valid_state(true);
+                                if (printer_technology == ptFFF) {
+                                    // The outfile is processed by a PlaceholderParser.
+                                    //outfile = part_plate->get_tmp_gcode_path();
+                                    if (outfile_dir.empty()) {
+                                        outfile = part_plate->get_tmp_gcode_path();
+                                    }
+                                    else {
+                                        outfile = outfile_dir + "/plate_" + std::to_string(index + 1) + ".gcode";
+                                        part_plate->set_tmp_gcode_path(outfile);
+                                    }
+                                    BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
+                                    outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
+                                    //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
+                                    //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+                                }/* else {
+                                    outfile = sla_print.output_filepath(outfile);
+                                    // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
+                                    outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
+                                    sla_archive.export_print(outfile_final, sla_print);
+                                }*/
+                                /*if (outfile != outfile_final) {
+                                    if (Slic3r::rename_file(outfile, outfile_final)) {
+                                        boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
+                                        flush_and_exit(1);
+                                    }
+                                    outfile = outfile_final;
+                                }*/
+                                // Run the post-processing scripts if defined.
+                                //BBS: TODO, maybe need to open this function later
+                                //run_post_process_scripts(outfile, print->full_print_config());
+                                BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
+                                part_plate->update_slice_result_valid_state(true);
 #if defined(__linux__) || defined(__LINUX__)
-                            if (g_cli_callback_mgr.is_started()) {
-                                PrintBase::SlicingStatus slicing_status{100, "Slicing finished"};
-                                cli_status_callback(slicing_status);
-                            }
+                                if (g_cli_callback_mgr.is_started()) {
+                                    PrintBase::SlicingStatus slicing_status{100, "Slicing finished"};
+                                    cli_status_callback(slicing_status);
+                                }
 #endif
-                            if (export_slicedata) {
-                                BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ":will export Slicing data to " << export_slice_data_dir;
-                                std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
-                                bool with_space = (get_logging_level() >= 4)?true:false;
-                                int ret = print->export_cached_data(plate_dir, with_space);
-                                if (ret) {
-                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
-                                    export_slicedata_error = true;
-                                    if (fs::exists(plate_dir))
-                                        fs::remove_all(plate_dir);
+                                if (export_slicedata) {
+                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ":will export Slicing data to " << export_slice_data_dir;
+                                    std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
+                                    bool with_space = (get_logging_level() >= 4)?true:false;
+                                    int ret = print->export_cached_data(plate_dir, with_space);
+                                    if (ret) {
+                                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
+                                        export_slicedata_error = true;
+                                        if (fs::exists(plate_dir))
+                                            fs::remove_all(plate_dir);
+                                    }
                                 }
-                            }
-                            if (max_slicing_time_per_plate != 0) {
-                                end_time = (long long)Slic3r::Utils::get_current_time_utc();
-                                long long time_cost = end_time - start_time;
-                                if (time_cost > max_slicing_time_per_plate) {
-                                    BOOST_LOG_TRIVIAL(error) << boost::format("plate %1%'s slice time %2% exceeds the limit %3%, return error.")
-                                        %(index+1) %time_cost %max_slicing_time_per_plate;
-                                    flush_and_exit(CLI_SLICING_TIME_EXCEEDS_LIMIT);
+                                if (max_slicing_time_per_plate != 0) {
+                                    end_time = (long long)Slic3r::Utils::get_current_time_utc();
+                                    long long time_cost = end_time - start_time;
+                                    if (time_cost > max_slicing_time_per_plate) {
+                                        BOOST_LOG_TRIVIAL(error) << boost::format("plate %1%'s slice time %2% exceeds the limit %3%, return error.")
+                                            %(index+1) %time_cost %max_slicing_time_per_plate;
+                                        flush_and_exit(CLI_SLICING_TIME_EXCEEDS_LIMIT);
+                                    }
                                 }
+                            } catch (const std::exception &ex) {
+                                BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index+1 << std::endl;
+                                boost::nowide::cerr << ex.what() << std::endl;
+                                //continue;
+                                flush_and_exit(CLI_SLICING_ERROR);
                             }
-                        } catch (const std::exception &ex) {
-                            BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index+1 << std::endl;
-                            boost::nowide::cerr << ex.what() << std::endl;
-                            //continue;
-                            flush_and_exit(CLI_SLICING_ERROR);
                         }
+                    }
+                    if (pre_check)
+                        pre_check = false;
+                    else
+                        finished = true;
                 }//end for partplate
 
 #if defined(__linux__) || defined(__LINUX__)
