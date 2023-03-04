@@ -5017,6 +5017,11 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Automatically export current configuration to the specified file.");
 */
 
+    def = this->add("datadir", coString);
+    def->label = L("Data directory");
+    def->tooltip = L("Load and store settings at the given directory. This is useful for maintaining different profiles or including configurations from a network storage.");
+
+
     def = this->add("outputdir", coString);
     def->label = L("Output directory");
     def->tooltip = L("Output directory for the exported files.");
