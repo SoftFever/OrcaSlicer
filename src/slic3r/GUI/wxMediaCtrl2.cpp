@@ -74,7 +74,8 @@ void wxMediaCtrl2::Load(wxURI url)
                     [dll_path] {
                     int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO);
                     if (res == wxYES) {
-                        SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE };
+                        wstring quoted_dll_path = L"\"" + dll_path.wstring() + "\"";
+                        SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", quoted_dll_path.c_str(), SW_HIDE };
                         ::ShellExecuteEx(&info);
                     }
                 });
