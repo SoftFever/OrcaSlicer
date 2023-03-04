@@ -3715,8 +3715,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 #endif
         } else if (m_config.get_abs_value("bridge_acceleration") > 0 && is_bridge(path.role())) {
             acceleration = m_config.get_abs_value("bridge_acceleration");
+        } else if (m_config.get_abs_value("sparse_infill_acceleration") > 0 && (path.role() == erInternalInfill)) {
+            acceleration = m_config.get_abs_value("sparse_infill_acceleration");
+        } else if (m_config.get_abs_value("internal_solid_infill_acceleration") > 0 && (path.role() == erSolidInfill)) {
+            acceleration = m_config.get_abs_value("internal_solid_infill_acceleration");
         } else if (m_config.outer_wall_acceleration.value > 0 && is_external_perimeter(path.role())) {
-             acceleration = m_config.outer_wall_acceleration.value;
+            acceleration = m_config.outer_wall_acceleration.value;
         } else if (m_config.inner_wall_acceleration.value > 0 && is_internal_perimeter(path.role())) {
             acceleration = m_config.inner_wall_acceleration.value;
         } else if (m_config.top_surface_acceleration.value > 0 && is_top_surface(path.role())) {
