@@ -1476,21 +1476,23 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "outer_wall_acceleration";
     def->set_default_value(new ConfigOptionFloatOrPercent(50,true));
 
-    def = this->add("sparse_infill_acceleration", coFloat);
+    def = this->add("sparse_infill_acceleration", coFloatOrPercent);
     def->label = L("Sparse infill");
     def->tooltip = L("Acceleration of sparse infill.");
-    def->sidetext = L("mm/s²");
+    def->sidetext = L("mm/s² or %");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(10000));
+    def->ratio_over = "default_acceleration";
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
-    def = this->add("internal_solid_infill_acceleration", coFloat);
+    def = this->add("internal_solid_infill_acceleration", coFloatOrPercent);
     def->label = L("Internal solid infill");
     def->tooltip = L("Acceleration of internal solid infill.");
-    def->sidetext = L("mm/s²");
+    def->sidetext = L("mm/s² or %");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(10000));
+    def->ratio_over = "default_acceleration";
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
