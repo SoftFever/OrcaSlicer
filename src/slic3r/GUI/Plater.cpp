@@ -2828,12 +2828,13 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
 
 void Plater::priv::select_next_view_3D()
 {
+    
     if (current_panel == view3D)
-        set_current_panel(preview);
+        wxGetApp().mainframe->select_tab(size_t(MainFrame::tpPreview));
     else if (current_panel == preview)
-        set_current_panel(assemble_view);
-    else if (current_panel == assemble_view)
-        set_current_panel(view3D);
+        wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+//    else if (current_panel == assemble_view)
+//        set_current_panel(view3D);
 }
 
 void Plater::priv::collapse_sidebar(bool collapse)

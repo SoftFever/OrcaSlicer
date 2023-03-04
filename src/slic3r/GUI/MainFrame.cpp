@@ -321,10 +321,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         });
 
     //BBS
-    Bind(EVT_SELECT_TAB, [this](wxCommandEvent&evt) {
-        TabPosition pos = (TabPosition)evt.GetInt();
-        m_tabpanel->SetSelection(pos);
-    });
+    // Bind(EVT_SELECT_TAB, [this](wxCommandEvent&evt) {
+    //     TabPosition pos = (TabPosition)evt.GetInt();
+    //     m_tabpanel->SetSelection(pos);
+    // });
 
     Bind(EVT_SYNC_CLOUD_PRESET, &MainFrame::on_select_default_preset, this);
 
