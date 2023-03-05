@@ -981,6 +981,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,              thumbnails))
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool, independent_support_layer_height))
+    // SoftFever
+    ((ConfigOptionPercents,             filament_shrink))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

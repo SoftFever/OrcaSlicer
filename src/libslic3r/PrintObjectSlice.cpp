@@ -236,6 +236,8 @@ static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_
 }
 
 static std::vector<std::vector<ExPolygons>> slices_to_regions(
+    const PrintConfig                                        &print_config,
+    const PrintObject                                        &print_object,
     ModelVolumePtrs                                           model_volumes,
     const PrintObjectRegions                                 &print_object_regions,
     const std::vector<float>                                 &zs,
@@ -435,6 +437,22 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     throw_on_cancel_callback();
                 }
             });
+    }
+
+    // SoftFever: ported from SuperSlicer
+    // filament shrink
+    for (const std::unique_ptr<PrintRegion>& pr : print_object_regions.all_regions) {
+        if (pr.get()) {
+            std::vector<ExPolygons>& region_polys = slices_by_region[pr->print_object_region_id()];
+            const size_t extruder_id = pr->extruder(FlowRole::frPerimeter) - 1;
+            double scale = print_config.filament_shrink.values[extruder_id] * 0.01;
+            if (scale != 1) {
+                scale = 1 / scale;
+                for (ExPolygons& polys : region_polys)
+                    for (ExPolygon& poly : polys)
+                        poly.scale(scale);
+            }
+        }
     }
 
     return slices_by_region;
@@ -900,10 +918,9 @@ void PrintObject::slice_volumes()
     groupingVolumes(objSliceByVolumeParts, firstLayerObjSliceByGroups, scaled_resolution);
     applyNegtiveVolumes(this->model_object()->volumes, objSliceByVolume, firstLayerObjSliceByGroups, scaled_resolution);
 
-    std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
-        std::move(objSliceByVolume),
-        PrintObject::clip_multipart_objects,
-        throw_on_cancel_callback);
+    std::vector<std::vector<ExPolygons>> region_slices =
+        slices_to_regions(print->config(), *this, this->model_object()->volumes, *m_shared_regions, slice_zs,
+                          std::move(objSliceByVolume), PrintObject::clip_multipart_objects, throw_on_cancel_callback);
 
     for (size_t region_id = 0; region_id < region_slices.size(); ++ region_id) {
         std::vector<ExPolygons> &by_layer = region_slices[region_id];

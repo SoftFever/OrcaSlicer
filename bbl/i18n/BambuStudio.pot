@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-17 23:05+0800\n"
+"POT-Creation-Date: 2023-03-05 17:03+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5116,6 +5116,9 @@ msgstr ""
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
+msgid "Swtich between Prepare/Prewview"
+msgstr ""
+
 msgid "Plater"
 msgstr ""
 
@@ -5177,6 +5180,9 @@ msgid "Horizontal slider - Move active thumb Right"
 msgstr ""
 
 msgid "On/Off one layer mode of the vertical slider"
+msgstr ""
+
+msgid "On/Off g-code window"
 msgstr ""
 
 msgid "Move slider 5x faster"
@@ -6309,6 +6315,18 @@ msgid ""
 "and should be accurate"
 msgstr ""
 
+msgid "Shrinkage"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling "
+"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr ""
 
@@ -6432,6 +6450,25 @@ msgid ""
 msgstr ""
 
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
+
+msgid ""
+"Acceleration of bridges. If the value is expressed as a percentage (e.g. "
+"50%), it will be calculated based on the outer wall acceleration."
+msgstr ""
+
+msgid "mm/s² or %"
+msgstr ""
+
+msgid ""
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
+msgstr ""
+
+msgid ""
+"Acceleration of internal solid infill. If the value is expressed as a "
+"percentage (e.g. 100%), it will be calculated based on the default "
+"acceleration."
 msgstr ""
 
 msgid ""
@@ -7718,6 +7755,15 @@ msgid "Load Filament Settings"
 msgstr ""
 
 msgid "Load filament settings from the specified file list"
+msgstr ""
+
+msgid "Data directory"
+msgstr ""
+
+msgid ""
+"Load and store settings at the given directory. This is useful for "
+"maintaining different profiles or including configurations from a network "
+"storage."
 msgstr ""
 
 msgid "Output directory"

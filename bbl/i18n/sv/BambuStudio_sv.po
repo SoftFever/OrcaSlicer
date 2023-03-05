@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-17 23:01+0800\n"
+"POT-Creation-Date: 2023-03-05 17:03+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5297,6 +5297,9 @@ msgstr ""
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
+msgid "Swtich between Prepare/Prewview"
+msgstr ""
+
 msgid "Plater"
 msgstr "Plätering/Förgyllning"
 
@@ -5359,6 +5362,9 @@ msgstr "Horisontell reglage - Flytta aktivt tryck Höger"
 
 msgid "On/Off one layer mode of the vertical slider"
 msgstr "På/Av 1 lager läge för det vertikala reglaget"
+
+msgid "On/Off g-code window"
+msgstr ""
 
 msgid "Move slider 5x faster"
 msgstr "Flytta reglage 5x snabbare"
@@ -6580,6 +6586,18 @@ msgstr ""
 "Filament diametern används för att beräkna extruderingen i G-kod, viktigt "
 "att detta är rätt"
 
+msgid "Shrinkage"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling "
+"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr "Densitet"
 
@@ -6714,6 +6732,25 @@ msgstr ""
 "förbättra ytkvaliteten"
 
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
+
+msgid ""
+"Acceleration of bridges. If the value is expressed as a percentage (e.g. "
+"50%), it will be calculated based on the outer wall acceleration."
+msgstr ""
+
+msgid "mm/s² or %"
+msgstr ""
+
+msgid ""
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
+msgstr ""
+
+msgid ""
+"Acceleration of internal solid infill. If the value is expressed as a "
+"percentage (e.g. 100%), it will be calculated based on the default "
+"acceleration."
 msgstr ""
 
 msgid ""
@@ -8123,6 +8160,15 @@ msgstr "Ladda filament inställningar"
 
 msgid "Load filament settings from the specified file list"
 msgstr "Ladda filament inställningar ifrån vald fil"
+
+msgid "Data directory"
+msgstr ""
+
+msgid ""
+"Load and store settings at the given directory. This is useful for "
+"maintaining different profiles or including configurations from a network "
+"storage."
+msgstr ""
 
 msgid "Output directory"
 msgstr "Mata ut katalog"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-17 23:01+0800\n"
+"POT-Creation-Date: 2023-03-05 17:03+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5289,6 +5289,9 @@ msgstr ""
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
+msgid "Swtich between Prepare/Prewview"
+msgstr ""
+
 msgid "Plater"
 msgstr "Piano"
 
@@ -5352,6 +5355,9 @@ msgstr "Cursore di scorrimento orizzontale - Sposta a destra il cursore attivo"
 
 msgid "On/Off one layer mode of the vertical slider"
 msgstr "On/Off modalità un layer del cursore di scorrimento verticale"
+
+msgid "On/Off g-code window"
+msgstr ""
 
 msgid "Move slider 5x faster"
 msgstr "Move slider 5x faster"
@@ -6586,6 +6592,18 @@ msgstr ""
 "Filament diameter is used to calculate extrusion variables in G-code, so it "
 "is important that this is accurate and precise."
 
+msgid "Shrinkage"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling "
+"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr "Densità"
 
@@ -6719,6 +6737,25 @@ msgstr ""
 "improve top surface quality."
 
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
+
+msgid ""
+"Acceleration of bridges. If the value is expressed as a percentage (e.g. "
+"50%), it will be calculated based on the outer wall acceleration."
+msgstr ""
+
+msgid "mm/s² or %"
+msgstr ""
+
+msgid ""
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
+msgstr ""
+
+msgid ""
+"Acceleration of internal solid infill. If the value is expressed as a "
+"percentage (e.g. 100%), it will be calculated based on the default "
+"acceleration."
 msgstr ""
 
 msgid ""
@@ -8126,6 +8163,15 @@ msgstr "Load Filament Settings"
 
 msgid "Load filament settings from the specified file list"
 msgstr "Load filament settings from the specified file list"
+
+msgid "Data directory"
+msgstr ""
+
+msgid ""
+"Load and store settings at the given directory. This is useful for "
+"maintaining different profiles or including configurations from a network "
+"storage."
+msgstr ""
 
 msgid "Output directory"
 msgstr "Output directory"

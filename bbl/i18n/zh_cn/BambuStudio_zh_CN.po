@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-17 23:01+0800\n"
+"POT-Creation-Date: 2023-03-05 17:03+0800\n"
 "PO-Revision-Date: 2023-01-16 11:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5250,6 +5250,9 @@ msgstr "SLA支撑点"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM涂装接缝"
 
+msgid "Swtich between Prepare/Prewview"
+msgstr ""
+
 msgid "Plater"
 msgstr "准备"
 
@@ -5312,6 +5315,9 @@ msgstr "水平滑动条 - 向右移动一步"
 
 msgid "On/Off one layer mode of the vertical slider"
 msgstr "开启/关闭垂直滑动条的单层模式"
+
+msgid "On/Off g-code window"
+msgstr ""
 
 msgid "Move slider 5x faster"
 msgstr "5倍速移动滑动条"
@@ -6490,6 +6496,20 @@ msgid ""
 "and should be accurate"
 msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。"
 
+msgid "Shrinkage"
+msgstr "耗材收缩率"
+
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling "
+"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+"冷却后耗材会收缩的百分比(如果测量的长度是94mm而不是100mm，则为是收缩率为94%)\n补偿将按比例缩放xy轴"
+"该补偿仅考虑墙壁所使用的耗材\n"
+"请确保物体之间有足够的间距，因为补偿是在边界检查之后进行"
+
 msgid "Density"
 msgstr "密度"
 
@@ -6614,6 +6634,25 @@ msgstr "顶面填充的加速度。使用较低值可能会改善顶面质量"
 
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
 msgstr "外墙加速度。使用较小的值可以提高质量。"
+
+msgid ""
+"Acceleration of bridges. If the value is expressed as a percentage (e.g. "
+"50%), it will be calculated based on the outer wall acceleration."
+msgstr ""
+
+msgid "mm/s² or %"
+msgstr ""
+
+msgid ""
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
+msgstr ""
+
+msgid ""
+"Acceleration of internal solid infill. If the value is expressed as a "
+"percentage (e.g. 100%), it will be calculated based on the default "
+"acceleration."
+msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -7975,6 +8014,15 @@ msgstr "加载耗材丝设置"
 
 msgid "Load filament settings from the specified file list"
 msgstr "从指定文件加载耗材丝设置"
+
+msgid "Data directory"
+msgstr ""
+
+msgid ""
+"Load and store settings at the given directory. This is useful for "
+"maintaining different profiles or including configurations from a network "
+"storage."
+msgstr ""
 
 msgid "Output directory"
 msgstr "输出路径"
