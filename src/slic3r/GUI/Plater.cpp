@@ -7913,6 +7913,8 @@ void Plater::calib_pa(const Calib_Params& params) {
         print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
         print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
         print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+        if(print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator")->value == PerimeterGeneratorType::Arachne)
+            print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
         model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
 
         changed_objects({ 0 });
