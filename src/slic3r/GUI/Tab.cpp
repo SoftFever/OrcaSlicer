@@ -1996,7 +1996,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
-        //optgroup->append_single_option_line("support_angle");
+        optgroup->append_single_option_line("support_angle");
         optgroup->append_single_option_line("support_interface_top_layers", "support#base-pattern");
         optgroup->append_single_option_line("support_interface_bottom_layers", "support#base-pattern");
         optgroup->append_single_option_line("support_interface_pattern", "support#base-pattern");
