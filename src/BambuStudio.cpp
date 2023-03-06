@@ -2232,7 +2232,7 @@ int CLI::run(int argc, char **argv)
                         }
                         BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail, need to regenerate")%(i+1);
                         ThumbnailData *        thumbnail_data   = new ThumbnailData();
-                        unsigned int thumbnail_width = 256, thumbnail_height = 256;
+                        unsigned int thumbnail_width = 512, thumbnail_height = 512;
                         const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
 
                         switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
