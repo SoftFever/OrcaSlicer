@@ -1441,6 +1441,9 @@ void Sidebar::sync_ams_list()
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0]);
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     dynamic_filament_list.update();
+    // Expand filament list
+    p->m_panel_filament_content->SetMaxSize({-1, -1});
+    Layout();
 }
 
 ObjectList* Sidebar::obj_list()
