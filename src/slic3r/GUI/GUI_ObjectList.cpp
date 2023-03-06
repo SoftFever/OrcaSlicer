@@ -155,6 +155,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         ObjectDataViewModelNode* sel_node = (ObjectDataViewModelNode*)event.GetItem().GetID();
         if (sel_node && (sel_node->GetType() & ItemType::itPlate)) {
             wxGetApp().plater()->select_plate(sel_node->GetPlateIdx());
+            wxGetApp().plater()->deselect_all();
         }
         else {
             selection_changed();
@@ -4690,17 +4691,20 @@ void ObjectList::fix_through_netfabb()
                     obj_idxs.erase(obj_idxs.begin()+i);
 #endif // FIX_THROUGH_NETFABB_ALWAYS
         for (int obj_idx : obj_idxs)
-            model_names.push_back(object(obj_idx)->name);
+            if (object(obj_idx))
+                model_names.push_back(object(obj_idx)->name);
     }
     else {
         ModelObject* obj = object(obj_idxs.front());
+        if (obj) {
 #if !FIX_THROUGH_NETFABB_ALWAYS
-        for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
-            if (obj->get_repaired_errors_count(vol_idxs[i]) == 0)
-                vol_idxs.erase(vol_idxs.begin() + i);
+            for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
+                if (obj->get_repaired_errors_count(vol_idxs[i]) == 0)
+                    vol_idxs.erase(vol_idxs.begin() + i);
 #endif // FIX_THROUGH_NETFABB_ALWAYS
-        for (int vol_idx : vol_idxs)
-            model_names.push_back(obj->volumes[vol_idx]->name);
+            for (int vol_idx : vol_idxs)
+                model_names.push_back(obj->volumes[vol_idx]->name);
+        }
     }
 
     auto plater = wxGetApp().plater();
@@ -4711,6 +4715,9 @@ void ObjectList::fix_through_netfabb()
                                           std::vector<std::string>& succes_models,
                                           std::vector<std::pair<std::string, std::string>>& failed_models)
     {
+        if (!object(obj_idx))
+            return false;
+
         const std::string& model_name = model_names[model_idx];
         wxString msg = _L("Repairing model object");
         if (model_names.size() == 1)
