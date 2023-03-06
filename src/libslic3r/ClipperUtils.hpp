@@ -296,7 +296,25 @@ namespace ClipperUtils {
         const SurfacesPtr &m_surfaces;
         size_t             m_size;
     };
-}
+
+    
+    // For ClipperLib with Z coordinates.
+    using ZPoint  = Vec3i32;
+    using ZPoints = std::vector<Vec3i32>;
+
+    // Clip source polygon to be used as a clipping polygon with a bouding box around the source (to be clipped) polygon.
+    // Useful as an optimization for expensive ClipperLib operations, for example when clipping source polygons one by one
+    // with a set of polygons covering the whole layer below.
+    void                   clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox, Points &out);
+    void                   clip_clipper_polygon_with_subject_bbox(const ZPoints &src, const BoundingBox &bbox, ZPoints &out);
+    [[nodiscard]] Points   clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox);
+    [[nodiscard]] ZPoints  clip_clipper_polygon_with_subject_bbox(const ZPoints &src, const BoundingBox &bbox);
+    void                   clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBox &bbox, Polygon &out);
+    [[nodiscard]] Polygon  clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBox &bbox);
+    [[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const Polygons &src, const BoundingBox &bbox);
+    [[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygon &src, const BoundingBox &bbox);
+
+    }
 
 // Perform union of input polygons using the non-zero rule, convert to ExPolygons.
 ExPolygons ClipperPaths_to_Slic3rExPolygons(const ClipperLib::Paths &input, bool do_union = false);

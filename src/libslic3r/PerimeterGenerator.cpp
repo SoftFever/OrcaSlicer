@@ -268,6 +268,10 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         }
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
+            // prepare grown lower layer slices for overhang detection
+            BoundingBox bbox(polygon.points);
+            bbox.offset(SCALED_EPSILON);
+
             Polylines remain_polines;
 
             //BBS: don't calculate overhang degree when enable fuzzy skin. It's unmeaning
@@ -275,10 +279,10 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 for (auto it = lower_polygons_series->begin();
                     it != lower_polygons_series->end(); it++)
                 {
+                    Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(it->second, bbox);
 
-                    Polylines inside_polines = (it == lower_polygons_series->begin()) ?
-                        intersection_pl({ polygon }, it->second) :
-                        intersection_pl(remain_polines, it->second);
+                    Polylines inside_polines = (it == lower_polygons_series->begin()) ? intersection_pl({polygon}, lower_polygons_series_clipped) :
+                                                                                        intersection_pl(remain_polines, lower_polygons_series_clipped);
                     extrusion_paths_append(
                         paths,
                         std::move(inside_polines),
@@ -289,9 +293,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                         extrusion_width,
                         (float)perimeter_generator.layer_height);
 
-                    remain_polines = (it == lower_polygons_series->begin()) ?
-                        diff_pl({ polygon }, it->second) :
-                        diff_pl(remain_polines, it->second);
+                    remain_polines = (it == lower_polygons_series->begin()) ? diff_pl({polygon}, lower_polygons_series_clipped) :
+                                                                              diff_pl(remain_polines, lower_polygons_series_clipped);
 
                     if (remain_polines.size() == 0)
                         break;
@@ -299,7 +302,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             } else {
                 auto it = lower_polygons_series->end();
                 it--;
-                Polylines inside_polines = intersection_pl({ polygon }, it->second);
+                Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(it->second, bbox);
+
+                Polylines inside_polines = intersection_pl({polygon}, lower_polygons_series_clipped);
                 extrusion_paths_append(
                     paths,
                     std::move(inside_polines),
@@ -310,7 +315,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                     extrusion_width,
                     (float)perimeter_generator.layer_height);
 
-                remain_polines = diff_pl({ polygon }, it->second);
+                remain_polines = diff_pl({polygon}, lower_polygons_series_clipped);
             }
 
             // get 100% overhang paths by checking what parts of this loop fall

@@ -57,8 +57,96 @@ err:
 #endif /* CLIPPER_UTILS_DEBUG */
 
 namespace ClipperUtils {
-    Points EmptyPathsProvider::s_empty_points;
-    Points SinglePathProvider::s_end;
+Points EmptyPathsProvider::s_empty_points;
+Points SinglePathProvider::s_end;
+
+// Clip source polygon to be used as a clipping polygon with a bouding box around the source (to be clipped) polygon.
+// Useful as an optimization for expensive ClipperLib operations, for example when clipping source polygons one by one
+// with a set of polygons covering the whole layer below.
+template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox, std::vector<PointType> &out)
+{
+    out.clear();
+    const size_t cnt = src.size();
+    if (cnt < 3) return;
+
+    enum class Side { Left = 1, Right = 2, Top = 4, Bottom = 8 };
+
+    auto sides = [bbox](const PointType &p) {
+        return int(p.x() < bbox.min.x()) * int(Side::Left) + int(p.x() > bbox.max.x()) * int(Side::Right) + int(p.y() < bbox.min.y()) * int(Side::Bottom) +
+               int(p.y() > bbox.max.y()) * int(Side::Top);
+    };
+
+    int          sides_prev = sides(src.back());
+    int          sides_this = sides(src.front());
+    const size_t last       = cnt - 1;
+    for (size_t i = 0; i < last; ++i) {
+        int sides_next = sides(src[i + 1]);
+        if ( // This point is inside. Take it.
+            sides_this == 0 ||
+            // Either this point is outside and previous or next is inside, or
+            // the edge possibly cuts corner of the bounding box.
+            (sides_prev & sides_this & sides_next) == 0) {
+            out.emplace_back(src[i]);
+            sides_prev = sides_this;
+        } else {
+            // All the three points (this, prev, next) are outside at the same side.
+            // Ignore this point.
+        }
+        sides_this = sides_next;
+    }
+
+    // Never produce just a single point output polygon.
+    if (!out.empty())
+        if (int sides_next = sides(out.front());
+            // The last point is inside. Take it.
+            sides_this == 0 ||
+            // Either this point is outside and previous or next is inside, or
+            // the edge possibly cuts corner of the bounding box.
+            (sides_prev & sides_this & sides_next) == 0)
+            out.emplace_back(src.back());
+}
+
+    void clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox, Points &out) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out); }
+void clip_clipper_polygon_with_subject_bbox(const ZPoints &src, const BoundingBox &bbox, ZPoints &out) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out); }
+
+template<typename PointType> [[nodiscard]] std::vector<PointType> clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox)
+{
+    std::vector<PointType> out;
+    clip_clipper_polygon_with_subject_bbox(src, bbox, out);
+    return out;
+}
+
+[[nodiscard]] Points  clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox) { return clip_clipper_polygon_with_subject_bbox_templ(src, bbox); }
+[[nodiscard]] ZPoints clip_clipper_polygon_with_subject_bbox(const ZPoints &src, const BoundingBox &bbox) { return clip_clipper_polygon_with_subject_bbox_templ(src, bbox); }
+
+void clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBox &bbox, Polygon &out) { 
+    clip_clipper_polygon_with_subject_bbox(src.points, bbox, out.points);
+}
+
+[[nodiscard]] Polygon clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBox &bbox)
+{
+    Polygon out;
+    clip_clipper_polygon_with_subject_bbox(src.points, bbox, out.points);
+    return out;
+}
+
+[[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const Polygons &src, const BoundingBox &bbox)
+{
+    Polygons out;
+    out.reserve(src.size());
+    for (const Polygon &p : src) out.emplace_back(clip_clipper_polygon_with_subject_bbox(p, bbox));
+    out.erase(std::remove_if(out.begin(), out.end(), [](const Polygon &polygon) { return polygon.empty(); }), out.end());
+    return out;
+}
+[[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygon &src, const BoundingBox &bbox)
+{
+    Polygons out;
+    out.reserve(src.num_contours());
+    out.emplace_back(clip_clipper_polygon_with_subject_bbox(src.contour, bbox));
+    for (const Polygon &p : src.holes) out.emplace_back(clip_clipper_polygon_with_subject_bbox(p, bbox));
+    out.erase(std::remove_if(out.begin(), out.end(), [](const Polygon &polygon) { return polygon.empty(); }), out.end());
+    return out;
+}
 }
 
 static ExPolygons PolyTreeToExPolygons(ClipperLib::PolyTree &&polytree)
