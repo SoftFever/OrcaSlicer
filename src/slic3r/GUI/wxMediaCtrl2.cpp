@@ -31,6 +31,9 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 #ifdef __LINUX__
     /* Register only after we have created the wxMediaCtrl, since only then are we guaranteed to have fired up Gstreamer's plugin registry. */
     gstbambusrc_register();
+    Bind(wxEVT_MEDIA_LOADED, [this](auto & e) {
+        m_loaded = true;
+    });
 #endif
 }
 
@@ -138,14 +141,36 @@ void wxMediaCtrl2::Load(wxURI url)
         wxPostEvent(this, event);
         return;
     }
+    wxLog::EnableLogging(false);
 #endif
     m_error = 0;
+    m_loaded = false;
     wxMediaCtrl::Load(url);
+
+#ifdef __WXGTK3__
+        wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
+        event.SetId(GetId());
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+#endif
 }
 
 void wxMediaCtrl2::Play() { wxMediaCtrl::Play(); }
 
 void wxMediaCtrl2::Stop() { wxMediaCtrl::Stop(); }
+
+#ifdef __LINUX__
+extern int gst_bambu_last_error;
+#endif
+
+int wxMediaCtrl2::GetLastError() const
+{
+#ifdef __LINUX__
+    return gst_bambu_last_error;
+#else
+    return m_error;
+#endif
+}
 
 wxSize wxMediaCtrl2::GetVideoSize() const
 {
@@ -153,7 +178,7 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     // Gstreamer doesn't give us a VideoSize until we're playing, which
     // confuses the MediaPlayCtrl into claiming that it is stuck
     // "Loading...".  Fake it out for now.
-    return wxSize(1280, 720);
+    return m_loaded ? wxSize(1280, 720) : wxSize{};
 #else
     return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
 #endif

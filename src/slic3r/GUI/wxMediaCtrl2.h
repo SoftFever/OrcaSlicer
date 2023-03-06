@@ -65,7 +65,7 @@ public:
 
     void SetIdleImage(wxString const & image);
 
-    int GetLastError() const { return m_error; }
+    int GetLastError() const;
 
     wxSize GetVideoSize() const;
 
@@ -83,6 +83,7 @@ protected:
 private:
     wxString m_idle_image;
     int      m_error = 0;
+    bool     m_loaded = false;
 };
 
 #endif

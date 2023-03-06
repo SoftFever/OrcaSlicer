@@ -259,6 +259,8 @@ gst_bambusrc_get_property (GObject * object, guint prop_id,
   }
 }
 
+int gst_bambu_last_error = 0;
+
 static GstFlowReturn
 gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
 {
@@ -286,7 +288,8 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
   }
 
   if (rv != Bambu_success) {
-    return GST_FLOW_ERROR;
+      gst_bambu_last_error = rv;
+      return GST_FLOW_ERROR;
   }
 
 #if GLIB_CHECK_VERSION(2,68,0)
@@ -316,7 +319,7 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
       //if (GST_CLOCK_TIME_NONE == src->sttime)
       //  src->sttime
       GST_DEBUG_OBJECT(src,
-        "sttime init to %llu.",
+        "sttime init to %lu.",
         src->sttime);
     }
     //GST_BUFFER_DTS(*outbuf) = gst_element_get_current_clock_time((GstElement *)psrc) - src->sttime;
@@ -325,7 +328,7 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
     GST_BUFFER_DURATION(*outbuf) = GST_CLOCK_TIME_NONE;
   }
   GST_DEBUG_OBJECT(src,
-    "sttime:%llu, DTS:%llu, PTS: %llu~",
+    "sttime:%lu, DTS:%lu, PTS: %lu~",
     src->sttime, GST_BUFFER_DTS(*outbuf), GST_BUFFER_PTS(*outbuf));
 
   return GST_FLOW_OK;
@@ -377,6 +380,7 @@ gst_bambusrc_start (GstBaseSrc * bsrc)
     BAMBULIB(Bambu_Close)(src->tnl);
     BAMBULIB(Bambu_Destroy)(src->tnl);
     src->tnl = NULL;
+    gst_bambu_last_error = rv;
     return FALSE;
   }
 
