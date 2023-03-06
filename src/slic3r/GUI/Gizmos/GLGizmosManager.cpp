@@ -1017,8 +1017,6 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             break;
         }
         //skip some keys when gizmo
-        case 'r':
-        case 'R':
         case 'A':
         case 'a':
         {
@@ -1088,9 +1086,9 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         // BBS: Skip all keys when in gizmo. This is necessary for 3D text tool.
         default:
         {
-            if (is_running() && m_current == EType::Text) {
-                processed = true;
-            }
+            //if (is_running() && m_current == EType::Text) {
+            //    processed = true;
+            //}
             break;
         }
         }
