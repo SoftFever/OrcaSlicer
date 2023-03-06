@@ -129,6 +129,7 @@ public:
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
     void on_change_color_mode(bool is_dark);
+    void set_menu_enable(bool enable = true) { m_menu_enable = enable; }
 
 protected:
     void add_custom_gcode(std::string custom_gcode);
@@ -179,7 +180,8 @@ private:
     bool m_is_right_down      = false;
     bool m_is_one_layer       = false;
     bool m_is_focused         = false;
-    bool m_show_menu         = false;
+    bool m_show_menu          = false;
+    bool m_menu_enable        = true;
     bool m_show_custom_gcode_window = false;
     bool m_show_go_to_layer_dialog = false;
     bool m_force_mode_apply   = true;

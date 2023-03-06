@@ -1086,6 +1086,14 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     }
 
     m_fold = false;
+
+    bool only_gcode_3mf = false;
+    PartPlate* current_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    bool current_has_print_instances = current_plate->has_printable_instances();
+    if (current_plate->is_slice_result_valid() && wxGetApp().model().objects.empty() && !current_has_print_instances)
+        only_gcode_3mf = true;
+
+    m_layers_slider->set_menu_enable(!(only_gcode || only_gcode_3mf));
     m_layers_slider->set_as_dirty();
     m_moves_slider->set_as_dirty();
 

@@ -1125,6 +1125,9 @@ void IMSlider::render_go_to_layer_dialog()
 
 void IMSlider::render_menu()
 {
+    if (!m_menu_enable)
+        return;
+
     ImGuiWrapper::push_menu_style(m_scale);
     int extruder_num = m_extruder_colors.size();
 
