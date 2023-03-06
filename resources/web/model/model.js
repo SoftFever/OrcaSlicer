@@ -203,7 +203,7 @@ function ShowModelInfo( pModel )
 	//==========Model Info==========
 	let sModelName=decodeURIComponent(pModel.name);
 	let sModelAuthor=decodeURIComponent(pModel.author);
-	let UploadType=pModel.upload_type.toUpperCase();
+	let UploadType=pModel.upload_type.toLowerCase();
 	let sLicence=pModel.license.toUpperCase();
 	let sModelDesc=decodeURIComponent(pModel.description);
 	
@@ -215,15 +215,15 @@ function ShowModelInfo( pModel )
 	switch(UploadType)
 	{
 		case 'remix':
-			$('#ModelAthorType').attr('tid','t93');
+			$('#ModelAuthorType').attr('tid','t93');
 			break;
 		case 'shared':
-			$('#ModelAthorType').attr('tid','t94');
+			$('#ModelAuthorType').attr('tid','t94');
 			break;			
 		case 'origin':
 		case 'profile':
 		default:
-			$('#ModelAthorType').attr('tid','t92');
+			$('#ModelAuthorType').attr('tid','t92');
 			break;			
 	}
 	
@@ -329,11 +329,11 @@ function ShowModelInfo( pModel )
 			});
 		}			
 			
-		
+		$('#Model_Preview_Image').show();
 	}
 	else
 	{
-		$('#ModelPreviewList').hide();
+		$('#Model_Preview_Image').hide();
 	}	
 }
 			
@@ -465,6 +465,9 @@ function ConstructFileHtml( ID, pItem )
 	}
 	
 	$('#'+ID+'  .FileListBoard').html(strHtml);
+	
+    if( fTotal>0 )
+		$('#'+ID).show();
 }
 
 
@@ -543,10 +546,12 @@ function ShowProfilelInfo( pProfile )
 			}		
 			});
 		}
+		
+		$('#Profile_Preview_Image').show();
 	}
 	else
 	{
-		$('#ProfilePreviewList').hide();
+		$('#Profile_Preview_Image').hide();
 	}				
 }			
 			
