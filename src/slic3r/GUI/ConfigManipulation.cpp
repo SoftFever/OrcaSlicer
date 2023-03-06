@@ -485,7 +485,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
 {
     for (auto &k : keys) {
-        if (/*k == "adaptive_layer_height" || */k == "independent_support_layer_height" || k == "enable_support" || k == "detect_thin_wall")
+        if (/*k == "adaptive_layer_height" || */ k == "independent_support_layer_height" || k == "enable_support" ||
+            k == "detect_thin_wall" || k == "tree_support_adaptive_layer_height")
             config->set_key_value(k, new ConfigOptionBool(true));
         else if (k == "wall_loops")
             config->set_key_value(k, new ConfigOptionInt(0));
@@ -587,11 +588,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
+                    "tree_support_branch_diameter", "tree_support_adaptive_layer_height"})
         toggle_field(el, support_is_tree);
 
     // hide tree support settings when normal is selected
-    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
+                    "tree_support_branch_diameter", "max_bridge_length", "tree_support_adaptive_layer_height"})
         toggle_line(el, support_is_tree);
 
     // tree support use max_bridge_length instead of bridge_no_support

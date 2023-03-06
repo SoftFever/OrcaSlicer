@@ -2994,6 +2994,12 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
+    def = this->add("tree_support_adaptive_layer_height", coBool);
+    def->label = L("Adaptive layer height");
+    def->category = L("Quality");
+    def->tooltip = L("Enabling this option means the height of  tree support layer except the first will be automatically calculated ");
+    def->set_default_value(new ConfigOptionBool(1));
+
     def           = this->add("tree_support_branch_diameter", coFloat);
     def->label    = L("Tree support branch diameter");
     def->category = L("Support");

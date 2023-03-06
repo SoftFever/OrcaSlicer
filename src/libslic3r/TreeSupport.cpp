@@ -16,7 +16,6 @@
 
 #define _L(s) Slic3r::I18N::translate(s)
 
-#define USE_PLAN_LAYER_HEIGHTS 1
 #define HEIGHT_TO_SWITCH_INFILL_DIRECTION 30 // change infill direction every 20mm
 
 #ifndef M_PI
@@ -1917,10 +1916,10 @@ void TreeSupport::generate_support_areas()
 
     smooth_nodes(contact_nodes);
 
-#if !USE_PLAN_LAYER_HEIGHTS   
-    // Adjust support layer heights
-    adjust_layer_heights(contact_nodes);
-#endif
+if (!m_object->config().tree_support_adaptive_layer_height)
+        // Adjust support layer heights
+        adjust_layer_heights(contact_nodes);
+
 
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);
@@ -3209,7 +3208,7 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
     std::vector<std::pair<coordf_t, coordf_t>> layer_heights(contact_nodes.size(), std::pair<coordf_t, coordf_t>(0.0, 0.0));
     std::vector<int> bounds;
 
-    if (!USE_PLAN_LAYER_HEIGHTS || layer_height == max_layer_height || !print_config.independent_support_layer_height) {
+    if (!config.tree_support_adaptive_layer_height || layer_height == max_layer_height || !print_config.independent_support_layer_height) {
         for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
             layer_heights[layer_nr].first  = m_object->get_layer(layer_nr)->print_z;
             layer_heights[layer_nr].second = m_object->get_layer(layer_nr)->height;

@@ -6499,6 +6499,7 @@ msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重
 msgid "Shrinkage"
 msgstr "耗材收缩率"
 
+#, fuzzy, c-format, boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling "
 "(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
@@ -6506,8 +6507,9 @@ msgid ""
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
 msgstr ""
-"冷却后耗材会收缩的百分比(如果测量的长度是94mm而不是100mm，则为是收缩率为94%)\n补偿将按比例缩放xy轴"
-"该补偿仅考虑墙壁所使用的耗材\n"
+"冷却后耗材会收缩的百分比(如果测量的长度是94mm而不是100mm，则为是收缩率为"
+"94%)\n"
+"补偿将按比例缩放xy轴该补偿仅考虑墙壁所使用的耗材\n"
 "请确保物体之间有足够的间距，因为补偿是在边界检查之后进行"
 
 msgid "Density"
@@ -8470,6 +8472,9 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
+msgid "Adaptive layer height"
+msgstr "自适应层高"
+
 #~ msgid "Internal Version"
 #~ msgstr "内部版本"
 
@@ -8834,9 +8839,6 @@ msgstr ""
 
 #~ msgid "Initialize failed (Not supported without remote video tunnel)!"
 #~ msgstr "初始化失败（不支持远程视频连接）"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "自适应层高"
 
 #~ msgid ""
 #~ "Enabling this option means the height of every layer except the first "

@@ -3868,6 +3868,7 @@ msgstr "Vous feriez mieux de mettre à jour votre logiciel.\n"
 msgid "Newer 3mf version"
 msgstr "Nouvelle version 3mf"
 
+#, fuzzy, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software."
@@ -6455,6 +6456,7 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Seuil de dépassement de refroidissement"
 
+#, fuzzy, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
@@ -7212,6 +7214,7 @@ msgstr "Le max_accel_to_decel de Klipper sera ajusté automatiquement."
 msgid "accel_to_decel"
 msgstr "accel_to_decel"
 
+#, fuzzy, c-format, boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr "Le max_accel_to_decel de Klipper sera ajusté à ce % d'accélération."
 
