@@ -114,9 +114,6 @@
     "filament_wipe_distance": [
         "nil"
     ],
-    "bed_type": [
-        "Cool Plate"
-    ],
     "nozzle_temperature_initial_layer": [
         "200"
     ],
