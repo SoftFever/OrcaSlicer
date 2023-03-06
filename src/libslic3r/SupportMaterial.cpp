@@ -1535,7 +1535,17 @@ static inline Polygons detect_overhangs(
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer &lower_layer  = *layer.lower_layer;
         const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty();
-        const ExPolygons& lower_layer_expolys = lower_layer.lslices;
+        // Can't directly use lower_layer.lslices, or we'll miss some very sharp tails.
+        // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
+        // FIXME if there are multiple regions with different extrusion width, the following code may not be right.
+        float fw = float(layer.regions().front()->flow(frExternalPerimeter).scaled_width());
+        ExPolygons lower_layer_expolys;
+        for (const ExPolygon& expoly : lower_layer.lslices) {
+            if (!offset_ex(expoly, -fw / 2).empty()) {
+                lower_layer_expolys.emplace_back(expoly);
+            }
+        }
+
         const ExPolygons& lower_layer_sharptails = lower_layer.sharp_tails;
         auto& lower_layer_sharptails_height = lower_layer.sharp_tails_height;
 
@@ -2265,7 +2275,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
             // 3. check whether the small overhang is sharp tail
             bool is_sharp_tail = false;
-            for (size_t layer_id = cluster.min_layer; layer_id < cluster.max_layer; layer_id++) {
+            for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
                 const Layer& layer = *object.layers()[layer_id];
                 if (!intersection_ex(layer.sharp_tails, cluster.merged_overhangs_dilated).empty()) {
                     is_sharp_tail = true;

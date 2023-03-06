@@ -279,13 +279,14 @@ std::string SVG::get_path_d(const ClipperLib::Path &path, double scale, bool clo
     return d.str();
 }
 
+// font_size: font-size={font_size*10}px
 void SVG::draw_text(const Point &pt, const char *text, const char *color, int font_size)
 {
     fprintf(this->f,
-        "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"20px\" fill=\"%s\">%s</text>",
+        "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"%dpx\" fill=\"%s\">%s</text>",
         to_svg_x(pt(0)-origin(0)),
         to_svg_y(pt(1)-origin(1)),
-        color, text);
+        font_size*10, color, text);
 }
 
 void SVG::draw_legend(const Point &pt, const char *text, const char *color)

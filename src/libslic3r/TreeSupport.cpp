@@ -237,11 +237,15 @@ static void draw_contours_and_nodes_to_svg
     svg.draw_outline(outlines_below, colors[2]);
 
     // draw legend
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(0)), ("nPoints: "+std::to_string(layer_nodes.size())+"->").c_str(), "green", 4);
-    svg.draw_text(bbox.min + Point(scale_(15), scale_(0)), std::to_string(lower_layer_nodes.size()).c_str(), "black", 4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(1)), legends[0].c_str(), colors[0].c_str(), 4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), legends[1].c_str(), colors[1].c_str(), 4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(3)), legends[2].c_str(), colors[2].c_str(), 4);
+    if (!lower_layer_nodes.empty()) {
+        svg.draw_text(bbox.min + Point(scale_(0), scale_(0)), format("nPoints: %1%->%2%",layer_nodes.size(), lower_layer_nodes.size()).c_str(), "green", 2);
+    }
+    else {
+        svg.draw_text(bbox.min + Point(scale_(0), scale_(0)), ("nPoints: " + std::to_string(layer_nodes.size())).c_str(), "green", 2);
+    }
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), legends[0].c_str(), colors[0].c_str(), 2);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(4)), legends[1].c_str(), colors[1].c_str(), 2);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(6)), legends[2].c_str(), colors[2].c_str(), 2);
 
     // draw layer nodes
     svg.draw(layer_pts, "green", coord_t(scale_(0.1)));
@@ -874,13 +878,13 @@ void TreeSupport::detect_overhangs()
             coordf_t lower_layer_offset = layer_nr < enforce_support_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
             coordf_t support_offset_scaled = scale_(lower_layer_offset);
             // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
-            ExPolygons lower_polys;// = offset2_ex(lower_layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
+            ExPolygons lower_polys;
             for (const ExPolygon& expoly : lower_layer->lslices) {
                 if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
                     lower_polys.emplace_back(expoly);
                 }
             }
-            ExPolygons curr_polys;// = offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
+            ExPolygons curr_polys;
             for (const ExPolygon& expoly : layer->lslices) {
                 if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
                     curr_polys.emplace_back(expoly);
@@ -1127,7 +1131,7 @@ void TreeSupport::detect_overhangs()
 
             // 3. check whether the small overhang is sharp tail
             bool is_sharp_tail = false;
-            for (size_t layer_id = cluster.min_layer; layer_id < cluster.max_layer; layer_id++) {
+            for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
                 Layer* layer = m_object->get_layer(layer_id);
                 if (!intersection_ex(layer->sharp_tails, cluster.merged_poly).empty()) {
                     is_sharp_tail = true;
