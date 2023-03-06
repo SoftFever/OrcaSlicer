@@ -691,7 +691,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             m_clrData.SetChooseAlpha(false);
 
             wxColourDialog dialog(this, &m_clrData);
-            dialog.SetTitle("Please choose the filament colour");
+            dialog.SetTitle(_L("Please choose the filament colour"));
             if ( dialog.ShowModal() == wxID_OK )
             {
                 m_clrData = dialog.GetColourData();
