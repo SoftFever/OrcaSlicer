@@ -4308,7 +4308,8 @@ void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_d
 
 void GUI_App::stop_sync_user_preset()
 {
-    remove_user_presets();
+    if (!wxGetApp().m_is_closing)
+        remove_user_presets();
     enable_user_preset_folder(false);
 
     if (!enable_sync)
