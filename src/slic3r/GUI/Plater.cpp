@@ -7658,6 +7658,8 @@ void Plater::load_project(wxString const& filename2,
     // if res is empty no data has been loaded
     if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
         p->set_project_filename(load_restore ? originfile : filename);
+        if (load_restore && originfile.IsEmpty())
+            p->set_project_name(_L("Untitled"));
     } else {
         if (using_exported_file())
             p->set_project_filename(filename);
