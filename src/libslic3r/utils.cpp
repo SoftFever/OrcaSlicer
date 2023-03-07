@@ -37,6 +37,7 @@
 		#include <fcntl.h>
 		#include <sys/sendfile.h>
 		#include <dirent.h>
+		#include <stdio.h>
 	#endif
 #endif
 
@@ -1150,7 +1151,16 @@ std::string get_process_name(int pid)
 	while (auto q = strchr(p + 1, '/')) p = q;
 	return p;
 #else
-	return {};
+    char pathbuf[512]  = {0};
+    char proc_path[32] = "/proc/self/exe";
+    if (pid != 0) { snprintf(proc_path, sizeof(proc_path), "/proc/%d/exe", pid); }
+    if (readlink(proc_path, pathbuf, sizeof(pathbuf)) < 0) {
+        perror(NULL);
+        return {};
+    }
+    char *p = pathbuf;
+    while (auto q = strchr(p + 1, '/')) p = q;
+    return p;
 #endif
 }
 
