@@ -1296,6 +1296,32 @@ std::string GUI_App::get_http_url(std::string country_code)
     return url;
 }
 
+std::string GUI_App::get_model_http_url(std::string country_code)
+{
+    std::string url;
+    if (country_code == "US") {
+        url = "https://makerhub.bambu-lab.com/";
+    }
+    else if (country_code == "CN") {
+        url = "https://makerhub.bambu-lab.com/zh/";
+    }
+    else if (country_code == "ENV_CN_DEV") {
+        url = "https://makerhub-dev.bambu-lab.com/";
+    }
+    else if (country_code == "ENV_CN_QA") {
+        url = "https://makerhub-qa.bambu-lab.com/";
+    }
+    else if (country_code == "ENV_CN_PRE") {
+        url = "https://makerhub-pre.bambu-lab.com/";
+    }
+    else {
+        url = "https://makerhub.bambu-lab.com/";
+    }
+
+    return url;
+}
+
+
 std::string GUI_App::get_plugin_url(std::string name, std::string country_code)
 {
     std::string url = get_http_url(country_code);
@@ -5409,45 +5435,94 @@ void GUI_App::load_url(wxString url)
 
 void GUI_App::open_mall_page_dialog()
 {
-    std::string url;
+    std::string host_url;
+    std::string model_url;
+    std::string link_url;
+
+    int result = -1;
+
+    //model api url
+    host_url = get_model_http_url(app_config->get_country_code());
+
+    //model url
+    
+    wxString language_code = this->current_language_code().BeforeFirst('_');
+    model_url += (language_code.ToStdString() + "/models");
 
     if (getAgent() && mainframe) {
-        getAgent()->get_model_mall_home_url(&url);
 
-        if (!m_mall_home_dialog) {
-            m_mall_home_dialog = new ModelMallDialog();
-            m_mall_home_dialog->go_to_mall(url);
-        }
-        else {
-            if (m_mall_home_dialog->IsIconized())
-                m_mall_home_dialog->Iconize(false);
+        //login already
+        if (getAgent()->is_user_login()) {
+            std::string ticket;
+            result = getAgent()->request_bind_ticket(&ticket);
 
-            //m_mall_home_dialog->go_to_mall(url);
-        }
-        m_mall_home_dialog->Raise();
-        m_mall_home_dialog->Show();
+            if(result == 0){
+                link_url = host_url + "api/sign-in/ticket?to=" + host_url + url_encode(model_url) + "&ticket=" + ticket;
+            }
+        } 
     }
+
+    if (result < 0) {
+       link_url = host_url + model_url;
+    }
+
+    wxLaunchDefaultBrowser(link_url);
 }
 
 void GUI_App::open_publish_page_dialog()
 {
-    std::string url;
+    std::string host_url;
+    std::string model_url;
+    std::string link_url;
+
+    int result = -1;
+
+    //model api url
+    host_url = get_model_http_url(app_config->get_country_code());
+
+    //publish url
+    wxString language_code = this->current_language_code().BeforeFirst('_');
+    model_url += (language_code.ToStdString() + "/my/models/publish");
+
     if (getAgent() && mainframe) {
-        getAgent()->get_model_publish_url(&url);
 
-        if (!m_mall_publish_dialog) {
-            m_mall_publish_dialog = new ModelMallDialog();
-            m_mall_publish_dialog->go_to_mall(url);
-        }
-        else {
-            if (m_mall_publish_dialog->IsIconized())
-                m_mall_publish_dialog->Iconize(false);
+        //login already
+        if (getAgent()->is_user_login()) {
+            std::string ticket;
+            result = getAgent()->request_bind_ticket(&ticket);
 
-            //m_mall_publish_dialog->go_to_publish(url);
+            if (result == 0) {
+                link_url = host_url + "api/sign-in/ticket?to=" + host_url + url_encode(model_url) + "&ticket=" + ticket;
+            }
         }
-        m_mall_publish_dialog->Raise();
-        m_mall_publish_dialog->Show();
     }
+
+    if (result < 0) {
+        link_url = host_url + model_url;
+    }
+
+    wxLaunchDefaultBrowser(link_url);
+}
+
+std::string GUI_App::url_encode(const std::string& value) {
+    std::ostringstream escaped;
+    escaped.fill('0');
+    escaped << std::hex;
+    for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
+        std::string::value_type c = (*i);
+
+        // Keep alphanumeric and other accepted characters intact
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            escaped << c;
+            continue;
+        }
+
+        // Any other characters are percent-encoded
+        escaped << std::uppercase;
+        escaped << '%' << std::setw(2) << int((unsigned char)c);
+        escaped << std::nouppercase;
+    }
+    return escaped.str();
 }
 
 void GUI_App::remove_mall_system_dialog()
@@ -5455,12 +5530,6 @@ void GUI_App::remove_mall_system_dialog()
     if (m_mall_publish_dialog != nullptr) {
         m_mall_publish_dialog->Destroy();
         delete m_mall_publish_dialog;
-    }
-
-
-    if (m_mall_home_dialog != nullptr) {
-        m_mall_home_dialog->Destroy();
-        delete m_mall_home_dialog;
     }
 }
 

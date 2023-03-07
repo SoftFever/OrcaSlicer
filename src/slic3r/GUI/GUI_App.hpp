@@ -509,7 +509,6 @@ public:
 
     std::string         m_mall_model_download_url;
     std::string         m_mall_model_download_name;
-    ModelMallDialog*    m_mall_home_dialog{ nullptr };
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
 
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
@@ -519,6 +518,7 @@ public:
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();
+    std::string     url_encode(const std::string& value);
     void            open_publish_page_dialog();
     void            remove_mall_system_dialog();
     void            run_script(wxString js);
@@ -586,6 +586,7 @@ public:
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     std::string     get_http_url(std::string country_code);
+    std::string     get_model_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();
     void            cancel_networking_install();

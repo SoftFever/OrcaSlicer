@@ -67,6 +67,7 @@ typedef int (*func_get_user_print_info)(void *agent, unsigned int* http_code, st
 typedef int (*func_get_printer_firmware)(void *agent, std::string dev_id, unsigned* http_code, std::string* http_body);
 typedef int (*func_get_task_plate_index)(void *agent, std::string task_id, int* plate_index);
 typedef int (*func_get_user_info)(void *agent, int* identifier);
+typedef int (*func_request_bind_ticket)(void *agent, std::string* ticket);
 typedef int (*func_get_slice_info)(void *agent, std::string project_id, std::string profile_id, int plate_index, std::string* slice_json);
 typedef int (*func_query_bind_status)(void *agent, std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
 typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::string dev_name);
@@ -151,6 +152,7 @@ public:
     int get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body);
     int get_task_plate_index(std::string task_id, int* plate_index);
     int get_user_info(int* identifier);
+    int request_bind_ticket(std::string* ticket);
     int get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json);
     int query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
     int modify_printer_name(std::string dev_id, std::string dev_name);
@@ -225,6 +227,7 @@ private:
     static func_get_printer_firmware           get_printer_firmware_ptr;
     static func_get_task_plate_index           get_task_plate_index_ptr;
     static func_get_user_info                  get_user_info_ptr;
+    static func_request_bind_ticket            request_bind_ticket_ptr;
     static func_get_slice_info                 get_slice_info_ptr;
     static func_query_bind_status              query_bind_status_ptr;
     static func_modify_printer_name            modify_printer_name_ptr;

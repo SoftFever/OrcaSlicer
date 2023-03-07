@@ -113,10 +113,10 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
 
     json j;
     j["model"]["license"] = license;
-    j["model"]["name"] = url_encode(model_name);
-    j["model"]["author"] = url_encode(model_author);;
-    j["model"]["cover_img"] = url_encode(cover_file);
-    j["model"]["description"] = url_encode(description);
+    j["model"]["name"] = wxGetApp().url_encode(model_name);
+    j["model"]["author"] = wxGetApp().url_encode(model_author);;
+    j["model"]["cover_img"] = wxGetApp().url_encode(cover_file);
+    j["model"]["description"] = wxGetApp().url_encode(description);
     j["model"]["preview_img"] = files["Model Pictures"];
     j["model"]["upload_type"] = update_type;
 
@@ -124,10 +124,10 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
     j["file"]["Assembly"] = files["Assembly Guide"];
     j["file"]["Other"] = files["Others"];
 
-    j["profile"]["name"] = url_encode(p_name);
-    j["profile"]["author"] = url_encode(p_author);
-    j["profile"]["description"] = url_encode(p_description);
-    j["profile"]["cover_img"] = url_encode(p_cover_file);
+    j["profile"]["name"] = wxGetApp().url_encode(p_name);
+    j["profile"]["author"] = wxGetApp().url_encode(p_author);
+    j["profile"]["description"] = wxGetApp().url_encode(p_description);
+    j["profile"]["cover_img"] = wxGetApp().url_encode(p_cover_file);
     j["profile"]["preview_img"] = files["Profile Pictures"];
 
     json m_Res = json::object();
@@ -287,7 +287,7 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
                     wxStat(file_name, &strucStat);
                     wxFileOffset filelen = strucStat.st_size;
      
-                    pfile_obj["filename"] = url_encode(file_path_obj.filename().string().c_str());
+                    pfile_obj["filename"] = wxGetApp().url_encode(file_path_obj.filename().string().c_str());
                     pfile_obj["size"] = formatBytes((unsigned long)filelen);
 
                     //image
@@ -303,7 +303,7 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
                         break;
                     }
                     else {
-                        pfile_obj["filepath"] = url_encode(file_path);
+                        pfile_obj["filepath"] = wxGetApp().url_encode(file_path);
                         m_paths_list[folder.ToStdString()].push_back(pfile_obj);
                         break;
                     }
@@ -379,27 +379,6 @@ std::string ProjectPanel::url_decode(string text) {
         }
     }
 
-    return escaped.str();
-}
-
-std::string ProjectPanel::url_encode(const std::string& value) {
-    std::ostringstream escaped;
-    escaped.fill('0');
-    escaped << std::hex;
-    for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
-        std::string::value_type c = (*i);
-
-        // Keep alphanumeric and other accepted characters intact
-        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-            escaped << c;
-            continue;
-        }
-
-        // Any other characters are percent-encoded
-        escaped << std::uppercase;
-        escaped << '%' << std::setw(2) << int((unsigned char)c);
-        escaped << std::nouppercase;
-    }
     return escaped.str();
 }
 
