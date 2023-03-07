@@ -27,6 +27,7 @@ class ModelConfig;
 class ModelObject;
 class ModelVolume;
 class TriangleMesh;
+struct TextInfo;
 enum class ModelVolumeType : int;
 
 // FIXME: broken build on mac os because of this is missing:
@@ -283,7 +284,7 @@ public:
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     // BBS
     void                switch_to_object_process();
-    void                load_mesh_part(const TriangleMesh& mesh, const wxString& name, bool center = true);
+    int                 load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp);
     void                del_object(const int obj_idx, bool refresh_immediately = true);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config(const wxDataViewItem& parent_item);
@@ -454,7 +455,7 @@ private:
     void OnEditingDone(wxDataViewEvent &event);
 
     // apply the instance transform to all volumes and reset instance transform except the offset
-    void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object);
+    void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix = true);
 
     std::vector<int> m_columns_width;
 };

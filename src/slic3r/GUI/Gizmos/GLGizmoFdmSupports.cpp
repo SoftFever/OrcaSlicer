@@ -129,6 +129,29 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
 }
 
 // BBS
+bool GLGizmoFdmSupports::on_key_down_select_tool_type(int keyCode) {
+    switch (keyCode)
+    {
+    case 'F':
+        m_current_tool = ImGui::FillButtonIcon;
+        break;
+    case 'S':
+        m_current_tool = ImGui::SphereButtonIcon;
+        break;
+    case 'C':
+        m_current_tool = ImGui::CircleButtonIcon;
+        break;
+    case 'G':
+        m_current_tool = ImGui::GapFillIcon;
+        break;
+    default:
+        return false;
+        break;
+    }
+    return true;
+}
+
+// BBS
 void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
@@ -865,42 +888,22 @@ void GLGizmoFdmSupports::run_thread()
             goto _finished;
         }
 
-        if (m_is_tree_support)
+        if (!m_print_instance.print_object->support_layers().size())
         {
-            if (!m_print_instance.print_object->tree_support_layers().size())
-            {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no tree support layer found, update status to 100%\n";
-                print->set_status(100, L("Support Generated"));
-                goto _finished;
-            }
-            for (const TreeSupportLayer *support_layer : m_print_instance.print_object->tree_support_layers())
-            {
-                for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
-                {
-                    _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
-                }
-            }
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no support layer found, update status to 100%\n";
             print->set_status(100, L("Support Generated"));
+            goto _finished;
         }
-        else
+        for (const SupportLayer *support_layer : m_print_instance.print_object->support_layers())
         {
-            if (!m_print_instance.print_object->support_layers().size())
+            for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
             {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no support layer found, update status to 100%\n";
-                print->set_status(100, L("Support Generated"));
-                goto _finished;
+                _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
             }
-            for (const SupportLayer *support_layer : m_print_instance.print_object->support_layers())
-            {
-                for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
-                {
-                    _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
-                }
-            }
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
-            print->set_status(100, L("Support Generated"));
         }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
+        print->set_status(100, L("Support Generated"));
+        
         record_timestamp();
     }
     catch (...) {

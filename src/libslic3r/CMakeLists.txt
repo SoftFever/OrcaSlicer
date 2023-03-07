@@ -3,6 +3,9 @@ project(libslic3r)
 
 include(PrecompiledHeader)
 
+string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
+set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
 
 if (MINGW)

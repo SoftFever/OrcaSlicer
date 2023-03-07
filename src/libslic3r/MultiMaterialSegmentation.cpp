@@ -1136,21 +1136,8 @@ static std::vector<std::vector<const MMU_Graph::Arc *>> get_all_next_arcs(
             continue;
 
         Vec2d arc_line = graph.nodes[arc.to_idx].point - graph.nodes[arc.from_idx].point;
-        if (arc_line.norm() < 5) { // two points whose distance is less than 5 are considered as one point
-            Linef process_line_1(graph.nodes[arc.from_idx].point, graph.nodes[arc.to_idx].point);
-            std::vector<std::vector<const MMU_Graph::Arc *>> next_arcs = get_all_next_arcs(graph, used_arcs, process_line_1, arc, color);
-            if (next_arcs.empty())
-                continue;
-
-            for (std::vector<const MMU_Graph::Arc *> &next_arc : next_arcs) {
-                next_continue_arc.emplace_back(&arc);
-                next_continue_arc.insert(next_continue_arc.end(), next_arc.begin(), next_arc.end());
-                all_next_arcs.emplace_back(next_continue_arc);
-            }
-        } else {
-            next_continue_arc.emplace_back(&arc);
-            all_next_arcs.emplace_back(next_continue_arc);
-        }
+        next_continue_arc.emplace_back(&arc);
+        all_next_arcs.emplace_back(next_continue_arc);
     }
     return all_next_arcs;
 }

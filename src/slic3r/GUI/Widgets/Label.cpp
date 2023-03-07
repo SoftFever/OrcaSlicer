@@ -116,16 +116,20 @@ public:
 
                 // Find the last word to chop off.
                 size_t lastSpace = posEnd;
-                while (lastSpace != size_t(-1)) {
+                while (lastSpace > 0) {
                     auto c = line[lastSpace];
-                    if (c == ' ' || c > 0x4E00)
+                    if (c == ' ')
                         break;
+                    if (c > 0x4E00) {
+                        if (lastSpace != posEnd)
+                            ++lastSpace;
+                        break;
+                    }
                     --lastSpace;
                 }
-                if (lastSpace == size_t(-1)) {
+                if (lastSpace == 0) {
                     // No spaces, so can't wrap.
-                    DoOutputLine(line);
-                    break;
+                    lastSpace = posEnd;
                 }
 
                 // Output the part that fits.
@@ -225,7 +229,7 @@ Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long st
 {
     this->font = font;
     SetFont(font);
-    SetForegroundColour(*wxBLACK);
+    SetForegroundColour(wxColour("#262E30"));
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     SetForegroundColour("#262E30");
     if (style & LB_PROPAGATE_MOUSE_EVENT) {

@@ -36,11 +36,12 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_GET_MODEL_MALL_HOME_PAGE      -27
 #define BAMBU_NETWORK_ERR_GET_USER_INFO                 -28
 #define BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS              -29
+#define BAMBU_NETWORK_ERR_NO_SPACE_LEFT_ON_DEVICE       -30
 
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.04.02.02"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.05.00.08"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -119,12 +120,15 @@ struct PrintParams {
     std::string     filename;
     std::string     config_filename;
     int             plate_index;
+    std::string     ftp_folder;
     std::string     ftp_file;
     std::string     ftp_file_md5;
     std::string     ams_mapping;
     std::string     ams_mapping_info;
     std::string     connection_type;
     std::string     comments;
+    int             origin_profile_id = 0;
+    std::string     origin_model_id;
 
     /* access options */
     std::string     dev_ip;

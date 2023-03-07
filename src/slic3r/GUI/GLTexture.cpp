@@ -584,12 +584,7 @@ bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& 
 
     // draw message
     memDC.SetTextForeground(*wxWHITE);
-
-    wxGCDC dc2(memDC);
-    dc2.SetFont(font);
-    dc2.SetBackground(wxBrush(background));
-    dc2.SetTextForeground(*wxWHITE);
-    dc2.DrawLabel(msg, wxRect(0, 0, m_width, m_height), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+    memDC.DrawLabel(msg, wxRect(0, 0, m_width, m_height), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
 
     memDC.SelectObject(wxNullBitmap);
 

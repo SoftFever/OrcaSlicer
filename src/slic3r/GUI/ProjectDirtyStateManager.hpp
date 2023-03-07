@@ -14,6 +14,7 @@ public:
     void reset_after_save();
     void reset_initial_presets();
 
+    void set_plater_dirty(bool is_dirty) { m_plater_dirty = is_dirty; }
     bool is_dirty() const { return m_plater_dirty || m_project_config_dirty || m_presets_dirty; }
     bool is_presets_dirty() const { return m_presets_dirty; }
 

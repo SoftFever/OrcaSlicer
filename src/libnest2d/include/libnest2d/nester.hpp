@@ -75,7 +75,7 @@ class _Item {
 
 public:
     int itemid_{ 0 };
-    int extrude_id{ 1 };
+    std::vector<int> extrude_ids;
     double height{ 0 };
     double print_temp{ 0 };
     double bed_temp{ 0 };

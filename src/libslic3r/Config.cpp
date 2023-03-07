@@ -298,9 +298,16 @@ ConfigOption* ConfigOptionDef::create_default_option() const
             return new ConfigOptionEnumGeneric(this->enum_keys_map, this->default_value->getInt());
 
         if (type == coEnums) {
-            ConfigOptionEnumsGeneric* opt = dynamic_cast<ConfigOptionEnumsGeneric*>(this->default_value->clone());
-            opt->keys_map = this->enum_keys_map;
-            return opt;
+            auto dft = this->default_value->clone();
+            if (dft->nullable()) {
+                ConfigOptionEnumsGenericNullable *opt = dynamic_cast<ConfigOptionEnumsGenericNullable *>(this->default_value->clone());
+                opt->keys_map = this->enum_keys_map;
+                return opt;
+            } else {
+                ConfigOptionEnumsGeneric *opt = dynamic_cast<ConfigOptionEnumsGeneric *>(this->default_value->clone());
+                opt->keys_map = this->enum_keys_map;
+                return opt;
+            }
         }
 
         return this->default_value->clone();
@@ -743,6 +750,9 @@ ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardC
 int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values, std::string& reason)
 {
     json j;
+    std::list<std::string> different_settings_append;
+    std::string new_support_style;
+    bool is_project_settings = false;
     try {
         boost::nowide::ifstream ifs(file);
         ifs >> j;
@@ -762,6 +772,8 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
                 key_values.emplace(BBL_JSON_KEY_NAME, it.value());
+                if (it.value() == "project_settings")
+                    is_project_settings = true;
             }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_URL)) {
                 key_values.emplace(BBL_JSON_KEY_URL, it.value());
@@ -791,6 +803,15 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 if (it.value().is_string()) {
                     //bool test1 = (it.key() == std::string("end_gcode"));
                     this->set_deserialize(opt_key, it.value(), substitution_context);
+                    //some logic for special values
+                    if (opt_key == "support_type") {
+                        //std::string new_value = dynamic_cast<ConfigOptionString*>(this->option(opt_key))->value;
+                        if (it.value() == "hybrid(auto)") {
+                            different_settings_append.push_back(opt_key);
+                            different_settings_append.push_back("support_style");
+                            new_support_style = "tree_hybrid";
+                        }
+                    }
                 }
                 else if (it.value().is_array()) {
                     t_config_option_key opt_key_src = opt_key;
@@ -853,6 +874,62 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 else {
                     //should not happen
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json type for " << it.key();
+                }
+            }
+        }
+        if (!different_settings_append.empty()) {
+            if (!new_support_style.empty()) {
+                ConfigOptionEnum<SupportMaterialStyle>* opt = this->option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
+                opt->value = smsTreeHybrid;
+            }
+            if (is_project_settings) {
+                std::vector<std::string>& different_settings = this->option<ConfigOptionStrings>("different_settings_to_system", true)->values;
+                size_t size = different_settings.size();
+                if (size == 0) {
+                    size = this->option<ConfigOptionStrings>("filament_settings_id")->values.size() + 2;
+                    different_settings.resize(size);
+                }
+
+                std::vector<bool> is_first(size, false);
+                std::vector<std::vector<std::string>> original_diffs(size);
+                for (int index = 0; index < size; index++)
+                {
+                    if (different_settings[index].empty()) {
+                        is_first[index] = true;
+                    }
+                    else {
+                        Slic3r::unescape_strings_cstyle(different_settings[index], original_diffs[index]);
+                    }
+                }
+
+                for (auto diff_key : different_settings_append)
+                {
+                    //get the index in the group
+                    int index = 0;
+                    bool need_insert = true;
+                    if (diff_key == "support_type")
+                        index = 0;
+                    else if (diff_key == "support_style")
+                        index = 0;
+
+                    //check whether exist firstly
+                    if (!original_diffs[index].empty()) {
+                        for (int j = 0; j < original_diffs[index].size(); j++) {
+                            if (original_diffs[index][j] == diff_key) {
+                                need_insert = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!need_insert)
+                        continue;
+
+                    //insert this key
+                    if (!is_first[index])
+                        different_settings[index] += ";";
+                    else
+                        is_first[index] = false;
+                    different_settings[index] += diff_key;
                 }
             }
         }

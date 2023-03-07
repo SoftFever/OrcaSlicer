@@ -65,10 +65,10 @@ void ExtrusionCalibration::create()
 #else
     m_comboBox_nozzle_dia = new ComboBox(m_step_1_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, EXTRUSION_CALIBRATION_BED_COMBOX, 0, nullptr, wxCB_READONLY);
 #endif
-    m_comboBox_nozzle_dia->AppendString("0.2");
-    m_comboBox_nozzle_dia->AppendString("0.4");
-    m_comboBox_nozzle_dia->AppendString("0.6");
-    m_comboBox_nozzle_dia->AppendString("0.8");
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.2));
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.4));
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.6));
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.8));
 
     select_sizer->Add(m_comboBox_nozzle_dia, 0, wxEXPAND);
     select_sizer->Add(0, EXTRUSION_CALIBRATION_WIDGET_GAP, 0, 0);
@@ -170,10 +170,10 @@ void ExtrusionCalibration::create()
 
     m_button_cali = new Button(m_step_1_panel, _L("Start calibration"));
     m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_cali->SetBackgroundColor(m_btn_bg_green);
     m_button_cali->SetFont(Label::Body_13);
-    m_button_cali->SetBorderColor({ std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Enabled) });
+    m_button_cali->SetBorderColor({ std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled) });
     m_button_cali->SetTextColor({ std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Disabled), std::pair<wxColour, int>(EXTRUSION_CALIBRATION_GREY200, StateColor::Enabled) });
     m_button_cali->SetCornerRadius(FromDIP(12));
     m_button_cali->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -181,9 +181,9 @@ void ExtrusionCalibration::create()
 
     m_cali_cancel = new Button(m_step_1_panel, _L("Cancel"));
     m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_cali_cancel->SetBackgroundColor(m_btn_bg_green);
-    m_cali_cancel->SetBorderColor(wxColour(0, 150, 136));
+    m_cali_cancel->SetBorderColor(wxColour(0, 174, 66));
     m_cali_cancel->SetTextColor(EXTRUSION_CALIBRATION_GREY200);
     m_cali_cancel->SetMinSize(EXTRUSION_CALIBRATION_BUTTON_SIZE);
     m_cali_cancel->SetCornerRadius(FromDIP(12));
@@ -256,10 +256,10 @@ void ExtrusionCalibration::create()
     // save button
     m_button_save_result = new Button(m_step_2_panel, _L("Save"));
     m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_save_result->SetBackgroundColor(m_btn_bg_green);
     m_button_save_result->SetFont(Label::Body_13);
-    m_button_save_result->SetBorderColor(wxColour(0, 150, 136));
+    m_button_save_result->SetBorderColor(wxColour(0, 174, 66));
     m_button_save_result->SetTextColor(EXTRUSION_CALIBRATION_GREY200);
     m_button_save_result->SetMinSize(EXTRUSION_CALIBRATION_BUTTON_SIZE);
     m_button_save_result->SetCornerRadius(FromDIP(12));
@@ -660,8 +660,6 @@ void ExtrusionCalibration::update_combobox_filaments()
         }
 
         for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
-            if (filament_it->setting_id.empty()) continue;
-
             ConfigOption* printer_opt = filament_it->config.option("compatible_printers");
             ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
             for (auto printer_str : printer_strs->values) {

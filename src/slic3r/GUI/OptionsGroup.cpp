@@ -952,14 +952,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         case coInts:
             ret = config.option<ConfigOptionIntsNullable>(opt_key)->get_at(idx);
             break;
-        case coPoints:
-		if (opt_key == "bed_shape")
-			ret = config.option<ConfigOptionPoints>(opt_key)->values;
-        else if (opt_key == "thumbnails")
-            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-		else
-			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
-		break;
+        case coEnums:
+            ret = config.option<ConfigOptionEnumsGenericNullable>(opt_key)->get_at(idx);
+            break;
         default:
             break;
         }
@@ -1233,13 +1228,22 @@ void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const
 
 wxString OptionsGroup::get_url(const std::string& path_end)
 {
+    //BBS
+    wxString str = from_u8(path_end);
+    auto     pos = str.find(L'#');
+    if (pos != size_t(-1)) {
+        pos++;
+        wxString anchor = str.Mid(pos).Lower();
+        anchor.Replace(L" ", "-");
+        str = str.Left(pos) + anchor;
+    }
     // Softfever: point to sf wiki for seam parameters
     if (path_end == "Seam") {
         return wxString::Format(L"https://github.com/SoftFever/BambuStudio-SoftFever/wiki/%s", from_u8(path_end));
     }
     else {
         //BBS
-        return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", from_u8(path_end));
+        return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", str);
     }
 }
 

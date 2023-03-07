@@ -35,6 +35,13 @@
 
 namespace Slic3r { namespace GUI {
 
+enum ActionButton {
+    ACTION_BTN_CALI     = 0,
+    ACTION_BTN_LOAD     = 1,
+    ACTION_BTN_UNLOAD   = 2,
+    ACTION_BTN_COUNT    = 3
+};
+
 enum class AMSRoadMode : int {
     AMS_ROAD_MODE_LEFT,
     AMS_ROAD_MODE_LEFT_RIGHT,
@@ -95,7 +102,15 @@ enum FilamentStep {
     STEP_PULL_CURR_FILAMENT,
     STEP_PUSH_NEW_FILAMENT,
     STEP_PURGE_OLD_FILAMENT,
+    STEP_FEED_FILAMENT,
+    STEP_CONFIRM_EXTRUDED,
     STEP_COUNT,
+};
+
+enum FilamentStepType {
+    STEP_TYPE_LOAD      = 0,
+    STEP_TYPE_UNLOAD    = 1,
+    STEP_TYPE_VT_LOAD   = 2,
 };
 
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(14), FromDIP(14))
@@ -495,6 +510,7 @@ protected:
 
     ::StepIndicator *m_filament_load_step   = {nullptr};
     ::StepIndicator *m_filament_unload_step = {nullptr};
+    ::StepIndicator *m_filament_vt_load_step = {nullptr};
 
     Button *m_button_extruder_feed = {nullptr};
     Button *m_button_extruder_back = {nullptr};
@@ -515,8 +531,8 @@ public:
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
     bool m_is_none_ams_mode{false};
-	void SetActionState(AMSAction action, bool support_virtual_tray = true);
-    void EnterNoneAMSMode();
+	void SetActionState(bool button_status[]);
+    void EnterNoneAMSMode(bool support_vt_load = false);
     void ExitNoneAMSMode();
 
     void EnterCalibrationMode(bool read_to_calibration);
@@ -528,7 +544,7 @@ public:
     void PlayRridLoading(wxString amsid, wxString canid);
     void StopRridLoading(wxString amsid, wxString canid);
 
-    void SetFilamentStep(int item_idx, bool isload = true);
+    void SetFilamentStep(int item_idx, FilamentStepType f_type);
     void ShowFilamentTip(bool hasams = true);
 
     void SetHumidity(std::string amsid, int humidity);
@@ -536,6 +552,7 @@ public:
     void CreateAms();
     void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool has_extrusion_cali = true);
     void AddAms(AMSinfo info, bool refresh = true);
+    void SetExtruder(bool on_off, wxColour col);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);
 
@@ -549,7 +566,7 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
-    void show_noams_mode(bool show, bool support_virtual_tray);
+    void show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load = false);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray);

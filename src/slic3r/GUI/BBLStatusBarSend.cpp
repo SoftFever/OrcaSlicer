@@ -119,7 +119,8 @@ void BBLStatusBarSend::set_range(int val)
 
 void BBLStatusBarSend::clear_percent()
 {
-    set_percent_text(wxEmptyString);
+    //set_percent_text(wxEmptyString);
+    m_cancelbutton->Hide();
 }
 
 void BBLStatusBarSend::show_progress(bool show)
@@ -235,6 +236,7 @@ void BBLStatusBarSend::set_status_text(const wxString& txt)
     wxString str;
     format_text(m_status_text, m_self->FromDIP(280), txt, str);
     m_status_text->SetLabelText(str);
+    m_self->Layout();
     //if (is_english_text(str)) m_status_text->Wrap(m_self->FromDIP(280));
 }
 
@@ -279,6 +281,7 @@ bool BBLStatusBarSend::update_status(wxString &msg, bool &was_cancel, int percen
 
 void BBLStatusBarSend::reset()
 {
+    m_cancelbutton->Show();
     set_status_text("");
     m_was_cancelled = false;
     set_progress(0);

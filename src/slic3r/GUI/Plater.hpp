@@ -125,7 +125,7 @@ public:
     void on_filaments_change(size_t num_filaments);
     // BBS
     void on_bed_type_change(BedType bed_type);
-    void load_ams_list(std::map<std::string, Ams *> const &list);
+    void load_ams_list(std::string const & device, std::map<std::string, Ams *> const &list);
     void sync_ams_list();
 
     ObjectList*             obj_list();
@@ -189,6 +189,7 @@ public:
 
     bool is_project_dirty() const;
     bool is_presets_dirty() const;
+    void set_plater_dirty(bool is_dirty);
     void update_project_dirty_from_presets();
     int  save_project_if_dirty(const wxString& reason);
     void reset_project_dirty_after_save();
@@ -212,7 +213,7 @@ public:
     //BBS download project by project id
     void import_model_id(const std::string& download_info);
     void download_project(const wxString& project_id);
-    void request_model_download(std::string url, std::string filename);
+    void request_model_download();
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
@@ -265,7 +266,7 @@ public:
 
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
-    void update();
+    void update(bool conside_update_flag = false);
     //BBS
     void object_list_changed();
     void stop_jobs();
@@ -303,6 +304,7 @@ public:
     void trigger_restore_project(int skip_confirm = 0);
     void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); // BBS support refresh immediately
     void delete_all_objects_from_model(); //BBS delete all objects from model
+    void set_selected_visible(bool visible);
     void remove_selected();
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
@@ -388,6 +390,7 @@ public:
     // BBS
     void on_bed_type_change(BedType bed_type);
     bool update_filament_colors_in_full_config();
+    void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();
     void force_print_bed_update();
@@ -452,6 +455,10 @@ public:
 
     //BBS:
     void fill_color(int extruder_id);
+
+    //BBS:
+    void edit_text();
+    bool can_edit_text() const;
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -566,6 +573,9 @@ public:
     void init_notification_manager();
 
     void bring_instance_forward();
+
+    bool need_update() const;
+    void set_need_update(bool need_update);
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
@@ -692,6 +702,7 @@ private:
     bool m_only_gcode { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
+    bool m_loading_project {false };
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 

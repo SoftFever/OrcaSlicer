@@ -98,13 +98,14 @@ protected:
     TextInput*          m_input_k_val;
     wxStaticText*       m_n_param;
     TextInput*          m_input_n_val;
+    int                 m_filament_selection;
 
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament;
 #else
     ComboBox *m_comboBox_filament;
 #endif
-    TextInput*          m_readonly_filament;
+    TextInput*       m_readonly_filament;
 };
 
 }} // namespace Slic3r::GUI

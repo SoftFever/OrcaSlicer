@@ -430,7 +430,10 @@ bool load_image(const std::string &filename, wxImage &image)
         result = image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_BMP);
     } else if (boost::algorithm::iends_with(filename, ".jpg")) {
         result = image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_JPEG);
-    } else {
+    } else if (boost::algorithm::iends_with(filename, ".jpeg")) {
+        result = image.LoadFile(wxString::FromUTF8(filename.c_str()), wxBITMAP_TYPE_JPEG);
+    }
+    else {
         return false;
     }
     return result;

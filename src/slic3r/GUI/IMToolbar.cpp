@@ -52,6 +52,11 @@ void IMToolbar::del_all_item()
     m_items.clear();
 }
 
+void IMToolbar::del_stats_item()
+{
+    delete m_all_plates_stats_item;
+    m_all_plates_stats_item = nullptr;
+}
 
 bool IMReturnToolbar::init()
 {

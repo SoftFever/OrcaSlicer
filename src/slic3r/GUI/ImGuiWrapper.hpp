@@ -99,6 +99,7 @@ public:
 	void set_next_window_size(float x, float y, ImGuiCond cond);
 
     /* BBL style widgets */
+    bool bbl_combo_with_filter(const char* label, const std::string& preview_value, const std::vector<std::string>& all_items, std::vector<int>* filtered_items_idx, bool* is_filtered, float item_height = 0.0f);
     bool bbl_input_double(const wxString &label, const double &value, const std::string &format = "%0.2f");
     bool bbl_slider_float(const std::string &label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f, bool clamp = true, const wxString& tooltip = {});
     bool bbl_slider_float_style(const std::string &label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f, bool clamp = true, const wxString& tooltip = {});
@@ -223,7 +224,7 @@ private:
     void render_draw_data(ImDrawData *draw_data);
     bool display_initialized() const;
     void destroy_font();
-    std::vector<unsigned char> load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height);
+    std::vector<unsigned char> load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height, unsigned *outwidth, unsigned *outheight);
 
     static const char* clipboard_get(void* user_data);
     static void clipboard_set(void* user_data, const char* text);

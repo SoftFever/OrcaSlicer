@@ -467,6 +467,8 @@ void process_perimeter_polygon(
         if (orig_point) {
             Vec3f pos_of_next      = orig_polygon_points.empty() ? first : orig_polygon_points.front();
             float distance_to_next = (position - pos_of_next).norm();
+            if (distance_to_next > perimeter.flow_width * perimeter.flow_width * 4)
+                oversampled_points.push((position + pos_of_next) / 2);
             if (global_model_info.is_enforced(position, distance_to_next)) {
                 Vec3f vec_to_next = (pos_of_next - position).normalized();
                 float step_size   = SeamPlacer::enforcer_oversampling_distance;

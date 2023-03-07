@@ -79,7 +79,7 @@ public:
 
     //BBS: set offset for gcode writer
     void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
-
+    Vec2f get_xy_offset() { return Vec2f{m_x_offset, m_y_offset}; };
     // To be called by the CoolingBuffer from another thread.
     static std::string set_fan(const GCodeFlavor gcode_flavor, unsigned int speed);
     // To be called by the main thread. It always emits the G-code, it does not remember the previous state.
@@ -93,7 +93,8 @@ public:
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
     static const bool full_gcode_comment;
-    
+    //Radian threshold of slope for lazy lift and spiral lift;
+    static const double slope_threshold;
     //SoftFever
     void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
     const bool is_bbl_printers() const {return m_is_bbl_printers;}
@@ -134,9 +135,6 @@ private:
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
 
-    //Radian threshold of slope for lazy lift and spiral lift;
-    static const double slope_threshold;
-    
     //SoftFever
     bool            m_is_bbl_printers = false;
     double          m_current_speed;

@@ -12,9 +12,6 @@ function OnInit()
 
 	SendMsg_GetLoginInfo();
 	SendMsg_GetRecentFile();
-	
-	//-----Christmas-----
-	ShowCabin();
 }
 
 //------最佳打开文件的右键菜单功能----------
@@ -404,61 +401,4 @@ function OpenWikiUrl( strUrl )
 
 //---------------Global-----------------
 window.postMessage = HandleStudio;
-
-
-//---------------Christma cabin
-var CCabin={
-	"model":[
-		{
-			"name":"Bambu Christmas Cabin",
-			"icon":"christmas_cabin.png",
-			"file":"Bambu Christmas Cabin.3mf"
-		}		
-	]	
-};
-
-function ShowCabin()
-{
-	let nCabin=CCabin.model.length;
-
-	if(nCabin==0)
-	{
-		$('#CabinList').html('');
-	
-	    $('#ChristmasArea').hide();
-		return;
-	}
-	
-	let strHtml='';
-	for(let m=0;m<nCabin;m++)
-	{
-		let OneCabin=CCabin.model[m];
-		
-		let OneHtml='<div class="FileItem" onClick="OnOpenCabin(\''+OneCabin.file+'\')" >'+
-				    '<div class="FileImg"><img src="model/'+OneCabin.icon+'"/></div>'+
-				    '<div class="FileName TextS1">'+OneCabin.name+'</div>'+
-			        '</div>';
-		
-		strHtml+=OneHtml;
-	}
-	
-	$('#CabinList').html(strHtml);
-	
-	$('#ChristmasArea').show();
-	$('#ChristmasArea').css('display','flex');
-}
-
-function OnOpenCabin( cabinfile )
-{
-	//alert(cabinfile);
-	
-	var tSend={};
-	tSend['sequence_id']=Math.round(new Date() / 1000);
-	tSend['command']="homepage_open_ccabin";
-	tSend['data']={};
-	tSend['data']['file']=cabinfile;
-	
-	SendWXMessage( JSON.stringify(tSend) );		
-}
-
 

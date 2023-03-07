@@ -312,7 +312,7 @@ void FanSwitchButton::render(wxDC& dc)
         dc.SetTextForeground(text_color.colorForStates(states));
 
     pt.x = (size.x - dc.GetTextExtent(speed).x) / 2;
-    pt.y -= FromDIP(5);
+    pt.y += FromDIP(1);
     dc.DrawText(speed, pt);
 }
 

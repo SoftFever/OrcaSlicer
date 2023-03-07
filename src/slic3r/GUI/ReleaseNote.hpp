@@ -22,6 +22,7 @@
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
 #include <wx/wrapsizer.h>
+#include <wx/event.h>
 
 #include "AmsMappingPopup.hpp"
 #include "GUI_Utils.hpp"
@@ -39,6 +40,7 @@ namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SECONDARY_CHECK_FUNC, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
 {
@@ -49,7 +51,7 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_release_note(wxString release_note, std::string version);
 
-    wxStaticText *    m_text_up_info{nullptr};
+    Label *    m_text_up_info{nullptr};
     wxScrolledWindow *m_vebview_release_note {nullptr};
 };
 
@@ -62,7 +64,7 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_info(std::string json_path);
 
-    wxStaticText* m_text_up_info{ nullptr };
+    Label* m_text_up_info{ nullptr };
     Label* operation_tips{ nullptr };
     wxScrolledWindow* m_vebview_release_note{ nullptr };
 };
@@ -85,12 +87,12 @@ public:
     std::vector<std::string> splitWithStl(std::string str, std::string pattern);
 
     wxStaticBitmap*   m_brand{nullptr};
-    wxStaticText *    m_text_up_info{nullptr};
+    Label *           m_text_up_info{nullptr};
     wxWebView*        m_vebview_release_note{nullptr};
     wxSimplebook*     m_simplebook_release_note{nullptr};
     wxScrolledWindow* m_scrollwindows_release_note{nullptr};
     wxBoxSizer *      sizer_text_release_note{nullptr};
-    wxStaticText *    m_staticText_release_note{nullptr};
+    Label *           m_staticText_release_note{nullptr};
     wxCheckBox*       m_remind_choice;
     Button*           m_button_ok;
     Button*           m_button_cancel;
@@ -98,11 +100,14 @@ public:
 
 class SecondaryCheckDialog : public DPIFrame
 {
+private:
+    wxWindow* event_parent { nullptr };
 public:
     enum ButtonStyle {
-        ONLY_CONFIRM = 0,
-        CONFIRM_AND_CANCEL = 1,
-        MAX_STYLE_NUM = 2
+        ONLY_CONFIRM        = 0,
+        CONFIRM_AND_CANCEL  = 1,
+        CONFIRM_AND_FUNC    = 2,
+        MAX_STYLE_NUM       = 3
     };
     SecondaryCheckDialog(
         wxWindow* parent,
@@ -118,6 +123,9 @@ public:
     void on_show();
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
+    void update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent = nullptr);
+    void update_func_btn(wxString func_btn_text);
+    void post_event(wxCommandEvent&& event);
     void rescale();
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect);
@@ -125,8 +133,9 @@ public:
     Label* m_staticText_release_note {nullptr};
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow *m_vebview_release_note {nullptr};
-    Button* m_button_ok;
-    Button* m_button_cancel;
+    Button* m_button_ok { nullptr };
+    Button* m_button_cancel { nullptr };
+    Button* m_button_fn { nullptr };
     wxCheckBox* m_show_again_checkbox;
     bool not_show_again = false;
     std::string show_again_config_text = "";
@@ -161,7 +170,7 @@ public:
 
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow* m_vebview_release_note{ nullptr };
-    wxStaticText* m_staticText_release_note{ nullptr };
+    Label* m_staticText_release_note{ nullptr };
     Button* m_button_ok;
     Button* m_button_cancel;
     wxCheckBox* m_show_again_checkbox;

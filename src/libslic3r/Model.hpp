@@ -650,6 +650,38 @@ private:
     friend class ModelVolume;
 };
 
+struct RaycastResult
+{
+    Vec2d mouse_position = Vec2d::Zero();
+    int   mesh_id        = -1;
+    Vec3f hit            = Vec3f::Zero();
+    Vec3f normal         = Vec3f::Zero();
+
+    template<typename Archive> void serialize(Archive &ar) { ar(mouse_position, mesh_id, hit, normal); }
+};
+
+struct TextInfo
+{
+    std::string m_font_name;
+    float       m_font_size     = 16.f;
+    int         m_curr_font_idx = 0;
+    bool        m_bold          = true;
+    bool        m_italic        = false;
+    float       m_thickness     = 2.f;
+    float       m_embeded_depth = 0.f;
+    float       m_rotate_angle    = 0;
+    float       m_text_gap        = 0.f;
+    bool        m_is_surface_text = false;
+    bool        m_keep_horizontal = false;
+    std::string m_text;
+
+    RaycastResult m_rr;
+
+    template<typename Archive> void serialize(Archive &ar) {
+        ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text, m_keep_horizontal, m_text, m_rr);
+    }
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume final : public ObjectBase
@@ -756,6 +788,10 @@ public:
     const std::shared_ptr<const TriangleMesh>& get_convex_hull_shared_ptr() const { return m_convex_hull; }
     //BBS: add convex_hell_2d related logic
     const Polygon& get_convex_hull_2d(const Transform3d &trafo_instance) const;
+    void invalidate_convex_hull_2d()
+    {
+        m_convex_hull_2d.clear();
+    }
 
     // Get count of errors in the mesh
     int                 get_repaired_errors_count() const;
@@ -794,6 +830,9 @@ public:
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
     void convert_from_imperial_units();
     void convert_from_meters();
+
+    void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
+    const TextInfo& get_text_info() const { return m_text_info; }
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
@@ -838,6 +877,8 @@ private:
     mutable Transform3d                 m_cached_trans_matrix; //BBS, used for convex_hell_2d acceleration
     mutable Polygon                     m_cached_2d_polygon;   //BBS, used for convex_hell_2d acceleration
     Geometry::Transformation        	m_transformation;
+
+    TextInfo m_text_info;
 
     //BBS: add convex_hell_2d related logic
     void  calculate_convex_hull_2d(const Geometry::Transformation &transformation) const;
@@ -892,7 +933,8 @@ private:
         ObjectBase(other),
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
-        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets)
+        supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
+        m_text_info(other.m_text_info)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -957,7 +999,7 @@ private:
         // BBS: add backup, check modify
         bool mesh_changed = false;
         auto tr = m_transformation;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info);
         mesh_changed |= !(tr == m_transformation);
         if (mesh_changed) m_transformation.get_matrix(true, true, true, true); // force dirty
         auto t = supported_facets.timestamp();
@@ -983,7 +1025,7 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info);
         cereal::save_by_value(ar, supported_facets);
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);
@@ -1280,7 +1322,17 @@ public:
     }
 
     // Extensions for color print
-    CustomGCode::Info custom_gcode_per_print_z;
+    // CustomGCode::Info custom_gcode_per_print_z;
+    //BBS: replace model custom gcode with current plate custom gcode
+    int curr_plate_index{ 0 };
+    std::map<int, CustomGCode::Info> plates_custom_gcodes; //map<plate_index, CustomGCode::Info>
+
+    const CustomGCode::Info get_curr_plate_custom_gcodes() const {
+        if (plates_custom_gcodes.find(curr_plate_index) != plates_custom_gcodes.end()) {
+            return plates_custom_gcodes.at(curr_plate_index);
+        }
+        return CustomGCode::Info();
+    }
 
     // Default constructor assigns a new ID to the model.
     Model() { assert(this->id().valid()); }

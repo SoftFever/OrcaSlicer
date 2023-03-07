@@ -78,6 +78,23 @@ void GLGizmoSeam::render_painter_gizmo() const
     glsafe(::glDisable(GL_BLEND));
 }
 
+// BBS
+bool GLGizmoSeam::on_key_down_select_tool_type(int keyCode) {
+    switch (keyCode)
+    {
+    case 'S':
+        m_current_tool = ImGui::SphereButtonIcon;
+        break;
+    case 'C':
+        m_current_tool = ImGui::CircleButtonIcon;
+        break;
+    default:
+        return false;
+        break;
+    }
+    return true;
+}
+
 void GLGizmoSeam::render_triangles(const Selection& selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();

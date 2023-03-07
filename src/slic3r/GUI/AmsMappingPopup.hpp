@@ -34,6 +34,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include "Widgets/PopupWindow.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -41,6 +42,7 @@ namespace Slic3r { namespace GUI {
 
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(64), FromDIP(34))
 #define MATERIAL_ITEM_REAL_SIZE wxSize(FromDIP(62), FromDIP(32))
+#define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(45))
 #define AMS_TOTAL_COUNT 4
 
 enum TrayType {
@@ -95,8 +97,11 @@ public:
     MappingItem(wxWindow *parent);
     ~MappingItem();
 
-	void     update_data(TrayData data);
-    void     send_event(int fliament_id);
+	void update_data(TrayData data);
+    void send_event(int fliament_id);
+    void set_tray_index(wxString t_index) {m_tray_index = t_index;};
+
+    wxString m_tray_index;
     wxColour m_coloul;
     wxString m_name;
     TrayData m_tray_data;
@@ -109,7 +114,18 @@ public:
     void doRender(wxDC &dc);
 };
 
-class AmsMapingPopup : public wxPopupTransientWindow
+class MappingContainer : public wxPanel
+{
+public:
+    wxBitmap  ams_mapping_item_container;
+    MappingContainer(wxWindow* parent);
+    ~MappingContainer();
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+};
+
+class AmsMapingPopup : public PopupWindow
 {
 public:
     AmsMapingPopup(wxWindow *parent);
@@ -118,7 +134,8 @@ public:
 
     wxStaticText *           m_warning_text{nullptr}; 
     std::vector<std::string> m_materials_list;
-    std::vector<wxBoxSizer*>  m_amsmapping_sizer_list;
+    std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
+    std::vector<wxWindow*>   m_amsmapping_container_list;
     std::vector<MappingItem*> m_mapping_item_list;
 
     bool        m_has_unmatch_filament {false};
@@ -130,7 +147,7 @@ public:
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
     void         update_ams_data(std::map<std::string, Ams *> amsList);
-    void         add_ams_mapping(std::vector<TrayData> tray_data);
+    void         add_ams_mapping(std::vector<TrayData> tray_data, wxWindow* container, wxBoxSizer* sizer);
     void         set_current_filament_id(int id){m_current_filament_id = id;};
     int          get_current_filament_id(){return m_current_filament_id;};
     bool         is_match_material(std::string material);
@@ -141,7 +158,7 @@ public:
     std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 };
 
-class AmsMapingTipPopup : public wxPopupTransientWindow
+class AmsMapingTipPopup : public PopupWindow
 {
 public:
     AmsMapingTipPopup(wxWindow *parent);
@@ -161,7 +178,7 @@ public:
     wxStaticText *   m_tip_disable_ams;
 };
 
-class AmsHumidityTipPopup : public wxPopupTransientWindow
+class AmsHumidityTipPopup : public PopupWindow
 {
 public:
     AmsHumidityTipPopup(wxWindow* parent);
@@ -181,7 +198,7 @@ public:
     Button* m_button_confirm;
 };
 
-class AmsTutorialPopup : public wxPopupTransientWindow
+class AmsTutorialPopup : public PopupWindow
 {
 public:
     Label* text_title;
@@ -203,7 +220,7 @@ public:
 };
 
 
-class AmsIntroducePopup : public wxPopupTransientWindow
+class AmsIntroducePopup : public PopupWindow
 {
 public:
     bool          is_enable_ams = {false};

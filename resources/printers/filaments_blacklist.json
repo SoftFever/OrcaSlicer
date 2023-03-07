@@ -1,0 +1,30 @@
+{
+  "whitelist": [
+  ],
+  "blacklist": [
+    {
+      "vendor": "Third Party",
+      "type": "TPU",
+      "action": "prohibition",
+      "description": "TPU is not supported by AMS."
+    },
+    {
+      "vendor": "Third Party",
+      "type": "PVA",
+	  "action": "warning",
+      "description": "Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use."
+    },
+    {
+      "vendor": "Third Party",
+      "type": "PA-CF",
+      "action": "warning",
+      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+    },
+	{
+      "vendor": "Third Party",
+      "type": "PLA-CF",
+      "action": "warning",
+      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+    }
+  ]
+}

@@ -72,8 +72,14 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDEFINE_EVENT(EVT_USER_LOGIN_HANDLE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CHECK_PRIVACY_VER, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CHECK_PRIVACY_SHOW, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SET_SELECTED_MACHINE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
+
+
 
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
@@ -522,7 +528,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
-        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(tpPreview); } return; }
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'G') {
+            m_plater->apply_background_progress();
+            m_print_enable = get_enable_print_status();
+            m_print_btn->Enable(m_print_enable);
+            if (m_print_enable) {
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+            }
+            evt.Skip();
+            return;
+        }
+        else if (evt.CmdDown() && evt.GetKeyCode() == 'G') { if (can_export_gcode()) { wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); } evt.Skip(); return; }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }    
         if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (can_save_as()) m_plater->save_project(true); return;}
@@ -693,6 +711,8 @@ void MainFrame::update_layout()
         {
             // jump to 3deditor under preview_only mode
             if (evt.GetId() == tp3DEditor){
+                m_plater->update(true);
+
                 if (!preview_only_hint())
                     return;
             }
@@ -942,6 +962,7 @@ void MainFrame::init_tabpanel()
     }
 
     m_plater = new Plater(this, this);
+    m_plater->SetBackgroundColour(*wxWHITE);
     m_plater->Hide();
 
     wxGetApp().plater_ = m_plater;
@@ -1017,11 +1038,9 @@ bool MainFrame::preview_only_hint()
             preview_only_to_editor = true;
         });
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
-        auto filename = wxString((m_plater->get_preview_only_filename()).c_str(), wxConvUTF8);
-        //if size of filename is beyond limit
-        auto format_filename = confirm_dlg.format_text(filename, FromDIP(240));
+        auto filename = m_plater->get_preview_only_filename();
 
-        confirm_dlg.update_text(format_filename + _L(" will be closed before creating a new model. Do you want to continue?"));
+        confirm_dlg.update_text(filename + " " + _L("will be closed before creating a new model. Do you want to continue?"));
         confirm_dlg.on_show();
         if (preview_only_to_editor) {
             m_plater->new_project();
@@ -1354,9 +1373,9 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
-    m_slice_btn = new SideButton(this, _L("Slice"), "");
+    m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
-    m_print_btn = new SideButton(this, _L("Print"), "");
+    m_print_btn = new SideButton(this, _L("Print plate"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
@@ -2108,12 +2127,12 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_core_3mf(); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export .gcode.3mf
-        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots/* + "\tCtrl+G"*/, _L("Export current sliced file"),
+        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots + "\tCtrl+G", _L("Export current sliced file"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_gcode(); }, this);
 
         append_menu_item(export_menu, wxID_ANY, _L("Export all plate sliced file") + dots/* + "\tCtrl+G"*/, _L("Export all plate sliced file"),
-            [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
+            [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this]() {return can_export_all_gcode(); }, this);
 
         append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),
@@ -2730,8 +2749,8 @@ struct ConfigsOverwriteConfirmDialog : MessageDialog
 {
     ConfigsOverwriteConfirmDialog(wxWindow *parent, wxString name, bool exported)
         : MessageDialog(parent,
-                        wxString::Format(exported ? _("A file exists with the same name: %s, do you wan't to override it.") :
-                                                  _("A config exists with the same name: %s, do you wan't to override it."),
+                        wxString::Format(exported ? _L("A file exists with the same name: %s, do you want to override it.") :
+                                                  _L("A config exists with the same name: %s, do you want to override it."),
                                          name),
                         _L(exported ? "Overwrite file" : "Overwrite config"),
                         wxYES_NO | wxNO_DEFAULT)
@@ -3065,7 +3084,7 @@ void MainFrame::set_print_button_to_default(PrintSelectType select_type)
         m_print_btn->SetLabel(_L("Print"));
         m_print_select = eSendGcode;
         if (m_print_enable)
-            m_print_enable = get_enable_print_status();
+            m_print_enable = get_enable_print_status() && can_send_gcode();
         m_print_btn->Enable(m_print_enable);
         this->Layout();
     } else {
@@ -3293,7 +3312,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     {
         case wxID_YES: {
             wxGetApp().app_config->set_bool("sync_user_preset", true);
-            wxGetApp().start_sync_user_preset(true);
+            wxGetApp().start_sync_user_preset(true, true);
             break;
         }
         case wxID_NO:

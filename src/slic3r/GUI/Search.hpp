@@ -20,6 +20,7 @@
 #include "libslic3r/Preset.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 #include "Widgets/TextInput.hpp"
+#include "Widgets/PopupWindow.hpp"
 
 
 namespace Slic3r {
@@ -175,7 +176,7 @@ public:
 //          SearchDialog
 //------------------------------------------
 class SearchListModel;
-class SearchDialog : public wxPopupTransientWindow
+class SearchDialog : public PopupWindow
 {
 public:
     wxString search_str;

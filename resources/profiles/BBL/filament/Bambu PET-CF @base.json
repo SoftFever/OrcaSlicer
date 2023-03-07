@@ -15,7 +15,7 @@
         "PET-CF"
     ],
     "nozzle_temperature_range_low": [
-        "270"
+        "260"
     ],
     "nozzle_temperature_range_high": [
         "300"

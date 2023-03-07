@@ -2,7 +2,7 @@
  * integration with proprietary Bambu Lab blob for getting raw h.264 video
  *
  * Copyright (C) 2023 Joshua Wise <joshua@accelerated.tech>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -64,6 +64,7 @@ struct _GstBambuSrc
   gchar *location;
   Bambu_Tunnel tnl;
   GstClockTime sttime;
+  int video_type;
 };
 
 extern void gstbambusrc_register();

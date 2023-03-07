@@ -324,6 +324,11 @@ static void glfw_callback(int error_code, const char* description)
     BOOST_LOG_TRIVIAL(error) << "error_code " <<error_code <<", description: " <<description<< std::endl;
 }
 
+const float bed3d_ax3s_default_stem_radius = 0.5f;
+const float bed3d_ax3s_default_stem_length = 25.0f;
+const float bed3d_ax3s_default_tip_radius = 2.5f * bed3d_ax3s_default_stem_radius;
+const float bed3d_ax3s_default_tip_length = 5.0f;
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -334,7 +339,7 @@ int CLI::run(int argc, char **argv)
     // startup if gtk3 is used. This env var has to be set explicitly to
     // instruct the window manager to fall back to X server mode.
     ::setenv("GDK_BACKEND", "x11", /* replace */ true);
-    
+
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
     XInitThreads();
@@ -360,17 +365,17 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 9;
+    int debug_argc = 5;
     char *debug_argv[] = {
         "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--slice",
-        "0",
-        "--load-settings",
-        "machine.json;process.json",
-        "--load-filaments",
-        "filament.json",
+        "9",
+        //"--load-settings",
+        //"machine.json;process.json",
+        //"--load-filaments",
+        //"filament.json",
         "--export-3mf=output.3mf",
-        "boat.stl"
+        "test_outside.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -398,6 +403,8 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
+    bool translate_old = false;
+    int current_width, current_depth, current_height;
     const std::vector<std::string>              &load_configs		      = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
@@ -456,6 +463,15 @@ int CLI::run(int argc, char **argv)
         // If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
         return (argc == 0) ? 0 : 1;
 #endif // SLIC3R_GUI
+    }
+    else {
+        const ConfigOptionInt *opt_loglevel = m_config.opt<ConfigOptionInt>("debug");
+        if (opt_loglevel) {
+            set_logging_level(opt_loglevel->value);
+        }
+        else {
+            set_logging_level(2);
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << "start_gui="<< start_gui << std::endl;
@@ -529,6 +545,12 @@ int CLI::run(int argc, char **argv)
                     {
                         orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
+                    }
+
+                    Semver old_version(1, 5, 9);
+                    if ((file_version < old_version) && !config.empty()) {
+                        translate_old = true;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
                     }
 
                     /*for (ModelObject *model_object : model.objects)
@@ -991,6 +1013,7 @@ int CLI::run(int argc, char **argv)
         for (const t_config_option_key &opt_key : config.keys()) {
             if (!diff_key_sets.empty() && (diff_key_sets.find(opt_key) != diff_key_sets.end())) {
                 //uptodate, diff keys, continue
+                BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                 continue;
             }
             const ConfigOption *source_opt = config.option(opt_key);
@@ -1035,6 +1058,7 @@ int CLI::run(int argc, char **argv)
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
+        BOOST_LOG_TRIVIAL(info) << boost::format("update printer config to newest, different size %1%")%different_keys_set.size();
         int ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
         if (ret)
             flush_and_exit(ret);
@@ -1072,6 +1096,7 @@ int CLI::run(int argc, char **argv)
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
+        BOOST_LOG_TRIVIAL(info) << boost::format("update process config to newest, different size %1%")%different_keys_set.size();
         int ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
         if (ret)
             flush_and_exit(ret);
@@ -1137,9 +1162,11 @@ int CLI::run(int argc, char **argv)
             //parse the filament value to index th
             //loop through options and apply them
             std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
+            BOOST_LOG_TRIVIAL(info) << boost::format("update filament %1%'s config to newest, different size %2%")%filament_index%different_keys_set.size();
             for (const t_config_option_key &opt_key : config.keys()) {
                 if (!different_keys_set.empty() && (different_keys_set.find(opt_key) != different_keys_set.end())) {
                     //uptodate, diff keys, continue
+                    BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                     continue;
                 }
                 // Create a new option with default value for the key.
@@ -1149,7 +1176,7 @@ int CLI::run(int argc, char **argv)
                 const ConfigOption *source_opt = config.option(opt_key);
                 if (source_opt == nullptr) {
                     // The key was not found in the source config, therefore it will not be initialized!
-                    boost::nowide::cerr << "can not found option " <<opt_key<<"from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                    BOOST_LOG_TRIVIAL(error) << boost::format("can not find %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];
                     flush_and_exit(CLI_CONFIG_FILE_ERROR);
                 }
                 if (source_opt->is_scalar()) {
@@ -1169,7 +1196,7 @@ int CLI::run(int argc, char **argv)
                     }
                     else {
                         //skip the scalar values
-                        BOOST_LOG_TRIVIAL(warning) << "skip scalar option " <<opt_key<<" from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("skip scalar option %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];;
                         continue;
                     }
                 }
@@ -1179,7 +1206,7 @@ int CLI::run(int argc, char **argv)
                     if (opt == nullptr) {
                         // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
                         // This is only possible if other is of DynamicConfig type.
-                        boost::nowide::cerr << "can not create option " <<opt_key<<"to config, from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                        BOOST_LOG_TRIVIAL(error) << boost::format("can not create option %1% to config, from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];
                         flush_and_exit(CLI_CONFIG_FILE_ERROR);
                     }
                     ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
@@ -1250,10 +1277,12 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(sla_print_config, true);*/
     }
 
-    std::string validity = m_print_config.validate();
+    std::map<std::string, std::string> validity = m_print_config.validate(true);
     if (!validity.empty()) {
-        boost::nowide::cerr <<"Error: The composite configation is not valid: " << validity << std::endl;
-        flush_and_exit(CLI_INVALID_PRINTER_TECH);
+        boost::nowide::cerr << "Param values in 3mf/config error: "<< std::endl;
+        for (std::map<std::string, std::string>::iterator it=validity.begin(); it!=validity.end(); ++it)
+            boost::nowide::cerr << it->first <<": "<< it->second << std::endl;
+        flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
     }
 
     //BBS: partplate list
@@ -1266,10 +1295,19 @@ int CLI::run(int argc, char **argv)
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
     double plate_stride;
+    std::string bed_texture;
     if (m_models.size() > 0)
     {
-        std::string bed_texture;
-        partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), print_height);
+        if (translate_old) {
+            current_width = bedfs[2].x() - bedfs[0].x();
+            current_depth = bedfs[2].y() - bedfs[0].y();
+            current_height = print_height;
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch to old bed size,{%1%, %2%, %3%}")%(current_width + bed3d_ax3s_default_tip_radius)%(current_depth+bed3d_ax3s_default_tip_radius) %current_height;
+            partplate_list.reset_size(current_width + bed3d_ax3s_default_tip_radius, current_depth + bed3d_ax3s_default_tip_radius, current_height, false);
+        }
+        else {
+            partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), print_height, false);
+        }
         partplate_list.set_shapes(bedfs, excluse_areas, bed_texture, height_to_lid, height_to_rod);
         plate_stride = partplate_list.plate_stride_x();
         BOOST_LOG_TRIVIAL(info) << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< print_height <<"\n";
@@ -1277,6 +1315,21 @@ int CLI::run(int argc, char **argv)
     if (plate_data_src.size() > 0)
     {
         partplate_list.load_from_3mf_structure(plate_data_src);
+        //BBS: translate old 3mf to correct positions
+        if (translate_old) {
+            //translate the objects
+            int plate_count = partplate_list.get_plate_count();
+            for (int index = 1; index < plate_count; index ++) {
+                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+
+                Vec3d cur_origin = cur_plate->get_origin();
+                Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, current_width, current_depth);
+
+                cur_plate->translate_all_instance(new_origin - cur_origin);
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch back to current bed size,{%1%, %2%, %3%}")%current_width %current_depth %current_height;
+            partplate_list.reset_size(current_width, current_depth, current_height, true, true);
+        }
     }
     /*for (ModelObject *model_object : m_models[0].objects)
         for (ModelInstance *model_instance : model_object->instances)
@@ -1840,6 +1893,7 @@ int CLI::run(int argc, char **argv)
                     }*/
                     DynamicPrintConfig new_print_config = m_print_config;
                     new_print_config.apply(*part_plate->config());
+                    new_print_config.apply(m_extra_config, true);
                     print->apply(model, new_print_config);
                     StringObjectException warning;
                     auto err = print->validate(&warning);
@@ -2326,17 +2380,6 @@ int CLI::run(int argc, char **argv)
 
 bool CLI::setup(int argc, char **argv)
 {
-    {
-	    Slic3r::set_logging_level(1);
-        const char *loglevel = boost::nowide::getenv("BBL_LOGLEVEL");
-        if (loglevel != nullptr) {
-            if (loglevel[0] >= '0' && loglevel[0] <= '9' && loglevel[1] == 0)
-                set_logging_level(loglevel[0] - '0');
-            else
-                boost::nowide::cerr << "Invalid BBL_LOGLEVEL environment variable: " << loglevel << std::endl;
-        }
-    }
-
     // Detect the operating system flavor after SLIC3R_LOGLEVEL is set.
     detect_platform();
 
@@ -2365,7 +2408,7 @@ bool CLI::setup(int argc, char **argv)
 #ifdef __APPLE__
     // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
     // The resources are packed to 'Slic3r.app/Contents/Resources'
-    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path() / "../Resources";
+    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path().parent_path() / "Resources";
 #elif defined _WIN32
     // The application is packed in the .zip archive in the root,
     // The resources are packed to 'resources'
@@ -2379,7 +2422,7 @@ bool CLI::setup(int argc, char **argv)
     // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/slic3r',
     // The resources are packed to 'resources'
     // Path from Slic3r binary to resources:
-    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path() / "../resources";
+    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path().parent_path() / "resources";
 #endif
 
     set_resources_dir(path_resources.string());
@@ -2404,17 +2447,8 @@ bool CLI::setup(int argc, char **argv)
             m_transforms.emplace_back(opt_key);
     }
 
-#if !BBL_RELEASE_TO_PUBLIC
-    {
-        const ConfigOptionInt *opt_loglevel = m_config.opt<ConfigOptionInt>("debug");
-        if (opt_loglevel != 0) {
-            set_logging_level(opt_loglevel->value);
-        }
-    }
-#endif
-
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
-    std::string validity = m_config.validate();
+    std::map<std::string, std::string> validity = m_config.validate(true);
 
     // Initialize with defaults.
     for (const t_optiondef_map *options : { &cli_actions_config_def.options, &cli_transform_config_def.options, &cli_misc_config_def.options })
@@ -2425,7 +2459,9 @@ bool CLI::setup(int argc, char **argv)
 
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     if (!validity.empty()) {
-        boost::nowide::cerr << "error: " << validity << std::endl;
+        boost::nowide::cerr << "Params in command line error: "<< std::endl;
+        for (std::map<std::string, std::string>::iterator it=validity.begin(); it!=validity.end(); ++it)
+            boost::nowide::cerr << it->first <<": "<< it->second << std::endl;
         return false;
     }
 
@@ -2608,7 +2644,7 @@ extern "C" {
             argv_ptrs[i] = argv_narrow[i].data();
 
 //BBS: register default exception handler
-#if 1
+#if BBL_RELEASE_TO_PUBLIC
         SET_DEFULTER_HANDLER();
 #else
         AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);

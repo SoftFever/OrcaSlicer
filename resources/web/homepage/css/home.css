@@ -96,6 +96,7 @@ body
 	line-height: 36px;
 	display: flex;
 	justify-content: center;
+	user-select: none;
 }
 
 #LoginBtn
