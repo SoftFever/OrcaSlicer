@@ -3507,6 +3507,7 @@ std::vector<std::string> PresetBundle::export_current_configs(const std::string 
         if ((preset->is_system  && !export_system_settings) || preset->is_default)
             continue;
         std::string file = path + "/" + preset->name + ".json";
+        if (overwrite == 0) overwrite = 1;
         if (boost::filesystem::exists(file) && overwrite < 2) {
             overwrite = override_confirm(preset->name);
         }
