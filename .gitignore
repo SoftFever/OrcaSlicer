@@ -1,6 +1,6 @@
 Build
 Build.bat
-/build/
+/build*/
 deps/build
 MYMETA.json
 MYMETA.yml
