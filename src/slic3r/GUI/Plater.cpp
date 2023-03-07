@@ -10184,6 +10184,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
             if (update_filament_colors_in_full_config()) {
                 p->sidebar->obj_list()->update_filament_colors();
+                dynamic_filament_list.update();
                 continue;
             }
         }
