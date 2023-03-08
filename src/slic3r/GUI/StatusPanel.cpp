@@ -1964,26 +1964,27 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_vt_tray = true;
 
     // set segment 1, 2
-    if ( obj->m_ams_id != curr_ams_id || obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID) ) {
-         m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID) ) {
+         m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
     else {
         if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
         }
         else if (obj->m_tray_now != "255") {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
         }
         else {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         }
     }
 
     // set segment 3
     if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), obj->vt_tray.get_color());
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->vt_tray.get_color());
     } else {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+       
     }
 
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
