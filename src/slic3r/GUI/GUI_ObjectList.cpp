@@ -265,7 +265,8 @@ ObjectList::ObjectList(wxWindow* parent) :
         this->CallAfter([this]() { ensure_current_item_visible(); });
 #endif
         e.Skip();
-	}));
+    }));
+    
 }
 
 ObjectList::~ObjectList()
@@ -4925,6 +4926,9 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
         if (col == colName) // TODO: for colName editing, disable shortcuts
             SetAcceleratorTable(wxNullAcceleratorTable);
     }
+#ifdef __WXOSX__
+    SetCustomRendererPtr(dynamic_cast<wxDataViewCustomRenderer*>(renderer));
+#endif
 #endif //__WXMSW__
 }
 
