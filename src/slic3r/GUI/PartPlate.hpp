@@ -231,10 +231,13 @@ public:
     static const int plate_thumbnail_width = 512;
     static const int plate_thumbnail_height = 512;
 
-    ThumbnailData cali_thumbnail_data;
+    ThumbnailData top_thumbnail_data;
+    ThumbnailData pick_thumbnail_data;
+
+    //ThumbnailData cali_thumbnail_data;
     PlateBBoxData cali_bboxes_data;
-    static const int cali_thumbnail_width = 2560;
-    static const int cali_thumbnail_height = 2560;
+    //static const int cali_thumbnail_width = 2560;
+    //static const int cali_thumbnail_height = 2560;
 
     //set the plate's index
     void set_index(int index);
@@ -410,7 +413,7 @@ public:
     //load gcode from file
     int load_gcode_from_file(const std::string& filename);
     //load thumbnail data from file
-    int load_thumbnail_data(std::string filename);
+    int load_thumbnail_data(std::string filename, ThumbnailData& thumb_data);
     //load pattern thumbnail data from file
     int load_pattern_thumbnail_data(std::string filename);
     //load pattern box data from file

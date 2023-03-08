@@ -2348,7 +2348,7 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 	return ret;
 }
 
-int PartPlate::load_thumbnail_data(std::string filename)
+int PartPlate::load_thumbnail_data(std::string filename, ThumbnailData& thumb_data)
 {
 	bool result = true;
 	wxImage img;
@@ -2357,11 +2357,11 @@ int PartPlate::load_thumbnail_data(std::string filename)
 		img = img.Mirror(false);
 	}
 	if (result) {
-		thumbnail_data.set(img.GetWidth(), img.GetHeight());
+		thumb_data.set(img.GetWidth(), img.GetHeight());
 		for (int i = 0; i < img.GetWidth() * img.GetHeight(); i++) {
-			memcpy(&thumbnail_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
+			memcpy(&thumb_data.pixels[4 * i], (unsigned char*)(img.GetData() + 3 * i), 3);
 			if (img.HasAlpha()) {
-				thumbnail_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
+				thumb_data.pixels[4 * i + 3] = *(unsigned char*)(img.GetAlpha() + i);
 			}
 		}
 	} else {
@@ -2372,7 +2372,7 @@ int PartPlate::load_thumbnail_data(std::string filename)
 
 int PartPlate::load_pattern_thumbnail_data(std::string filename)
 {
-	bool result = true;
+	/*bool result = true;
 	wxImage img;
 	result = load_image(filename, img);
 	if (result) {
@@ -2386,7 +2386,7 @@ int PartPlate::load_pattern_thumbnail_data(std::string filename)
 	}
 	else {
 		return -1;
-	}
+	}*/
 	return 0;
 }
 
@@ -3428,6 +3428,8 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		PartPlate* plate = m_plate_list[obj_id - 1000];
 		plate->update_slice_result_valid_state( false );
 		plate->thumbnail_data.reset();
+		plate->top_thumbnail_data.reset();
+		plate->pick_thumbnail_data.reset();
 
 		return 0;
 	}
@@ -3456,10 +3458,14 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 			plate->update_states();
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+			plate->top_thumbnail_data.reset();
+			plate->pick_thumbnail_data.reset();
 			return 0;
 		}
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+		plate->top_thumbnail_data.reset();
+		plate->pick_thumbnail_data.reset();
 	}
 	else if (unprintable_plate.contain_instance(obj_id, instance_id))
 	{
@@ -3490,6 +3496,8 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 			plate->add_instance(obj_id, instance_id, false, &boundingbox);
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+			plate->top_thumbnail_data.reset();
+			plate->pick_thumbnail_data.reset();
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to new plate %1%") % i;
 			return 0;
 		}
@@ -3525,6 +3533,8 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 		plate->remove_instance(obj_id, instance_to_delete);
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+		plate->top_thumbnail_data.reset();
+		plate->pick_thumbnail_data.reset();
 	}
 
 	if (unprintable_plate.contain_instance(obj_id, instance_to_delete))
@@ -4416,6 +4426,11 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 			%(i+1) %plate_data_item->plate_thumbnail.width %plate_data_item->plate_thumbnail.height %plate_data_item->plate_thumbnail.pixels.size();
 		plate_data_item->config.apply(*m_plate_list[i]->config());
 
+		if (m_plate_list[i]->top_thumbnail_data.is_valid())
+			plate_data_item->top_file = "valid_top";
+		if (m_plate_list[i]->pick_thumbnail_data.is_valid())
+			plate_data_item->pick_file = "valid_pick";
+
 		if (m_plate_list[i]->obj_to_instance_set.size() > 0)
 		{
 			for (std::set<std::pair<int, int>>::iterator it = m_plate_list[i]->obj_to_instance_set.begin(); it != m_plate_list[i]->obj_to_instance_set.end(); ++it)
@@ -4430,8 +4445,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 				// BBS only include current palte_idx
 				if (plate_idx == i || plate_idx == PLATE_CURRENT_IDX || plate_idx == PLATE_ALL_IDX) {
 					//load calibration thumbnail
-					if (m_plate_list[i]->cali_thumbnail_data.is_valid())
-						plate_data_item->pattern_file = "valid_pattern";
+					//if (m_plate_list[i]->cali_thumbnail_data.is_valid())
+					//	plate_data_item->pattern_file = "valid_pattern";
 					if (m_plate_list[i]->cali_bboxes_data.is_valid())
 						plate_data_item->pattern_bbox_file = "valid_pattern_bbox";
 					plate_data_item->gcode_file       = m_plate_list[i]->m_gcode_result->filename;
@@ -4513,16 +4528,28 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
 			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load thumbnail from %2%.")%(i+1) %plate_data_list[i]->thumbnail_file;
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {
-				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file);
+				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file, m_plate_list[index]->thumbnail_data);
 				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1% after load, width %2%, height %3%, size %4%!")
 					%(i+1) %m_plate_list[index]->thumbnail_data.width %m_plate_list[index]->thumbnail_data.height %m_plate_list[index]->thumbnail_data.pixels.size();
 			}
 		}
 
-		if (m_plater && !plate_data_list[i]->pattern_file.empty()) {
+		/*if (m_plater && !plate_data_list[i]->pattern_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->pattern_file)) {
 				//no need to load pattern data currently
 				//m_plate_list[index]->load_pattern_thumbnail_data(plate_data_list[i]->pattern_file);
+			}
+		}*/
+		if (m_plater && !plate_data_list[i]->top_file.empty()) {
+			if (boost::filesystem::exists(plate_data_list[i]->top_file)) {
+				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load top_thumbnail from %2%.")%(i+1) %plate_data_list[i]->top_file;
+				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->top_file, m_plate_list[index]->top_thumbnail_data);
+			}
+		}
+		if (m_plater && !plate_data_list[i]->pick_file.empty()) {
+			if (boost::filesystem::exists(plate_data_list[i]->pick_file)) {
+				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load pick_thumbnail from %2%.")%(i+1) %plate_data_list[i]->pick_file;
+				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->pick_file, m_plate_list[index]->pick_thumbnail_data);
 			}
 		}
 		if (m_plater && !plate_data_list[i]->pattern_bbox_file.empty()) {

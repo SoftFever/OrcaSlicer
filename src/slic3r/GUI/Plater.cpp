@@ -2109,7 +2109,8 @@ struct Plater::priv
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
     //BBS: add plate_id for thumbnail
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+        Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
     //BBS
     void generate_calibration_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -6440,9 +6441,10 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
 }
 
 //BBS: add plate id for thumbnail generate param
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type, use_top_view, for_picking);
 }
 
 //BBS: add plate id for thumbnail generate param
@@ -9523,6 +9525,7 @@ void Plater::export_stl(bool extended, bool selection_only)
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)
 {
+    int ret = 0;
     //if (p->model.objects.empty()) {
     //    MessageDialog dialog(nullptr, _L("No objects to export."), _L("Save project"), wxYES);
     //    if (dialog.ShowModal() == wxYES)
@@ -9548,6 +9551,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
     std::vector<ThumbnailData*> calibration_thumbnails;
+    std::vector<ThumbnailData*> top_thumbnails;
+    std::vector<ThumbnailData*> picking_thumbnails;
     std::vector<PlateBBoxData*> plate_bboxes;
     // BBS: backup
     if (!(strategy & SaveStrategy::Backup)) {
@@ -9560,22 +9565,50 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate thumbnail for plate %1%") % i;
                 const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
-                p->generate_thumbnail(p->partplate_list.get_plate(i)->thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
+                p->generate_thumbnail(p->partplate_list.get_plate(i)->thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
+                                    thumbnail_params, Camera::EType::Ortho);
             }
             thumbnails.push_back(thumbnail_data);
 
-            ThumbnailData* calibration_data = &p->partplate_list.get_plate(i)->cali_thumbnail_data;
-            calibration_thumbnails.push_back(calibration_data);
+            //ThumbnailData* calibration_data = &p->partplate_list.get_plate(i)->cali_thumbnail_data;
+            //calibration_thumbnails.push_back(calibration_data);
             PlateBBoxData* plate_bbox_data = &p->partplate_list.get_plate(i)->cali_bboxes_data;
             plate_bboxes.push_back(plate_bbox_data);
+
+            //generate top and picking thumbnails
+            ThumbnailData* top_thumbnail = &p->partplate_list.get_plate(i)->top_thumbnail_data;
+            if (top_thumbnail->is_valid() &&  using_exported_file()) {
+                //no need to generate thumbnail
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": non need to re-generate top_thumbnail for gcode/exported mode of plate %1%")%i;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate top_thumbnail for plate %1%") % i;
+                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                p->generate_thumbnail(p->partplate_list.get_plate(i)->top_thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
+                                    thumbnail_params, Camera::EType::Ortho, true, false);
+            }
+            top_thumbnails.push_back(top_thumbnail);
+
+            ThumbnailData* picking_thumbnail = &p->partplate_list.get_plate(i)->pick_thumbnail_data;
+            if (picking_thumbnail->is_valid() &&  using_exported_file()) {
+                //no need to generate thumbnail
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": non need to re-generate pick_thumbnail for gcode/exported mode of plate %1%")%i;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate pick_thumbnail for plate %1%") % i;
+                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                p->generate_thumbnail(p->partplate_list.get_plate(i)->pick_thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
+                                    thumbnail_params, Camera::EType::Ortho, true, true);
+            }
+            picking_thumbnails.push_back(picking_thumbnail);
         }
 
         if (p->partplate_list.get_curr_plate()->is_slice_result_valid()) {
             //BBS generate BBS calibration thumbnails
             int index = p->partplate_list.get_curr_plate_index();
-            ThumbnailData* calibration_data = calibration_thumbnails[index];
-            const ThumbnailsParams calibration_params = { {}, false, true, true, true, p->partplate_list.get_curr_plate_index() };
-            p->generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
+            //ThumbnailData* calibration_data = calibration_thumbnails[index];
+            //const ThumbnailsParams calibration_params = { {}, false, true, true, true, p->partplate_list.get_curr_plate_index() };
+            //p->generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
             if (using_exported_file()) {
                 //do nothing
             }
@@ -9600,6 +9633,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     store_params.project_presets = project_presets;
     store_params.config = export_config ? &cfg : nullptr;
     store_params.thumbnail_data = thumbnails;
+    store_params.top_thumbnail_data = top_thumbnails;
+    store_params.pick_thumbnail_data = picking_thumbnails;
     store_params.calibration_thumbnail_data = calibration_thumbnails;
     store_params.proFn = proFn;
     store_params.id_bboxes = plate_bboxes;//BBS
@@ -9661,7 +9696,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         }
     }
     else {
-        return -1;
+        ret = -1;
     }
 
     if (project_presets.size() > 0)
@@ -9680,8 +9715,20 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         //release the data here, as it will always be generated when export
         calibration_thumbnails[i]->reset();
     }
+    for (unsigned int i = 0; i < top_thumbnails.size(); i++)
+    {
+        //release the data here, as it will always be generated when export
+        top_thumbnails[i]->reset();
+    }
+    top_thumbnails.clear();
+    for (unsigned int i = 0; i < picking_thumbnails.size(); i++)
+    {
+        //release the data here, as it will always be generated when export
+        picking_thumbnails[i]->reset();;
+    }
+    picking_thumbnails.clear();
 
-    return 0;
+    return ret;
 }
 
 void Plater::publish_project()

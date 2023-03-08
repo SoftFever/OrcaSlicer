@@ -1044,7 +1044,8 @@ int GLVolumeCollection::load_object_volume(
     int                  instance_idx,
     const std::string   &color_by,
     bool 				 opengl_initialized,
-    bool                 in_assemble_view)
+    bool                 in_assemble_view,
+    bool                 use_loaded_id)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
@@ -1079,6 +1080,11 @@ int GLVolumeCollection::load_object_volume(
     else
         v.set_instance_transformation(instance->get_transformation());
     v.set_volume_transformation(model_volume->get_transformation());
+    //use object's instance id
+    if (use_loaded_id && (instance->loaded_id > 0))
+        v.model_object_ID = instance->loaded_id;
+    else
+        v.model_object_ID = instance->id().id;
 
     return int(this->volumes.size() - 1);
 }

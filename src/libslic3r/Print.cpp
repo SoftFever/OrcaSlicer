@@ -1442,13 +1442,19 @@ void Print::process(bool use_cache)
         for (int index = 0; index < object_count; index++)
         {
             PrintObject *obj =  m_objects[index];
+            bool found_shared = false;
             if (need_slicing_objects.find(obj) == need_slicing_objects.end()) {
                 for (PrintObject *slicing_obj : need_slicing_objects)
                 {
                     if (is_print_object_the_same(obj, slicing_obj)) {
                         obj->set_shared_object(slicing_obj);
+                        found_shared = true;
                         break;
                     }
+                }
+                if (!found_shared) {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Also can not find the shared object, identify_id %1%")%obj->model_object()->instances[0]->loaded_id;
+                    throw Slic3r::SlicingError("Can not find the cached data.");
                 }
             }
         }
@@ -2207,7 +2213,7 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_EXPOLYGON              "expolygon"
 #define JSON_ARC_FITTING            "arc_fitting"
 #define JSON_OBJECT_NAME            "name"
-#define JSON_ARRANGE_ORDER          "arrange_order"
+#define JSON_IDENTIFY_ID          "identify_id"
 
 
 #define JSON_LAYERS                  "layers"
@@ -2943,18 +2949,19 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
             BOOST_LOG_TRIVIAL(info) << boost::format("shared object %1%, skip directly")%model_obj->name;
             continue;
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%")%model_obj->name;
 
         const PrintInstance &print_instance = obj->instances()[0];
         const ModelInstance *model_instance = print_instance.model_instance;
-        int arrange_order = model_instance->arrange_order;
-        std::string file_name = directory +"/obj_"+std::to_string(arrange_order)+".json";
+        size_t identify_id = (model_instance->loaded_id > 0)?model_instance->loaded_id: model_instance->id().id;
+        std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name;
 
         try {
             json root_json, layers_json = json::array(), support_layers_json = json::array();
 
             root_json[JSON_OBJECT_NAME] = model_obj->name;
-            root_json[JSON_ARRANGE_ORDER] = arrange_order;
+            root_json[JSON_IDENTIFY_ID] = identify_id;
 
             //export the layers
             std::vector<json> layers_json_vector(obj->layer_count());
@@ -3139,12 +3146,14 @@ int Print::load_cached_data(const std::string& directory)
         obj->clear_layers();
         obj->clear_support_layers();
 
-        int arrange_order = model_instance->arrange_order;
-        if (arrange_order <= 0) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1% has invalid arrange_order %2%, can not load cached_data")%model_obj->name %arrange_order;
-            continue;
+        int identify_id = model_instance->loaded_id;
+        if (identify_id <= 0) {
+            //for old 3mf
+            identify_id = model_instance->id().id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1%'s loaded_id is 0, need to use the instance_id %2%")%model_obj->name %identify_id;
+            //continue;
         }
-        std::string file_name = directory +"/obj_"+std::to_string(arrange_order)+".json";
+        std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
 
         if (!fs::exists(file_name)) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name;
@@ -3188,13 +3197,13 @@ int Print::load_cached_data(const std::string& directory)
             //ifs >> root_json;
 
             std::string name = root_json.at(JSON_OBJECT_NAME);
-            int order = root_json.at(JSON_ARRANGE_ORDER);
+            int identify_id = root_json.at(JSON_IDENTIFY_ID);
             int layer_count = 0, support_layer_count = 0;
 
             layer_count = root_json[JSON_LAYERS].size();
             support_layer_count = root_json[JSON_SUPPORT_LAYERS].size();
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, arrange_order %2%, layer_count %3%, support_layer_count %4%")%name %order %layer_count %support_layer_count;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, identify_id %2%, layer_count %3%, support_layer_count %4%")%name %identify_id %layer_count %support_layer_count;
 
             Layer* previous_layer = NULL;
             //create layer and layer regions

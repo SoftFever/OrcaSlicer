@@ -1070,6 +1070,7 @@ public:
     // Whether or not this instance is printable
     bool printable;
     int arrange_order = 0; // BBS
+    size_t loaded_id = 0; // BBS
 
     ModelObject* get_object() const { return this->object; }
 
@@ -1262,7 +1263,7 @@ class ModelProfileInfo
 {
 public:
     std::string ProfileTile;
-    std::string ProfileCover; 
+    std::string ProfileCover;
     std::string ProfileDescription;
     std::string ProfileUserId;
     std::string ProfileUserName;

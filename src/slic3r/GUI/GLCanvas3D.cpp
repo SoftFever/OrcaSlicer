@@ -1971,12 +1971,13 @@ void GLCanvas3D::render(bool only_init)
     m_render_stats.increment_fps_counter();
 }
 
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    render_thumbnail(thumbnail_data, w, h, thumbnail_params, m_volumes, camera_type);
+    render_thumbnail(thumbnail_data, w, h, thumbnail_params, m_volumes, camera_type, use_top_view, for_picking);
 }
 
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
@@ -1985,10 +1986,10 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
     {
     case OpenGLManager::EFramebufferType::Arb:
         { render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params,
-            wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type); break; }
+            wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type, use_top_view, for_picking); break; }
     case OpenGLManager::EFramebufferType::Ext:
         { render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params,
-            wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type); break; }
+            wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type, use_top_view, for_picking); break; }
     default:
         { render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params,
             wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type); break; }
@@ -5375,7 +5376,9 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params,
+    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+    GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
     //BBS modify visible calc function
     int plate_idx = thumbnail_params.plate_id;
@@ -5418,7 +5421,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%") % plate_idx % visible_volumes.size() %shader;
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%, use_top_view=%4%, for_picking=%5%") % plate_idx % visible_volumes.size() %shader %use_top_view %for_picking;
     //BoundingBoxf3 volumes_box = plate_build_volume;
     BoundingBoxf3 volumes_box;
     volumes_box.min.z() = 0;
@@ -5448,11 +5451,29 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //BoundingBoxf3 plate_box = plate->get_bounding_box(false);
     //plate_box.min.z() = 0.0;
     //plate_box.max.z() = 0.0;
-    camera.zoom_to_box(volumes_box);
-    const Vec3d& target = camera.get_target();
-    double distance = camera.get_distance();
-    //camera.select_view("topfront");
-    camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
+
+    if (use_top_view) {
+        float center_x = (plate_build_volume.max(0) + plate_build_volume.min(0))/2;
+        float center_y = (plate_build_volume.max(1) + plate_build_volume.min(1))/2;
+        float distance_z = plate_build_volume.max(2) - plate_build_volume.min(2);
+        Vec3d center(center_x, center_y, 0.f);
+        double zoom_ratio, scale_x, scale_y;
+
+        scale_x = ((double)thumbnail_data.width)/(plate_build_volume.max(0) - plate_build_volume.min(0));
+        scale_y = ((double)thumbnail_data.height)/(plate_build_volume.max(1) - plate_build_volume.min(1));
+        zoom_ratio = (scale_x <= scale_y)?scale_x:scale_y;
+        camera.look_at(center + distance_z * Vec3d::UnitZ(), center, Vec3d::UnitY());
+        camera.set_zoom(zoom_ratio);
+        //camera.select_view("top");
+    }
+    else {
+        camera.zoom_to_box(volumes_box);
+
+        const Vec3d& target = camera.get_target();
+        double distance = camera.get_distance();
+        camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
+    }
+
     camera.apply_view_matrix();
 
     camera.apply_projection(plate_build_volume);
@@ -5462,44 +5483,94 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //camera.apply_projection(volumes_box, near_z, far_z);
 
     //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (shader == nullptr) {
-        BOOST_LOG_TRIVIAL(info) <<  boost::format("render_thumbnail: shader is null, return directly");
+    if (!for_picking && (shader == nullptr)) {
+        BOOST_LOG_TRIVIAL(info) <<  boost::format("render_thumbnail with no picking: shader is null, return directly");
         return;
     }
 
     //if (thumbnail_params.transparent_background)
-    glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
+    if (for_picking)
+        glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
+    else
+        glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    shader->start_using();
-    shader->set_uniform("emission_factor", 0.0f);
+    if (for_picking) {
+        //if (OpenGLManager::can_multisample())
+              // This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
+        //    glsafe(::glDisable(GL_MULTISAMPLE));
 
-    for (GLVolume* vol : visible_volumes) {
-        //BBS set render color for thumbnails
-        curr_color[0] = vol->color[0];
-        curr_color[1] = vol->color[1];
-        curr_color[2] = vol->color[2];
-        curr_color[3] = vol->color[3];
+        glsafe(::glDisable(GL_BLEND));
 
-        shader->set_uniform("uniform_color", curr_color);
-        //BBS set all volume to orange
-        //shader->set_uniform("uniform_color", orange);
-        /*if (plate_idx > 0) {
-            shader->set_uniform("uniform_color", orange);
+        static const GLfloat INV_255 = 1.0f / 255.0f;
+
+        // do not cull backfaces to show broken geometry, if any
+        glsafe(::glDisable(GL_CULL_FACE));
+
+        //glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+        //glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+
+        for (GLVolume* vol : visible_volumes) {
+            // Object picking mode. Render the object with a color encoding the object index.
+            // we reserve color = (0,0,0) for occluders (as the printbed)
+            // so we shift volumes' id by 1 to get the proper color
+            //BBS: remove the bed picking logic
+            unsigned int id = vol->model_object_ID;
+            //unsigned int id = 1 + volume.second.first;
+            unsigned int r = (id & (0x000000FF << 0)) >> 0;
+            unsigned int g = (id & (0x000000FF << 8)) >> 8;
+            unsigned int b = (id & (0x000000FF << 16)) >> 16;
+            unsigned int a = 0xFF;
+            glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
+            /*curr_color[0] = (GLfloat)r * INV_255;
+            curr_color[1] = (GLfloat)g * INV_255;
+            curr_color[2] = (GLfloat)b * INV_255;
+            curr_color[3] = (GLfloat)a * INV_255;
+            shader->set_uniform("uniform_color", curr_color);*/
+
+            bool is_active = vol->is_active;
+            vol->is_active = true;
+            vol->simple_render(nullptr,  model_objects, extruder_colors);
+            vol->is_active = is_active;
         }
-        else {
-            shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
-        }*/
-        // the volume may have been deactivated by an active gizmo
-        bool is_active = vol->is_active;
-        vol->is_active = true;
-        vol->simple_render(shader,  model_objects, extruder_colors);
-        vol->is_active = is_active;
-    }
 
-    shader->stop_using();
+        //glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+        //glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+
+        glsafe(::glEnable(GL_CULL_FACE));
+
+        //if (OpenGLManager::can_multisample())
+        //    glsafe(::glEnable(GL_MULTISAMPLE));
+    }
+    else {
+        shader->start_using();
+        shader->set_uniform("emission_factor", 0.0f);
+        for (GLVolume* vol : visible_volumes) {
+            //BBS set render color for thumbnails
+            curr_color[0] = vol->color[0];
+            curr_color[1] = vol->color[1];
+            curr_color[2] = vol->color[2];
+            curr_color[3] = vol->color[3];
+
+            shader->set_uniform("uniform_color", curr_color);
+            //BBS set all volume to orange
+            //shader->set_uniform("uniform_color", orange);
+            /*if (plate_idx > 0) {
+                shader->set_uniform("uniform_color", orange);
+            }
+            else {
+                shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
+            }*/
+            // the volume may have been deactivated by an active gizmo
+            bool is_active = vol->is_active;
+            vol->is_active = true;
+            vol->simple_render(shader,  model_objects, extruder_colors);
+            vol->is_active = is_active;
+        }
+        shader->stop_using();
+    }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
@@ -5512,7 +5583,9 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
-void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+    GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -5563,7 +5636,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type);
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, use_top_view, for_picking);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -5616,7 +5689,9 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: finished");
 }
 
-void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+    GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -5666,7 +5741,7 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list,  model_objects, volumes, extruder_colors, shader, camera_type);
+        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list,  model_objects, volumes, extruder_colors, shader, camera_type, use_top_view, for_picking);
 
         if (multisample) {
             GLuint resolve_fbo;
@@ -7339,7 +7414,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         if (item->selected) {
             ImGui::PushStyleColor(ImGuiCol_Button, button_active);
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_active);
-        } 
+        }
         else {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(128.0f, 128.0f, 128.0f, 0.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
@@ -7615,7 +7690,7 @@ void GLCanvas3D::_render_paint_toolbar() const
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
         ImVec4 text_color = gray < 80 ? ImVec4(255, 255, 255, 255) : ImVec4(0, 0, 0, 255);
-        
+
         ImVec2 number_label_size = ImGui::CalcTextSize(std::to_string(i + 1).c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y);
         ImGui::SetCursorPosX(item_spacing + i * (item_spacing + button_size) + (button_size - number_label_size.x) / 2);
