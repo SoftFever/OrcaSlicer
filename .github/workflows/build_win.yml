@@ -21,11 +21,11 @@ jobs:
       - run: mkdir ${{ github.workspace }}/deps/build/BambuStudio_dep
       - name: download deps
         shell: powershell
-        run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep_21Jan2023.zip", "$env:temp\BambuStudio_dep_21Jan2023.zip")'
+        run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/3/BambuStudio_dep_9Mar2023.zip", "$env:temp\BambuStudio_dep_9Mar2023.zip")'
       - name: extract deps
         working-directory: ${{ github.workspace }}/deps/build
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\BambuStudio_dep_21Jan2023.zip'
+        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\BambuStudio_dep_9Mar2023.zip'
 
       - run: dir "${{ github.workspace }}\deps\build\BambuStudio_dep"
       
