@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.05.00.18",
+    "version": "01.05.00.19",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -820,6 +820,14 @@
         {
             "name":"Bambu PLA-CF @BBL P1P 0.8 nozzle",
             "sub_path":"filament/P1P/Bambu PLA-CF @BBL P1P 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PET-CF @BBL X1C",
+            "sub_path": "filament/Bambu PET-CF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PET-CF @BBL P1P",
+            "sub_path": "filament/P1P/Bambu PET-CF @BBL P1P.json"
         }
     ],
     "machine_list": [
