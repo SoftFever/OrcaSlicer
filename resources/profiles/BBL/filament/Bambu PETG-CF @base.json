@@ -5,6 +5,36 @@
   "from": "system",
   "instantiation": "false",
   "inherits": "fdm_filament_pet",
+  "overhang_fan_threshold": [
+      "25%"
+  ],
+  "overhang_fan_speed": [
+      "90"
+  ],
+  "cool_plate_temp" : [
+      "0"
+  ],
+  "eng_plate_temp" : [
+      "70"
+  ],
+  "hot_plate_temp" : [
+      "70"
+  ],
+  "textured_plate_temp" : [
+      "70"
+  ],
+  "cool_plate_temp_initial_layer" : [
+      "0"
+  ],
+  "eng_plate_temp_initial_layer" : [
+      "70"
+  ],
+  "hot_plate_temp_initial_layer" : [
+      "70"
+  ],
+  "textured_plate_temp_initial_layer" : [
+      "70"
+  ],
   "required_nozzle_HRC": [
       "40"
   ],
@@ -30,7 +60,7 @@
       "34.99"
   ],
   "filament_density": [
-    "1.04"
+    "1.25"
   ],
   "fan_max_speed": [
       "30"

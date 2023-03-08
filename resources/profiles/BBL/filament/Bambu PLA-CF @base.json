@@ -20,6 +20,9 @@
     "required_nozzle_HRC": [
         "40"
     ],
+    "slow_down_layer_time": [
+        "8"
+    ],
     "nozzle_temperature_range_low": [
         "210"
     ],
