@@ -313,6 +313,7 @@ namespace ClipperUtils {
     [[nodiscard]] Polygon  clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBox &bbox);
     [[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const Polygons &src, const BoundingBox &bbox);
     [[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygon &src, const BoundingBox &bbox);
+    [[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygons &src, const BoundingBox &bbox);
 
     }
 

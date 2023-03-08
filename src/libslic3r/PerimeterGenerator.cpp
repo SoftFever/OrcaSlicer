@@ -846,7 +846,16 @@ void PerimeterGenerator::process_classic()
                         offset_top_surface = 0;
                     //don't takes into account too thin areas
                     double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), 1.0 * (double(perimeter_width)));
-                    ExPolygons grown_upper_slices = offset_ex(*this->upper_slices, min_width_top_surface);
+
+                    Polygons grown_upper_slices = offset(*this->upper_slices, min_width_top_surface);
+
+                    //BBS: get boungding box of last
+                    BoundingBox last_box   = get_extents(last);
+                    last_box.offset(SCALED_EPSILON);
+
+                    // BBS: get the Polygons upper the polygon this layer
+                    Polygons    upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(grown_upper_slices, last_box);
+
                     //set the clip to a virtual "second perimeter"
                     fill_clip = offset_ex(last, -double(ext_perimeter_spacing));
                     // get the real top surface
@@ -854,13 +863,15 @@ void PerimeterGenerator::process_classic()
                     ExPolygons bridge_checker;
                     // BBS: check whether surface be bridge or not
                     if (this->lower_slices != NULL) {
-                        grown_lower_slices =*this->lower_slices;
+                        // BBS: get the Polygons below the polygon this layer
+                        Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, last_box);
+
                         double bridge_offset = std::max(double(ext_perimeter_spacing), (double(perimeter_width)));
-                        bridge_checker       = offset_ex(diff_ex(last, grown_lower_slices, ApplySafetyOffset::Yes), 1.5 * bridge_offset);
+                        bridge_checker  = offset_ex(diff_ex(last, lower_polygons_series_clipped, ApplySafetyOffset::Yes), 1.5 * bridge_offset);
                     }
                     ExPolygons delete_bridge = diff_ex(last, bridge_checker, ApplySafetyOffset::Yes);
 
-                    ExPolygons top_polygons = diff_ex(delete_bridge, grown_upper_slices, ApplySafetyOffset::Yes);
+                    ExPolygons top_polygons = diff_ex(delete_bridge, upper_polygons_series_clipped, ApplySafetyOffset::Yes);
                     //get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
                     ExPolygons temp_gap        = diff_ex(top_polygons, fill_clip);
                     ExPolygons inner_polygons = diff_ex(last,

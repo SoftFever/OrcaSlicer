@@ -147,6 +147,18 @@ void clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBo
     out.erase(std::remove_if(out.begin(), out.end(), [](const Polygon &polygon) { return polygon.empty(); }), out.end());
     return out;
 }
+[[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygons &src, const BoundingBox &bbox)
+{
+    Polygons out;
+    out.reserve(number_polygons(src));
+    for (const ExPolygon &p : src) {
+        Polygons temp = clip_clipper_polygons_with_subject_bbox(p, bbox);
+        out.insert(out.end(), temp.begin(), temp.end());
+    }
+
+    out.erase(std::remove_if(out.begin(), out.end(), [](const Polygon &polygon) {return polygon.empty(); }), out.end());
+    return out;
+}
 }
 
 static ExPolygons PolyTreeToExPolygons(ClipperLib::PolyTree &&polytree)
