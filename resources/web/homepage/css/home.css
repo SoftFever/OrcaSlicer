@@ -169,7 +169,7 @@ body
 	font-size: 14px;
 	height: 24px;
 	line-height: 24px;
-	color: #00f0d9;
+	color: #4db6ac;
 	border: 1px solid  #009688;
 	border-radius: 4px;
 	cursor: pointer;
@@ -270,7 +270,7 @@ body
 
 .MenuItem:hover
 {
-	border-color: #00f0d9;
+	border-color: #4db6ac;
 	background-color: #E0FCEB;
 }
 
