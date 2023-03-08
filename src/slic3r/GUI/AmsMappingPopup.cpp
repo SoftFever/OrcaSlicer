@@ -772,50 +772,51 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     wxBoxSizer* m_sizer_tips = new wxBoxSizer(wxVERTICAL);
 
     m_staticText1 = new Label(this, _L("Cabin humidity"));
-    m_staticText1->SetForegroundColour(wxColour(0x352F2D));
     m_staticText1->SetFont(::Label::Head_13);
    
 
     m_staticText2 = new Label(this, _L("Green means that AMS humidity is normal, orange represent humidity is high, red represent humidity is too high.(Hygrometer: lower the better.)"));
     m_staticText2->SetFont(::Label::Body_13);
-    m_staticText2->SetSize(wxSize(FromDIP(360), -1));
-    m_staticText2->SetMinSize(wxSize(FromDIP(360), -1));
-    m_staticText2->SetMaxSize(wxSize(FromDIP(360), -1));
-    m_staticText2->Wrap(FromDIP(360));
+    m_staticText2->SetSize(wxSize(FromDIP(357), -1));
+    m_staticText2->SetMinSize(wxSize(FromDIP(357), -1));
+    m_staticText2->SetMaxSize(wxSize(FromDIP(357), -1));
+    m_staticText2->Wrap(FromDIP(357));
     
 
     m_staticText3 = new Label(this, _L("Desiccant status"));
-    m_staticText3->SetForegroundColour(wxColour(0x352F2D));
     m_staticText3->SetFont(::Label::Head_13);
   
 
     m_staticText4 = new Label(this, _L("A desiccant status lower than two bars indicates that desiccant may be inactive. Please change the desiccant.(The bars: higher the better.)"));
     m_staticText4->SetFont(::Label::Body_13);
-    m_staticText4->SetSize(wxSize(FromDIP(360), -1));
-    m_staticText4->SetMinSize(wxSize(FromDIP(360), -1));
-    m_staticText4->SetMaxSize(wxSize(FromDIP(360), -1));
-    m_staticText4->Wrap(FromDIP(360));
+    m_staticText4->SetSize(wxSize(FromDIP(357), -1));
+    m_staticText4->SetMinSize(wxSize(FromDIP(357), -1));
+    m_staticText4->SetMaxSize(wxSize(FromDIP(357), -1));
+    m_staticText4->Wrap(FromDIP(357));
 
-    m_sizer_tips->Add(m_staticText1, 0, wxALL, 3);
-    m_sizer_tips->Add(m_staticText2, 0, wxALL, 3);
-    m_sizer_tips->Add(m_staticText3, 0, wxALL, 3);
-    m_sizer_tips->Add(m_staticText4, 0, wxALL, 3);
+    m_sizer_tips->Add(m_staticText1, 0, wxLEFT|wxRIGHT, 3);
+    m_sizer_tips->Add(0,0,0,wxTOP,2);
+    m_sizer_tips->Add(m_staticText2, 0, wxLEFT|wxRIGHT, 3);
+    m_sizer_tips->Add(0,0,0,wxTOP,8);
+    m_sizer_tips->Add(m_staticText3, 0, wxLEFT|wxRIGHT, 3);
+    m_sizer_tips->Add(0,0,0,wxTOP,2);
+    m_sizer_tips->Add(m_staticText4, 0, wxLEFT|wxRIGHT, 3);
 
 
     m_sizer_body->Add(m_sizer_tips, 0, wxEXPAND, 0);
 
 
-    main_sizer->Add(m_sizer_body, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    main_sizer->Add(m_sizer_body, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
     m_staticText_note = new Label(this, _L("Note: When the lid is open or the desiccant pack is changed, it can take hours or a night to absorb the moisture. Low temperatures also slow down the process. During this time, the indicator may not represent the chamber accurately."));
     m_staticText4->SetFont(::Label::Body_13);
-    m_staticText_note->SetMinSize(wxSize(FromDIP(536), -1));
-    m_staticText_note->SetMaxSize(wxSize(FromDIP(536), -1));
-    m_staticText_note->Wrap(FromDIP(536));
-    main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 34);
+    m_staticText_note->SetMinSize(wxSize(FromDIP(523), -1));
+    m_staticText_note->SetMaxSize(wxSize(FromDIP(523), -1));
+    m_staticText_note->Wrap(FromDIP(523));
+    main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 22);
 
     m_button_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(btn_bg_green);
     m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
     m_button_confirm->SetTextColor(wxColour(0xFFFFFE));

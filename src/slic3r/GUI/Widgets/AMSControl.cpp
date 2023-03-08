@@ -820,7 +820,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
-    Bind(wxEVT_MOTION, [this](wxMouseEvent& e) {
+    Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (m_canindex == 3 && m_show_humidity) {
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
@@ -1940,10 +1940,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this](wxCommandEvent& evt) {
         wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x, img_pos.y + GetRect().height);
+        wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y);
         m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
         m_Humidity_tip_popup.Popup();
-        m_Humidity_tip_popup.GetParent()->SetFocus();
     });
     
 
