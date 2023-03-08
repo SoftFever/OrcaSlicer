@@ -15,7 +15,7 @@ bool RetractWhenCrossingPerimeters::travel_inside_internal_regions(const Layer &
         m_aabbtree_internal_islands.clear();
         // Collect expolygons of internal slices.
         for (const LayerRegion *layerm : layer.regions())
-            for (const Surface &surface : layerm->get_slices_simplified().surfaces)
+            for (const Surface &surface : layerm->get_slices().surfaces)
                 if (surface.is_internal())
                     m_internal_islands.emplace_back(&surface.expolygon);
         // Calculate bounding boxes of internal slices.

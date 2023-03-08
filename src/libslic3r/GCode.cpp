@@ -1461,22 +1461,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_enable_cooling_markers = true;
     this->apply_print_config(print.config());
 
-    //BBS: generate simplified_slices if necessary
-    if (m_config.reduce_infill_retraction) {
-        for (auto object : print.objects()) {
-            tbb::parallel_for(
-                tbb::blocked_range<size_t>(0, object->layers().size()),
-                [object](const tbb::blocked_range<size_t>& range) {
-                    for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                        Layer* layer = object->layers()[layer_idx];
-                        if (layer)
-                            layer->simplify_reagon_final_slices();
-                    }
-                }
-            );
-        }
-    }
-
     //m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
 
