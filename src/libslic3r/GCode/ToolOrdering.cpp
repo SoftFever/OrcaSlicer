@@ -175,10 +175,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
 
-            // BBS
-            for (auto layer : object->tree_support_layers())
-                zs.emplace_back(layer->print_z);
-
             // Find first object layer that is not empty and save its print_z
             for (const Layer* layer : object->layers())
                 if (layer->has_extrusions()) {
@@ -199,10 +195,11 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     // BBS
 	if (auto num_filaments = unsigned(print.config().filament_diameter.size());
 		num_filaments > 1 && print.object_extruders().size() == 1 && // the current Print's configuration is CustomGCode::MultiAsSingle
-		print.model().custom_gcode_per_print_z.mode == CustomGCode::MultiAsSingle) {
+        //BBS: replace model custom gcode with current plate custom gcode
+        print.model().get_curr_plate_custom_gcodes().mode == CustomGCode::MultiAsSingle) {
 		// Printing a single extruder platter on a printer with more than 1 extruder (or single-extruder multi-material).
 		// There may be custom per-layer tool changes available at the model.
-		per_layer_extruder_switches = custom_tool_changes(print.model().custom_gcode_per_print_z, num_filaments);
+        per_layer_extruder_switches = custom_tool_changes(print.model().get_curr_plate_custom_gcodes(), num_filaments);
 	}
 
     // Collect extruders reuqired to print the layers.
@@ -335,24 +332,6 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         LayerTools   &layer_tools = this->tools_for_layer(support_layer->print_z);
         ExtrusionRole role = support_layer->support_fills.role();
         bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
-        bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
-        unsigned int extruder_support   = object.config().support_filament.value;
-        unsigned int extruder_interface = object.config().support_interface_filament.value;
-        if (has_support)
-            layer_tools.extruders.push_back(extruder_support);
-        if (has_interface)
-            layer_tools.extruders.push_back(extruder_interface);
-        if (has_support || has_interface) {
-            layer_tools.has_support = true;
-            layer_tools.wiping_extrusions().is_support_overriddable_and_mark(role, object);
-        }
-    }
-
-    // BBS
-    for (auto tree_support_layer : object.tree_support_layers()) {
-        LayerTools   &layer_tools = this->tools_for_layer(tree_support_layer->print_z);
-        ExtrusionRole role = tree_support_layer->support_fills.role();
-        bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;;
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
@@ -781,12 +760,15 @@ void ToolOrdering::mark_skirt_layers(const PrintConfig &config, coordf_t max_lay
 // Assign a pointer to a custom G-code to the respective ToolOrdering::LayerTools.
 // Ignore color changes, which are performed on a layer and for such an extruder, that the extruder will not be printing above that layer.
 // If multiple events are planned over a span of a single layer, use the last one.
+
+// BBS: replace model custom gcode with current plate custom gcode
+static CustomGCode::Info custom_gcode_per_print_z;
 void ToolOrdering::assign_custom_gcodes(const Print &print)
 {
 	// Only valid for non-sequential print.
 	assert(print.config().print_sequence == PrintSequence::ByLayer);
 
-	const CustomGCode::Info	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+    custom_gcode_per_print_z = print.model().get_curr_plate_custom_gcodes();
 	if (custom_gcode_per_print_z.gcodes.empty())
 		return;
 
@@ -795,7 +777,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	CustomGCode::Mode 			mode          =
 		(num_filaments == 1) ? CustomGCode::SingleExtruder :
 		print.object_extruders().size() == 1 ? CustomGCode::MultiAsSingle : CustomGCode::MultiExtruder;
-	CustomGCode::Mode           model_mode    = print.model().custom_gcode_per_print_z.mode;
+    CustomGCode::Mode           model_mode    = print.model().get_curr_plate_custom_gcodes().mode;
 	std::vector<unsigned char> 	extruder_printing_above(num_filaments, false);
 	auto 						custom_gcode_it = custom_gcode_per_print_z.gcodes.rbegin();
 	// Tool changes and color changes will be ignored, if the model's tool/color changes were entered in mm mode and the print is in non mm mode
@@ -890,7 +872,7 @@ int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& prin
 {
     const LayerTools& lt = *m_layer_tools;
     for (auto extruders_it = lt.extruders.begin(); extruders_it != lt.extruders.end(); ++extruders_it)
-        if (!print_config.filament_soluble.get_at(*extruders_it))
+        if (!print_config.filament_soluble.get_at(*extruders_it) && !print_config.filament_is_support.get_at(*extruders_it))
             return (*extruders_it);
 
     return (-1);
@@ -901,7 +883,7 @@ int WipingExtrusions::last_nonsoluble_extruder_on_layer(const PrintConfig& print
 {
     const LayerTools& lt = *m_layer_tools;
     for (auto extruders_it = lt.extruders.rbegin(); extruders_it != lt.extruders.rend(); ++extruders_it)
-        if (!print_config.filament_soluble.get_at(*extruders_it))
+        if (!print_config.filament_soluble.get_at(*extruders_it) && !print_config.filament_is_support.get_at(*extruders_it))
             return (*extruders_it);
 
     return (-1);
@@ -1042,10 +1024,9 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
             if (object->config().flush_into_support) {
                 auto& object_config = object->config();
                 const SupportLayer* this_support_layer = object->get_support_layer_at_printz(lt.print_z, EPSILON);
-                const TreeSupportLayer* this_tree_support_layer = object->get_tree_support_layer_at_printz(lt.print_z, EPSILON);
 
                 do {
-                    if (this_support_layer == nullptr && this_tree_support_layer == nullptr)
+                    if (this_support_layer == nullptr)
                         break;
 
                     bool support_overriddable = object_config.support_filament == 0;
@@ -1053,7 +1034,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                     if (!support_overriddable && !support_intf_overriddable)
                         break;
 
-                    auto& entities = this_support_layer != nullptr ? this_support_layer->support_fills.entities : this_tree_support_layer->support_fills.entities;
+                    auto &entities = this_support_layer->support_fills.entities;
                     if (support_overriddable && !is_support_overridden(object)) {
                         set_support_extruder_override(object, copy, new_extruder, num_of_copies);
                         for (const ExtrusionEntity* ee : entities) {

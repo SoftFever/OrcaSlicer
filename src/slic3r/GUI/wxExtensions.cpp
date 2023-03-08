@@ -1048,9 +1048,9 @@ void BlinkingBitmap::blink()
 }
 
 
-wxIMPLEMENT_CLASS(ImageTransientPopup,wxPopupTransientWindow);
+wxIMPLEMENT_CLASS(ImageTransientPopup,PopupWindow);
 
-wxBEGIN_EVENT_TABLE(ImageTransientPopup,wxPopupTransientWindow)
+wxBEGIN_EVENT_TABLE(ImageTransientPopup,PopupWindow)
     EVT_MOUSE_EVENTS( ImageTransientPopup::OnMouse )
     EVT_SIZE( ImageTransientPopup::OnSize )
     EVT_SET_FOCUS( ImageTransientPopup::OnSetFocus )
@@ -1058,7 +1058,7 @@ wxBEGIN_EVENT_TABLE(ImageTransientPopup,wxPopupTransientWindow)
 wxEND_EVENT_TABLE()
 
 ImageTransientPopup::ImageTransientPopup( wxWindow *parent, bool scrolled, wxBitmap bmp)
-                     :wxPopupTransientWindow( parent,
+                     :PopupWindow( parent,
                                               wxBORDER_NONE |
                                               wxPU_CONTAINS_CONTROLS )
 {
@@ -1115,21 +1115,21 @@ void ImageTransientPopup::SetImage(wxBitmap bmp)
 
 void ImageTransientPopup::Popup(wxWindow* WXUNUSED(focus))
 {
-    wxPopupTransientWindow::Popup();
+    PopupWindow::Popup();
 }
 
 void ImageTransientPopup::OnDismiss()
 {
-    wxPopupTransientWindow::OnDismiss();
+    PopupWindow::OnDismiss();
 }
 
 bool ImageTransientPopup::ProcessLeftDown(wxMouseEvent& event)
 {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 bool ImageTransientPopup::Show( bool show )
 {
-    return wxPopupTransientWindow::Show(show);
+    return PopupWindow::Show(show);
 }
 
 void ImageTransientPopup::OnSize(wxSizeEvent &event)

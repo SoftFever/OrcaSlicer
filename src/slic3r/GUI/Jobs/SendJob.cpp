@@ -18,6 +18,7 @@ static wxString file_over_size_str          = _L("The print file exceeds the max
 static wxString print_canceled_str          = _L("Task canceled");
 static wxString upload_failed_str           = _L("Failed uploading print file");
 static wxString upload_login_failed_str     = _L("Wrong Access code");
+static wxString upload_no_space_left_str    = _L("No space left on Printer SD card");
 
 
 static wxString sending_over_lan_str = _L("Sending gcode file over LAN");
@@ -39,7 +40,6 @@ void SendJob::prepare()
         BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
         job_data._temp_path = fs::path(check_access_code_path);
     }
-    
 }
 
 void SendJob::on_exception(const std::exception_ptr &eptr)
@@ -130,31 +130,33 @@ void SendJob::process()
     params.use_ssl = m_local_use_ssl;
 
     // check access code and ip address
-    if (m_is_check_mode) {
-        params.dev_id = m_dev_id;
-        params.project_name = "verify_job";
-        params.filename = job_data._temp_path.string();
-        params.connection_type = this->connection_type;
+    params.dev_id = m_dev_id;
+    params.project_name = "verify_job";
+    params.filename = job_data._temp_path.string();
+    params.connection_type = this->connection_type;
 
-        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
-        if (result != 0) {
-            BOOST_LOG_TRIVIAL(error) << "access code is invalid";
-            m_enter_ip_address_fun_fail();
-        }
-        else {
-            m_enter_ip_address_fun_success();
-        }
+    result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+    if (result != 0) {
+        BOOST_LOG_TRIVIAL(error) << "access code is invalid";
+        m_enter_ip_address_fun_fail();
         m_job_finished = true;
         return;
     }
-    /* display info */
+    else if(m_is_check_mode && !m_check_and_continue){
+        m_enter_ip_address_fun_success();
+        m_job_finished = true;
+        return;
+    }
+    
 
-    if (this->connection_type == "lan") {
+    /* display info */
+    msg = _L("Sending gcode file over LAN");
+   /* if (this->connection_type == "lan") {
         msg = _L("Sending gcode file over LAN");
     }
     else {
         msg = _L("Sending gcode file through cloud service");
-    }
+    }*/
 
     int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
@@ -313,9 +315,11 @@ void SendJob::process()
     }
 
     if (result < 0) {
-        if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+        if (result == BAMBU_NETWORK_ERR_NO_SPACE_LEFT_ON_DEVICE) {
+            msg_text = upload_no_space_left_str;
+        } else if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
             msg_text = upload_login_failed_str;
-        } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
+        } else if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
             msg_text = file_over_size_str;

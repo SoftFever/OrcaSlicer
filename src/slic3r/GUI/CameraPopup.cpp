@@ -12,9 +12,9 @@
 namespace Slic3r {
 namespace GUI {
 
-wxIMPLEMENT_CLASS(CameraPopup, wxPopupTransientWindow);
+wxIMPLEMENT_CLASS(CameraPopup, PopupWindow);
 
-wxBEGIN_EVENT_TABLE(CameraPopup, wxPopupTransientWindow)
+wxBEGIN_EVENT_TABLE(CameraPopup, PopupWindow)
     EVT_MOUSE_EVENTS(CameraPopup::OnMouse )
     EVT_SIZE(CameraPopup::OnSize)
     EVT_SET_FOCUS(CameraPopup::OnSetFocus )
@@ -24,10 +24,12 @@ wxEND_EVENT_TABLE()
 wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
 wxDEFINE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
+#define CAMERAPOPUP_CLICK_INTERVAL 20
+
 const wxColour TEXT_COL = wxColour(43, 52, 54);
 
 CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
-   : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS),
+   : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS),
     m_obj(obj)
 {
 #ifdef __WINDOWS__
@@ -84,10 +86,26 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     main_sizer->Add(top_sizer, 0, wxALL, FromDIP(10));
 
     auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/virtual-camera", L"en");
-    vcamera_guide_link = new wxHyperlinkCtrl(m_panel, wxID_ANY, _L("Show \"Live Video\" guide page."),
-        url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    auto text = _L("Show \"Live Video\" guide page.");
+
+    wxBoxSizer* link_sizer = new wxBoxSizer(wxVERTICAL);
+    vcamera_guide_link = new Label(m_panel, text);
+    vcamera_guide_link->Wrap(-1);
+    vcamera_guide_link->SetForegroundColour(wxColour(0x1F, 0x8E, 0xEA));
+    auto text_size = vcamera_guide_link->GetTextExtent(text);
+    vcamera_guide_link->Bind(wxEVT_LEFT_DOWN, [this, url](wxMouseEvent& e) {wxLaunchDefaultBrowser(url); });
+
+    link_underline = new wxPanel(m_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    link_underline->SetBackgroundColour(wxColour(0x1F, 0x8E, 0xEA));
+    link_underline->SetSize(wxSize(text_size.x, 1));
+    link_underline->SetMinSize(wxSize(text_size.x, 1));
+
     vcamera_guide_link->Hide();
-    main_sizer->Add(vcamera_guide_link, 0, wxALL, FromDIP(15));
+    link_underline->Hide();
+    link_sizer->Add(vcamera_guide_link, 0, wxALL, 0);
+    link_sizer->Add(link_underline, 0, wxALL, 0);
+
+    main_sizer->Add(link_sizer, 0, wxALL, FromDIP(15));
 
     m_panel->SetSizer(main_sizer);
     m_panel->Layout();
@@ -104,6 +122,10 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     #ifdef __APPLE__
     m_panel->Bind(wxEVT_LEFT_UP, &CameraPopup::OnLeftUp, this);
     #endif //APPLE
+
+    this->Bind(wxEVT_TIMER, &CameraPopup::stop_interval, this);
+    m_interval_timer = new wxTimer();
+    m_interval_timer->SetOwner(this);
 
     check_func_supported();
     wxGetApp().UpdateDarkUIWin(this);
@@ -141,7 +163,9 @@ void CameraPopup::Popup(wxWindow *WXUNUSED(focus))
     wxSize win_size = this->GetSize();
     curr_position.x -= win_size.x;
     this->SetPosition(curr_position);
-    wxPopupTransientWindow::Popup();
+
+    if (!m_is_in_interval)
+        PopupWindow::Popup();
 }
 
 wxWindow* CameraPopup::create_item_radiobox(wxString title, wxWindow* parent, wxString tooltip, int padding_left)
@@ -225,10 +249,12 @@ void CameraPopup::sync_vcamera_state(bool show_vcamera)
     if (is_vcamera_show) {
         m_switch_vcamera->SetValue(true);
         vcamera_guide_link->Show();
+        link_underline->Show();
     }
     else {
         m_switch_vcamera->SetValue(false);
         vcamera_guide_link->Hide();
+        link_underline->Hide();
     }
 
     rescale();
@@ -248,12 +274,15 @@ void CameraPopup::check_func_supported()
     if (m_obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA) && m_obj->has_ipcam) {
         m_text_vcamera->Show();
         m_switch_vcamera->Show();
-        if (is_vcamera_show)
+        if (is_vcamera_show) {
             vcamera_guide_link->Show();
+            link_underline->Show();
+        }
     } else {
         m_text_vcamera->Hide();
         m_switch_vcamera->Hide();
         vcamera_guide_link->Hide();
+        link_underline->Hide();
     }
 
     allow_alter_resolution = (m_obj->is_function_supported(PrinterFunction::FUNC_ALTER_RESOLUTION) && m_obj->has_ipcam);
@@ -318,7 +347,7 @@ void CameraPopup::rescale()
     m_panel->Layout();
     main_sizer->Fit(m_panel);
     SetClientSize(m_panel->GetSize());
-    wxPopupTransientWindow::Update();
+    PopupWindow::Update();
 }
 
 void CameraPopup::OnLeftUp(wxMouseEvent &event)
@@ -367,18 +396,31 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
     }
 }
 
+void CameraPopup::start_interval()
+{
+    m_interval_timer->Start(CAMERAPOPUP_CLICK_INTERVAL);
+    m_is_in_interval = true;
+}
+
+void CameraPopup::stop_interval(wxTimerEvent& event)
+{
+    m_is_in_interval = false;
+    m_interval_timer->Stop();
+}
+
 void CameraPopup::OnDismiss() {
-    wxPopupTransientWindow::OnDismiss();
+    PopupWindow::OnDismiss();
+    this->start_interval();
 }
 
 bool CameraPopup::ProcessLeftDown(wxMouseEvent &event)
 {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 
 bool CameraPopup::Show(bool show)
 {
-    return wxPopupTransientWindow::Show(show);
+    return PopupWindow::Show(show);
 }
 
 void CameraPopup::OnSize(wxSizeEvent &event)

@@ -608,6 +608,8 @@ bool ProgressDialog::Pulse(const wxString &newmsg, bool *skip)
     return m_state != Canceled;
 }
 
+bool ProgressDialog::WasCanceled() const { return m_state == Canceled; }
+
 bool ProgressDialog::DoBeforeUpdate(bool *skip)
 {
     // we have to yield because not only we want to update the display but

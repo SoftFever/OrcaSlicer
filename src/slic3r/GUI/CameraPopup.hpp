@@ -13,6 +13,7 @@
 #include <wx/hyperlink.h>
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/RadioBox.hpp"
+#include "Widgets/PopupWindow.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -20,13 +21,13 @@ namespace GUI {
 wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
 wxDECLARE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
-class CameraPopup : public wxPopupTransientWindow
+class CameraPopup : public PopupWindow
 {
 public:
     CameraPopup(wxWindow *parent, MachineObject* obj = nullptr);
     virtual ~CameraPopup() {}
 
-    // wxPopupTransientWindow virtual methods are all overridden to log them
+    // PopupWindow virtual methods are all overridden to log them
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
@@ -59,6 +60,8 @@ protected:
 
 private:
     MachineObject* m_obj { nullptr };
+    wxTimer* m_interval_timer{nullptr};
+    bool  m_is_in_interval{ false };
     wxStaticText* m_text_recording;
     SwitchButton* m_switch_recording;
     wxStaticText* m_text_vcamera;
@@ -70,10 +73,13 @@ private:
     std::vector<RadioBox*> resolution_rbtns;
     std::vector<wxStaticText*> resolution_texts;
     CameraResolution curr_sel_resolution = RESOLUTION_1080P;
-    wxHyperlinkCtrl* vcamera_guide_link { nullptr };
+    Label* vcamera_guide_link { nullptr };
+    wxPanel* link_underline{ nullptr };
     bool is_vcamera_show = false;
     bool allow_alter_resolution = false;
 
+    void start_interval();
+    void stop_interval(wxTimerEvent& event);
     void OnMouse(wxMouseEvent &event);
     void OnSize(wxSizeEvent &event);
     void OnSetFocus(wxFocusEvent &event);

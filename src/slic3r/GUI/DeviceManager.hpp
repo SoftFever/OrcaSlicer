@@ -178,6 +178,8 @@ public:
                 if (digit1 == -1 || digit2 == -1) break;
                 ret[j] = float(digit1 * 16 + digit2);
             }
+        } else {
+            return wxColour(255, 255, 255);
         }
         return wxColour(ret[0], ret[1], ret[2]);
     }
@@ -215,6 +217,8 @@ public:
     void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
     void update_color_from_str(std::string color);
     wxColour get_color();
+
+    void reset();
 
     bool is_tray_info_ready();
     bool is_unset_third_filament();
@@ -401,15 +405,20 @@ public:
     std::string dev_ip;
     std::string dev_id;
     bool        local_use_ssl { false };
+    float       nozzle_diameter { 0.0f };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     void set_dev_ip(std::string ip) {dev_ip = ip;};
-    bool has_access_right() { return !access_code.empty(); }
+    bool has_access_right() { return !get_access_code().empty(); }
+    std::string get_ftp_folder();
     void set_access_code(std::string code);
     std::string get_access_code();
+
     void set_user_access_code(std::string code);
+
     std::string get_user_access_code();
     bool is_lan_mode_printer();
+
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
 
@@ -460,7 +469,7 @@ public:
     int   ams_version = 0;
     std::string m_ams_id;           // local ams  : "0" ~ "3"
     std::string m_tray_id;          // local tray id : "0" ~ "3"
-    std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
+    std::string m_tray_now;         // tray_now : "0" ~ "15" or "254", "255"
     std::string m_tray_tar;         // tray_tar : "0" ~ "15" or "255"
 
     int extrusion_cali_hold_count = 0;
@@ -484,7 +493,6 @@ public:
     bool can_unload_filament();
     bool is_U0_firmware();
     bool is_support_ams_mapping();
-    bool is_only_support_cloud_print();
     static bool is_support_ams_mapping_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
@@ -530,6 +538,7 @@ public:
     bool upgrade_new_version { false };
     bool upgrade_consistency_request { false };
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
+    int upgrade_display_hold_count = 0;
     PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;
     std::string upgrade_message;
@@ -630,6 +639,8 @@ public:
     bool is_support_1080dpi {false};
     bool is_support_ai_monitoring {false};
     bool is_support_ams_humidity {true};
+    bool is_support_filament_edit_virtual_tray {true};
+    bool is_cloud_print_only {false};
 
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
@@ -827,14 +838,20 @@ public:
     void load_last_machine();
 
     static json function_table;
+    static json filaments_blacklist;
+
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
+    static std::string get_ftp_folder(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
 
     static bool get_bed_temperature_limit(std::string type_str, int& limit);
     static bool load_functional_config(std::string config_file);
+    static bool load_filaments_blacklist_config(std::string config_file);
+    static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
+    static std::string load_gcode(std::string type_str, std::string gcode_file);
 };
 
 } // namespace Slic3r

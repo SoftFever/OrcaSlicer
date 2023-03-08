@@ -352,6 +352,50 @@ void Layer::export_region_fill_surfaces_to_svg_debug(const char *name) const
     this->export_region_fill_surfaces_to_svg(debug_out_path("Layer-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
 }
 
+coordf_t Layer::get_sparse_infill_max_void_area()
+{
+    double max_void_area = 0.;
+    for (auto layerm : m_regions) {
+        Flow flow = layerm->flow(frInfill);
+        float density = layerm->region().config().sparse_infill_density;
+        InfillPattern pattern = layerm->region().config().sparse_infill_pattern;
+        if (density == 0.)
+            return -1;
+
+        //BBS: rough estimation and need to be optimized
+        double spacing = flow.scaled_spacing() * (100 - density) / density;
+        switch (pattern) {
+            case ipConcentric:
+            case ipRectilinear:
+            case ipLine:
+            case ipGyroid:
+            case ipAlignedRectilinear:
+            case ipOctagramSpiral:
+            case ipHilbertCurve:
+            case ip3DHoneycomb:
+            case ipArchimedeanChords:
+                max_void_area = std::max(max_void_area, spacing * spacing);
+                break;
+            case ipGrid:
+            case ipHoneycomb:
+            case ipLightning:
+                max_void_area = std::max(max_void_area, 4.0 * spacing * spacing);
+                break;
+            case ipCubic:
+            case ipAdaptiveCubic:
+            case ipTriangles:
+            case ipStars:
+            case ipSupportCubic:
+                max_void_area = std::max(max_void_area, 4.5 * spacing * spacing);
+                break;
+            default:
+                max_void_area = std::max(max_void_area, spacing * spacing);
+                break;
+        }
+    };
+    return max_void_area;
+}
+
 BoundingBox get_extents(const LayerRegion &layer_region)
 {
     BoundingBox bbox;

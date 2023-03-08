@@ -226,10 +226,11 @@ void GLGizmoScale3D::on_render()
 
      //draw connections
 
-    if (single_instance || single_volume) {
+    // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
+    //if (single_instance || single_volume) {
         glsafe(::glColor4fv(m_grabbers[4].color.data()));
         render_grabbers_connection(4, 5);
-    }
+    //}
 
     glsafe(::glColor4fv(m_grabbers[2].color.data()));
     render_grabbers_connection(6, 7);

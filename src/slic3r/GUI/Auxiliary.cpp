@@ -492,6 +492,7 @@ void AuFile::on_set_cover()
         thumbnail_img.SaveFile(encode_path(middle_img_path.c_str()));
     }
 
+    wxGetApp().plater()->set_plater_dirty(true);
     auto evt = wxCommandEvent(EVT_AUXILIARY_UPDATE_COVER);
     evt.SetString(s_default_folders[m_type]);
     evt.SetEventObject(m_parent);
@@ -1099,26 +1100,26 @@ void AuxiliaryPanel::update_all_cover()
      wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
      wxBoxSizer *m_sizer_designer = new wxBoxSizer(wxHORIZONTAL);
 
-     auto m_text_designer = new wxStaticText(this, wxID_ANY, _L("Author"), wxDefaultPosition, wxSize(120, -1), 0);
+     auto m_text_designer = new wxStaticText(this, wxID_ANY, _L("Author"), wxDefaultPosition, wxSize(180, -1), 0);
      m_text_designer->Wrap(-1);
      m_text_designer->SetForegroundColour(*wxBLACK);
      m_sizer_designer->Add(m_text_designer, 0, wxALIGN_CENTER, 0);
 
      m_input_designer =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), FromDIP(30)), wxTE_PROCESS_ENTER);
      m_input_designer->GetTextCtrl()->SetFont(::Label::Body_14);
-     m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
+     m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
      m_sizer_designer->Add(m_input_designer, 0, wxALIGN_CENTER, 0);
 
      wxBoxSizer *m_sizer_model_name = new wxBoxSizer(wxHORIZONTAL);
 
-     auto m_text_model_name = new wxStaticText(this, wxID_ANY, _L("Model Name"), wxDefaultPosition, wxSize(120, -1), 0);
+     auto m_text_model_name = new wxStaticText(this, wxID_ANY, _L("Model Name"), wxDefaultPosition, wxSize(180, -1), 0);
      m_text_model_name->SetForegroundColour(*wxBLACK);
      m_text_model_name->Wrap(-1);
      m_sizer_model_name->Add(m_text_model_name, 0, wxALIGN_CENTER, 0);
 
      m_imput_model_name =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition,wxSize(FromDIP(450),FromDIP(30)), wxTE_PROCESS_ENTER);
      m_imput_model_name->GetTextCtrl()->SetFont(::Label::Body_14);
-     m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
+     m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
      m_sizer_model_name->Add(m_imput_model_name, 0, wxALIGN_CENTER, 0);
 
      /*
@@ -1224,8 +1225,8 @@ void DesignerPanel::update_info()
 
 void DesignerPanel::msw_rescale()
 {
-    m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
-    m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), FromDIP(22)));
+    m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
+    m_imput_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
 }
 
 }} // namespace Slic3r::GUI

@@ -177,11 +177,6 @@ public:
         m_filament_colors = filament_colors;
         m_dirty                = true;
     }
-    const std::vector<float> &get_flush_volumes_matrix() const { return m_flush_volumes_matrix; }
-    void set_flush_volumes_matrix(const std::vector<float> &flush_volumes_matrix){
-        m_flush_volumes_matrix = flush_volumes_matrix;
-        m_dirty                = true;
-    }
 
 	// return recent/last_opened_folder or recent/settings_folder or empty string.
 	std::string 		get_last_dir() const;
@@ -281,7 +276,6 @@ private:
 
 	std::vector<std::string>									m_filament_presets;
     std::vector<std::string>									m_filament_colors;
-    std::vector<float>											m_flush_volumes_matrix;
 };
 
 } // namespace Slic3r

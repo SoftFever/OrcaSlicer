@@ -49,6 +49,7 @@ namespace Slic3r {
         struct Mode
         {
             float time;
+            float prepare_time;
             std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> custom_gcode_times;
             std::vector<std::pair<EMoveType, float>> moves_times;
             std::vector<std::pair<ExtrusionRole, float>> roles_times;
@@ -56,6 +57,7 @@ namespace Slic3r {
 
             void reset() {
                 time = 0.0f;
+                prepare_time = 0.0f;
                 custom_gcode_times.clear();
                 moves_times.clear();
                 roles_times.clear();
@@ -163,6 +165,7 @@ namespace Slic3r {
         std::vector<int> filament_vitrification_temperature;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
+        std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
         //BBS
         std::vector<SliceWarning> warnings;
         int nozzle_hrc;
@@ -191,6 +194,7 @@ namespace Slic3r {
             filament_densities = other.filament_densities;
             print_statistics = other.print_statistics;
             custom_gcode_per_print_z = other.custom_gcode_per_print_z;
+            spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
@@ -223,7 +227,8 @@ namespace Slic3r {
             Custom_Code,
             First_Line_M73_Placeholder,
             Last_Line_M73_Placeholder,
-            Estimated_Printing_Time_Placeholder
+            Estimated_Printing_Time_Placeholder,
+            Total_Layer_Number_Placeholder
         };
 
         static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
@@ -301,6 +306,7 @@ namespace Slic3r {
             {
                 bool recalculate{ false };
                 bool nominal_length{ false };
+                bool prepare_stage{ false };
             };
 
             EMoveType move_type{ EMoveType::Noop };
@@ -384,6 +390,8 @@ namespace Slic3r {
             std::array<float, static_cast<size_t>(EMoveType::Count)> moves_time;
             std::array<float, static_cast<size_t>(ExtrusionRole::erCount)> roles_time;
             std::vector<float> layers_time;
+            //BBS: prepare stage time before print model, including start gcode time and mostly same with start gcode time
+            float prepare_time;
 
             void reset();
 
@@ -420,7 +428,7 @@ namespace Slic3r {
 
             // post process the file with the given filename to add remaining time lines M73
             // and updates moves' gcode ids accordingly
-            void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends);
+            void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num);
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -627,6 +635,7 @@ namespace Slic3r {
         SeamsDetector m_seams_detector;
         OptionsZCorrector m_options_z_corrector;
         size_t m_last_default_color_id;
+        bool m_spiral_vase_active;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -684,6 +693,7 @@ namespace Slic3r {
         void finalize(bool post_process);
 
         float get_time(PrintEstimatedStatistics::ETimeMode mode) const;
+        float get_prepare_time(PrintEstimatedStatistics::ETimeMode mode) const;
         std::string get_time_dhm(PrintEstimatedStatistics::ETimeMode mode) const;
         std::vector<std::pair<CustomGCode::Type, std::pair<float, float>>> get_custom_gcode_times(PrintEstimatedStatistics::ETimeMode mode, bool include_remaining) const;
 

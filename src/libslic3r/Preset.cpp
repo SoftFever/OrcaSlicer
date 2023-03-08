@@ -771,7 +771,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "overhang_fan_threshold", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     // Retract overrides
-    "filament_retraction_length", "filament_z_hop", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
+    "filament_retraction_length", "filament_z_hop", "filament_z_hop_types", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
     "filament_retract_when_changing_layer", "filament_wipe", "filament_retract_before_wipe",
     // Profile compatibility
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
@@ -799,7 +799,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine",
+    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types",
     //SoftFever
     "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",
@@ -1128,7 +1128,7 @@ void PresetCollection::load_presets(
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": loaded %1% presets from %2%, type %3%")%presets_loaded.size() %dir %Preset::get_type_string(m_type);
-    this->select_preset(first_visible_idx());
+    //this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 }
@@ -1555,6 +1555,10 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                 name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
         if (need_update) {
+            if (iter->name == m_edited_preset.name && iter->is_dirty) {
+                // Keep modifies when update from remote
+                new_config.apply_only(m_edited_preset.config, m_edited_preset.config.diff(iter->config));
+            }
             iter->config = new_config;
             iter->updated_time = cloud_update_time;
             iter->version = cloud_version.value();

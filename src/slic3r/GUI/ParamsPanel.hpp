@@ -82,7 +82,7 @@ class ParamsPanel : public wxPanel
         ScalableButton* m_process_icon{ nullptr };
         wxStaticText* m_title_label { nullptr };
         SwitchButton* m_mode_region { nullptr };
-        wxStaticBitmap* m_tips_arrow{ nullptr };
+        ScalableButton *m_tips_arrow{nullptr};
         bool m_tips_arror_blink{false};
         wxStaticText* m_title_view { nullptr };
         SwitchButton* m_mode_view { nullptr };
@@ -116,7 +116,6 @@ class ParamsPanel : public wxPanel
 
         wxBitmap m_toggle_on_icon;
         wxBitmap m_toggle_off_icon;
-        wxBitmap m_tips_arrow_icon;
 
         wxPanel* m_current_tab { nullptr };
 
@@ -125,12 +124,12 @@ class ParamsPanel : public wxPanel
         struct Highlighter
         {
             void set_timer_owner(wxEvtHandler *owner, int timerid = wxID_ANY);
-            void init(std::pair<wxStaticBitmap *, bool *>, wxWindow *parent = nullptr);
+            void init(std::pair<wxWindow *, bool *>, wxWindow *parent = nullptr);
             void blink();
             void invalidate();
 
         private:
-            wxStaticBitmap *m_bitmap { nullptr };
+            wxWindow *      m_bitmap{nullptr};
             bool *         m_show_blink_ptr{nullptr};
             int            m_blink_counter{0};
             wxTimer        m_timer;
@@ -143,7 +142,6 @@ class ParamsPanel : public wxPanel
 		ParamsPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1800,1080 ), long style = wxTAB_TRAVERSAL, const wxString& type = wxEmptyString );
 		~ParamsPanel();
 
-        void init_bitmaps();
         void rebuild_panels();
         void create_layout();
         //clear the right page

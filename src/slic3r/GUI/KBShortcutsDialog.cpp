@@ -177,7 +177,13 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "S", L("Save Project") },
             { ctrl + alt + "S", L("Save Project as") },
             // File>Import
-            { ctrl + "I", L("Import geometry data from STL/STEP/3MF/OBJ/AMF files.") },
+            { ctrl + "I", L("Import geometry data from STL/STEP/3MF/OBJ/AMF files") },
+            // File>Export
+            { ctrl + "G", L("Export plate sliced file")},
+            // Slice plate
+            { ctrl + "R", L("Slice plate")},
+            // Send to Print
+            { ctrl + "Shift" + "G", L("Print plate")},
             // Edit
             { ctrl + "X", L("Cut") },
             { ctrl + "C", L("Copy to clipboard") },

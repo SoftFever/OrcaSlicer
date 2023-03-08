@@ -5,6 +5,7 @@
 #include "StaticBox.hpp"
 #include "StepCtrl.hpp"
 #include "Button.hpp"
+#include "PopupWindow.hpp"
 #include "../DeviceManager.hpp"
 #include "slic3r/GUI/Event.hpp"
 #include <wx/simplebook.h>
@@ -112,15 +113,17 @@ protected:
     MachineObject::FanType m_type;
     MachineObject* m_obj;
     wxStaticText* m_static_name{ nullptr };
-    wxStaticBitmap* m_switch_button{ nullptr };
     ScalableBitmap* m_bitmap_toggle_off{ nullptr };
     ScalableBitmap* m_bitmap_toggle_on{ nullptr };
 
     Fan* m_fan{ nullptr };
     FanOperate* m_fan_operate{ nullptr };
     bool m_switch_fan{ false };
+    bool m_update_already{false};
     int  m_current_speed{0};
 public:
+    wxStaticBitmap* m_switch_button{ nullptr };
+    void update_obj_state(bool stat) {m_update_already = stat;};
     void command_control_fan();
     void set_machine_obj(MachineObject* obj);
     void set_type(MachineObject::FanType type);
@@ -137,7 +140,7 @@ public:
 /*************************************************
 Description:FanControlPopup
 **************************************************/
-class FanControlPopup : public wxPopupTransientWindow
+class FanControlPopup : public PopupWindow
 {
 public:
     FanControlPopup(wxWindow* parent);
@@ -150,12 +153,15 @@ private:
     FanControl* m_cham_fan;
     wxWindow* m_line_top;
     wxWindow* m_line_bottom;
+    bool      m_is_suppt_cham_fun{true};
 
 public:
+    void         update_show_mode(bool support_cham_fun);
     void         update_fan_data(MachineObject::FanType type, MachineObject* obj);
     void         on_left_down(wxMouseEvent& evt);
     void         paintEvent(wxPaintEvent& evt);
     void         post_event(int fan_type, wxString speed);
+    void         on_show(wxShowEvent& evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 };

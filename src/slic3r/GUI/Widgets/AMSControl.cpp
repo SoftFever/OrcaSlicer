@@ -9,20 +9,11 @@
 
 namespace Slic3r { namespace GUI {
 
-static const int LOAD_STEP_COUNT   = 5;
-static const int UNLOAD_STEP_COUNT = 3;
+static const int LOAD_STEP_COUNT    = 5;
+static const int UNLOAD_STEP_COUNT  = 3;
+static const int VT_LOAD_STEP_COUNT = 4;
 
 static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
-
-static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
-    _L("Heat the nozzle"),
-    _L("Cut filament"), 
-    _L("Pull back current filament"),
-    _L("Push new filament into extruder"),
-    _L("Purge old filament"),
-};
-
-static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {_L("Heat the nozzle"), _L("Cut filament"), _L("Pull back current filament")};
 
 wxDEFINE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
@@ -834,8 +825,8 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
-            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(20) && 
-                mouse_pos.y > rect.y + GetSize().y - FromDIP(40)) {
+            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(25) && 
+                mouse_pos.y > rect.y + GetSize().y - FromDIP(25)) {
                 wxCommandEvent event(EVT_AMS_SHOW_HUMIDITY_TIPS);
                 wxPostEvent(GetParent()->GetParent(), event);
             }
@@ -1459,11 +1450,10 @@ void AmsCans::PlayRridLoading(wxString canid)
 
 std::string AmsCans::GetCurrentCan()
 {
-    if (m_canlib_selection > -1 && m_canlib_selection < m_can_lib_list.size()) {
-        CanLibs *lib = m_can_lib_list[m_canlib_selection];
-        return lib->canLib->m_info.can_id;
-    }
-    return "";
+    if (m_canlib_selection < 0)
+        return "";
+
+    return wxString::Format("%d", m_canlib_selection).ToStdString();
 }
 
 void AmsCans::StopRridLoading(wxString canid)
@@ -1805,9 +1795,15 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_filament_unload_step->SetSize(AMS_STEP_SIZE);
     m_filament_unload_step->SetBackgroundColour(*wxWHITE);
 
+    m_filament_vt_load_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
+    m_filament_vt_load_step->SetMinSize(AMS_STEP_SIZE);
+    m_filament_vt_load_step->SetSize(AMS_STEP_SIZE);
+    m_filament_vt_load_step->SetBackgroundColour(*wxWHITE);
+
     m_simplebook_right->AddPage(tip_right, wxEmptyString, false);
     m_simplebook_right->AddPage(m_filament_load_step, wxEmptyString, false);
     m_simplebook_right->AddPage(m_filament_unload_step, wxEmptyString, false);
+    m_simplebook_right->AddPage(m_filament_vt_load_step, wxEmptyString, false);
 
 
     m_button_ams_setting_normal = ScalableBitmap(this, "ams_setting_normal", 24);
@@ -1947,6 +1943,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         wxPoint popup_pos(img_pos.x, img_pos.y + GetRect().height);
         m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
         m_Humidity_tip_popup.Popup();
+        m_Humidity_tip_popup.GetParent()->SetFocus();
     });
     
 
@@ -2009,51 +2006,19 @@ wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
     return col;
 }
 
-void AMSControl::SetActionState(AMSAction action, bool support_virtual_tray)
+void AMSControl::SetActionState(bool button_status[])
 {
-    m_button_area->Layout();
-    m_button_area->Fit();
+    if (button_status[ActionButton::ACTION_BTN_CALI]) m_button_extrusion_cali->Enable();
+    else m_button_extrusion_cali->Disable();
 
-    switch (action) {
-    case Slic3r::GUI::AMSAction::AMS_ACTION_NONE: break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_LOAD: 
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Enable();
-        m_button_extruder_back->Disable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_UNLOAD: 
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Enable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_PRINTING: 
-        m_button_extrusion_cali->Disable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Disable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_NORMAL:
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Enable();
-        m_button_extruder_back->Enable();
-        break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_CALI:
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Disable();
-        break; 
-    case Slic3r::GUI::AMSAction::AMS_ACTION_NOAMS:
-        if (support_virtual_tray)
-            m_button_extrusion_cali->Enable();
-        else
-            m_button_extrusion_cali->Disable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Disable();
-        break;
-    default: break;
-    }
+    if (button_status[ActionButton::ACTION_BTN_LOAD]) m_button_extruder_feed->Enable();
+    else m_button_extruder_feed->Disable();
+
+    if (button_status[ActionButton::ACTION_BTN_UNLOAD]) m_button_extruder_back->Enable();
+    else m_button_extruder_back->Disable();
 }
 
-void AMSControl::EnterNoneAMSMode()
+void AMSControl::EnterNoneAMSMode(bool support_vt_load)
 {
     m_simplebook_amsitems->Hide();
     m_panel_top->Hide();
@@ -2063,8 +2028,14 @@ void AMSControl::EnterNoneAMSMode()
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
     m_button_retry->Hide();
-    m_button_extruder_feed->Hide();
-    m_button_extruder_back->Hide();
+    if (support_vt_load) {
+        m_button_extruder_feed->Show();
+        m_button_extruder_back->Show();
+    } else {
+        m_button_extruder_feed->Hide();
+        m_button_extruder_back->Hide();
+    }
+
     ShowFilamentTip(false);
     m_amswin->Layout();
     m_amswin->Fit();
@@ -2162,8 +2133,36 @@ void AMSControl::msw_rescale()
 
 void AMSControl::UpdateStepCtrl()
 {
-    for (int i = 0; i < LOAD_STEP_COUNT; i++) { m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]); }
-    for (int i = 0; i < UNLOAD_STEP_COUNT; i++) { m_filament_unload_step->AppendItem(FILAMENT_UNLOAD_STEP_STRING[i]); }
+    wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
+        _L("Heat the nozzle"),
+        _L("Cut filament"),
+        _L("Pull back current filament"),
+        _L("Push new filament into extruder"),
+        _L("Purge old filament"),
+    };
+
+    wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
+        _L("Heat the nozzle"),
+        _L("Feed new filament from external spool"),
+        _L("Confirm whether the filament has been extruded"),
+        _L("Purge old filament"),
+    };
+
+    wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {
+        _L("Heat the nozzle"),
+        _L("Cut filament"),
+        _L("Pull back current filament")
+    };
+
+    for (int i = 0; i < LOAD_STEP_COUNT; i++) {
+        m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
+    }
+    for (int i = 0; i < UNLOAD_STEP_COUNT; i++) {
+        m_filament_unload_step->AppendItem(FILAMENT_UNLOAD_STEP_STRING[i]);
+    }
+    for (int i = 0; i < VT_LOAD_STEP_COUNT; i++) {
+        m_filament_vt_load_step->AppendItem(VT_TRAY_LOAD_STEP_STRING[i]);
+    }
 }
 
 void AMSControl::CreateAms()
@@ -2204,7 +2203,7 @@ void AMSControl::Reset()
     m_current_senect = "";
 }
 
-void AMSControl::show_noams_mode(bool show, bool support_virtual_tray)
+void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load)
 {
     show_vams(support_virtual_tray);
     m_sizer_ams_tips->Show(support_virtual_tray);
@@ -2214,7 +2213,7 @@ void AMSControl::show_noams_mode(bool show, bool support_virtual_tray)
         m_button_extrusion_cali->Show();
     }
 
-    show?ExitNoneAMSMode() : EnterNoneAMSMode();
+    show?ExitNoneAMSMode() : EnterNoneAMSMode(support_vt_load);
 }
 
 void AMSControl::show_vams(bool show)
@@ -2244,6 +2243,10 @@ void AMSControl::update_vams_kn_value(AmsTray tray)
     m_vams_info.n = tray.n;
     m_vams_lib->m_info.k = tray.k;
     m_vams_lib->m_info.n = tray.n;
+    m_vams_info.material_name = tray.get_display_filament_type();
+    m_vams_info.material_colour = tray.get_color();
+    m_vams_lib->m_info.material_name = tray.get_display_filament_type();
+    m_vams_lib->m_info.material_colour = tray.get_color();
     m_vams_lib->Refresh();
 }
 
@@ -2392,26 +2395,56 @@ void AMSControl::SwitchAms(std::string ams_id)
     // update buttons
 }
 
-void AMSControl::SetFilamentStep(int item_idx, bool isload)
+void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type)
 {
-    if (item_idx == FilamentStep::STEP_IDLE && isload) {
+    if (item_idx == FilamentStep::STEP_IDLE) {
+        m_simplebook_right->SetSelection(0);
         m_filament_load_step->Idle();
-        return;
-    }
-
-    if (item_idx == FilamentStep::STEP_IDLE && !isload) {
         m_filament_unload_step->Idle();
+        m_filament_vt_load_step->Idle();
         return;
     }
 
-    if (item_idx >= 0 && isload && item_idx < FilamentStep::STEP_COUNT) {
-        m_simplebook_right->SetSelection(1);
-        m_filament_load_step->SelectItem(item_idx - 1);
-    }
-
-    if (item_idx >= 0 && !isload && item_idx < FilamentStep::STEP_COUNT) {
-        m_simplebook_right->SetSelection(2);
-        m_filament_unload_step->SelectItem(item_idx - 1);
+    if (f_type == FilamentStepType::STEP_TYPE_LOAD) {
+        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
+            m_simplebook_right->SetSelection(1);
+            m_filament_load_step->SelectItem(item_idx - 1);
+        } else {
+            m_filament_load_step->Idle();
+        }
+    } else if (f_type == FilamentStepType::STEP_TYPE_UNLOAD) {
+        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
+            m_simplebook_right->SetSelection(2);
+            m_filament_unload_step->SelectItem(item_idx - 1);
+        }
+        else {
+            m_filament_unload_step->Idle();
+        }
+    } else if (f_type == FilamentStepType::STEP_TYPE_VT_LOAD) {
+        m_simplebook_right->SetSelection(3);
+        if (item_idx == STEP_HEAT_NOZZLE) {
+            m_filament_vt_load_step->SelectItem(0);
+        }
+        else if (item_idx == STEP_FEED_FILAMENT) {
+            m_filament_vt_load_step->SelectItem(1);
+        }
+        else if (item_idx == STEP_CONFIRM_EXTRUDED) {
+            m_filament_vt_load_step->SelectItem(2);
+        }
+        else if (item_idx == STEP_PURGE_OLD_FILAMENT) {
+            m_filament_vt_load_step->SelectItem(3);
+        }
+        else {
+            m_filament_vt_load_step->Idle();
+        }
+    } else {
+        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
+            m_simplebook_right->SetSelection(1);
+            m_filament_load_step->SelectItem(item_idx - 1);
+        }
+        else {
+            m_filament_load_step->Idle();
+        }
     }
 }
 
@@ -2459,6 +2492,15 @@ bool AMSControl::Enable(bool enable)
     return wxWindow::Enable(enable);
 }
 
+void AMSControl::SetExtruder(bool on_off, wxColour col)
+{
+    if (!on_off) {
+        m_extruder->TurnOff();
+    } else {
+        m_extruder->TurnOn(col);
+    }
+}
+
 void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
     AmsCansWindow *cans     = nullptr;
@@ -2476,26 +2518,22 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (cans == nullptr) return;
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-        if (ams_id == m_current_ams) { m_extruder->TurnOff(); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
-    type = AMSPassRoadType::AMS_ROAD_TYPE_LOAD;
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
-        if (ams_id == m_current_ams) { m_extruder->TurnOff(); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
-        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
-        if (ams_id == m_current_ams) { m_extruder->TurnOn(GetCanColour(ams_id, canid)); }
-        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
-        if (ams_id == m_current_ams) { m_extruder->TurnOn(GetCanColour(ams_id, canid)); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+        cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
     }
 
     for (auto i = 0; i < m_ams_info.size(); i++) {
@@ -2503,14 +2541,6 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
             m_ams_info[i].current_step   = step;
             m_ams_info[i].current_can_id = canid;
         }
-    }
-
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD) { 
-        SetActionState(AMSAction::AMS_ACTION_LOAD);
-    }
-
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) { 
-        SetActionState(AMSAction::AMS_ACTION_UNLOAD); 
     }
 }
 

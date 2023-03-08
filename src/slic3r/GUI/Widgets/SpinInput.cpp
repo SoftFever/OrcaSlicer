@@ -106,7 +106,7 @@ void SpinInput::SetTextColor(StateColor const &color)
 
 void SpinInput::SetSize(wxSize const &size)
 {
-    wxWindow::SetSize(size);
+    StaticBox::SetSize(size);
     Rescale();
 }
 
@@ -204,11 +204,11 @@ void SpinInput::messureSize()
     int h = textSize.y + 8;
     if (size.y < h) {
         size.y = h;
-        SetSize(size);
-        SetMinSize(size);
-    } else {
-        textSize.y = size.y * 14 / 24;
     }
+    wxSize minSize = size;
+    minSize.x      = GetMinWidth();
+    StaticBox::SetSize(size);
+    SetMinSize(size);
     wxSize btnSize = {14, (size.y - 4) / 2};
     btnSize.x = btnSize.x * btnSize.y / 10;
     wxClientDC dc(this);

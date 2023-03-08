@@ -965,26 +965,19 @@ void PerimeterGenerator::process_classic()
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
-                    this->object_config->brim_type == BrimType::btOuterOnly &&
-                    this->object_config->brim_width.value > 0))
-            {
-                if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
-                    if (entities.entities.size() > 1) {
-                        std::vector<int> extPs;
-                        for (int i = 0; i < entities.entities.size(); ++i) {
-                            if (entities.entities[i]->role() == erExternalPerimeter)
-                                extPs.push_back(i);
+                 this->object_config->brim_type == BrimType::btOuterOnly &&
+                 this->object_config->brim_width.value > 0))
+                entities.reverse();
+            else if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill)
+                if (entities.entities.size() > 1){
+                    int              last_outer=0;
+                    int              outer = 0;
+                    for (; outer < entities.entities.size(); ++outer)
+                        if (entities.entities[outer]->role() == erExternalPerimeter && outer - last_outer > 1) {
+                            std::swap(entities.entities[outer], entities.entities[outer - 1]);
+                            last_outer = outer;
                         }
-                        for (int i = 0; i < extPs.size(); ++i) {
-                            if (extPs[i] == 0 || (i > 0 && extPs[i] - 1 == extPs[i - 1]))
-                                continue;
-                            std::swap(entities.entities[extPs[i]], entities.entities[extPs[i] - 1]);
-                        }
-                    }
                 }
-                else
-                    entities.reverse();
-            }
             // append perimeters for this slice as a collection
             if (! entities.empty())
                 this->loops->append(entities);
@@ -1327,6 +1320,17 @@ void PerimeterGenerator::process_arachne()
                 }
             }
         }
+        // BBS. adjust wall generate seq
+        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill)
+            if (ordered_extrusions.size() > 1) {
+                int last_outer = 0;
+                int outer      = 0;
+                for (; outer < ordered_extrusions.size(); ++outer)
+                    if (ordered_extrusions[outer].extrusion->inset_idx == 0 && outer - last_outer > 1) {
+                        std::swap(ordered_extrusions[outer], ordered_extrusions[outer - 1]);
+                        last_outer = outer;
+                    }
+            }
 
         
         if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {

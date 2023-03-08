@@ -304,7 +304,12 @@ void GizmoObjectManipulation::change_scale_value(int axis, double value)
         return;
 
     Vec3d scale = m_cache.scale;
-	scale(axis) = value;
+    if (scale[axis] != 0 && std::abs(m_cache.size[axis] * value / scale[axis]) > MAX_NUM) {
+        scale[axis] *= MAX_NUM / m_cache.size[axis];
+    }
+    else {
+        scale(axis) = value;
+    }
 
     this->do_scale(axis, scale);
 
@@ -351,7 +356,8 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
             transformation_type.set_local();
     }
 
-    if (m_uniform_scale || selection.requires_uniform_scale())
+    // BBS: when select multiple objects, uniform scale can be deselected
+    if (m_uniform_scale/* || selection.requires_uniform_scale()*/)
         scaling_factor = scale(axis) * Vec3d::Ones();
 
     selection.start_dragging();
@@ -505,18 +511,6 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
          unit_size = std::max(nuit_max[i], unit_size);
      }
 
-     for (int i = 0; i < 3; i++)
-     {
-         if (str == "scale") {
-             if (vec1[i] > 39062.46)vec1[i] = 39062.46;
-             if (vec2[i] > 9999.99)vec2[i] = 9999.99;
-         }
-         if (str == "move") {
-             if (vec1[i] > 9999.99)vec1[i] = 9999.99;
-             if (vec2[i] > 9999.99)vec2[i] = 9999.99;
-         }
-     }
-
      return unit_size + 8.0;
  }
 
@@ -609,6 +603,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     for (int i = 0;i<display_position.size();i++)
     {
         if (display_position[i] > MAX_NUM)display_position[i] = MAX_NUM;
+        if (display_position[i] < -MAX_NUM)display_position[i] = -MAX_NUM;
     }
 
     m_buffered_position = display_position;
@@ -842,6 +837,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::BBLInputDouble(label_scale_values[0][2], &scale[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
     imgui_wrapper->text(_L("%"));
+    m_buffered_scale = scale;
 
     if (m_show_clear_scale) {
         ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size + end_text_size);
@@ -878,9 +874,8 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     for (int i = 0;i<display_size.size();i++)
     {
-        if (display_size[i] > MAX_NUM || scale[i]> MAX_NUM)display_size[i] = MAX_NUM;
+        if (std::abs(display_size[i]) > MAX_NUM) display_size[i] = MAX_NUM;
     }
-    m_buffered_scale = scale;
     m_buffered_size = display_size;
     int size_sel = update(current_active_id, "size", original_size, m_buffered_size);
     ImGui::PopStyleVar(1);
@@ -889,16 +884,18 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     bool uniform_scale = this->m_uniform_scale;
 
-    const Selection &selection = m_glcanvas.get_selection();
-    bool uniform_scale_only    = selection.is_multiple_full_object() || selection.is_multiple_full_instance() || selection.is_mixed() || selection.is_multiple_volume() || selection.is_multiple_modifier();
+    // BBS: when select multiple objects, uniform scale can be deselected
+    //const Selection &selection = m_glcanvas.get_selection();
+    //bool uniform_scale_only    = selection.is_multiple_full_object() || selection.is_multiple_full_instance() || selection.is_mixed() || selection.is_multiple_volume() ||
+    //                          selection.is_multiple_modifier();
 
-    if (uniform_scale_only) {
-        imgui_wrapper->disabled_begin(true);
-        imgui_wrapper->bbl_checkbox(_L("uniform scale"), uniform_scale_only);
-        imgui_wrapper->disabled_end();
-    } else {
+    //if (uniform_scale_only) {
+    //    imgui_wrapper->disabled_begin(true);
+    //    imgui_wrapper->bbl_checkbox(_L("uniform scale"), uniform_scale_only);
+    //    imgui_wrapper->disabled_end();
+    //} else {
         imgui_wrapper->bbl_checkbox(_L("uniform scale"), uniform_scale);
-    }
+    //}
     if (uniform_scale != this->m_uniform_scale) { this->set_uniform_scaling(uniform_scale); }
 
      // for (int index = 0; index < 3; index++)

@@ -16,6 +16,7 @@
 #include <vector>
 #include <functional>
 
+#include "Widgets/PopupWindow.hpp"
 
 #ifdef __WXMSW__
 void                msw_rescale_menu(wxMenu* menu);
@@ -392,7 +393,7 @@ private:
 // ImageTransientPopup
 // ----------------------------------------------------------------------------
 
-class ImageTransientPopup : public wxPopupTransientWindow
+class ImageTransientPopup : public PopupWindow
 {
     public:
     ImageTransientPopup( wxWindow *parent, bool scrolled, wxBitmap bmp);
@@ -400,7 +401,7 @@ class ImageTransientPopup : public wxPopupTransientWindow
 
     void SetImage(wxBitmap bmp);
 
-    // wxPopupTransientWindow virtual methods are all overridden to log them
+    // PopupWindow virtual methods are all overridden to log them
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;

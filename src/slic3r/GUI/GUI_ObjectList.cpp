@@ -30,6 +30,7 @@
 
 #include "slic3r/Utils/FixModelByWin10.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 #ifdef __WXMSW__
 #include "wx/uiaction.h"
@@ -91,6 +92,9 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
         // detect the current mouse position here, to pass it to list_manipulation() method
         // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
+        if (!GetScreenRect().Contains(wxGetMousePosition())) {
+            return;
+        }
 #ifndef __WXOSX__
         const wxPoint mouse_pos = this->get_mouse_position_in_control();
 #endif
@@ -731,7 +735,7 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     obj_idxs.erase(unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
 
     // update printable state on canvas
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 
     // update scene
     wxGetApp().plater()->update();
@@ -1397,8 +1401,21 @@ void ObjectList::key_event(wxKeyEvent& event)
 
 void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
-    bool sequential_print = (wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
-    if (!sequential_print) {
+    int curr_obj_id = m_objects_model->GetIdByItem(event.GetItem());
+    PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+    int from_plate = partplate_list.find_instance(curr_obj_id, 0);
+    if (from_plate == -1) {
+        event.Veto();
+        return;
+    }
+    auto curr_plate_seq = partplate_list.get_plate(from_plate)->get_print_seq();
+    if (curr_plate_seq == PrintSequence::ByDefault) {
+        auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        if (curr_preset_config.has("print_sequence"))
+            curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+    }
+
+    if (curr_plate_seq != PrintSequence::ByObject) {
         //drag forbidden under bylayer mode
         event.Veto();
         return;
@@ -1777,7 +1794,7 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
 
     if (type == ModelVolumeType::MODEL_PART)
         // update printable state on canvas
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+        wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     if (items.size() > 1) {
         m_selection_mode = smVolume;
@@ -1923,11 +1940,9 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
 
-        // adjust the position according to the bounding box
-        const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
-        new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
-        auto offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
-        new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
+        // BBS: object_mesh.get_init_shift() keep the relative position
+        TriangleMesh object_mesh = model_object.volumes[0]->mesh();
+        new_volume->set_offset(new_volume->mesh().get_init_shift() - object_mesh.get_init_shift());
 
         // set a default extruder value, since user can't add it manually
         // BBS
@@ -2055,7 +2070,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     });
     if (type == ModelVolumeType::MODEL_PART)
         // update printable state on canvas
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+        wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     // apply the instance transform to all volumes and reset instance transform except the offset
     apply_object_instance_transfrom_to_all_volumes(&model_object);
@@ -2158,50 +2173,54 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #endif /* _DEBUG */
 }
 
-void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, bool center)
+int ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp)
 {
     wxDataViewItem item = GetSelection();
     // we can add volumes for Object or Instance
     if (!item || !(m_objects_model->GetItemType(item) & (itObject | itInstance)))
-        return;
+        return -1;
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
 
-    if (obj_idx < 0) return;
+    if (obj_idx < 0)
+        return -1;
 
     // Get object item, if Instance is selected
     if (m_objects_model->GetItemType(item) & itInstance)
         item = m_objects_model->GetItemById(obj_idx);
 
-    take_snapshot("Load Mesh Part");
-
     ModelObject* mo = (*m_objects)[obj_idx];
 
+    Geometry::Transformation instance_transformation = mo->instances[0]->get_transformation();
+
     // apply the instance transform to all volumes and reset instance transform except the offset
-    apply_object_instance_transfrom_to_all_volumes(mo);
+    apply_object_instance_transfrom_to_all_volumes(mo, !is_temp);
 
-    ModelVolume* mv = mo->add_volume(mesh);
-    Vec3d instance_bbox = mo->mesh().bounding_box().size();
-    Vec3d offset = Vec3d(0, 0, instance_bbox[2] / 2);
-    mv->set_offset(offset);
+    ModelVolume *mv     = mo->add_volume(mesh);
     mv->name = name.ToStdString();
+    if (!text_info.m_text.empty())
+        mv->set_text_info(text_info);
 
-    std::vector<ModelVolume*> volumes;
-    volumes.push_back(mv);
-    wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
-        return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
+    if (!is_temp) {
+        std::vector<ModelVolume *> volumes;
+        volumes.push_back(mv);
+        wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume *volume) {
+            return std::find(volumes.begin(), volumes.end(), volume) != volumes.end();
+        });
 
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+        wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t) obj_idx);
 
-    if (items.size() > 1) {
-        m_selection_mode = smVolume;
-        m_last_selected_item = wxDataViewItem(nullptr);
+        if (items.size() > 1) {
+            m_selection_mode     = smVolume;
+            m_last_selected_item = wxDataViewItem(nullptr);
+        }
+        select_items(items);
+
+        selection_changed();
     }
-    select_items(items);
-
-    selection_changed();
 
     //BBS: notify partplate the modify
     notify_instance_updated(obj_idx);
+    return mo->volumes.size() - 1;
 }
 
 //BBS
@@ -4563,7 +4582,7 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
     }
 
     // update printable state for new volumes on canvas3D
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object(new_obj_indx);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object(new_obj_indx);
     update_info_items(new_obj_indx);
 }
 
@@ -4596,7 +4615,7 @@ void ObjectList::instances_to_separated_objects(const int obj_idx)
     }
 
     // update printable state for new volumes on canvas3D
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(object_idxs);
     for (size_t object : object_idxs)
         update_info_items(object);
 }
@@ -4707,9 +4726,12 @@ void ObjectList::fix_through_netfabb()
         std::string res;
         if (!fix_model_by_win10_sdk_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res))
             return false;
-        wxGetApp().plater()->changed_mesh(obj_idx);
-
+        //wxGetApp().plater()->changed_mesh(obj_idx);
+        object(obj_idx)->ensure_on_bed();
         plater->changed_mesh(obj_idx);
+
+        plater->get_partplate_list().notify_instance_update(obj_idx, 0);
+        plater->sidebar().obj_list()->update_plate_values_for_items();
 
         if (res.empty())
             succes_models.push_back(model_name);
@@ -4718,8 +4740,6 @@ void ObjectList::fix_through_netfabb()
 
         update_item_error_icon(obj_idx, vol_idx);
         update_info_items(obj_idx);
-
-        object(obj_idx)->ensure_on_bed();
 
         return true;
     };
@@ -5037,7 +5057,7 @@ void ObjectList::reload_all_plates(bool notify_partplate)
     m_prevent_canvas_selection_update = false;
 
     // update printable states on canvas
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
     // update scene
     wxGetApp().plater()->update();
 }
@@ -5171,7 +5191,7 @@ void ObjectList::toggle_printable_state()
     obj_idxs.erase(unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
 
     // update printable state on canvas
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 
     // update scene
     wxGetApp().plater()->update();
@@ -5190,17 +5210,20 @@ bool ObjectList::has_paint_on_segmentation()
     return m_objects_model->HasInfoItem(InfoItemType::MmuSegmentation);
 }
 
-void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object) {
+void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix)
+{
     const Geometry::Transformation &instance_transformation  = model_object->instances[0]->get_transformation();
     Vec3d                           original_instance_center = instance_transformation.get_offset();
 
-    // apply the instance_transform(except offset) to assemble_transform
-    Geometry::Transformation instance_transformation_copy = instance_transformation;
-    instance_transformation_copy.set_offset(Vec3d(0, 0, 0)); // remove the effect of offset
-    const Transform3d & instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
-    const Transform3d & assemble_matrix = model_object->instances[0]->get_assemble_transformation().get_matrix();
-    Transform3d new_assemble_transform = assemble_matrix * instance_inverse_matrix;
-    model_object->instances[0]->set_assemble_from_transform(new_assemble_transform);
+    if (need_update_assemble_matrix) {
+        // apply the instance_transform(except offset) to assemble_transform
+        Geometry::Transformation instance_transformation_copy = instance_transformation;
+        instance_transformation_copy.set_offset(Vec3d(0, 0, 0)); // remove the effect of offset
+        const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+        const Transform3d &assemble_matrix         = model_object->instances[0]->get_assemble_transformation().get_matrix();
+        Transform3d        new_assemble_transform  = assemble_matrix * instance_inverse_matrix;
+        model_object->instances[0]->set_assemble_from_transform(new_assemble_transform);
+    }
 
     // apply the instance_transform to volumn
     const Transform3d &transformation_matrix = instance_transformation.get_matrix();

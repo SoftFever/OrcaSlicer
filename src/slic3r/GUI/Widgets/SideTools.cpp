@@ -142,8 +142,26 @@ void SideTools::doRender(wxDC &dc)
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.SetTextForeground(*wxWHITE);
 
-        auto sizet = dc.GetTextExtent(_L("No printer"));
-        dc.DrawText(_L("No printer"), wxPoint(left, (size.y - sizet.y) / 2));
+        wxString no_printer_str = _L("No printer");
+        auto sizet = dc.GetTextExtent(no_printer_str);
+        auto left_add_bitmap = size.x - FromDIP(30) - m_wifi_none_img.GetBmpSize().x - m_none_add_img.GetBmpSize().x;
+        auto size_width = left_add_bitmap - left;
+
+        if (sizet.x > size_width) {
+            wxString temp_str = wxEmptyString;
+            for (auto i = 0; i < no_printer_str.Len(); i++) {
+                if (dc.GetTextExtent(L("...") + temp_str).x < size_width) {
+                    temp_str += no_printer_str[i];
+                }
+                else {
+                    break;
+                }
+            }
+
+            no_printer_str = temp_str + L("...");
+        }
+
+        dc.DrawText(no_printer_str, wxPoint(left, (size.y - sizet.y) / 2));
 
         left = size.x - FromDIP(30) - m_wifi_none_img.GetBmpSize().x;
         dc.DrawBitmap(m_none_add_img.bmp(), left, (size.y - m_none_add_img.GetBmpSize().y) / 2);

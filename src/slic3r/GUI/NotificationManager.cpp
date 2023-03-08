@@ -357,8 +357,21 @@ void NotificationManager::PopNotification::count_lines()
 	if (text.empty())
 		return;
 
+	// handle with marks
+    if (pos_start == string::npos && pos_end == string::npos) {
+        pos_start = text.find(error_start);
+        if (pos_start != string::npos) {
+            text.erase(pos_start, error_start.length());
+            pos_end = text.find(error_end);
+            if (pos_end != string::npos) {
+                text.erase(pos_end, error_end.length());
+            }
+        }
+        m_text1 = text;
+    }
+
 	m_endlines.clear();
-	while (last_end < text.length() - 1)
+	while (last_end < text.length())
 	{
 		size_t next_hard_end = text.find_first_of('\n', last_end);
 		if (next_hard_end != std::string::npos && ImGui::CalcTextSize(text.substr(last_end, next_hard_end - last_end).c_str()).x < m_window_width - m_window_width_offset) {
@@ -481,7 +494,14 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 			if (m_text1.size() > m_endlines[i])
 				last_end += (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
 
-			imgui.text(line.c_str());
+            if (pos_start != string::npos && pos_end != string::npos&& m_endlines[i] - line.length() >= pos_start && m_endlines[i] <= pos_end) {
+                push_style_color(ImGuiCol_Text, m_ErrorColor, m_state == EState::FadingOut, m_current_fade_opacity);
+                imgui.text(line.c_str());
+                ImGui::PopStyleColor();
+            }
+            else {
+                imgui.text(line.c_str());
+            }
 		}
 	}
 	//hyperlink text
@@ -819,6 +839,7 @@ void NotificationManager::ExportFinishedNotification::render_close_button(ImGuiW
 
 void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
+	auto scale = wxGetApp().plater()->get_current_canvas3D()->get_scale();
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y);
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -836,20 +857,15 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 	{
 		button_text = ImGui::EjectHoverButton;
 		//tooltip
-
-		long time_now = wxGetLocalTime();
-		if (m_hover_time > 0 && m_hover_time < time_now) {
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-			//ImGui::BeginTooltip();
-			//imgui.text(_u8L("Eject drive") + " " + GUI::shortkey_ctrl_prefix() + "T");
-			//ImGui::EndTooltip();
-			ImGui::PopStyleColor();
-		}
-		if (m_hover_time == 0)
-			m_hover_time = time_now;
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 8 * scale, 1 * scale });
+		ImGui::BeginTooltip();
+		imgui.text(_u8L("Safely remove hardware."));
+		ImGui::EndTooltip();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
 	}
-	else
-		m_hover_time = 0;
 
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
@@ -1248,7 +1264,7 @@ void NotificationManager::SlicingProgressNotification::set_status_text(const std
 		break;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_COMPLETED:
 	{
-		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slice ok."), m_is_fff ? _u8L("Export G-Code.") : _u8L("Export.") };
+		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slice ok.") };
 		update(data);
 		m_state = EState::Shown;
 	}
@@ -1549,8 +1565,8 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 
 void NotificationManager::on_change_color_mode(bool is_dark) {
 	m_is_dark = is_dark;
-	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications){ 
-		notification->on_change_color_mode(is_dark); 
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications){
+		notification->on_change_color_mode(is_dark);
 	}
 }
 
@@ -2322,13 +2338,36 @@ size_t NotificationManager::get_notification_count() const
 	return ret;
 }
 
-
 void NotificationManager::bbl_show_plateinfo_notification(const std::string &text)
 {
     NotificationData data{NotificationType::BBLPlateInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLPlateInfo) {
+            notification->reinit();
+            notification->update(data);
+            return;
+        }
+    }
+
+    auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
+    push_notification_data(std::move(notification), 0);
+}
+
+void NotificationManager::bbl_close_3mf_warn_notification()
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
+        if (notification->get_type() == NotificationType::BBL3MFInfo) {
+            notification->close();
+        }
+}
+
+void NotificationManager::bbl_show_3mf_warn_notification(const std::string &text)
+{
+    NotificationData data{NotificationType::BBL3MFInfo, NotificationLevel::ErrorNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
+
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::BBL3MFInfo) {
             notification->reinit();
             notification->update(data);
             return;
@@ -2346,6 +2385,7 @@ void NotificationManager::bbl_close_plateinfo_notification()
             notification->close();
         }
 }
+
 
 void NotificationManager::bbl_show_preview_only_notification(const std::string &text)
 {

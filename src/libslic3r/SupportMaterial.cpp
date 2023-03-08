@@ -1482,7 +1482,7 @@ static const double length_thresh_well_supported = scale_(6);  // min: 6mm
 static const double area_thresh_well_supported = SQ(length_thresh_well_supported);  // min: 6x6=36mm^2
 static const double sharp_tail_xy_gap = 0.2f;
 static const double no_overlap_xy_gap = 0.2f;
-static const double sharp_tail_max_support_height = 8.f;
+static const double sharp_tail_max_support_height = 16.f;
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
 // no_interface_offset: minimum of external perimeter widths
@@ -1598,7 +1598,7 @@ static inline Polygons detect_overhangs(
                         // Check whether this is a sharp tail region.
                         // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
                         if (intersection_ex({ expoly }, lower_layer_expolys).empty()) {
-                            is_sharp_tail = expoly.area() < area_thresh_well_supported;
+                            is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.5*fw).empty();
                             break;
                         }
 
@@ -1646,7 +1646,8 @@ static inline Polygons detect_overhangs(
                         // 2.4 if the area grows fast than threshold, it get connected to other part or
                         // it has a sharp slop and will be auto supported.
                         ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
-                        if (!offset_ex(new_overhang_expolys, -5.0 * fw).empty()) {
+                        Point      size_diff            = get_extents(new_overhang_expolys).size() - get_extents(lower_layer_sharptails).size();
+                        if (size_diff.both_comp(Point(scale_(5),scale_(5)),">") || !offset_ex(new_overhang_expolys, -5.0 * fw).empty()) {
                             is_sharp_tail = false;
                             break;
                         }

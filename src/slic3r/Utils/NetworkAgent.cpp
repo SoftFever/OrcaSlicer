@@ -95,6 +95,7 @@ func_start_pubilsh                  NetworkAgent::start_publish_ptr = nullptr;
 func_get_profile_3mf                NetworkAgent::get_profile_3mf_ptr = nullptr;
 func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
 func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = nullptr;
+func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
 
 
 NetworkAgent::NetworkAgent()
@@ -236,6 +237,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
+    get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
 
     return 0;
 }
@@ -331,6 +333,7 @@ int NetworkAgent::unload_network_module()
     get_profile_3mf_ptr               =  nullptr;
     get_model_publish_url_ptr         =  nullptr;
     get_model_mall_home_url_ptr       =  nullptr;
+    get_my_profile_ptr                =  nullptr;
 
     return 0;
 }
@@ -1099,6 +1102,17 @@ int NetworkAgent::get_model_mall_home_url(std::string* url)
         ret = get_model_mall_home_url_ptr(network_agent, url);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_my_profile(std::string token, unsigned int *http_code, std::string *http_body)
+{
+    int ret = 0;
+    if (network_agent && get_my_profile_ptr) {
+        ret = get_my_profile_ptr(network_agent, token, http_code, http_body);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
     }
     return ret;
 }

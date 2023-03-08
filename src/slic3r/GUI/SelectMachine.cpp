@@ -33,6 +33,7 @@ wxDEFINE_EVENT(EVT_UNBIND_MACHINE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DISSMISS_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CONNECT_LAN_PRINT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EDIT_PRINT_NAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
@@ -256,9 +257,21 @@ void MachineObjectPanel::doRender(wxDC &dc)
     wxString dev_name = "";
     if (m_info) {
         dev_name = from_u8(m_info->dev_name);
+
+         if (m_state == PrinterState::IN_LAN) {
+             dev_name += _L("(LAN)");
+         }
     }
     auto        sizet        = dc.GetTextExtent(dev_name);
-    auto        text_end     = size.x - m_unbind_img.GetBmpSize().x - 30;
+    auto        text_end     = 0;
+    
+    if (m_show_edit) {
+        text_end = size.x - m_unbind_img.GetBmpSize().x - 30;
+    }
+    else {
+        text_end = size.x - m_unbind_img.GetBmpSize().x;
+    }
+       
     wxString finally_name =  dev_name;
     if (sizet.x > (text_end - left)) {
         auto limit_width = text_end - left - dc.GetTextExtent("...").x - 15;
@@ -374,7 +387,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 }
 
 SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
-    : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), m_dismiss(false)
+    : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), m_dismiss(false)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -468,7 +481,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
     }
 
     wxPostEvent(this, wxTimerEvent());
-    wxPopupTransientWindow::Popup();
+    PopupWindow::Popup();
 }
 
 void SelectMachinePopup::OnDismiss()
@@ -494,7 +507,7 @@ void SelectMachinePopup::OnDismiss()
 }
 
 bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 
 bool SelectMachinePopup::Show(bool show) {
@@ -509,7 +522,7 @@ bool SelectMachinePopup::Show(bool show) {
             m_other_list_machine_panel[j]->mPanel->Hide();
         }
     }
-    return wxPopupTransientWindow::Show(show);
+    return PopupWindow::Show(show);
 }
 
 wxWindow *SelectMachinePopup::create_title_panel(wxString text)
@@ -738,8 +751,11 @@ void SelectMachinePopup::update_user_devices()
             }
             op->Bind(EVT_UNBIND_MACHINE, [this, dev, mobj](wxCommandEvent& e) {
                 dev->set_selected_machine("");
-                if (mobj)
+                if (mobj) {
                     mobj->set_access_code("");
+                    mobj->set_user_access_code("");
+                }
+
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);
                 if (msg_wingow.ShowModal() == wxOK) { return; }
                 });
@@ -1236,7 +1252,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         if (e.GetInt() == 1) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) return;
-            m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name);
+            if (dev->get_selected_machine()) {
+                m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
+            }
         }
     });
 
@@ -1923,6 +1941,7 @@ void SelectMachineDialog::init_model()
 void SelectMachineDialog::init_bind()
 {
     Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
+    Bind(EVT_CLEAR_IPADDRESS, &SelectMachineDialog::clear_ip_address_config, this);
 }
 
 void SelectMachineDialog::init_timer()
@@ -1952,6 +1971,7 @@ bool SelectMachineDialog::is_same_printer_model()
     if (!dev) return result;
 
     MachineObject* obj_ = dev->get_selected_machine();
+
     assert(obj_->dev_id == m_printer_last_select);
     if (obj_ == nullptr) {
         return result;
@@ -1976,6 +1996,12 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (!obj_) return;
+
+
     std::vector<wxString> confirm_text;
     confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:") + "\n");
 
@@ -1991,11 +2017,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     //Check slice warnings
     bool has_slice_warnings = false;
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-
-    if(!dev) return;
-
-    MachineObject* obj_ = dev->get_selected_machine();
+   
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
             if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002")) {
@@ -2004,6 +2026,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
         else {
+            wxString error_info = Plater::get_slice_warning_string(warning);
+            if (error_info.IsEmpty()) {
+                error_info = wxString::Format("%s\n", warning.msg);
+                confirm_text.push_back(error_info + "\n");
+            } else
+                confirm_text.push_back(error_info + "\n");
             has_slice_warnings = true;
         }
     }
@@ -2122,7 +2150,18 @@ void SelectMachineDialog::on_ok()
     // get ams_mapping_result
     std::string ams_mapping_array;
     std::string ams_mapping_info;
-    get_ams_mapping_result(ams_mapping_array, ams_mapping_info);
+    if (ams_check->GetValue())
+        get_ams_mapping_result(ams_mapping_array, ams_mapping_info);
+    else {
+        json mapping_info_json = json::array();
+        json item;
+        if (m_filaments.size() > 0) {
+            item["sourceColor"]  = m_filaments[0].color.substr(1, 6) + "FF";
+            item["filamentType"] = m_filaments[0].type;
+            mapping_info_json.push_back(item);
+            ams_mapping_info = mapping_info_json.dump();
+        }
+    }
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         if (this->m_is_canceled) return;
@@ -2160,9 +2199,11 @@ void SelectMachineDialog::on_ok()
 
     m_print_job                = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     m_print_job->m_dev_ip      = obj_->dev_ip;
+    m_print_job->m_ftp_folder  = obj_->get_ftp_folder();
     m_print_job->m_access_code   = obj_->get_access_code();
     m_print_job->m_local_use_ssl = obj_->local_use_ssl;
     m_print_job->connection_type = obj_->connection_type();
+    m_print_job->cloud_print_only= obj_->is_cloud_print_only;
     m_print_job->set_project_name(m_current_project_name.utf8_string());
 
     if (obj_->is_support_ams_mapping()) {
@@ -2174,10 +2215,6 @@ void SelectMachineDialog::on_ok()
     }
 
     m_print_job->has_sdcard = obj_->has_sdcard();
-
-    if (obj_->is_only_support_cloud_print()) {
-        m_print_job->cloud_print_only = true;
-    }
 
 
     bool timelapse_option = select_timelapse->IsShown() ? m_checkbox_list["timelapse"]->GetValue() : true;
@@ -2201,9 +2238,19 @@ void SelectMachineDialog::on_ok()
 
     m_print_job->on_success([this]() { finish_mode(); });
 
-    wxCommandEvent evt(m_plater->get_print_finished_event());
+    m_print_job->on_check_ip_address_fail([this]() {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
+        wxQueueEvent(this, evt);
+        wxGetApp().show_ip_address_enter_dialog();
+     });
+
     m_print_job->start();
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
+}
+
+void SelectMachineDialog::clear_ip_address_config(wxCommandEvent& e)
+{
+    prepare_mode();
 }
 
 void SelectMachineDialog::update_user_machine_list()
@@ -2546,7 +2593,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         obj->command_request_push_all();
         dev->set_selected_machine(m_printer_last_select);
         // Has changed machine unrecoverably
-        GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
         update_select_layout(obj);
     } else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";

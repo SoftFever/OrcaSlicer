@@ -430,6 +430,19 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         m_support_material_overhangs_queried = false;
     }
 
+    if (config->opt_bool("enable_support")) {
+        auto   support_type = config->opt_enum<SupportType>("support_type");
+        auto   support_style = config->opt_enum<SupportMaterialStyle>("support_style");
+        std::set<int> enum_set_normal = {0, 1, 2};
+        std::set<int> enum_set_tree   = {0, 3, 4, 5};
+        auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
+        if (set.find(support_style) == set.end()) {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("support_style", new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
+            apply(config, &new_conf);
+        }
+    }
+
     if (config->option<ConfigOptionPercent>("sparse_infill_density")->value == 100) {
         std::string  sparse_infill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->serialize();
         const auto  &top_fill_pattern_values = config->def()->get("top_surface_pattern")->enum_values;
@@ -479,6 +492,17 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 apply(config, &new_conf);
             }
         }
+    }
+
+    if (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject && config->opt_int("skirt_height") > 1 && config->opt_int("skirt_loops") > 0) {
+        const wxString     msg_text = _(L("While printing by Object, the extruder may collide skirt.\nThus, reset the skirt layer to 1 to avoid that."));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("skirt_height", new ConfigOptionInt(1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
     }
 }
 

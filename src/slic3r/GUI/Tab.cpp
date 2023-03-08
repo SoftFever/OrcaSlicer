@@ -1418,6 +1418,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    // BBS set support style to default when support type changes
+    if (opt_key == "support_type") {
+        DynamicPrintConfig new_conf = *m_config;
+        new_conf.set_key_value("support_style", new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
+        m_config_manipulation.apply(m_config, &new_conf);
+    }
+
     // BBS popup a message to ask the user to set optimum parameters for tree support
     if (opt_key == "support_type" || opt_key == "support_style") {
         if (is_tree_slim(m_config->opt_enum<SupportType>("support_type"), m_config->opt_enum<SupportMaterialStyle>("support_style")) &&
@@ -2106,6 +2113,27 @@ void TabPrint::toggle_options()
     if (!m_active_page) return;
 
     m_config_manipulation.toggle_print_fff_options(m_config, m_type < Preset::TYPE_COUNT);
+
+    Field *field = m_active_page->get_field("support_style");
+    auto   support_type = m_config->opt_enum<SupportType>("support_type");
+    if (auto choice = dynamic_cast<Choice*>(field)) {
+        auto def = print_config_def.get("support_style");
+        std::vector<int> enum_set_normal = {0, 1, 2};
+        std::vector<int> enum_set_tree   = {0, 3, 4, 5};
+        auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
+        auto &           opt             = const_cast<ConfigOptionDef &>(field->m_opt);
+        auto             cb              = dynamic_cast<ComboBox *>(choice->window);
+        auto             n               = cb->GetValue();
+        opt.enum_values.clear();
+        opt.enum_labels.clear();
+        cb->Clear();
+        for (auto i : set) {
+            opt.enum_values.push_back(def->enum_values[i]);
+            opt.enum_labels.push_back(def->enum_labels[i]);
+            cb->Append(_(def->enum_labels[i]));
+        }
+        cb->SetValue(n);
+    }
 }
 
 void TabPrint::update()
@@ -2478,6 +2506,7 @@ void TabFilament::add_filament_overrides_page()
 
     for (const std::string opt_key : {  "filament_retraction_length",
                                         "filament_z_hop",
+                                        "filament_z_hop_types",
                                         "filament_retraction_speed",
                                         "filament_deretraction_speed",
                                         "filament_retract_restart_extra",
@@ -2511,6 +2540,7 @@ void TabFilament::update_filament_overrides_page()
 
     std::vector<std::string> opt_keys = {   "filament_retraction_length",
                                             "filament_z_hop",
+                                            "filament_z_hop_types",
                                             "filament_retraction_speed",
                                             "filament_deretraction_speed",
                                             "filament_retract_restart_extra",
@@ -3402,7 +3432,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("retraction_length", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
-            optgroup->append_single_option_line("z_lift_type", "", extruder_idx);
+            optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
@@ -3613,9 +3643,6 @@ void TabPrinter::toggle_options()
         std::vector<std::string> vec = { "z_hop", "retract_when_changing_layer" };
         for (auto el : vec)
             toggle_option(el, retraction, i);
-
-        // retract lift above / below only applies if using retract lift
-        vec.resize(0);
 
         // some options only apply when not using firmware retraction
         vec.resize(0);
@@ -4053,9 +4080,9 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         try {
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
-            current_preset.sync_info = "delete";
             if (!current_preset.setting_id.empty()) {
                 BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
+                m_presets->set_sync_info_and_save(current_preset.name, current_preset.setting_id, "delete");
                 wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");
@@ -4672,14 +4699,6 @@ void Tab::delete_preset()
     // delete selected preset from printers and printer, if it's needed
     if (m_type == Preset::TYPE_PRINTER && !physical_printers.empty())
         physical_printers.delete_preset_from_printers(current_preset.name);
-
-    //BBS delete preset
-    //will delete in select_preset
-    current_preset.sync_info = "delete";
-    if (!current_preset.setting_id.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-        wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
-    }
 
     // Select will handle of the preset dependencies, of saving & closing the depending profiles, and
     // finally of deleting the preset.

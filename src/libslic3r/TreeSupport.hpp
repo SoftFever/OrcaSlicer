@@ -21,6 +21,15 @@ namespace Slic3r
 class PrintObject;
 class TreeSupport;
 
+struct LayerHeightData
+{
+    coordf_t print_z       = 0;
+    coordf_t height        = 0;
+    size_t   next_layer_nr = 0;
+    LayerHeightData()      = default;
+    LayerHeightData(coordf_t z, coordf_t h, size_t next_layer) : print_z(z), height(h), next_layer_nr(next_layer) {}
+};
+
 /*!
  * \brief Lazily generates tree guidance volumes.
  *
@@ -79,6 +88,8 @@ public:
     Polygons get_contours(size_t layer_nr) const;
     Polygons get_contours_with_holes(size_t layer_nr) const;
 
+    std::vector<LayerHeightData> layer_heights;
+
 private:
     /*!
      * \brief Convenience typedef for the keys to the caches
@@ -114,11 +125,6 @@ private:
      */
     const ExPolygons& calculate_avoidance(const RadiusLayerPair& key) const;
 
-    /*!
-     * \brief Polygons representing the limits of the printable area of the
-     * machine
-     */
-    ExPolygon m_machine_border;
 
 public:
     bool is_slim = false;
@@ -195,9 +201,9 @@ public:
      * \param storage The data storage where the mesh data is gotten from and
      * where the resulting support areas are stored.
      */
-    void generate_support_areas();
+    void generate();
 
-    void detect_object_overhangs();
+    void detect_overhangs();
 
     enum NodeType {
         eCircle,
@@ -215,7 +221,7 @@ public:
         Node()
          : distance_to_top(0)
          , position(Point(0, 0))
-         , skin_direction(false)
+         , obj_layer_nr(0)
          , support_roof_layers_below(0)
          , support_floor_layers_above(0)
          , to_buildplate(true)
@@ -224,11 +230,11 @@ public:
          , height(0.0)
         {}
 
-        Node(const Point position, const int distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
+        Node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
              coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_=0)
          : distance_to_top(distance_to_top)
          , position(position)
-         , skin_direction(skin_direction)
+         , obj_layer_nr(obj_layer_nr)
          , support_roof_layers_below(support_roof_layers_below)
          , support_floor_layers_above(0)
          , to_buildplate(to_buildplate)
@@ -292,6 +298,7 @@ public:
          */
         int support_roof_layers_below;
         int support_floor_layers_above;
+        int obj_layer_nr;
 
         /*!
          * \brief Whether to try to go towards the build plate.
@@ -356,11 +363,15 @@ public:
         InfillPattern interface_fill_pattern;
         InfillPattern contact_fill_pattern;
         bool          with_sheath;
+        const double thresh_big_overhang = SQ(scale_(10));
     };
 
     int  avg_node_per_layer = 0;
     float nodes_angle       = 0;
     bool  has_overhangs = false;
+    bool  has_sharp_tails = false;
+    bool  has_cantilever = false;
+    SupportType support_type;
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
@@ -387,6 +398,12 @@ private:
     bool  is_slim                            = false;
     bool  with_infill                        = false;
 
+
+    /*!
+     * \brief Polygons representing the limits of the printable area of the
+     * machine
+     */
+    ExPolygon m_machine_border;
 
     /*!
      * \brief Draws circles around each node of the tree into the final support.
@@ -423,7 +440,7 @@ private:
      * 
     */
 
-    std::vector<std::pair<coordf_t, coordf_t>> plan_layer_heights(std::vector<std::vector<Node*>>& contact_nodes);
+    std::vector<LayerHeightData> plan_layer_heights(std::vector<std::vector<Node *>> &contact_nodes);
     /*!
      * \brief Creates points where support contacts the model.
      *

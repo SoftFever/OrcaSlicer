@@ -114,7 +114,7 @@ protected:
 
     wxStaticText*   m_staticText_consumption_of_time;
     wxStaticText *  m_staticText_consumption_of_weight;
-    wxStaticText *  m_staticText_monitoring;
+    Label *         m_staticText_monitoring;
     wxStaticText *  m_staticText_timelapse;
     SwitchButton *  m_bmToggleBtn_timelapse;
 
@@ -130,7 +130,7 @@ protected:
     wxMediaCtrl2 *  m_media_ctrl;
     MediaPlayCtrl * m_media_play_ctrl;
 
-    wxStaticText *  m_staticText_printing;
+    Label *         m_staticText_printing;
     wxStaticBitmap *m_bitmap_thumbnail;
     wxStaticText *  m_staticText_subtask_value;
     wxStaticText *  m_printing_stage_value;
@@ -146,13 +146,14 @@ protected:
 
     wxStaticText *  m_text_tasklist_caption;
 
-    wxStaticText *  m_staticText_control;
+    Label *  m_staticText_control;
     ImageSwitchButton *m_switch_lamp;
     int               m_switch_lamp_timeout{0};
     ImageSwitchButton *m_switch_speed;
 
     /* TempInput */
     wxBoxSizer *    m_misc_ctrl_sizer;
+    StaticBox*      m_fan_panel; 
     TempInput *     m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
@@ -252,7 +253,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true, bool support_virtual_tray = true);
+    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_vt_load = true);
 };
 
 
@@ -273,6 +274,7 @@ protected:
 
     SecondaryCheckDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
+    SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
     FanControlPopup* m_fan_control_popup{nullptr};
@@ -294,6 +296,7 @@ protected:
     int speed_lvl = 1; // 0 - 3
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
+    bool m_showing_speed_popup = false;
 
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
     std::map<std::string, std::string> m_print_connect_types;
@@ -309,7 +312,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(wxString msg);
+    void show_error_message(wxString msg, std::string print_error_str = "");
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -345,6 +348,7 @@ protected:
     void on_ams_selected(wxCommandEvent &event);
     void on_ams_guide(wxCommandEvent &event);
     void on_ams_retry(wxCommandEvent &event);
+    void on_print_error_func(wxCommandEvent& event);
 
     void on_fan_changed(wxCommandEvent& event);
     void on_switch_speed(wxCommandEvent& event);
@@ -379,7 +383,7 @@ protected:
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
-    void update_ams_control_state(std::string ams_id, bool is_support_virtual_tray);
+    void update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();

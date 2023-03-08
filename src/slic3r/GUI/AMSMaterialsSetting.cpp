@@ -121,12 +121,13 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
-    m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_READONLY);
+    m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_READONLY | wxRIGHT);
     m_readonly_filament->SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int)StateColor::Focused), std::make_pair(0x009688, (int)StateColor::Hovered),
         std::make_pair(0xDBDBDB, (int)StateColor::Normal)));
-    m_readonly_filament->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto& e) {
-        ;
-        });
+    m_readonly_filament->SetFont(::Label::Body_14);
+    m_readonly_filament->SetLabelColor(AMS_MATERIALS_SETTING_GREY800);
+    m_readonly_filament->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto& e) {});
+    m_readonly_filament->GetTextCtrl()->Hide();
     m_sizer_filament->Add(m_readonly_filament, 1, wxALIGN_CENTER, 0);
     m_readonly_filament->Hide();
 
@@ -367,6 +368,13 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
     else {
         m_comboBox_filament->Show(en);
         m_readonly_filament->Show(!en);
+
+        if ( !is_virtual_tray() ) {
+            m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
+        }
+        else {
+            m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
+        }
         m_tip_readonly->Show(!en);
     }
 }
@@ -376,7 +384,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
-    if (is_virtual_tray()) {
+    if (is_virtual_tray() && obj && !obj->is_support_filament_edit_virtual_tray) {
         if (!ExtrusionCalibration::check_k_validation(k_text)) {
             wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
             wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
@@ -478,8 +486,12 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                 }
 
                 // set filament
-                if (!is_virtual_tray()) {
-                    obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+                if (obj->is_support_filament_edit_virtual_tray || !is_virtual_tray()) {
+                    if (is_virtual_tray()) {
+                        obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+                    } else {
+                        obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+                    }
                 }
 
                 // set k / n value
@@ -548,7 +560,10 @@ void AMSMaterialsSetting::update_widgets()
 {
     // virtual tray
     if (is_virtual_tray()) {
-        m_panel_normal->Hide();
+        if (obj && obj->is_support_filament_edit_virtual_tray)
+            m_panel_normal->Show();
+        else
+            m_panel_normal->Hide();
         m_panel_kn->Show();
     } else if (obj && obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
         m_panel_normal->Show();
@@ -583,7 +598,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
-    if (is_virtual_tray()) {
+    if (is_virtual_tray() && obj && !obj->is_support_filament_edit_virtual_tray) {
         m_button_confirm->Show();
         update();
         Layout();
@@ -609,7 +624,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             m_panel_SN->Show();
             m_comboBox_filament->Hide();
             m_readonly_filament->Show();
-            m_readonly_filament->GetTextCtrl()->SetLabel("Bambu " + filament);
+            //m_readonly_filament->GetTextCtrl()->SetLabel("Bambu " + filament);
+            m_readonly_filament->SetLabel("Bambu " + filament);
             m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
             m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
 
@@ -712,6 +728,31 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+
+                //check is it in the filament blacklist
+                bool in_blacklist = false;
+                std::string action;
+                std::string info;
+                std::string filamnt_type;
+                it->get_filament_type(filamnt_type);
+
+                if (it->vendor) {
+                    DeviceManager::check_filaments_in_blacklist(it->vendor->name, filamnt_type, in_blacklist, action, info);
+                }
+                
+                if (in_blacklist) {
+                    if (action == "prohibition") {
+                        MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
+                        msg_wingow.ShowModal();
+                        m_comboBox_filament->SetSelection(m_filament_selection);
+                        return;
+                    }
+                    else if (action == "warning") {
+                        MessageDialog msg_wingow(nullptr, info, _L("Warning"), wxICON_INFORMATION | wxOK);
+                        msg_wingow.ShowModal();
+                    }
+                }
+
                 // ) if nozzle_temperature_range is found
                 ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
                 if (opt_min) {
@@ -742,6 +783,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 }
                 if (!found_filament_type)
                     m_filament_type = "";
+
+                break;
             }
         }
     }
@@ -751,6 +794,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (m_input_nozzle_max->GetTextCtrl()->GetValue().IsEmpty()) {
          m_input_nozzle_max->GetTextCtrl()->SetValue("220");
     }
+
+    m_filament_selection = evt.GetSelection();
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }
