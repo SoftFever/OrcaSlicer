@@ -1420,7 +1420,28 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
 
-    text->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent &) { check->SetValue(check->GetValue() ? false : true); });
+
+
+    check->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &e) {
+        AppConfig* config = wxGetApp().app_config;
+        if (config) {
+            if (check->GetValue())
+                config->set_str("print", param, "0");
+            else
+                config->set_str("print", param, "1");
+        }
+        e.Skip();
+    });
+    text->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &) {
+        check->SetValue(check->GetValue() ? false : true);
+        AppConfig* config = wxGetApp().app_config;
+        if (config) {
+            if (check->GetValue())
+                config->set_str("print", param, "1");
+            else
+                config->set_str("print", param, "0");
+        }
+    });
     m_checkbox_list[param] = check;
     return checkbox;
 }
@@ -2958,10 +2979,23 @@ void SelectMachineDialog::set_default()
     select_bed->Show();
     select_flow->Show();
 
-    // checkbox default values
-    m_checkbox_list["bed_leveling"]->SetValue(true);
-    m_checkbox_list["flow_cali"]->SetValue(true);
-    m_checkbox_list["timelapse"]->SetValue(true);
+    // load checkbox values from app config
+    AppConfig* config = wxGetApp().app_config;
+    if (config && config->get("print", "bed_leveling") == "0") {
+        m_checkbox_list["bed_leveling"]->SetValue(false);
+    } else {
+        m_checkbox_list["bed_leveling"]->SetValue(true);
+    }
+    if (config && config->get("print", "flow_cali") == "0") {
+        m_checkbox_list["flow_cali"]->SetValue(false);
+    } else {
+        m_checkbox_list["flow_cali"]->SetValue(true);
+    }
+    if (config && config->get("print", "timelapse") == "0") {
+        m_checkbox_list["timelapse"]->SetValue(false);
+    } else {
+        m_checkbox_list["timelapse"]->SetValue(true);
+    }
     ams_check->SetValue(true);
 
     // thumbmail

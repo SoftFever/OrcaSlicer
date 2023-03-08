@@ -307,6 +307,16 @@ void AppConfig::set_defaults()
     }
 #endif
 
+    if (get("print", "bed_leveling").empty()) {
+        set_str("print", "bed_leveling", "1");
+    }
+    if (get("print", "flow_cali").empty()) {
+        set_str("print", "flow_cali", "1");
+    }
+    if (get("print", "timelapse").empty()) {
+        set_str("print", "timelapse", "1");
+    }
+
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");
