@@ -22,6 +22,8 @@ set(lisbslic3r_sources
     ArcFitter.hpp
     pchheader.cpp
     pchheader.hpp
+    AABBTreeIndirect.hpp
+    AABBTreeLines.hpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
@@ -125,6 +127,8 @@ set(lisbslic3r_sources
 #    GCode/PressureEqualizer.hpp
     GCode/PrintExtents.cpp
     GCode/PrintExtents.hpp
+    GCode/RetractWhenCrossingPerimeters.cpp
+    GCode/RetractWhenCrossingPerimeters.hpp
     GCode/SpiralVase.cpp
     GCode/SpiralVase.hpp
     GCode/SeamPlacer.cpp
