@@ -2101,9 +2101,10 @@ int CLI::run(int argc, char **argv)
         for (int i = 0; i < plate_data_list.size(); i++) {
             PlateData *plate_data = plate_data_list[i];
             for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
-                it->type  = filament_types?filament_types->get_at(it->id):"PLA";
-                it->color = filament_color?filament_color->get_at(it->id):"#FFFFFF";
                 //it->filament_id = filament_id?filament_id->get_at(it->id):"unknown";
+                std::string display_filament_type;
+                it->type  = m_print_config.get_filament_type(display_filament_type, it->id);
+                it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
             }
 
             if (!plate_data->plate_thumbnail.is_valid()) {
@@ -2318,9 +2319,36 @@ int CLI::run(int argc, char **argv)
             PlateBBoxData* plate_bbox = new PlateBBoxData();
             std::vector<BBoxData>& id_bboxes = plate_bbox->bbox_objs;
             BoundingBoxf bbox_all;
-            auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-            if ( seq_print && (seq_print->value == PrintSequence::ByObject))
+            PrintSequence curr_plate_seq = part_plate->get_print_seq();
+            if (curr_plate_seq == PrintSequence::ByDefault) {
+                auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from global")%(i+1);
+                    plate_bbox->is_seq_print = true;
+                }
+            }
+            else if (curr_plate_seq == PrintSequence::ByObject) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%(i+1);
                 plate_bbox->is_seq_print = true;
+            }
+            plate_bbox->first_extruder = print->get_tool_ordering().first_extruder();
+            //bed type;
+            BedType plate_bed_type = part_plate->get_bed_type();
+            if (plate_bed_type == btDefault) {
+                auto cur_bed_type  = m_print_config.option<ConfigOptionEnum<BedType>>("curr_bed_type");
+                if (cur_bed_type) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% bed type: %2%, set from global")%(i+1) %cur_bed_type->serialize();
+                    plate_bbox->bed_type = bed_type_to_gcode_string(cur_bed_type->value);
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% bed type: %2%, set from plate self")%(i+1) %plate_bed_type;
+                plate_bbox->bed_type       = bed_type_to_gcode_string(plate_bed_type);
+            }
+            // get nozzle diameter
+            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloats>("nozzle_diameter");
+            if (opt_nozzle_diameters != nullptr)
+                plate_bbox->nozzle_diameter = float(opt_nozzle_diameters->get_at(plate_bbox->first_extruder));
 
             auto objects = print->objects();
             auto orig = part_plate->get_origin();
@@ -2357,6 +2385,12 @@ int CLI::run(int argc, char **argv)
                 }
             }
             plate_bbox->bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
+
+            PlateData *plate_data = plate_data_list[i];
+            for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
+                plate_bbox->filament_ids.push_back(it->id);
+                plate_bbox->filament_colors.push_back(it->color);
+            }
             plate_bboxes.push_back(plate_bbox);
         }
 
