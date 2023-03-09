@@ -5,6 +5,9 @@
   "from": "system",
   "instantiation": "false",
   "inherits": "fdm_filament_pet",
+  "temperature_vitrification": [
+      "75"
+  ],
   "overhang_fan_threshold": [
       "25%"
   ],
