@@ -180,14 +180,18 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         Slic3r::GUI::WKWebView_setTransparentBackground(wkWebView);
 #endif
 #ifndef __WIN32__
-        Slic3r::GUI::wxGetApp().CallAfter([webView] {
+        webView->CallAfter([webView] {
 #endif
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": begin to add script message handler for wx.";
         Slic3r::GUI::wxGetApp().set_adding_script_handler(true);
+        webView->Bind(wxEVT_DESTROY, [webView] (auto & e) {
+            webView->RemoveScriptMessageHandler("wx");
+        });
         if (!webView->AddScriptMessageHandler("wx"))
             wxLogError("Could not add script message handler");
         Slic3r::GUI::wxGetApp().set_adding_script_handler(false);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished add script message handler for wx.";
+
 #ifndef __WIN32__
         });
 #endif

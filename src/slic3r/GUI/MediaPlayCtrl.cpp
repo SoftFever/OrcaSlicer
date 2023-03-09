@@ -311,7 +311,7 @@ void MediaPlayCtrl::ToggleStream()
                     { return std::make_shared<UpgradeNetworkJob2>(pri); }
                     void                               on_finish() override
                     {
-                        wxGetApp().CallAfter([ctrl = this->ctrl] { ctrl->ToggleStream(); });
+                        ctrl->CallAfter([ctrl = this->ctrl] { ctrl->ToggleStream(); });
                         EndModal(wxID_CLOSE);
                     }
                 };
@@ -585,7 +585,7 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     if (maxHeight != GetMaxHeight()) {
         // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
         SetMaxSize({-1, maxHeight});
-        Slic3r::GUI::wxGetApp().CallAfter([this] {
+        CallAfter([this] {
             if (auto p = GetParent()) {
                 p->Layout();
                 p->Refresh();

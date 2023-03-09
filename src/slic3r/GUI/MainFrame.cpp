@@ -2349,7 +2349,7 @@ void MainFrame::init_menubar_as_editor()
 //        }
 //        case ConfigMenuPreferences:
 //        {
-//            wxGetApp().CallAfter([this] {
+//            CallAfter([this] {
 //                PreferencesDialog dlg(this);
 //                dlg.ShowModal();
 //#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -2386,7 +2386,7 @@ void MainFrame::init_menubar_as_editor()
         //            Slic3r::GUI::about();
         //            break;
         //        case BambuStudioMenuPreferences:
-        //            wxGetApp().CallAfter([this] {
+        //            CallAfter([this] {
         //                PreferencesDialog dlg(this);
         //                dlg.ShowModal();
         //#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -3030,7 +3030,7 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
         file_id = m_recent_projects.FindFileInHistory(filename);
     }
     if (wxFileExists(filename)) {
-        wxGetApp().CallAfter([this, filename] {
+        CallAfter([this, filename] {
             if (wxGetApp().can_load_project())
                 m_plater->load_project(filename);
         });
