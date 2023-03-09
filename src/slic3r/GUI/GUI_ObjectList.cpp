@@ -34,6 +34,7 @@
 
 #ifdef __WXMSW__
 #include "wx/uiaction.h"
+#include <wx/renderer.h>
 #endif /* __WXMSW__ */
 
 namespace Slic3r
@@ -73,6 +74,17 @@ static void take_snapshot(const std::string& snapshot_name)
         plater->take_snapshot(snapshot_name);
 }
 
+class wxRenderer : public wxDelegateRendererNative
+{
+public:
+    wxRenderer() : wxDelegateRendererNative(wxRendererNative::Get()) {}
+    virtual void DrawItemSelectionRect(wxWindow *win,
+                                       wxDC& dc,
+                                       const wxRect& rect,
+                                       int flags = 0) wxOVERRIDE
+        { GetGeneric().DrawItemSelectionRect(win, dc, rect, flags); }
+};
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
@@ -80,6 +92,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     SetFont(Label::sysFont(13));
 #ifdef __WXMSW__
     GenericGetHeader()->SetFont(Label::sysFont(13));
+    static auto render = new wxRenderer;
+    wxRendererNative::Set(render);
 #endif
 
     // create control
