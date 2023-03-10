@@ -4964,17 +4964,19 @@ void GLCanvas3D::update_sequential_clearance()
         for (size_t i = 0; i < m_model->objects.size(); ++i) {
             ModelObject* model_object = m_model->objects[i];
             ModelInstance* model_instance0 = model_object->instances.front();
-            Polygon hull_2d = offset(model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
+            auto tmp = offset(model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
                 model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
                 // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                 // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
                 shrink_factor,
-                jtRound, mitter_limit).front();
-
-            Pointf3s& cache_hull_2d = m_sequential_print_clearance.m_hull_2d_cache.emplace_back(Pointf3s());
-            cache_hull_2d.reserve(hull_2d.points.size());
-            for (const Point& p : hull_2d.points) {
-                cache_hull_2d.emplace_back(unscale<double>(p.x()), unscale<double>(p.y()), 0.0);
+                jtRound, mitter_limit);
+            if (!tmp.empty()) { // tmp may be empty due to clipper's bug, see STUDIO-2452
+                Polygon hull_2d = tmp.front();
+                Pointf3s& cache_hull_2d = m_sequential_print_clearance.m_hull_2d_cache.emplace_back(Pointf3s());
+                cache_hull_2d.reserve(hull_2d.points.size());
+                for (const Point& p : hull_2d.points) {
+                    cache_hull_2d.emplace_back(unscale<double>(p.x()), unscale<double>(p.y()), 0.0);
+                }
             }
         }
         m_sequential_print_clearance_first_displacement = false;
