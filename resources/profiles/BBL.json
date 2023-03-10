@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.05.00.17",
+    "version": "01.05.00.19",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -362,6 +362,10 @@
             "sub_path": "filament/Generic PLA.json"
         },
         {
+            "name": "Generic PLA Silk @base",
+            "sub_path": "filament/Generic PLA Silk @base.json"
+        },
+        {
             "name": "Generic PLA Silk",
             "sub_path": "filament/Generic PLA Silk.json"
         },
@@ -440,6 +444,18 @@
         {
             "name": "Generic PETG-CF @BBL P1P",
             "sub_path": "filament/P1P/Generic PETG-CF @BBL P1P.json"
+        },
+        {
+            "name": "Bambu PETG-CF @base",
+            "sub_path": "filament/Bambu PETG-CF @base.json"
+        },
+        {
+            "name": "Bambu PETG-CF @BBL X1C",
+            "sub_path": "filament/Bambu PETG-CF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PETG-CF @BBL P1P",
+            "sub_path": "filament/P1P/Bambu PETG-CF @BBL P1P.json"
         },
         {
             "name": "Generic PVA @0.2 nozzle",
@@ -804,6 +820,14 @@
         {
             "name":"Bambu PLA-CF @BBL P1P 0.8 nozzle",
             "sub_path":"filament/P1P/Bambu PLA-CF @BBL P1P 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PET-CF @BBL X1C",
+            "sub_path": "filament/Bambu PET-CF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PET-CF @BBL P1P",
+            "sub_path": "filament/P1P/Bambu PET-CF @BBL P1P.json"
         }
     ],
     "machine_list": [

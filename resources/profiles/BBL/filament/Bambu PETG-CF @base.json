@@ -1,7 +1,7 @@
 {
   "type": "filament",
-  "filament_id": "GFG98",
-  "name": "Generic PETG-CF @base",
+  "filament_id": "GFG50",
+  "name": "Bambu PETG-CF @base",
   "from": "system",
   "instantiation": "false",
   "inherits": "fdm_filament_pet",
@@ -72,7 +72,7 @@
       "0"
   ],
   "filament_max_volumetric_speed": [
-      "10"
+      "14"
   ],
   "slow_down_layer_time": [
       "6"
