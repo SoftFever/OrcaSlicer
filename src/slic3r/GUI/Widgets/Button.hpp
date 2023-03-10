@@ -6,7 +6,7 @@
 
 class Button : public StaticBox
 {
-    wxSize textSize;
+    wxRect textSize;
     wxSize minSize; // set by outer
     wxSize paddingSize;
     ScalableBitmap active_icon;
@@ -29,6 +29,8 @@ public:
     bool Create(wxWindow* parent, wxString text, wxString icon = "", long style = 0, int iconSize = 0);
 
     void SetLabel(const wxString& label) override;
+
+    bool SetFont(const wxFont& font) override;
 
     void SetIcon(const wxString& icon);
 
