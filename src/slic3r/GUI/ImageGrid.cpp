@@ -69,6 +69,7 @@ void ImageGrid::SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys)
     m_row_count = 0;
     m_col_count = 1;
     m_row_offset = 0;
+    m_scroll_offset = 0;
     UpdateFileSystem();
 }
 
@@ -103,6 +104,7 @@ void Slic3r::GUI::ImageGrid::SetGroupMode(int mode)
     m_row_offset = index / m_col_count * 4;
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset = 0;
 }
 
 void Slic3r::GUI::ImageGrid::SetSelecting(bool selecting)
@@ -141,6 +143,7 @@ void Slic3r::GUI::ImageGrid::Select(size_t index)
     m_row_offset = index / m_col_count * 4;
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset = 0;
     Refresh();
 }
 
@@ -244,6 +247,7 @@ void ImageGrid::UpdateLayout()
     m_row_count = nrow > 0 ? nrow + 1 : 0;
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset = 0;
     // create mask
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
         mask_size.x = (m_col_count - 1) * m_cell_size.GetWidth() + m_image_size.GetWidth();
@@ -382,13 +386,14 @@ void ImageGrid::resize(wxSizeEvent& event)
 void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
 {
     auto delta = -event.GetWheelRotation();
-    m_scroll_offset += delta;
-    int max = m_row_count * m_cell_size.GetHeight() / 4;
-    if (m_scroll_offset < 0)
-        m_scroll_offset = 0;
-    else if (m_scroll_offset >= max)
-        m_scroll_offset = max - 1;
-    m_row_offset = m_scroll_offset * 4 / m_cell_size.GetHeight();
+    m_scroll_offset += delta * 4;
+    delta = m_scroll_offset / m_cell_size.GetHeight();
+    m_row_offset += delta;
+    if (m_row_offset < 0)
+        m_row_offset = 0;
+    else if (m_row_offset >= m_row_count)
+        m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset -= delta * m_cell_size.GetHeight();
     m_timer.StartOnce(4000); // Show position bar
     UpdateFocusRange();
     Refresh();
