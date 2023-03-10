@@ -3585,7 +3585,21 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 #else
     double direction_factor = 1.0;
 #endif
-    _update_camera_zoom(direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
+    auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
+    if (evt.CmdDown()) {
+        _update_camera_zoom(delta);
+    }
+    else {
+        auto cnv_size = get_canvas_size();
+        auto screen_center_3d_pos = _mouse_to_3d({ cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
+        auto mouse_3d_pos = _mouse_to_3d({evt.GetX(), evt.GetY()});
+        Vec3d displacement = mouse_3d_pos - screen_center_3d_pos;
+        wxGetApp().plater()->get_camera().translate(displacement);
+        auto origin_zoom = wxGetApp().plater()->get_camera().get_zoom();
+        _update_camera_zoom(delta);
+        auto new_zoom = wxGetApp().plater()->get_camera().get_zoom();
+        wxGetApp().plater()->get_camera().translate((-displacement) / (new_zoom / origin_zoom));
+    }
 }
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)

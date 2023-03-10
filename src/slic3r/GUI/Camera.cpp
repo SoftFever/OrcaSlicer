@@ -20,6 +20,7 @@ double Camera::FrustrumMinZRange = 50.0;
 double Camera::FrustrumMinNearZ = 100.0;
 double Camera::FrustrumZMargin = 10.0;
 double Camera::MaxFovDeg = 60.0;
+double Camera::ZoomUnit = 0.1;
 
 std::string Camera::get_type_as_string() const
 {
@@ -50,6 +51,12 @@ void Camera::select_next_type()
         next = 1;
 
     set_type((EType)next);
+}
+
+void Camera::translate(const Vec3d& displacement) {
+    if (!displacement.isApprox(Vec3d::Zero())) {
+        m_view_matrix.translate(-displacement);
+    }
 }
 
 void Camera::set_target(const Vec3d& target)
