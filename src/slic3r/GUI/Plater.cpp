@@ -11205,6 +11205,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select print sequence %1% for plate %2% at plate side")%ps_sel %plate_index;
                 auto plate_config = *(curr_plate->config());
                 wxGetApp().plater()->config_change_notification(plate_config, std::string("print_sequence"));
+                update();
                 });
             dlg.ShowModal();
 

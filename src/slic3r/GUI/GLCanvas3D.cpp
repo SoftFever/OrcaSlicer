@@ -2556,8 +2556,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (wt && (timelapse_enabled || filaments_count > 1)) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
                 // If print ByObject and there is only one object in the plate, the wipe tower is allowed to be generated.
-                if (co != nullptr && co->value == PrintSequence::ByObject && ppl.get_plate(plate_id)->printable_instance_size() != 1)
-                    continue;
+                PartPlate* part_plate = ppl.get_plate(plate_id);
+                if (part_plate->get_print_seq() == PrintSequence::ByObject ||
+                    (part_plate->get_print_seq() == PrintSequence::ByDefault && co != nullptr && co->value == PrintSequence::ByObject)) {
+                    if (ppl.get_plate(plate_id)->printable_instance_size() != 1)
+                        continue;
+                }
 
                 DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
                 float x = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->get_at(plate_id);
