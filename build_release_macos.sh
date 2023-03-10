@@ -47,9 +47,9 @@ fi
 
 WD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $WD/deps
-mkdir -p build
-cd build
-DEPS=$PWD/BambuStudio_dep
+mkdir -p build_$ARCH
+cd build_$ARCH
+DEPS=$PWD/BambuStudio_dep_$ARCH
 mkdir -p $DEPS
 if [ "studio." != $BUILD_TARGET. ]; 
 then
@@ -66,13 +66,13 @@ then
 fi
 
 cd $WD
-mkdir -p build
-cd build
+mkdir -p build_$ARCH
+cd build_$ARCH
 echo "building studio..."
-cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/BambuStudio-SoftFever" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
+cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/BambuStudio-SoftFever_$ARCH" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
 cmake --build . --config Release --target ALL_BUILD 
-mkdir -p BambuStudio-SoftFever
-cd BambuStudio-SoftFever
+mkdir -p BambuStudio-SoftFever_$ARCH
+cd BambuStudio-SoftFever_$ARCH
 rm -r ./BambuStudio-SoftFever.app
 cp -pR ../src/Release/BambuStudio.app ./BambuStudio-SoftFever.app
 resources_path=$(readlink ./BambuStudio-SoftFever.app/Contents/Resources)
@@ -91,4 +91,3 @@ fi
 
 
 zip -FSr BambuStudio-SoftFever${ver}_Mac_${ARCH}.zip BambuStudio-SoftFever.app
-
