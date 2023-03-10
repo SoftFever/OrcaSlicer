@@ -220,6 +220,8 @@ set(lisbslic3r_sources
     PresetBundle.hpp
     ProjectTask.cpp
     ProjectTask.hpp
+    PrincipalComponents2D.hpp
+    PrincipalComponents2D.cpp
     AppConfig.cpp
     AppConfig.hpp
     Print.cpp
