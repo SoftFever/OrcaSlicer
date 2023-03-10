@@ -13,7 +13,7 @@ PRODUCTVERSION @SLIC3R_VERSION@
    VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
    VALUE "InternalName", "@SLIC3R_APP_NAME@"
    VALUE "LegalCopyright", "Copyright(C) 2021-2023 Lunkuo All Rights Reserved"
-   VALUE "OriginalFilename", "bambu-studio.exe"
+   VALUE "OriginalFilename", "orca-slicer.exe"
   }
  }
  BLOCK "VarFileInfo"

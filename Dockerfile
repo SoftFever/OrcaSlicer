@@ -89,4 +89,4 @@ RUN [[ "$UID" != "0" ]] \
 
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
-ENTRYPOINT ["/BambuStudio/build/package/bin/bambu-studio"]
+ENTRYPOINT ["/BambuStudio/build/package/bin/orca-slicer"]
