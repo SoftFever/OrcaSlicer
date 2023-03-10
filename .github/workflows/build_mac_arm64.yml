@@ -17,7 +17,7 @@ jobs:
         run: |
           brew install cmake git gettext zstd
       - run: mkdir -p ${{ github.workspace }}/deps/build
-      # - run: mkdir -p ${{ github.workspace }}/deps/build/BambuStudio_dep
+      # - run: mkdir -p ${{ github.workspace }}/deps/build/OrcaSlicer_dep
 
       # - name: build deps
       #   id: cache_deps
@@ -25,7 +25,7 @@ jobs:
       #   env:
       #     cache-name: ${{ runner.os }}-cache-bambustudio_deps_arm64
       #   with:
-      #     path: ${{ github.workspace }}/deps/build/BambuStudio_dep
+      #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
       #     key: build-${{ env.cache-name }}
 
       # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
@@ -38,8 +38,8 @@ jobs:
         run: |
           curl -LJO https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep_arm64_21-01-2023.tar.gz
           tar -zxvf BambuStudio_dep_arm64_21-01-2023.tar.gz -C ${{ github.workspace }}/deps/build
-          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/BambuStudio_dep
-          ls -l ${{ github.workspace }}/deps/build/BambuStudio_dep
+          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+          ls -l ${{ github.workspace }}/deps/build/OrcaSlicer_dep
           rm BambuStudio_dep_arm64_21-01-2023.tar.gz
 
 

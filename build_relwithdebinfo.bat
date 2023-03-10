@@ -2,12 +2,12 @@ set WP=%CD%
 cd deps
 mkdir build
 cd build
-set DEPS=%CD%/BambuStudio_dep
+set DEPS=%CD%/OrcaSlicer_dep
 if "%1"=="studio" (
     GOTO :studio
 )
 echo "building deps.."
-cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="%CD%/BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release
+cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="%CD%/OrcaSlicer_dep" -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release --target ALL_BUILD -- -m
 
 if "%1"=="deps" exit /b 0

@@ -9,11 +9,11 @@ Install Following tools:
 
 ## building the deps
 Suppose you download the codes into D:/work/Projects/BambuStudio  
-create a directory to store the dependence built: D:/work/Projects/BambuStudio_dep
+create a directory to store the dependence built: D:/work/Projects/OrcaSlicer_dep
 
 `cd BambuStudio/deps`  
 `mkdir build;cd build`  
-`cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="D:/work/Projects/BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release`  
+`cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="D:/work/Projects/OrcaSlicer_dep" -DCMAKE_BUILD_TYPE=Release`  
 `msbuild /m ALL_BUILD.vcxproj`  
 
 It takes "00:14:27.37" to finish it on my machine (11th Gen Intel(R) Core(TM) i9-11900 @2.50GHz   2.50 GHz, with 32.0 GB DDR)
@@ -25,7 +25,7 @@ create a directory to store the installed files at D:/work/Projects/BambuStudio/
 `mkdir build;cd build`  
 
 set -DWIN10SDK_PATH to your windows sdk path(for example: C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0) in below command:  
-`cmake .. -G "Visual Studio 16 2019" -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="D:/work/Projects/BambuStudio_dep/usr/local" -DCMAKE_INSTALL_PREFIX="../install_dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0"` 
+`cmake .. -G "Visual Studio 16 2019" -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="D:/work/Projects/OrcaSlicer_dep/usr/local" -DCMAKE_INSTALL_PREFIX="../install_dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0"` 
 
 then build it using command  
 `cmake --build . --target install --config Release`  

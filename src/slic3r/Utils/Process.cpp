@@ -61,7 +61,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 #if defined(__APPLE__)
 	{
         auto bundle_path = bin_path.parent_path().parent_path().parent_path();
-		//bin_path = bin_path.parent_path() / "BambuStudio";
+		//bin_path = bin_path.parent_path() / "OrcaSlicer";
         bin_path = "/usr/bin/open";
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
