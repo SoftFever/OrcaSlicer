@@ -9437,8 +9437,8 @@ msgstr ""
 #~ msgid "Hide Others"
 #~ msgstr "Andere ausblenden"
 
-#~ msgid "Hide BambuStudio-SoftFever"
-#~ msgstr "BambuStudio-SoftFever ausblenden"
+#~ msgid "Hide OrcaSlicer"
+#~ msgstr "OrcaSlicer ausblenden"
 
 #~ msgid "Select presets to compare"
 #~ msgstr "Wähle Voreinstellungen zum Vergleich aus"

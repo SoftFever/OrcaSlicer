@@ -69,17 +69,17 @@ cd $WD
 mkdir -p build_$ARCH
 cd build_$ARCH
 echo "building studio..."
-cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/BambuStudio-SoftFever_$ARCH" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
+cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer_$ARCH" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
 cmake --build . --config Release --target ALL_BUILD 
-mkdir -p BambuStudio-SoftFever_$ARCH
-cd BambuStudio-SoftFever_$ARCH
-rm -r ./BambuStudio-SoftFever.app
-cp -pR ../src/Release/BambuStudio.app ./BambuStudio-SoftFever.app
-resources_path=$(readlink ./BambuStudio-SoftFever.app/Contents/Resources)
-rm ./BambuStudio-SoftFever.app/Contents/Resources
-cp -R $resources_path ./BambuStudio-SoftFever.app/Contents/Resources
+mkdir -p OrcaSlicer_$ARCH
+cd OrcaSlicer_$ARCH
+rm -r ./OrcaSlicer.app
+cp -pR ../src/Release/OrcaSlicer.app ./OrcaSlicer.app
+resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
+rm ./OrcaSlicer.app/Contents/Resources
+cp -R $resources_path ./OrcaSlicer.app/Contents/Resources
 # delete .DS_Store file
-find ./BambuStudio-SoftFever.app/ -name '.DS_Store' -delete
+find ./OrcaSlicer.app/ -name '.DS_Store' -delete
 # extract version
 export ver="_dev"
 echo $PWD
@@ -90,4 +90,4 @@ then
 fi
 
 
-zip -FSr BambuStudio-SoftFever${ver}_Mac_${ARCH}.zip BambuStudio-SoftFever.app
+zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app

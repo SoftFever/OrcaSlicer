@@ -3,11 +3,11 @@
 A modified version of Bambu Studio with many handy features.   
 It's fully compatible with Bambulab X1/X1-C/P1P printers.
 It also supports Anycubic, Anker, Creality, Prusa MK3S, RatRig and Voron printers.  
-You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/releases
+You can download it here: https://github.com/SoftFever/OrcaSlicer/releases
 
 ## BambuStudio SoftFever change notes:
 
-### [V1.4.2 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.2):
+### [V1.4.2 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.4.2):
 - Change the color theme :)
 - Fixed a crash issue when selecting vase mode on some machines
 - Port firmware retraction and Extra length on restart retraction feature from PrusaSlicer
@@ -30,9 +30,9 @@ fixed an issue that user presets were not loaded when Auto sync user preset opti
    5. CICD for Linux build - thanks @fang64
 Known issues:
 
-The Calibration menu is missing on some Mac machines. Try restarting the App can usually fix it. See [#120](https://github.com/SoftFever/BambuStudio-SoftFever/issues/120)
+The Calibration menu is missing on some Mac machines. Try restarting the App can usually fix it. See [#120](https://github.com/SoftFever/OrcaSlicer/issues/120)
 
-### [V1.4.1 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.1):
+### [V1.4.1 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.4.1):
 - Added a feature for checking and displaying a notification for a new version
 - Added RatRig printer profiles, thanks @erebus04 for working this
 - Added support for the Creality CR-10 Max and Anker M5 printers.
@@ -49,7 +49,7 @@ The Calibration menu is missing on some Mac machines. Try restarting the App can
 <details>
   <summary> 👉 "Click here" for OLD Release Note</summary>   
   
-### [V1.4.0 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.0):
+### [V1.4.0 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.4.0):
 - Add Layer Time/Layer time(Log) display (NOTE: need more tweaking work for BBL printers as the layer time is skewed by the preparing time)
 - Add `sandwich`(inner-outer-inner-infill) mode support for Arachne engine.
 - Change default `wall loop` from 2 to 3
@@ -62,7 +62,7 @@ The Calibration menu is missing on some Mac machines. Try restarting the App can
    2.  AMS filaments were added to non-Bambulab printers
    3. Wrong bed setting was applied
   
-### [V1.3.4 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.4):
+### [V1.3.4 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.3.4):
 1. Add a new printer order - sandwich mode:
 This new order is similar to the outer-wall-first mode in achieving the best dimensional accuracy. This new approach however avoids printing outer walls right after a long travel, which may cause artifacts on the surface in many cases.
 sandwich-mode1
@@ -71,7 +71,7 @@ sandwich-mode2
 3. Fix a compatibility issue for gcode-preview
 4. Merge upstream changes
 
-### [V1.3.3 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.3):
+### [V1.3.3 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.3.3):
 1. Improve top surface quality. 
 	Fix a bug that internal solid infills didn't use monotonic when top surface is using monotonic lines
 2. New feature: filter out tiny gaps.
@@ -84,13 +84,13 @@ a filament/extruder change action. This change only affects multi-color printing
 8. Force using linear PA model when manual PA override is enabled for Bambu machines
 9. Remember the last used filament
 10. Skip checking BL network plugin for third-party printers.
-### [V1.3.2 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.2-sf):
+### [V1.3.2 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.3.2-sf):
 1. Support device control view for 3rd party printers
 2. Port `Small perimeters` feature from PrusaSlicer. I also add an extra option to adjust the small perimeter threshold
 You might want to reduce speed for small perimeter parts to prevent failures like bellow:
 3. Add fan speed preview mode
 4. Fix an issue that print time estimation is inaccurate when `Klipper` g-code style is used.
-### [V1.3.1 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.1-sf):
+### [V1.3.1 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.3.1-sf):
 1. Support change bed size and nozzle diameter
 2. Allow users to specify the bridge infill direction
 3. bridge_infill_direction1
@@ -101,30 +101,30 @@ You might want to reduce speed for small perimeter parts to prevent failures lik
 8. Support Klipper Exclude Objects
 9. Better support for Moonraker's metadata.
 
-### [V1.2.5.3 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.5.3-sf):
+### [V1.2.5.3 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.2.5.3-sf):
 1. Label objects to support Klipper Exclude Objects feature
 2. Allow users to change output file name format
 3. Fix a bug that pressure advance value was not saved in the profile
 4. Optimize non-Bambu printer profiles
 5. Remove M900 S0 which is not necessary.
 
-### [V1.2.5 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.5-sf):
+### [V1.2.5 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.2.5-sf):
 1. Add options to adjust jerk for different line types
 2. Add an option to adjust acceleration for travel. Higher acceleration for travel and lower acceleration for the outer wall makes it possible to print faster and nicer.
 3. Add an option to manually override the Pressure Advance / Linear Advance for each filament.
 
-### [V1.2.4 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.4-sf):
+### [V1.2.4 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.2.4-sf):
 1. Allow users to adjust accelerations for inner/outer walls separately.
 2. Allow users to adjust the bottom surface flow-rate
 3. Fix an issue that bed temperature for other layers is not set properly. This bug exists in the upstream as well. My PR here(bambulab#319)
 
-### [V1.2 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2-sf):
+### [V1.2 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.2-sf):
 1. Allow user to change machine limits
 2. Allow users to adjust the top surface flow-rate.
 3. Unlock some cool hidden features in BambuStudio.
 4. Fix an issue that the software connected to Bambulab's staging server by default. (Only Bambulab machines were affected)
 
-### [V1.1 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.1):
+### [V1.1 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.1):
 1. Support third-party printers:
    - Voron 2.4
    - Voron Trident
@@ -144,8 +144,8 @@ Demo video: https://youtu.be/vSNE9iGj2II
   Apple requires a subscription(costs 99$ yearly) for developers to sign their app. I don't do a lot of dev work on Mac, and this is a nonprofit open-source project, so I decided not to pay the money ;)   
 
 ## 2. If you have troubles to run the build, you might need to install following runtimes:  
-- [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
-- [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
+- [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
+- [vcredist2019_x64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
 
 ## 3. BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
 - For Voron and any Klipper based printers:  

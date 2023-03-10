@@ -53,10 +53,10 @@ jobs:
       # - name: pack app
       #   working-directory: ${{ github.workspace }}/build
       #   shell: cmd
-      #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio-SoftFever_dev_build.zip ${{ github.workspace }}/build/BambuStudio-SoftFever'
+      #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_dev_build.zip ${{ github.workspace }}/build/OrcaSlicer'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: BambuStudio-SoftFever_Win64_nightly
-          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
+          name: OrcaSlicer_Win64_nightly
+          path: ${{ github.workspace }}/build/OrcaSlicer

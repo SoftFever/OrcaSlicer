@@ -43,5 +43,5 @@ jobs:
         run: ./BuildLinux.sh -isr
       - uses: actions/upload-artifact@v3
         with:
-          name: BambuStudio-SoftFever_Linux
+          name: OrcaSlicer_Linux
           path: './build/BambuStudio_ubu64.AppImage'
