@@ -1596,6 +1596,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 	Polygon hull = instance->convex_hull_2d();
 	Vec3d up_point(m_origin.x() + m_width + Slic3r::BuildVolume::SceneEpsilon, m_origin.y() + m_depth + Slic3r::BuildVolume::SceneEpsilon, m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
 	Vec3d low_point(m_origin.x() - Slic3r::BuildVolume::SceneEpsilon, m_origin.y() - Slic3r::BuildVolume::SceneEpsilon, m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
+    if (instance_box.max.z() > low_point.z()) low_point.z() +=  instance_box.min.z(); // not considering outsize if sinking
 	BoundingBoxf3 plate_box(low_point, up_point);
 
 	if (plate_box.contains(instance_box))

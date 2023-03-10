@@ -222,6 +222,15 @@ void ObjectDataViewModelNode::set_support_icon(bool enable)
         m_support_icon = create_scaled_bitmap("dot");
 }
 
+void ObjectDataViewModelNode::set_sinking_icon(bool enable)
+{
+    m_sink_enable = enable;
+    if ((m_type & itObject) && enable)
+        m_sinking_icon = create_scaled_bitmap("objlist_sinking");
+    else
+        m_sinking_icon = create_scaled_bitmap("dot");
+}
+
 void ObjectDataViewModelNode::set_warning_icon(const std::string& warning_icon_name)
 {
     m_warning_icon_name = warning_icon_name;
@@ -301,6 +310,9 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
     // BBS
     case colSupportPaint:
         m_support_icon << variant;
+        break;
+    case colSinking:
+        m_sinking_icon << variant;
         break;
     case colColorPaint:
         m_color_icon << variant;
@@ -1557,6 +1569,9 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
     case colSupportPaint:
         variant << node->m_support_icon;
         break;
+    case colSinking:
+        variant << node->m_sinking_icon;
+        break;
     case colColorPaint:
         variant << node->m_color_icon;
         break;
@@ -2081,6 +2096,14 @@ bool ObjectDataViewModel::IsSupportPainted(wxDataViewItem& item) const
     return node->m_support_enable;
 }
 
+bool ObjectDataViewModel::IsSinked(wxDataViewItem &item) const
+{
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(item.GetID());
+    if (!node) return false;
+
+    return node->m_sink_enable;
+}
+
 void ObjectDataViewModel::SetColorPaintState(const bool painted, wxDataViewItem obj_item)
 {
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
@@ -2098,6 +2121,15 @@ void ObjectDataViewModel::SetSupportPaintState(const bool painted, wxDataViewIte
         return;
 
     node->set_support_icon(painted);
+    ItemChanged(obj_item);
+}
+
+void ObjectDataViewModel::SetSinkState(const bool painted, wxDataViewItem obj_item)
+{
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(obj_item.GetID());
+    if (!node) return;
+
+    node->set_sinking_icon(painted);
     ItemChanged(obj_item);
 }
 

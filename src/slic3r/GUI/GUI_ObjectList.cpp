@@ -342,10 +342,11 @@ void ObjectList::create_objects_ctrl()
     const int em = wxGetApp().em_unit();
 
     m_columns_width.resize(colCount);
-    m_columns_width[colName] = 25;
+    m_columns_width[colName] = 22;
     m_columns_width[colPrint] = 3;
     m_columns_width[colFilament] = 5;
     m_columns_width[colSupportPaint] = 3;
+    m_columns_width[colSinking] = 3;
     m_columns_width[colColorPaint] = 3;
     m_columns_width[colEditing] = 3;
 
@@ -384,6 +385,8 @@ void ObjectList::create_objects_ctrl()
     AppendBitmapColumn(" ", colSupportPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
     AppendBitmapColumn(" ", colColorPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
+        wxALIGN_CENTER_HORIZONTAL, 0);
+    AppendBitmapColumn(" ", colSinking, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSinking] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column ItemEditing of the view control:
@@ -568,6 +571,10 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     else if (col->GetModelColumn() == (unsigned int)colColorPaint) {
         if (node->HasColorPainting())
             tooltip = _(L("Click the icon to edit color painting of the object"));
+    }
+    else if (col->GetModelColumn() == (unsigned int)colSinking) {
+        if (node->HasSinking())
+            tooltip = _(L("Click the icon to shift this object to the bed"));
     }
     else if (col->GetModelColumn() == (unsigned int)colName && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
     {
@@ -822,6 +829,12 @@ void ObjectList::set_color_paint_hidden(const bool hide) const
 void ObjectList::set_support_paint_hidden(const bool hide) const
 {
     GetColumn(colSupportPaint)->SetHidden(hide);
+    update_name_column_width();
+}
+
+void GUI::ObjectList::set_sinking_hidden(const bool hide) const
+{
+    GetColumn(colSinking)->SetHidden(hide);
     update_name_column_width();
 }
 
@@ -1187,6 +1200,17 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 else
                     gizmos_mgr.reset_all_states();
             }
+        }
+        else if (col_num == colSinking) {
+            Plater *    plater = wxGetApp().plater();
+            GLCanvas3D *cnv    = plater->canvas3D();
+            Plater::TakeSnapshot(plater, "Shift objects to bed");
+            int obj_idx, vol_idx;
+            get_selected_item_indexes(obj_idx, vol_idx, item);
+            (*m_objects)[obj_idx]->ensure_on_bed();
+            cnv->reload_scene(true, true);
+            update_info_items(obj_idx);
+            notify_instance_updated(obj_idx);
         }
         else if (col_num == colEditing) {
             //show_context_menu(evt_context_menu);
@@ -3169,6 +3193,18 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     }
 
     {
+        bool shows = m_objects_model->IsSinked(item_obj);
+        bool should_show = printer_technology() == ptFFF
+            && wxGetApp().plater()->canvas3D()->is_object_sinking(obj_idx);
+        if (shows && !should_show) {
+            m_objects_model->SetSinkState(false, item_obj);
+        }
+        else if (!shows && should_show) {
+            m_objects_model->SetSinkState(true, item_obj);
+        }
+    }
+
+    {
         bool shows = this->GetColumn(colSupportPaint)->IsShown();
         bool should_show = false;
         for (ModelObject* mo : *m_objects) {
@@ -3209,6 +3245,26 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
         }
         else if (!shows && should_show) {
             this->set_color_paint_hidden(false);
+        }
+    }
+
+    {
+        bool shows = this->GetColumn(colSinking)->IsShown();
+        bool should_show = false;
+        for (int i = 0; i < m_objects->size(); ++i) {
+            if (wxGetApp().plater()->canvas3D()->is_object_sinking(i)) {
+                should_show = true;
+                break;
+            }
+            if (should_show)
+                break;
+        }
+
+        if (shows && !should_show) {
+            this->set_sinking_hidden(true);
+        }
+        else if (!shows && should_show) {
+            this->set_sinking_hidden(false);
         }
     }
 }
@@ -4860,6 +4916,7 @@ void ObjectList::msw_rescale()
     // BBS
     GetColumn(colSupportPaint)->SetWidth(3 * em);
     GetColumn(colColorPaint)->SetWidth(3 * em);
+    GetColumn(colSinking)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
     // rescale/update existing items with bitmaps
@@ -4921,6 +4978,17 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
                 gizmos_mgr.reset_all_states();
         }
         return;
+    }
+    else if (col == colSinking) {
+        Plater *    plater = wxGetApp().plater();
+        GLCanvas3D *cnv    = plater->canvas3D();
+        Plater::TakeSnapshot(plater, "Shift objects to bed");
+        int obj_idx, vol_idx;
+        get_selected_item_indexes(obj_idx, vol_idx, item);
+        (*m_objects)[obj_idx]->ensure_on_bed();
+        cnv->reload_scene(true, true);
+        update_info_items(obj_idx);
+        notify_instance_updated(obj_idx);
     }
     else if (col == colEditing) {
         //show_context_menu(evt_context_menu);

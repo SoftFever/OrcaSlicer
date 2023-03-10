@@ -42,6 +42,7 @@ enum ColumnNumber
     // BBS
     colSupportPaint    ,
     colColorPaint      ,
+    colSinking         ,
     colEditing         ,    // item editing
     colCount           ,
 };
@@ -87,6 +88,7 @@ class ObjectDataViewModelNode
     // BBS
     wxBitmap                        m_support_icon;
     wxBitmap                        m_color_icon;
+    wxBitmap                        m_sinking_icon;
     PrintIndicator                  m_printable {piUndef};
     wxBitmap				        m_printable_icon;
     std::string                     m_warning_icon_name{ "" };
@@ -98,6 +100,7 @@ class ObjectDataViewModelNode
     // BBS
     bool                            m_support_enable = false;
     bool                            m_color_enable = false;
+    bool                            m_sink_enable = false;
 
 public:
     PartPlate*                      m_part_plate;
@@ -236,7 +239,8 @@ public:
     PrintIndicator  IsPrintable() const             { return m_printable; }
     // BBS
     bool            HasColorPainting() const        { return m_color_enable; }
-    bool            HasSupportPainting() const      { return m_support_enable; }
+    bool            HasSupportPainting() const { return m_support_enable; }
+    bool            HasSinking() const { return m_sink_enable; }
     bool            IsActionEnabled() const         { return m_action_enable; }
     void            UpdateExtruderAndColorIcon(wxString extruder = "");
 
@@ -278,6 +282,7 @@ public:
     // BBS
     void        set_color_icon(bool enable);
     void        set_support_icon(bool enable);
+    void        set_sinking_icon(bool enable);
 
     // Set warning icon for node
     void        set_warning_icon(const std::string& warning_icon);
@@ -442,9 +447,11 @@ public:
     wxDataViewItem SetObjectPrintableState(PrintIndicator printable, wxDataViewItem obj_item);
     // BBS
     bool    IsColorPainted(wxDataViewItem& item) const;
-    bool    IsSupportPainted(wxDataViewItem& item) const;
+    bool    IsSupportPainted(wxDataViewItem &item) const;
+    bool    IsSinked(wxDataViewItem &item) const;
     void    SetColorPaintState(const bool painted, wxDataViewItem obj_item);
     void    SetSupportPaintState(const bool painted, wxDataViewItem obj_item);
+    void    SetSinkState(const bool painted, wxDataViewItem obj_item);
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items

@@ -225,6 +225,7 @@ public:
     // BBS
     void                set_color_paint_hidden(const bool hide) const;
     void                set_support_paint_hidden(const bool hide) const;
+    void                set_sinking_hidden(const bool hide) const;
 
     // update extruder in current config
     void                update_filament_in_config(const wxDataViewItem& item);
