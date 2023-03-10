@@ -737,6 +737,7 @@ void PrintObject::slice()
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
     this->slice_volumes();
     m_print->throw_if_canceled();
+#if 0
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
     std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); });
@@ -746,6 +747,7 @@ void PrintObject::slice()
         BOOST_LOG_TRIVIAL(info) << warning;
         this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
     }
+#endif
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
