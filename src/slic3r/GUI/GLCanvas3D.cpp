@@ -4399,9 +4399,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         ModelObject* m = m_model->objects[i.first];
         const double shift_z = m->get_instance_min_z(i.second);
         //BBS: don't call translate if the z is zero
-        //BBS: removing sinking logic
-        if (shift_z != 0.0f) {
-        //if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+        if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
@@ -4447,9 +4445,8 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(snapshot_type);
 
-    //BBS: removing sinking logic
     // stores current min_z of instances
-    /*std::map<std::pair<int, int>, double> min_zs;
+    std::map<std::pair<int, int>, double> min_zs;
     for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
         const ModelObject* obj = m_model->objects[i];
         for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
@@ -4462,7 +4459,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
                 min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
 
         }
-    }*/
+    }
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -4507,9 +4504,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         //BBS: don't call translate if the z is zero
         const double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        //BBS: removing sinking logic
-        if (shift_z != 0.0f) {
-        //if ((min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
+        if ((min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
@@ -4536,9 +4531,8 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(snapshot_type);
 
-    //BBS: removing sinking logic
     // stores current min_z of instances
-    /*std::map<std::pair<int, int>, double> min_zs;
+    std::map<std::pair<int, int>, double> min_zs;
     if (!snapshot_type.empty()) {
         for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
             const ModelObject* obj = m_model->objects[i];
@@ -4546,7 +4540,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
                 min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
             }
         }
-    }*/
+    }
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -4592,9 +4586,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         //BBS: don't call translate if the z is zero
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        //BBS: removing sinking logic
-        if (shift_z != 0.0f) {
-        //if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+        if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
             Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
@@ -4639,9 +4631,8 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
     if (!snapshot_type.empty())
         wxGetApp().plater()->take_snapshot(snapshot_type);
 
-    //BBS: removing sinking logic
     // stores current min_z of instances
-    /*std::map<std::pair<int, int>, double> min_zs;
+    std::map<std::pair<int, int>, double> min_zs;
     if (!snapshot_type.empty()) {
         for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
             const ModelObject* obj = m_model->objects[i];
@@ -4649,7 +4640,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
                 min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
             }
         }
-    }*/
+    }
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
 
@@ -4692,9 +4683,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         //BBS: don't call translate if the z is zero
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        //BBS: removing sinking logic
-        if (shift_z != 0.0f) {
-        //if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
+        if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
             Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
@@ -6649,8 +6638,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     else {
         m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
     }
-    //BBS: remove sinking logic
-    //m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
+    m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
