@@ -71,7 +71,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
     "CUSTOM_GCODE",
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",
-    "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
+    "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
+    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER"
 };
 
 
