@@ -17,16 +17,16 @@ Prebuilt binaries are available through the [github releases page](https://githu
 - More features can be found in [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
 
 # How to install
-## Windows: 
-Unzip the binaries to any folder you prefer, then execute orca-slicer.exe to start the application.
+**Windows**: 
+> Unzip the binaries to any folder you prefer, then execute orca-slicer.exe to start the application.
 
-## Mac:
- 1. Download the right binaries for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
- 2. Double click to unzip the package, move OrcaSlicer.app to Application folder.  
- 3. Run the following command in the terminal to allow running unsigned applications: `xattr -d com.apple.quarantine /Applications/OrcaSlicer.app`.
+**Mac**:
+>  1. Download the right binaries for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
+>  2. Double click to unzip the package, move OrcaSlicer.app to Application folder.  
+>  3. Run the following command in the terminal to allow running unsigned applications: `xattr -d com.apple.quarantine /Applications/OrcaSlicer.app`.
 
-## Linux(Ubuntu):
-Run the downlaoded AppImage.  
+**Linux(Ubuntu)**:
+> Run the downlaoded AppImage.  
 # How to compile
 - Windows 64-bit  
   - Tools needed: Visual Studio 2019, Cmake, git, Strawberry Perl.
