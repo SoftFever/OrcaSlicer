@@ -15,7 +15,7 @@
 
 namespace Slic3r {
 
-const bool GCodeWriter::full_gcode_comment = true;
+bool GCodeWriter::full_gcode_comment = true;
 const double GCodeWriter::slope_threshold = 3 * PI / 180;
 
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)

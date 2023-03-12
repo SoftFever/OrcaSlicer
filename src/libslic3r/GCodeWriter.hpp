@@ -92,7 +92,7 @@ public:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
-    static const bool full_gcode_comment;
+    static bool full_gcode_comment;
     //Radian threshold of slope for lazy lift and spiral lift;
     static const double slope_threshold;
     //SoftFever

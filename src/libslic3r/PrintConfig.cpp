@@ -1795,6 +1795,22 @@ void PrintConfigDef::init_fff_params()
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
+    def = this->add("gcode_label_objects", coBool);
+    def->label = L("Label objects");
+    def->tooltip = L("Enable this to add comments into the G-Code labeling print moves with what object they belong to,"
+                   " which is useful for the Octoprint CancelObject plugin. This settings is NOT compatible with "
+                   "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(1));
+    
+    def = this->add("gcode_comments", coBool);
+    def->label = L("Verbose G-code");
+    def->tooltip = L("Enable this to get a commented G-code file, with each line explained by a descriptive text. "
+                   "If you print from SD card, the additional weight of the file could make your firmware "
+                   "slow down.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
+    
     //BBS
     def = this->add("infill_combination", coBool);
     def->label = L("Infill combination");

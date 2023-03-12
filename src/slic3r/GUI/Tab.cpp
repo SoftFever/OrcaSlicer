@@ -2053,6 +2053,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
         optgroup->append_single_option_line("gcode_add_line_number");
+        optgroup->append_single_option_line("gcode_comments");
+        optgroup->append_single_option_line("gcode_label_objects");
         Option option = optgroup->get_option("filename_format");
         // option.opt.full_width = true;
         option.opt.is_code = true;
