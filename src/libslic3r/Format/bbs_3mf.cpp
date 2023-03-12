@@ -3171,6 +3171,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 m_is_bbl_3mf = true;
                 m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(12));
             }
+            else if (boost::starts_with(m_curr_characters, "OrcaSlicer-")) {
+                m_is_bbl_3mf = true;
+                m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(11));
+            }
         //TODO: currently use version 0, no need to load&&save this string
         /*} else if (m_curr_metadata_name == BBS_FDM_SUPPORTS_PAINTING_VERSION) {
             m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
