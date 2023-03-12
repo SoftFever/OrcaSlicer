@@ -613,14 +613,15 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
     for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
-                    "tree_support_branch_diameter", "tree_support_adaptive_layer_height"})
+                    "tree_support_branch_diameter", "tree_support_adaptive_layer_height", "tree_support_auto_brim", "tree_support_brim_width"})
         toggle_field(el, support_is_tree);
 
     // hide tree support settings when normal is selected
     for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
-                    "tree_support_branch_diameter", "max_bridge_length", "tree_support_adaptive_layer_height"})
+                    "tree_support_branch_diameter", "max_bridge_length", "tree_support_adaptive_layer_height",  "tree_support_auto_brim", "tree_support_brim_width"})
         toggle_line(el, support_is_tree);
 
+    toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"));
     // tree support use max_bridge_length instead of bridge_no_support
     toggle_line("bridge_no_support", !support_is_tree);
 

@@ -2161,7 +2161,11 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                             }
                         }
                         if (layer_nr == 0 && m_raft_layers == 0) {
-                            double brim_width = layers_to_top * layer_height / (scale * branch_radius) * 0.5;
+                            double brim_width =
+                                config.tree_support_auto_brim
+                                    ? layers_to_top * layer_height /
+                                          (scale * branch_radius) * 0.5
+                                    : config.tree_support_brim_width;
                             circle = offset(circle, scale_(brim_width))[0];
                         }
                         area.emplace_back(ExPolygon(circle));
