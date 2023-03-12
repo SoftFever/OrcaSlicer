@@ -16,7 +16,7 @@
 # rm -rf build; docker build . --file Containerfile -t orca-slicer-builder; docker run --rm orca-slicer-builder /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
 #
 #
-# TODO: bind mount BambuStudio to inside the container instead of COPY to enable faster rebuilds during dev work.
+# TODO: bind mount OrcaSlicer to inside the container instead of COPY to enable faster rebuilds during dev work.
 
 FROM docker.io/ubuntu:20.04
 LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"

@@ -71,39 +71,6 @@ void copy_file_fix(const fs::path &source, const fs::path &target)
 	fs::permissions(target, perms);
 }
 
-//BBS: add directory copy
-void copy_directory_fix(const fs::path &source, const fs::path &target)
-{
-    BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
-    std::string error_message;
-
-    if (fs::exists(target))
-        fs::remove_all(target);
-    fs::create_directories(target);
-    for (auto &dir_entry : boost::filesystem::directory_iterator(source))
-    {
-        std::string source_file = dir_entry.path().string();
-        std::string name = dir_entry.path().filename().string();
-        std::string target_file = target.string() + "/" + name;
-
-        if (boost::filesystem::is_directory(dir_entry)) {
-            const auto target_path = target / name;
-            copy_directory_fix(dir_entry, target_path);
-        }
-        else {
-            //CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
-            CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
-            if (cfr != CopyFileResult::SUCCESS) {
-                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
-                throw Slic3r::CriticalException(GUI::format(
-                    _L("Copying directory %1% to %2% failed: %3%"),
-                    source, target, error_message));
-            }
-        }
-    }
-    return;
-}
-
 struct Update
 {
 	fs::path source;
@@ -137,7 +104,7 @@ struct Update
 	void install() const
 	{
 	    if (is_directory) {
-            copy_directory_fix(source, target);
+            copy_directory_recursively(source, target);
         }
         else {
             copy_file_fix(source, target);

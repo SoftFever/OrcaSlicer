@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Bambu Studio\n"
+"Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 10:26+0800\n"
+"POT-Creation-Date: 2023-03-12 00:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -442,33 +442,25 @@ msgstr "構成ファイル %1% がロードされましたが、一部の値が�
 msgid "V"
 msgstr "V"
 
-msgid "Internal Version"
-msgstr "内部バージョン"
-
-msgid "Version"
-msgstr "バージョン"
-
 msgid ""
-"BambuStudio will terminate because of running out of memory.It may be a bug. "
+"OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"メモリの割り当てに異常がありました、間も無く終了いたします。弊社サポートチー"
-"ムへご連絡ください。"
 
 msgid "Fatal error"
 msgstr "重大なエラー"
 
 msgid ""
-"BambuStudio will terminate because of a localization error. It will be "
+"OrcaSlicer will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
-msgstr "エラーが発生しました、Bambu Studioを再開してください。(Localization)"
+msgstr ""
 
 msgid "Critical error"
 msgstr "重大なエラー"
 
 #, boost-format
-msgid "BambuStudio got an unhandled exception: %1%"
-msgstr "異常がありました: %1%"
+msgid "OrcaSlicer got an unhandled exception: %1%"
+msgstr ""
 
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Bambuネットワークプラグインをダウンロード"
@@ -481,11 +473,9 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s を接続できませんでした　[SN: %s、code = %s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not abled to be "
-"parsed.Please delete the file and try again."
+"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
+"Please delete the file and try again."
 msgstr ""
-"設定ファイルは解析できません、ファイルが壊れている可能性があります。ファイル"
-"を削除して、もう一度試してください。"
 
 #, c-format, boost-format
 msgid ""
@@ -505,8 +495,8 @@ msgstr "構成を読込み中"
 msgid "Click to download new version in default browser: %s"
 msgstr "新バージョンをダウンロードするにはクリックしてください: %s"
 
-msgid "The Bambu Studio needs an upgrade"
-msgstr "Bambu Studio をアップデートする必要があります"
+msgid "The Orca Slicer needs an upgrade"
+msgstr "Orca Slicer をアップデートする必要があります"
 
 msgid "This is the newest version."
 msgstr "最新バージョンです。"
@@ -529,8 +519,8 @@ msgstr "ファイルを選択 (3mf):"
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "ファイルを選択 (3mf/step/stl/svg/obj/amf)"
 
-msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
-msgstr "ファイルを選択 (.gcode/.gco/.g/.ngc/ngc):"
+msgid "Choose one file (gcode/3mf):"
+msgstr ""
 
 msgid "Some presets are modified."
 msgstr "プリセットが変更されました。"
@@ -610,7 +600,7 @@ msgstr "開く"
 msgid "Rename"
 msgstr "名前を変更"
 
-msgid "Bambu Studio GUI initialization failed"
+msgid "Orca Slicer GUI initialization failed"
 msgstr "GUI初期化に失敗した"
 
 #, boost-format
@@ -1525,18 +1515,17 @@ msgstr "著作権情報"
 msgid "License"
 msgstr "ライセンス"
 
-msgid "Bambu Studio is licensed under "
+msgid "Orca Slicer is licensed under "
 msgstr "Bambu Studioのライセンス"
 
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, version 3"
 
 msgid ""
-"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
-"by Alessandro Ranellucci and the RepRap community"
+"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
+"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
+"the RepRap community"
 msgstr ""
-"Bambu StudioはPrusa Research社のPrusaSlicerをベースとして開発され、"
-"Alessandro RanellucciさんのSlic3rとRepRapを特別に感謝します。"
 
 msgid "Libraries"
 msgstr "ライブラリー"
@@ -1552,12 +1541,14 @@ msgstr ""
 msgid "About %s"
 msgstr "%s について"
 
-msgid ""
-"Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
-"Merill(supermerill)."
+msgid "Orca Slicer "
 msgstr ""
-"Bambu StudioはPrusaResearch製のPrusaSlicerとMerill製のSuperSlicerに基づいて作"
-"られています。"
+
+msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
+msgstr ""
+
+msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
+msgstr ""
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr ""
@@ -1570,16 +1561,8 @@ msgstr ""
 "Slic3r was created by Alessandro Ranellucci with the help of many other "
 "contributors."
 
-msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
-msgstr "Bambu StudioはUltimaker製のCuraも参考しています"
-
-msgid ""
-"There many parts of the software that come from community contributions, so "
-"we're unable to list them one-by-one, and instead, they'll be attributed in "
-"the corresponding code comments."
-msgstr ""
-"このソフトウェアはコミュニティから沢山の貢献をいただいております。全ての貢献"
-"者を表示できませんが、ソースコードのコメントにも確認できます。"
+msgid "Version"
+msgstr "バージョン"
 
 msgid "AMS Materials Setting"
 msgstr "AMS素材設定"
@@ -1656,14 +1639,14 @@ msgstr "ベッド温度"
 msgid "Max volumetric speed"
 msgstr "最大体積速度"
 
-msgid "\\u2103"
-msgstr "u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "ベッド温度"
 
-msgid "mm\\u00B3"
-msgstr "mmu00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -1838,6 +1821,9 @@ msgstr "使用中のフィラメントが切れた時に、同じ属性のフィ
 
 msgid "File"
 msgstr "ファイル"
+
+msgid "Calibration"
+msgstr "キャリブレーション"
 
 msgid ""
 "Failed to download the plug-in. Please check your firewall settings and vpn "
@@ -2049,11 +2035,6 @@ msgid ""
 msgstr "積層ピッチが小さすぎます、0.2にリセットされました"
 
 msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr "積層ピッチが大きいすぎます、0.2にリセットされました"
-
-msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr "値が小さいです、0.1にリセットします"
@@ -2106,21 +2087,14 @@ msgstr ""
 "はい - 変更して、スパイラルモードを有効にします\n"
 "いいえ - 変更せず、スパイラルモードを有効しません"
 
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
+msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
 msgstr ""
-"Arachneを使用するには、オーハーハング減速を無効にする必要があります。従って"
-"オーバーハングの造形品質が劣る可能性があります。"
 
 msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
+"Turn off classic mode automatically? \n"
+"Yes - Enable arachne with classic mode off\n"
 "No  - Give up using arachne this time"
 msgstr ""
-"オーバーハング減速を無効にしますか？\n"
-"はい - Arachneを有効し、オーバーハング減速を無効にする\n"
-"いいえ - Arachneを無効にします"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2337,6 +2311,9 @@ msgstr "ツール"
 msgid "Layer Time"
 msgstr "積層時間"
 
+msgid "Layer Time (log)"
+msgstr "積層時間 (Log)"
+
 msgid "Height: "
 msgstr "高度"
 
@@ -2423,9 +2400,6 @@ msgstr "温度 (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "流量 (mm³/s)"
-
-msgid "Layer Time (s)"
-msgstr ""
 
 msgid "Used filament"
 msgstr "フィラメント使用量"
@@ -2613,12 +2587,6 @@ msgstr "組立て"
 msgid "Select Plate"
 msgstr "プレートを選択"
 
-msgid "All Plates"
-msgstr ""
-
-msgid "Stats"
-msgstr ""
-
 msgid "Assembly Return"
 msgstr "戻る"
 
@@ -2669,9 +2637,6 @@ msgid ""
 msgstr ""
 "プレートの境界を越えるか、高さ制限を超えるオブジェクトがあります、ご確認くだ"
 "さい"
-
-msgid "Calibration"
-msgstr "キャリブレーション"
 
 msgid "Calibration step selection"
 msgstr "キャリブレーション項目を選択"
@@ -3023,6 +2988,45 @@ msgstr "表示"
 msgid "Help"
 msgstr "ヘルプ"
 
+msgid "Temperature Calibration"
+msgstr ""
+
+msgid "Pass 1"
+msgstr ""
+
+msgid "Flow rate test - Pass 1"
+msgstr ""
+
+msgid "Pass 2"
+msgstr ""
+
+msgid "Flow rate test - Pass 2"
+msgstr ""
+
+msgid "Flow rate"
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid "Max flowrate"
+msgstr ""
+
+msgid "VFA"
+msgstr ""
+
+msgid "More..."
+msgstr ""
+
+msgid "Tutorial"
+msgstr ""
+
+msgid "Calibration help"
+msgstr ""
+
+msgid "More calibrations"
+msgstr ""
+
 msgid "3D Models"
 msgstr "3D モデル"
 
@@ -3187,8 +3191,6 @@ msgid ""
 "Bambu Studio supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
-"別のバーチャルカメラを作動しています為、もう一個が起動できません。\n"
-"このバーチャルカメラを停止しますか？"
 
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
@@ -3763,8 +3765,8 @@ msgstr "適用できるフィラメントがありません、同期を行えま
 
 msgid ""
 "There are some unknown filaments mapped to generic preset. Please update "
-"Bambu Studio or restart Bambu Studio to check if there is an update to "
-"system presets."
+"Orca Slicer or restart Orca Slicer to check if there is an update to system "
+"presets."
 msgstr "不明なフィラメントがあります、Bambu Studioを更新してください。"
 
 msgid "Untitled"
@@ -3819,7 +3821,7 @@ msgstr "3mfを読込み"
 msgid "The Config can not be loaded."
 msgstr "構成を読込めませんでした"
 
-msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
 msgstr ""
 "3mfは古いバージョンのBambu Studioで作成されています、ジオメトリーデータのみ読"
 "込みます。"
@@ -4123,10 +4125,10 @@ msgstr "ヒント"
 
 msgid ""
 "\"Fix Model\" feature is currently only on Windows. Please repair the model "
-"on Bambu Studio(windows) or CAD softwares."
+"on Orca Slicer(windows) or CAD softwares."
 msgstr ""
-"「モデル修復」はWindowsのみご利用できます。Bambu Studio (Windows)か他のCADソ"
-"フトウェアで修復してください。"
+"「モデル修復」はWindowsのみご利用できます。Orca Slicer (Windows)か他のCADソフ"
+"トウェアで修復してください。"
 
 #, c-format, boost-format
 msgid ""
@@ -4210,25 +4212,25 @@ msgstr "ユーザープリセットの自動同期 (プリンター/フィラメ
 msgid "User Sync"
 msgstr "ユーザー同期"
 
-msgid "Associate files to BambuStudio"
+msgid "Associate files to OrcaSlicer"
 msgstr "ファイルをBambu Studioに関連付ける"
 
-msgid "Associate .3mf files to BambuStudio"
+msgid "Associate .3mf files to OrcaSlicer"
 msgstr ".3mfファイルをBambu Studioに関連付けます。"
 
-msgid "If enabled, sets BambuStudio as default application to open .3mf files"
+msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
 msgstr "デフォルトで.3mfファイルをBambu Studioで開く"
 
-msgid "Associate .stl files to BambuStudio"
+msgid "Associate .stl files to OrcaSlicer"
 msgstr ".stlファイルをBambu Studioに関連付けます。"
 
-msgid "If enabled, sets BambuStudio as default application to open .stl files"
+msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
 msgstr "デフォルトで.stlファイルをBambu Studioで開く"
 
-msgid "Associate .step/.stp files to BambuStudio"
+msgid "Associate .step/.stp files to OrcaSlicer"
 msgstr ".step/.stpファイルをBambu Studioに関連付けます。"
 
-msgid "If enabled, sets BambuStudio as default application to open .step files"
+msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "デフォルトで.step/.stpファイルをBambu Studioで開く"
 
 msgid "Backup"
@@ -4678,7 +4680,7 @@ msgstr "アップデート中では造形タスクを送信できません"
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr ""
 
-msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgid "The printer is required to be in the same LAN as Orca Slicer."
 msgstr ""
 "このプリンターを使用するには、Bambu Studioを同一のLANで使用してください。"
 
@@ -4820,6 +4822,9 @@ msgstr "移動速度"
 msgid "Acceleration"
 msgstr "加速度"
 
+msgid "Jerk(XY)"
+msgstr ""
+
 msgid "Raft"
 msgstr "ラフト"
 
@@ -4834,6 +4839,9 @@ msgstr "特別モード"
 
 msgid "G-code output"
 msgstr "G-code出力"
+
+msgid "Post-processing Scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "よく使う"
@@ -4874,6 +4882,9 @@ msgstr "推奨温度範囲"
 
 msgid "Print temperature"
 msgstr "造形温度"
+
+msgid "Chamber temperature"
+msgstr ""
 
 msgid "Nozzle"
 msgstr "ノズル"
@@ -5011,6 +5022,15 @@ msgstr "積層ピッチの制限"
 
 msgid "Retraction when switching material"
 msgstr "素材変更時のリトラクション"
+
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+
+msgid "Firmware Retraction"
+msgstr ""
 
 msgid "Detached"
 msgstr "分離的"
@@ -5431,6 +5451,9 @@ msgstr "SLAサポートポイント"
 msgid "Gizmo FDM paint-on seam"
 msgstr "継ぎ目ペイント"
 
+msgid "Swtich between Prepare/Prewview"
+msgstr ""
+
 msgid "Plater"
 msgstr "準備"
 
@@ -5494,6 +5517,9 @@ msgstr "水平スライダー (右)"
 msgid "On/Off one layer mode of the vertical slider"
 msgstr "On/Off one layer mode of the vertical slider"
 
+msgid "On/Off g-code window"
+msgstr ""
+
 msgid "Move slider 5x faster"
 msgstr "5x"
 
@@ -5511,16 +5537,16 @@ msgid "Network plug-in update"
 msgstr "ネットワークプラグインの更新"
 
 msgid ""
-"Click OK to update the Network plug-in when Bambu Studio launches next time."
+"Click OK to update the Network plug-in when Orca Slicer launches next time."
 msgstr ""
-"OK をクリックすると、次回 Bambu Studio を起動したときにネットワークプラグイン"
+"OK をクリックすると、次回 Orca Slicer を起動したときにネットワークプラグイン"
 "が更新されます。"
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "新しいプラグイン (%s) が発見しました、インストールしますか？"
 
-msgid "New version of Bambu Studio"
+msgid "New version of Orca Slicer"
 msgstr "新バージョン"
 
 msgid "Don't remind me of this version again"
@@ -5533,7 +5559,7 @@ msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN接続失敗 (造形ファイル送信)"
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
 msgstr ""
 "１Bambu Studioとプリンターが同一のLANに繋いでいること確認してください。"
 
@@ -5661,10 +5687,6 @@ msgstr "修復を取消しました"
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
 msgstr "ファイル %1% を %2% へのコピーが失敗しました (%3%)"
-
-#, boost-format
-msgid "Copying directory %1% to %2% failed: %3%"
-msgstr "フォルダ %1% を %2% へのコピーが失敗しました (%3%)"
 
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "構成を更新する前に、未保存の変更をご確認ください"
@@ -6242,6 +6264,12 @@ msgstr ""
 "ブリッジ角度。値が0の場合は自動計算となります。0°を使用したい場合は180を入力"
 "していください。"
 
+msgid "Bridge density"
+msgstr ""
+
+msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr "ブリッジ流量"
 
@@ -6252,6 +6280,28 @@ msgstr ""
 "この値を少し (例えば 0.9) 小さくし、ブリッジ用に押出し量を減らし、たるみを防"
 "ぎます。"
 
+msgid "Top surface flow ratio"
+msgstr ""
+
+msgid ""
+"This factor affects the amount of material for top solid infill. You can "
+"decrease it slightly to have smooth surface finish"
+msgstr ""
+
+msgid "Bottom surface flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr ""
+
+msgid "Precise wall(experimental)"
+msgstr ""
+
+msgid ""
+"Improve shell precision by adjusting outer wall spacing. This also improves "
+"layer consistency."
+msgstr ""
+
 msgid "Only one wall on top surfaces"
 msgstr "トップ面に1層"
 
@@ -6259,6 +6309,20 @@ msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
 "pattern"
 msgstr "トップ面に1層だけ造形します、インフィルを多い空間を与えます。"
+
+msgid "Only one wall on first layer"
+msgstr ""
+
+msgid ""
+"Use only one wall on first layer, to give more space to the bottom infill "
+"pattern"
+msgstr ""
+
+msgid "Classic mode"
+msgstr ""
+
+msgid "Enable this option to use classic mode"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "オーバーハング減速"
@@ -6286,6 +6350,15 @@ msgstr "ブリムタイプ"
 msgid ""
 "This controls the generation of the brim at outer side of models. Auto means "
 "the brim width is analysed and calculated automatically."
+msgstr ""
+
+msgid "outer_only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
 msgstr ""
 
 msgid "Brim-object gap"
@@ -6475,6 +6548,26 @@ msgid ""
 msgstr ""
 "外壁の造形速度です。普段は内壁より遅い速度を指定し、仕上がりが良くなります。"
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This separate setting will affect the speed of perimeters having radius <= "
+"small_perimeter_threshold (usually holes). If expressed as percentage (for "
+"example: 80%) it will be calculated on the outer wall speed setting above. "
+"Set to zero for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimeters threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of inner wall/outer wall/infil"
 msgstr "造形順番"
 
@@ -6552,6 +6645,17 @@ msgstr ""
 "フィラメントは温度により体積が変わります。この設定で押出流量を比例的に調整し"
 "ます。 0.95 ～ 1.05の間で設定していください。"
 
+msgid "Enable pressure advance"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled."
+msgstr ""
+
+msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "線幅が0に設定された時のデフォルト線幅"
 
@@ -6610,8 +6714,13 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "プライムタワー上最小フラッシュ量"
 
-msgid "mm³"
-msgstr "mm³"
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
 
 msgid "Filament load time"
 msgstr "フィラメントロード時間"
@@ -6635,6 +6744,18 @@ msgid ""
 msgstr ""
 "押出制御に使用されるパラメータなので、精確なフィラメント直径を入力してくださ"
 "い"
+
+msgid "Shrinkage"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling "
+"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
 
 msgid "Density"
 msgstr "密度"
@@ -6695,6 +6816,14 @@ msgid ""
 "of line"
 msgstr "スパース インフィル パターンの角度です"
 
+msgid "Bridge infill direction"
+msgstr ""
+
+msgid ""
+"Angle for bridge infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
 msgid "Sparse infill density"
 msgstr "充填密度"
 
@@ -6738,6 +6867,15 @@ msgstr "キュービックサポート"
 msgid "Lightning"
 msgstr "ライトニング"
 
+msgid "Acceleration of outer walls"
+msgstr ""
+
+msgid "Acceleration of inner walls"
+msgstr ""
+
+msgid "Acceleration of travel moves"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -6749,10 +6887,60 @@ msgid "Acceleration of outer wall. Using a lower value can improve quality"
 msgstr "外壁の加速度：低い値では品質を向上させることができます。"
 
 msgid ""
+"Acceleration of bridges. If the value is expressed as a percentage (e.g. "
+"50%), it will be calculated based on the outer wall acceleration."
+msgstr ""
+
+msgid "mm/s² or %"
+msgstr ""
+
+msgid ""
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
+msgstr ""
+
+msgid ""
+"Acceleration of internal solid infill. If the value is expressed as a "
+"percentage (e.g. 100%), it will be calculated based on the default "
+"acceleration."
+msgstr ""
+
+msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr ""
 "1層目の造形加速度です。遅くするとプレートとの接着を向上させることができます"
+
+msgid "Enable accel_to_decel"
+msgstr ""
+
+msgid "Klipper's max_accel_to_decel will be adjusted automatically"
+msgstr ""
+
+msgid "accel_to_decel"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgstr ""
+
+msgid "Jerk of outer walls"
+msgstr ""
+
+msgid "Jerk of inner walls"
+msgstr ""
+
+msgid "Jerk for top surface"
+msgstr ""
+
+msgid "Jerk for infill"
+msgstr ""
+
+msgid "Jerk for initial layer"
+msgstr ""
+
+msgid "Jerk for travel"
+msgstr ""
 
 msgid "Line width of initial layer"
 msgstr "1層目の線幅"
@@ -6811,6 +6999,17 @@ msgid ""
 "The average diatance between the random points introducded on each line "
 "segment"
 msgstr "ポイント間の平均距離"
+
+msgid "Filter out tiny gaps"
+msgstr ""
+
+msgid "Layers and Perimeters"
+msgstr "積層と境界"
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't "
+"affact top/bottom layers"
+msgstr ""
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -6883,6 +7082,9 @@ msgstr "G-codeスタイル"
 msgid "What kind of gcode the printer is compatible with"
 msgstr "プリンターが対応するG-code"
 
+msgid "Klipper"
+msgstr ""
+
 msgid "Infill combination"
 msgstr "インフィル マージ"
 
@@ -6911,6 +7113,15 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "スパース インフィルの造形速度です。"
+
+msgid "Interface shells"
+msgstr ""
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "アイロン面"
@@ -7188,6 +7399,14 @@ msgstr "内壁の造形速度です。"
 msgid "Number of walls of every layer"
 msgstr "壁面の層数です。"
 
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and they can access the Slic3r config settings by reading "
+"environment variables."
+msgstr ""
+
 msgid "Raft contact Z distance"
 msgstr "ラフト接触面Z間隔"
 
@@ -7289,6 +7508,19 @@ msgstr "スロープ"
 msgid "Spiral"
 msgstr "スパイラル"
 
+msgid "Extra length on restart"
+msgstr ""
+
+msgid ""
+"When the retraction is compensated after the travel move, the extruder will "
+"push this additional amount of filament. This setting is rarely needed."
+msgstr ""
+
+msgid ""
+"When the retraction is compensated after changing tool, the extruder will "
+"push this additional amount of filament."
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "リトラクション速度"
 
@@ -7304,6 +7536,14 @@ msgid ""
 msgstr ""
 "リトラクション後フィラメントをロードする時の速度です、値が0の場合、リトラク"
 "ションの速度と同じくなります。"
+
+msgid "Use firmware retraction"
+msgstr ""
+
+msgid ""
+"This experimental setting uses G10 and G11 commands to have the firmware "
+"handle the retraction. This is only supported in recent Marlin."
+msgstr ""
 
 msgid "Seam position"
 msgstr "継ぎ目位置"
@@ -7322,6 +7562,43 @@ msgstr "背面"
 
 msgid "Random"
 msgstr "ランダム"
+
+msgid "Seam gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"his amount can be specified in millimeters or as a percentage of the current "
+"extruder diameter. The default value for this parameter is 15%."
+msgstr ""
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by the speed of the current extrusion role.e.g. "
+"if a wipe action is executed immediately following an outer wall extrusion, "
+"the speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
+
+msgid "Wipe on loops"
+msgstr ""
+
+msgid ""
+"To minimize the visibility of the seam in a closed loop extrusion, a small "
+"inward movement is executed before the extruder leaves the loop."
+msgstr ""
+
+msgid "Wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by the speed setting specified in this "
+"configuration.If the value is expressed as a percentage (e.g. 80%), it will "
+"be calculated based on the travel speed setting above.The default value for "
+"this parameter is 80%"
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "スカート距離"
@@ -7652,6 +7929,14 @@ msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "サポートタイプがツリーの時、隣接するノードの距離です。"
 
+msgid "Adaptive layer height"
+msgstr "アダプティブ積層ピッチ"
+
+msgid ""
+"Enabling this option means the height of  tree support layer except the "
+"first will be automatically calculated "
+msgstr ""
+
 msgid "Tree support branch diameter"
 msgstr "ツリーサポート枝直径"
 
@@ -7663,6 +7948,18 @@ msgstr "ツリーサポート壁層数"
 
 msgid "This setting specify the count of walls around tree support"
 msgstr "ツリーサポートの壁面層数です。"
+
+msgid "Tree support with infill"
+msgstr "ツリーサポートインフィル使用"
+
+msgid ""
+"This setting specifies whether to add infill inside large hollows of tree "
+"support"
+msgstr ""
+"この設定により、大きいツリーサポートを造形する時に、インフィルを追加します。"
+
+msgid "Target chamber temperature"
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "1層目後のノズル温度"
@@ -7739,6 +8036,15 @@ msgid ""
 msgstr ""
 "リトラクション時に、ノズルを最後のパスに沿って移動します。この設定によって、"
 "たるみにより壁面のブロブを抑えることができます。"
+
+msgid "Z hop type"
+msgstr ""
+
+msgid "NormalLift"
+msgstr ""
+
+msgid "SpiralLift"
+msgstr ""
 
 msgid "Wipe Distance"
 msgstr "拭き上げ距離"
@@ -7825,6 +8131,24 @@ msgid ""
 msgstr ""
 "オブジェクトの輪郭の大きさの調整値です。正数は大きくし、負数は小さくします。"
 "これがパーツを組み立てる為にはめあいの微調整です。"
+
+msgid "G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
+"following format: \"XxY, XxY, ...\""
+msgstr ""
+
+msgid "Use relative E distances"
+msgstr ""
+
+msgid ""
+"Relative extrusion is recommended when using \"label_objects\" option.Some "
+"extruders work better with this option unckecked (absolute extrusion mode). "
+"Wipe tower is only compatible with relative mode. It is always enabled on "
+"BambuLab printers. Default is checked"
+msgstr ""
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -8029,6 +8353,15 @@ msgstr "フィラメント設定を読込む"
 msgid "Load filament settings from the specified file list"
 msgstr "指定したファイルリストからフィラメント設定を読込む"
 
+msgid "Data directory"
+msgstr ""
+
+msgid ""
+"Load and store settings at the given directory. This is useful for "
+"maintaining different profiles or including configurations from a network "
+"storage."
+msgstr ""
+
 msgid "Output directory"
 msgstr "出力先フォルダ"
 
@@ -8134,6 +8467,119 @@ msgstr "サポート: 積層%dの穴を修正"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "サポート: 積層%dのブランチを生成"
+
+msgid "PA Calibration"
+msgstr ""
+
+msgid "DDE"
+msgstr ""
+
+msgid "Bowden"
+msgstr ""
+
+msgid "Extruder type"
+msgstr ""
+
+msgid "PA Tower"
+msgstr ""
+
+msgid "PA Line"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Start PA: "
+msgstr ""
+
+msgid "End PA: "
+msgstr ""
+
+msgid "PA step: "
+msgstr ""
+
+msgid "Print numbers"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
+msgstr ""
+
+msgid "Temperature calibration"
+msgstr ""
+
+msgid "PLA"
+msgstr ""
+
+msgid "ABS/ASA"
+msgstr ""
+
+msgid "PETG"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+msgid "PA-CF"
+msgstr ""
+
+msgid "PET-CF"
+msgstr ""
+
+msgid "Filament type"
+msgstr ""
+
+msgid "Start temp: "
+msgstr ""
+
+msgid "End end: "
+msgstr ""
+
+msgid "Temp step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
+msgstr ""
+
+msgid "Max volumetric speed test"
+msgstr ""
+
+msgid "Start volumetric speed: "
+msgstr ""
+
+msgid "End volumetric speed: "
+msgstr ""
+
+msgid "step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 0 step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "VFA test"
+msgstr ""
+
+msgid "Start speed: "
+msgstr ""
+
+msgid "End speed: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 10 step >= 0\n"
+"end > start + step)"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -8242,7 +8688,7 @@ msgid ""
 "Subtract a Part\n"
 "Did you know that you can subtract one mesh from another using the Negative "
 "part modifier? That way you can, for example, create easily resizable holes "
-"directly in Bambu Studio. Read more in the documentation."
+"directly in Orca Slicer. Read more in the documentation."
 msgstr ""
 "パーツをサブストラクト\n"
 "マイナスパーツでモデルからメッシュを引くことができます。"
@@ -8252,7 +8698,7 @@ msgid ""
 "STEP\n"
 "Did you know that you can improve your print quality by slicing a STEP file "
 "instead of an STL?\n"
-"Bambu Studio supports slicing STEP files, providing smoother results than a "
+"Orca Slicer supports slicing STEP files, providing smoother results than a "
 "lower resolution STL. Give it a try!"
 msgstr ""
 "STEP\n"
@@ -8375,6 +8821,140 @@ msgstr ""
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
 
 #~ msgid ""
+#~ "BambuStudio will terminate because of running out of memory.It may be a "
+#~ "bug. It will be appreciated if you report the issue to our team."
+#~ msgstr ""
+#~ "メモリの割り当てに異常がありました、間も無く終了いたします。弊社サポート"
+#~ "チームへご連絡ください。"
+
+#~ msgid ""
+#~ "BambuStudio will terminate because of a localization error. It will be "
+#~ "appreciated if you report the specific scenario this issue happened."
+#~ msgstr ""
+#~ "エラーが発生しました、Bambu Studioを再開してください。(Localization)"
+
+#, boost-format
+#~ msgid "BambuStudio got an unhandled exception: %1%"
+#~ msgstr "異常がありました: %1%"
+
+#~ msgid ""
+#~ "BambuStudio configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "設定ファイルは解析できません、ファイルが壊れている可能性があります。ファイ"
+#~ "ルを削除して、もう一度試してください。"
+
+#~ msgid "Loading user presets..."
+#~ msgstr "ユーザープリセットを読込み中..."
+
+#~ msgid ""
+#~ "Orca Slicer is based on PrusaSlicer by Prusa Research, which is from "
+#~ "Slic3r by Alessandro Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "Bambu StudioはPrusa Research社のPrusaSlicerをベースとして開発され、"
+#~ "Alessandro RanellucciさんのSlic3rとRepRapを特別に感謝します。"
+
+#~ msgid ""
+#~ "Orca Slicer is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
+#~ "Merill(supermerill)."
+#~ msgstr ""
+#~ "Bambu StudioはPrusaResearch製のPrusaSlicerとMerill製のSuperSlicerに基づい"
+#~ "て作られています。"
+
+#~ msgid "Orca Slicer also referenced some ideas from Cura by Ultimaker."
+#~ msgstr "Bambu StudioはUltimaker製のCuraも参考しています"
+
+#~ msgid ""
+#~ "There many parts of the software that come from community contributions, "
+#~ "so we're unable to list them one-by-one, and instead, they'll be "
+#~ "attributed in the corresponding code comments."
+#~ msgstr ""
+#~ "このソフトウェアはコミュニティから沢山の貢献をいただいております。全ての貢"
+#~ "献者を表示できませんが、ソースコードのコメントにも確認できます。"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr "を閉じてから新しいモデルを作成します、続行しますか？"
+
+#~ msgid ""
+#~ "Another virtual camera is running.\n"
+#~ "Orca Slicer supports only a single virtual camera.\n"
+#~ "Do you want to stop this virtual camera?"
+#~ msgstr ""
+#~ "別のバーチャルカメラを作動しています為、もう一個が起動できません。\n"
+#~ "このバーチャルカメラを停止しますか？"
+
+#~ msgid "Clean"
+#~ msgstr "消去"
+
+#~ msgid "Export G-Code."
+#~ msgstr "G-codeにエクスポート"
+
+#~ msgid "Export."
+#~ msgstr "エクスポート"
+
+#~ msgid "Select Bed Type"
+#~ msgstr "ベッドタイプを選択"
+
+#, c-format, boost-format
+#~ msgid "Plate %d: %s does not support filament %s (%s)."
+#~ msgstr "プレート %d: %s がフィラメント %s を使用できません (%s)"
+
+#~ msgid "Actual Volume = Flushing Volume * Multiplier"
+#~ msgstr "実フラッシュ量 = フラッシュ量 × マルチプライヤー"
+
+#, c-format, boost-format
+#~ msgid "Suggestion: Actual Volume in range [%d, %d]"
+#~ msgstr "推奨ボリューム範囲 [%d, %d]"
+
+#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+#~ msgstr "STL/STEP/3MF/OBJ/AMF ファイルからジオメトリデータをインポート"
+
+#, boost-format
+#~ msgid "Copying directory %1% to %2% failed: %3%"
+#~ msgstr "フォルダ %1% を %2% へのコピーが失敗しました (%3%)"
+
+#~ msgid ""
+#~ "This controls brim position including outer side of models, inner side of "
+#~ "holes or both. Auto means both the brim position and brim width is "
+#~ "analysed and calculated automatically"
+#~ msgstr "ブリムの位置を設定します。"
+
+#~ msgid "Internal Version"
+#~ msgstr "内部バージョン"
+
+#~ msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
+#~ msgstr "ファイルを選択 (.gcode/.gco/.g/.ngc/ngc):"
+
+#~ msgid "\\u2103"
+#~ msgstr "u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mmu00B3"
+
+#~ msgid ""
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
+#~ msgstr "積層ピッチが大きいすぎます、0.2にリセットされました"
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "Arachneを使用するには、オーハーハング減速を無効にする必要があります。従っ"
+#~ "てオーバーハングの造形品質が劣る可能性があります。"
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "オーバーハング減速を無効にしますか？\n"
+#~ "はい - Arachneを有効し、オーバーハング減速を無効にする\n"
+#~ "いいえ - Arachneを無効にします"
+
+#~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -8401,12 +8981,6 @@ msgstr ""
 
 #~ msgid "AWS host"
 #~ msgstr "AWSホスト"
-
-#~ msgid "Actual Volume = Flushing Volume * Multiplier"
-#~ msgstr "実フラッシュ量 = フラッシュ量 × マルチプライヤー"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "アダプティブ積層ピッチ"
 
 #~ msgid "Add Custom Printer"
 #~ msgstr "カスタムプリンターを追加"
@@ -8467,7 +9041,7 @@ msgstr ""
 #~ msgstr "プリンターに接続できない"
 
 #~ msgid ""
-#~ "Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the "
+#~ "Cannot detect the LAN IP address of %s. Are %s and Orca Slicer in the "
 #~ "same LAN?"
 #~ msgstr ""
 #~ "%s のIPアドレスを検出できませんでした。Bambu Studioと同じネットワークに繋"
@@ -8478,9 +9052,6 @@ msgstr ""
 
 #~ msgid "Choose save directory"
 #~ msgstr "保存先フォルダの選択"
-
-#~ msgid "Clean"
-#~ msgstr "消去"
 
 #~ msgid "Clear all"
 #~ msgstr "クリア"
@@ -8599,12 +9170,6 @@ msgstr ""
 
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "%1%行目でエラー発生\n"
-
-#~ msgid "Export."
-#~ msgstr "エクスポート"
-
-#~ msgid "Export G-Code."
-#~ msgstr "G-codeにエクスポート"
 
 #~ msgid "Export Sliced File"
 #~ msgstr "スライス結果をエクスポート"
@@ -8751,9 +9316,6 @@ msgstr ""
 #~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
 #~ msgstr "3MF/STL/STEP/OBJ/AMFをインポート"
 
-#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
-#~ msgstr "STL/STEP/3MF/OBJ/AMF ファイルからジオメトリデータをインポート"
-
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "押出流量をキャリブレーション中"
 
@@ -8779,20 +9341,11 @@ msgstr ""
 #~ msgid "Layer Time(log): "
 #~ msgstr "積層時間 (log)"
 
-#~ msgid "Layer Time (log)"
-#~ msgstr "積層時間 (Log)"
-
-#~ msgid "Layers and Perimeters"
-#~ msgstr "積層と境界"
-
 #~ msgid "Leaving Seam painting"
 #~ msgstr "継ぎ目ペイントを退出"
 
 #~ msgid "Line type"
 #~ msgstr "種類"
-
-#~ msgid "Loading user presets..."
-#~ msgstr "ユーザープリセットを読込み中..."
 
 #~ msgid "Management"
 #~ msgstr "管理"
@@ -8864,9 +9417,6 @@ msgstr ""
 
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "プレート %d: %s はフィラメント %s をサポートしません。\n"
-
-#~ msgid "Plate %d: %s does not support filament %s (%s)."
-#~ msgstr "プレート %d: %s がフィラメント %s を使用できません (%s)"
 
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
 #~ msgstr "プレート %d: %s がフィラメント %s を使用できません (%s)\n"
@@ -8966,9 +9516,6 @@ msgstr ""
 #~ msgid "Save configuration as:"
 #~ msgstr "構成を名前付けで保存"
 
-#~ msgid "Select Bed Type"
-#~ msgstr "ベッドタイプを選択"
-
 #~ msgid "Sending"
 #~ msgstr "送信中"
 
@@ -9022,9 +9569,6 @@ msgstr ""
 #~ msgid ""
 #~ "Successfully sent. Will automatically jump to the device page in %s s"
 #~ msgstr "送信しました、%s秒後デバイスページへ移動します"
-
-#~ msgid "Suggestion: Actual Volume in range [%d, %d]"
-#~ msgstr "推奨ボリューム範囲 [%d, %d]"
 
 #~ msgid ""
 #~ "Support layer uses layer height independent with object layer. This is to "
@@ -9103,25 +9647,12 @@ msgstr ""
 #~ "すか、一致機種でスライスしてください。\n"
 
 #~ msgid ""
-#~ "This controls brim position including outer side of models, inner side of "
-#~ "holes or both. Auto means both the brim position and brim width is "
-#~ "analysed and calculated automatically"
-#~ msgstr "ブリムの位置を設定します。"
-
-#~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
 #~ "save filament and decrease the print time. Colours of the objects will be "
 #~ "mixed as a result"
 #~ msgstr ""
 #~ "フィラメントを入れ替える時に、廃料をこのオブジェクトにフラッシュします。時"
 #~ "間とフィラメントの節約につながりますが、このオブジェクトが混色になります。"
-
-#~ msgid ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support"
-#~ msgstr ""
-#~ "この設定により、大きいツリーサポートを造形する時に、インフィルを追加しま"
-#~ "す。"
 
 #~ msgid ""
 #~ "This setting stands for how much volume of filament can be melted and "
@@ -9139,9 +9670,6 @@ msgstr ""
 
 #~ msgid "Translation"
 #~ msgstr "移動"
-
-#~ msgid "Tree support with infill"
-#~ msgstr "ツリーサポートインフィル使用"
 
 #~ msgid "Unable to connect printer"
 #~ msgstr "プリンターに接続できませんでした"
@@ -9213,10 +9741,6 @@ msgstr ""
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr "他のオブジェクトに近すぎるので、衝突の可能性があります。\n"
-
-#~ msgid ""
-#~ " will be closed before creating a new model. Do you want to continue?"
-#~ msgstr "を閉じてから新しいモデルを作成します、続行しますか？"
 
 #~ msgid "default value"
 #~ msgstr "デフォルト"

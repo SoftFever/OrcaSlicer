@@ -1184,7 +1184,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
     // Read a 64k block from the end of the G-code.
 	boost::nowide::ifstream ifs(file);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before parse_file %1%") % file.c_str();
-    // Look for Slic3r or BambuStudio header.
+    // Look for Slic3r or OrcaSlicer header.
     // Look for the header across the whole file as the G-code may have been extended at the start by a post-processing script or the user.
     //BBS
     bool has_delimiters = true;

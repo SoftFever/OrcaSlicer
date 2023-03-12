@@ -210,7 +210,7 @@ static bool should_dialog_be_shown()
 
 
 
-// Following function saves current BambuStudio version into app config.
+// Following function saves current OrcaSlicer version into app config.
 // It will be later used to decide whether to open the dialog or not.
 static void save_version()
 {

@@ -54,7 +54,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -1106,12 +1105,12 @@ std::string string_printf(const char *format, ...)
 
 std::string header_slic3r_generated()
 {
-	return std::string(SLIC3R_APP_NAME "-SoftFever" " " SLIC3R_VERSION);
+	return std::string(SLIC3R_APP_NAME " " SoftFever_VERSION);
 }
 
 std::string header_gcodeviewer_generated()
 {
-	return std::string(GCODEVIEWER_APP_NAME " " SLIC3R_VERSION);
+	return std::string(GCODEVIEWER_APP_NAME " " SoftFever_VERSION);
 }
 
 unsigned get_current_pid()
@@ -1421,5 +1420,36 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
     return true;
 }
 
+// SoftFever: copy directory recursively
+void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target)
+{
+    BOOST_LOG_TRIVIAL(info) << format("copy_directory_recursively %1% -> %2%", source, target);
+    std::string error_message;
+
+    if (boost::filesystem::exists(target))
+        boost::filesystem::remove_all(target);
+    boost::filesystem::create_directories(target);
+    for (auto &dir_entry : boost::filesystem::directory_iterator(source))
+    {
+        std::string source_file = dir_entry.path().string();
+        std::string name = dir_entry.path().filename().string();
+        std::string target_file = target.string() + "/" + name;
+
+        if (boost::filesystem::is_directory(dir_entry)) {
+            const auto target_path = target / name;
+            copy_directory_recursively(dir_entry, target_path);
+        }
+        else {
+            CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
+            if (cfr != CopyFileResult::SUCCESS) {
+                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+                throw Slic3r::CriticalException(format(
+                    ("Copying directory %1% to %2% failed: %3%"),
+                    source, target, error_message));
+            }
+        }
+    }
+    return;
+}
 
 }; // namespace Slic3r

@@ -179,7 +179,7 @@ bool is_associate_files(std::wstring extend)
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
-    std::wstring prog_id             = L" Bambu.Studio.1";
+    std::wstring prog_id             = L" Orca.Slicer.1";
     std::wstring reg_base            = L"Software\\Classes";
     std::wstring reg_extension       = reg_base + L"\\." + extend;
 
@@ -290,13 +290,13 @@ public:
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
 // #if BBL_INTERNAL_TESTING
-        auto sf_version = wxString::Format("SoftFever %s",std::string(SoftFever_VERSION)).ToStdString();
-        wxSize text_rect = memDc.GetTextExtent(sf_version);
-        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth();
+        auto bs_version = wxString::Format("Based on BambuStudio %s",std::string(SLIC3R_VERSION)).ToStdString();
+        memDc.SetFont(Label::Body_12);
+        wxSize text_rect = memDc.GetTextExtent(bs_version);
+        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth()/2;
         int start_y = version_rect.GetBottom() + 10;
         wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
-        memDc.SetFont(m_constant_text.version_font);
-        memDc.DrawLabel(sf_version, internal_sign_rect, wxALIGN_CENTER);
+        memDc.DrawLabel(bs_version, internal_sign_rect, wxALIGN_RIGHT);
 // #endif
 
         // load bitmap for logo
@@ -568,7 +568,7 @@ private:
 // #if BBL_INTERNAL_TESTING
             // version = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
 // #else
-            version = _L("SoftFever Version") + " " + std::string(SoftFever_VERSION);
+            // version = _L("") + " " + std::string(SoftFever_VERSION);
 // #endif
 
             // credits infornation
@@ -951,7 +951,7 @@ static void generic_exception_handle()
     } catch (const std::bad_alloc& ex) {
         // bad_alloc in main thread is most likely fatal. Report immediately to the user (wxLogError would be delayed)
         // and terminate the app so it is at least certain to happen now.
-        wxString errmsg = wxString::Format(_L("BambuStudio will terminate because of running out of memory."
+        wxString errmsg = wxString::Format(_L("OrcaSlicer will terminate because of running out of memory."
                                               "It may be a bug. It will be appreciated if you report the issue to our team."));
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
@@ -959,14 +959,14 @@ static void generic_exception_handle()
         std::terminate();
         //throw;
      } catch (const boost::io::bad_format_string& ex) {
-        wxString errmsg = _L("BambuStudio will terminate because of a localization error. "
+        wxString errmsg = _L("OrcaSlicer will terminate because of a localization error. "
                              "It will be appreciated if you report the specific scenario this issue happened.");
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Critical error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         std::terminate();
         //throw;
     } catch (const std::exception& ex) {
-        wxLogError(format_wxstr(_L("BambuStudio got an unhandled exception: %1%"), ex.what()));
+        wxLogError(format_wxstr(_L("OrcaSlicer got an unhandled exception: %1%"), ex.what()));
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
     }
@@ -1856,9 +1856,12 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     std::stringstream buffer;
     buffer << stream.rdbuf();
     std::string body = buffer.str();
-    size_t start = body.find("BambuStudio ");
-    if (start == std::string::npos)
-        return boost::none;
+    size_t start = body.find("OrcaSlicer ");
+    if (start == std::string::npos) {
+        start = body.find("BambuStudio ");
+        if (start == std::string::npos)
+            return boost::none;
+    }
     body = body.substr(start + 12);
     size_t end = body.find_first_of(" \n");
     if (end < body.size())
@@ -1887,7 +1890,7 @@ void GUI_App::init_download_path()
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-    SetAppName("OrcaSlicer");
+    SetAppName(SLIC3R_APP_KEY);
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
 //  SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
@@ -1898,12 +1901,11 @@ void GUI_App::init_app_config()
 	// Mac : "~/Library/Application Support/Slic3r"
 
     if (data_dir().empty()) {
+        boost::filesystem::path data_dir_path;
         #ifndef __linux__
             std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
             //BBS create folder if not exists
-            boost::filesystem::path data_dir_path(data_dir);
-            if (!boost::filesystem::exists(data_dir_path))
-                boost::filesystem::create_directory(data_dir_path);
+            data_dir_path = boost::filesystem::path(data_dir);
             set_data_dir(data_dir);
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
@@ -1912,10 +1914,18 @@ void GUI_App::init_app_config()
             if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
             set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
-            boost::filesystem::path data_dir_path(data_dir());
-            if (!boost::filesystem::exists(data_dir_path))
-                boost::filesystem::create_directory(data_dir_path);
+            data_dir_path = boost::filesystem::path(data_dir());
         #endif
+        if (!boost::filesystem::exists(data_dir_path)){
+            auto older_data_dir = data_dir_path.parent_path() / "BambuStudio-SoftFever";
+            if(boost::filesystem::exists(older_data_dir)){
+                copy_directory_recursively(older_data_dir,data_dir_path);
+                boost::filesystem::rename(data_dir_path / "BambuStudio.conf", data_dir_path / "OrcaSlicer.conf");
+                boost::filesystem::rename(data_dir_path / "BambuStudio.conf.bak", data_dir_path / "OrcaSlicer.conf.bak");
+            }
+            else
+                boost::filesystem::create_directory(data_dir_path);
+        }
     } else {
         m_datadir_redefined = true;
     }
@@ -1932,7 +1942,7 @@ void GUI_App::init_app_config()
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             throw Slic3r::RuntimeError(
-                _u8L("BambuStudio configuration file may be corrupted and is not abled to be parsed."
+                _u8L("OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
                      "Please delete the file and try again.") +
                 "\n\n" + app_config->config_path() + "\n\n" + error);
         }
@@ -2260,7 +2270,7 @@ bool GUI_App::on_init_inner()
                /* wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_info.version_str);
                 DownloadDialog dialog(this->mainframe,
                     tips,
-                    _L("New version of Bambu Studio"),
+                    _L("New version of Orca Slicer"),
                     false,
                     wxCENTER | wxICON_INFORMATION);
 
@@ -2308,7 +2318,7 @@ bool GUI_App::on_init_inner()
                 wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_str);
                 DownloadDialog dialog(this->mainframe,
                     tips,
-                    _L("The Bambu Studio needs an upgrade"),
+                    _L("The Orca Slicer needs an upgrade"),
                     false,
                     wxCENTER | wxICON_INFORMATION);
                 dialog.SetExtendedMessage(description_text);
@@ -4132,19 +4142,10 @@ void GUI_App::no_new_version()
 std::string GUI_App::version_display = "";
 std::string GUI_App::format_display_version()
 {
-    if (!version_display.empty()) return version_display;
+    if (!version_display.empty())
+        return version_display;
 
-    auto version_text = std::string(SLIC3R_VERSION);
-    int len = version_text.length();
-    for (int i = 0, j = 0; i < len; ++i) {
-        if (!(version_text[i] == '0' && j == 0))
-            version_display += version_text[i];
-
-        if (version_text[i] == '.')
-            j = 0;
-        else
-            ++j;
-    }
+    version_display = SoftFever_VERSION;
     return version_display;
 }
 
@@ -4600,7 +4601,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by PBambuStudio.conf: %1%") % language;
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by OrcaSlicer.conf: %1%") % language;
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
@@ -4668,7 +4669,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 	}
 
 	if (language_info != nullptr && language_info->LayoutDirection == wxLayout_RightToLeft) {
-    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by BambuStudio: %1%") % language_info->CanonicalName.ToUTF8().data();
+    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by OrcaSlicer: %1%") % language_info->CanonicalName.ToUTF8().data();
 		language_info = nullptr;
 	}
 
@@ -4752,14 +4753,14 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed.";
+    	wxString message = "Switching Orca Slicer to language " + language_info->CanonicalName + " failed.";
 #if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux system
         message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
 #endif
         if (initial)
         	message + "\n\nApplication will close.";
-        wxMessageBox(message, "Bambu Studio - Switching language failed", wxOK | wxICON_ERROR);
+        wxMessageBox(message, "Orca Slicer - Switching language failed", wxOK | wxICON_ERROR);
         if (initial)
 			std::exit(EXIT_FAILURE);
 		else
@@ -5375,7 +5376,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         if (is_gcode_file(into_u8(filename)))
             ++ num_gcodes;
     if (fileNames.size() == num_gcodes) {
-        // Opening PrusaSlicer by drag & dropping a G-Code onto BambuStudio icon in Finder,
+        // Opening PrusaSlicer by drag & dropping a G-Code onto OrcaSlicer icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
         m_app_mode = EAppMode::GCodeViewer;
         unlock_lockfile(get_instance_hash_string() + ".lock", data_dir() + "/cache/");
@@ -5969,7 +5970,7 @@ void GUI_App::associate_files(std::wstring extend)
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L" Bambu.Studio.1";
+    std::wstring prog_id = L" Orca.Slicer.1";
     std::wstring prog_desc = L"OrcaSlicer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
@@ -5992,7 +5993,7 @@ void GUI_App::disassociate_files(std::wstring extend)
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L" Bambu.Studio.1";
+    std::wstring prog_id = L" Orca.Slicer.1";
     std::wstring prog_desc = L"OrcaSlicer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";

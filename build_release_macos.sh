@@ -1,9 +1,12 @@
 #!/bin/sh
 
-while getopts ":a:sdhn" opt; do
+while getopts ":a:sdphn" opt; do
   case ${opt} in
     d )
         export BUILD_TARGET="deps"
+        ;;
+    p )
+        export PACK_DEPS="1"
         ;;
     a )
         export ARCH="$OPTARG"
@@ -49,7 +52,7 @@ WD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $WD/deps
 mkdir -p build_$ARCH
 cd build_$ARCH
-DEPS=$PWD/BambuStudio_dep_$ARCH
+DEPS=$PWD/OrcaSlicer_dep_$ARCH
 mkdir -p $DEPS
 if [ "studio." != $BUILD_TARGET. ]; 
 then
@@ -57,6 +60,10 @@ then
     echo "cmake ../ -DDESTDIR=$DEPS -DOPENSSL_ARCH=darwin64-${ARCH}-cc -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}"
     cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-${ARCH}-cc" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}
     cmake --build . --config Release --target all 
+    if [ "1." == "$PACK_DEPS". ];
+    then
+        tar -zcvf OrcaSlicer_dep_mac_${ARCH}_$(date +"%d-%m-%Y").tar.gz OrcaSlicer_dep_$ARCH
+    fi
 fi
 
 

@@ -1,5 +1,5 @@
 
-# Building Bambu Studio on Mac OS
+# Building Orca Slicer on Mac OS
 
 ## Enviroment setup
 Install Following tools:  
@@ -11,7 +11,7 @@ Install Following tools:
 Cmake, git, gettext can be installed from brew(brew install cmake git gettext)
 
 ## building the deps
-You need to build the dependence of BambuStudio first. (Only needs for the first time)  
+You need to build the dependence of OrcaSlicer first. (Only needs for the first time)  
 
 Suppose you download the codes into /Users/_username_/work/projects/BambuStudio  
 create a directory to store the dependence built: /Users/_username_/work/projects/OrcaSlicer_dep  
@@ -26,7 +26,7 @@ for x86 architeccture
 `cmake ../ -DDESTDIR="/Users/username/work/projects/OrcaSlicer_dep" -DOPENSSL_ARCH="darwin64-x86_64-cc"`  
 `make -jN`  (N can be a number between 1 and the max cpu number)  
 
-## building the Bambu Studio
+## building the Orca Slicer
 create a directory to store the installed files at /Users/username/work/projects/BambuStudio/install_dir  
 `cd BambuStudio`  
 `mkdir install_dir`  

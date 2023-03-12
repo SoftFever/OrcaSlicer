@@ -41,7 +41,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     SetBackgroundColour(*wxWHITE);
     // INI
     m_SectionName = "firstguide";
-    PrivacyUse    = true;
+    PrivacyUse    = false;
     InstallNetplugin = false;
 
     m_MainPtr = pGUI;
@@ -524,11 +524,12 @@ bool GuideFrame::IsFirstUse()
 
 int GuideFrame::SaveProfile()
 {
+    // SoftFever: don't collect info
     //privacy
-    if (PrivacyUse == true) {
-        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
-    } else
-        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
+    // if (PrivacyUse == true) {
+    //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
+    // } else
+    //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
 
     m_MainPtr->app_config->set("region", m_Region);
 

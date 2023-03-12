@@ -4,9 +4,9 @@
 # 5axes <5axes@free.fr>, 2023.
 msgid ""
 msgstr ""
-"Project-Id-Version: Bambu Studio\n"
+"Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-05 17:03+0800\n"
+"POT-Creation-Date: 2023-03-12 00:41+0800\n"
 "PO-Revision-Date: 2023-02-21 21:56+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
@@ -374,6 +374,12 @@ msgstr "Peinture de jointure"
 msgid "Remove selection"
 msgstr "Supprimer la sélection"
 
+msgid "Shift + Mouse move up or dowm"
+msgstr ""
+
+msgid "Rotate text"
+msgstr ""
+
 msgid "Text shape"
 msgstr "Ajout texte"
 
@@ -386,8 +392,25 @@ msgstr "Épaisseur"
 msgid "Input text"
 msgstr "Introduire du texte"
 
-msgid "Add"
-msgstr "Ajouter"
+msgid "Embeded"
+msgstr ""
+
+msgid "Text Gap"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid ""
+"Embeded\n"
+"depth"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Horizontal text"
+msgstr ""
 
 msgid "Notice"
 msgstr "Remarquer"
@@ -434,34 +457,25 @@ msgstr ""
 msgid "V"
 msgstr "V"
 
-msgid "SoftFever Version"
-msgstr "Version SoftFever "
-
 msgid ""
-"BambuStudio will terminate because of running out of memory.It may be a bug. "
+"OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"BambuStudio va se terminer à cause d'un manque de mémoire. Il peut s'agir "
-"d'un bogue. Nous vous serions reconnaissants de signaler le problème à notre "
-"équipe."
 
 msgid "Fatal error"
 msgstr "Erreur fatale"
 
 msgid ""
-"BambuStudio will terminate because of a localization error. It will be "
+"OrcaSlicer will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
-"BambuStudio va s'arrêter à cause d'une erreur de localisation. Il sera "
-"apprécié si vous signalez le scénario spécifique dans lequel ce problème "
-"s'est produit."
 
 msgid "Critical error"
 msgstr "Erreur critique"
 
 #, boost-format
-msgid "BambuStudio got an unhandled exception: %1%"
-msgstr "Bambu Studio a reçu une exception non gérée : %1%"
+msgid "OrcaSlicer got an unhandled exception: %1%"
+msgstr ""
 
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Téléchargement du plug-in réseau Bambu"
@@ -474,11 +488,9 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "La connexion de %s a échoué ! [SN:%s, code=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not abled to be "
-"parsed.Please delete the file and try again."
+"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
+"Please delete the file and try again."
 msgstr ""
-"Le fichier de configuration de BambuStudio est peut-être corrompu et ne peut "
-"pas être analysé. Veuillez supprimer le fichier et réessayer."
 
 #, c-format, boost-format
 msgid ""
@@ -498,17 +510,14 @@ msgstr ""
 "Cliquez pour télécharger la nouvelle version dans le navigateur par défaut : "
 "%s"
 
-msgid "The Bambu Studio needs an upgrade"
-msgstr "Bambu Studio a besoin d'une mise à jour"
+msgid "The Orca Slicer needs an upgrade"
+msgstr "Orca Slicer a besoin d'une mise à jour"
 
 msgid "This is the newest version."
 msgstr "Il s'agit de la version la plus récente."
 
 msgid "Info"
 msgstr "Info"
-
-msgid "Loading user presets..."
-msgstr "Chargement des préréglages utilisateur..."
 
 msgid "Rebuild"
 msgstr "Reconstruire"
@@ -553,11 +562,14 @@ msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr ""
-"La version de Bambu Studio est trop ancienne et doit être mise à jour vers "
-"la dernière version avant de pouvoir être utilisée normalement."
+"La version de Orca Slicer est trop ancienne et doit être mise à jour vers la "
+"dernière version avant de pouvoir être utilisée normalement."
 
 msgid "Login information expired. Please login again."
 msgstr "Les informations de connexion ont expiré. Veuillez vous reconnecter."
+
+msgid "Privacy Policy Update"
+msgstr ""
 
 msgid "Loading"
 msgstr "Chargement"
@@ -589,8 +601,26 @@ msgstr "Téléchargements en cours"
 msgid "Select a G-code file:"
 msgstr "Sélectionnez un fichier G-code :"
 
-msgid "Bambu Studio GUI initialization failed"
-msgstr "L'initialisation de l'interface de Bambu Studio a échoué"
+msgid "Import File"
+msgstr ""
+
+msgid "Delete"
+msgstr "Effacer"
+
+msgid "Choose files"
+msgstr "Choisir des fichiers"
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Open"
+msgstr "Open"
+
+msgid "Rename"
+msgstr "Renommer"
+
+msgid "Orca Slicer GUI initialization failed"
+msgstr "L'initialisation de l'interface de Orca Slicer a échoué"
 
 #, boost-format
 msgid "Fatal error, exception catched: %1%"
@@ -668,11 +698,17 @@ msgstr "Ajouter un support personnalisé"
 msgid "Select settings"
 msgstr "Sélectionnez les paramètres"
 
-msgid "Delete"
-msgstr "Effacer"
+msgid "Hide"
+msgstr ""
+
+msgid "Show"
+msgstr ""
 
 msgid "Delete the selected object"
 msgstr "Supprimer l'objet sélectionné"
+
+msgid "Edit Text"
+msgstr ""
 
 msgid "Load..."
 msgstr "Charger..."
@@ -700,9 +736,6 @@ msgstr "Définir en tant qu'objets individuels"
 
 msgid "Printable"
 msgstr "Imprimable"
-
-msgid "Rename"
-msgstr "Renommer"
 
 msgid "Fix model"
 msgstr "Réparer le modèle"
@@ -755,6 +788,9 @@ msgstr "Purger dans cet objet"
 
 msgid "Flush into objects' support"
 msgstr "Purger dans les supports de l'objet"
+
+msgid "Edit in Parameter Table"
+msgstr "Modifier dans le tableau des paramètres"
 
 msgid "Convert from inch"
 msgstr "Convertir en pouce"
@@ -879,9 +915,6 @@ msgstr "Centrer"
 
 msgid "Edit Process Settings"
 msgstr "Editer les paramètres de découpe"
-
-msgid "Edit in Parameter Table"
-msgstr "Modifier dans le tableau des paramètres"
 
 msgid "Edit print parameters for a single object"
 msgstr "Modifier les paramètres d'impression d'un seul objet"
@@ -1146,9 +1179,6 @@ msgstr "Aller à la couche"
 msgid "Please enter the layer number"
 msgstr "Entrez le numéro de couche"
 
-msgid "Jump to Layer"
-msgstr "Aller à la couche"
-
 msgid "Add Pause"
 msgstr "Ajouter une pause"
 
@@ -1157,6 +1187,9 @@ msgstr "Ajouter un G-Code personnalisé"
 
 msgid "Add Custom Template"
 msgstr "Ajouter un modèle personnalisé"
+
+msgid "Jump to Layer"
+msgstr "Aller à la couche"
 
 msgid "Filament "
 msgstr "Filament "
@@ -1170,20 +1203,8 @@ msgstr "G-Code"
 msgid "No printer"
 msgstr "Pas d'imprimante"
 
-msgid "Heat the nozzle"
-msgstr "Chauffer la buse"
-
-msgid "Cut filament"
-msgstr "Couper filament"
-
-msgid "Pull back current filament"
-msgstr "Retirer le filament actuel"
-
-msgid "Push new filament into extruder"
-msgstr "Pousser le nouveau filament dans l'extrudeuse"
-
-msgid "Purge old filament"
-msgstr "Purger l'ancien filament"
+msgid "..."
+msgstr ""
 
 msgid "?"
 msgstr "?"
@@ -1233,6 +1254,27 @@ msgstr "Etalonner de nouveau"
 
 msgid "Cancel calibration"
 msgstr "Annuler l'étalonnage"
+
+msgid "Heat the nozzle"
+msgstr "Chauffer la buse"
+
+msgid "Cut filament"
+msgstr "Couper filament"
+
+msgid "Pull back current filament"
+msgstr "Retirer le filament actuel"
+
+msgid "Push new filament into extruder"
+msgstr "Pousser le nouveau filament dans l'extrudeuse"
+
+msgid "Purge old filament"
+msgstr "Purger l'ancien filament"
+
+msgid "Feed new filament from external spool"
+msgstr ""
+
+msgid "Confirm whether the filament has been extruded"
+msgstr ""
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1407,6 +1449,9 @@ msgstr "L'envoi de la tâche d'impression a échoué. Veuillez réessayer."
 msgid "Send to Printer failed. Please try again."
 msgstr "L'envoi à l'imprimante a échoué. Veuillez réessayer."
 
+msgid "No space left on Printer SD card"
+msgstr ""
+
 msgid "Sending gcode file over LAN"
 msgstr "Envoi du fichier G-Code sur le réseau local"
 
@@ -1430,6 +1475,58 @@ msgid "Failed uploading print file. Please enter ip address again."
 msgstr ""
 "Échec du téléchargement du fichier d'impression. Veuillez entrer l'adresse "
 "IP à nouveau."
+
+msgid "Choose SLA archive:"
+msgstr ""
+
+msgid "Import file"
+msgstr ""
+
+msgid "Import model and profile"
+msgstr ""
+
+msgid "Import profile only"
+msgstr ""
+
+msgid "Import model only"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Balanced"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid "Importing SLA archive"
+msgstr ""
+
+msgid ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer preset first before importing that SLA archive."
+msgstr ""
+
+msgid "Importing canceled."
+msgstr ""
+
+msgid "Importing done."
+msgstr ""
+
+msgid ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
+msgstr ""
+
+msgid "You cannot load SLA project with a multi-part object on the bed"
+msgstr ""
+
+msgid "Please check your object list before preset changing."
+msgstr ""
+
+msgid "Attention!"
+msgstr "Attention !"
 
 msgid "Downloading"
 msgstr "Téléchargement"
@@ -1458,19 +1555,17 @@ msgstr "Droits d'auteur"
 msgid "License"
 msgstr "Licence"
 
-msgid "Bambu Studio is licensed under "
-msgstr "Bambu Studio est sous licence "
+msgid "Orca Slicer is licensed under "
+msgstr "Orca Slicer est sous licence "
 
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero Licence Publique Générale, version 3"
 
 msgid ""
-"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
-"by Alessandro Ranellucci and the RepRap community"
+"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
+"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
+"the RepRap community"
 msgstr ""
-"Bambu Studio a été développé sur la base de PrusaSlicer de Prusa Research, "
-"qui est lui même développé sur la base de Slic3r par Alessandro Ranelucci et "
-"la communauté RepRap"
 
 msgid "Libraries"
 msgstr "Bibliothèques"
@@ -1486,12 +1581,14 @@ msgstr ""
 msgid "About %s"
 msgstr "Au sujet de %s"
 
-msgid ""
-"Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
-"Merill(supermerill)."
+msgid "Orca Slicer "
 msgstr ""
-"Bambu Studio est basé sur PrusaSlicer de PrusaResearch et SuperSlicer de "
-"Merill(supermerill)."
+
+msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
+msgstr ""
+
+msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
+msgstr ""
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "PrusaSlicer est initialement basé sur Slic3r d'Alessandro Ranellucci."
@@ -1502,19 +1599,6 @@ msgid ""
 msgstr ""
 "Slic3r a été créé par Alessandro Ranellucci avec l'aide de nombreux autres "
 "contributeurs."
-
-msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
-msgstr ""
-"Bambu Studio fait également référence à certaines idées de Cura d'Ultimaker."
-
-msgid ""
-"There many parts of the software that come from community contributions, so "
-"we're unable to list them one-by-one, and instead, they'll be attributed in "
-"the corresponding code comments."
-msgstr ""
-"De nombreuses parties du logiciel proviennent des contributions de la "
-"communauté, nous ne pouvons donc pas les énumérer une par une, et elles "
-"seront plutôt attribuées dans les commentaires de code correspondants."
 
 msgid "Version"
 msgstr "Version"
@@ -1562,6 +1646,9 @@ msgstr "Facteur K"
 
 msgid "Factor N"
 msgstr "Facteur N"
+
+msgid "Setting Virtual slot information while printing is not supported"
+msgstr ""
 
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Veuillez entrer une valeur valide (K entre 0~0.5)"
@@ -1673,23 +1760,16 @@ msgstr "Humidité de la cabine"
 
 msgid ""
 "Green means that AMS humidity is normal, orange represent humidity is high, "
-"red represent humidity is too high.(Hygrometer: lower the better, The bars: "
-"higher the better)"
+"red represent humidity is too high.(Hygrometer: lower the better.)"
 msgstr ""
-"Le vert signifie que l'humidité de l'AMS est normale, l'orange représente "
-"l'humidité élevée, le rouge représente l'humidité trop élevée. (Hygromètre : "
-"plus il est bas, plus il est élevé, les barres : plus il est élevé)."
 
 msgid "Desiccant status"
 msgstr "État du dessiccateur"
 
 msgid ""
 "A desiccant status lower than two bars indicates that desiccant may be "
-"inactive. Please change the desiccant. (Higher is better)"
+"inactive. Please change the desiccant.(The bars: higher the better.)"
 msgstr ""
-"Un état du dessiccateur inférieur à deux barres indique que le dessiccateur "
-"est peut-être inactif. Veuillez changer le déshydratant. (Plus haut, c'est "
-"mieux)"
 
 msgid ""
 "Note: When the lid is open or the desiccant pack is changed, it can take "
@@ -2156,6 +2236,11 @@ msgstr ""
 "Non - réinitialiser automatiquement la densité à la valeur par défaut de non "
 "100%."
 
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, reset the skirt layer to 1 to avoid that."
+msgstr ""
+
 msgid "Auto bed leveling"
 msgstr "Niveau de plateau automatique"
 
@@ -2353,8 +2438,23 @@ msgstr "Génération de données de sommet de géométrie"
 msgid "Generating geometry index data"
 msgstr "Génération de données d'index de géométrie"
 
+msgid "Statistics of All Plates"
+msgstr ""
+
 msgid "Display"
 msgstr "Affichage"
+
+msgid "Flushed"
+msgstr "Purger"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total Time Estimation"
+msgstr ""
+
+msgid "Total time"
+msgstr "Temps Total"
 
 msgid "up to"
 msgstr "jusqu'à"
@@ -2397,12 +2497,6 @@ msgstr "Débit volumétrique (mm³/s)"
 
 msgid "Used filament"
 msgstr "Filament usagé"
-
-msgid "Flushed"
-msgstr "Purger"
-
-msgid "Total"
-msgstr "Total"
 
 msgid "Travel"
 msgstr "Déplacement"
@@ -2466,9 +2560,6 @@ msgstr "Temps de préparation"
 
 msgid "Model printing time"
 msgstr "Temps d'impression du modèle"
-
-msgid "Total time"
-msgstr "Temps Total"
 
 msgid "Switch to silent mode"
 msgstr "Passer en mode silencieux"
@@ -2563,6 +2654,9 @@ msgstr "Autoriser plusieurs matériaux sur le même plateau"
 msgid "Avoid extrusion calibration region"
 msgstr "Éviter la région d'étalonnage de l'extrusion"
 
+msgid "Add"
+msgstr "Ajouter"
+
 msgid "Add plate"
 msgstr "Ajouter un plateau"
 
@@ -2595,6 +2689,10 @@ msgstr "retour"
 
 msgid "Paint Toolbar"
 msgstr "Barre d'outils de peinture"
+
+#, boost-format
+msgid "Shortcut key %1%"
+msgstr ""
 
 msgid "Explosion Ratio"
 msgstr "Taux d'explosion"
@@ -2739,23 +2837,20 @@ msgstr "Oui"
 msgid "No"
 msgstr "Non"
 
-msgid " will be closed before creating a new model. Do you want to continue?"
-msgstr " sera fermé avant de créer un nouveau modèle. Voulez-vous continuer ?"
-
-msgid "Slice"
-msgstr "Découper"
-
-msgid "Slice all"
-msgstr "Tout découper"
+msgid "will be closed before creating a new model. Do you want to continue?"
+msgstr ""
 
 msgid "Slice plate"
 msgstr "Découper le plateau"
 
-msgid "Export G-code file"
-msgstr "Exporter le Fichier G-Code"
-
 msgid "Print plate"
 msgstr "Imprimer le plateau"
+
+msgid "Slice all"
+msgstr "Tout découper"
+
+msgid "Export G-code file"
+msgstr "Exporter le Fichier G-Code"
 
 msgid "Send"
 msgstr "Envoyer"
@@ -3073,6 +3168,14 @@ msgstr "&Vue"
 msgid "&Help"
 msgstr "&Aide"
 
+#, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to override it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to override it."
+msgstr ""
+
 msgid "Overwrite file"
 msgstr "Écraser fichier"
 
@@ -3202,9 +3305,6 @@ msgid ""
 "Bambu Studio supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
-"Une autre caméra virtuelle est en cours d'exécution.\n"
-"Bambu Studio ne prend en charge qu'une seule caméra virtuelle.\n"
-"Voulez-vous arrêter cette caméra virtuelle ?"
 
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
@@ -3355,8 +3455,8 @@ msgstr "0"
 msgid "Layers: N/A"
 msgstr "Couches : N/A"
 
-msgid "Clean"
-msgstr "Nettoyer"
+msgid "Clear"
+msgstr ""
 
 msgid "Control"
 msgstr "Contrôle"
@@ -3560,6 +3660,9 @@ msgstr "Allez sur la page de téléchargement."
 msgid "Open Folder."
 msgstr "Dossier ouvert."
 
+msgid "Safely remove hardware."
+msgstr ""
+
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
@@ -3586,12 +3689,6 @@ msgstr "Annuler l’envoi"
 
 msgid "Slice ok."
 msgstr "Découpe Ok."
-
-msgid "Export G-Code."
-msgstr "Exporter le G-Code."
-
-msgid "Export."
-msgstr "Exporter."
 
 msgid "Jump to"
 msgstr "Allez à"
@@ -3775,6 +3872,17 @@ msgstr ""
 "La synchronisation des filaments avec AMS fera oublier tous les préréglages "
 "et couleurs de filaments actuellement sélectionnés. Voulez-vous continuer ?"
 
+msgid ""
+"Already did a synchronization, do you want to sync only changes or resync "
+"all?"
+msgstr ""
+
+msgid "Sync"
+msgstr ""
+
+msgid "Resync"
+msgstr ""
+
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 "Il n'y a pas de filaments compatibles, et la synchronisation n'est pas "
@@ -3782,11 +3890,11 @@ msgstr ""
 
 msgid ""
 "There are some unknown filaments mapped to generic preset. Please update "
-"Bambu Studio or restart Bambu Studio to check if there is an update to "
-"system presets."
+"Orca Slicer or restart Orca Slicer to check if there is an update to system "
+"presets."
 msgstr ""
 "Il y a quelques filaments inconnus mappés à la présélection générique. "
-"Veuillez mettre à jour Bambu Studio ou redémarrer Bambu Studio pour vérifier "
+"Veuillez mettre à jour Orca Slicer ou redémarrer Orca Slicer pour vérifier "
 "s'il y a une mise à jour des préréglages du système."
 
 msgid "Untitled"
@@ -3849,10 +3957,10 @@ msgstr "Charger 3mf"
 msgid "The Config can not be loaded."
 msgstr "La configuration ne peut pas être chargée."
 
-msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
 msgstr ""
-"Le 3mf est généré par l'ancien Bambu Studio, Chargementuniquement des "
-"données géométriques."
+"Le 3mf est généré par l'ancien Orca Slicer, Chargementuniquement des données "
+"géométriques."
 
 #, c-format, boost-format
 msgid ""
@@ -3876,6 +3984,12 @@ msgstr ""
 "La version 3mf %s  est plus récente que la version %s, Nou suggerons de "
 "mettre à jour votre logiciel."
 
+msgid "Invalid values found in the 3mf:"
+msgstr ""
+
+msgid "Please correct them in the param tabs"
+msgstr ""
+
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
 "The 3mf is not compatible, load geometry data only!Le fichier 3mf n'est pas "
@@ -3891,9 +4005,6 @@ msgstr ""
 
 msgid "The name may show garbage characters!"
 msgstr "Le nom peut afficher des caractères inutiles !"
-
-msgid "Attention!"
-msgstr "Attention !"
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -4132,8 +4243,8 @@ msgstr ""
 msgid "Invalid number"
 msgstr "Numéro invalide"
 
-msgid "Select Bed Type"
-msgstr "Sélectionnez le type de plateau"
+msgid "Plate Settings"
+msgstr ""
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -4168,15 +4279,18 @@ msgstr "Astuces:"
 
 msgid ""
 "\"Fix Model\" feature is currently only on Windows. Please repair the model "
-"on Bambu Studio(windows) or CAD softwares."
+"on Orca Slicer(windows) or CAD softwares."
 msgstr ""
 "La fonction \"Réparer le modèle\" n'est actuellement disponible que sous "
-"Windows. Veuillez réparer le modèle sur Bambu Studio(windows) ou sur des "
+"Windows. Veuillez réparer le modèle sur Orca Slicer(windows) ou sur des "
 "logiciels de CAO."
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s)."
-msgstr "Le plateau %d : %s ne prend pas en charge le filament %s (%s)."
+msgid ""
+"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"still want to do this printing, please set this filament's bed temperature "
+"to non zero."
+msgstr ""
 
 msgid "Switching the language requires application restart.\n"
 msgstr "Le changement de langue nécessite le redémarrage de l'application.\n"
@@ -4258,31 +4372,31 @@ msgstr ""
 msgid "User Sync"
 msgstr "Synchronisation utilisateur"
 
-msgid "Associate files to BambuStudio"
-msgstr "Associer les fichiers à Bambu Studio"
+msgid "Associate files to OrcaSlicer"
+msgstr "Associer les fichiers à Orca Slicer"
 
-msgid "Associate .3mf files to BambuStudio"
-msgstr "Associer les fichiers .3mf à Bambu Studio"
+msgid "Associate .3mf files to OrcaSlicer"
+msgstr "Associer les fichiers .3mf à Orca Slicer"
 
-msgid "If enabled, sets BambuStudio as default application to open .3mf files"
+msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
 msgstr ""
-"Si activé, définit Bambu Studio comme application par défaut pour ouvrir les "
+"Si activé, définit Orca Slicer comme application par défaut pour ouvrir les "
 "fichiers .3mf"
 
-msgid "Associate .stl files to BambuStudio"
-msgstr "Associer les fichiers .stl à Bambu Studio"
+msgid "Associate .stl files to OrcaSlicer"
+msgstr "Associer les fichiers .stl à Orca Slicer"
 
-msgid "If enabled, sets BambuStudio as default application to open .stl files"
+msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
 msgstr ""
-"Si activé, définit Bambu Studio comme application par défaut pour ouvrir les "
+"Si activé, définit Orca Slicer comme application par défaut pour ouvrir les "
 "fichiers .stl"
 
-msgid "Associate .step/.stp files to BambuStudio"
-msgstr "Associer les fichiers .step/.stp à Bambu Studio"
+msgid "Associate .step/.stp files to OrcaSlicer"
+msgstr "Associer les fichiers .step/.stp à Orca Slicer"
 
-msgid "If enabled, sets BambuStudio as default application to open .step files"
+msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
-"Si activé, définit Bambu Studio comme application par défaut pour ouvrir les "
+"Si activé, définit Orca Slicer comme application par défaut pour ouvrir les "
 "fichiers STEP (.step,.stp)"
 
 msgid "Backup"
@@ -4423,6 +4537,39 @@ msgstr "Ajouter/supprimer des matériaux"
 msgid "Add/Remove printers"
 msgstr "Ajout/Suppression d'imprimantes"
 
+msgid "Same as Global Print Sequence"
+msgstr ""
+
+msgid "Print sequence"
+msgstr "Séquence d'impression"
+
+msgid "Same as Global Bed Type"
+msgstr "Identique au type de plateau global"
+
+msgid "Cool Plate"
+msgstr "Plateau"
+
+msgid "Engineering Plate"
+msgstr "Plateau Revêtu"
+
+msgid "High Temp Plate"
+msgstr "Plateau Chauffant"
+
+msgid "Textured PEI Plate"
+msgstr "Plateau PEI texturée"
+
+msgid "By Layer"
+msgstr ""
+
+msgid "By Object"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
+
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
 "Trancher toutes les couches pour obtenir une estimation du temps et du "
@@ -4540,6 +4687,9 @@ msgstr "En ligne"
 
 msgid "Offline"
 msgstr "Hors ligne"
+
+msgid "(LAN)"
+msgstr ""
 
 msgid "My Device"
 msgstr "Mon appareil"
@@ -4733,28 +4883,15 @@ msgstr ""
 "Impossible d'envoyer la tâche d'impression lorsque la mise à niveau est en "
 "cours."
 
-msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr ""
-"L'imprimante doit se trouver sur le même réseau local que Bambu Studio."
+
+msgid "The printer is required to be in the same LAN as Orca Slicer."
+msgstr "L'imprimante doit se trouver sur le même réseau local que Orca Slicer."
 
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 "L'imprimante ne prend pas en charge l'envoi vers la carte SD de l'imprimante."
-
-msgid "Same as Global Bed Type"
-msgstr "Identique au type de plateau global"
-
-msgid "Cool Plate"
-msgstr "Plateau"
-
-msgid "Engineering Plate"
-msgstr "Plateau Revêtu"
-
-msgid "High Temp Plate"
-msgstr "Plateau Chauffant"
-
-msgid "Textured PEI Plate"
-msgstr "Plateau PEI texturée"
 
 msgid "Log in printer"
 msgstr "Connectez-vous à l'imprimante"
@@ -5287,6 +5424,9 @@ msgstr ""
 "L'imprimante P1P ne prend pas en charge le Timelapse Fluide, utilisez plutôt "
 "le Timelapse traditionnel."
 
+msgid "Select presets to compare"
+msgstr "Sélectionner les préréglages à comparer"
+
 msgid "Show all presets (including incompatible)"
 msgstr "Afficher tous les préréglages (y compris les incompatibles)"
 
@@ -5314,9 +5454,6 @@ msgstr "Nomenclature"
 
 msgid "Assembly Guide"
 msgstr "Guide d'assemblage"
-
-msgid "Choose files"
-msgstr "Choisir des fichiers"
 
 msgid "Author"
 msgstr "Auteur"
@@ -5373,24 +5510,21 @@ msgstr "Aucune mise à jour disponible."
 msgid "The configuration is up to date."
 msgstr "La configuration est à jour."
 
-msgid "Flushing volumes for filament change"
-msgstr "Volumes de rinçage pour le changement de filament"
-
 msgid "Auto-Calc"
 msgstr "Auto-Calc"
 
-msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Volume de rinçage (mm³) pour chaque paire de filaments."
+msgid "Flushing volumes for filament change"
+msgstr "Volumes de rinçage pour le changement de filament"
 
 msgid "Multiplier"
 msgstr "Multiplicateur"
 
-msgid "Actual Volume = Flushing Volume * Multiplier"
-msgstr "Volume réel = Volume de purge * Multiplicateur"
+msgid "Flushing volume (mm³) for each filament pair."
+msgstr "Volume de rinçage (mm³) pour chaque paire de filaments."
 
 #, c-format, boost-format
-msgid "Suggestion: Actual Volume in range [%d, %d]"
-msgstr "Suggestion : Volume réel compris entre [%d, %d]"
+msgid "Suggestion: Flushing Volume in range [%d, %d]"
+msgstr ""
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
@@ -5428,9 +5562,8 @@ msgstr "Barre d'outils"
 msgid "Objects list"
 msgstr "Liste des objets"
 
-msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
-"Importez des données de géométrie à partir de fichiers STL/STEP/3MF/OBJ/AMF."
 
 msgid "Copy to clipboard"
 msgstr "Copier dans le presse-papier"
@@ -5672,29 +5805,32 @@ msgid "Network plug-in update"
 msgstr "Network plug-in update"
 
 msgid ""
-"Click OK to update the Network plug-in when Bambu Studio launches next time."
+"Click OK to update the Network plug-in when Orca Slicer launches next time."
 msgstr ""
 "Cliquez sur OK pour mettre à jour le plug-in Réseau au prochain lancement de "
-"Bambu Studio."
+"Orca Slicer."
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr ""
 "Un nouveau plug-in réseau (%s) est disponible, voulez-vous l'installer ?"
 
-msgid "New version of Bambu Studio"
-msgstr "Nouvelle version de Bambu Studio"
+msgid "New version of Orca Slicer"
+msgstr "Nouvelle version de Orca Slicer"
 
 msgid "Don't remind me of this version again"
 msgstr "Ne me rappelez plus cette version"
+
+msgid "Done"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN Connection Failed (Sending print file)"
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
 msgstr ""
-"Étape 1, veuillez confirmer que Bambu Studio et votre imprimante se trouvent "
+"Étape 1, veuillez confirmer que Orca Slicer et votre imprimante se trouvent "
 "sur le même réseau local."
 
 msgid ""
@@ -5771,7 +5907,7 @@ msgstr ""
 "La version du firmware est anormale. Une réparation et une mise à jour sont "
 "nécessaires avant l'impression. Voulez-vous mettre à jour maintenant ? Vous "
 "pouvez aussi mettre à jour plus tard sur l'imprimante ou mettre à jour la "
-"prochaine fois que vous démarrez Bambu Studio."
+"prochaine fois que vous démarrez Orca Slicer."
 
 msgid "Extension Board"
 msgstr "Carte d'extension"
@@ -5827,10 +5963,6 @@ msgstr "Réparation annulée"
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
 msgstr "Échec de la copie du fichier %1% vers %2% : %3%"
-
-#, boost-format
-msgid "Copying directory %1% to %2% failed: %3%"
-msgstr "Échec de la copie du répertoire %1% vers %2% : %3%"
 
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr ""
@@ -6575,14 +6707,9 @@ msgid "Brim type"
 msgstr "Type de bordure"
 
 msgid ""
-"This controls brim position including outer side of models, inner side of "
-"holes or both. Auto means both the brim position and brim width is analysed "
-"and calculated automatically"
+"This controls the generation of the brim at outer side of models. Auto means "
+"the brim width is analysed and calculated automatically."
 msgstr ""
-"Cela contrôle la position de la bordure, y compris le côté extérieur des "
-"modèles, le côté intérieur des trous ou les deux. Auto signifie que la "
-"position et la largeur de la bordure sont analysées et calculées "
-"automatiquement"
 
 msgid "outer_only"
 msgstr "externe seulement"
@@ -6617,9 +6744,6 @@ msgstr "Profils de processus compatibles"
 
 msgid "Compatible process profiles condition"
 msgstr "Condition de profils de processus compatibles"
-
-msgid "Print sequence"
-msgstr "Séquence d'impression"
 
 msgid "Print sequence, layer by layer or object by object"
 msgstr "Séquence d'impression, couche par couche ou objet par objet"
@@ -7698,6 +7822,12 @@ msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr ""
 "Volume de la buse entre le coupeur de filament et l'extrémité de la buse"
 
+msgid "Start end points"
+msgstr ""
+
+msgid "The start and end points which is from cutter area to garbage can."
+msgstr ""
+
 msgid "Reduce infill retraction"
 msgstr "Réduire la rétraction du remplissage"
 
@@ -7855,6 +7985,15 @@ msgstr ""
 "toucher l'impression lors du déplacement. L'utilisation d'une ligne en "
 "spirale pour soulever z peut empêcher l'enfilage"
 
+msgid "Z Hop Type"
+msgstr ""
+
+msgid "Slope"
+msgstr ""
+
+msgid "Spiral"
+msgstr ""
+
 msgid "Extra length on restart"
 msgstr "Longueur supplémentaire sur le redémarrage"
 
@@ -7973,6 +8112,12 @@ msgstr "Distance jupe"
 
 msgid "Distance from skirt to brim or object"
 msgstr "Distance de la jupe au bord ou à l'objet"
+
+msgid "Skirt height"
+msgstr "Hauteur de la bordure"
+
+msgid "How many layers of skirt. Usually only one layer"
+msgstr ""
 
 msgid "Skirt loops"
 msgstr "Nb de lignes de jupe"
@@ -8328,6 +8473,14 @@ msgid ""
 msgstr ""
 "Ce paramètre détermine la distance entre les nœuds des supports arborecents "
 "voisins."
+
+msgid "Adaptive layer height"
+msgstr "Hauteur de couche adaptative"
+
+msgid ""
+"Enabling this option means the height of  tree support layer except the "
+"first will be automatically calculated "
+msgstr ""
 
 msgid "Tree support branch diameter"
 msgstr "Diamètre de la branche des supports arborecents"
@@ -8692,6 +8845,22 @@ msgstr ""
 "afin d'accélérer l'impression. Sinon, le motif rectiligne est utilisé par "
 "défaut."
 
+msgid "invalid value "
+msgstr ""
+
+#, c-format, boost-format
+msgid " doesn't work at 100%% density "
+msgstr ""
+
+msgid "Invalid value when spiral vase mode is enabled: "
+msgstr ""
+
+msgid "too large line width "
+msgstr ""
+
+msgid " not in range "
+msgstr ""
+
 msgid "Export 3MF"
 msgstr "Exporter 3MF"
 
@@ -8711,6 +8880,9 @@ msgid "Load cached slicing data from directory"
 msgstr ""
 "Chargement des données de découpage en tranches mises en cache à partir du "
 "répertoire"
+
+msgid "Slice"
+msgstr "Découper"
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
 msgstr ""
@@ -8812,6 +8984,9 @@ msgstr "Génération de régions de remplissage"
 msgid "Generating infill toolpath"
 msgstr "Génération d'un parcours d'outil de remplissage"
 
+msgid "Detect overhangs for auto-lift"
+msgstr ""
+
 msgid "Generating support"
 msgstr "Génération des supports"
 
@@ -8846,6 +9021,17 @@ msgstr "Le modèle a trop de couches vides."
 
 msgid "Slicing mesh"
 msgstr "Maillage de découpe"
+
+msgid ""
+"No layers were detected. You might want to repair your STL file(s) or check "
+"their size or thickness and retry.\n"
+msgstr ""
+
+msgid ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
@@ -9113,7 +9299,7 @@ msgid ""
 "Subtract a Part\n"
 "Did you know that you can subtract one mesh from another using the Negative "
 "part modifier? That way you can, for example, create easily resizable holes "
-"directly in Bambu Studio. Read more in the documentation."
+"directly in Orca Slicer. Read more in the documentation."
 msgstr ""
 "Soustraire une partie\n"
 "Saviez-vous que vous pouvez soustraire un maillage d'un autre à l'aide du "
@@ -9126,13 +9312,13 @@ msgid ""
 "STEP\n"
 "Did you know that you can improve your print quality by slicing a STEP file "
 "instead of an STL?\n"
-"Bambu Studio supports slicing STEP files, providing smoother results than a "
+"Orca Slicer supports slicing STEP files, providing smoother results than a "
 "lower resolution STL. Give it a try!"
 msgstr ""
 "STEP\n"
 "Saviez-vous que vous pouvez améliorer la qualité de votre impression en "
 "découpant un fichier STEP au lieu d'un STL ?\n"
-"Bambu Studio prend en charge le découpage des fichiers STEP, ce qui permet "
+"Orca Slicer prend en charge le découpage des fichiers STEP, ce qui permet "
 "d'obtenir des résultats plus fluides qu'avec un STL de moindre résolution. "
 "Essayez-le !"
 
@@ -9269,6 +9455,142 @@ msgstr ""
 "Saviez-vous que vous pouvez utiliser plus de boucles de mur et une densité "
 "de remplissage plus élevée pour améliorer la résistance du modèle ?"
 
+#~ msgid "SoftFever Version"
+#~ msgstr "Version SoftFever "
+
+#~ msgid ""
+#~ "BambuStudio will terminate because of running out of memory.It may be a "
+#~ "bug. It will be appreciated if you report the issue to our team."
+#~ msgstr ""
+#~ "BambuStudio va se terminer à cause d'un manque de mémoire. Il peut s'agir "
+#~ "d'un bogue. Nous vous serions reconnaissants de signaler le problème à "
+#~ "notre équipe."
+
+#~ msgid ""
+#~ "BambuStudio will terminate because of a localization error. It will be "
+#~ "appreciated if you report the specific scenario this issue happened."
+#~ msgstr ""
+#~ "BambuStudio va s'arrêter à cause d'une erreur de localisation. Il sera "
+#~ "apprécié si vous signalez le scénario spécifique dans lequel ce problème "
+#~ "s'est produit."
+
+#, boost-format
+#~ msgid "BambuStudio got an unhandled exception: %1%"
+#~ msgstr "Orca Slicer a reçu une exception non gérée : %1%"
+
+#~ msgid ""
+#~ "BambuStudio configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Le fichier de configuration de OrcaSlicer est peut-être corrompu et ne "
+#~ "peut pas être analysé. Veuillez supprimer le fichier et réessayer."
+
+#~ msgid "Loading user presets..."
+#~ msgstr "Chargement des préréglages utilisateur..."
+
+#~ msgid ""
+#~ "Orca Slicer is based on PrusaSlicer by Prusa Research, which is from "
+#~ "Slic3r by Alessandro Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "Orca Slicer a été développé sur la base de PrusaSlicer de Prusa Research, "
+#~ "qui est lui même développé sur la base de Slic3r par Alessandro Ranelucci "
+#~ "et la communauté RepRap"
+
+#~ msgid ""
+#~ "Orca Slicer is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
+#~ "Merill(supermerill)."
+#~ msgstr ""
+#~ "Orca Slicer est basé sur PrusaSlicer de PrusaResearch et SuperSlicer de "
+#~ "Merill(supermerill)."
+
+#~ msgid "Orca Slicer also referenced some ideas from Cura by Ultimaker."
+#~ msgstr ""
+#~ "Orca Slicer fait également référence à certaines idées de Cura "
+#~ "d'Ultimaker."
+
+#~ msgid ""
+#~ "There many parts of the software that come from community contributions, "
+#~ "so we're unable to list them one-by-one, and instead, they'll be "
+#~ "attributed in the corresponding code comments."
+#~ msgstr ""
+#~ "De nombreuses parties du logiciel proviennent des contributions de la "
+#~ "communauté, nous ne pouvons donc pas les énumérer une par une, et elles "
+#~ "seront plutôt attribuées dans les commentaires de code correspondants."
+
+#~ msgid ""
+#~ "Green means that AMS humidity is normal, orange represent humidity is "
+#~ "high, red represent humidity is too high.(Hygrometer: lower the better, "
+#~ "The bars: higher the better)"
+#~ msgstr ""
+#~ "Le vert signifie que l'humidité de l'AMS est normale, l'orange représente "
+#~ "l'humidité élevée, le rouge représente l'humidité trop élevée. "
+#~ "(Hygromètre : plus il est bas, plus il est élevé, les barres : plus il "
+#~ "est élevé)."
+
+#~ msgid ""
+#~ "A desiccant status lower than two bars indicates that desiccant may be "
+#~ "inactive. Please change the desiccant. (Higher is better)"
+#~ msgstr ""
+#~ "Un état du dessiccateur inférieur à deux barres indique que le "
+#~ "dessiccateur est peut-être inactif. Veuillez changer le déshydratant. "
+#~ "(Plus haut, c'est mieux)"
+
+#~ msgid ""
+#~ " will be closed before creating a new model. Do you want to continue?"
+#~ msgstr ""
+#~ " sera fermé avant de créer un nouveau modèle. Voulez-vous continuer ?"
+
+#~ msgid ""
+#~ "Another virtual camera is running.\n"
+#~ "Orca Slicer supports only a single virtual camera.\n"
+#~ "Do you want to stop this virtual camera?"
+#~ msgstr ""
+#~ "Une autre caméra virtuelle est en cours d'exécution.\n"
+#~ "Orca Slicer ne prend en charge qu'une seule caméra virtuelle.\n"
+#~ "Voulez-vous arrêter cette caméra virtuelle ?"
+
+#~ msgid "Clean"
+#~ msgstr "Nettoyer"
+
+#~ msgid "Export G-Code."
+#~ msgstr "Exporter le G-Code."
+
+#~ msgid "Export."
+#~ msgstr "Exporter."
+
+#~ msgid "Select Bed Type"
+#~ msgstr "Sélectionnez le type de plateau"
+
+#, c-format, boost-format
+#~ msgid "Plate %d: %s does not support filament %s (%s)."
+#~ msgstr "Le plateau %d : %s ne prend pas en charge le filament %s (%s)."
+
+#~ msgid "Actual Volume = Flushing Volume * Multiplier"
+#~ msgstr "Volume réel = Volume de purge * Multiplicateur"
+
+#, c-format, boost-format
+#~ msgid "Suggestion: Actual Volume in range [%d, %d]"
+#~ msgstr "Suggestion : Volume réel compris entre [%d, %d]"
+
+#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
+#~ msgstr ""
+#~ "Importez des données de géométrie à partir de fichiers STL/STEP/3MF/OBJ/"
+#~ "AMF."
+
+#, boost-format
+#~ msgid "Copying directory %1% to %2% failed: %3%"
+#~ msgstr "Échec de la copie du répertoire %1% vers %2% : %3%"
+
+#~ msgid ""
+#~ "This controls brim position including outer side of models, inner side of "
+#~ "holes or both. Auto means both the brim position and brim width is "
+#~ "analysed and calculated automatically"
+#~ msgstr ""
+#~ "Cela contrôle la position de la bordure, y compris le côté extérieur des "
+#~ "modèles, le côté intérieur des trous ou les deux. Auto signifie que la "
+#~ "position et la largeur de la bordure sont analysées et calculées "
+#~ "automatiquement"
+
 #~ msgid "Recent"
 #~ msgstr "Récent"
 
@@ -9318,14 +9640,8 @@ msgstr ""
 #~ "Ceci définit le seuil de la longueur du petit périmètre. Le seuil par "
 #~ "défaut est de 6,5 mm"
 
-#~ msgid "Select presets to compare"
-#~ msgstr "Sélectionner les préréglages à comparer"
-
 #~ msgid "Skirt"
 #~ msgstr "Jupe"
-
-#~ msgid "Skirt height"
-#~ msgstr "Hauteur de la bordure"
 
 #~ msgid "Internal Version"
 #~ msgstr "Version interne"
@@ -9449,9 +9765,6 @@ msgstr ""
 
 #~ msgid "0%"
 #~ msgstr "0%"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Hauteur de couche adaptative"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -9736,9 +10049,6 @@ msgstr ""
 
 #~ msgid "Monitoring Recording"
 #~ msgstr "Enregistrement de surveillance"
-
-#~ msgid "Open"
-#~ msgstr "Open"
 
 #~ msgid "Open &PrusaSlicer"
 #~ msgstr "Ouvrir &PrusaSlicer"

@@ -1,11 +1,11 @@
 
-# Bambu Studio - SoftFever
-A modified version of Bambu Studio with many handy features.   
+# Orca Slicer - SoftFever
+A modified version of Orca Slicer with many handy features.   
 It's fully compatible with Bambulab X1/X1-C/P1P printers.
 It also supports Anycubic, Anker, Creality, Prusa MK3S, RatRig and Voron printers.  
 You can download it here: https://github.com/SoftFever/OrcaSlicer/releases
 
-## BambuStudio SoftFever change notes:
+## OrcaSlicer SoftFever change notes:
 
 ### [V1.4.2 changes](https://github.com/SoftFever/OrcaSlicer/releases/tag/v1.4.2):
 - Change the color theme :)
@@ -147,7 +147,7 @@ Demo video: https://youtu.be/vSNE9iGj2II
 - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
 - [vcredist2019_x64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
 
-## 3. BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
+## 3. OrcaSlicer use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
 - For Voron and any Klipper based printers:  
 You can enable gcode_arcs(G2/G3) support by adding following section into you printer.cfg file:  
 ```
@@ -193,7 +193,7 @@ gcode:
 ~~ It's also recommended to add followinging dummy macros to make Klipper happy ~~
 Update: latest Klipper has supported G17 command. Don't add following macro if you are running on latest Klipper.
 ```
-# Make BambuStudio happy
+# Make OrcaSlicer happy
 [gcode_macro G17]
 gcode:
 
@@ -225,17 +225,17 @@ Image credits:
 
 ![image](https://user-images.githubusercontent.com/106916061/179006347-497d24c0-9bd6-45b7-8c49-d5cc8ecfe5d7.png)
 # BambuStudio
-Bambu Studio is a cutting-edge, feature-rich slicing software.  
+Orca Slicer is a cutting-edge, feature-rich slicing software.  
 It contains project-based workflows, systematically optimized slicing algorithms, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
 
 Prebuilt Windows, macOS 64-bit releases are available through the [github releases page](https://github.com/bambulab/BambuStudio/releases/).  
 Linux version currently is not supported.
 
-Bambu Studio is based on [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
+Orca Slicer is based on [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
 
 See the [wiki](https://github.com/bambulab/BambuStudio/wiki) and the [documentation directory](https://github.com/bambulab/BambuStudio/tree/master/doc) for more informations.
 
-# What are Bambu Studio's main features?
+# What are Orca Slicer's main features?
 Key features are:
 - Basic slicing features & GCode viewer
 - Multiple plates management
@@ -264,7 +264,7 @@ Following platforms are currently supported to compile:
 You can add an issue to the [github tracker](https://github.com/bambulab/BambuStudio/issues) if **it isn't already present.**
 
 # License
-Bambu Studio is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
+Orca Slicer is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on PrusaSlicer by PrusaResearch.
 
 PrusaSlicer is licensed under the GNU Affero General Public License, version 3. PrusaSlicer is owned by Prusa Research. PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci.
 
@@ -272,5 +272,5 @@ Slic3r is licensed under the GNU Affero General Public License, version 3. Slic3
 
 The GNU Affero General Public License, version 3 ensures that if you use any part of this software in any way (even behind a web server), your software must be released under the same license.
 
-The bambu networking plugin is based on non-free libraries. It is optional to the Bambu Studio and provides extended functionalities for users.
+The bambu networking plugin is based on non-free libraries. It is optional to the Orca Slicer and provides extended functionalities for users.
 

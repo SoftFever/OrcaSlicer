@@ -9,6 +9,7 @@
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/path.hpp>
 #include <openssl/md5.h>
 
 #include "libslic3r.h"
@@ -566,6 +567,9 @@ inline std::string get_bbl_remain_time_dhms(float time_in_secs)
 }
 
 bool bbl_calc_md5(std::string &filename, std::string &md5_out);
+
+void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target);
+
 
 } // namespace Slic3r
 

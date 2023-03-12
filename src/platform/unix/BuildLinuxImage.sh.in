@@ -39,8 +39,8 @@ cat << EOF >@SLIC3R_APP_CMD@
 DIR=\$(readlink -f "\$0" | xargs dirname)
 export LD_LIBRARY_PATH="\$DIR/bin"
 
-# FIXME: BambuStudio segfault workarounds
-# 1) BambuStudio will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)
+# FIXME: OrcaSlicer segfault workarounds
+# 1) OrcaSlicer will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)
 export LC_ALL=C
 
 exec "\$DIR/bin/@SLIC3R_APP_CMD@" "\$@"

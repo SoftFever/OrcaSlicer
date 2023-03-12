@@ -4,6 +4,9 @@ on:
     push:
       branches: 
        - SoftFever
+    pull_request:
+      branches: 
+       - SoftFever
     
 jobs:
   build_win64:
@@ -16,14 +19,14 @@ jobs:
       - name: Install tools
         run: |
           brew install cmake git gettext
-      - run: mkdir -p ${{ github.workspace }}/deps/build
-      - run: mkdir -p ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+      - run: mkdir -p ${{ github.workspace }}/deps/build_x86_64
+      - run: mkdir -p ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
 
       # - name: build deps
       #   id: cache_deps
       #   uses: actions/cache@v3
       #   env:
-      #     cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
+      #     cache-name: ${{ runner.os }}-cache-orcaslicer_deps_x64
       #   with:
       #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
       #     key: build-${{ env.cache-name }}
@@ -37,11 +40,11 @@ jobs:
       - name: Download and extract deps
         working-directory: ${{ github.workspace }}
         run: |
-          curl -LJO https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep_x86_64_21-01-2023.tar.gz
-          tar -zxvf BambuStudio_dep_x86_64_21-01-2023.tar.gz -C ${{ github.workspace }}/deps/build
-          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-          ls -l ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-          rm BambuStudio_dep_x86_64_21-01-2023.tar.gz
+          curl -LJO https://github.com/SoftFever/FileSharing/releases/download/OrcaSlicer_deps_Mar/OrcaSlicer_dep_mac_x86_64_11-03-2023.tar.gz
+          tar -zxvf OrcaSlicer_dep_mac_x86_64_11-03-2023.tar.gz -C ${{ github.workspace }}/deps/build_x86_64
+          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
+          ls -l ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
+          rm OrcaSlicer_dep_mac_x86_64_11-03-2023.tar.gz
 
 
       - name: Build studio
@@ -51,5 +54,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_Mac
-          path: ${{ github.workspace }}/build/OrcaSlicer/OrcaSlicer*.zip
+          name: OrcaSlicer_Mac_Intel
+          path: ${{ github.workspace }}/build_x86_64/OrcaSlicer_x86_64/OrcaSlicer*.zip

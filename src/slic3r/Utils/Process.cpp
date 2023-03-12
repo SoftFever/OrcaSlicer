@@ -14,7 +14,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 
-// For starting another BambuStudio instance on OSX.
+// For starting another OrcaSlicer instance on OSX.
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
     #include <boost/process/spawn.hpp>
@@ -51,7 +51,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		args.emplace_back(L"--single-instance");
 	args.emplace_back(nullptr);
 	BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << into_u8(path) << "\"";
-	// Don't call with wxEXEC_HIDE_CONSOLE, BambuStudio in GUI mode would just show the splash screen. It would not open the main window though, it would
+	// Don't call with wxEXEC_HIDE_CONSOLE, OrcaSlicer in GUI mode would just show the splash screen. It would not open the main window though, it would
 	// just hang in the background.
 	if (wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC) <= 0)
 		BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << into_u8(path);

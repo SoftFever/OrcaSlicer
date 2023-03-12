@@ -1,8 +1,8 @@
-# Building Bambu Studio on Windows
+# Building Orca Slicer on Windows
 
 ## Enviroment setup
 Install Following tools:
-- Visual Studio Community 2019 from [visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/) (Older versions are not supported as Bambu Studio requires support for C++17, and newer versions should also be ok);
+- Visual Studio Community 2019 from [visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/) (Older versions are not supported as Orca Slicer requires support for C++17, and newer versions should also be ok);
 - Cmake from [cmake.org](https://cmake.org/download/)
 - Git from [gitforwindows.org](https://gitforwindows.org/) 
 - Perl from [strawberryperl](https://strawberryperl.com/)
@@ -18,7 +18,7 @@ create a directory to store the dependence built: D:/work/Projects/OrcaSlicer_de
 
 It takes "00:14:27.37" to finish it on my machine (11th Gen Intel(R) Core(TM) i9-11900 @2.50GHz   2.50 GHz, with 32.0 GB DDR)
 
-## building the Bambu Studio
+## building the Orca Slicer
 create a directory to store the installed files at D:/work/Projects/BambuStudio/install_dir  
 `cd BambuStudio`  
 `mkdir install_dir`  
@@ -31,6 +31,6 @@ then build it using command
 `cmake --build . --target install --config Release`  
 
 or building it under the Visual Studio 2019  
-(set the BambuStudio_app_gui as start project)  
+(set the OrcaSlicer_app_gui as start project)  
 ![image](https://user-images.githubusercontent.com/106916061/179185940-06135b47-f2a4-415a-9be4-666680fa0f9a.png)
 

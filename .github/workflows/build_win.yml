@@ -4,7 +4,9 @@ on:
     push:
       branches: 
        - SoftFever
-        
+    pull_request:
+      branches: 
+       - SoftFever 
 
 jobs:
   build_win64:
@@ -21,11 +23,11 @@ jobs:
       - run: mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
       - name: download deps
         shell: powershell
-        run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/3/BambuStudio_dep_9Mar2023.zip", "$env:temp\BambuStudio_dep_9Mar2023.zip")'
+        run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/OrcaSlicer_deps_Mar/OrcaSlicer_dep_12Mar2023.zip", "$env:temp\OrcaSlicer_dep_12Mar2023.zip")'
       - name: extract deps
         working-directory: ${{ github.workspace }}/deps/build
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\BambuStudio_dep_9Mar2023.zip'
+        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\OrcaSlicer_dep_12Mar2023.zip'
 
       - run: dir "${{ github.workspace }}\deps\build\OrcaSlicer_dep"
       
@@ -33,7 +35,7 @@ jobs:
       #   id: cache_deps
       #   uses: actions/cache@v3
       #   env:
-      #     cache-name: ${{ runner.os }}-cache-bambustudio_deps
+      #     cache-name: ${{ runner.os }}-cache-orcaslicer_deps
       #   with:
       #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
       #     key: ${{ runner.os }}-build-${{ env.cache-name }}
