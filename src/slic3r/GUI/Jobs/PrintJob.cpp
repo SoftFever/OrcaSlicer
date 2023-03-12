@@ -157,6 +157,10 @@ void PrintJob::process()
     else
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
+    PartPlate* curr_plate = m_plater->get_partplate_list().get_curr_plate();
+    if (curr_plate) {
+        this->task_bed_type = bed_type_to_gcode_string(curr_plate->get_bed_type(true));
+    }
 
     BBL::PrintParams params;
 
@@ -200,6 +204,7 @@ void PrintJob::process()
     params.ams_mapping_info     = this->task_ams_mapping_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
+    params.task_bed_type        = this->task_bed_type;
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();
         auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);

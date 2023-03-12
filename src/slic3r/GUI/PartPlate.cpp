@@ -133,7 +133,7 @@ void PartPlate::init()
 	m_print = nullptr;
 }
 
-BedType PartPlate::get_bed_type() const
+BedType PartPlate::get_bed_type(bool load_from_project) const
 {
 	std::string bed_type_key = "curr_bed_type";
 
@@ -144,6 +144,12 @@ BedType PartPlate::get_bed_type() const
 		return bed_type;
 	}
 
+	if (!load_from_project || !wxGetApp().preset_bundle)
+		return btDefault;
+
+	DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+	if (proj_cfg.has(bed_type_key))
+		return proj_cfg.opt_enum<BedType>(bed_type_key);
 	return btDefault;
 }
 

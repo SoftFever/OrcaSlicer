@@ -210,7 +210,7 @@ public:
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
 
-    BedType get_bed_type() const;
+    BedType get_bed_type(bool load_from_project = false) const;
     void set_bed_type(BedType bed_type);
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }

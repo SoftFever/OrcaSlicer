@@ -415,9 +415,11 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
 
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
 	m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
-	m_search_bar = new wxSearchCtrl( this, wxID_ANY, _L("Search"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_search_bar->ShowSearchButton( true );
 	m_search_bar->ShowCancelButton( false );
+    m_search_bar->SetHint(_L("Search"));
+    m_search_bar->SetDescriptiveText(_L("Search"));
 	m_sizer_search_bar->Add( m_search_bar, 1, wxALL| wxEXPAND, 1 );
 	m_sizer_main->Add(m_sizer_search_bar, 0, wxALL | wxEXPAND, FromDIP(2));
 	m_search_bar->Bind( wxEVT_COMMAND_TEXT_UPDATED, &SelectMachinePopup::update_machine_list, this );
