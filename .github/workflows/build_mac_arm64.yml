@@ -1,4 +1,4 @@
-name: Build Mac arm64
+name: Build Mac AppleSilicon
 
 on: 
     push:
@@ -10,7 +10,7 @@ on:
     
 jobs:
   build_win64:
-    name: Build Mac arm64
+    name: Build Mac AppleSilicon
     runs-on: macos-12
 
     steps:
@@ -40,7 +40,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           curl -LJO https://github.com/SoftFever/FileSharing/releases/download/OrcaSlicer_deps_Mar/OrcaSlicer_dep_mac_arm64_11-03-2023.tar.gz
-          tar -zxvf OrcaSlicer_dep_mac_arm64_11-03-2023.tar.gz -C ${{ github.workspace }}/deps/build
+          tar -zxvf OrcaSlicer_dep_mac_arm64_11-03-2023.tar.gz -C ${{ github.workspace }}/deps/build_arm64
           chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
           ls -l ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
           rm OrcaSlicer_dep_mac_arm64_11-03-2023.tar.gz

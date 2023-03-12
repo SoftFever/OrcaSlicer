@@ -1,4 +1,4 @@
-name: Build Mac x64
+name: Build Mac Intel
 
 on: 
     push:
@@ -10,7 +10,7 @@ on:
     
 jobs:
   build_win64:
-    name: Build Mac x64
+    name: Build Mac Intel
     runs-on: macos-latest
 
     steps:
