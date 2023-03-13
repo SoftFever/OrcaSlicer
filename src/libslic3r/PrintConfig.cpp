@@ -1636,6 +1636,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60.0));
 
+    def = this->add("initial_layer_travel_speed", coFloatOrPercent);
+    def->label = L("Initial layer travel speed");
+    def->tooltip = L("Travel speed of initial layer");
+    def->category = L("Speed");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "travel_speed";
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+
+
     def = this->add("nozzle_temperature_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer nozzle temperature");

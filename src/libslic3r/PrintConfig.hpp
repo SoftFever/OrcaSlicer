@@ -880,6 +880,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                use_relative_e_distances))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
+    ((ConfigOptionFloatOrPercent,      initial_layer_travel_speed))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -999,7 +1001,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool, independent_support_layer_height))
     // SoftFever
-    ((ConfigOptionPercents,             filament_shrink))
+    ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionBool,                gcode_comments))
 

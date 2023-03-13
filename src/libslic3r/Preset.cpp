@@ -755,7 +755,7 @@ static std::vector<std::string> s_Preset_print_options {
     "role_based_wipe_speed", "wipe_speed", "accel_to_decel_enable", "accel_to_decel_factor", "wipe_on_loops",
     "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
     "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
-    "tree_support_brim_width", "gcode_comments", "gcode_label_objects"
+    "tree_support_brim_width", "gcode_comments", "gcode_label_objects", "initial_layer_travel_speed"
 
 };
 

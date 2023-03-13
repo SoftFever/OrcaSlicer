@@ -2727,6 +2727,7 @@ GCode::LayerResult GCode::process_layer(
     //support is attached above the object, and support layers has independent layer height, then the lowest support
     //interface layer id is 0.
     bool                 first_layer   = (layer.id() == 0 && abs(layer.bottom_z()) < EPSILON);
+    m_writer.set_is_first_layer(first_layer);
     unsigned int         first_extruder_id = layer_tools.extruders.front();
 
     // Initialize config with the 1st object to be printed at this layer.

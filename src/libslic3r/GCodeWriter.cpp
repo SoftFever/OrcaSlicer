@@ -334,7 +334,9 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
-    w.emit_f(this->config.travel_speed.value * 60.0);
+    auto speed = m_is_first_layer
+        ? this->config.get_abs_value("initial_layer_travel_speed") : this->config.travel_speed.value;
+    w.emit_f(speed * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -353,6 +355,8 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         used for unlift. */
         // BBS
     Vec3d dest_point = point;
+    auto travel_speed =
+        m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed") : this->config.travel_speed.value;
     //BBS: a z_hop need to be handle when travel
     if (std::abs(m_to_lift) > EPSILON) {
         assert(std::abs(m_lifted) < EPSILON);
@@ -372,6 +376,9 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         Vec3d target = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
         Vec3d delta = target - source;
         Vec2d delta_no_z = { delta(0), delta(1) };
+
+
+
         //BBS: don'need slope travel because we don't know where is the source position the first time
         //BBS: Also don't need to do slope move or spiral lift if x-y distance is absolute zero
         if (this->is_current_position_clear() && delta(2) > 0 && delta_no_z.norm() != 0.0f) {
@@ -392,7 +399,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
-                w0.emit_f(this->config.travel_speed.value * 60.0);
+                w0.emit_f(travel_speed * 60.0);
                 //BBS
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 slop_move = w0.string();
@@ -404,13 +411,13 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             GCodeG1Formatter w0;
             if (this->is_current_position_clear()) {
                 w0.emit_xyz(target);
-                w0.emit_f(this->config.travel_speed.value * 60.0);
+                w0.emit_f(travel_speed * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string();
             }
             else {
                 w0.emit_xy(Vec2d(target.x(), target.y()));
-                w0.emit_f(this->config.travel_speed.value * 60.0);
+                w0.emit_f(travel_speed * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string() + _travel_to_z(target.z(), comment);
             }
@@ -444,7 +451,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
 
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
-    w.emit_f(this->config.travel_speed.value * 60.0);
+    w.emit_f(travel_speed * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -474,8 +481,10 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     m_pos(2) = z;
 
     double speed = this->config.travel_speed_z.value;
-    if (speed == 0.)
-        speed = this->config.travel_speed.value;
+    if (speed == 0.) {
+        speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
+                                 : this->config.travel_speed.value;
+    }
     
     GCodeG1Formatter w;
     w.emit_z(z);
@@ -490,8 +499,10 @@ std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, c
     m_pos(2) = z;
 
     double speed = this->config.travel_speed_z.value;
-    if (speed == 0.)
-        speed = this->config.travel_speed.value;
+    if (speed == 0.) {
+        speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
+                                 : this->config.travel_speed.value;
+    }
     
     std::string output = "G17\n";
     GCodeG2G3Formatter w(true);

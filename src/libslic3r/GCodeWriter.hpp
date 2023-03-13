@@ -25,7 +25,7 @@ public:
         m_lifted(0),
         m_to_lift(0),
         m_to_lift_type(LiftType::NormalLift),
-        m_current_speed(3600)
+        m_current_speed(3600), m_is_first_layer(true)
         {}
     Extruder*            extruder()             { return m_extruder; }
     const Extruder*      extruder()     const   { return m_extruder; }
@@ -98,6 +98,7 @@ public:
     //SoftFever
     void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
     const bool is_bbl_printers() const {return m_is_bbl_printers;}
+    void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
 
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
@@ -138,6 +139,7 @@ private:
     //SoftFever
     bool            m_is_bbl_printers = false;
     double          m_current_speed;
+    bool            m_is_first_layer = true;
     
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
