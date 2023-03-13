@@ -146,6 +146,8 @@ public:
 
     File const &GetFile(size_t index);
 
+    File const &GetFile(size_t index, bool &select);
+
     enum Status {
         Initializing,
         Connecting, 
@@ -169,6 +171,8 @@ public:
 
 private:
     void BuildGroups();
+
+    void UpdateGroupSelect();
 
     void DeleteFilesContinue();
 
@@ -266,6 +270,7 @@ protected:
     FileList m_file_list2;
     std::vector<size_t> m_group_year;
     std::vector<size_t> m_group_month;
+    std::vector<int> m_group_flags;
 
 private:
     size_t m_select_count = 0;
