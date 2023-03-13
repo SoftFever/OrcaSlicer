@@ -963,11 +963,11 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_NONE_ANY_ROAD;
     }
 
-    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 18);
-    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 18);
-    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 18);
-    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 18);
-    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 18);
+    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 20);
+    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 20);
+    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 20);
+    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 20);
+    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 20);
 
     create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
