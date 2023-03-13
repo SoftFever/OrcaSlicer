@@ -1920,8 +1920,9 @@ void GUI_App::init_app_config()
             auto older_data_dir = data_dir_path.parent_path() / "BambuStudio-SoftFever";
             if(boost::filesystem::exists(older_data_dir)){
                 copy_directory_recursively(older_data_dir,data_dir_path);
-                boost::filesystem::rename(data_dir_path / "BambuStudio.conf", data_dir_path / "OrcaSlicer.conf");
-                boost::filesystem::rename(data_dir_path / "BambuStudio.conf.bak", data_dir_path / "OrcaSlicer.conf.bak");
+                boost::system::error_code ec;
+                boost::filesystem::rename(data_dir_path / "BambuStudio.conf", data_dir_path / "OrcaSlicer.conf", ec);
+                boost::filesystem::rename(data_dir_path / "BambuStudio.conf.bak", data_dir_path / "OrcaSlicer.conf.bak", ec);
             }
             else
                 boost::filesystem::create_directory(data_dir_path);
