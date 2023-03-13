@@ -960,14 +960,14 @@ void PerimeterGenerator::process_classic()
             // TODO: add test for perimeter order
             bool is_outer_wall_first =
                 this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-                this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
-                this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
+                this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
-                 this->object_config->brim_type == BrimType::btOuterOnly &&
-                 this->object_config->brim_width.value > 0))
+                    this->object_config->brim_type == BrimType::btOuterOnly &&
+                    this->object_config->brim_width.value > 0))
                 entities.reverse();
+            // SoftFever: sandwich mode 
             else if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill)
                 if (entities.entities.size() > 1){
                     int              last_outer=0;
@@ -981,6 +981,7 @@ void PerimeterGenerator::process_classic()
             // append perimeters for this slice as a collection
             if (! entities.empty())
                 this->loops->append(entities);
+
         } // for each loop of an island
 
         // fill gaps
@@ -1320,7 +1321,8 @@ void PerimeterGenerator::process_arachne()
                 }
             }
         }
-        // BBS. adjust wall generate seq
+
+        
         if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill)
             if (ordered_extrusions.size() > 1) {
                 int last_outer = 0;
@@ -1332,21 +1334,6 @@ void PerimeterGenerator::process_arachne()
                     }
             }
 
-        
-        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
-            if (ordered_extrusions.size() > 1) {
-                std::vector<int> extPs;
-                for (int i = 0; i < ordered_extrusions.size(); ++i) {
-                    if (ordered_extrusions[i].extrusion->inset_idx == 0)
-                        extPs.push_back(i);
-                }
-                for (int i = 0; i < extPs.size(); ++i) {
-                    if (extPs[i] == 0 || (i > 0 && extPs[i] - 1 == extPs[i - 1]))
-                        continue;
-                    std::swap(ordered_extrusions[extPs[i]], ordered_extrusions[extPs[i] - 1]);
-                }
-            }
-        }
         
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions); !extrusion_coll.empty())
             this->loops->append(extrusion_coll);
