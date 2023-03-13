@@ -973,6 +973,20 @@ static void generic_exception_handle()
 //#endif
 }
 
+static vector<string> split_str(const string& src, const string& separator)
+{
+    size_t pos;
+    size_t start_pos = 0;
+    vector<string> result_str;
+    while ((pos = src.find(separator, start_pos)) != string::npos)
+    {
+        result_str.emplace_back(src.substr(start_pos, pos - start_pos));
+        start_pos = pos + separator.size();
+    }
+    result_str.emplace_back(src.substr(start_pos, src.size() - pos - separator.size()));
+    return result_str;
+}
+
 void GUI_App::post_init()
 {
     assert(initialized());
@@ -981,25 +995,47 @@ void GUI_App::post_init()
 
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
+
+
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
             %this->init_params->input_files.size() %this->init_params->input_gcode;
-        switch_to_3d = true;
-        if (this->init_params->input_gcode) {
-            mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-            plater_->select_view_3D("3D");
-            this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+
+        
+
+        if (this->init_params->input_files.size() == 1 &&
+            boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
+            auto input_str_arr = split_str(this->init_params->input_files.front(), "bambustudio://open/?file=");
+
+            std::string download_origin_url;
+            for (auto input_str:input_str_arr) {
+                if (!input_str.empty()) download_origin_url = input_str;
+            }
+
+            std::string download_file_url = url_decode(download_origin_url);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
+            if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
+                request_model_download(download_origin_url);
+            }
         }
         else {
-            mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-            plater_->select_view_3D("3D");
-            const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
-            if (!res.empty()) {
-                if (this->init_params->input_files.size() == 1) {
-                    // Update application titlebar when opening a project file
-                    const std::string& filename = this->init_params->input_files.front();
-                    //BBS: remove amf logic as project
-                    if (boost::algorithm::iends_with(filename, ".3mf"))
-                        this->plater()->set_project_filename(from_u8(filename));
+            switch_to_3d = true;
+            if (this->init_params->input_gcode) {
+                mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+                plater_->select_view_3D("3D");
+                this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+            }
+            else {
+                mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+                plater_->select_view_3D("3D");
+                const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
+                if (!res.empty()) {
+                    if (this->init_params->input_files.size() == 1) {
+                        // Update application titlebar when opening a project file
+                        const std::string& filename = this->init_params->input_files.front();
+                        //BBS: remove amf logic as project
+                        if (boost::algorithm::iends_with(filename, ".3mf"))
+                            this->plater()->set_project_filename(from_u8(filename));
+                    }
                 }
             }
         }
@@ -3451,22 +3487,6 @@ std::string GUI_App::handle_web_request(std::string cmd)
 {
     try {
         //BBS use nlohmann json format
-        json j = json::parse(cmd);
-
-        std::string web_cmd = j["command"].get<std::string>();
-
-        if (web_cmd == "request_model_download") {
-            std::string download_url = "";
-            if (j["data"].contains("download_url"))
-                download_url = j["data"]["download_url"].get<std::string>();
-
-            std::string filename = "";
-            if (j["data"].contains("filename"))
-                download_url = j["data"]["filename"].get<std::string>();
-
-            this->request_model_download(download_url, filename);
-        }
-
         std::stringstream ss(cmd), oss;
         pt::ptree root, response;
         pt::read_json(ss, root);
@@ -3646,12 +3666,10 @@ void GUI_App::handle_script_message(std::string msg)
     }
 }
 
-void GUI_App::request_model_download(std::string url, std::string filename)
+void GUI_App::request_model_download(std::string url)
 {
-    if (!check_login()) return;
-
     if (plater_) {
-        plater_->request_model_download();
+        plater_->request_model_download(url);
     }
 }
 
@@ -5523,25 +5541,16 @@ void GUI_App::open_publish_page_dialog()
     wxLaunchDefaultBrowser(link_url);
 }
 
-std::string GUI_App::url_encode(const std::string& value) {
-    std::ostringstream escaped;
-    escaped.fill('0');
-    escaped << std::hex;
-    for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
-        std::string::value_type c = (*i);
+char GUI_App::from_hex(char ch) {
+    return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
+}
 
-        // Keep alphanumeric and other accepted characters intact
-        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-            escaped << c;
-            continue;
-        }
+std::string GUI_App::url_decode(std::string value) {
+    return Http::url_decode(value);
+}
 
-        // Any other characters are percent-encoded
-        escaped << std::uppercase;
-        escaped << '%' << std::setw(2) << int((unsigned char)c);
-        escaped << std::nouppercase;
-    }
-    return escaped.str();
+std::string GUI_App::url_encode(std::string value) {
+    return Http::url_encode(value);
 }
 
 void GUI_App::remove_mall_system_dialog()

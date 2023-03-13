@@ -402,7 +402,7 @@ public:
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
     void            handle_script_message(std::string msg);
-    void            request_model_download(std::string url, std::string filename);
+    void            request_model_download(std::string url);
     void            download_project(std::string project_id);
     void            request_project_download(std::string project_id);
     void            request_open_project(std::string project_id);
@@ -519,12 +519,15 @@ public:
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();
-    std::string     url_encode(const std::string& value);
     void            open_publish_page_dialog();
     void            remove_mall_system_dialog();
     void            run_script(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
+
+    char            from_hex(char ch);
+    std::string     url_encode(std::string value);
+    std::string     url_decode(std::string value);
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };

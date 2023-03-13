@@ -85,9 +85,6 @@ public:
     void OnScriptMessage(wxWebViewEvent& evt);
     void RunScript(std::string content);
 
-    char from_hex(char ch);
-    std::string url_decode(string text);
-    std::string url_encode(const std::string& value);
     std::map<std::string, std::vector<json>> Reload(wxString aux_path);
     std::string formatBytes(unsigned long bytes);
     wxString to_base64(std::string path);

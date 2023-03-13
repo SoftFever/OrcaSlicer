@@ -170,7 +170,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
             wxString accessory_path =  j["accessory_path"];
 
             if (!accessory_path.empty()) {
-                std::string decode_path = url_decode(accessory_path.ToStdString());
+                std::string decode_path = wxGetApp().url_decode(accessory_path.ToStdString());
                 fs::path path(decode_path);
 
                 if (fs::exists(path)) {
@@ -350,36 +350,6 @@ wxString ProjectPanel::to_base64(std::string file_path)
 void ProjectPanel::RunScript(std::string content)
 {
     WebView::RunScript(m_browser, content);
-}
-
-char ProjectPanel::from_hex(char ch) {
-    return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
-}
-
-std::string ProjectPanel::url_decode(string text) {
-    char h;
-    ostringstream escaped;
-    escaped.fill('0');
-
-    for (auto i = text.begin(), n = text.end(); i != n; ++i) {
-        string::value_type c = (*i);
-
-        if (c == '%') {
-            if (i[1] && i[2]) {
-                h = from_hex(i[1]) << 4 | from_hex(i[2]);
-                escaped << h;
-                i += 2;
-            }
-        }
-        else if (c == '+') {
-            escaped << ' ';
-        }
-        else {
-            escaped << c;
-        }
-    }
-
-    return escaped.str();
 }
 
 bool ProjectPanel::Show(bool show) 
