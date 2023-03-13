@@ -2244,7 +2244,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 if (SQUARE_SUPPORT) {
                     // simplify support contours
                     ExPolygons base_areas_simplified;
-                    for (auto &area : base_areas) { area.simplify(scale_(line_width / 2), &base_areas_simplified, SimplifyMethodDP); }
+                    for (auto &area : base_areas) { area.simplify(scale_(line_width / 2), &base_areas_simplified); }
                     base_areas = std::move(base_areas_simplified);
                 }
                 //Subtract support floors. We can only compute floor_areas here instead of with roof_areas,
@@ -2337,7 +2337,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         {
                             Polygon rev_hole = hole;
                             rev_hole.make_counter_clockwise();
-                            ExPolygons ex_hole = to_expolygons(ExPolygon(rev_hole));
+                            ExPolygons ex_hole;
+                            ex_hole.emplace_back(std::move(ExPolygon(rev_hole)));
                             for (auto& other_area : base_areas)
                                 //if (&other_area != &base_area)
                                     ex_hole = std::move(diff_ex(ex_hole, other_area));

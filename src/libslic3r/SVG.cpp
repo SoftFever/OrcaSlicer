@@ -88,10 +88,8 @@ void SVG::draw(const ExPolygon &expolygon, std::string fill, const float fill_op
     this->fill = fill;
     
     std::string d;
-    Polygons pp = expolygon;
-    for (Polygons::const_iterator p = pp.begin(); p != pp.end(); ++p) {
-        d += this->get_path_d(*p, true) + " ";
-    }
+    for (const Polygon &p : to_polygons(expolygon))
+        d += this->get_path_d(p, true) + " ";
     this->path(d, true, 0, fill_opacity);
 }
 
@@ -392,7 +390,7 @@ void SVG::export_expolygons(const char *path, const std::vector<std::pair<Slic3r
     for (const auto &exp_with_attr : expolygons_with_attributes)
     	if (exp_with_attr.second.radius_points > 0)
 			for (const ExPolygon &expoly : exp_with_attr.first)
-    			svg.draw((Points)expoly, exp_with_attr.second.color_points, exp_with_attr.second.radius_points);
+    			svg.draw(to_points(expoly), exp_with_attr.second.color_points, exp_with_attr.second.radius_points);
 
     // Export legend.
     // 1st row

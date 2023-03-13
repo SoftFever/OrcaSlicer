@@ -2,7 +2,6 @@
 #include "Polyline.hpp"
 #include "Exception.hpp"
 #include "ExPolygon.hpp"
-#include "ExPolygonCollection.hpp"
 #include "Line.hpp"
 #include "Polygon.hpp"
 #include <iostream>

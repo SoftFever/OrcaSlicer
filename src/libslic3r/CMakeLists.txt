@@ -53,8 +53,6 @@ set(lisbslic3r_sources
     enum_bitmask.hpp
     ExPolygon.cpp
     ExPolygon.hpp
-    ExPolygonCollection.cpp
-    ExPolygonCollection.hpp
     Extruder.cpp
     Extruder.hpp
     ExtrusionEntity.cpp

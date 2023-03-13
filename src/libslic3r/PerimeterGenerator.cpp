@@ -722,7 +722,7 @@ void PerimeterGenerator::process_classic()
                             float(min_width / 2.));
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
                         for (ExPolygon &ex : expp)
-                            ex.medial_axis(ext_perimeter_width + ext_perimeter_spacing2, min_width, &thin_walls);
+                            ex.medial_axis(min_width, ext_perimeter_width + ext_perimeter_spacing2, &thin_walls);
                     } else {
                         coord_t ext_perimeter_smaller_width = this->smaller_ext_perimeter_flow.scaled_width();
                         for (const ExPolygon& expolygon : last) {
@@ -1004,7 +1004,7 @@ void PerimeterGenerator::process_classic()
             for (ExPolygon& ex : gaps_ex) {
                 //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
                 ex.douglas_peucker(surface_simplify_resolution);
-                ex.medial_axis(max, min, &polylines);
+                ex.medial_axis(min, max, &polylines);
             }
 
 #ifdef GAPS_OF_PERIMETER_DEBUG_TO_SVG

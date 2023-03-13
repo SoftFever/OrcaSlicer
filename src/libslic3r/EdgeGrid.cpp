@@ -136,11 +136,6 @@ void EdgeGrid::Grid::create(const ExPolygons &expolygons, coord_t resolution)
 	create_from_m_contours(resolution);
 }
 
-void EdgeGrid::Grid::create(const ExPolygonCollection &expolygons, coord_t resolution)
-{
-	create(expolygons.expolygons, resolution);
-}
-
 // m_contours has been initialized. Now fill in the edge grid.
 void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 {

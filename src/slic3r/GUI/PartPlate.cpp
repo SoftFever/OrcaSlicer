@@ -3977,7 +3977,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 		{
 			// outarea for large object
 			arrange_polygon.bed_idx = m_plate_list.size();
-			BoundingBox apbox(arrange_polygon.poly);
+			BoundingBox apbox = get_extents(arrange_polygon.poly);
 			auto        apbox_size = apbox.size();
 
 			//arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());

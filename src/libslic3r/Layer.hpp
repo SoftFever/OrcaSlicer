@@ -5,9 +5,11 @@
 #include "Flow.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
-#include "ExPolygonCollection.hpp"
 
 namespace Slic3r {
+
+class ExPolygon;
+using ExPolygons = std::vector<ExPolygon>;
 class Layer;
 using LayerPtrs = std::vector<Layer*>;
 class LayerRegion;
@@ -226,7 +228,7 @@ class SupportLayer : public Layer
 public:
     // Polygons covered by the supports: base, interface and contact areas.
     // Used to suppress retraction if moving for a support extrusion over these support_islands.
-    ExPolygonCollection         support_islands;
+    ExPolygons                  support_islands;
     // Extrusion paths for the support base and for the support interface and contacts.
     ExtrusionEntityCollection   support_fills;
     SupportInnerType          support_type = stInnerNormal;

@@ -2874,7 +2874,7 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
         ExPolygon polygon;
 
         polygon = support_layer_json[JSON_SUPPORT_LAYER_ISLANDS][islands_index];
-        support_layer.support_islands.expolygons.push_back(std::move(polygon));
+        support_layer.support_islands.push_back(std::move(polygon));
     }
 
     //support_fills
@@ -3009,7 +3009,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                         support_layer_json[JSON_SUPPORT_LAYER_TYPE] = support_layer->support_type;
 
                         //support_islands
-                        for (const ExPolygon& support_island : support_layer->support_islands.expolygons) {
+                        for (const ExPolygon& support_island : support_layer->support_islands) {
                             json support_island_json = support_island;
                             support_islands_json.push_back(std::move(support_island_json));
                         }

@@ -179,7 +179,6 @@ public:
     Vector vector() const { return this->b - this->a; }
     Vector normal() const { return Vector((this->b(1) - this->a(1)), -(this->b(0) - this->a(0))); }
     bool   intersection(const Line& line, Point* intersection) const;
-    double ccw(const Point& point) const { return point.ccw(*this); }
     // Clip a line with a bounding box. Returns false if the line is completely outside of the bounding box.
 	bool   clip_with_bbox(const BoundingBox &bbox);
     // Extend the line from both sides by an offset.
@@ -238,6 +237,7 @@ public:
     static const constexpr int Dim = 2;
     using Scalar = Vec2d::Scalar;
 };
+using Linesf = std::vector<Linef>;
 
 class Linef3
 {
