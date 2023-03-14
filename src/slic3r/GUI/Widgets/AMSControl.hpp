@@ -565,6 +565,9 @@ protected:
 
     wxHyperlinkCtrl *m_hyperlink = {nullptr};
     AmsHumidityTipPopup m_Humidity_tip_popup;
+
+    std::string m_last_ams_id;
+    std::string m_last_tray_id;
 public:
     std::string GetCurentAms();
     std::string GetCurrentCan(std::string amsid);

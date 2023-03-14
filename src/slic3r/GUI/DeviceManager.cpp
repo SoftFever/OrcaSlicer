@@ -556,9 +556,19 @@ AmsTray *MachineObject::get_curr_tray()
     Ams* curr_ams = get_curr_Ams();
     if (!curr_ams) return nullptr;
 
-    auto it = curr_ams->trayList.find(m_tray_now);
-    if (it != curr_ams->trayList.end())
-        return it->second;
+    try {
+        int tray_index = atoi(m_tray_now.c_str());
+        int ams_index = atoi(curr_ams->id.c_str());
+
+        std::string tray_now_index = std::to_string(tray_index - ams_index * 4);
+        auto it = curr_ams->trayList.find(tray_now_index);
+        if (it != curr_ams->trayList.end())
+            return it->second;
+    }
+    catch (...) {
+        ;
+    }
+
     return nullptr;
 }
 

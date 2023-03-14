@@ -628,10 +628,10 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
         auto pos  = evt.GetPosition();
         if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND ||
             m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
-            auto left   = FromDIP(20);
-            auto top    = (size.y - FromDIP(10) - m_bitmap_editable_light.GetBmpSize().y);
-            auto right  = size.x - FromDIP(20);
-            auto bottom = size.y - FromDIP(10);
+            auto left = FromDIP(10);
+            auto top = (size.y - FromDIP(15) - m_bitmap_editable_light.GetBmpSize().y);
+            auto right = size.x - FromDIP(10);;
+            auto bottom = size.y - FromDIP(15);
 
             if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
                 if (m_selected) {
@@ -2385,15 +2385,15 @@ void AMSControl::CreateAms()
 
 void AMSControl::Reset() 
 {
-    auto caninfo0_0 = Caninfo{"def_can_0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"def_can_1", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"def_can_2", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"def_can_3", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_0 = Caninfo{"0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_1 = Caninfo{"1", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"2", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_3 = Caninfo{"3", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
 
-    AMSinfo ams1 = AMSinfo{"def_ams_0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams2 = AMSinfo{"def_ams_1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams3 = AMSinfo{"def_ams_2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams4 = AMSinfo{"def_ams_3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
 
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
     std::vector<AMSinfo>::iterator it;
@@ -2550,8 +2550,10 @@ void AMSControl::AddAms(AMSinfo info, bool refresh)
 void AMSControl::SwitchAms(std::string ams_id)
 {
     if (ams_id != std::to_string(VIRTUAL_TRAY_ID)) {
-        m_current_show_ams = ams_id;
-
+        if (m_current_show_ams != ams_id) {
+            m_current_show_ams = ams_id;
+            m_extruder->OnAmsLoading(false);
+        }
     }
 
     for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
@@ -2582,14 +2584,11 @@ void AMSControl::SwitchAms(std::string ams_id)
         if (cans->amsCans->m_info.ams_id == ams_id) { m_simplebook_cans->SetSelection(cans->amsCans->m_selection); }
     }
 
-
     m_current_ams = ams_id;
 
 
-   SetAmsStep(m_current_show_ams, "-1", AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-
      // update extruder
-    m_extruder->OnAmsLoading(false);
+    //m_extruder->OnAmsLoading(false);
     for (auto i = 0; i < m_ams_info.size(); i++) {
         if (m_ams_info[i].ams_id == m_current_ams) {
             switch (m_ams_info[i].current_step) {
@@ -2736,6 +2735,15 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (notfound) return;
     if (cans == nullptr) return;
 
+    if (!ams_id.empty() && !canid.empty() && (ams_id != m_last_ams_id || m_last_tray_id != canid)) {
+        SetAmsStep(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    }
+
+
+    m_last_ams_id = ams_id;
+    m_last_tray_id = canid;
+
+
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         m_extruder->OnAmsLoading(false);
@@ -2749,14 +2757,16 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
-        if (m_current_show_ams == ams_id) {m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));}
+        if (m_current_show_ams == ams_id) {
+            m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
+        } 
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
-        if (m_current_show_ams == ams_id) {m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));}
+        m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
     }
 
     for (auto i = 0; i < m_ams_info.size(); i++) {
