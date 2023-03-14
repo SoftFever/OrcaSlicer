@@ -802,7 +802,8 @@ static std::vector<std::string> s_Preset_printer_options {
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types",
     //SoftFever
-    "host_type", "print_host", "printhost_apikey", 
+    "host_type", "print_host", "printhost_apikey",
+    "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
     "z_lift_type", "thumbnails",
@@ -1697,6 +1698,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
     // SoftFever: ignore print connection info from project
     cfg.erase("print_host");
+    cfg.erase("print_host_webui");
     cfg.erase("printhost_apikey");
     cfg.erase("printhost_cafile");
     const auto        &keys = cfg.keys();
@@ -2633,6 +2635,7 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "printer_technology",
     "host_type",
     "print_host",
+    "print_host_webui",
     "printhost_apikey",
     "printhost_cafile",
     "printhost_port",
