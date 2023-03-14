@@ -174,6 +174,17 @@ bool ExPolygon::overlaps(const ExPolygon &other) const
            other.contains(this->contour.points.front());
 }
 
+bool overlaps(const ExPolygons& expolys1, const ExPolygons& expolys2)
+{
+    for (const ExPolygon& expoly1 : expolys1) {
+        for (const ExPolygon& expoly2 : expolys2) {
+            if (expoly1.overlaps(expoly2))
+                return true;
+        }
+    }
+    return false;
+}
+
 void ExPolygon::simplify_p(double tolerance, Polygons* polygons) const
 {
     Polygons pp = this->simplify_p(tolerance);

@@ -460,9 +460,20 @@ void PrintObject::generate_support_material()
             m_print->throw_if_canceled();
         } else {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
+            m_print->set_status(50, L("Checking support necessity"));
+            typedef std::chrono::high_resolution_clock clock_;
+            typedef std::chrono::duration<double, std::ratio<1> > second_;
+            std::chrono::time_point<clock_> t0{ clock_::now() };
+
             SupportNecessaryType sntype = this->is_support_necessary();
+
+            double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
+            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(0)
+                << "is_support_necessary took " << (duration / 60) << " minutes and "
+                << std::setprecision(3)
+                << std::fmod(duration, 60.0) << " seconds." << std::endl;
+
             if (sntype != NoNeedSupp) {
-                m_print->set_status(50, L("Checking support necessity"));
                 if (sntype == SharpTail) {
                     std::string warning_message = format(L("It seems object %s has completely floating regions. Please re-orient the object or enable support generation."),
                                                          this->model_object()->name);
@@ -2655,7 +2666,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
 #else
     TreeSupport tree_support(*this, m_slicing_params);
     tree_support.support_type = SupportType::stTreeAuto; // need to set support type to fully utilize the power of feature detection
-    tree_support.detect_overhangs();
+    tree_support.detect_overhangs(true);
     this->clear_support_layers();
     if (tree_support.has_sharp_tails)
         return SharpTail;

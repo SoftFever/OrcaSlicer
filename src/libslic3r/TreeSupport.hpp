@@ -83,7 +83,7 @@ public:
      * \param layer The layer of interest
      * \return Polygons object
      */
-    const ExPolygons& get_avoidance(coordf_t radius, size_t layer_idx) const;
+    const ExPolygons& get_avoidance(coordf_t radius, size_t layer_idx, int recursions=0) const;
 
     Polygons get_contours(size_t layer_nr) const;
     Polygons get_contours_with_holes(size_t layer_nr) const;
@@ -94,11 +94,20 @@ private:
     /*!
      * \brief Convenience typedef for the keys to the caches
      */
-    using RadiusLayerPair = std::pair<coordf_t, size_t>;
-
+    struct RadiusLayerPair {
+        coordf_t radius;
+        size_t layer_nr;
+        int recursions;
+        
+    };
+    struct RadiusLayerPairEquality {
+        constexpr bool operator()(const RadiusLayerPair& _Left, const RadiusLayerPair& _Right) const {
+            return _Left.radius == _Right.radius && _Left.layer_nr == _Right.layer_nr;
+        }
+    };
     struct RadiusLayerPairHash {
         size_t operator()(const RadiusLayerPair& elem) const {
-            return std::hash<coord_t>()(elem.first) ^ std::hash<coord_t>()(elem.second * 7919);
+            return std::hash<coord_t>()(elem.radius) ^ std::hash<coord_t>()(elem.layer_nr * 7919);
         }
     };
 
@@ -168,8 +177,8 @@ public:
      * coconut: previously stl::unordered_map is used which seems problematic with tbb::parallel_for.
      * So we change to tbb::concurrent_unordered_map
      */
-    mutable tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_collision_cache;
-    mutable tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_avoidance_cache;
+    mutable tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash, RadiusLayerPairEquality> m_collision_cache;
+    mutable tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash, RadiusLayerPairEquality> m_avoidance_cache;
 
     friend TreeSupport;
 };
@@ -203,7 +212,7 @@ public:
      */
     void generate();
 
-    void detect_overhangs();
+    void detect_overhangs(bool detect_first_sharp_tail_only=false);
 
     enum NodeType {
         eCircle,
