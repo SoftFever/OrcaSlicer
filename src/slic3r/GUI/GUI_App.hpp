@@ -290,7 +290,9 @@ private:
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
     HttpServer       m_http_server;
-public:
+    bool             m_show_gcode_window{true};
+
+  public:
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
@@ -310,6 +312,10 @@ public:
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "OrcaSlicer" : "BambuStudio-gcodeviewer"; }
+    
+    // SoftFever
+    bool show_gcode_window() const { return m_show_gcode_window; }
+    void set_show_gcode_window(bool val) { m_show_gcode_window = val; } 
 
     // To be called after the GUI is fully built up.
     // Process command line parameters cached in this->init_params,

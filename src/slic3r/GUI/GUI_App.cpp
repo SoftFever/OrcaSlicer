@@ -1096,6 +1096,7 @@ void GUI_App::post_init()
     }
 #endif
 
+    m_show_gcode_window = app_config->get("show_gcode_window") == "true";
     if (m_networking_need_update) {
         //updating networking
         int ret = updating_bambu_networking();

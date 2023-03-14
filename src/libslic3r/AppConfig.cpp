@@ -175,6 +175,9 @@ void AppConfig::set_defaults()
         set_bool("show_hints", true);
 //#endif
 
+    if (get("show_gcode_window").empty())
+        set_bool("show_gcode_window", true);
+
 
 #ifdef _WIN32
 
