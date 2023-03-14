@@ -4,12 +4,15 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
+#include <wx/dcgraph.h>
 
 namespace Slic3r { namespace GUI {
-static bool show_flag;
+
+wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id) 
     : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    , m_color_picker_popup(ColorPickerPopup(this))
 {
     create();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -96,6 +99,7 @@ void AMSMaterialsSetting::create()
         });
 
     Bind(wxEVT_PAINT, &AMSMaterialsSetting::paintEvent, this);
+    Bind(EVT_SELECTED_COLOR, &AMSMaterialsSetting::on_picker_color, this);
      m_comboBox_filament->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
 }
 
@@ -141,17 +145,12 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_sizer_colour->Add(0, 0, 0, wxEXPAND, 0);
 
-    m_clrData = new wxColourData();
-    m_clrData->SetChooseFull(true);
-    m_clrData->SetChooseAlpha(false);
+    m_clr_picker = new ColorPicker(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_clr_picker->set_show_full(true);
+    m_clr_picker->SetBackgroundColour(*wxWHITE);
 
-    m_clr_picker = new Button(parent, wxEmptyString, wxEmptyString, wxBU_AUTODRAW);
-    m_clr_picker->SetCanFocus(false);
-    m_clr_picker->SetSize(FromDIP(50), FromDIP(25));
-    m_clr_picker->SetMinSize(wxSize(FromDIP(50), FromDIP(25)));
-    m_clr_picker->SetCornerRadius(FromDIP(6));
-    m_clr_picker->SetBorderColor(wxColour(172, 172, 172));
-    m_clr_picker->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_clr_picker, this);
+
+    m_clr_picker->Bind(wxEVT_LEFT_DOWN, &AMSMaterialsSetting::on_clr_picker, this);
     m_sizer_colour->Add(m_clr_picker, 0, 0, 0);
 
     wxBoxSizer* m_sizer_temperature = new wxBoxSizer(wxHORIZONTAL);
@@ -261,6 +260,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     auto sizer = new wxBoxSizer(wxVERTICAL);
     // title
     auto ratio_text = new wxStaticText(parent, wxID_ANY, _L("Factors of dynamic flow cali"));
+    ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     ratio_text->SetFont(Label::Head_14);
 
     auto kn_val_sizer = new wxFlexGridSizer(0, 2, 0, 0);
@@ -455,7 +455,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         long nozzle_temp_min_int, nozzle_temp_max_int;
         nozzle_temp_min.ToLong(&nozzle_temp_min_int);
         nozzle_temp_max.ToLong(&nozzle_temp_max_int);
-        wxColour color = m_clrData->GetColour();
+        wxColour color = m_clr_picker->m_colour;
         char col_buf[10];
         sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
         ams_filament_id = "";
@@ -529,15 +529,40 @@ void AMSMaterialsSetting::on_select_close(wxCommandEvent &event)
 
 void AMSMaterialsSetting::set_color(wxColour color)
 {
-    m_clrData->SetColour(color);
+    //m_clrData->SetColour(color);
+    m_clr_picker->set_color(color);
 }
 
-void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event) 
+void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
+{
+    unsigned int color_num  = event.GetInt();
+    set_color(wxColour(color_num>>16&0xFF, color_num>>8&0xFF, color_num&0xFF));
+}
+
+void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event) 
 {
     if(!m_is_third || obj->is_in_printing() || obj->can_resume())
         return;
-    auto clr_dialog = new wxColourDialog(this, m_clrData);
-    show_flag = true;
+
+
+    std::vector<wxColour> ams_colors;
+    for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ++ams_it) {
+        for (auto tray_id = ams_it->second->trayList.begin(); tray_id != ams_it->second->trayList.end(); ++tray_id) {
+            std::vector<wxColour>::iterator iter = find(ams_colors.begin(), ams_colors.end(), AmsTray::decode_color(tray_id->second->color));
+            if (iter == ams_colors.end()) {
+                ams_colors.push_back(AmsTray::decode_color(tray_id->second->color));
+            }
+        }
+    }
+
+    wxPoint img_pos = m_clr_picker->ClientToScreen(wxPoint(0, 0));
+    wxPoint popup_pos(img_pos.x + FromDIP(50), img_pos.y);
+    m_color_picker_popup.Position(popup_pos, wxSize(0, 0));
+    m_color_picker_popup.set_ams_colours(ams_colors);
+    m_color_picker_popup.set_def_colour(m_clr_picker->m_colour);
+    m_color_picker_popup.Popup();
+
+    /*auto clr_dialog = new wxColourDialog(this, m_clrData);
     if (clr_dialog->ShowModal() == wxID_OK) {
         m_clrData = &(clr_dialog->GetColourData());
         m_clr_picker->SetBackgroundColor(wxColour(
@@ -546,7 +571,7 @@ void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event)
             m_clrData->GetColour().Blue(),
             254
         ));
-    }
+    }*/
 }
 
 bool AMSMaterialsSetting::is_virtual_tray()
@@ -581,7 +606,7 @@ bool AMSMaterialsSetting::Show(bool show)
         m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
         m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
-        m_clr_picker->SetBackgroundColour(m_clr_picker->GetParent()->GetBackgroundColour());
+        //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
     }
     return DPIDialog::Show(show); 
 }
@@ -606,12 +631,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         ShowModal();
         return;
     } else {
-        m_clr_picker->SetBackgroundColor(wxColour(
+       /* m_clr_picker->set_color(wxColour(
             m_clrData->GetColour().Red(),
             m_clrData->GetColour().Green(),
             m_clrData->GetColour().Blue(),
             254
-        ));
+        ));*/
 
         if (!m_is_third) {
             if (obj && obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
@@ -799,5 +824,239 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }
+
+ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
+{
+    SetSize(wxSize(FromDIP(25), FromDIP(25)));
+    SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
+    SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
+
+    wxWindow::Create(parent, id, pos, size);
+    Bind(wxEVT_PAINT, &ColorPicker::paintEvent, this);
+}
+
+ColorPicker::~ColorPicker(){}
+
+void ColorPicker::set_color(wxColour col)
+{
+    m_colour = col;
+    Refresh();
+}
+
+void ColorPicker::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void ColorPicker::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void ColorPicker::doRender(wxDC& dc)
+{
+    wxSize     size = GetSize();
+
+    auto radius = m_show_full?size.x / 2:size.x / 2 - FromDIP(1);
+    if (m_selected) radius -= FromDIP(1);
+
+    dc.SetPen(wxPen(m_colour));
+    dc.SetBrush(wxBrush(m_colour));
+    dc.DrawCircle(size.x / 2, size.x / 2, radius);
+
+    if (m_selected) {
+        dc.SetPen(wxPen(m_colour));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawCircle(size.x / 2, size.x / 2, size.x / 2);
+    }
+
+    if (m_show_full) {
+        dc.SetPen(wxPen(wxColour(0x6B6B6B)));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawCircle(size.x / 2, size.x / 2, radius);
+    }
+}
+
+ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
+    :PopupWindow(parent, wxBORDER_NONE)
+{
+    m_def_colors.clear();
+    m_def_colors.push_back(wxColour(0xFFFFFF));
+    m_def_colors.push_back(wxColour(0xfff144));
+    m_def_colors.push_back(wxColour(0xDCF478));
+    m_def_colors.push_back(wxColour(0x0ACC38));
+    m_def_colors.push_back(wxColour(0x057748));
+    m_def_colors.push_back(wxColour(0x0d6284));
+    m_def_colors.push_back(wxColour(0x0EE2A0));
+    m_def_colors.push_back(wxColour(0x76D9F4));
+    m_def_colors.push_back(wxColour(0x46a8f9));
+    m_def_colors.push_back(wxColour(0x2850E0));
+    m_def_colors.push_back(wxColour(0x443089));
+    m_def_colors.push_back(wxColour(0xA03CF7));
+    m_def_colors.push_back(wxColour(0xF330F9));
+    m_def_colors.push_back(wxColour(0xD4B1DD));
+    m_def_colors.push_back(wxColour(0xf95d73));
+    m_def_colors.push_back(wxColour(0xf72323));
+    m_def_colors.push_back(wxColour(0x7c4b00));
+    m_def_colors.push_back(wxColour(0xf98c36));
+    m_def_colors.push_back(wxColour(0xfcecd6));
+    m_def_colors.push_back(wxColour(0xD3C5A3));
+    m_def_colors.push_back(wxColour(0xAF7933));
+    m_def_colors.push_back(wxColour(0x898989));
+    m_def_colors.push_back(wxColour(0xBCBCBC));
+    m_def_colors.push_back(wxColour(0x161616));
+
+
+    SetBackgroundColour(wxColour(*wxWHITE));
+
+    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* m_sizer_box = new wxBoxSizer(wxVERTICAL);
+
+    m_def_color_box = new StaticBox(this);
+    wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
+    auto m_title_ams = new wxStaticText(m_def_color_box, wxID_ANY, _L("AMS"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_ams->SetFont(::Label::Body_14);
+    m_title_ams->SetBackgroundColour(GetParent()->GetBackgroundColour());
+    m_sizer_ams->Add(m_title_ams, 0, wxALL, 5);
+    auto ams_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    ams_line->SetBackgroundColour(wxColour(0xCECECE));
+    ams_line->SetMinSize(wxSize(-1, 1));
+    ams_line->SetMaxSize(wxSize(-1, 1));
+    m_sizer_ams->Add(ams_line, 1, wxALIGN_CENTER, 0);
+
+
+    m_def_color_box->SetCornerRadius(FromDIP(10));
+    m_def_color_box->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal)));
+    m_def_color_box->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal)));
+
+    //ams
+    m_ams_fg_sizer = new wxFlexGridSizer(0, 8, 0, 0);
+    m_ams_fg_sizer->SetFlexibleDirection(wxBOTH);
+    m_ams_fg_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+    //other
+    wxFlexGridSizer* fg_sizer;
+    fg_sizer = new wxFlexGridSizer(0, 8, 0, 0);
+    fg_sizer->SetFlexibleDirection(wxBOTH);
+    fg_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+
+    for (wxColour col : m_def_colors) {
+        auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        cp->set_color(col);
+        cp->set_selected(false);
+        m_color_pickers.push_back(cp);
+        fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
+        cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
+            set_def_colour(cp->m_colour);
+        });
+    }
+
+    wxBoxSizer* m_sizer_other = new wxBoxSizer(wxHORIZONTAL);
+    auto m_title_other = new wxStaticText(m_def_color_box, wxID_ANY, _L("Other color"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_other->SetFont(::Label::Body_14);
+    m_title_other->SetBackgroundColour(GetParent()->GetBackgroundColour());
+    m_sizer_other->Add(m_title_other, 0, wxALL, 5);
+    auto other_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    other_line->SetMinSize(wxSize(-1, 1));
+    other_line->SetMaxSize(wxSize(-1, 1));
+    other_line->SetBackgroundColour(wxColour(0xCECECE));
+    m_sizer_other->Add(other_line, 1, wxALIGN_CENTER, 0);
+
+    m_sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_sizer_box->Add(m_sizer_ams, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(m_ams_fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(m_sizer_other, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+
+    m_def_color_box->SetSizer(m_sizer_box);
+    m_def_color_box->Layout();
+    m_def_color_box->Fit();
+
+    m_sizer_main->Add(m_def_color_box, 0, wxALL | wxEXPAND, 10);
+    SetSizer(m_sizer_main);
+    Layout();
+    Fit();
+
+    Bind(wxEVT_PAINT, &ColorPickerPopup::paintEvent, this);
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+
+void ColorPickerPopup::set_ams_colours(std::vector<wxColour> ams)
+{
+    m_ams_colors = ams;
+
+    for (wxColour col : m_ams_colors) {
+        auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        cp->set_color(col);
+        cp->set_selected(false);
+        m_color_pickers.push_back(cp);
+        m_ams_fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
+        cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
+            set_def_colour(cp->m_colour);
+
+            wxCommandEvent evt(EVT_SELECTED_COLOR);
+            unsigned long g_col = ((cp->m_colour.Red() & 0xff) << 16) + ((cp->m_colour.Green() & 0xff) << 8) + (cp->m_colour.Blue() & 0xff);
+            evt.SetInt(g_col);
+            wxPostEvent(GetParent(), evt);
+        });
+    }
+    m_ams_fg_sizer->Layout();
+    Layout();
+    Fit();
+}
+
+void ColorPickerPopup::set_def_colour(wxColour col)
+{
+    m_def_col = col;
+    bool set_already = false;
+
+    for (ColorPicker* cp : m_color_pickers) {
+
+        if (cp->m_selected) {
+            cp->set_selected(false);
+        }
+
+        if (cp->m_colour == m_def_col && !set_already) {
+            cp->set_selected(true);
+            set_already = true;
+        }
+    }
+    Dismiss();
+}
+
+void ColorPickerPopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void ColorPickerPopup::OnDismiss() {}
+
+bool ColorPickerPopup::ProcessLeftDown(wxMouseEvent& event) {
+    return PopupWindow::ProcessLeftDown(event);
+}
 
 }} // namespace Slic3r::GUI

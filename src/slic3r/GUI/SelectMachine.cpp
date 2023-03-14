@@ -1354,7 +1354,7 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     text->SetFont(::Label::Body_13);
     text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
     text->Wrap(-1);
-    sizer_checkbox->Add(text, 0, wxALIGN_CENTER, FromDIP(5));
+    sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
 
     auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     sizer_checkbox->Add(img_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
@@ -1384,8 +1384,12 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
 
-    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent & event) {
-            ams_check->SetValue(ams_check->GetValue() ? false : true);
+    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
+        ams_check->SetValue(ams_check->GetValue() ? false : true);
+        });
+
+    checkbox->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
+        ams_check->SetValue(ams_check->GetValue() ? false : true);
         });
     return checkbox;
 }
@@ -1411,7 +1415,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     text->Wrap(-1);
     text->SetMinSize(wxSize(FromDIP(120), -1));
     text->SetMaxSize(wxSize(FromDIP(120), -1));
-    sizer_checkbox->Add(text, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
+    sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
 
     checkbox->SetSizer(sizer_checkbox);
     checkbox->Layout();
@@ -1432,6 +1436,18 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
         }
         e.Skip();
     });
+
+    checkbox->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent&) {
+        check->SetValue(check->GetValue() ? false : true);
+        AppConfig* config = wxGetApp().app_config;
+        if (config) {
+            if (check->GetValue())
+                config->set_str("print", param, "1");
+            else
+                config->set_str("print", param, "0");
+        }
+        });
+    
     text->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &) {
         check->SetValue(check->GetValue() ? false : true);
         AppConfig* config = wxGetApp().app_config;
