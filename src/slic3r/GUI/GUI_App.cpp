@@ -1132,6 +1132,34 @@ void GUI_App::post_init()
     }
 #endif
 
+    //BBS: check crash log
+    auto log_dir_path = boost::filesystem::path(data_dir()) / "log";
+    if (boost::filesystem::exists(log_dir_path))
+    {
+        boost::filesystem::directory_iterator end_iter;
+        for (boost::filesystem::directory_iterator iter(log_dir_path); iter != end_iter; ++iter)
+        {
+            std::string file_name = iter->path().stem().string();
+            if (boost::starts_with(file_name, "crash")) {
+                std::ifstream ifs(iter->path().string(), ios::in);
+                std::stringstream data;
+                data << ifs.rdbuf();
+                ifs.close();
+
+                NetworkAgent* agent = wxGetApp().getAgent();
+                json j;
+                j["time"] = file_name.substr(file_name.find("crash") + strlen("crash") + 1);
+                j["verion"] = std::string(SLIC3R_VERSION);
+                j["content"] = data.str();
+                if (agent) {
+                    agent->track_event("studio_crash", j.dump());
+                }
+                std::string new_file_name = file_name.insert(0, "_done_");
+                boost::filesystem::rename(iter->path(), iter->path().parent_path() / boost::filesystem::path(new_file_name + iter->path().extension().string()));
+            }
+        }
+    }
+
     if (m_networking_need_update) {
         //updating networking
         int ret = updating_bambu_networking();
@@ -1389,10 +1417,19 @@ static std::string decode(std::string const& extra, std::string const& path = {}
 int GUI_App::download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     int result = 0;
+    json j;
+    std::string err_msg;
+
     // get country_code
     AppConfig* app_config = wxGetApp().app_config;
-    if (!app_config)
+    if (!app_config) {
+        j["result"] = "failed";
+        j["error_msg"] = "app_config is nullptr";
+        if (m_agent) {
+            m_agent->track_event("networkplugin_download", j.dump());
+        }
         return -1;
+    }
 
     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: enter";
     m_networking_cancel_update = false;
@@ -1452,21 +1489,32 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
                 ;
             }
         }).on_error(
-            [&result](std::string body, std::string error, unsigned int status) {
+            [&result, &err_msg](std::string body, std::string error, unsigned int status) {
                 BOOST_LOG_TRIVIAL(error) << "[download_plugin 1] on_error: " << error<<", body = " << body;
+                err_msg += "[download_plugin 1] on_error: " + error + ", body = " + body;
                 result = -1;
         }).perform_sync();
 
     bool cancel = false;
     if (result < 0) {
+        j["result"] = "failed";
+        j["error_msg"] = err_msg;
+        if (m_agent) {
+            m_agent->track_event("networkplugin_download", j.dump());
+        }
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return result;
     }
 
 
     if (download_url.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
+        BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: no available plugin found for this app version: " << SLIC3R_VERSION;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
+        j["result"] = "failed";
+        j["error_msg"] = "[download_plugin 1]: no available plugin found for this app version: " + std::string(SLIC3R_VERSION);
+        if (m_agent) {
+            m_agent->track_event("networkplugin_download", j.dump());
+        }
         return -1;
     }
     else if (pro_fn) {
@@ -1475,6 +1523,11 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
 
     if (m_networking_cancel_update || cancel) {
         BOOST_LOG_TRIVIAL(info) << boost::format("[download_plugin 1]: %1%, cancelled by user") % __LINE__;
+        j["result"] = "failed";
+        j["error_msg"] = (boost::format("[download_plugin 1]: %1%, cancelled by user") % __LINE__).str();
+        if (m_agent) {
+            m_agent->track_event("networkplugin_download", j.dump());
+        }
         return -1;
     }
     BOOST_LOG_TRIVIAL(info) << "[download_plugin] get_url = " << download_url;
@@ -1483,7 +1536,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     Slic3r::Http http = Slic3r::Http::get(download_url);
     int reported_percent = 0;
     http.on_progress(
-        [this, &pro_fn, cancel_fn, &result, &reported_percent](Slic3r::Http::Progress progress, bool& cancel) {
+        [this, &pro_fn, cancel_fn, &result, &reported_percent, &err_msg](Slic3r::Http::Progress progress, bool& cancel) {
             int percent = 0;
             if (progress.dltotal != 0)
                 percent = progress.dlnow * 50 / progress.dltotal;
@@ -1498,8 +1551,10 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
                 if (cancel_fn())
                     cancel = true;
 
-            if (cancel)
+            if (cancel) {
+                err_msg += "[download_plugin] cancel";
                 result = -1;
+            }
         })
         .on_complete([&pro_fn, tmp_path, target_file_path](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] completed";
@@ -1511,13 +1566,19 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
             fs::rename(tmp_path, target_file_path);
             if (pro_fn) pro_fn(InstallStatusDownloadCompleted, 80, cancel);
             })
-        .on_error([&pro_fn, &result](std::string body, std::string error, unsigned int status) {
+        .on_error([&pro_fn, &result, &err_msg](std::string body, std::string error, unsigned int status) {
             bool cancel = false;
             if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
             BOOST_LOG_TRIVIAL(error) << "[download_plugin 2] on_error: " << error<<", body = " << body;
+            err_msg += "[download_plugin 2] on_error: " + error + ", body = " + body;
             result = -1;
         });
     http.perform_sync();
+    j["result"] = result < 0 ? "failed" : "success";
+    j["error_msg"] = err_msg;
+    if (m_agent) {
+        m_agent->track_event("networkplugin_download", j.dump());
+    }
     return result;
 }
 
@@ -2544,12 +2605,18 @@ bool GUI_App::on_init_inner()
         if (m_studio_active != curr_studio_active) {
             if (curr_studio_active) {
                 BOOST_LOG_TRIVIAL(info) << "studio is active, start to subscribe";
-                if (m_agent)
+                if (m_agent) {
+                    json j = json::object();
                     m_agent->start_subscribe("app");
+                    m_agent->track_event("mqtt_active", j.dump());
+                }
             } else {
                 BOOST_LOG_TRIVIAL(info) << "studio is inactive, stop to subscribe";
-                if (m_agent)
+                if (m_agent) {
+                    json j = json::object();
                     m_agent->stop_subscribe("app");
+                    m_agent->track_event("mqtt_inactive", j.dump());
+                }
             }
             m_studio_active = curr_studio_active;
         }
