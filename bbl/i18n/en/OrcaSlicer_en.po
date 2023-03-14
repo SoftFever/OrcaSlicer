@@ -56,13 +56,14 @@ msgid "Highlight overhang areas"
 msgstr "Highlight overhangs"
 
 msgid "Gap fill"
-msgstr ""
+msgstr "Gap fill"
+
 
 msgid "Perform"
 msgstr "Apply"
 
 msgid "Gap area"
-msgstr ""
+msgstr "Gap area"
 
 msgid "Tool type"
 msgstr "Tool type"
@@ -71,7 +72,7 @@ msgid "Smart fill angle"
 msgstr "Smart fill angle"
 
 msgid "On overhangs only"
-msgstr ""
+msgstr "On overhangs only"
 
 msgid "Auto support threshold angle: "
 msgstr "Auto support threshold angle: "
@@ -90,7 +91,7 @@ msgstr ""
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
-msgstr ""
+msgstr "Allows painting only on facets selected by: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Highlight faces according to overhang angle."
@@ -149,10 +150,10 @@ msgid "Height range"
 msgstr "Height range"
 
 msgid "Ctrl + Shift + Enter"
-msgstr ""
+msgstr "Ctrl + Shift + Enter"
 
 msgid "Toggle Wireframe"
-msgstr ""
+msgstr "Toggle Wireframe"
 
 msgid "Shortcut Key "
 msgstr "Shortcut Key "
@@ -255,10 +256,10 @@ msgid "Movement:"
 msgstr "Movement:"
 
 msgid "Movement"
-msgstr ""
+msgstr "Movement"
 
 msgid "Height"
-msgstr ""
+msgstr "Height"
 
 msgid "Keep upper part"
 msgstr "Keep upper part"
@@ -350,60 +351,62 @@ msgid "Perform Recognition"
 msgstr "Perform Recognition"
 
 msgid "Brush size"
-msgstr ""
+msgstr "Brush size"
 
 msgid "Brush shape"
-msgstr ""
+msgstr "Brush shape"
 
 msgid "Enforce seam"
-msgstr ""
+msgstr "Enforce seam"
 
 msgid "Block seam"
-msgstr ""
+msgstr "Block seam"
 
 msgid "Seam painting"
-msgstr ""
+msgstr "Seam painting"
 
 msgid "Remove selection"
-msgstr ""
+msgstr "Remove selection"
 
 msgid "Shift + Mouse move up or dowm"
-msgstr ""
+msgstr "Shift + Mouse move up or dowm"
 
 msgid "Rotate text"
-msgstr ""
+msgstr "Rotate text"
 
 msgid "Text shape"
-msgstr ""
+msgstr "Text shape"
 
 msgid "Font"
-msgstr ""
+msgstr "Font"
 
 msgid "Thickness"
-msgstr ""
+msgstr "Thickness"
 
 msgid "Input text"
-msgstr ""
+msgstr "Input text"
 
 msgid "Embeded"
-msgstr ""
+msgstr "Embeded"
 
 msgid "Text Gap"
-msgstr ""
+msgstr "Text Gap"
 
 msgid "Angle"
-msgstr ""
+msgstr "Angle"
 
 msgid ""
 "Embeded\n"
 "depth"
 msgstr ""
+"Embeded\n"
+"depth"
 
 msgid "Surface"
-msgstr ""
+msgstr "Surface"
 
 msgid "Horizontal text"
-msgstr ""
+msgstr "Horizontal text"
 
 msgid "Notice"
 msgstr "Notice"
@@ -688,16 +691,16 @@ msgid "Select settings"
 msgstr "Select settings"
 
 msgid "Hide"
-msgstr ""
+msgstr "Hide"
 
 msgid "Show"
-msgstr ""
+msgstr "Show"
 
 msgid "Delete the selected object"
 msgstr "Delete the selected object"
 
 msgid "Edit Text"
-msgstr ""
+msgstr "Edit Text"
 
 msgid "Load..."
 msgstr "Load..."
@@ -833,7 +836,7 @@ msgid "Add Primitive"
 msgstr "Add Primitive"
 
 msgid "Show Labels"
-msgstr ""
+msgstr "Show Labels"
 
 msgid "To objects"
 msgstr "To Objects"
@@ -896,13 +899,13 @@ msgid "Clone"
 msgstr "Clone"
 
 msgid "Simplify Model"
-msgstr ""
+msgstr "Simplify Model"
 
 msgid "Center"
-msgstr ""
+msgstr "Center"
 
 msgid "Edit Process Settings"
-msgstr ""
+msgstr "Edit Process Settings"
 
 msgid "Edit print parameters for a single object"
 msgstr "Edit print parameters for a single object"
@@ -995,6 +998,8 @@ msgid ""
 "Switch to per-object setting mode to edit process settings of selected "
 "objects."
 msgstr ""
+"Switch to per-object setting mode to edit process settings of selected "
+"objects."
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Deleting the last solid part is not allowed."
@@ -1137,55 +1142,55 @@ msgid "More"
 msgstr "More"
 
 msgid "Open Preferences."
-msgstr ""
+msgstr "Open Preferences."
 
 msgid "Open next tip."
-msgstr ""
+msgstr "Open next tip."
 
 msgid "Open Documentation in web browser."
-msgstr ""
+msgstr "Open Documentation in web browser."
 
 msgid "Custom G-code"
 msgstr "Custom G-code"
 
 msgid "Enter Custom G-code used on current layer:"
-msgstr ""
+msgstr "Enter Custom G-code used on current layer:"
 
 msgid "OK"
 msgstr "OK"
 
 msgid "Jump to layer"
-msgstr ""
+msgstr "Jump to layer"
 
 msgid "Please enter the layer number"
-msgstr ""
+msgstr "Please enter the layer number"
 
 msgid "Add Pause"
-msgstr ""
+msgstr "Add Pause"
 
 msgid "Add Custom G-code"
-msgstr ""
+msgstr "Add Custom G-code"
 
 msgid "Add Custom Template"
-msgstr ""
+msgstr "Add Custom Template"
 
 msgid "Jump to Layer"
-msgstr ""
+msgstr "Jump to Layer"
 
 msgid "Filament "
-msgstr ""
+msgstr "Filament "
 
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
 msgid "No printer"
 msgstr "No printer"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "?"
 msgstr "?"
@@ -1197,13 +1202,13 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "AMS not connected"
-msgstr ""
+msgstr "AMS not connected"
 
 msgid "Cali"
-msgstr ""
+msgstr "Cali"
 
 msgid "Calibration of extrusion"
-msgstr ""
+msgstr "Calibration of extrusion"
 
 msgid "Load Filament"
 msgstr "Load"
@@ -1212,16 +1217,16 @@ msgid "Unload Filament"
 msgstr "Unload"
 
 msgid "Ext Spool"
-msgstr ""
+msgstr "Ext Spool"
 
 msgid "Tips"
 msgstr "Tips"
 
 msgid "Guide"
-msgstr ""
+msgstr "Guide"
 
 msgid "Retry"
-msgstr ""
+msgstr "Retry"
 
 msgid "Calibrating AMS..."
 msgstr "Calibrating AMS..."
@@ -1236,7 +1241,7 @@ msgid "Cancel calibration"
 msgstr "Cancel calibration"
 
 msgid "Heat the nozzle"
-msgstr ""
+msgstr "Heat the nozzle"
 
 msgid "Cut filament"
 msgstr "Cut filament"
@@ -1245,16 +1250,16 @@ msgid "Pull back current filament"
 msgstr "Pull back the current filament"
 
 msgid "Push new filament into extruder"
-msgstr ""
+msgstr "Push new filament into extruder"
 
 msgid "Purge old filament"
 msgstr "Purge old filament"
 
 msgid "Feed new filament from external spool"
-msgstr ""
+msgstr "Feed new filament from external spool"
 
 msgid "Confirm whether the filament has been extruded"
-msgstr ""
+msgstr "Confirm whether the filament has been extruded"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1292,7 +1297,7 @@ msgstr ""
 "Arrange failed. Found some exceptions when processing object geometries."
 
 msgid "Arranging"
-msgstr ""
+msgstr "Arranging"
 
 msgid "Arranging canceled."
 msgstr "Arranging canceled."
@@ -1334,7 +1339,7 @@ msgid "Orienting..."
 msgstr "Orienting..."
 
 msgid "Orienting"
-msgstr ""
+msgstr "Orienting"
 
 msgid "Error! Unable to create thread!"
 msgstr "Error. Unable to create thread."
@@ -1367,7 +1372,7 @@ msgid "Unknown Failure"
 msgstr "Unknown Failure"
 
 msgid "Please check the printer network connection."
-msgstr ""
+msgstr "Please check the printer network connection."
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Abnormal print file data. Please slice again"
@@ -1404,10 +1409,10 @@ msgid "Sending print job through cloud service"
 msgstr "Sending print job through cloud service"
 
 msgid "Service Unavailable"
-msgstr ""
+msgstr "Service Unavailable"
 
 msgid "Unkown Error."
-msgstr ""
+msgstr "Unkown Error."
 
 msgid "Sending print configuration"
 msgstr "Sending print configuration"
@@ -1556,27 +1561,29 @@ msgid "About %s"
 msgstr "About %s"
 
 msgid "Orca Slicer "
-msgstr ""
+msgstr "Orca Slicer "
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
-msgstr ""
+msgstr "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 
 msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
-msgstr ""
+msgstr """BambuStudio is originally based on PrusaSlicer by PrusaResearch."
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
-msgstr ""
+msgstr "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 
 msgid ""
 "Slic3r was created by Alessandro Ranellucci with the help of many other "
 "contributors."
 msgstr ""
+"Slic3r was created by Alessandro Ranellucci with the help of many other "
+"contributors."
 
 msgid "Version"
 msgstr "Version"
 
 msgid "AMS Materials Setting"
-msgstr ""
+msgstr "AMS Materials Setting"
 
 msgid "Confirm"
 msgstr "Confirm"
@@ -1608,52 +1615,55 @@ msgid "SN"
 msgstr "SN"
 
 msgid "Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "Setting AMS slot information while printing is not supported"
 
 msgid "Factors of dynamic flow cali"
-msgstr ""
+msgstr "Factors of dynamic flow cali"
 
 msgid "Factor K"
-msgstr ""
+msgstr "Factor K"
 
 msgid "Factor N"
-msgstr ""
+msgstr "Factor N"
 
 msgid "Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "Setting Virtual slot information while printing is not supported"
 
 msgid "Please input a valid value (K in 0~0.5)"
-msgstr ""
+msgstr "Please input a valid value (K in 0~0.5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-msgstr ""
+msgstr "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 
 msgid "Dynamic flow calibration"
-msgstr ""
+msgstr "Dynamic flow calibration"
 
 msgid ""
 "The nozzle temp and max volumetric speed will affect the calibration "
 "results. Please fill in the same values as the actual printing. They can be "
 "auto-filled by selecting a filament preset."
 msgstr ""
+"The nozzle temp and max volumetric speed will affect the calibration "
+"results. Please fill in the same values as the actual printing. They can be "
+"auto-filled by selecting a filament preset."
 
 msgid "Nozzle Diameter"
-msgstr ""
+msgstr "Nozzle Diameter"
 
 msgid "Bed Type"
-msgstr ""
+msgstr "Bed Type"
 
 msgid "Nozzle temperature"
 msgstr "Nozzle temperature"
 
 msgid "Bed Temperature"
-msgstr ""
+msgstr "Bed Temperature"
 
 msgid "Max volumetric speed"
 msgstr "Max volumetric speed"
 
 msgid "℃"
-msgstr ""
+msgstr "℃"
 
 msgid "Bed temperature"
 msgstr "Bed temperature"
@@ -1672,6 +1682,9 @@ msgid ""
 "hot bed like the picture below, and fill the value on its left side into the "
 "factor K input box."
 msgstr ""
+"Calibration completed. Please find the most uniform extrusion line on your "
+"hot bed like the picture below, and fill the value on its left side into the "
+"factor K input box."
 
 msgid "Save"
 msgstr "Save"
@@ -1680,7 +1693,7 @@ msgid "Last Step"
 msgstr "Back"
 
 msgid "Example"
-msgstr ""
+msgstr "Example"
 
 #, c-format, boost-format
 msgid "Calibrating... %d%%"
@@ -1694,7 +1707,7 @@ msgid "%s does not support %s"
 msgstr ""
 
 msgid "Dynamic flow Calibration"
-msgstr ""
+msgstr "Dynamic flow Calibration"
 
 msgid "Step"
 msgstr ""
@@ -6981,13 +6994,11 @@ msgstr "First layer infill"
 msgid "Speed of solid infill part of initial layer"
 msgstr "This is the speed for solid infill parts of the first layer."
 
-#, fuzzy
 msgid "Initial layer travel speed"
-msgstr "First layer speed"
+msgstr "Initial layer travel speed"
 
-#, fuzzy
 msgid "Travel speed of initial layer"
-msgstr "Line width of first layer"
+msgstr "Travel speed of initial layer"
 
 msgid "Initial layer nozzle temperature"
 msgstr "First layer nozzle temperature"
@@ -7122,9 +7133,8 @@ msgstr "What kind of G-code the printer is compatible with."
 msgid "Klipper"
 msgstr ""
 
-#, fuzzy
 msgid "Label objects"
-msgstr "To Objects"
+msgstr "Label objects"
 
 msgid ""
 "Enable this to add comments into the G-Code labeling print moves with what "
@@ -7133,9 +7143,8 @@ msgid ""
 "setup and Wipe into Object / Wipe into Infill."
 msgstr ""
 
-#, fuzzy
 msgid "Verbose G-code"
-msgstr "Pause G-code"
+msgstr "Verbose G-code"
 
 msgid ""
 "Enable this to get a commented G-code file, with each line explained by a "
