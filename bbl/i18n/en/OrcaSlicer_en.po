@@ -1541,10 +1541,13 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, version 3"
 
 msgid ""
-"Orca Slicer is based on OrcaSlicer by Bambulab, which is from PrusaSlicer "
+"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
 "by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
 "the RepRap community"
 msgstr ""
+"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
+"by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
+"the RepRap community"
 
 msgid "Libraries"
 msgstr "Libraries"
@@ -1864,7 +1867,7 @@ msgid "click here to see more info"
 msgstr ""
 
 msgid "Please home all axes (click "
-msgstr ""
+msgstr "Please home all axes (click "
 
 msgid ""
 ") to locate the toolhead's position. This prevents device moving beyond the "
@@ -1872,7 +1875,7 @@ msgid ""
 msgstr ""
 
 msgid "Go Home"
-msgstr ""
+msgstr "Go Home"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
