@@ -703,7 +703,7 @@ msgid "Edit Text"
 msgstr "Edit Text"
 
 msgid "Load..."
-msgstr "Load..."
+msgstr "Load ..."
 
 msgid "Cube"
 msgstr "Cube"
@@ -1541,7 +1541,7 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, version 3"
 
 msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
+"Orca Slicer is based on OrcaSlicer by Bambulab, which is from PrusaSlicer "
 "by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
 "the RepRap community"
 msgstr ""
@@ -1567,7 +1567,7 @@ msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 
 msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
-msgstr """BambuStudio is originally based on PrusaSlicer by PrusaResearch."
+msgstr "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
@@ -8842,28 +8842,6 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#~ msgid ""
-#~ "BambuStudio will terminate because of running out of memory.It may be a "
-#~ "bug. It will be appreciated if you report the issue to our team."
-#~ msgstr ""
-#~ "Orca Slicer has run out of memory and will close. This may be a bug. "
-#~ "Please report this error to Technical Support."
-
-#~ msgid ""
-#~ "BambuStudio will terminate because of a localization error. It will be "
-#~ "appreciated if you report the specific scenario this issue happened."
-#~ msgstr "A localization error has occurred, and Orca Slicer will close. "
-
-#, boost-format
-#~ msgid "BambuStudio got an unhandled exception: %1%"
-#~ msgstr "BambuStudio got an unhandled exception: %1%"
-
-#~ msgid ""
-#~ "BambuStudio configuration file may be corrupted and is not abled to be "
-#~ "parsed.Please delete the file and try again."
-#~ msgstr ""
-#~ "Orca Slicer configuration file is not able to be parsed and may be "
-#~ "corrupted. Please delete the file and try again."
 
 #~ msgid "Loading user presets..."
 #~ msgstr "Loading user presets..."
