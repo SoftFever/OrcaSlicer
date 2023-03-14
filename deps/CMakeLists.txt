@@ -23,10 +23,6 @@
 project(OrcaSlicer-deps)
 cmake_minimum_required(VERSION 3.2)
 
-if(POLICY CMP0135) # DOWNLOAD_EXTRACT_TIMESTAMP
-  cmake_policy(SET CMP0135 NEW)
-endif()
-
 include(ExternalProject)
 include(ProcessorCount)
 
@@ -42,6 +38,10 @@ option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
+else() 
+    if(POLICY CMP0135) # DOWNLOAD_EXTRACT_TIMESTAMP
+        cmake_policy(SET CMP0135 NEW)
+    endif()
 endif()
 
 set(IS_CROSS_COMPILE FALSE)

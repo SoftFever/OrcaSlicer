@@ -52,9 +52,9 @@ RUN apt-get update && apt-get install  -y \
     file \
     sudo
 
-COPY ./ BambuStudio
+COPY ./ OrcaSlicer
 
-WORKDIR BambuStudio
+WORKDIR OrcaSlicer
 
 # These can run together, but we run them seperate for podman caching
 # Update System dependencies
