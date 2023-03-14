@@ -1,5 +1,9 @@
 
 # Orca Slicer
+[![Build Win64](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_win.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_win.yml)
+[![Build Mac AppleSilicon](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_arm64.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_arm64.yml)
+[![Build Mac Intel](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml)
+[![Build Linux](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml)  
 Orca Slicer is a fork of Bambu Studio.  
 Bambu Studio is based on [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
 Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill
@@ -18,7 +22,10 @@ Prebuilt binaries are available through the [github releases page](https://githu
 
 # How to install
 **Windows**: 
-> Unzip the binaries to any folder you prefer, then execute orca-slicer.exe to start the application.
+> Unzip the binaries to any folder you prefer, then execute orca-slicer.exe to start the application.  
+>> *If you have troubles to run the build, you might need to install following runtimes:*
+>> - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
+>> - [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
 
 **Mac**:
 >  1. Download the right binaries for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
