@@ -213,6 +213,8 @@ public:
     static void pop_cancel_button_style();
     static void push_button_disable_style();
     static void pop_button_disable_style();
+    static void push_combo_style(const float scale);
+    static void pop_combo_style();
 
     //BBS
     static int TOOLBAR_WINDOW_FLAGS;

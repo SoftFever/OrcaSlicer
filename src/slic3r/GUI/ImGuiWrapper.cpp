@@ -84,6 +84,10 @@ static const std::map<const wchar_t, std::string> font_icons = {
 
     {ImGui::TextSearchIcon             , "im_text_search"             },
     {ImGui::TextSearchCloseIcon        , "im_text_search_close"       },
+
+    {ImGui::ExpandBtn                  , "expand_btn"                 },
+    {ImGui::CollapseBtn                , "collapse_btn"               },
+    {ImGui::RevertBtn                  , "revert_btn"                 },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -2000,6 +2004,37 @@ void ImGuiWrapper::push_button_disable_style() {
 
 void ImGuiWrapper::pop_button_disable_style() {
     ImGui::PopStyleColor(3);
+}
+
+void ImGuiWrapper::push_combo_style(const float scale)
+{
+    if (m_is_dark_mode) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
+    } else {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
+    }
+}
+
+void ImGuiWrapper::pop_combo_style()
+{
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(7);
 }
 
 void ImGuiWrapper::init_font(bool compress)

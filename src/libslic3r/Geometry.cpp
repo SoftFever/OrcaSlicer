@@ -409,6 +409,20 @@ void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, doubl
     }
 }
 
+Transform3d translation_transform(const Vec3d &translation)
+{
+    Transform3d transform = Transform3d::Identity();
+    transform.translate(translation);
+    return transform;
+}
+
+Transform3d rotation_transform(const Vec3d& rotation)
+{
+    Transform3d transform = Transform3d::Identity();
+    transform.rotate(Eigen::AngleAxisd(rotation.z(), Vec3d::UnitZ()) * Eigen::AngleAxisd(rotation.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(rotation.x(), Vec3d::UnitX()));
+    return transform;
+}
+
 Transformation::Flags::Flags()
     : dont_translate(true)
     , dont_rotate(true)

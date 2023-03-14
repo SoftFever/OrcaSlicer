@@ -55,6 +55,7 @@ public:
 
     std::string get_tooltip() const override;
 
+    void enable_ununiversal_scale(bool enable);
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;

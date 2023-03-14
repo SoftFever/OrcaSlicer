@@ -984,6 +984,61 @@ indexed_triangle_set its_make_cone(double r, double h, double fa)
     return mesh;
 }
 
+// Generates mesh for a frustum dowel centered about the origin, using the count of sectors
+// Note: This function uses code for sphere generation, but for stackCount = 2;
+indexed_triangle_set its_make_frustum_dowel(double radius, double h, int sectorCount)
+{
+    int   stackCount = 2;
+    float sectorStep = float(2. * M_PI / sectorCount);
+    float stackStep = float(M_PI / stackCount);
+
+    indexed_triangle_set mesh;
+    auto& vertices = mesh.vertices;
+    vertices.reserve((stackCount - 1) * sectorCount + 2);
+    for (int i = 0; i <= stackCount; ++i) {
+        // from pi/2 to -pi/2
+        double stackAngle = 0.5 * M_PI - stackStep * i;
+        double xy = radius * cos(stackAngle);
+        double z = radius * sin(stackAngle);
+        if (i == 0 || i == stackCount)
+            vertices.emplace_back(Vec3f(float(xy), 0.f, float(h * sin(stackAngle))));
+        else
+            for (int j = 0; j < sectorCount; ++j) {
+                // from 0 to 2pi
+                double sectorAngle = sectorStep * j + 0.25 * M_PI;
+                vertices.emplace_back(Vec3d(xy * std::cos(sectorAngle), xy * std::sin(sectorAngle), z).cast<float>());
+            }
+    }
+
+    auto& facets = mesh.indices;
+    facets.reserve(2 * (stackCount - 1) * sectorCount);
+    for (int i = 0; i < stackCount; ++i) {
+        // Beginning of current stack.
+        int k1 = (i == 0) ? 0 : (1 + (i - 1) * sectorCount);
+        int k1_first = k1;
+        // Beginning of next stack.
+        int k2 = (i == 0) ? 1 : (k1 + sectorCount);
+        int k2_first = k2;
+        for (int j = 0; j < sectorCount; ++j) {
+            // 2 triangles per sector excluding first and last stacks
+            int k1_next = k1;
+            int k2_next = k2;
+            if (i != 0) {
+                k1_next = (j + 1 == sectorCount) ? k1_first : (k1 + 1);
+                facets.emplace_back(k1, k2, k1_next);
+            }
+            if (i + 1 != stackCount) {
+                k2_next = (j + 1 == sectorCount) ? k2_first : (k2 + 1);
+                facets.emplace_back(k1_next, k2, k2_next);
+            }
+            k1 = k1_next;
+            k2 = k2_next;
+        }
+    }
+
+    return mesh;
+}
+
 indexed_triangle_set its_make_pyramid(float base, float height)
 {
     float a = base / 2.f;

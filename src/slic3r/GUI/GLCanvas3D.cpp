@@ -3861,6 +3861,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             default: { break; }
             }
         }
+        else if (evt.LeftUp() &&
+            m_gizmos.get_current_type() == GLGizmosManager::EType::Scale &&
+            m_gizmos.get_current()->get_state() == GLGizmoBase::EState::On) {
+            wxGetApp().obj_list()->selection_changed();
+        }
 
         return;
     }
@@ -6632,8 +6637,13 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     else
         m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
+    GLGizmosManager& gm = get_gizmos_manager();
+    GLGizmoBase* current_gizmo = gm.get_current();
     if (m_canvas_type == CanvasAssembleView) {
         m_volumes.set_clipping_plane(m_gizmos.get_assemble_view_clipping_plane().get_data());
+    }
+    else if (current_gizmo && !current_gizmo->apply_clipping_plane()) {
+        m_volumes.set_clipping_plane(ClippingPlane::ClipsNothing().get_data());
     }
     else {
         m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());

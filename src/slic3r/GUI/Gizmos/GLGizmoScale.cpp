@@ -63,6 +63,12 @@ std::string GLGizmoScale3D::get_tooltip() const
         return "";
 }
 
+void GLGizmoScale3D::enable_ununiversal_scale(bool enable)
+{
+    for (unsigned int i = 0; i < 6; ++i)
+        m_grabbers[i].enabled = enable;
+}
+
 bool GLGizmoScale3D::on_init()
 {
     for (int i = 0; i < 10; ++i)
@@ -228,9 +234,11 @@ void GLGizmoScale3D::on_render()
 
     // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
     //if (single_instance || single_volume) {
+
+    if (m_grabbers[4].enabled && m_grabbers[5].enabled) {
         glsafe(::glColor4fv(m_grabbers[4].color.data()));
         render_grabbers_connection(4, 5);
-    //}
+    }
 
     glsafe(::glColor4fv(m_grabbers[2].color.data()));
     render_grabbers_connection(6, 7);

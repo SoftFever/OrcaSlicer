@@ -163,7 +163,7 @@ const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_
 const std::string PROJECT_EMBEDDED_SLICE_PRESETS_FILE = "Metadata/process_settings_";
 const std::string PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE = "Metadata/filament_settings_";
 const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/machine_settings_";
-
+const std::string CUT_INFORMATION_FILE = "Metadata/cut_information.xml";
 
 const unsigned int AUXILIARY_STR_LEN = 12;
 const unsigned int METADATA_STR_LEN = 9;
@@ -680,6 +680,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             VolumeMetadataList volumes;
         };
 
+        struct CutObjectInfo
+        {
+            struct Connector
+            {
+                int   volume_id;
+                int   type;
+                float r_tolerance;
+                float h_tolerance;
+            };
+            CutObjectBase          id;
+            std::vector<Connector> connectors;
+        };
+
         // Map from a 1 based 3MF object ID to a 0 based ModelObject index inside m_model->objects.
         //typedef std::pair<std::string, int> Id; // BBS: encrypt
         typedef std::map<Id, CurrentObject> IdToCurrentObjectMap;
@@ -688,6 +701,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //typedef std::map<Id, ComponentsList> IdToAliasesMap;
         typedef std::vector<Instance> InstancesList;
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
+        typedef std::map<int, CutObjectInfo>  IdToCutObjectInfoMap;
         //typedef std::map<Id, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
         /*typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
@@ -879,6 +893,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //IdToGeometryMap m_orig_geometries; // backup & restore
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
+        IdToCutObjectInfoMap       m_cut_object_infos;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
         /*IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
@@ -937,6 +952,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _extract_xml_from_archive(mz_zip_archive& archive, std::string const & path, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_xml_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_cut_information_from_archive(mz_zip_archive &archive, const mz_zip_archive_file_stat &stat, ConfigSubstitutionContext &config_substitutions);
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, ConfigSubstitutionContext& config_substitutions);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
@@ -1466,6 +1482,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     // extract slic3r print config file
                     _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
                 }
+                else if (boost::algorithm::iequals(name, CUT_INFORMATION_FILE)) {
+                    // extract object cut info
+                    _extract_cut_information_from_archive(archive, stat, config_substitutions);
+                }
                 //BBS: project embedded presets
                 else if (!dont_load_config && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINT_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
@@ -1689,6 +1709,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             if (!_generate_volumes_new(*model_object, object_id_list, *volumes_ptr, config_substitutions))
                 return false;
+
+            // Apply cut information for object if any was loaded
+            // m_cut_object_ids are indexed by a 1 based model object index.
+            IdToCutObjectInfoMap::iterator cut_object_info = m_cut_object_infos.find(object.second + 1);
+            if (cut_object_info != m_cut_object_infos.end()) {
+                model_object->cut_id = cut_object_info->second.id;
+
+                for (auto connector : cut_object_info->second.connectors) {
+                    assert(0 <= connector.volume_id && connector.volume_id <= int(model_object->volumes.size()));
+                    model_object->volumes[connector.volume_id]->cut_info = 
+                        ModelVolume::CutInfo(CutConnectorType(connector.type), connector.r_tolerance, connector.h_tolerance, true);
+                }
+            }
         }
 
         // If instances contain a single volume, the volume offset should be 0,0,0
@@ -2043,6 +2076,61 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         return true;
+    }
+
+    void _BBS_3MF_Importer::_extract_cut_information_from_archive(mz_zip_archive &archive, const mz_zip_archive_file_stat &stat, ConfigSubstitutionContext &config_substitutions)
+    {
+        if (stat.m_uncomp_size > 0) {
+            std::string buffer((size_t) stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void *) buffer.data(), (size_t) stat.m_uncomp_size, 0);
+            if (res == 0) {
+                add_error("Error while reading cut information data to buffer");
+                return;
+            }
+
+            std::istringstream iss(buffer); // wrap returned xml to istringstream
+            pt::ptree          objects_tree;
+            pt::read_xml(iss, objects_tree);
+
+            for (const auto &object : objects_tree.get_child("objects")) {
+                pt::ptree object_tree = object.second;
+                int       obj_idx     = object_tree.get<int>("<xmlattr>.id", -1);
+                if (obj_idx <= 0) {
+                    add_error("Found invalid object id");
+                    continue;
+                }
+
+                IdToCutObjectInfoMap::iterator object_item = m_cut_object_infos.find(obj_idx);
+                if (object_item != m_cut_object_infos.end()) {
+                    add_error("Found duplicated cut_object_id");
+                    continue;
+                }
+
+                CutObjectBase                         cut_id;
+                std::vector<CutObjectInfo::Connector> connectors;
+
+                for (const auto &obj_cut_info : object_tree) {
+                    if (obj_cut_info.first == "cut_id") {
+                        pt::ptree cut_id_tree = obj_cut_info.second;
+                        cut_id                = CutObjectBase(ObjectID(cut_id_tree.get<size_t>("<xmlattr>.id")), cut_id_tree.get<size_t>("<xmlattr>.check_sum"),
+                                               cut_id_tree.get<size_t>("<xmlattr>.connectors_cnt"));
+                    }
+                    if (obj_cut_info.first == "connectors") {
+                        pt::ptree cut_connectors_tree = obj_cut_info.second;
+                        for (const auto &cut_connector : cut_connectors_tree) {
+                            if (cut_connector.first != "connector") continue;
+                            pt::ptree                connector_tree = cut_connector.second;
+                            CutObjectInfo::Connector connector      = {connector_tree.get<int>("<xmlattr>.volume_id"), connector_tree.get<int>("<xmlattr>.type"),
+                                                                  connector_tree.get<float>("<xmlattr>.r_tolerance"), connector_tree.get<float>("<xmlattr>.h_tolerance")};
+                            connectors.emplace_back(connector);
+                        }
+                    }
+                }
+
+                CutObjectInfo cut_info{cut_id, connectors};
+                m_cut_object_infos.insert({obj_idx, cut_info});
+            }
+        }
     }
 
     void _BBS_3MF_Importer::_extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, const std::string& archive_filename)
@@ -4813,6 +4901,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: add project embedded preset files
         bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx = -1, bool save_gcode = true, bool use_loaded_id = false);
+        bool _add_cut_information_file_to_archive(mz_zip_archive &archive, Model &model);
         bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
@@ -5280,6 +5369,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // is stored here as well.
         if (!_add_model_config_file_to_archive(archive, model, plate_data_list, objects_data, export_plate_idx, m_save_gcode, m_use_loaded_id)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_model_config_file_to_archive failed\n");
+            return false;
+        }
+
+        if (!_add_cut_information_file_to_archive(archive, model)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_cut_information_file_to_archive failed\n");
             return false;
         }
 
@@ -6694,6 +6788,67 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add model config file to archive\n");
             add_error("Unable to add model config file to archive");
             return false;
+        }
+
+        return true;
+    }
+
+    bool _BBS_3MF_Exporter::_add_cut_information_file_to_archive(mz_zip_archive &archive, Model &model)
+    {
+        std::string out = "";
+        pt::ptree   tree;
+
+        unsigned int object_cnt = 0;
+        for (const ModelObject *object : model.objects) {
+            object_cnt++;
+            pt::ptree &obj_tree = tree.add("objects.object", "");
+
+            obj_tree.put("<xmlattr>.id", object_cnt);
+
+            // Store info for cut_id
+            pt::ptree &cut_id_tree = obj_tree.add("cut_id", "");
+
+            // store cut_id atributes
+            cut_id_tree.put("<xmlattr>.id", object->cut_id.id().id);
+            cut_id_tree.put("<xmlattr>.check_sum", object->cut_id.check_sum());
+            cut_id_tree.put("<xmlattr>.connectors_cnt", object->cut_id.connectors_cnt());
+
+            int volume_idx = -1;
+            for (const ModelVolume *volume : object->volumes) {
+                ++volume_idx;
+                if (volume->is_cut_connector()) {
+                    pt::ptree &connectors_tree = obj_tree.add("connectors.connector", "");
+                    connectors_tree.put("<xmlattr>.volume_id", volume_idx);
+                    connectors_tree.put("<xmlattr>.type", int(volume->cut_info.connector_type));
+                    connectors_tree.put("<xmlattr>.r_tolerance", volume->cut_info.radius_tolerance);
+                    connectors_tree.put("<xmlattr>.h_tolerance", volume->cut_info.height_tolerance);
+                }
+            }
+        }
+
+        if (!tree.empty()) {
+            std::ostringstream oss;
+            pt::write_xml(oss, tree);
+            out = oss.str();
+
+            // Post processing("beautification") of the output string for a better preview
+            boost::replace_all(out, "><object", ">\n <object");
+            boost::replace_all(out, "><cut_id", ">\n  <cut_id");
+            boost::replace_all(out, "></cut_id>", ">\n  </cut_id>");
+            boost::replace_all(out, "><connectors", ">\n  <connectors");
+            boost::replace_all(out, "></connectors>", ">\n  </connectors>");
+            boost::replace_all(out, "><connector", ">\n   <connector");
+            boost::replace_all(out, "></connector>", ">\n   </connector>");
+            boost::replace_all(out, "></object>", ">\n </object>");
+            // OR just
+            boost::replace_all(out, "><", ">\n<");
+        }
+
+        if (!out.empty()) {
+            if (!mz_zip_writer_add_mem(&archive, CUT_INFORMATION_FILE.c_str(), (const void *) out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+                add_error("Unable to add cut information file to archive");
+                return false;
+            }
         }
 
         return true;

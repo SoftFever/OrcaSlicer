@@ -189,6 +189,10 @@ namespace ImGui
     const wchar_t TextSearchIcon           = 0x0828;
     const wchar_t TextSearchCloseIcon      = 0x0829;
 
+    const wchar_t ExpandBtn       = 0x0830;
+    const wchar_t CollapseBtn     = 0x0831;
+    const wchar_t RevertBtn       = 0x0832;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

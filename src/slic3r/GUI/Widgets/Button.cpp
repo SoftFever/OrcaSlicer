@@ -36,15 +36,15 @@ Button::Button()
         std::make_pair(*wxBLACK, (int) StateColor::Normal));
 }
 
-Button::Button(wxWindow* parent, wxString text, wxString icon, long style, int iconSize)
+Button::Button(wxWindow* parent, wxString text, wxString icon, long style, int iconSize, wxWindowID btn_id)
     : Button()
 {
-    Create(parent, text, icon, style, iconSize);
+    Create(parent, text, icon, style, iconSize, btn_id);
 }
 
-bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, int iconSize)
+bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, int iconSize, wxWindowID btn_id)
 {
-    StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
+    StaticBox::Create(parent, btn_id, wxDefaultPosition, wxDefaultSize, style);
     state_handler.attach({&text_color});
     state_handler.update_binds();
     //BBS set default font

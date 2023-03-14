@@ -265,6 +265,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
+	GUI/CameraUtils.cpp
+    GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
     GUI/WipeTowerDialog.cpp

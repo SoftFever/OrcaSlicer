@@ -914,6 +914,20 @@ void MenuFactory::append_menu_items_mirror(wxMenu* menu)
         []() { return plater()->can_mirror(); }, m_parent);
 }
 
+void MenuFactory::append_menu_item_invalidate_cut_info(wxMenu *menu)
+{
+    const wxString menu_name = _L("Invalidate cut info");
+
+    auto menu_item_id = menu->FindItem(menu_name);
+    if (menu_item_id != wxNOT_FOUND)
+        // Delete old menu item if selected object isn't cut
+        menu->Destroy(menu_item_id);
+
+    if (obj_list()->has_selected_cut_object())
+        append_menu_item(menu, wxID_ANY, menu_name, "", [](wxCommandEvent &) { obj_list()->invalidate_cut_info_for_selection(); },
+            "", menu, []() { return true; }, m_parent);
+}
+
 MenuFactory::MenuFactory()
 {
     for (int i = 0; i < mtCount; i++) {
@@ -1235,6 +1249,7 @@ wxMenu* MenuFactory::object_menu()
     append_menu_item_change_filament(&m_object_menu);
     append_menu_items_convert_unit(&m_object_menu);
     append_menu_items_flush_options(&m_object_menu);
+    append_menu_item_invalidate_cut_info(&m_object_menu);
     return &m_object_menu;
 }
 

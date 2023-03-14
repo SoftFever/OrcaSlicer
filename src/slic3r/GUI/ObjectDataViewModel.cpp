@@ -37,6 +37,7 @@ static constexpr char LayerRootIcon[]   = "blank";
 static constexpr char LayerIcon[]       = "blank";
 static constexpr char WarningIcon[]     = "obj_warning";
 static constexpr char WarningManifoldIcon[] = "obj_warning";
+static constexpr char LockIcon[]            = "cut_";
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(PartPlate* part_plate, wxString name) :
     m_parent(nullptr),
@@ -65,6 +66,7 @@ const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
             //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
             { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
             //{ InfoItemType::Sinking,             {L("Sinking"),                 "objlist_sinking"}, },
+            { InfoItemType::CutConnectors,       {L("Cut connectors"),          "cut_connectors" },    },
 };
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,
@@ -411,6 +413,7 @@ ObjectDataViewModel::ObjectDataViewModel()
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = create_scaled_bitmap(WarningIcon);
     m_warning_manifold_bmp = create_scaled_bitmap(WarningManifoldIcon);
+    m_lock_bmp = create_scaled_bitmap(LockIcon);
 
     for (auto item : INFO_ITEMS)
         m_info_bmps[item.first] = create_scaled_bitmap(item.second.bmp_name);
@@ -490,7 +493,46 @@ wxDataViewItem ObjectDataViewModel::AddOutsidePlate(bool refresh)
     return plate_item;
 }
 
-wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, std::string warning_bitmap, bool refresh)
+void ObjectDataViewModel::UpdateBitmapForNode(ObjectDataViewModelNode *node)
+{
+    int  vol_type       = static_cast<int>(node->GetVolumeType());
+    bool is_volume_node = vol_type >= 0;
+
+    if (!node->has_warning_icon() && !node->has_lock()) {
+        node->SetBitmap(is_volume_node ? m_volume_bmps.at(vol_type) : m_empty_bmp);
+        return;
+    }
+
+    std::string scaled_bitmap_name = std::string();
+    if (node->has_warning_icon())
+        scaled_bitmap_name += node->warning_icon_name();
+    if (node->has_lock())
+        scaled_bitmap_name += LockIcon;
+    if (is_volume_node)
+        scaled_bitmap_name += std::to_string(vol_type);
+
+    wxBitmap *bmp = m_bitmap_cache->find(scaled_bitmap_name);
+    if (!bmp) {
+        std::vector<wxBitmap> bmps;
+        if (node->has_warning_icon())
+            bmps.emplace_back(node->warning_icon_name() == WarningIcon ? m_warning_bmp : m_warning_manifold_bmp);
+        if (node->has_lock())
+            bmps.emplace_back(m_lock_bmp);
+        if (is_volume_node)
+            bmps.emplace_back(m_volume_bmps[vol_type]);
+        bmp = m_bitmap_cache->insert(scaled_bitmap_name, bmps);
+    }
+
+    node->SetBitmap(*bmp);
+}
+
+void ObjectDataViewModel::UpdateBitmapForNode(ObjectDataViewModelNode *node, bool has_lock)
+{
+    node->SetLock(has_lock);
+    UpdateBitmapForNode(node);
+}
+
+wxDataViewItem ObjectDataViewModel::AddObject(ModelObject *model_object, std::string warning_bitmap, bool has_lock, bool refresh)
 {
     // get object node params
     wxString name = from_u8(model_object->name);
@@ -512,6 +554,7 @@ wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, std::st
     const wxString extruder_str = wxString::Format("%d", extruder);
     auto obj_node = new ObjectDataViewModelNode(name, extruder_str, plate_idx, model_object);
     obj_node->SetWarningBitmap(GetWarningBitmap(warning_bitmap), warning_bitmap);
+    UpdateBitmapForNode(obj_node, has_lock);
 
     if (plate_node != nullptr) {
         obj_node->m_parent = plate_node;
@@ -2138,6 +2181,7 @@ void ObjectDataViewModel::Rescale()
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = create_scaled_bitmap(WarningIcon);
     m_warning_manifold_bmp = create_scaled_bitmap(WarningManifoldIcon);
+    m_lock_bmp = create_scaled_bitmap(LockIcon);
 
     for (auto item : INFO_ITEMS)
         m_info_bmps[item.first] = create_scaled_bitmap(item.second.bmp_name);
@@ -2254,6 +2298,26 @@ void ObjectDataViewModel::UpdateWarningIcon(const wxDataViewItem& item, const st
         DeleteWarningIcon(item, true);
     else
         AddWarningIcon(item, warning_icon_name);
+}
+
+void ObjectDataViewModel::UpdateCutObjectIcon(const wxDataViewItem &item, bool has_lock)
+{
+    if (!item.IsOk())
+        return;
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    if (node->has_lock() == has_lock)
+        return;
+
+    node->SetLock(has_lock);
+    UpdateBitmapForNode(node);
+
+    if (node->GetType() & itObject) {
+        wxDataViewItemArray children;
+        GetChildren(item, children);
+        for (const wxDataViewItem &child : children)
+            UpdateCutObjectIcon(child, has_lock);
+    }
+    ItemChanged(item);
 }
 
 } // namespace GUI

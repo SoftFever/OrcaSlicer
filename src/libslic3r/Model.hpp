@@ -232,6 +232,80 @@ private:
     friend class ModelObject;
 };
 
+enum class CutConnectorType : int {
+    Plug,
+    Dowel,
+    Undef
+};
+
+enum class CutConnectorStyle : int {
+    Prizm,
+    Frustum,
+    Undef
+    //,Claw
+};
+
+enum class CutConnectorShape : int {
+    Triangle,
+    Square,
+    Hexagon,
+    Circle,
+    Undef
+    //,D-shape
+};
+
+struct CutConnectorAttributes
+{
+    CutConnectorType  type{CutConnectorType::Plug};
+    CutConnectorStyle style{CutConnectorStyle::Prizm};
+    CutConnectorShape shape{CutConnectorShape::Circle};
+
+    CutConnectorAttributes() {}
+
+    CutConnectorAttributes(CutConnectorType t, CutConnectorStyle st, CutConnectorShape sh) : type(t), style(st), shape(sh) {}
+
+    CutConnectorAttributes(const CutConnectorAttributes &rhs) : CutConnectorAttributes(rhs.type, rhs.style, rhs.shape) {}
+
+    bool operator==(const CutConnectorAttributes &other) const;
+
+    bool operator!=(const CutConnectorAttributes &other) const { return !(other == (*this)); }
+
+    bool operator<(const CutConnectorAttributes &other) const
+    {
+        return this->type < other.type || (this->type == other.type && this->style < other.style) ||
+               (this->type == other.type && this->style == other.style && this->shape < other.shape);
+    }
+
+    template<class Archive> inline void serialize(Archive &ar) { ar(type, style, shape); }
+};
+
+struct CutConnector
+{
+    Vec3d                  pos;
+    Transform3d            rotation_m;
+    float                  radius;
+    float                  height;
+    float                  radius_tolerance; // [0.f : 1.f]
+    float                  height_tolerance; // [0.f : 1.f]
+    CutConnectorAttributes attribs;
+
+    CutConnector() : pos(Vec3d::Zero()), rotation_m(Transform3d::Identity()), radius(5.f), height(10.f), radius_tolerance(0.f), height_tolerance(0.1f) {}
+
+    CutConnector(Vec3d p, Transform3d rot, float r, float h, float rt, float ht, CutConnectorAttributes attributes)
+        : pos(p), rotation_m(rot), radius(r), height(h), radius_tolerance(rt), height_tolerance(ht), attribs(attributes)
+    {}
+
+    CutConnector(const CutConnector &rhs) : CutConnector(rhs.pos, rhs.rotation_m, rhs.radius, rhs.height, rhs.radius_tolerance, rhs.height_tolerance, rhs.attribs) {}
+
+    bool operator==(const CutConnector &other) const;
+
+    bool operator!=(const CutConnector &other) const { return !(other == (*this)); }
+
+    template<class Archive> inline void serialize(Archive &ar) { ar(pos, rotation_m, radius, height, radius_tolerance, height_tolerance, attribs); }
+};
+
+using CutConnectors = std::vector<CutConnector>;
+
 // Declared outside of ModelVolume, so it could be forward declared.
 enum class ModelVolumeType : int {
     INVALID = -1,
@@ -242,7 +316,7 @@ enum class ModelVolumeType : int {
     SUPPORT_ENFORCER
 };
 
-enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipLower, CutToParts };
+enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipUpper, FlipLower, PlaceOnCutUpper, PlaceOnCutLower, CreateDowels };
 using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
 ENABLE_ENUM_BITMASK_OPERATORS(ModelObjectCutAttribute);
 
@@ -292,6 +366,10 @@ public:
 
     // BBS: save for compare with new load volumes
     std::vector<ObjectID>   volume_ids;
+
+    // Connectors to be added into the object before cut and are used to create a solid/negative volumes during a cut perform
+    CutConnectors cut_connectors;
+    CutObjectBase cut_id;
 
     Model*                  get_model() { return m_model; }
     const Model*            get_model() const { return m_model; }
@@ -383,6 +461,38 @@ public:
     size_t materials_count() const;
     size_t facets_count() const;
     size_t parts_count() const;
+
+    bool                        is_cut() const { return cut_id.id().valid(); }
+    bool                        has_connectors() const;
+    static indexed_triangle_set get_connector_mesh(CutConnectorAttributes connector_attributes);
+    void                        apply_cut_connectors(const std::string &name);
+    // invalidate cut state for this object and its connectors/volumes
+    void invalidate_cut();
+    // delete volumes which are marked as connector for this object
+    void delete_connectors();
+    void synchronize_model_after_cut();
+    void apply_cut_attributes(ModelObjectCutAttributes attributes);
+    void clone_for_cut(ModelObject **obj);
+    Transform3d calculate_cut_plane_inverse_matrix(const std::array<Vec3d, 4> &plane_points);
+    void process_connector_cut(ModelVolume *volume,
+                               ModelObjectCutAttributes attributes,
+                               ModelObject *upper, ModelObject *lower,
+                               std::vector<ModelObject *> &dowels,
+                               Vec3d &local_dowels_displace);
+    void process_modifier_cut(ModelVolume *            volume,
+                              const Transform3d &      instance_matrix,
+                              const Transform3d &      inverse_cut_matrix,
+                              ModelObjectCutAttributes attributes,
+                              ModelObject *            upper,
+                              ModelObject *            lower);
+    void process_solid_part_cut(ModelVolume *            volume,
+                                const Transform3d &      instance_matrix,
+                                const std::array<Vec3d, 4> &plane_points,
+                                ModelObjectCutAttributes attributes,
+                                ModelObject *            upper,
+                                ModelObject *            lower,
+                                Vec3d &                  local_displace);
+
     // BBS: replace z with plane_points
     ModelObjectPtrs cut(size_t instance, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes);
     // BBS
@@ -531,7 +641,8 @@ private:
         Internal::StaticSerializationWrapper<LayerHeightProfile const> layer_heigth_profile_wrapper(layer_height_profile);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
-            m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
+            m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
+            cut_connectors, cut_id);
     }
     template<class Archive> void load(Archive& ar) {
         ar(cereal::base_class<ObjectBase>(this));
@@ -541,7 +652,8 @@ private:
         SaveObjectGaurd gaurd(*this);
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
-            m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
+            m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid,
+            cut_connectors, cut_id);
         std::vector<ObjectID> volume_ids2;
         std::transform(volumes.begin(), volumes.end(), std::back_inserter(volume_ids2), std::mem_fn(&ObjectBase::id));
         if (volume_ids != volume_ids2)
@@ -708,6 +820,31 @@ public:
     };
     Source              source;
 
+    // struct used by cut command
+    // It contains information about connetors
+    struct CutInfo
+    {
+        bool             is_connector{false};
+        bool             is_processed{true};
+        CutConnectorType connector_type{CutConnectorType::Plug};
+        float            radius_tolerance{0.f}; // [0.f : 1.f]
+        float            height_tolerance{0.f}; // [0.f : 1.f]
+
+        CutInfo() = default;
+        CutInfo(CutConnectorType type, float rad_tolerance, float h_tolerance, bool processed = false)
+            : is_connector(true), is_processed(processed), connector_type(type), radius_tolerance(rad_tolerance), height_tolerance(h_tolerance)
+        {}
+
+        void set_processed() { is_processed = true; }
+        void invalidate() { is_connector = false; }
+
+        template<class Archive> inline void serialize(Archive &ar) { ar(is_connector, is_processed, connector_type, radius_tolerance, height_tolerance); }
+    };
+    CutInfo cut_info;
+
+    bool is_cut_connector() const { return cut_info.is_processed && cut_info.is_connector; }
+    void invalidate_cut_info() { cut_info.invalidate(); }
+
     // The triangular model.
     const TriangleMesh& mesh() const { return *m_mesh.get(); }
     const TriangleMesh* mesh_ptr() const { return m_mesh.get(); }
@@ -757,6 +894,8 @@ public:
     int                 extruder_id() const;
 
     bool                is_splittable() const;
+
+    void apply_tolerance();
 
     // BBS
     std::vector<int>    get_extruders() const;
@@ -999,7 +1138,7 @@ private:
         // BBS: add backup, check modify
         bool mesh_changed = false;
         auto tr = m_transformation;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
         mesh_changed |= !(tr == m_transformation);
         if (mesh_changed) m_transformation.get_matrix(true, true, true, true); // force dirty
         auto t = supported_facets.timestamp();
@@ -1025,7 +1164,7 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
         cereal::save_by_value(ar, supported_facets);
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);

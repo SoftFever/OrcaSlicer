@@ -1922,7 +1922,7 @@ struct Plater::priv
     void select_all();
     void deselect_all();
     void remove(size_t obj_idx);
-    void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
+    bool delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
     void delete_all_objects_from_model();
     void reset(bool apply_presets_change = false);
     void center_selection();
@@ -4029,13 +4029,31 @@ void Plater::priv::remove(size_t obj_idx)
 }
 
 
-void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immediately)
+bool Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immediately)
 {
+    // check if object isn't cut
+    // show warning message that "cut consistancy" will not be supported any more
+    ModelObject *obj = model.objects[obj_idx];
+    if (obj->is_cut()) {
+        InfoDialog dialog(q, _L("Delete object which is a part of cut object"),
+                          _L("You try to delete an object which is a part of a cut object.\n"
+                             "This action will break a cut correspondence.\n"
+                             "After that model consistency can't be guaranteed."),
+                          false, wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxICON_WARNING);
+        dialog.SetButtonLabel(wxID_YES, _L("Delete"));
+        if (dialog.ShowModal() == wxID_CANCEL)
+            return false;
+    }
+
     std::string snapshot_label = "Delete Object";
-    if (! model.objects[obj_idx]->name.empty())
-        snapshot_label += ": " + model.objects[obj_idx]->name;
+    if (!obj->name.empty())
+        snapshot_label += ": " + obj->name;
     Plater::TakeSnapshot snapshot(q, snapshot_label);
     m_ui_jobs.cancel_all();
+
+    if (obj->is_cut())
+        sidebar->obj_list()->invalidate_cut_info_for_object(obj_idx);
+
     model.delete_object(obj_idx);
     //BBS: notify partplate the instance removed
     partplate_list.notify_instance_removed(obj_idx, -1);
@@ -4045,6 +4063,8 @@ void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immedia
         update();
         object_list_changed();
     }
+
+    return true;
 }
 
 void Plater::priv::delete_all_objects_from_model()
@@ -6825,22 +6845,29 @@ bool Plater::priv::has_assemble_view() const
 bool Plater::priv::can_scale_to_print_volume() const
 {
     const BuildVolume::Type type = this->bed.build_volume().type();
-    return !view3D->get_canvas3d()->get_selection().is_empty() && (type == BuildVolume::Type::Rectangle || type == BuildVolume::Type::Circle);
+    return !sidebar->obj_list()->has_selected_cut_object()
+        && !view3D->get_canvas3d()->get_selection().is_empty()
+        && (type == BuildVolume::Type::Rectangle || type == BuildVolume::Type::Circle);
 }
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
 bool Plater::priv::can_mirror() const
 {
-    return get_selection().is_from_single_instance();
+    return !sidebar->obj_list()->has_selected_cut_object()
+        && get_selection().is_from_single_instance();
 }
 
 bool Plater::priv::can_replace_with_stl() const
 {
-    return get_selection().get_volume_idxs().size() == 1;
+    return !sidebar->obj_list()->has_selected_cut_object()
+        && get_selection().get_volume_idxs().size() == 1;
 }
 
 bool Plater::priv::can_reload_from_disk() const
 {
+    if (sidebar->obj_list()->has_selected_cut_object())
+        return false;
+
 #if ENABLE_RELOAD_FROM_DISK_REWORK
     // collect selected reloadable ModelVolumes
     std::vector<std::pair<int, int>> selected_volumes = reloadable_volumes(model, get_selection());
@@ -7049,7 +7076,8 @@ bool Plater::priv::can_increase_instances() const
             return false;
 
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size())
+        && !sidebar->obj_list()->has_selected_cut_object();
 }
 
 bool Plater::priv::can_decrease_instances() const
@@ -7059,7 +7087,8 @@ bool Plater::priv::can_decrease_instances() const
             return false;
 
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1)
+        && !sidebar->obj_list()->has_selected_cut_object();
 }
 
 bool Plater::priv::can_split_to_objects() const
@@ -8871,7 +8900,7 @@ void Plater::trigger_restore_project(int skip_confirm)
 }
 
 //BBS
-void Plater::delete_object_from_model(size_t obj_idx, bool refresh_immediately) { p->delete_object_from_model(obj_idx, refresh_immediately); }
+bool Plater::delete_object_from_model(size_t obj_idx, bool refresh_immediately) { return p->delete_object_from_model(obj_idx, refresh_immediately); }
 
 //BBS: delete all from model
 void Plater::delete_all_objects_from_model()
@@ -9083,14 +9112,20 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane
     if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
         return;
 
-    Plater::TakeSnapshot snapshot(this, "Cut by Plane");
-
     wxBusyCursor wait;
     // BBS: replace z with plane_points
     const auto new_objects = object->cut(instance_idx, plane_points, attributes);
 
     remove(obj_idx);
     p->load_model_objects(new_objects);
+
+    // now process all updates of the 3d scene
+    update();
+
+    // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
+    // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
+    for (size_t idx = 0; idx < p->model.objects.size(); idx++)
+        wxGetApp().obj_list()->update_info_items(idx);
 
     Selection& selection = p->get_selection();
     size_t last_id = p->model.objects.size() - 1;

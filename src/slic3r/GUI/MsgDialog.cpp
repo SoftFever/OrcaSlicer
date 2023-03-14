@@ -136,7 +136,7 @@ void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool se
 
 Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
-    Button* btn = new Button(this, label);
+    Button* btn = new Button(this, label, "", 0, 0, btn_id);
     ButtonSizeType type;
 
     if (label.length() < 5) {
