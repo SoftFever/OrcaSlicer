@@ -7227,7 +7227,7 @@ msgstr ""
 msgid "Z Hop Type"
 msgstr ""
 
-msgid "L"
+msgid "select the type of Z Hop in the Slicer"
 msgstr ""
 
 msgid "Slope"
