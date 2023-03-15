@@ -451,20 +451,33 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
 bool doesVolumeIntersect(VolumeSlices& vs1, VolumeSlices& vs2)
 {
     if (vs1.volume_id == vs2.volume_id) return true;
+    // two volumes in the same object should have same number of layers, otherwise the slicing is incorrect.
     if (vs1.slices.size() != vs2.slices.size()) return false;
 
-    for (int i = 0; i != vs1.slices.size(); ++i) {
+    auto& vs1s = vs1.slices;
+    auto& vs2s = vs2.slices;
+    bool is_intersect = false;
 
-        if (vs1.slices[i].empty()) continue;
-        if (!vs2.slices[i].empty() && !intersection_ex(vs1.slices[i], vs2.slices[i]).empty()) return true;
-        if (i + 1 != vs2.slices.size() && !vs2.slices[i + 1].empty()) {
-            if (!intersection_ex(vs1.slices[i], vs2.slices[i + 1]).empty()) return true;
-        }
-        if (i - 1 >= 0 && !vs2.slices[i - 1].empty()) {
-            if (!intersection_ex(vs1.slices[i], vs2.slices[i - 1]).empty()) return true;
-        }
-    }
-    return false;
+    tbb::parallel_for(tbb::blocked_range<int>(0, vs1s.size()),
+        [&vs1s, &vs2s, &is_intersect](const tbb::blocked_range<int>& range) {
+            for (auto i = range.begin(); i != range.end(); ++i) {
+                if (vs1s[i].empty()) continue;
+
+                if (overlaps(vs1s[i], vs2s[i])) {
+                    is_intersect = true;
+                    break;
+                }
+                if (i + 1 != vs2s.size() && overlaps(vs1s[i], vs2s[i + 1])) {
+                    is_intersect = true;
+                    break;
+                }
+                if (i - 1 >= 0 && overlaps(vs1s[i], vs2s[i - 1])) {
+                    is_intersect = true;
+                    break;
+                }
+            }
+        });
+    return is_intersect;
 }
 
 //BBS: grouping the volumes of an object according to their connection relationship
@@ -744,7 +757,7 @@ void PrintObject::slice()
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
     this->slice_volumes();
     m_print->throw_if_canceled();
-#if 0
+#if 1
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
     std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); });
