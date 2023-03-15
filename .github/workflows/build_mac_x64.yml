@@ -51,6 +51,41 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: ./build_release_macos.sh -s -n -a x86_64
 
+      - name: Sign app
+        working-directory: ${{ github.workspace }}
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          CERTIFICATE_ID: ${{ secrets.MACOS_CERTIFICATE_ID }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+          security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
+          codesign --deep --force --verbose --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_x86_64/OrcaSlicer_x86_64/OrcaSlicer.app
+      
+      - name: pack app
+        working-directory: ${{ github.workspace }}
+        run: |
+          export ver=$(grep '^#define SoftFever_VERSION' ./src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          ver="_V${ver//\"}"
+          zip -FSr OrcaSlicer${ver}_nightly_Mac_Intel.zip ${{ github.workspace }}/build_x86_64/OrcaSlicer_x86_64/OrcaSlicer.app
+
+      # (wip: staple failed, error 65)
+      # - name: Notarize the app 
+      #   run: |
+      #     xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
+      #     ditto -c -k --keepParent "OrcaSlicer.app" "OrcaSlicer.zip"
+      #     xcrun notarytool submit "OrcaSlicer.zip" --keychain-profile "notarytool-profile" --wait
+      #     xcrun stapler staple OrcaSlicer.app
+      #     zip -FSrq OrcaSlicer_Mac_notarized.zip OrcaSlicer.app
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
