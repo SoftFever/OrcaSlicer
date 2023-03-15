@@ -48,8 +48,8 @@ std::string http_headers::get_response()
             std::string user_avatar;
             try {
                 json user_j = json::parse(http_body);
-                if (user_j.contains("uid"))
-                    user_id = std::to_string(user_j["uid"].get<int>());
+                if (user_j.contains("uidStr"))
+                    user_id = user_j["uidStr"].get<std::string>();
                 if (user_j.contains("name"))
                     user_name = user_j["name"].get<std::string>();
                 if (user_j.contains("avatar"))
