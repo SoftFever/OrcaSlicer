@@ -88,13 +88,13 @@ cp -R $resources_path ./OrcaSlicer.app/Contents/Resources
 # delete .DS_Store file
 find ./OrcaSlicer.app/ -name '.DS_Store' -delete
 # extract version
-export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
-ver="_V${ver//\"}"
-echo $PWD
-if [ "1." != "$NIGHTLY_BUILD". ];
-then
-    ver=${ver}_dev
-fi
+# export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+# ver="_V${ver//\"}"
+# echo $PWD
+# if [ "1." != "$NIGHTLY_BUILD". ];
+# then
+#     ver=${ver}_dev
+# fi
 
 
-zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
+# zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app

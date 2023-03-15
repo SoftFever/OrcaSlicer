@@ -72,7 +72,7 @@ jobs:
       - name: pack app
         working-directory: ${{ github.workspace }}
         run: |
-          export ver=$(grep '^#define SoftFever_VERSION' ./src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+          export ver=$(grep '^#define SoftFever_VERSION' ./build_arm64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
           zip -FSr OrcaSlicer${ver}_nightly_Mac_AppleSilicon.zip ${{ github.workspace }}/build_arm64/OrcaSlicer_arm64/OrcaSlicer.app
 
@@ -89,4 +89,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Mac_AppleSilicon
-          path: ${{ github.workspace }}/build_arm64/OrcaSlicer_arm64/OrcaSlicer*.zip
+          path: ${{ github.workspace }}/OrcaSlicer*.zip
