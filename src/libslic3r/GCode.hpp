@@ -486,6 +486,7 @@ private:
     unsigned int m_toolchange_count;
     coordf_t m_nominal_z;
     bool m_need_change_layer_lift_z = false;
+    int m_start_gcode_filament = -1;
 
     static bool gcode_label_objects;
 

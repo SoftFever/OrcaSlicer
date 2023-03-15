@@ -1887,6 +1887,40 @@ template<typename T>
     }
 }
 
+int GCodeProcessor::get_gcode_last_filament(const std::string& gcode_str)
+{
+    int str_size = gcode_str.size();
+    int start_index = 0;
+    int end_index = 0;
+    int out_filament = -1;
+    while (end_index < str_size) {
+        if (gcode_str[end_index] != '\n') {
+            end_index++;
+            continue;
+        }
+
+        if (end_index > start_index) {
+            std::string line_str = gcode_str.substr(start_index, end_index - start_index);
+            line_str.erase(0, line_str.find_first_not_of(" "));
+            line_str.erase(line_str.find_last_not_of(" ") + 1);
+            if (line_str.empty() || line_str[0] != 'T') {
+                start_index = end_index + 1;
+                end_index = start_index;
+                continue;
+            }
+
+            int out = -1;
+            if (parse_number(line_str.substr(1), out) && out >= 0 && out < 255)
+                out_filament = out;
+        }
+
+        start_index = end_index + 1;
+        end_index = start_index;
+    }
+
+    return out_filament;
+}
+
 void GCodeProcessor::process_tags(const std::string_view comment, bool producers_enabled)
 {
     // producers tags

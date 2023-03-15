@@ -1744,6 +1744,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.writeln(machine_start_gcode);
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
+    m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
 
     // Process filament-specific gcode.
    /* if (has_wipe_tower) {
@@ -4152,13 +4153,17 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     int old_filament_temp, old_filament_e_feedrate;
 
     float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(extruder_id), 2));
-
-    if (m_writer.extruder() != nullptr) {
+    //BBS: add handling for filament change in start gcode
+    int previous_extruder_id = -1;
+    if (m_writer.extruder() != nullptr || m_start_gcode_filament != -1) {
         std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
         const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
-        assert(m_writer.extruder()->id() < number_of_extruders);
+        if (m_writer.extruder() != nullptr)
+            assert(m_writer.extruder()->id() < number_of_extruders);
+        else
+            assert(m_start_gcode_filament < number_of_extruders);
 
-        int previous_extruder_id = m_writer.extruder()->id();
+        previous_extruder_id = m_writer.extruder() != nullptr ? m_writer.extruder()->id() : m_start_gcode_filament;
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
@@ -4166,8 +4171,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         wipe_volume *= m_config.flush_multiplier;
         old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
-    }
-    else {
+        //BBS: must clean m_start_gcode_filament
+        m_start_gcode_filament = -1;
+    } else {
         old_retract_length = 0.f;
         old_retract_length_toolchange = 0.f;
         old_filament_temp = 0;
@@ -4179,7 +4185,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
     DynamicConfig dyn_config;
-    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1)));
+    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(previous_extruder_id));
     dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int)extruder_id));
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
     dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));

@@ -2509,7 +2509,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("support_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label    = L("Support base");
+    def->label    = L("Support/raft base");
     def->category = L("Support");
     def->tooltip = L("Filament to print support base and raft. \"Default\" means no specific filament for support and current filament is used");
     def->min = 0;
@@ -2534,7 +2534,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("support_interface_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label    = L("Support interface");
+    def->label    = L("Support/raft interface");
     def->category = L("Support");
     def->tooltip = L("Filament to print support interface. \"Default\" means no specific filament for support interface and current filament is used");
     def->min = 0;
