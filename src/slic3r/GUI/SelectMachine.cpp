@@ -3208,6 +3208,17 @@ void SelectMachineDialog::set_default()
     m_stext_weight->SetLabel(weight);
 }
 
+void SelectMachineDialog::sys_color_changed()
+{
+    if (wxGetApp(). dark_mode()) {
+        m_rename_button->SetIcon("ams_editable_light");
+    }
+    else {
+        m_rename_button->SetIcon("ams_editable");
+    }
+    m_rename_button->Refresh();
+}
+
 bool SelectMachineDialog::Show(bool show)
 {
     show_status(PrintDialogStatus::PrintStatusInit);

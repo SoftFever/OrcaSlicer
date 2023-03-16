@@ -10783,6 +10783,7 @@ void Plater::sys_color_changed()
     p->preview->sys_color_changed();
     p->sidebar->sys_color_changed();
     p->menus.sys_color_changed();
+    if (p->m_select_machine_dlg) p->m_select_machine_dlg->sys_color_changed();
 
     Layout();
     GetParent()->Layout();

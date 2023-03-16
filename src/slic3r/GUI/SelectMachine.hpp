@@ -381,8 +381,8 @@ public:
     PrintDialogStatus  get_status() { return m_print_status; }
 
     bool      is_same_printer_model();
-
-    bool Show(bool show);
+    void      sys_color_changed();
+    bool      Show(bool show);
 
     /* model */
     wxObjectDataPtr<MachineListModel> machine_model;
@@ -431,7 +431,7 @@ protected:
     void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);
     void                     set_default();
-    void                     on_timer(wxTimerEvent &event);
+    void                     on_timer(wxTimerEvent& event);
     void                     on_selection_changed(wxCommandEvent &event);
     void                     Enable_Refresh_Button(bool en);
     void                     Enable_Send_Button(bool en);
