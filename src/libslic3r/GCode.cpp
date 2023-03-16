@@ -4148,6 +4148,10 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     float new_retract_length = m_config.retraction_length.get_at(extruder_id);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
     int new_filament_temp = this->on_first_layer() ? m_config.nozzle_temperature_initial_layer.get_at(extruder_id): m_config.nozzle_temperature.get_at(extruder_id);
+    // BBS: if print_z == 0 use first layer temperature
+    if (abs(print_z) < EPSILON)
+        new_filament_temp = m_config.nozzle_temperature_initial_layer.get_at(extruder_id);
+
     Vec3d nozzle_pos = m_writer.get_position();
     float old_retract_length, old_retract_length_toolchange, wipe_volume;
     int old_filament_temp, old_filament_e_feedrate;
