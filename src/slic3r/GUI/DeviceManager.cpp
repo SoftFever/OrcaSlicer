@@ -3781,14 +3781,16 @@ void DeviceManager::on_machine_alive(std::string json_str)
         std::string printer_signal  = j["dev_signal"].get<std::string>();
         std::string connect_type    = j["connect_type"].get<std::string>();
         std::string bind_state      = j["bind_state"].get<std::string>();
+        std::string sec_link        = j["sec_link"].get<std::string>();
 
         MachineObject* obj;
 
         /* update userMachineList info */
         auto it = userMachineList.find(dev_id);
         if (it != userMachineList.end()) {
-            it->second->dev_ip = dev_ip;
-            it->second->bind_state = bind_state;
+            it->second->dev_ip          = dev_ip;
+            it->second->bind_state      = bind_state;
+            it->second->bind_sec_link   = sec_link;
         }
 
         /* update localMachineList */
@@ -3802,9 +3804,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 obj->dev_ip = dev_ip;
                 /* ip changed reconnect mqtt */
             }
-            obj->wifi_signal = printer_signal;
-            obj->dev_connection_type = connect_type;
-            obj->bind_state = bind_state;
+            obj->wifi_signal        = printer_signal;
+            obj->dev_connection_type= connect_type;
+            obj->bind_state         = bind_state;
+            obj->bind_sec_link      = sec_link;
             obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
 
             // U0 firmware
@@ -3827,6 +3830,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->wifi_signal = printer_signal;
             obj->dev_connection_type = connect_type;
             obj->bind_state     = bind_state;
+            obj->bind_sec_link  = sec_link;
 
             //load access code
             AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
