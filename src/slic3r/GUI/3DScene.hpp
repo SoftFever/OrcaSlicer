@@ -269,6 +269,7 @@ public:
     static std::array<float, 4> MODEL_NEGTIVE_COL;
     static std::array<float, 4> SUPPORT_ENFORCER_COL;
     static std::array<float, 4> SUPPORT_BLOCKER_COL;
+    static std::array<float, 4> MODEL_HIDDEN_COL;
 
     static void update_render_colors();
     static void load_render_colors();
@@ -286,6 +287,7 @@ public:
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const std::array<float, 4>& rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
+    virtual ~GLVolume() = default;
 
     // BBS
 protected:
@@ -363,6 +365,8 @@ public:
 	    bool                disabled : 1;
 	    // Is this object printable?
 	    bool                printable : 1;
+        // Is this object visible(in assemble view)?
+	    bool                visible : 1;
 	    // Whether or not this volume is active for rendering
 	    bool                is_active : 1;
 	    // Whether or not to use this volume when applying zoom_to_volumes()

@@ -6,38 +6,43 @@
 		"files": [
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/en/BambuStudio_en.po",
+				"pattern": "bbl/i18n/en/OrcaSlicer_en.po",
 				"lang": "en"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/fr/BambuStudio_fr.po",
+				"pattern": "bbl/i18n/fr/OrcaSlicer_fr.po",
 				"lang": "fr"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/de/BambuStudio_de.po",
+				"pattern": "bbl/i18n/de/OrcaSlicer_de.po",
 				"lang": "de"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/sv/BambuStudio_sv.po",
+				"pattern": "bbl/i18n/sv/OrcaSlicer_sv.po",
 				"lang": "sv"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/es/BambuStudio_es.po",
+				"pattern": "bbl/i18n/es/OrcaSlicer_es.po",
 				"lang": "es"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/nl/BambuStudio_nl.po",
+				"pattern": "bbl/i18n/nl/OrcaSlicer_nl.po",
 				"lang": "nl"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/hu/BambuStudio_hu.po",
+				"pattern": "bbl/i18n/hu/OrcaSlicer_hu.po",
 				"lang": "hu"
+			},
+			{
+				"type": "po",
+				"pattern": "bbl/i18n/ja/OrcaSlicer_ja.po",
+				"lang": "ja"
 			}
 		]
 	},
@@ -45,7 +50,7 @@
 		"folder": "bbl/i18n",
 		"includeSourceLang" : "true",
 		"files": {
-			"output": "${lang}/BambuStudio_${lang}.po"
+			"output": "${lang}/OrcaSlicer_${lang}.po"
 		}
 	}
 }

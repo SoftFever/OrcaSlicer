@@ -376,8 +376,14 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         auto &filaments      = m_collection->get_presets();
         for (auto &f : m_preset_bundle->filament_ams_list) {
             std::string filament_id = f.opt_string("filament_id", 0u);
+            if (filament_id.empty()) continue;
             auto iter = std::find_if(filaments.begin(), filaments.end(),
                 [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
+            if (iter == filaments.end()) {
+                auto filament_type = "Generic " + f.opt_string("filament_type", 0u);
+                iter               = std::find_if(filaments.begin(), filaments.end(),
+                                    [&filament_type](auto &f) { return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
+            }
             if (iter == filaments.end()) {
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
                 continue;
@@ -1033,8 +1039,7 @@ void PlaterPresetComboBox::update()
         //if (i + 1 == m_collection->num_default_presets())
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
-
-    if (m_type == Preset::TYPE_FILAMENT)
+    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle))
         add_ams_filaments(into_u8(selected_user_preset), true);
 
     //BBS: add project embedded preset logic
@@ -1262,7 +1267,7 @@ void TabPresetComboBox::update()
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
 
-    if (m_type == Preset::TYPE_FILAMENT)
+    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle))
         add_ams_filaments(into_u8(selected));
 
     //BBS: add project embedded preset logic

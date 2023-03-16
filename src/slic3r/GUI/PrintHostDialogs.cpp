@@ -108,7 +108,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
 
     if (post_actions.has(PrintHostPostUploadAction::StartSimulation)) {
         // Using wxID_MORE as a button identifier to be different from the other buttons, wxID_MORE has no other meaning here.
-        auto* btn_simulate = add_button(wxID_MORE, false, _L("Upload and Simulate"));
+        auto* btn_simulate = add_button(wxID_MORE, false, _L("Simulate"));
         btn_simulate->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
             if (validate_path(txt_filename->GetValue())) {
                 post_upload_action = PrintHostPostUploadAction::StartSimulation;

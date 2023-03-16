@@ -2,7 +2,7 @@
 #define _libslic3r_h_
 
 #include "libslic3r_version.h"
-#define SLIC3R_APP_FULL_NAME "Bambu Studio"
+#define SLIC3R_APP_FULL_NAME "Orca Slicer"
 #define GCODEVIEWER_APP_NAME "BambuStudio G-code Viewer"
 #define GCODEVIEWER_APP_KEY  "BambuStudioGcodeViewer"
 #define GCODEVIEWER_BUILD_ID std::string("BambuStudio G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-RC")
@@ -57,7 +57,8 @@ static constexpr double EPSILON = 1e-4;
 static constexpr double SCALING_FACTOR = 0.000001;
 static constexpr double PI = 3.141592653589793238;
 // When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam.
-static constexpr double LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER = 0.15;
+// SoftFever: replaced by seam_gap now
+// static constexpr double LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER = 0.15;
 static constexpr double RESOLUTION = 0.0125;
 #define                 SCALED_RESOLUTION (RESOLUTION / SCALING_FACTOR)
 static constexpr double SPARSE_INFILL_RESOLUTION = 0.04;
@@ -77,10 +78,6 @@ static constexpr double BRIDGE_INFILL_MARGIN = 1;
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define unscale_(val) ((val) * SCALING_FACTOR)
 
-//BBS: BBS only support relative E and can't been changed by user at the moment. because
-//BBS need to support skip object when printing.
-static constexpr bool RELATIVE_E_AXIS = 1;
-
 #define SCALED_EPSILON scale_(EPSILON)
 
 #ifndef UNUSED
@@ -93,7 +90,7 @@ static constexpr bool g_config_remove_small_overhangs = true;
 static constexpr float g_config_tree_support_collision_resolution = 0.2;
 
 // Write slices as SVG images into out directory during the 2D processing of the slices.
-// #define SLIC3R_DEBUG_SLICE_PROCESSING
+//#define SLIC3R_DEBUG_SLICE_PROCESSING
 
 namespace Slic3r {
 

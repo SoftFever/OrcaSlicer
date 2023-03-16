@@ -165,17 +165,6 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
             }
         }
 
-        // BBS
-        if (!object->tree_support_layers().empty()) {
-            for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
-                Polygons contour_offset = offset(ex_poly.contour, brim_object_gap, ClipperLib::jtSquare);
-                for (Polygon& poly : contour_offset)
-                    poly.douglas_peucker(scaled_resolution);
-
-                polygons_append(islands_object, std::move(contour_offset));
-            }
-        }
-
         for (const PrintInstance &instance : object->instances())
             append_and_translate(islands, islands_object, instance);
     }
@@ -245,19 +234,6 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
                     append(no_brim_area_object, offset_ex(ExPolygon(support_contour), brim_object_gap));
 
                 no_brim_area_object.emplace_back(support_contour);
-            }
-        }
-
-        // BBS
-        if (!object->tree_support_layers().empty()) {
-            for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
-                if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
-                    append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_object_gap, jtRound, scaled_resolution), offset(ex_poly.contour, brim_object_gap)));
-
-                if (brim_type != BrimType::btNoBrim)
-                    append(no_brim_area_object, offset_ex(ExPolygon(ex_poly.contour), brim_object_gap));
-
-                no_brim_area_object.emplace_back(ex_poly.contour);
             }
         }
 
@@ -360,21 +336,6 @@ static ExPolygons top_level_outer_brim_area(const Print& print, const ConstPrint
                     }
                 }
 
-                // BBS
-                if (!object->tree_support_layers().empty()) {
-                    for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
-                        if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
-                            append(brim_area_support, diff_ex(offset(ex_poly.contour, brim_width, jtRound, SCALED_RESOLUTION), offset(ex_poly.contour, 0)));
-
-                        if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                            append(no_brim_area_support, offset_ex(ex_poly.holes, -no_brim_offset));
-
-                        if (brim_type != BrimType::btNoBrim)
-                            append(no_brim_area_support, offset_ex(ex_poly.contour, 0));
-
-                        no_brim_area_support.emplace_back(ex_poly.contour);
-                    }
-                }
                 brimToWrite.at(object->id()).sup = false;
                 for (const PrintInstance& instance : object->instances()) {
                     if (!brim_area_support.empty())
@@ -541,26 +502,6 @@ static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs
                         if (brim_type != BrimType::btNoBrim)
                             append(no_brim_area_support, offset_ex(support_contour, 0));
                         no_brim_area_support.emplace_back(support_contour);
-                    }
-                }
-
-                // BBS
-                if (!object->tree_support_layers().empty()) {
-                    for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
-                        if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
-                            if (!top_outer_brim)
-                                append(brim_area_support, diff_ex(offset_ex(ex_poly.contour, brim_width + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
-                        }
-                        if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
-                            append(brim_area_support, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
-                        if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                            append(no_brim_area_support, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
-                        if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                            append(no_brim_area_support, offset_ex(ex_poly.holes, -no_brim_offset));
-                        append(holes_support, ex_poly.holes);
-                        if (brim_type != BrimType::btNoBrim)
-                            append(no_brim_area_support, offset_ex(ex_poly.contour, 0));
-                        no_brim_area_support.emplace_back(ex_poly.contour);
                     }
                 }
             }
@@ -927,7 +868,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         double brimWidthRaw = configBrimWidthByVolumeGroups(adhension, maxSpeed, groupVolumePtrs, volumeGroup.slices, groupHeight);
                         brim_width = scale_(floor(brimWidthRaw / flowWidth / 2) * flowWidth * 2);
                     }
-
                     for (const ExPolygon& ex_poly : volumeGroup.slices) {
                         // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated
                         float brim_width_mod;
@@ -952,8 +892,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                             // BBS: inner and outer boundary are offset from the same polygon incase of round off error.
                             auto innerExpoly = offset_ex(ex_poly.contour, brim_offset, jtRound, SCALED_RESOLUTION);
                             append(brim_area_object, diff_ex(offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION), innerExpoly));
-                            // BBS: brim should be apart from holes
-                            append(no_brim_area_object, diff_ex(ex_poly_holes_reversed, offset_ex(ex_poly_holes_reversed, -scale_(5.))));
                         }
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner) {
                             append(brim_area_object, diff_ex(offset_ex(ex_poly_holes_reversed, -brim_offset), offset_ex(ex_poly_holes_reversed, -brim_width - brim_offset)));
@@ -988,7 +926,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                     support_material_extruder = printExtruders.front() + 1;
             }
             if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
-                if (!object->support_layers().empty()) {
+                if (!object->support_layers().empty() && object->support_layers().front()->support_type==stInnerNormal) {
                     for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
                         // Brim will not be generated for supports
                         /*
@@ -1002,8 +940,8 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                     }
                 }
                 // BBS
-                if (!object->tree_support_layers().empty()) {
-                    for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
+                if (!object->support_layers().empty() && object->support_layers().front()->support_type == stInnerTree) {
+                    for (const ExPolygon &ex_poly : object->support_layers().front()->lslices) {
                         // BBS: additional brim width will be added if adhension area is too small without brim
                         float brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
                             && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
@@ -1038,11 +976,16 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             }
         }
     }
-    if (!bedExPoly.empty())
+    if (!bedExPoly.empty()){
+        auto plateOffset = print.get_plate_origin();
+        bedExPoly.front().translate(scale_(plateOffset.x()), scale_(plateOffset.y()));
         no_brim_area.push_back(bedExPoly.front());
-    for (const PrintObject* object : print.objects())
-        if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
+    }
+    for (const PrintObject* object : print.objects()) {
+        if (brimAreaMap.find(object->id()) != brimAreaMap.end())
+        {
             brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], no_brim_area);
+        }
 
         if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
             supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], no_brim_area);
@@ -1222,13 +1165,6 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
             }
         }
 
-        if (!object->tree_support_layers().empty()) {
-            for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
-                Polygon counter = ex_poly.contour;
-                save_polygon_if_is_inner_island(holes_area, counter, hole_island_pair);
-            }
-        }
-
         //BBS: 3 generate loops, only save part of loop which inside hole
         const float    brim_offset = scale_(object->config().brim_object_gap.value);
         const float    brim_width = scale_(object->config().brim_width.value);
@@ -1367,13 +1303,6 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                 if (!object->support_layers().empty()) {
                     for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
                         Polygon counter = support_contour;
-                        save_polygon_if_is_inner_island(holes_area, counter, hole_island_pair_supports);
-                    }
-                }
-
-                if (!object->tree_support_layers().empty()) {
-                    for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
-                        Polygon counter = ex_poly.contour;
                         save_polygon_if_is_inner_island(holes_area, counter, hole_island_pair_supports);
                     }
                 }
@@ -1589,10 +1518,10 @@ Polygons tryExPolygonOffset(const ExPolygons islandAreaEx, const Print& print)
         for (ExPolygon& poly_ex : islands_ex)
             poly_ex.douglas_peucker(resolution);
         polygons_append(loops, to_polygons(islands_ex));
-        islands_ex = offset_ex(std::move(islands_ex), -1.4f*float(flow.scaled_spacing()), jtRound, resolution);
+        islands_ex = offset_ex(std::move(islands_ex), -1.3f*float(flow.scaled_spacing()), jtRound, resolution);
         for (ExPolygon& poly_ex : islands_ex)
             poly_ex.douglas_peucker(resolution);
-        islands_ex = offset_ex(std::move(islands_ex), 0.4f*float(flow.scaled_spacing()), jtRound, resolution);
+        islands_ex = offset_ex(std::move(islands_ex), 0.3f*float(flow.scaled_spacing()), jtRound, resolution);
     }
     return loops;
 }
@@ -1662,13 +1591,6 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
         for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing())
             for (const PrintInstance& instance : object->instances()) {
                 auto ex_poly_translated = support_contour;
-                ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
-                bbx.merge(get_extents(ex_poly_translated));
-            }
-        if (!object->tree_support_layers().empty())
-        for (const Polygon& ex_poly : object->tree_support_layers().front()->support_fills.polygons_covered_by_spacing())
-            for (const PrintInstance& instance : object->instances()) {
-                auto ex_poly_translated = ex_poly;
                 ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
                 bbx.merge(get_extents(ex_poly_translated));
             }

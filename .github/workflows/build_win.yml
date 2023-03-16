@@ -1,0 +1,64 @@
+name: Build Win64
+
+on: 
+    push:
+      branches: 
+       - SoftFever
+    pull_request:
+      branches: 
+       - SoftFever 
+
+jobs:
+  build_win64:
+    name: Build Win64
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Install perl
+        run: |
+          choco install strawberryperl
+      - run: mkdir ${{ github.workspace }}/deps/build
+      - run: mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+      - name: download deps
+        shell: powershell
+        run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/OrcaSlicer_deps_Mar/OrcaSlicer_dep_12Mar2023.zip", "$env:temp\OrcaSlicer_dep_12Mar2023.zip")'
+      - name: extract deps
+        working-directory: ${{ github.workspace }}/deps/build
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\OrcaSlicer_dep_12Mar2023.zip'
+
+      - run: dir "${{ github.workspace }}\deps\build\OrcaSlicer_dep"
+      
+      # - name: build deps
+      #   id: cache_deps
+      #   uses: actions/cache@v3
+      #   env:
+      #     cache-name: ${{ runner.os }}-cache-orcaslicer_deps
+      #   with:
+      #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}
+
+      # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
+      #   name: build deps
+      #   working-directory: ${{ github.workspace }}
+      #   continue-on-error: true
+      #   run: .\build_release.bat deps
+   
+      # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude OrcaSlicer_dep | Remove-Item -Recurse -Force
+
+      - name: Build studio
+        working-directory: ${{ github.workspace }}
+        run: .\build_release.bat studio
+
+      # - name: pack app
+      #   working-directory: ${{ github.workspace }}/build
+      #   shell: cmd
+      #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_dev_build.zip ${{ github.workspace }}/build/OrcaSlicer'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: OrcaSlicer_Win64_nightly
+          path: ${{ github.workspace }}/build/OrcaSlicer

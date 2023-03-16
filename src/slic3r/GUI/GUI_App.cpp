@@ -39,6 +39,7 @@
 #include <wx/textctrl.h>
 #include <wx/splash.h>
 #include <wx/fontutil.h>
+#include <wx/glcanvas.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -86,8 +87,8 @@
 //BBS: DailyTip and UserGuide Dialog
 #include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
-#include "WebUserLoginDialog.hpp"
 #include "ReleaseNote.hpp"
+#include "PrivacyUpdateDialog.hpp"
 #include "ModelMall.hpp"
 
 //#ifdef WIN32
@@ -178,7 +179,7 @@ bool is_associate_files(std::wstring extend)
     wchar_t app_path[MAX_PATH];
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
-    std::wstring prog_id             = L" Bambu.Studio.1";
+    std::wstring prog_id             = L" Orca.Slicer.1";
     std::wstring reg_base            = L"Software\\Classes";
     std::wstring reg_extension       = reg_base + L"\\." + extend;
 
@@ -289,13 +290,13 @@ public:
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
 // #if BBL_INTERNAL_TESTING
-        auto sf_version = wxString::Format("SoftFever %s",std::string(SoftFever_VERSION)).ToStdString();
-        wxSize text_rect = memDc.GetTextExtent(sf_version);
-        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth();
+        auto bs_version = wxString::Format("Based on BambuStudio %s",std::string(SLIC3R_VERSION)).ToStdString();
+        memDc.SetFont(Label::Body_12);
+        wxSize text_rect = memDc.GetTextExtent(bs_version);
+        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth()/2;
         int start_y = version_rect.GetBottom() + 10;
         wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
-        memDc.SetFont(m_constant_text.version_font);
-        memDc.DrawLabel(sf_version, internal_sign_rect, wxALIGN_CENTER);
+        memDc.DrawLabel(bs_version, internal_sign_rect, wxALIGN_RIGHT);
 // #endif
 
         // load bitmap for logo
@@ -567,7 +568,7 @@ private:
 // #if BBL_INTERNAL_TESTING
             // version = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
 // #else
-            version = _L("SoftFever Version") + " " + std::string(SoftFever_VERSION);
+            // version = _L("") + " " + std::string(SoftFever_VERSION);
 // #endif
 
             // credits infornation
@@ -728,7 +729,7 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_OBJ */     { "OBJ files"sv,       { ".obj"sv } },
     /* FT_AMF */     { "AMF files"sv,       { ".amf"sv, ".zip.amf"sv, ".xml"sv } },
     /* FT_3MF */     { "3MF files"sv,       { ".3mf"sv } },
-    /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
+    /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv, ".3mf"sv } },
     /* FT_MODEL */   {"Supported files"sv,  {".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv }},
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
@@ -950,7 +951,7 @@ static void generic_exception_handle()
     } catch (const std::bad_alloc& ex) {
         // bad_alloc in main thread is most likely fatal. Report immediately to the user (wxLogError would be delayed)
         // and terminate the app so it is at least certain to happen now.
-        wxString errmsg = wxString::Format(_L("BambuStudio will terminate because of running out of memory."
+        wxString errmsg = wxString::Format(_L("OrcaSlicer will terminate because of running out of memory."
                                               "It may be a bug. It will be appreciated if you report the issue to our team."));
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
@@ -958,14 +959,14 @@ static void generic_exception_handle()
         std::terminate();
         //throw;
      } catch (const boost::io::bad_format_string& ex) {
-        wxString errmsg = _L("BambuStudio will terminate because of a localization error. "
+        wxString errmsg = _L("OrcaSlicer will terminate because of a localization error. "
                              "It will be appreciated if you report the specific scenario this issue happened.");
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Critical error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         std::terminate();
         //throw;
     } catch (const std::exception& ex) {
-        wxLogError(format_wxstr(_L("BambuStudio got an unhandled exception: %1%"), ex.what()));
+        wxLogError(format_wxstr(_L("OrcaSlicer got an unhandled exception: %1%"), ex.what()));
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
     }
@@ -1016,25 +1017,31 @@ void GUI_App::post_init()
         mainframe->select_tab(size_t(MainFrame::tp3DEditor));
         plater_->select_view_3D("3D");
         //BBS init the opengl resource here
-        Size canvas_size = plater_->canvas3D()->get_canvas_size();
-        wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
-        wxGetApp().init_opengl();
+#ifdef __linux__
+        if (plater_->canvas3D()->get_wxglcanvas()->IsShownOnScreen()&&plater_->canvas3D()->make_current_for_postinit()) {
+#endif
+            Size canvas_size = plater_->canvas3D()->get_canvas_size();
+            wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
+            wxGetApp().init_opengl();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
-        plater_->canvas3D()->init();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
+            plater_->canvas3D()->init();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init canvas3D";
-        wxGetApp().imgui()->new_frame();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init canvas3D";
+            wxGetApp().imgui()->new_frame();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
-        plater_->canvas3D()->enable_render(true);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
+            plater_->canvas3D()->enable_render(true);
 
-        if (!slow_bootup) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
-            plater_->canvas3D()->render(false);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+            if (!slow_bootup) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
+                plater_->canvas3D()->render(false);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+            }
+#ifdef __linux__
         }
+#endif
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
@@ -1089,6 +1096,7 @@ void GUI_App::post_init()
     }
 #endif
 
+    m_show_gcode_window = app_config->get("show_gcode_window") == "true";
     if (m_networking_need_update) {
         //updating networking
         int ret = updating_bambu_networking();
@@ -1118,7 +1126,10 @@ void GUI_App::post_init()
             this->preset_updater->sync(http_url, language, network_ver, preset_bundle);
 
             //BBS: check new version
-            //this->check_new_version();
+            this->check_new_version_sf();
+			//BBS: check privacy version
+            if (is_user_login())
+                this->check_privacy_version(0);
         });
     }
 
@@ -1154,6 +1165,9 @@ void GUI_App::post_init()
 
     std::string functional_config_file = Slic3r::resources_dir() + "/config.json";
     DeviceManager::load_functional_config(encode_path(functional_config_file.c_str()));
+
+    std::string filaments_blacklist_config_file = Slic3r::resources_dir() + "/printers/filaments_blacklist.json";
+    DeviceManager::load_filaments_blacklist_config(encode_path(filaments_blacklist_config_file.c_str()));
 
     // remove old log files over LOG_FILES_MAX_NUM
     std::string log_addr = data_dir();
@@ -1227,6 +1241,13 @@ void GUI_App::shutdown()
 	if (m_removable_drive_manager) {
 		removable_drive_manager()->shutdown();
 	}
+
+    // destroy login dialog
+    if (login_dlg != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy login dialog");
+        delete login_dlg;
+        login_dlg = nullptr;
+    }
 
     if (m_is_recreating_gui) return;
     m_is_closing = true;
@@ -1646,9 +1667,9 @@ void GUI_App::init_networking_callbacks()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter, m_agent=%1%")%m_agent;
     if (m_agent) {
         //set callbacks
-        m_agent->set_on_user_login_fn([this](int online_login, bool login) {
-            GUI::wxGetApp().request_user_login(online_login);
-            });
+        //m_agent->set_on_user_login_fn([this](int online_login, bool login) {
+        //    GUI::wxGetApp().request_user_handle(online_login);
+        //    });
 
         m_agent->set_on_server_connected_fn([this]() {
             if (m_is_closing) {
@@ -1708,6 +1729,7 @@ void GUI_App::init_networking_callbacks()
                                 event.SetString(obj->dev_id);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
+                                obj->set_user_access_code("");
                                 m_device_manager->set_selected_machine("");
                                 wxString text;
                                 if (msg == "5") {
@@ -1748,8 +1770,9 @@ void GUI_App::init_networking_callbacks()
                     obj->is_ams_need_update = false;
                     obj->parse_json(msg);
 
-                    if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                    auto sel = this->m_device_manager->get_selected_machine();
+                    if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
                     }
                 }
             });
@@ -1773,7 +1796,7 @@ void GUI_App::init_networking_callbacks()
                 if (obj) {
                     obj->parse_json(msg);
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
                     }
                 }
                 });
@@ -1834,9 +1857,12 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     std::stringstream buffer;
     buffer << stream.rdbuf();
     std::string body = buffer.str();
-    size_t start = body.find("BambuStudio ");
-    if (start == std::string::npos)
-        return boost::none;
+    size_t start = body.find("OrcaSlicer ");
+    if (start == std::string::npos) {
+        start = body.find("BambuStudio ");
+        if (start == std::string::npos)
+            return boost::none;
+    }
     body = body.substr(start + 12);
     size_t end = body.find_first_of(" \n");
     if (end < body.size())
@@ -1856,10 +1882,8 @@ void GUI_App::init_download_path()
         fs::path dp(down_path);
         if (!fs::exists(dp)) {
 
-            if (!fs::create_directory(dp)) {
-                std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
-                app_config->set("download_path", user_down_path);
-            }
+            std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
+            app_config->set("download_path", user_down_path);
         }
     }
 }
@@ -1867,7 +1891,7 @@ void GUI_App::init_download_path()
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-    SetAppName("BambuStudio-SoftFever");
+    SetAppName(SLIC3R_APP_KEY);
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
 //  SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
@@ -1878,12 +1902,11 @@ void GUI_App::init_app_config()
 	// Mac : "~/Library/Application Support/Slic3r"
 
     if (data_dir().empty()) {
+        boost::filesystem::path data_dir_path;
         #ifndef __linux__
             std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
             //BBS create folder if not exists
-            boost::filesystem::path data_dir_path(data_dir);
-            if (!boost::filesystem::exists(data_dir_path))
-                boost::filesystem::create_directory(data_dir_path);
+            data_dir_path = boost::filesystem::path(data_dir);
             set_data_dir(data_dir);
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
@@ -1892,7 +1915,19 @@ void GUI_App::init_app_config()
             if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
             set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
+            data_dir_path = boost::filesystem::path(data_dir());
         #endif
+        if (!boost::filesystem::exists(data_dir_path)){
+            auto older_data_dir = data_dir_path.parent_path() / "BambuStudio-SoftFever";
+            if(boost::filesystem::exists(older_data_dir)){
+                copy_directory_recursively(older_data_dir,data_dir_path);
+                boost::system::error_code ec;
+                boost::filesystem::rename(data_dir_path / "BambuStudio.conf", data_dir_path / "OrcaSlicer.conf", ec);
+                boost::filesystem::rename(data_dir_path / "BambuStudio.conf.bak", data_dir_path / "OrcaSlicer.conf.bak", ec);
+            }
+            else
+                boost::filesystem::create_directory(data_dir_path);
+        }
     } else {
         m_datadir_redefined = true;
     }
@@ -1909,7 +1944,7 @@ void GUI_App::init_app_config()
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             throw Slic3r::RuntimeError(
-                _u8L("BambuStudio configuration file may be corrupted and is not abled to be parsed."
+                _u8L("OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
                      "Please delete the file and try again.") +
                 "\n\n" + app_config->config_path() + "\n\n" + error);
         }
@@ -1971,6 +2006,14 @@ void GUI_App::init_http_extra_header()
 {
     std::map<std::string, std::string> extra_headers = get_extra_header();
 
+    if (m_agent)
+        m_agent->set_extra_http_header(extra_headers);
+}
+
+void GUI_App::update_http_extra_header()
+{
+    std::map<std::string, std::string> extra_headers = get_extra_header();
+    Slic3r::Http::set_extra_headers(extra_headers);
     if (m_agent)
         m_agent->set_extra_http_header(extra_headers);
 }
@@ -2061,7 +2104,7 @@ bool GUI_App::on_init_inner()
             }
         }
         for (auto d : dialogStack)
-            d->EndModal(wxID_CANCEL);
+            d->EndModal(wxID_ABORT);
     });
 
     std::map<std::string, std::string> extra_headers = get_extra_header();
@@ -2095,7 +2138,7 @@ bool GUI_App::on_init_inner()
             RichMessageDialog
                 dlg(nullptr,
                     wxString::Format(_L("%s\nDo you want to continue?"), msg),
-                    "BambuStudio", wxICON_QUESTION | wxYES_NO);
+                    "OrcaSlicer", wxICON_QUESTION | wxYES_NO);
             dlg.ShowCheckBox(_L("Remember my choice"));
             if (dlg.ShowModal() != wxID_YES) return false;
 
@@ -2120,7 +2163,7 @@ bool GUI_App::on_init_inner()
 #endif // __APPLE__
 
 
-    bool init_dark_color_mode = app_config->get("dark_color_mode") == "1";
+    bool init_dark_color_mode = dark_mode();
     bool init_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
 #ifdef __WINDOWS__
      NppDarkMode::InitDarkMode(init_dark_color_mode, init_sys_menu_enabled);
@@ -2135,7 +2178,7 @@ bool GUI_App::on_init_inner()
 
 #ifdef _MSW_DARK_MODE
     // app_config can be updated in check_older_app_config(), so check if dark_color_mode and sys_menu_enabled was changed
-    if (bool new_dark_color_mode = app_config->get("dark_color_mode") == "1";
+    if (bool new_dark_color_mode = dark_mode();
         init_dark_color_mode != new_dark_color_mode) {
 
 #ifdef __WINDOWS__
@@ -2229,7 +2272,7 @@ bool GUI_App::on_init_inner()
                /* wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_info.version_str);
                 DownloadDialog dialog(this->mainframe,
                     tips,
-                    _L("New version of Bambu Studio"),
+                    _L("New version of Orca Slicer"),
                     false,
                     wxCENTER | wxICON_INFORMATION);
 
@@ -2277,7 +2320,7 @@ bool GUI_App::on_init_inner()
                 wxString tips = wxString::Format(_L("Click to download new version in default browser: %s"), version_str);
                 DownloadDialog dialog(this->mainframe,
                     tips,
-                    _L("The Bambu Studio needs an upgrade"),
+                    _L("The Orca Slicer needs an upgrade"),
                     false,
                     wxCENTER | wxICON_INFORMATION);
                 dialog.SetExtendedMessage(description_text);
@@ -2322,12 +2365,26 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
+    Bind(EVT_SET_SELECTED_MACHINE, &GUI_App::on_set_selected_machine, this);
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
+    Bind(EVT_USER_LOGIN_HANDLE, &GUI_App::on_user_login_handle, this);
+    Bind(EVT_CHECK_PRIVACY_VER, &GUI_App::on_check_privacy_update, this);
+    Bind(EVT_CHECK_PRIVACY_SHOW, &GUI_App::show_check_privacy_dlg, this);
+
+    Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
+
+    Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
 
     copy_network_if_available();
     on_init_network();
 
-    //BBS if load user preset failed
+    if (m_agent && m_agent->is_user_login()) {
+        enable_user_preset_folder(true);
+    } else {
+        enable_user_preset_folder(false);
+    }
+
+    // BBS if load user preset failed
     //if (loaded_preset_result != 0) {
         try {
             // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
@@ -2340,13 +2397,11 @@ bool GUI_App::on_init_inner()
         }
     //}
 
-
-
-
     if (app_config->get("sync_user_preset") == "true") {
         //BBS loading user preset
-        BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
-        scrn->SetText(_L("Loading user presets..."));
+        // Always async, not such startup step
+        //BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
+        //scrn->SetText(_L("Loading user presets..."));
         if (m_agent) {
             start_sync_user_preset();
         }
@@ -2488,11 +2543,14 @@ bool GUI_App::on_init_inner()
 
 void GUI_App::copy_network_if_available()
 {
+    if (app_config->get("update_network_plugin") != "true")
+        return;
     std::string network_library, player_library, network_library_dst, player_library_dst;
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
     auto plugin_folder = data_dir_path / "plugins";
     auto cache_folder = data_dir_path / "ota";
+    std::string changelog_file = cache_folder.string() + "/network_plugins.json";
 #if defined(_MSC_VER) || defined(_WIN32)
     network_library = cache_folder.string() + "/bambu_networking.dll";
     player_library = cache_folder.string() + "/BambuSource.dll";
@@ -2541,6 +2599,9 @@ void GUI_App::copy_network_if_available()
         fs::remove(player_library);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying player library from" << player_library << " to " << player_library_dst<<" successfully.";
     }
+    if (boost::filesystem::exists(changelog_file))
+        fs::remove(changelog_file);
+    app_config->set("update_network_plugin", "false");
 }
 
 bool GUI_App::on_init_network(bool try_backup)
@@ -2783,6 +2844,7 @@ void GUI_App::UpdateDarkUIWin(wxWindow* win)
 void GUI_App::Update_dark_mode_flag()
 {
     m_is_dark_mode = dark_mode();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": switch the current dark mode status to %1% ")%m_is_dark_mode;
 }
 
 void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
@@ -2899,6 +2961,16 @@ void GUI_App::set_label_clr_sys(const wxColour& clr)
     std::string str = clr_str.ToStdString();
     app_config->save();
     */
+}
+
+bool GUI_App::get_side_menu_popup_status()
+{
+    return m_side_popup_status;
+}
+
+void GUI_App::set_side_menu_popup_status(bool status)
+{
+    m_side_popup_status = status;
 }
 
 bool GUI_App::tabs_as_menu() const
@@ -3050,6 +3122,11 @@ void GUI_App::ShowUserGuide() {
 
 void GUI_App::ShowDownNetPluginDlg() {
     try {
+        auto iter = std::find_if(dialogStack.begin(), dialogStack.end(), [](auto dialog) {
+            return dynamic_cast<DownloadProgressDialog *>(dialog) != nullptr;
+        });
+        if (iter != dialogStack.end())
+            return;
         DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
     } catch (std::exception &e) {
@@ -3057,14 +3134,24 @@ void GUI_App::ShowDownNetPluginDlg() {
     }
 }
 
-void GUI_App::ShowUserLogin()
+void GUI_App::ShowUserLogin(bool show)
 {
     // BBS: User Login Dialog
-    try {
-        ZUserLogin LoginDlg;
-        LoginDlg.ShowModal();
-    } catch (std::exception &e) {
-        // wxMessageBox(e.what(), "", MB_OK);
+    if (show) {
+        try {
+            if (!login_dlg)
+                login_dlg = new ZUserLogin();
+            else {
+                delete login_dlg;
+                login_dlg = new ZUserLogin();
+            }
+            login_dlg->ShowModal();
+        } catch (std::exception &e) {
+            ;
+        }
+    } else {
+        if (login_dlg)
+            login_dlg->EndModal(wxID_OK);
     }
 }
 
@@ -3143,7 +3230,7 @@ void GUI_App::force_colors_update()
 {
 #ifdef _MSW_DARK_MODE
 #ifdef __WINDOWS__
-    NppDarkMode::SetDarkMode(app_config->get("dark_color_mode") == "1");
+    NppDarkMode::SetDarkMode(dark_mode());
     if (WXHWND wxHWND = wxToolTip::GetToolTipCtrl())
         NppDarkMode::SetDarkExplorerTheme((HWND)wxHWND);
     NppDarkMode::SetDarkTitleBar(mainframe->GetHWND());
@@ -3231,7 +3318,7 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one file (gcode/.gco/.g/.ngc/ngc):"),
+        _L("Choose one file (gcode/3mf):"),
         app_config->get_last_dir(), "",
         file_wildcards(FT_GCODE), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -3296,6 +3383,13 @@ bool GUI_App::check_login()
     return result;
 }
 
+void GUI_App::request_user_handle(int online_login)
+{
+    auto evt = new wxCommandEvent(EVT_USER_LOGIN_HANDLE);
+    evt->SetInt(online_login);
+    wxQueueEvent(this, evt);
+}
+
 void GUI_App::request_user_login(int online_login)
 {
     auto evt = new wxCommandEvent(EVT_USER_LOGIN);
@@ -3314,12 +3408,9 @@ void GUI_App::request_user_logout()
 
         m_agent->user_logout();
         m_agent->set_user_selected_machine("");
-        BOOST_LOG_TRIVIAL(info) << "preset_folder: set to empty, user_logout";
-        enable_user_preset_folder(false);
         /* delete old user settings */
         m_device_manager->clean_user_info();
-        GUI::wxGetApp().sidebar().load_ams_list({});
-        GUI::wxGetApp().remove_user_presets();
+        GUI::wxGetApp().sidebar().load_ams_list({}, {});
         GUI::wxGetApp().stop_sync_user_preset();
 
 #ifdef __WINDOWS__
@@ -3350,11 +3441,6 @@ std::string GUI_App::handle_web_request(std::string cmd)
         std::string web_cmd = j["command"].get<std::string>();
 
         if (web_cmd == "request_model_download") {
-           /* json j_data = j["data"];
-            json import_j;*/
-            /*  import_j["model_id"] = j["data"]["model_id"].get<std::string>();
-              import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();*/
-
             std::string download_url = "";
             if (j["data"].contains("download_url"))
                 download_url = j["data"]["download_url"].get<std::string>();
@@ -3550,7 +3636,7 @@ void GUI_App::request_model_download(std::string url, std::string filename)
     if (!check_login()) return;
 
     if (plater_) {
-        plater_->request_model_download(url, filename);
+        plater_->request_model_download();
     }
 }
 
@@ -3660,7 +3746,15 @@ void GUI_App::enable_user_preset_folder(bool enable)
     }
 }
 
-void GUI_App::on_user_login(wxCommandEvent &evt)
+void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev || m_agent) return;
+
+    dev->set_selected_machine(m_agent->get_user_selected_machine());
+}
+
+void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
 
@@ -3670,14 +3764,18 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     // get machine list
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-    dev->update_user_machine_list_info();
-    dev->set_selected_machine(m_agent->get_user_selected_machine());
 
-    if (app_config->get("sync_user_preset") == "true") {
+    boost::thread update_thread = boost::thread([this, dev] {
+        dev->update_user_machine_list_info();
+        auto evt = new wxCommandEvent(EVT_SET_SELECTED_MACHINE);
+        wxQueueEvent(this, evt);
+    });
+
+    // if (app_config->get("sync_user_preset") == "true") {
         enable_user_preset_folder(true);
-    } else {
-        enable_user_preset_folder(false);
-    }
+    // } else {
+    //     enable_user_preset_folder(false);
+    // }
 
     if (online_login)
         GUI::wxGetApp().mainframe->show_sync_dialog();
@@ -3696,6 +3794,14 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
         mainframe->show_publish_button(publish_identifier == 0 ? false : true);
 #endif
     }
+}
+
+void GUI_App::on_user_login(wxCommandEvent &evt)
+{
+    if (!m_agent) { return; }
+    int online_login = evt.GetInt();
+    // check privacy before handle
+    check_privacy_version(online_login);
 }
 
 bool GUI_App::is_studio_active()
@@ -3801,6 +3907,101 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     }).perform();
 }
 
+//parse the string, if it doesn't contain a valid version string, return invalid version.
+Semver get_version(const std::string& str, const std::regex& regexp) {
+    std::smatch match;
+    if (std::regex_match(str, match, regexp)) {
+        std::string version_cleaned = match[0];
+        const boost::optional<Semver> version = Semver::parse(version_cleaned);
+        if (version.has_value()) {
+            return *version;
+        }
+    }
+    return Semver::invalid();
+}
+
+void GUI_App::check_new_version_sf(bool show_tips, int by_user)
+{
+    AppConfig* app_config = wxGetApp().app_config;
+    auto version_check_url = app_config->version_check_url();
+    Http::get(version_check_url).on_error([&](std::string body, std::string error, unsigned http_status) {
+        (void)body;
+        BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
+            version_check_url,
+            http_status,
+            error);
+        })
+        .timeout_connect(1)
+        .on_complete([&](std::string body, unsigned /* http_status */) {
+            boost::trim(body);
+            // SoftFever: parse github release, ported from SS
+
+            boost::property_tree::ptree root;
+            std::stringstream json_stream(body);
+            boost::property_tree::read_json(json_stream, root);
+            bool i_am_pre = false;
+            //at least two number, use '.' as separator. can be followed by -Az23 for prereleased and +Az42 for metadata
+            std::regex matcher("[0-9]+\\.[0-9]+(\\.[0-9]+)*(-[A-Za-z0-9]+)?(\\+[A-Za-z0-9]+)?");
+
+            Semver current_version = get_version(SoftFever_VERSION, matcher);
+            Semver best_pre(1, 0, 0);
+            Semver best_release(1, 0, 0);
+            std::string best_pre_url;
+            std::string best_release_url;
+            std::string best_release_content;
+            std::string best_pre_content;
+            const std::regex reg_num("([0-9]+)");
+            for (auto json_version : root) {
+                std::string tag = json_version.second.get<std::string>("tag_name");
+                if (tag[0] == 'v')
+                    tag.erase(0, 1);
+                for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num); it != std::sregex_iterator(); ++it) {
+
+                }
+                Semver tag_version = get_version(tag, matcher);
+                if (current_version == tag_version)
+                    i_am_pre = json_version.second.get<bool>("prerelease");
+                if (json_version.second.get<bool>("prerelease")) {
+                    if (best_pre < tag_version) {
+                        best_pre = tag_version;
+                        best_pre_url = json_version.second.get<std::string>("html_url");
+                        best_pre_content = json_version.second.get<std::string>("body");
+                        best_pre.set_prerelease("Preview");
+                    }
+                }
+                else {
+                    if (best_release < tag_version) {
+                        best_release = tag_version;
+                        best_release_url = json_version.second.get<std::string>("html_url");
+                        best_release_content = json_version.second.get<std::string>("body");
+                    }
+                }
+            }
+
+            //if release is more recent than beta, use release anyway
+            if (best_pre < best_release) {
+                best_pre = best_release;
+                best_pre_url = best_release_url;
+                best_pre_content = best_release_content;
+            }
+            //if we're the most recent, don't do anything
+            if ((i_am_pre ? best_pre : best_release) <= current_version)
+                return;
+
+            //BOOST_LOG_TRIVIAL(info) << format("Got %1% online version: `%2%`. Sending to GUI thread...", SLIC3R_APP_NAME, i_am_pre ? best_pre.to_string(): best_release.to_string());
+
+            version_info.url = i_am_pre ? best_pre_url : best_release_url;
+            version_info.version_str = i_am_pre ? best_pre.to_string() : best_release.to_string_sf();
+            version_info.description = i_am_pre ? best_pre_content : best_release_content;
+            version_info.force_upgrade = false;
+
+            wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
+            evt->SetString((i_am_pre ? best_pre : best_release).to_string());
+            GUI::wxGetApp().QueueEvent(evt);
+            })
+            .perform_sync();;
+            
+}
 
 //BBS pop up a dialog and download files
 void GUI_App::request_new_version(int by_user)
@@ -3827,6 +4028,113 @@ void GUI_App::set_skip_version(bool skip)
     }
 }
 
+void GUI_App::show_check_privacy_dlg(wxCommandEvent& evt)
+{
+    int online_login = evt.GetInt();
+    PrivacyUpdateDialog privacy_dlg(this->mainframe, wxID_ANY, _L("Privacy Policy Update"));
+    privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CONFIRM, [this, online_login](wxCommandEvent &e) {
+        app_config->set("privacy_version", privacy_version_info.version_str);
+        app_config->set_bool("privacy_update_checked", true);
+        app_config->save();
+        request_user_handle(online_login);
+        });
+    privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CANCEL, [this](wxCommandEvent &e) {
+            app_config->set_bool("privacy_update_checked", false);
+            app_config->save();
+            if (m_agent) {
+                m_agent->user_logout();
+            }
+        });
+
+    privacy_dlg.set_text(privacy_version_info.description);
+    privacy_dlg.on_show();
+}
+
+void GUI_App::on_show_check_privacy_dlg(int online_login)
+{
+    auto evt = new wxCommandEvent(EVT_CHECK_PRIVACY_SHOW);
+    evt->SetInt(online_login);
+    wxQueueEvent(this, evt);
+}
+
+bool GUI_App::check_privacy_update()
+{
+    if (privacy_version_info.version_str.empty() || privacy_version_info.description.empty()
+        || privacy_version_info.url.empty()) {
+        return false;
+    }
+
+    std::string local_privacy_ver = app_config->get("privacy_version");
+    auto curr_version = Semver::parse(local_privacy_ver);
+    auto remote_version = Semver::parse(privacy_version_info.version_str);
+    if (curr_version && remote_version) {
+        if (*remote_version > *curr_version || app_config->get("privacy_update_checked") != "true") {
+            return true;
+        }
+    }
+    return false;
+}
+
+void GUI_App::on_check_privacy_update(wxCommandEvent& evt)
+{
+    int online_login = evt.GetInt();
+    bool result = check_privacy_update();
+    if (result)
+        on_show_check_privacy_dlg(online_login);
+    else
+        request_user_handle(online_login);
+}
+
+void GUI_App::check_privacy_version(int online_login)
+{
+    update_http_extra_header();
+    std::string query_params = "?policy/privacy=00.00.00.00";
+    std::string url = get_http_url(app_config->get_country_code()) + query_params;
+    Slic3r::Http http = Slic3r::Http::get(url);
+
+    http.header("accept", "application/json")
+        .timeout_connect(TIMEOUT_CONNECT)
+        .timeout_max(TIMEOUT_RESPONSE)
+        .on_complete([this, online_login](std::string body, unsigned) {
+            try {
+                json j = json::parse(body);
+                if (j.contains("message")) {
+                    if (j["message"].get<std::string>() == "success") {
+                        if (j.contains("resources")) {
+                            for (auto it = j["resources"].begin(); it != j["resources"].end(); it++) {
+                                if (it->contains("type")) {
+                                    if ((*it)["type"] == std::string("policy/privacy")
+                                        && it->contains("version")
+                                        && it->contains("description")
+                                        && it->contains("url")
+                                        && it->contains("force_update")) {
+                                        privacy_version_info.version_str = (*it)["version"].get<std::string>();
+                                        privacy_version_info.description = (*it)["description"].get<std::string>();
+                                        privacy_version_info.url = (*it)["url"].get<std::string>();
+                                        privacy_version_info.force_upgrade = (*it)["force_update"].get<bool>();
+                                        break;
+                                    }
+                                }
+                            }
+                            CallAfter([this, online_login]() {
+                                auto evt = new wxCommandEvent(EVT_CHECK_PRIVACY_VER);
+                                evt->SetInt(online_login);
+                                wxQueueEvent(this, evt);
+                            });
+                        }
+                    }
+                }
+            }
+            catch (...) {
+                request_user_handle(online_login);
+            }
+        })
+        .on_error([this, online_login](std::string body, std::string error, unsigned int status) {
+            request_user_handle(online_login);
+            BOOST_LOG_TRIVIAL(error) << "check privacy version error" << body;
+    }).perform();
+}
+
 void GUI_App::no_new_version()
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_NO_NEW_VERSION);
@@ -3836,19 +4144,10 @@ void GUI_App::no_new_version()
 std::string GUI_App::version_display = "";
 std::string GUI_App::format_display_version()
 {
-    if (!version_display.empty()) return version_display;
+    if (!version_display.empty())
+        return version_display;
 
-    auto version_text = std::string(SLIC3R_VERSION);
-    int len = version_text.length();
-    for (int i = 0, j = 0; i < len; ++i) {
-        if (!(version_text[i] == '0' && j == 0))
-            version_display += version_text[i];
-
-        if (version_text[i] == '.')
-            j = 0;
-        else
-            ++j;
-    }
+    version_display = SoftFever_VERSION;
     return version_display;
 }
 
@@ -3866,17 +4165,19 @@ void GUI_App::reload_settings()
         m_agent->get_user_presets(&user_presets);
         preset_bundle->load_user_presets(*app_config, user_presets, ForwardCompatibilitySubstitutionRule::Enable);
         preset_bundle->save_user_presets(*app_config, get_delete_cache_presets());
+        mainframe->update_side_preset_ui();
     }
 }
 
-//BBS reload when login
+//BBS reload when logout
 void GUI_App::remove_user_presets()
 {
     if (preset_bundle && m_agent) {
         preset_bundle->remove_users_preset(*app_config);
 
-        std::string user_id = m_agent->get_user_id();
-        preset_bundle->remove_user_presets_directory(user_id);
+        // Not remove user preset cache
+        //std::string user_id = m_agent->get_user_id();
+        //preset_bundle->remove_user_presets_directory(user_id);
 
         //update ui
         mainframe->update_side_preset_ui();
@@ -3990,9 +4291,9 @@ void GUI_App::sync_preset(Preset* preset)
     }
 }
 
-void GUI_App::start_sync_user_preset(bool with_progress_dlg)
+void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_dlg)
 {
-    if (!m_agent) return;
+    if (!m_agent || !m_agent->is_user_login()) return;
 
     enable_user_preset_folder(true);
 
@@ -4000,32 +4301,51 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     if (enable_sync)
         return;
 
-    if (m_agent->is_user_login()) {
-        // get setting list, update setting list
-        std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-        if (with_progress_dlg) {
-            ProgressDialog dlg(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-            dlg.Update(0, _L("Loading user preset"));
-            m_agent->get_setting_list(version,
-                            [this, &dlg](int percent){
-                                dlg.Update(percent, _L("Loading user preset"));
-                            },
-                            [this, &dlg]() {
-                                dlg.GetValue();
-                                bool cont = dlg.Update(dlg.GetValue(), _L("Loading user preset"));
-                                return !cont;
-                            });
-        } else {
-            m_agent->get_setting_list(version);
-        }
-        GUI::wxGetApp().reload_settings();
+    if (load_immediately) {
+        preset_bundle->load_user_presets(m_agent->get_user_id(), ForwardCompatibilitySubstitutionRule::Enable);
+        mainframe->update_side_preset_ui();
+    }
+
+    ProgressFn progressFn;
+    WasCancelledFn cancelFn;
+    std::function<void()> finishFn;
+
+    if (with_progress_dlg) {
+        auto dlg = new ProgressDialog(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+        dlg->Update(0, _L("Loading user preset"));
+        progressFn = [this, dlg](int percent) {
+            CallAfter([=]{
+                dlg->Update(percent, _L("Loading user preset"));
+            });
+        };
+        cancelFn = [dlg]() {
+            return dlg->WasCanceled();
+        };
+        finishFn = [this, dlg] {
+            CallAfter([=]{
+                dlg->Destroy();
+                reload_settings();
+            });
+        };
+    }
+    else {
+        finishFn = [this] {
+            CallAfter([=] {
+                reload_settings();
+            });
+        };
     }
 
     BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
     //BBS
     enable_sync = true;
     m_sync_update_thread = Slic3r::create_thread(
-        [this] {
+        [this, progressFn, cancelFn, finishFn] {
+            // get setting list, update setting list
+            std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
+            m_agent->get_setting_list(version, progressFn, cancelFn);
+            finishFn();
+
             int count = 0, sync_count = 0;
             std::vector<Preset> presets_to_sync;
             while (enable_sync) {
@@ -4062,12 +4382,13 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         unsigned int http_code = 200;
 
                         /* get list witch need to be deleted*/
-                        std::vector<string>& delete_cache_presets = get_delete_cache_presets();
+                        std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
                         for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
                             if ((*it).empty()) continue;
                             std::string del_setting_id = *it;
                             int result = m_agent->delete_setting(del_setting_id);
                             if (result == 0) {
+                                preset_deleted_from_cloud(del_setting_id);
                                 it = delete_cache_presets.erase(it);
                                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
                             }
@@ -4086,6 +4407,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
 void GUI_App::stop_sync_user_preset()
 {
+    if (!wxGetApp().m_is_closing)
+        remove_user_presets();
     enable_user_preset_folder(false);
 
     if (!enable_sync)
@@ -4094,6 +4417,16 @@ void GUI_App::stop_sync_user_preset()
     enable_sync = false;
     if (m_sync_update_thread.joinable())
         m_sync_update_thread.join();
+}
+
+void GUI_App::start_http_server()
+{
+    if (!m_http_server.is_started())
+        m_http_server.start();
+}
+void GUI_App::stop_http_server()
+{
+    m_http_server.stop();
 }
 
 bool GUI_App::switch_language()
@@ -4270,7 +4603,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by PBambuStudio.conf: %1%") % language;
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by OrcaSlicer.conf: %1%") % language;
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
@@ -4292,7 +4625,8 @@ bool GUI_App::load_language(wxString language, bool initial)
                         {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
                         {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
                         {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
-                        {"hu", wxString::FromUTF8("Magyar")}
+                        {"hu", wxString::FromUTF8("Magyar")},
+                        {"ja", wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E")}
                     };
                     for (auto l : language_descptions) {
                         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);
@@ -4337,7 +4671,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 	}
 
 	if (language_info != nullptr && language_info->LayoutDirection == wxLayout_RightToLeft) {
-    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by BambuStudio: %1%") % language_info->CanonicalName.ToUTF8().data();
+    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by OrcaSlicer: %1%") % language_info->CanonicalName.ToUTF8().data();
 		language_info = nullptr;
 	}
 
@@ -4397,7 +4731,9 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLANGUAGE_SPANISH,
             wxLANGUAGE_SWEDISH,
             wxLANGUAGE_DUTCH,
-            wxLANGUAGE_HUNGARIAN};
+            wxLANGUAGE_HUNGARIAN,
+            wxLANGUAGE_JAPANESE
+        };
         std::string cur_language = app_config->get("language");
         if (cur_language != "") {
             //cleanup the language wrongly set before
@@ -4419,14 +4755,14 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed.";
+    	wxString message = "Switching Orca Slicer to language " + language_info->CanonicalName + " failed.";
 #if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux system
         message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
 #endif
         if (initial)
         	message + "\n\nApplication will close.";
-        wxMessageBox(message, "Bambu Studio - Switching language failed", wxOK | wxICON_ERROR);
+        wxMessageBox(message, "Orca Slicer - Switching language failed", wxOK | wxICON_ERROR);
         if (initial)
 			std::exit(EXIT_FAILURE);
 		else
@@ -4510,6 +4846,54 @@ void GUI_App::update_mode()
     //BBS plater()->update_menus();
 
     plater()->canvas3D()->update_gizmos_on_off_state();
+}
+
+void GUI_App::show_ip_address_enter_dialog(wxString title)
+{
+    auto evt = new wxCommandEvent(EVT_SHOW_IP_DIALOG);
+    evt->SetString(title);
+    wxQueueEvent(this, evt);
+}
+
+bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return false;
+    if (!dev->get_selected_machine()) return false;
+    auto obj = dev->get_selected_machine();
+
+    InputIpAddressDialog dlg(nullptr);
+    dlg.set_machine_obj(obj);
+    if (!title.empty()) dlg.update_title(title);
+
+    dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
+        auto selection_data_arr = wxSplit(e.GetString().ToStdString(), '|');
+
+        if (selection_data_arr.size() == 2) {
+            auto ip_address = selection_data_arr[0];
+            auto access_code = selection_data_arr[1];
+
+            BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
+            if (!ip_address.empty()) {
+                wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
+                wxGetApp().app_config->save();
+
+                obj->dev_ip = ip_address.ToStdString();
+                obj->set_user_access_code(access_code.ToStdString());
+            }
+        }
+    });
+
+    if (dlg.ShowModal() == wxID_YES) {
+        return true;
+    }
+    return false;
+}
+
+void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
+{
+    wxString title = evt.GetString();
+    show_modal_ip_address_enter_dialog(title);
 }
 
 //void GUI_App::add_config_menu(wxMenuBar *menu)
@@ -4859,7 +5243,12 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
                             static_cast<TabPrinter*>(tab)->cache_extruder_cnt();
                         }
                     }
-                    tab->cache_config_diff(selected_options);
+                    std::vector<std::string> selected_options2;
+                    std::transform(selected_options.begin(), selected_options.end(), std::back_inserter(selected_options2), [](auto & o) {
+                        auto i = o.find('#');
+                        return i != std::string::npos ? o.substr(0, i) : o;
+                    });
+                    tab->cache_config_diff(selected_options2);
                     if (!is_called_from_configwizard)
                         tab->m_presets->discard_current_changes();
                 }
@@ -4946,14 +5335,29 @@ void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool ch
         }
 }
 
-std::vector<std::string>& GUI_App::get_delete_cache_presets()
+static std::mutex mutex_delete_cache_presets;
+
+std::vector<std::string> & GUI_App::get_delete_cache_presets()
 {
+    return need_delete_presets;
+}
+
+std::vector<std::string> GUI_App::get_delete_cache_presets_lock()
+{
+    std::scoped_lock l(mutex_delete_cache_presets);
     return need_delete_presets;
 }
 
 void GUI_App::delete_preset_from_cloud(std::string setting_id)
 {
+    std::scoped_lock l(mutex_delete_cache_presets);
     need_delete_presets.push_back(setting_id);
+}
+
+void GUI_App::preset_deleted_from_cloud(std::string setting_id)
+{
+    std::scoped_lock l(mutex_delete_cache_presets);
+    need_delete_presets.erase(std::remove(need_delete_presets.begin(), need_delete_presets.end(), setting_id), need_delete_presets.end());
 }
 
 bool GUI_App::OnExceptionInMainLoop()
@@ -4974,7 +5378,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         if (is_gcode_file(into_u8(filename)))
             ++ num_gcodes;
     if (fileNames.size() == num_gcodes) {
-        // Opening PrusaSlicer by drag & dropping a G-Code onto BambuStudio icon in Finder,
+        // Opening PrusaSlicer by drag & dropping a G-Code onto OrcaSlicer icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
         m_app_mode = EAppMode::GCodeViewer;
         unlock_lockfile(get_instance_hash_string() + ".lock", data_dir() + "/cache/");
@@ -5568,8 +5972,8 @@ void GUI_App::associate_files(std::wstring extend)
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L" Bambu.Studio.1";
-    std::wstring prog_desc = L"BambuStudio";
+    std::wstring prog_id = L" Orca.Slicer.1";
+    std::wstring prog_desc = L"OrcaSlicer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\." + extend;
@@ -5591,8 +5995,8 @@ void GUI_App::disassociate_files(std::wstring extend)
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L" Bambu.Studio.1";
-    std::wstring prog_desc = L"BambuStudio";
+    std::wstring prog_id = L" Orca.Slicer.1";
+    std::wstring prog_desc = L"OrcaSlicer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\." + extend;
@@ -5617,6 +6021,22 @@ void GUI_App::disassociate_files(std::wstring extend)
 
 
 #endif // __WXMSW__
+
+bool is_support_filament(int extruder_id)
+{
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+
+    if (extruder_id >= filament_presets.size()) return false;
+
+    Slic3r::Preset *filament = filaments.find_preset(filament_presets[extruder_id]);
+    if (filament == nullptr) return false;
+
+    Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_is_support"));
+    if (support_option == nullptr) return false;
+
+    return support_option->get_at(0);
+};
 
 } // GUI
 } //Slic3r

@@ -71,16 +71,16 @@ std::pair<bool, std::string> GLShadersManager::init()
     // Since macOS 12 (Monterey), this issue with the opposite direction on Apple's Arm CPU seems to be fixed, and computed
     // triangle normals inside fragment shader have the right direction.
     if (platform_flavor() == PlatformFlavor::OSXOnArm && wxPlatformInfo::Get().GetOSMajorVersion() < 12) {
-        //if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
-            valid &= append_shader("mm_gouraud", {"mm_gouraud_130.vs", "mm_gouraud_130.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
+        //if (GUI::wxGetApp().plater() && GUI::wxGetApp().plater()->is_wireframe_enabled())
+        //    valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
         //else
-        //    valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
+            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
     }
     else {
-        //if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
-            valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"});
+        //if (GUI::wxGetApp().plater() && GUI::wxGetApp().plater()->is_wireframe_enabled())
+        //    valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"});
         //else
-        //    valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
+            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
     }
 
     //BBS: add shader for outline

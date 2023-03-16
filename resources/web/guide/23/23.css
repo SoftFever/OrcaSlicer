@@ -33,7 +33,7 @@ input
 #ItemSelectArea
 {
 	height:40px;
-	border-top: 1px solid #00AE42;
+	border-top: 1px solid #009688;
 	display: flex;
 	align-items: center;
 }
@@ -92,7 +92,7 @@ input
 
 #NoticeBar
 {
-	background-color:#00B35C;
+	background-color:#00f0d8;
 	height: 40px;
 	line-height: 40px;
 	color: #fff;

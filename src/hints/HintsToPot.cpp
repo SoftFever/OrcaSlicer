@@ -9,7 +9,7 @@
 
 bool write_to_pot(boost::filesystem::path path, const std::vector<std::pair<std::string, std::string>>& data)
 {
-	boost::filesystem::ofstream file(std::move(path), std::ios_base::app);
+	boost::nowide::ofstream file(path.string(), std::ios_base::app);
 	for (const auto& element : data)
 	{
 		//Example of .pot element 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 	}
 	try {
 		path_to_ini = boost::filesystem::canonical(boost::filesystem::path(argv[1])).parent_path() / "resources" / "data" / "hints.ini";
-		path_to_pot = boost::filesystem::canonical(boost::filesystem::path(argv[2])).parent_path() / "i18n" /"BambuStudio.pot";
+		path_to_pot = boost::filesystem::canonical(boost::filesystem::path(argv[2])).parent_path() / "i18n" /"OrcaSlicer.pot";
 	} catch (std::exception&) {
 		std::cout << "HINTS_TO_POT FAILED: BOOST CANNONICAL" << std::endl;
 		return -1;

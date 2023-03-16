@@ -32,6 +32,10 @@ inline std::string utc_timestamp()
     return utc_timestamp(get_current_time_utc());
 }
 
+inline std::string local_timestamp() {
+     return time2str(get_current_time_utc(), TimeZone::local, TimeFormat::gcode);
+}
+
 // String to time_t function. Returns time_t(-1) if fails to parse the input.
 time_t str2time(const std::string &str, TimeZone zone, TimeFormat fmt);
 

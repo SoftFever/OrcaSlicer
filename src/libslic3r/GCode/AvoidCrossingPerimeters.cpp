@@ -1135,8 +1135,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 
     const ExPolygons               &lslices          = gcodegen.layer()->lslices;
     const std::vector<BoundingBox> &lslices_bboxes   = gcodegen.layer()->lslices_bboxes;
-    bool                            is_support_layer = (dynamic_cast<const SupportLayer *>(gcodegen.layer()) != nullptr) ||
-                                                       (dynamic_cast<const TreeSupportLayer *>(gcodegen.layer()) != nullptr);
+    bool                            is_support_layer = (dynamic_cast<const SupportLayer *>(gcodegen.layer()) != nullptr);
     if (!use_external && (is_support_layer || (!lslices.empty() && !any_expolygon_contains(lslices, lslices_bboxes, m_grid_lslice, travel)))) {
         // Initialize m_internal only when it is necessary.
         if (m_internal.boundaries.empty())

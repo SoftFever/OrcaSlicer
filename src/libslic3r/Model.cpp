@@ -25,6 +25,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/string_file.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 
@@ -62,7 +63,9 @@ Model& Model::assign_copy(const Model &rhs)
     }
 
     // copy custom code per height
-    this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
+    // BBS
+    this->plates_custom_gcodes = rhs.plates_custom_gcodes;
+    this->curr_plate_index = rhs.curr_plate_index;
 
     // BBS: for design info
     this->design_info = rhs.design_info;
@@ -88,7 +91,9 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.objects.clear();
 
     // copy custom code per height
-    this->custom_gcode_per_print_z = std::move(rhs.custom_gcode_per_print_z);
+    // BBS
+    this->plates_custom_gcodes = std::move(rhs.plates_custom_gcodes);
+    this->curr_plate_index = rhs.curr_plate_index;
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
@@ -160,10 +165,11 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         file_version = &temp_version;
 
     bool result = false;
+    bool is_cb_cancel = false;
     std::string message;
     if (boost::algorithm::iends_with(input_file, ".stp") ||
         boost::algorithm::iends_with(input_file, ".step"))
-        result = load_step(input_file.c_str(), &model, stepFn, stepIsUtf8Fn);
+        result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
     else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
@@ -184,6 +190,11 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension.");
 
+    if (is_cb_cancel) {
+        Model empty_model;
+        return empty_model;
+    }
+
     if (!result) {
         if (message.empty())
             throw Slic3r::RuntimeError("Loading of a model file failed.");
@@ -202,7 +213,9 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 
     //BBS
     //CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
-    CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
+    //BBS
+    for (auto& plate_gcodes : model.plates_custom_gcodes)
+        CustomGCode::check_mode_for_custom_gcode_per_print_z(plate_gcodes.second);
 
     sort_remove_duplicates(config_substitutions->substitutions);
     return model;
@@ -276,7 +289,9 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
             throw Slic3r::RuntimeError("Canceled");
     }
 
-    CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
+    //BBS
+    for (auto& plate_gcodes : model.plates_custom_gcodes)
+        CustomGCode::check_mode_for_custom_gcode_per_print_z(plate_gcodes.second);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_CHECK_MODE_GCODE\n");
     if (proFn) {
@@ -769,7 +784,7 @@ std::string Model::get_backup_path()
         std::time_t t = std::time(0);
         std::tm* now_time = std::localtime(&t);
         std::stringstream buf;
-        buf << "/bamboo_model/";
+        buf << "/orcaslicer_model/";
         buf << std::put_time(now_time, "%a_%b_%d/%H_%M_%S#");
         buf << pid << "#";
         buf << this->id().id;
@@ -2351,6 +2366,12 @@ bool ModelVolume::is_splittable() const
 // BBS
 std::vector<int> ModelVolume::get_extruders() const
 {
+    if (m_type == ModelVolumeType::INVALID
+        || m_type == ModelVolumeType::NEGATIVE_VOLUME
+        || m_type == ModelVolumeType::SUPPORT_BLOCKER
+        || m_type == ModelVolumeType::SUPPORT_ENFORCER)
+        return std::vector<int>();
+
     if (mmu_segmentation_facets.timestamp() != mmuseg_ts) {
         std::vector<indexed_triangle_set> its_per_type;
         mmuseg_extruders.clear();
@@ -2563,6 +2584,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
         if (idx == 0) {
             this->set_mesh(std::move(mesh));
             this->calculate_convex_hull();
+            this->invalidate_convex_hull_2d();
             // Assign a new unique ID, so that a new GLVolume will be generated.
             this->set_new_unique_id();
             // reset the source to disable reload from disk
@@ -2795,7 +2817,7 @@ double Model::findMaxSpeed(const ModelObject* object) {
         if (objectKey == "outer_wall_speed")
             externalPerimeterSpeedObj = object->config.opt_float(objectKey);
         if (objectKey == "small_perimeter_speed")
-            smallPerimeterSpeedObj = object->config.get_abs_value(objectKey);
+            smallPerimeterSpeedObj = object->config.opt_float(objectKey);
     }
     objMaxSpeed = std::max(perimeterSpeedObj, std::max(externalPerimeterSpeedObj, std::max(infillSpeedObj, std::max(solidInfillSpeedObj, std::max(topSolidInfillSpeedObj, std::max(supportSpeedObj, std::max(smallPerimeterSpeedObj, objMaxSpeed)))))));
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;

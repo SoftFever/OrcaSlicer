@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "setting_id": "GFSG99_01",
-    "name": "Generic PETG @0.2 nozzle.json",
+    "name": "Generic PETG @0.2 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PETG @base",

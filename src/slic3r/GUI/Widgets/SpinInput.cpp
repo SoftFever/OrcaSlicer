@@ -8,7 +8,7 @@
 BEGIN_EVENT_TABLE(SpinInput, wxPanel)
 
 EVT_KEY_DOWN(SpinInput::keyPressed)
-EVT_MOUSEWHEEL(SpinInput::mouseWheelMoved)
+//EVT_MOUSEWHEEL(SpinInput::mouseWheelMoved)
 
 EVT_PAINT(SpinInput::paintEvent)
 
@@ -26,7 +26,7 @@ SpinInput::SpinInput()
 {
     radius = 0;
     border_width     = 1;
-    border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Hovered),
+    border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x009688, (int) StateColor::Hovered),
                               std::make_pair(0xDBDBDB, (int) StateColor::Normal));
     background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
@@ -106,7 +106,7 @@ void SpinInput::SetTextColor(StateColor const &color)
 
 void SpinInput::SetSize(wxSize const &size)
 {
-    wxWindow::SetSize(size);
+    StaticBox::SetSize(size);
     Rescale();
 }
 
@@ -204,11 +204,11 @@ void SpinInput::messureSize()
     int h = textSize.y + 8;
     if (size.y < h) {
         size.y = h;
-        SetSize(size);
-        SetMinSize(size);
-    } else {
-        textSize.y = size.y * 14 / 24;
     }
+    wxSize minSize = size;
+    minSize.x      = GetMinWidth();
+    StaticBox::SetSize(size);
+    SetMinSize(size);
     wxSize btnSize = {14, (size.y - 4) / 2};
     btnSize.x = btnSize.x * btnSize.y / 10;
     wxClientDC dc(this);

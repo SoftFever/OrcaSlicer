@@ -15,6 +15,8 @@ private:
     Button* m_button_close;
     wxStaticBitmap* m_bitmap_home;
     ScalableBitmap  m_home_bmp;
+    wxString hint1;
+    wxString hint2;
 
     void init_bitmap();
     void OnPaint(wxPaintEvent& event);

@@ -895,7 +895,7 @@ StaticBambuLib &StaticBambuLib::get()
 {
     static StaticBambuLib lib;
     // first load the library
-    
+
     if (lib.Bambu_Open)
         return lib;
 
@@ -910,6 +910,8 @@ StaticBambuLib &StaticBambuLib::get()
     GET_FUNC(Bambu_Create);
     GET_FUNC(Bambu_Open);
     GET_FUNC(Bambu_StartStream);
+    GET_FUNC(Bambu_GetStreamCount);
+    GET_FUNC(Bambu_GetStreamInfo);
     GET_FUNC(Bambu_SendMessage);
     GET_FUNC(Bambu_ReadSample);
     GET_FUNC(Bambu_Close);
@@ -920,4 +922,8 @@ StaticBambuLib &StaticBambuLib::get()
     if (!lib.Bambu_Open)
         lib.Bambu_Create = Fake_Bambu_Create;
     return lib;
+}
+
+extern "C" BambuLib *bambulib_get() {
+    return &StaticBambuLib::get();
 }

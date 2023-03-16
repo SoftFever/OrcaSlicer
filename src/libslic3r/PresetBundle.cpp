@@ -241,44 +241,17 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     //BBS: change system config to json
     std::tie(substitutions, errors_cummulative) = this->load_system_presets_from_json(substitution_rule);
 
-    //BBS load preset from user's folder, load system default if
-    //BBS: change directories by design
-    std::string dir_user_presets;
-    if (!config.get("preset_folder").empty()) {
-        dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + config.get("preset_folder");
+    // Load default user presets always
+    load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
+    // BBS load preset from user's folder, load system default if
+    // BBS: change directories by design
+    std::string dir_user_presets = config.get("preset_folder");
+    if (!dir_user_presets.empty()) {
+        load_user_presets(dir_user_presets, substitution_rule);
     }
-    else {
-        dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + DEFAULT_USER_FOLDER_NAME;
-    }
-    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
-    if (!fs::exists(user_folder))
-        fs::create_directory(user_folder);
 
-    fs::path folder(dir_user_presets);
-    if (!fs::exists(folder))
-        fs::create_directory(folder);
-
-    // BBS do not load sla_print
-    //BBS: change directoties by design
-    try {
-        this->prints.load_presets(dir_user_presets, PRESET_PRINT_NAME, substitutions, substitution_rule);
-    } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
-    }
-    try {
-        this->filaments.load_presets(dir_user_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule);
-    } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
-    }
-    try {
-        this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
-    } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
-    }
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
-    if (! errors_cummulative.empty())
-        throw Slic3r::RuntimeError(errors_cummulative);
 
     this->load_selections(config, preferred_selection);
 
@@ -534,7 +507,44 @@ std::string PresetBundle::get_hotend_model_for_printer_model(std::string model_n
     return out;
 }
 
-PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, std::map<std::string, std::string>>& my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
+PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, ForwardCompatibilitySubstitutionRule substitution_rule)
+{
+    PresetsConfigSubstitutions substitutions;
+    std::string errors_cummulative;
+
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder)) fs::create_directory(user_folder);
+
+    std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + user;
+    fs::path    folder(user_folder / user);
+    if (!fs::exists(folder)) fs::create_directory(folder);
+
+    // BBS do not load sla_print
+    // BBS: change directoties by design
+    try {
+        this->prints.load_presets(dir_user_presets, PRESET_PRINT_NAME, substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->filaments.load_presets(dir_user_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    if (!errors_cummulative.empty()) throw Slic3r::RuntimeError(errors_cummulative);
+    this->update_multi_material_filament_presets();
+    this->update_compatible(PresetSelectCompatibleType::Never);
+    return PresetsConfigSubstitutions();
+}
+
+PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &                                                config,
+                                                           std::map<std::string, std::map<std::string, std::string>> &my_presets,
+                                                           ForwardCompatibilitySubstitutionRule                       substitution_rule)
 {
     // First load the vendor specific system presets.
     PresetsConfigSubstitutions substitutions;
@@ -545,6 +555,10 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" print's selected_idx %1%, selected_name %2%") %prints.get_selected_idx() %prints.get_selected_preset_name();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" filament's selected_idx %1%, selected_name %2%") %filaments.get_selected_idx() %filaments.get_selected_preset_name();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" printers's selected_idx %1%, selected_name %2%") %printers.get_selected_idx() %printers.get_selected_preset_name();
+
+    // Sync removing
+    remove_users_preset(config, &my_presets);
+
     std::map<std::string, std::map<std::string, std::string>>::iterator it;
     for (it = my_presets.begin(); it != my_presets.end(); it++) {
         std::string name = it->first;
@@ -830,13 +844,26 @@ bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig
 #endif
 }
 
-void PresetBundle::remove_users_preset(AppConfig& config)
+void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, std::map<std::string, std::string>> *my_presets)
 {
+    auto check_removed = [my_presets, this](Preset &preset) -> bool {
+        if (my_presets == nullptr) return true;
+        if (my_presets->find(preset.name) != my_presets->end()) return false;
+        if (!preset.sync_info.empty()) return false; // syncing, not remove
+        if (preset.setting_id.empty()) return false; // no id, not remove
+        // Saved preset is removed by another session
+        if (preset.is_dirty) {
+            preset.setting_id.clear();
+            return false;
+        }
+        preset.remove_files();
+        return true;
+    };
     std::string preset_folder_user_id = config.get("preset_folder");
     std::string printer_selected_preset_name = printers.get_selected_preset().name;
     bool need_reset_printer_preset = false;
     for (auto it = printers.begin(); it != printers.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":printers erase %1%, type %2%， user_id %3%") % it->name % Preset::get_type_string(it->type) % it->user_id;
             if (it->name == printer_selected_preset_name)
                 need_reset_printer_preset = true;
@@ -867,7 +894,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     bool need_reset_print_preset = false;
     // remove preset if user_id is not current user
     for (auto it = prints.begin(); it != prints.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":prints erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_print_name)
                 need_reset_print_preset = true;
@@ -887,7 +914,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     std::string selected_filament_name = filaments.get_selected_preset().name;
     bool need_reset_filament_preset = false;
     for (auto it = filaments.begin(); it != filaments.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":filaments erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_filament_name)
                 need_reset_filament_preset = true;
@@ -904,6 +931,8 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     } else {
         filaments.select_preset_by_name(selected_filament_name, false);
     }
+
+    update_compatible(PresetSelectCompatibleType::Always);
 
     /* set selected preset */
     for (size_t i = 0; i < filament_presets.size(); ++i)
@@ -1268,7 +1297,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     this->filament_presets = { filaments.get_selected_preset_name() };
     for (unsigned int i = 1; i < 1000; ++ i) {
         char name[64];
-        sprintf(name, "filament_%u", i);
+        sprintf(name, "filament_%02u", i);
         if (! config.has("presets", name))
             break;
         this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
@@ -1276,8 +1305,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     std::vector<std::string> filament_colors;
     if (config.has("presets", "filament_colors")) {
         boost::algorithm::split(filament_colors, config.get("presets", "filament_colors"), boost::algorithm::is_any_of(","));
-        project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
     }
+    filament_colors.resize(filament_presets.size());
+    project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
     std::vector<std::string> matrix;
     if (config.has("presets", "flush_volumes_matrix")) {
         boost::algorithm::split(matrix, config.get("presets", "flush_volumes_matrix"), boost::algorithm::is_any_of("|"));
@@ -1340,13 +1370,14 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
 void PresetBundle::export_selections(AppConfig &config)
 {
 	assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() >= 1);
-//	assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() > 1 || filaments.get_selected_preset_name() == filament_presets.front());
+	//assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() > 1 || filaments.get_selected_preset_name() == filament_presets.front());
     config.clear_section("presets");
     config.set("presets", PRESET_PRINT_NAME,        prints.get_selected_preset_name());
     config.set("presets", PRESET_FILAMENT_NAME,     filament_presets.front());
     for (unsigned i = 1; i < filament_presets.size(); ++i) {
         char name[64];
-        sprintf(name, "filament_%u", i);
+        assert(!filament_presets[i].empty());
+        sprintf(name, "filament_%02u", i);
         config.set("presets", name, filament_presets[i]);
     }
     CNumericLocalesSetter locales_setter;
@@ -1402,6 +1433,13 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
     for (auto &ams : filament_ams_list) {
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
+        auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
+        if (filament_id.empty()) continue;
+        if (!filament_changed && this->filament_presets.size() > filament_presets.size()) {
+            filament_presets.push_back(this->filament_presets[filament_presets.size()]);
+            filament_colors.push_back(filament_color);
+            continue;
+        }
         auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
@@ -1469,6 +1507,7 @@ DynamicPrintConfig PresetBundle::full_config_secure() const
     DynamicPrintConfig config = this->full_config();
     //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
     config.erase("print_host");
+    config.erase("print_host_webui");
     config.erase("printhost_apikey");
     config.erase("printhost_cafile");    return config;
 }
@@ -2046,6 +2085,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     }
 
 	this->update_compatible(PresetSelectCompatibleType::Never);
+    this->update_multi_material_filament_presets();
 
     //BBS
     //const std::string &physical_printer = config.option<ConfigOptionString>("physical_printer_settings_id", true)->value;
@@ -3472,9 +3512,9 @@ std::vector<std::string> PresetBundle::export_current_configs(const std::string 
         std::string file = path + "/" + preset->name + ".json";
         if (boost::filesystem::exists(file) && overwrite < 2) {
             overwrite = override_confirm(preset->name);
-            if (overwrite == 0 || overwrite == 2)
-                continue;
         }
+        if (overwrite == 0 || overwrite == 2)
+            continue;
         preset->config.save_to_json(file, preset->name, "", preset->version.to_string());
         result.push_back(file);
     }

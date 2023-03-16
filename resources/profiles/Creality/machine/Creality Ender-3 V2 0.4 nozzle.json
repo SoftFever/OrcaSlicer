@@ -1,6 +1,6 @@
 {
   "type": "machine",
-  "setting_id": "GM_CREALITY_001",
+  "setting_id": "GM001",
   "name": "Creality Ender-3 V2 0.4 nozzle",
   "from": "system",
   "instantiation": "true",

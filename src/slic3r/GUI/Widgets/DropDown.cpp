@@ -3,9 +3,13 @@
 
 #include <wx/dcgraph.h>
 
+#ifdef __WXGTK__
+#include <gtk/gtk.h>
+#endif
+
 wxDEFINE_EVENT(EVT_DISMISS, wxCommandEvent);
 
-BEGIN_EVENT_TABLE(DropDown, wxPopupTransientWindow)
+BEGIN_EVENT_TABLE(DropDown, PopupWindow)
 
 EVT_LEFT_DOWN(DropDown::mouseDown)
 EVT_LEFT_UP(DropDown::mouseReleased)
@@ -31,7 +35,7 @@ DropDown::DropDown(std::vector<wxString> &texts,
     , state_handler(this)
     , border_color(0xDBDBDB)
     , text_color(0x363636)
-    , selector_border_color(std::make_pair(0x00AE42, (int) StateColor::Hovered),
+    , selector_border_color(std::make_pair(0x009688, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal))
     , selector_background_color(std::make_pair(0xEDFAF2, (int) StateColor::Checked),
         std::make_pair(*wxWHITE, (int) StateColor::Normal))
@@ -50,7 +54,7 @@ DropDown::DropDown(wxWindow *             parent,
 void DropDown::Create(wxWindow *     parent,
          long           style)
 {
-    wxPopupTransientWindow::Create(parent, wxPU_CONTAINS_CONTROLS);
+    PopupWindow::Create(parent, wxPU_CONTAINS_CONTROLS);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(*wxWHITE);
     state_handler.attach({&border_color, &text_color, &selector_border_color, &selector_background_color});
@@ -62,7 +66,7 @@ void DropDown::Create(wxWindow *     parent,
     // BBS set default font
     SetFont(Label::Body_14);
 #ifdef __WXOSX__
-    // wxPopupTransientWindow releases mouse on idle, which may cause various problems,
+    // PopupWindow releases mouse on idle, which may cause various problems,
     //  such as losting mouse move, and dismissing soon on first LEFT_DOWN event.
     Bind(wxEVT_IDLE, [] (wxIdleEvent & evt) {});
 #endif
@@ -343,6 +347,10 @@ void DropDown::messureSize()
     szContent.y *= std::min((size_t)15, texts.size());
     szContent.y += texts.size() > 15 ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
+#ifdef __WXGTK__
+    // Gtk has a wrapper window for popup widget
+    gtk_window_resize (GTK_WINDOW (m_widget), szContent.x, szContent.y);
+#endif
     need_sync = false;
 }
 
@@ -417,11 +425,12 @@ void DropDown::mouseMove(wxMouseEvent &event)
     wxPoint pt  = event.GetPosition();
     if (pressedDown) {
         wxPoint pt2 = offset + pt - dragStart;
-        dragStart = pt;
+        wxSize  size = GetSize();
+        dragStart    = pt;
         if (pt2.y > 0)
             pt2.y = 0;
-        else if (pt2.y + rowSize.y * texts.size() < GetSize().y)
-            pt2.y = GetSize().y - rowSize.y * texts.size();
+        else if (pt2.y + rowSize.y * int(texts.size()) < size.y)
+            pt2.y = size.y - rowSize.y * int(texts.size());
         if (pt2.y != offset.y) {
             offset = pt2;
             hover_item = -1; // moved
@@ -443,11 +452,12 @@ void DropDown::mouseMove(wxMouseEvent &event)
 void DropDown::mouseWheelMoved(wxMouseEvent &event)
 {
     auto delta = event.GetWheelRotation();
-    wxPoint pt2 = offset + wxPoint{0, delta};
+    wxSize  size  = GetSize();
+    wxPoint pt2   = offset + wxPoint{0, delta};
     if (pt2.y > 0)
         pt2.y = 0;
-    else if (pt2.y + rowSize.y * texts.size() < GetSize().y)
-        pt2.y = GetSize().y - rowSize.y * texts.size();
+    else if (pt2.y + rowSize.y * int(texts.size()) < size.y)
+        pt2.y = size.y - rowSize.y * int(texts.size());
     if (pt2.y != offset.y) {
         offset = pt2;
     } else {

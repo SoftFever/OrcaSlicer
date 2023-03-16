@@ -24,7 +24,8 @@ public:
         /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
         m_to_lift(0),
-        m_to_lift_type(LiftType::NormalLift)
+        m_to_lift_type(LiftType::NormalLift),
+        m_current_speed(3600), m_is_first_layer(true)
         {}
     Extruder*            extruder()             { return m_extruder; }
     const Extruder*      extruder()     const   { return m_extruder; }
@@ -45,7 +46,7 @@ public:
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
-    std::string set_jerk_xy(unsigned int jerk);
+    std::string set_jerk_xy(double jerk);
     std::string set_pressure_advance(double pa) const;
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
@@ -58,7 +59,9 @@ public:
     // printed with the same extruder.
     std::string toolchange_prefix() const;
     std::string toolchange(unsigned int extruder_id);
-    std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string()) const;
+    std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
+    // SoftFever NOTE: the returned speed is mm/minute
+    double      get_current_speed() const { return m_current_speed;}
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
     std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
     std::string travel_to_z(double z, const std::string &comment = std::string());
@@ -76,7 +79,7 @@ public:
 
     //BBS: set offset for gcode writer
     void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
-
+    Vec2f get_xy_offset() { return Vec2f{m_x_offset, m_y_offset}; };
     // To be called by the CoolingBuffer from another thread.
     static std::string set_fan(const GCodeFlavor gcode_flavor, unsigned int speed);
     // To be called by the main thread. It always emits the G-code, it does not remember the previous state.
@@ -89,11 +92,13 @@ public:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
-    static const bool full_gcode_comment;
-    
+    static bool full_gcode_comment;
+    //Radian threshold of slope for lazy lift and spiral lift;
+    static const double slope_threshold;
     //SoftFever
     void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
     const bool is_bbl_printers() const {return m_is_bbl_printers;}
+    void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
 
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
@@ -104,8 +109,10 @@ private:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
-    unsigned int    m_max_jerk;
-    unsigned int    m_last_jerk;
+    double          m_max_jerk;
+    double          m_last_jerk;
+    double          m_max_jerk_z;
+    double          m_max_jerk_e;
 
     unsigned int  m_travel_acceleration;
     unsigned int  m_travel_jerk;
@@ -129,11 +136,10 @@ private:
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
 
-    //Radian threshold of slope for lazy lift and spiral lift;
-    static const double slope_threshold;
-    
     //SoftFever
     bool            m_is_bbl_printers = false;
+    double          m_current_speed;
+    bool            m_is_first_layer = true;
     
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
@@ -166,6 +172,13 @@ public:
 //    static constexpr const int XYZF_EXPORT_DIGITS = 6;
 //    static constexpr const int E_EXPORT_DIGITS    = 9;
 #endif
+    static constexpr const std::array<double, 10> pow_10 { 1., 10., 100., 1000., 10000., 100000., 1000000., 10000000., 100000000., 1000000000. };
+    static constexpr const std::array<double, 10> pow_10_inv { 1. / 1., 1. / 10., 1. / 100., 1. / 1000., 1. / 10000., 1. / 100000., 1. / 1000000., 1. / 10000000., 1. / 100000000., 1. / 1000000000. };
+
+    // Quantize doubles to a resolution of the G-code.
+    static double quantize(double v, size_t ndigits) { return std::round(v * pow_10[ndigits]) * pow_10_inv[ndigits]; }
+    static double quantize_xyzf(double v) { return quantize(v, XYZF_EXPORT_DIGITS); }
+    static double quantize_e(double v) { return quantize(v, E_EXPORT_DIGITS); }
 
     void emit_axis(const char axis, const double v, size_t digits);
 

@@ -9,6 +9,7 @@
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/path.hpp>
 #include <openssl/md5.h>
 
 #include "libslic3r.h"
@@ -34,6 +35,7 @@
 #define CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE      -15
 #define CLI_3MF_NEW_MACHINE_NOT_SUPPORTED       -16
 #define CLI_PROCESS_NOT_COMPATIBLE     -17
+#define CLI_INVALID_VALUES_IN_3MF      -18
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -565,6 +567,9 @@ inline std::string get_bbl_remain_time_dhms(float time_in_secs)
 }
 
 bool bbl_calc_md5(std::string &filename, std::string &md5_out);
+
+void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target);
+
 
 } // namespace Slic3r
 

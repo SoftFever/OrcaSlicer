@@ -1,0 +1,19 @@
+{
+    "type": "filament",
+    "setting_id": "GFSL99_12",
+    "name": "Generic PLA Silk @BBL P1P",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PLA Silk @base",
+    "filament_max_volumetric_speed": [
+        "7.5"
+    ],
+    "filament_retraction_length": [
+        "0.5"
+    ],
+    "compatible_printers": [
+      "Bambu Lab P1P 0.4 nozzle",
+      "Bambu Lab P1P 0.6 nozzle",
+      "Bambu Lab P1P 0.8 nozzle"
+    ]
+}

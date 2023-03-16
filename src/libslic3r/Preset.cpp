@@ -709,7 +709,7 @@ static std::vector<std::string> s_Preset_print_options {
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
     "seam_position", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
-    "infill_direction", "bridge_angle",
+    "infill_direction",
     "minimum_sparse_infill_area", "reduce_infill_retraction",
     "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_travel_detour_distance",
@@ -748,9 +748,15 @@ static std::vector<std::string> s_Preset_print_options {
      "timelapse_type", "internal_bridge_support_thickness",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
      "wall_distribution_count", "min_feature_size", "min_bead_width",
-     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "travel_acceleration","inner_wall_acceleration",
-     "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
-     "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio","only_one_wall_first_layer"
+     // SoftFever
+     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "post_process", "travel_acceleration","inner_wall_acceleration",
+     "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
+     "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio","only_one_wall_first_layer", "print_flow_ratio", "seam_gap",
+    "role_based_wipe_speed", "wipe_speed", "accel_to_decel_enable", "accel_to_decel_factor", "wipe_on_loops",
+    "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
+    "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
+    "tree_support_brim_width", "gcode_comments", "gcode_label_objects", "initial_layer_travel_speed"
+
 };
 
 static std::vector<std::string> s_Preset_filament_options {
@@ -766,7 +772,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "overhang_fan_threshold", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     // Retract overrides
-    "filament_retraction_length", "filament_z_hop", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
+    "filament_retraction_length", "filament_z_hop", "filament_z_hop_types", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
     "filament_retract_when_changing_layer", "filament_wipe", "filament_retract_before_wipe",
     // Profile compatibility
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
@@ -774,7 +780,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "bed_temperature_difference", "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
-    "enable_pressure_advance", "pressure_advance","chamber_temperature"
+    "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink"/*,"filament_seam_gap"*/
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -794,12 +800,14 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine",
+    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types",
     //SoftFever
-    "host_type", "print_host", "printhost_apikey", 
+    "host_type", "print_host", "printhost_apikey",
+    "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
-    "z_lift_type", "thumbnails"
+    "z_lift_type", "thumbnails",
+    "use_firmware_retraction", "use_relative_e_distances"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -1122,7 +1130,7 @@ void PresetCollection::load_presets(
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": loaded %1% presets from %2%, type %3%")%presets_loaded.size() %dir %Preset::get_type_string(m_type);
-    this->select_preset(first_visible_idx());
+    //this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 }
@@ -1549,6 +1557,10 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                 name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
         if (need_update) {
+            if (iter->name == m_edited_preset.name && iter->is_dirty) {
+                // Keep modifies when update from remote
+                new_config.apply_only(m_edited_preset.config, m_edited_preset.config.diff(iter->config));
+            }
             iter->config = new_config;
             iter->updated_time = cloud_update_time;
             iter->version = cloud_version.value();
@@ -1684,6 +1696,11 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
 {
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
+    // SoftFever: ignore print connection info from project
+    cfg.erase("print_host");
+    cfg.erase("print_host_webui");
+    cfg.erase("printhost_apikey");
+    cfg.erase("printhost_cafile");
     const auto        &keys = cfg.keys();
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
@@ -2618,6 +2635,7 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "printer_technology",
     "host_type",
     "print_host",
+    "print_host_webui",
     "printhost_apikey",
     "printhost_cafile",
     "printhost_port",

@@ -10,9 +10,6 @@
 
 const wxColour text_color(107, 107, 107);
 
-wxString hint1 = _L("Please home all axes (click ");
-wxString hint2 = _L(") to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear.");
-
 namespace Slic3r { namespace GUI {
 RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
       : DPIDialog(parent, id, _L("Confirm"), pos, size, style)
@@ -20,7 +17,12 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
+    hint1 = _L("Please home all axes (click ");
+    hint2 = _L(") to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear.");
+
     init_bitmap();
+
+    SetBackgroundColour(*wxWHITE);
 
     auto* main_sizer = new wxBoxSizer(wxVERTICAL);
     auto* button_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -32,10 +34,10 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     m_button_confirm->SetFont(Label::Body_14);
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
-    StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(confirm_btn_bg);
-    m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
     m_button_confirm->SetTextColor(*wxWHITE);
 
     m_button_close = new Button(this, _L("Close"));
@@ -128,7 +130,7 @@ void RecenterDialog::render(wxDC& dc) {
                     break;
                 }
                 else {
-                    fisrt_line = hint2.SubString(0, i);
+                    fisrt_line = hint2.SubString(0, i - 1);
                     remaining_line = hint2.SubString(i, hint2.length());
                     break;
                 }

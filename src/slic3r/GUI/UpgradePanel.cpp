@@ -8,7 +8,7 @@
 namespace Slic3r {
 namespace GUI {
 
-static const wxColour TEXT_NORMAL_CLR = wxColour(0, 174, 66);
+static const wxColour TEXT_NORMAL_CLR = wxColour(0, 150, 136);
 static const wxColour TEXT_FAILED_CLR = wxColour(255, 111, 0);
 
 MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
@@ -166,10 +166,10 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_main_right_sizer->Add(0, FromDIP(50), 0, wxEXPAND, FromDIP(5));
 
     m_button_upgrade_firmware = new Button(this, _L("Update firmware"));
-    StateColor btn_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                      std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled),
-                      std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    StateColor btn_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled));
+    StateColor btn_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                      std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Enabled),
+                      std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Enabled));
     StateColor btn_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
     m_button_upgrade_firmware->SetBackgroundColor(btn_bg);
     m_button_upgrade_firmware->SetBorderColor(btn_bd);
@@ -533,28 +533,23 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             AmsPanel *amspanel = m_amspanel_list[ams_index];
             amspanel->Show();
 
-
             auto it = ver_list.find(atoi(iter->first.c_str()));
             auto ams_id = std::stoi(iter->second->id);
 
+            wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
+            ams_name = ams_text;
 
             if (it == ver_list.end()) {
                 // hide this ams
-                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
-                
-                ams_name          = ams_text;
                 ams_sn   = "-";
                 ams_ver  = "-";
             } else {
+                // update ams img
                 if (m_obj->upgrade_display_state == (int)MachineObject::UpgradingDisplayState::UpgradingInProgress) {
                     ams_ver = "-";
                     amspanel->m_ams_new_version_img->Hide();
                 }
                 else {
-                    // update ams img
-                    wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
-                    ams_name = ams_text;
-
                     if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
                         if (obj->upgrade_new_version
                             && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) {
@@ -743,6 +738,17 @@ void MachineInfoPanel::on_sys_color_changed()
     }
 }
 
+void MachineInfoPanel::confirm_upgrade(MachineObject* obj)
+{
+    if (obj) {
+        obj->command_upgrade_confirm();
+        obj->upgrade_display_state = MachineObject::UpgradingDisplayState::UpgradingInProgress;
+        obj->upgrade_display_hold_count = HOLD_COUNT_MAX;
+        // enter in progress status first
+        this->show_status(MachineObject::UpgradingDisplayState::UpgradingInProgress);
+    }
+}
+
 void MachineInfoPanel::upgrade_firmware_internal() {
     if (!m_obj)
         return;
@@ -751,7 +757,7 @@ void MachineInfoPanel::upgrade_firmware_internal() {
     } else if (panel_type == ptAmsPanel) {
         m_obj->command_upgrade_firmware(m_ams_info);
     } else if (panel_type == ptPushPanel) {
-        m_obj->command_upgrade_confirm();
+        confirm_upgrade();
     }
 }
 
@@ -760,9 +766,7 @@ void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
     if (confirm_dlg == nullptr) {
         confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"));
         confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
-            if (m_obj) {
-                m_obj->command_upgrade_confirm();
-            }
+                this->confirm_upgrade(m_obj);
         });
     }
     confirm_dlg->update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
@@ -805,14 +809,13 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
     }
 
     ReleaseNoteDialog dlg;
-
-    if (!next_version_release_note.empty()) { 
+    if (!m_obj->ota_new_version_number.empty()) {
         dlg.update_release_note(next_version_release_note, version_number);
         dlg.ShowModal();
         return;
     }
 
-    if (!now_version_release_note.empty()) {
+    if (!m_obj->get_ota_version().empty()) {
         dlg.update_release_note(now_version_release_note, version_number);
         dlg.ShowModal();
         return;
@@ -904,6 +907,8 @@ void UpgradePanel::update(MachineObject *obj)
                 force_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                     if (m_obj) {
                         m_obj->command_upgrade_confirm();
+                        m_obj->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress;
+                        m_obj->upgrade_display_hold_count = HOLD_COUNT_MAX;
                     }
                 });
             }

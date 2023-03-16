@@ -67,7 +67,7 @@ namespace {
 
 	void write_used_binary(const std::vector<std::string>& ids)
 	{
-		boost::nowide::ofstream file((boost::filesystem::path(data_dir()) / "cache" / "hints.cereal").string(), std::ios::binary);
+		boost::nowide::ofstream file((boost::filesystem::path(data_dir()) / "user" / "hints.cereal").string(), std::ios::binary);
 		cereal::BinaryOutputArchive archive(file);
 		HintsCerealData cd{ ids };
 		try
@@ -81,7 +81,7 @@ namespace {
 	}
 	void read_used_binary(std::vector<std::string>& ids)
 	{
-		boost::filesystem::path path(boost::filesystem::path(data_dir()) / "cache" / "hints.cereal");
+		boost::filesystem::path path(boost::filesystem::path(data_dir()) / "user" / "hints.cereal");
 		if (!boost::filesystem::exists(path)) {
 			BOOST_LOG_TRIVIAL(warning) << "Failed to load to hints.cereal. File does not exists. " << path.string();
 			return;

@@ -241,6 +241,34 @@ bool GLGizmoMmuSegmentation::on_number_key_down(int number)
     return true;
 }
 
+bool GLGizmoMmuSegmentation::on_key_down_select_tool_type(int keyCode) {
+    switch (keyCode)
+    {
+    case 'F':
+        m_current_tool = ImGui::FillButtonIcon;
+        break;
+    case 'T':
+        m_current_tool = ImGui::TriangleButtonIcon;
+        break;
+    case 'S':
+        m_current_tool = ImGui::SphereButtonIcon;
+        break;
+    case 'C':
+        m_current_tool = ImGui::CircleButtonIcon;
+        break;
+    case 'H':
+        m_current_tool = ImGui::HeightRangeIcon;
+        break;
+    case 'G':
+        m_current_tool = ImGui::GapFillIcon;
+        break;
+    default:
+        return false;
+        break;
+    }
+    return true;
+}
+
 static void render_extruders_combo(const std::string                       &label,
                                    const std::vector<std::string>          &extruders,
                                    const std::vector<std::array<float, 4>> &extruders_colors,
@@ -321,16 +349,16 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
         std::vector<std::string> tip_items;
         switch (m_tool_type) {
             case ToolType::BRUSH:
-                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view", "toggle_wireframe"};
+                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view"};
                 break;
             case ToolType::BUCKET_FILL:
-                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view", "toggle_wireframe"};
+                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view"};
                 break;
             case ToolType::SMART_FILL:
                 // TODO:
                 break;
             case ToolType::GAP_FILL:
-                tip_items = {"gap_area", "toggle_wireframe"};
+                tip_items = {"gap_area"};
                 break;
             default:
                 break;
@@ -357,7 +385,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f), 
+    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f),
         m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2);
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
@@ -431,14 +459,14 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
         if (m_selected_extruder_idx != extruder_idx) flags |= ImGuiColorEditFlags_NoBorder;
         #ifdef __APPLE__
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0);
             bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(1);
         #else
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0);
             bool color_picked = ImGui::ColorButton(color_label.c_str(), color_vec, flags, button_size);
@@ -484,7 +512,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }

@@ -110,8 +110,6 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         auto language_name = vlist[i]->Description;
 
         if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
-            //language_name = _L(vlist[i]->Description);
-            //language_name = _L("Chinese (Simplified)");
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
@@ -131,6 +129,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_HUNGARIAN)) {
             language_name = wxString::FromUTF8("Magyar");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_JAPANESE)) {
+            language_name = wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E");
         }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
@@ -157,7 +158,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 if (wxGetApp().plater()->is_project_dirty()) {
                     auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
                         wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
-                    
+
                     if (result == wxID_YES) {
                         wxGetApp().plater()->save_project();
                     }
@@ -241,7 +242,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         auto region_index = e.GetSelection();
         auto region       = local_regions[region_index];
 
-        auto area   = "";
+        /*auto area   = "";
         if (region == "CHN" || region == "China")
             area = "CN";
         else if (region == "USA")
@@ -253,7 +254,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         else if (region == "North America")
             area = "US";
         else
-            area = "Others";
+            area = "Others";*/
 
         NetworkAgent* agent = wxGetApp().getAgent();
         AppConfig* config = GUI::wxGetApp().app_config;
@@ -265,10 +266,11 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
                 return;
             } else {
                 wxGetApp().request_user_logout();
+                config->set("region", region.ToStdString());
+                auto area = config->get_country_code();
                 if (agent) {
                     agent->set_country_code(area);
                 }
-                config->set("region", region.ToStdString());
                 EndModal(wxID_CANCEL);
             }
         } else {
@@ -497,7 +499,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
 #ifdef _MSW_DARK_MODE
         wxGetApp().force_colors_update();
         wxGetApp().update_ui_from_settings();
-        set_dark_mode();   
+        set_dark_mode();
 #endif
         SimpleEvent evt = SimpleEvent(EVT_GLCANVAS_COLOR_MODE_CHANGED);
         wxPostEvent(wxGetApp().plater(), evt);
@@ -589,6 +591,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             } else {
                 wxGetApp().disassociate_files(L"step");
             }
+        }
+
+        if (param == "show_gcode_window") {
+            bool pbool = app_config->get("show_gcode_window") == "true" ? true : false;
+            wxGetApp().set_show_gcode_window(pbool);
         }
 
         #endif // __WXMSW__
@@ -729,7 +736,7 @@ void PreferencesDialog::create()
     Layout();
     Fit();
     int screen_height = wxGetDisplaySize().GetY();
-    if (this->GetSize().GetY() > screen_height) 
+    if (this->GetSize().GetY() > screen_height)
         this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
 
     CenterOnParent();
@@ -789,7 +796,9 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_SPANISH,
         wxLANGUAGE_SWEDISH,
         wxLANGUAGE_DUTCH,
-        wxLANGUAGE_HUNGARIAN };
+        wxLANGUAGE_HUNGARIAN,
+        wxLANGUAGE_JAPANESE
+    };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
@@ -817,20 +826,21 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
 
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
+    auto item_gcode_window = create_item_checkbox(_L("Show g-code window"), page, _L("If enabled, g-code window will be displayed."), 50, "show_gcode_window");
 
     auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
 
 #ifdef _WIN32
-    auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
+    auto title_associate_file = create_item_title(_L("Associate files to OrcaSlicer"), page, _L("Associate files to OrcaSlicer"));
 
     // associate file
-    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to BambuStudio"), page,
-                                                        _L("If enabled, sets BambuStudio as default application to open .3mf files"), 50, "associate_3mf");
-    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to BambuStudio"), page,
-                                                        _L("If enabled, sets BambuStudio as default application to open .stl files"), 50, "associate_stl");
-    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to BambuStudio"), page,
-                                                         _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
+    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), page,
+                                                        _L("If enabled, sets OrcaSlicer as default application to open .3mf files"), 50, "associate_3mf");
+    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to OrcaSlicer"), page,
+                                                        _L("If enabled, sets OrcaSlicer as default application to open .stl files"), 50, "associate_stl");
+    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), page,
+                                                         _L("If enabled, sets OrcaSlicer as default application to open .step files"), 50, "associate_step");
 #endif // _WIN32
 
 
@@ -848,13 +858,14 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
-    
+
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_gcode_window, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_sync_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
@@ -953,9 +964,10 @@ void PreferencesDialog::create_shortcuts_page()
     sizer_page->Fit(page);
 }
 
-wxBoxSizer* PreferencesDialog::create_debug_page()
+wxWindow* PreferencesDialog::create_debug_page()
 {
-    //wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
+    auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
+    page->SetBackgroundColour(*wxWHITE);
 
     m_developer_mode_def  = app_config->get("developer_mode");
     m_dump_video_def      = app_config->get("dump_video");
@@ -964,19 +976,19 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto title_develop_mode   = create_item_title(_L("Develop mode"), m_scrolledWindow, _L("Develop mode"));
-    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), m_scrolledWindow, _L("Develop mode"), 50, "developer_mode");
-    auto item_dump_video      = create_item_checkbox(_L("Dump video"), m_scrolledWindow, _L("Dump video"), 50, "dump_video");
+    auto title_develop_mode   = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
+    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
+    auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
 
-    auto title_log_level = create_item_title(_L("Log Level"), m_scrolledWindow, _L("Log Level"));
+    auto title_log_level = create_item_title(_L("Log Level"), page, _L("Log Level"));
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
-    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), m_scrolledWindow, _L("Log Level"), log_level_list);
+    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), page, _L("Log Level"), log_level_list);
 
-    auto title_host = create_item_title(_L("Host Setting"), m_scrolledWindow, _L("Host Setting"));
-    auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "dev_host");
-    auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "qa_host");
-    auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "pre_host");
-    auto radio4     = create_item_radiobox(_L("Product host"), m_scrolledWindow, wxEmptyString, 50, 1, "product_host");
+    auto title_host = create_item_title(_L("Host Setting"), page, _L("Host Setting"));
+    auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "dev_host");
+    auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "qa_host");
+    auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "pre_host");
+    auto radio4     = create_item_radiobox(_L("Product host"), page, wxEmptyString, 50, 1, "product_host");
 
     if (m_iot_environment_def == ENV_DEV_HOST) {
         on_select_radio("dev_host");
@@ -994,7 +1006,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
         std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-    Button* debug_button = new Button(m_scrolledWindow, _L("debug save button"));
+    Button* debug_button = new Button(page, _L("debug save button"));
     debug_button->SetBackgroundColor(btn_bg_white);
     debug_button->SetBorderColor(btn_bd_white);
     debug_button->SetFont(Label::Body_13);
@@ -1063,7 +1075,9 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                     wxGetApp().request_user_logout();
                     agent->set_country_code(country_code);
                 }
-                wxMessageBox(_L("Switch cloud environment, Please login again!"));
+                ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+                confirm_dlg.update_text(_L("Switch cloud environment, Please login again!"));
+                confirm_dlg.on_show();
             }
 
             // bbs  backup
@@ -1098,7 +1112,11 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
     bSizer->Add(radio3, 0, wxEXPAND | wxTOP, FromDIP(3));
     bSizer->Add(radio4, 0, wxEXPAND | wxTOP, FromDIP(3));
     bSizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
-    return bSizer;
+
+    page->SetSizer(bSizer);
+    page->Layout();
+    bSizer->Fit(page);
+    return page;
 }
 
 void PreferencesDialog::on_select_radio(std::string param)

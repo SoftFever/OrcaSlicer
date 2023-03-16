@@ -77,10 +77,10 @@
         "260"
     ],
     "nozzle_temperature_range_high": [
-        "280"
+        "290"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "slow_down_layer_time": [
         "2"

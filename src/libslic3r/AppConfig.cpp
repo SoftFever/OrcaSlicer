@@ -38,7 +38,7 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL = "";
+static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/softfever/OrcaSlicer/releases";
 static const std::string MODELS_STR = "models";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
@@ -175,6 +175,9 @@ void AppConfig::set_defaults()
         set_bool("show_hints", true);
 //#endif
 
+    if (get("show_gcode_window").empty())
+        set_bool("show_gcode_window", true);
+
 
 #ifdef _WIN32
 
@@ -255,6 +258,10 @@ void AppConfig::set_defaults()
 
     if (get("mouse_supported").empty()) {
         set("mouse_supported", "mouse left/mouse middle/mouse right");
+    }
+
+    if (get("privacy_version").empty()) {
+        set("privacy_version", "00.00.00.00");
     }
 
     if (get("rotate_view").empty()) {
@@ -462,8 +469,11 @@ std::string AppConfig::load()
                         for(auto& element: iter.value()) {
                             if (idx == 0)
                                 m_storage[it.key()]["filament"] = element;
-                            else
-                                m_storage[it.key()]["filament_" + std::to_string(idx)] = element;
+                            else {
+                                auto n = std::to_string(idx);
+                                if (n.length() == 1) n = "0" + n;
+                                m_storage[it.key()]["filament_" + n] = element;
+                            }
                             idx++;
                         }
                     } else {
@@ -483,8 +493,6 @@ std::string AppConfig::load()
                             m_filament_presets = iter.value().get<std::vector<std::string>>();
                         } else if (iter.key() == "filament_colors") {
                             m_filament_colors = iter.value().get<std::vector<std::string>>();
-                        } else if (iter.key() == "flushing_volumes") {
-                            m_flush_volumes_matrix = iter.value().get<std::vector<float>>();
                         }
                         else {
                             if (iter.value().is_string())
@@ -575,10 +583,6 @@ void AppConfig::save()
 
     for (const auto &filament_color : m_filament_colors) {
         j["app"]["filament_colors"].push_back(filament_color);
-    }
-
-    for (double flushing_volume : m_flush_volumes_matrix) {
-        j["app"]["flushing_volumes"].push_back(flushing_volume);
     }
 
     // Write the other categories.

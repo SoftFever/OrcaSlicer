@@ -3,6 +3,9 @@ project(libslic3r)
 
 include(PrecompiledHeader)
 
+string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
+set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
 
 if (MINGW)
@@ -134,6 +137,7 @@ set(lisbslic3r_sources
     GCode/GCodeProcessor.hpp
     GCode/AvoidCrossingPerimeters.cpp
     GCode/AvoidCrossingPerimeters.hpp
+    GCode/ExtrusionProcessor.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
@@ -246,6 +250,10 @@ set(lisbslic3r_sources
     SlicingAdaptive.hpp
     SupportMaterial.cpp
     SupportMaterial.hpp
+    PrincipalComponents2D.cpp
+    PrincipalComponents2D.hpp
+    SupportSpotsGenerator.cpp
+    SupportSpotsGenerator.hpp
     TreeSupport.hpp
     TreeSupport.cpp
     MinimumSpanningTree.hpp
@@ -369,6 +377,8 @@ set(lisbslic3r_sources
     Arachne/WallToolPaths.cpp
     Shape/TextShape.hpp
     Shape/TextShape.cpp
+    calib.hpp
+    calib.cpp
 )
 
 if (APPLE)

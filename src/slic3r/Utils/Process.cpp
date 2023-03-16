@@ -14,7 +14,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 
-// For starting another BambuStudio instance on OSX.
+// For starting another OrcaSlicer instance on OSX.
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
     #include <boost/process/spawn.hpp>
@@ -39,7 +39,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	wxString path;
 	wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &path, nullptr, nullptr, wxPATH_NATIVE);
 	path += "\\";
-	path += (instance_type == NewSlicerInstanceType::Slicer) ? "bambu-studio.exe" : "bambu-gcodeviewer.exe";
+	path += (instance_type == NewSlicerInstanceType::Slicer) ? "orca-slicer.exe" : "bambu-gcodeviewer.exe";
 	std::vector<const wchar_t*> args;
 	args.reserve(4);
 	args.emplace_back(path.wc_str());
@@ -51,7 +51,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		args.emplace_back(L"--single-instance");
 	args.emplace_back(nullptr);
 	BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << into_u8(path) << "\"";
-	// Don't call with wxEXEC_HIDE_CONSOLE, BambuStudio in GUI mode would just show the splash screen. It would not open the main window though, it would
+	// Don't call with wxEXEC_HIDE_CONSOLE, OrcaSlicer in GUI mode would just show the splash screen. It would not open the main window though, it would
 	// just hang in the background.
 	if (wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC) <= 0)
 		BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << into_u8(path);
@@ -60,12 +60,13 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	boost::filesystem::path bin_path = into_path(wxStandardPaths::Get().GetExecutablePath());
 #if defined(__APPLE__)
 	{
-		//bin_path = bin_path.parent_path() / "BambuStudio";
+        auto bundle_path = bin_path.parent_path().parent_path().parent_path();
+		//bin_path = bin_path.parent_path() / "OrcaSlicer";
         bin_path = "/usr/bin/open";
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
 		try {
-            std::vector<std::string> args = { "-n", "-a", "/Applications/BambuStudio.app"};
+            std::vector<std::string> args = { "-n", "-a", bundle_path.string()};
             if (!paths_to_open.empty()) {
                 for (const auto& file : paths_to_open)
                     args.emplace_back(into_u8(file));
@@ -101,7 +102,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		std::string my_path;
 		if (args.empty()) {
 			// Binary path was not set to the AppImage in the Linux specific block above, call the application directly.
-			my_path = (bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "bambu-studio" : "bambu-gcodeviewer")).string();
+			my_path = (bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "orca-slicer" : "bambu-gcodeviewer")).string();
 			args.emplace_back(my_path.c_str());
 		}
 		std::string to_open;

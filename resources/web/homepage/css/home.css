@@ -46,13 +46,14 @@ html, body {
 .LinkBtn
 {
 	font-size:12px;
-	color: #1200FF;	
+	color: #00ffea;	
 	cursor: pointer;
 }
 
 .LinkBtn:hover
 {
 	text-decoration:underline;
+	color: #009688;
 }
 
 /*------------------*/
@@ -95,6 +96,7 @@ body
 	line-height: 36px;
 	display: flex;
 	justify-content: center;
+	user-select: none;
 }
 
 #LoginBtn
@@ -125,7 +127,7 @@ body
 
 #DownloadBtn
 {
-	color:#0A00FF;
+	color:#00ffd9;
 }
 
 
@@ -167,8 +169,8 @@ body
 	font-size: 14px;
 	height: 24px;
 	line-height: 24px;
-	color: #00B731;
-	border: 1px solid  #00AE42;
+	color: #4db6ac;
+	border: 1px solid  #009688;
 	border-radius: 4px;
 	cursor: pointer;
 	margin-top: 5px;
@@ -177,7 +179,7 @@ body
 
 #LogoutBtn:hover
 {
-	background: #00B731;
+	background: #00f0d8;
 	color: #fff;
 }
 
@@ -206,7 +208,7 @@ body
 
 .BtnItemSelected
 {
-	background-color: #E0FCEB;
+	background-color: #e0fcf3;
 }
 
 .BtnIcon
@@ -268,7 +270,7 @@ body
 
 .MenuItem:hover
 {
-	border-color: #4CAA50;
+	border-color: #4db6ac;
 	background-color: #E0FCEB;
 }
 

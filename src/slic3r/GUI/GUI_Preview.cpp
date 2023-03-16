@@ -385,9 +385,9 @@ void Preview::sys_color_changed()
 
 void Preview::on_tick_changed(Type type)
 {
-    if (type == Type::PausePrint) {
-        m_schedule_background_process();
-    }
+    //if (type == Type::PausePrint) {
+    //    m_schedule_background_process();
+    //}
     m_keep_current_preview_type = false;
     reload_print(false);
 }
@@ -485,8 +485,7 @@ void Preview::update_layers_slider_mode()
         // check if whole model uses just only one extruder
         if (!plate_extruders.empty()) {
             //const int extruder = objects[0]->config.has("extruder") ? objects[0]->config.option("extruder")->getInt() : 0;
-            const int extruder = plate_extruders[0];
-            only_extruder = extruder;
+            only_extruder = plate_extruders[0];
         //    auto is_one_extruder_printed_model = [objects, extruder]() {
         //        for (ModelObject *object : objects) {
         //            if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) /*return false*/;
@@ -552,15 +551,16 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     // Detect and set manipulation mode for double slider
     update_layers_slider_mode();
 
-    Plater *          plater = wxGetApp().plater();
-    CustomGCode::Info ticks_info_from_model;
+    Plater* plater = wxGetApp().plater();
+    //BBS: replace model custom gcode with current plate custom gcode
+    CustomGCode::Info ticks_info_from_curr_plate;
     if (wxGetApp().is_editor())
-        ticks_info_from_model = plater->model().custom_gcode_per_print_z;
+        ticks_info_from_curr_plate = plater->model().get_curr_plate_custom_gcodes();
     else {
-        ticks_info_from_model.mode   = CustomGCode::Mode::SingleExtruder;
-        ticks_info_from_model.gcodes = m_canvas->get_custom_gcode_per_print_z();
+        ticks_info_from_curr_plate.mode   = CustomGCode::Mode::SingleExtruder;
+        ticks_info_from_curr_plate.gcodes = m_canvas->get_custom_gcode_per_print_z();
     }
-    check_layers_slider_values(ticks_info_from_model.gcodes, layers_z);
+    check_layers_slider_values(ticks_info_from_curr_plate.gcodes, layers_z);
 
     // first of all update extruder colors to avoid crash, when we are switching printer preset from MM to SM
     m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config(wxGetApp().is_editor() ? nullptr : m_gcode_result));
@@ -581,9 +581,11 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
         }
     }
     m_layers_slider->SetSelectionSpan(idx_low, idx_high);
-    m_layers_slider->SetTicksValues(ticks_info_from_model);
+    m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
-    bool sequential_print     = (wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
+    auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    auto curr_print_seq = curr_plate->get_real_print_seq();
+    bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     m_layers_slider->SetDrawMode(sequential_print);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
@@ -688,7 +690,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
 
         if (!gcode_preview_data_valid) {
             if (wxGetApp().is_editor())
-                color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+                //BBS
+                color_print_values = wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes;
             else
                 color_print_values = m_canvas->get_custom_gcode_per_print_z();
             colors.push_back("#808080"); // gray color for pause print or custom G-code
@@ -703,7 +706,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
 
     if (IsShown()) {
         m_canvas->set_selected_extruder(0);
-        if (gcode_preview_data_valid) {
+        bool is_slice_result_valid = wxGetApp().plater()->get_partplate_list().get_curr_plate()->is_slice_result_valid();
+        if (gcode_preview_data_valid && (is_slice_result_valid || m_only_gcode)) {
             // Load the real G-code preview.
             //BBS: add more log
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
@@ -734,7 +738,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
                 (unsigned int)print->extruders().size() :
                 m_canvas->get_gcode_extruders_count();
             std::vector<Item> gcodes = wxGetApp().is_editor() ?
-                wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes :
+                //BBS
+                wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes :
                 m_canvas->get_custom_gcode_per_print_z();
             const wxString choice = !gcodes.empty() ?
                 _L("Multicolor Print") :

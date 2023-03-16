@@ -1,10 +1,10 @@
 # Build Bambu Slicer in a container
 #
 # Build an AppImage using rootless Podman (refer to https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md):
-# rm -rf build; podman build . -t bambu-studio-builder && podman run --rm localhost/bambu-studio-builder /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
+# rm -rf build; podman build . -t orca-slicer-builder && podman run --rm localhost/orca-slicer-builder /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
 #
 # Troubleshooting the build container:
-# podman run -it --name bambu-studio-builder localhost/bambu-studio-builder /bin/bash
+# podman run -it --name orca-slicer-builder localhost/orca-slicer-builder /bin/bash
 #
 # Debugging the resulting AppImage:
 #   1) Install `gdb`
@@ -13,10 +13,10 @@
 #   3) Find related issue using backtrace output for clues and add backtrace to it on github
 #
 # Docker alternative AppImage build syntax (use this if you can't install podman):
-# rm -rf build; docker build . --file Containerfile -t bambu-studio-builder; docker run --rm bambu-studio-builder /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
+# rm -rf build; docker build . --file Containerfile -t orca-slicer-builder; docker run --rm orca-slicer-builder /bin/bash -c 'tar -c $(find build | grep ubu64.AppImage | head -1)' | tar -xv
 #
 #
-# TODO: bind mount BambuStudio to inside the container instead of COPY to enable faster rebuilds during dev work.
+# TODO: bind mount OrcaSlicer to inside the container instead of COPY to enable faster rebuilds during dev work.
 
 FROM docker.io/ubuntu:20.04
 LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"
@@ -52,9 +52,9 @@ RUN apt-get update && apt-get install  -y \
     file \
     sudo
 
-COPY ./ BambuStudio
+COPY ./ OrcaSlicer
 
-WORKDIR BambuStudio
+WORKDIR OrcaSlicer
 
 # These can run together, but we run them seperate for podman caching
 # Update System dependencies

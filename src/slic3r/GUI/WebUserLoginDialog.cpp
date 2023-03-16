@@ -49,8 +49,11 @@ string &replace_str(string &str, const string &to_replaced, const string &newcha
     return str;
 }
 
-ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
+int ZUserLogin::web_sequence_id = 20000;
+
+ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "OrcaSlicer")
 {
+    SetBackgroundColour(*wxWHITE);
     // Url
     AppConfig * config   = wxGetApp().app_config;
     NetworkAgent* agent = wxGetApp().getAgent();
@@ -77,6 +80,8 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         wxLogError("Could not init m_browser");
         return;
     }
+    m_browser->Hide();
+    m_browser->SetSize(0, 0);
 
     // Log backend information
     // wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
@@ -104,12 +109,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     wxSize pSize = FromDIP(wxSize(650, 840));
     SetSize(pSize);
 
-    //CenterOnParent();
-    int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
-    int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
-    int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
-
-    this->SetPosition(wxPoint((screenwidth - pSize.x) / 2, MaxY));
+    CenterOnParent();
 
     //Param
     m_AutotestToken = "";
@@ -148,7 +148,6 @@ bool ZUserLogin::run() {
 
 void ZUserLogin::load_url(wxString &url)
 {
-    this->Show();
     m_browser->LoadURL(url);
     m_browser->SetFocus();
     UpdateState();
@@ -195,7 +194,8 @@ void ZUserLogin::OnNavigationRequest(wxWebViewEvent &evt)
 void ZUserLogin::OnNavigationComplete(wxWebViewEvent &evt)
 {
     // wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
-
+    m_browser->Show();
+    Layout();
     UpdateState();
 }
 
@@ -251,7 +251,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 {
     wxString str_input = evt.GetString();
     try {
-        json     j        = json::parse(str_input);
+        json j = json::parse(str_input);
 
         wxString strCmd = j["command"];
 
@@ -264,6 +264,40 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             wxGetApp().handle_script_message(j.dump());
             Close();
         }
+        else if (strCmd == "get_localhost_url") {
+            BOOST_LOG_TRIVIAL(info) << "thirdparty_login: get_localhost_url";
+            wxGetApp().start_http_server();
+            std::string sequence_id = j["sequence_id"].get<std::string>();
+            CallAfter([this, sequence_id] {
+                json ack_j;
+                ack_j["command"] = "get_localhost_url";
+                ack_j["response"]["base_url"] = std::string(LOCALHOST_URL) + std::to_string(LOCALHOST_PORT);
+                ack_j["response"]["result"] = "success";
+                ack_j["sequence_id"] = sequence_id;
+                wxString str_js = wxString::Format("window.postMessage(%s)", ack_j.dump());
+                this->RunScript(str_js);
+            });
+        }
+        else if (strCmd == "thirdparty_login") {
+            BOOST_LOG_TRIVIAL(info) << "thirdparty_login: thirdparty_login";
+            if (j["data"].contains("url")) {
+                std::string jump_url = j["data"]["url"].get<std::string>();
+                CallAfter([this, jump_url] {
+                    wxString url = wxString::FromUTF8(jump_url);
+                    wxLaunchDefaultBrowser(url);
+                    });
+            }
+        }
+        else if (strCmd == "new_webpage") {
+            if (j["data"].contains("url")) {
+                std::string jump_url = j["data"]["url"].get<std::string>();
+                CallAfter([this, jump_url] {
+                    wxString url = wxString::FromUTF8(jump_url);
+                    wxLaunchDefaultBrowser(url);
+                    });
+            }
+            return;
+        }
     } catch (std::exception &e) {
         wxMessageBox(e.what(), "parse json failed", wxICON_WARNING);
         Close();
@@ -275,8 +309,6 @@ void ZUserLogin::RunScript(const wxString &javascript)
     // Remember the script we run in any case, so the next time the user opens
     // the "Run Script" dialog box, it is shown there for convenient updating.
     m_javascript = javascript;
-
-    // wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     if (!m_browser) return;
 

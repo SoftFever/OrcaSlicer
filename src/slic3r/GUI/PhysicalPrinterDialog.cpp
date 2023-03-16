@@ -36,7 +36,7 @@
 namespace Slic3r {
 namespace GUI {
 
-#define BORDER_W 10
+#define BORDER_W FromDIP(10)
 
 //------------------------------------------
 //          PhysicalPrinterDialog
@@ -194,6 +194,10 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     host_line.append_widget(print_host_test);
     m_optgroup->append_line(host_line);
 
+    option = m_optgroup->get_option("print_host_webui");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
+
     m_optgroup->append_single_option_line("printhost_authorization_type");
 
     option = m_optgroup->get_option("printhost_apikey");
@@ -254,7 +258,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
             auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\t%2%") % info % ca_file_hint).str()));
             txt->SetFont(wxGetApp().normal_font());
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(txt, 1, wxEXPAND);
+            sizer->Add(txt, 1, wxEXPAND|wxALIGN_LEFT);
             return sizer;
         };
         m_optgroup->append_line(line);

@@ -72,7 +72,7 @@ namespace Slic3r {
 
 PlaceholderParser::PlaceholderParser(const DynamicConfig *external_config) : m_external_config(external_config)
 {
-    this->set("version", std::string(SLIC3R_VERSION));
+    this->set("version", std::string(SoftFever_VERSION));
     this->apply_env_variables();
     this->update_timestamp();
 }

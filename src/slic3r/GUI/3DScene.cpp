@@ -390,6 +390,8 @@ std::array<float, 4> GLVolume::MODEL_NEGTIVE_COL    = {0.3f, 0.3f, 0.3f, 0.4f};
 std::array<float, 4> GLVolume::SUPPORT_ENFORCER_COL = {0.3f, 0.3f, 1.0f, 0.4f};
 std::array<float, 4> GLVolume::SUPPORT_BLOCKER_COL  = {1.0f, 0.3f, 0.3f, 0.4f};
 
+std::array<float, 4> GLVolume::MODEL_HIDDEN_COL  = {0.f, 0.f, 0.f, 0.3f};
+
 std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
     { 1.0f, 1.0f, 0.0f, 1.f },
     { 1.0f, 0.5f, 0.5f, 1.f },
@@ -430,6 +432,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , selected(false)
     , disabled(false)
     , printable(true)
+    , visible(true)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -520,6 +523,14 @@ void GLVolume::set_render_color()
         render_color[1] = UNPRINTABLE_COLOR[1];
         render_color[2] = UNPRINTABLE_COLOR[2];
         render_color[3] = UNPRINTABLE_COLOR[3];
+    }
+
+    //BBS set invisible color
+    if (!visible) {
+        render_color[0] = MODEL_HIDDEN_COL[0];
+        render_color[1] = MODEL_HIDDEN_COL[1];
+        render_color[2] = MODEL_HIDDEN_COL[2];
+        render_color[3] = MODEL_HIDDEN_COL[3];
     }
 }
 
@@ -684,6 +695,9 @@ void GLVolume::render(bool with_outline) const
                 break;
 
             ModelObject* mo = model_objects[object_idx()];
+            if (volume_idx() >= mo->volumes.size())
+                break;
+
             ModelVolume* mv = mo->volumes[volume_idx()];
             if (mv->mmu_segmentation_facets.empty())
                 break;
@@ -1149,7 +1163,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     std::vector<std::array<float, 4>> extruder_colors = get_extruders_colors();
     std::vector<std::array<float, 4>> colors;
     GUI::PartPlateList& ppl = GUI::wxGetApp().plater()->get_partplate_list();
-    std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders();
+    std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders(true);
     TriangleMesh wipe_tower_shell = make_cube(width, depth, height);
     for (int extruder_id : plate_extruders) {
         if (extruder_id <= extruder_colors.size())

@@ -22,7 +22,7 @@ double Extruder::extrude(double dE)
 {
     // BBS
     if (m_share_extruder) {
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_share_E = 0.;
         m_share_E += dE;
         m_absolute_E += dE;
@@ -30,7 +30,7 @@ double Extruder::extrude(double dE)
             m_share_retracted -= dE;
     } else {
         // in case of relative E distances we always reset to 0 before any output
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_E = 0.;
         m_E          += dE;
         m_absolute_E += dE;
@@ -51,18 +51,19 @@ double Extruder::retract(double length, double restart_extra)
 {
     // BBS
     if (m_share_extruder) {
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_share_E = 0.;
         double to_retract = std::max(0., length - m_share_retracted);
         if (to_retract > 0.) {
             m_share_E             -= to_retract;
             m_absolute_E          -= to_retract;
             m_share_retracted     += to_retract;
+            m_restart_extra = restart_extra;
         }
         return to_retract;
     } else {
         // in case of relative E distances we always reset to 0 before any output
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_E = 0.;
         double to_retract = std::max(0., length - m_retracted);
         if (to_retract > 0.) {
@@ -79,9 +80,10 @@ double Extruder::unretract()
 {
     // BBS
     if (m_share_extruder) {
-        double dE = m_share_retracted;
+        double dE = m_share_retracted + m_restart_extra;
         this->extrude(dE);
         m_share_retracted     = 0.;
+        m_restart_extra = 0.;
         return dE;
     } else {
         double dE = m_retracted + m_restart_extra;
@@ -155,6 +157,11 @@ double Extruder::retract_lift() const
 int Extruder::retract_speed() const
 {
     return int(floor(m_config->retraction_speed.get_at(m_id)+0.5));
+}
+
+bool Extruder::use_firmware_retraction() const
+{
+    return m_config->use_firmware_retraction;
 }
 
 int Extruder::deretract_speed() const

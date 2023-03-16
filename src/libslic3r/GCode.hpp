@@ -18,6 +18,7 @@
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/ObjectID.hpp"
+#include "GCode/ExtrusionProcessor.hpp"
 
 #include <memory>
 #include <map>
@@ -178,6 +179,7 @@ public:
     const Point&    last_pos() const { return m_last_pos; }
     Vec2d           point_to_gcode(const Point &point) const;
     Point           gcode_to_point(const Vec2d &point) const;
+    Vec2d point_to_gcode_quantized(const Point& point) const;
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
@@ -194,6 +196,12 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
+    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment);
+    bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
+    std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
+    std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
+    std::string     set_extruder(unsigned int extruder_id, double print_z);
+
     // append full config to the given string
     static void append_full_config(const Print& print, std::string& str);
 
@@ -201,10 +209,9 @@ public:
     // public, so that it could be accessed by free helper functions from GCode.cpp
     struct LayerToPrint
     {
-        LayerToPrint() : object_layer(nullptr), support_layer(nullptr), tree_support_layer(nullptr), original_object(nullptr) {}
+        LayerToPrint() : object_layer(nullptr), support_layer(nullptr), original_object(nullptr) {}
         const Layer* 		object_layer;
         const SupportLayer* support_layer;
-        const TreeSupportLayer* tree_support_layer;
         const PrintObject*  original_object; //BBS: used for shared object logic
         const Layer* 		layer()   const
         {
@@ -213,9 +220,6 @@ public:
 
             if (support_layer != nullptr)
                 return support_layer;
-
-            if (tree_support_layer != nullptr)
-                return tree_support_layer;
 
             return nullptr;
         }
@@ -238,10 +242,6 @@ public:
                 count++;
             }
 
-            if (tree_support_layer != nullptr) {
-                sum_z += tree_support_layer->print_z;
-                count++;
-            }
             return sum_z / count;
         }
     };
@@ -398,25 +398,27 @@ private:
 		// For sequential print, the instance of the object to be printing has to be defined.
 		const size_t                     				 single_object_instance_idx);
 
-    std::string     extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region);
-    std::string     extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, bool ironing);
-    std::string     extrude_support(const ExtrusionEntityCollection &support_fills);
+    std::string     extrude_perimeters(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region);
+    std::string     extrude_infill(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool ironing);
+    std::string     extrude_support(const ExtrusionEntityCollection& support_fills);
 
-    std::string     travel_to(const Point &point, ExtrusionRole role, std::string comment);
-    bool            needs_retraction(const Polyline &travel, ExtrusionRole role = erNone);
-    std::string     retract(bool toolchange = false, bool is_last_retraction = false);
-    std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
-    std::string     set_extruder(unsigned int extruder_id, double print_z);
+    // BBS
+    LiftType to_lift_type(ZHopType z_hop_types);
+
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
     std::set<ObjectID>              m_objSupportsWithBrim; // indicates the objs' supports with brim
     // Cache for custom seam enforcers/blockers for each layer.
     SeamPlacer                          m_seam_placer;
+
+    ExtrusionQualityEstimator m_extrusion_quality_estimator;
+
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
        methods. */
     Vec2d                               m_origin;
     FullPrintConfig                     m_config;
+    DynamicConfig                       m_calib_config;
     // scaled G-code resolution
     double                              m_scaled_resolution;
     GCodeWriter                         m_writer;
@@ -485,11 +487,10 @@ private:
     GCodeProcessor m_processor;
 
     // BBS
+    Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
     coordf_t m_nominal_z;
     bool m_need_change_layer_lift_z = false;
-
-    static bool gcode_label_objects;
 
     // BBS
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;

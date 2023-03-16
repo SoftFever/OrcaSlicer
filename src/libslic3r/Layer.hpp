@@ -68,7 +68,7 @@ public:
 
     Flow    flow(FlowRole role) const;
     Flow    flow(FlowRole role, double layer_height) const;
-    Flow    bridging_flow(FlowRole role, bool thick_bridge = false) const;
+    Flow    bridging_flow(FlowRole role, bool thick_bridge = false , float bridge_density = 1.0f) const;
 
     void    slices_to_fill_surfaces_clipped();
     void    prepare_fill_surfaces();
@@ -143,6 +143,9 @@ public:
     ExPolygons 				 lslices;
     std::vector<BoundingBox> lslices_bboxes;
 
+    // BBS
+    ExPolygons              loverhangs;
+
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions[idx]; }
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }
@@ -184,6 +187,8 @@ public:
 
     //BBS
     void simplify_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_extrusion_entity();}
+    //BBS: this function calculate the maximum void grid area of sparse infill of this layer. Just estimated value
+    coordf_t get_sparse_infill_max_void_area();
 
 protected:
     friend class PrintObject;
@@ -209,6 +214,11 @@ private:
     LayerRegionPtrs     m_regions;
 };
 
+enum SupportInnerType {
+    stInnerNormal,
+    stInnerTree
+};
+
 class SupportLayer : public Layer
 {
 public:
@@ -217,6 +227,10 @@ public:
     ExPolygonCollection         support_islands;
     // Extrusion paths for the support base and for the support interface and contacts.
     ExtrusionEntityCollection   support_fills;
+    SupportInnerType          support_type = stInnerNormal;
+
+    // for tree supports
+    ExPolygons base_areas;
 
 
     // Is there any valid extrusion assigned to this LayerRegion?
@@ -229,57 +243,33 @@ public:
 
 protected:
     friend class PrintObject;
+    friend class TreeSupport;
 
     // The constructor has been made public to be able to insert additional support layers for the skirt or a wipe tower
     // between the raft and the object first layer.
     SupportLayer(size_t id, size_t interface_id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
-        Layer(id, object, height, print_z, slice_z), m_interface_id(interface_id) {}
+        Layer(id, object, height, print_z, slice_z), m_interface_id(interface_id), support_type(stInnerNormal) {}
     virtual ~SupportLayer() = default;
 
     size_t m_interface_id;
-};
 
-class TreeSupportLayer : public Layer
-{
-public:
-    ExtrusionEntityCollection support_fills;
-    ExPolygons overhang_areas;
-    ExPolygons roof_areas;
-    ExPolygons roof_1st_layer;  // the layer just below roof. When working with PolySupport, this layer should be printed with regular material
-    ExPolygons floor_areas;
-    ExPolygons base_areas;
-    ExPolygons roof_gap_areas; // the areas in the gap between support roof and overhang
-
-    enum AreaType {
-        BaseType=0,
-        RoofType=1,
-        FloorType=2,
-        Roof1stLayer=3
-    };
+    // for tree support
+    ExPolygons                                overhang_areas;
+    ExPolygons                                roof_areas;
+    ExPolygons                                roof_1st_layer; // the layer just below roof. When working with PolySupport, this layer should be printed with regular material
+    ExPolygons                                floor_areas;
+    ExPolygons                                roof_gap_areas; // the areas in the gap between support roof and overhang
+    enum AreaType { BaseType = 0, RoofType = 1, FloorType = 2, Roof1stLayer = 3 };
     struct AreaGroup
     {
         ExPolygon *area;
         int        type;
-        int        dist_to_top;
-        AreaGroup(ExPolygon *a, int t, int d) : area(a), type(t), dist_to_top(d) {}
+        coordf_t   dist_to_top; // mm dist to top
+        AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
-    std::vector<AreaGroup> area_groups;
-
-    enum OverhangType {
-        Detected=0,
-        Enforced
-    };
+    enum OverhangType { Detected = 0, Enforced };
+    std::vector<AreaGroup>                    area_groups;
     std::map<const ExPolygon *, OverhangType> overhang_types;
-
-    virtual bool has_extrusions() const { return !support_fills.empty(); }
-
-    void simplify_support_extrusion_path() { this->simplify_support_entity_collection(&support_fills);}
-
-protected:
-    friend class PrintObject;
-    TreeSupportLayer(size_t id, PrintObject* object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
-        Layer(id, object, height, print_z, slice_z) {}
-    virtual ~TreeSupportLayer() = default;
 };
 
 template<typename LayerContainer>

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(BambuStudio)
+project(OrcaSlicer)
 
 include("version.inc")
 include(GNUInstallDirs)
@@ -23,11 +23,11 @@ else()
         endif()
 endif()
 
-option(SLIC3R_STATIC 			"Compile BambuStudio with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
-option(SLIC3R_GUI    			"Compile BambuStudio with GUI components (OpenGL, wxWidgets)" 1)
-option(SLIC3R_FHS               "Assume BambuStudio is to be installed in a FHS directory structure" 0)
+option(SLIC3R_STATIC 			"Compile OrcaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
+option(SLIC3R_GUI    			"Compile OrcaSlicer with GUI components (OpenGL, wxWidgets)" 1)
+option(SLIC3R_FHS               "Assume OrcaSlicer is to be installed in a FHS directory structure" 0)
 option(SLIC3R_WX_STABLE         "Build against wxWidgets stable (3.0) as oppsed to dev (3.1) on Linux" 0)
-option(SLIC3R_PROFILE 			"Compile BambuStudio with an invasive Shiny profiler" 0)
+option(SLIC3R_PROFILE 			"Compile OrcaSlicer with an invasive Shiny profiler" 0)
 option(SLIC3R_PCH               "Use precompiled headers" 1)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
@@ -53,7 +53,7 @@ if (APPLE)
     if (CMAKE_MACOSX_BUNDLE)
         set(CMAKE_INSTALL_RPATH @executable_path/../Frameworks)
     endif()
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -117,7 +117,7 @@ if (MINGW)
 endif ()
 
 if (NOT MSVC)
-    # ARMs (Raspberry PI) use an unsigned char by default. Let's make it consistent for BambuStudio on all platforms.
+    # ARMs (Raspberry PI) use an unsigned char by default. Let's make it consistent for OrcaSlicer on all platforms.
     add_compile_options(-fsigned-char)
 endif ()
 
@@ -297,7 +297,7 @@ if(WIN32)
     if(MSVC)
         # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
         add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 -DBOOST_SYSTEM_USE_UTF8 )
-        # Force the source code encoding to UTF-8. See BambuStudio GH pull request #5583
+        # Force the source code encoding to UTF-8. See OrcaSlicer GH pull request #5583
         add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
         add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
     endif(MSVC)
@@ -309,23 +309,33 @@ add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
 add_definitions(-DwxNO_UNSAFE_WXSTRING_CONV)
 
 if (SLIC3R_PROFILE)
-    message("BambuStudio will be built with a Shiny invasive profiler")
+    message("OrcaSlicer will be built with a Shiny invasive profiler")
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
-# Disable optimization even with debugging on.
-if (0)
-    message(STATUS "Perl compiled without optimization. Disabling optimization for the BambuStudio build.")
-    message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
-    message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
-    message("Old CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DWIN32 /DTBB_USE_ASSERT")
-    set(CMAKE_C_FLAGS "/MD /Od /Zi /DWIN32 /DTBB_USE_ASSERT")
+# Disable optimization for RelWithDebInfo
+if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/O2")
+    string(REGEX REPLACE "/O2" "/Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 endif()
+
+if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "/O2")
+    string(REGEX REPLACE "/O2" "/Od" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
+
+if(MSVC)
+    if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/Ob1")
+        string(REGEX REPLACE "/Ob1" "/Ob0" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+    endif()
+    if(CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "/Ob1")
+        string(REGEX REPLACE "/Ob1" "/Ob0" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    endif()
+
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /RTC1")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /RTC1")
+endif()
+
+list(REMOVE_DUPLICATES CMAKE_C_FLAGS_RELWITHDEBINFO)
+list(REMOVE_DUPLICATES CMAKE_CXX_FLAGS_RELWITHDEBINFO)
 
 # Find and configure boost
 if(SLIC3R_STATIC)
@@ -484,16 +494,7 @@ if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
     set(GLEW_VERBOSE ON)
 endif()
 
-find_package(GLEW)
-if (NOT TARGET GLEW::GLEW)
-    message(STATUS "GLEW not found, using bundled version.")
-    add_library(glew STATIC ${LIBDIR}/glew/src/glew.c)
-    set(GLEW_FOUND TRUE)
-    set(GLEW_INCLUDE_DIRS ${LIBDIR}/glew/include/)
-    target_compile_definitions(glew PUBLIC GLEW_STATIC)
-    target_include_directories(glew PUBLIC ${GLEW_INCLUDE_DIRS})
-    add_library(GLEW::GLEW ALIAS glew)
-endif ()
+find_package(GLEW REQUIRED)
 
 find_package(glfw3 REQUIRED)
 
@@ -506,7 +507,7 @@ set(BBL_L18N_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bbl/i18n")
 add_custom_target(gettext_make_pot
     COMMAND xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost
         -f "${BBL_L18N_DIR}/list.txt"
-        -o "${BBL_L18N_DIR}/BambuStudio.pot"
+        -o "${BBL_L18N_DIR}/OrcaSlicer.pot"
 	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}	
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
@@ -515,13 +516,13 @@ add_custom_target(gettext_merge_po_with_pot
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Merge localization po with new generted pot file"
 )
-file(GLOB BBL_L10N_PO_FILES "${BBL_L18N_DIR}/*/BambuStudio*.po")
+file(GLOB BBL_L10N_PO_FILES "${BBL_L18N_DIR}/*/OrcaSlicer*.po")
 foreach(po_file ${BBL_L10N_PO_FILES})
     GET_FILENAME_COMPONENT(po_dir "${po_file}" DIRECTORY)
-    SET(po_new_file "${po_dir}/BambuStudio_.po")
+    SET(po_new_file "${po_dir}/OrcaSlicer_.po")
     add_custom_command(
         TARGET gettext_merge_po_with_pot PRE_BUILD
-        COMMAND msgmerge -N -o ${po_file} ${po_file} "${BBL_L18N_DIR}/BambuStudio.pot"
+        COMMAND msgmerge -N -o ${po_file} ${po_file} "${BBL_L18N_DIR}/OrcaSlicer.pot"
         DEPENDS ${po_file}
     )
 endforeach()
@@ -529,11 +530,11 @@ add_custom_target(gettext_po_to_mo
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate localization po files (binary) from mo files (texts)"
 )
-file(GLOB L10N_PO_FILES "${BBL_L18N_DIR}/*/BambuStudio*.po")
+file(GLOB L10N_PO_FILES "${BBL_L18N_DIR}/*/OrcaSlicer*.po")
 foreach(po_file ${BBL_L10N_PO_FILES})
     GET_FILENAME_COMPONENT(SECOND_FOLDER_ABSOLUTE ${po_file} DIRECTORY)
     string(REGEX REPLACE ".*/(.*)" "\\1" po_dir "${SECOND_FOLDER_ABSOLUTE}" )
-    SET(mo_file "${L10N_DIR}/${po_dir}/BambuStudio.mo")
+    SET(mo_file "${L10N_DIR}/${po_dir}/OrcaSlicer.mo")
     add_custom_command(
         TARGET gettext_po_to_mo PRE_BUILD
         COMMAND msgfmt ARGS --check-format -o ${mo_file} ${po_file}
@@ -562,7 +563,7 @@ endif ()
 
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
-function(bambustudio_copy_dlls target config postfix output_dlls)
+function(orcaslicer_copy_dlls target config postfix output_dlls)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         set(_bits 64)
     elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
@@ -657,9 +658,9 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
 endfunction()
 
 
-# libslic3r, BambuStudio GUI and the BambuStudio executable.
+# libslic3r, OrcaSlicer GUI and the OrcaSlicer executable.
 add_subdirectory(src)
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BambuStudio_app_gui)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT OrcaSlicer_app_gui)
 
 add_dependencies(gettext_make_pot hintsToPot)
 
@@ -679,7 +680,7 @@ if(SLIC3R_BUILD_TESTS)
 endif()
 
 if (NOT WIN32 AND NOT APPLE)
-    set(SLIC3R_APP_CMD "bambu-studio")
+    set(SLIC3R_APP_CMD "orca-slicer")
     configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh @ONLY)
 endif()
 
@@ -694,21 +695,20 @@ if (WIN32)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
 elseif (SLIC3R_FHS)
     # CMAKE_INSTALL_FULL_DATAROOTDIR: read-only architecture-independent data root (share)
-    set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/BambuStudio")
+    set(SLIC3R_FHS_RESOURCES "${CMAKE_INSTALL_FULL_DATAROOTDIR}/OrcaSlicer")
     install(DIRECTORY ${SLIC3R_RESOURCES_DIR}/ DESTINATION ${SLIC3R_FHS_RESOURCES}
         PATTERN "*/udev" EXCLUDE
     )
-    install(FILES src/platform/unix/BambuStudio.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+    install(FILES src/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
     foreach(SIZE 32 128 192)
         install(FILES ${SLIC3R_RESOURCES_DIR}/images/BambuStudio_${SIZE}px.png
             DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${SIZE}x${SIZE}/apps RENAME BambuStudio.png
         )
     endforeach()
-    install(DIRECTORY ${SLIC3R_RESOURCES_DIR}/udev/ DESTINATION lib/udev/rules.d)
 elseif (CMAKE_MACOSX_BUNDLE)
-    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/BambuStudio.app/Contents/resources")
+    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/OrcaSlicer.app/Contents/resources")
 else ()
-    install(FILES src/platform/unix/BambuStudio.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
+    install(FILES src/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
 endif ()
 

@@ -15,7 +15,7 @@
 
 namespace Slic3r {
 
-const bool GCodeWriter::full_gcode_comment = true;
+bool GCodeWriter::full_gcode_comment = true;
 const double GCodeWriter::slope_threshold = 3 * PI / 180;
 
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
@@ -28,6 +28,8 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
                      print_config.gcode_flavor.value == gcfRepRapFirmware;
     m_max_acceleration = std::lrint(use_mach_limits ? print_config.machine_max_acceleration_extruding.values.front() : 0);
     m_max_jerk = std::lrint(use_mach_limits ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
+    m_max_jerk_z = print_config.machine_max_jerk_z.values.front();
+    m_max_jerk_e = print_config.machine_max_jerk_e.values.front();
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -61,11 +63,9 @@ std::string GCodeWriter::preamble()
         FLAVOR_IS(gcfSmoothie) ||
         FLAVOR_IS(gcfKlipper))
     {
-        if (RELATIVE_E_AXIS) {
-            gcode << "M83 ; only support relative e\n";
+        if (this->config.use_relative_e_distances) {
+            gcode << "M83 ; use relative distances for extrusion\n";
         } else {
-            //BBS: don't support absolute e distance
-            assert(0);
             gcode << "M82 ; use absolute distances for extrusion\n";
         }
         gcode << this->reset_e(true);
@@ -176,10 +176,15 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
         // This is new MarlinFirmware with separated print/retraction/travel acceleration.
         // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
         gcode << "M204 P" << acceleration;
-    } else {
-        // M204: Set default acceleration
+    } else if (FLAVOR_IS(gcfKlipper) && this->config.accel_to_decel_enable) {
+        gcode << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << acceleration * this->config.accel_to_decel_factor / 100;
+        if (GCodeWriter::full_gcode_comment)
+            gcode << " ; adjust ACCEL_TO_DECEL";
+        gcode << "\nM204 S" << acceleration;
+        // Set max accel to decel to half of acceleration
+    } else
         gcode << "M204 S" << acceleration;
-    }
+    
     //BBS
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust acceleration";
     gcode << "\n";
@@ -187,13 +192,13 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
+std::string GCodeWriter::set_jerk_xy(double jerk)
 {
     // Clamp the jerk to the allowed maximum.
     if (m_max_jerk > 0 && jerk > m_max_jerk)
         jerk = m_max_jerk;
 
-    if (jerk < 1 || jerk == m_last_jerk)
+    if (jerk < 0.01 || is_approx(jerk, m_last_jerk))
         return std::string();
     
     m_last_jerk = jerk;
@@ -203,7 +208,10 @@ std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
         gcode << "SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=" << jerk;
     else
         gcode << "M205 X" << jerk << " Y" << jerk;
-        
+      
+    if (m_is_bbl_printers)
+        gcode << std::setprecision(2) << " Z" << m_max_jerk_z << " E" << m_max_jerk_e;
+
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust jerk";
     gcode << "\n";
 
@@ -246,7 +254,7 @@ std::string GCodeWriter::reset_e(bool force)
         m_extruder->reset_E();
     }
 
-    if (! RELATIVE_E_AXIS) {
+    if (! this->config.use_relative_e_distances) {
         std::ostringstream gcode;
         gcode << "G92 E0";
         //BBS
@@ -301,11 +309,12 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker) const
+std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker)
 {
     assert(F > 0.);
     assert(F < 100000.);
-
+    
+    m_current_speed = F;
     GCodeG1Formatter w;
     w.emit_f(F);
     //BBS
@@ -325,7 +334,9 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
-    w.emit_f(this->config.travel_speed.value * 60.0);
+    auto speed = m_is_first_layer
+        ? this->config.get_abs_value("initial_layer_travel_speed") : this->config.travel_speed.value;
+    w.emit_f(speed * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -344,6 +355,8 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         used for unlift. */
         // BBS
     Vec3d dest_point = point;
+    auto travel_speed =
+        m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed") : this->config.travel_speed.value;
     //BBS: a z_hop need to be handle when travel
     if (std::abs(m_to_lift) > EPSILON) {
         assert(std::abs(m_lifted) < EPSILON);
@@ -363,6 +376,9 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         Vec3d target = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
         Vec3d delta = target - source;
         Vec2d delta_no_z = { delta(0), delta(1) };
+
+
+
         //BBS: don'need slope travel because we don't know where is the source position the first time
         //BBS: Also don't need to do slope move or spiral lift if x-y distance is absolute zero
         if (this->is_current_position_clear() && delta(2) > 0 && delta_no_z.norm() != 0.0f) {
@@ -383,20 +399,32 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
-                w0.emit_f(this->config.travel_speed.value * 60.0);
+                w0.emit_f(travel_speed * 60.0);
                 //BBS
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 slop_move = w0.string();
             }
         }
+
+        std::string xy_z_move;
+        {
+            GCodeG1Formatter w0;
+            if (this->is_current_position_clear()) {
+                w0.emit_xyz(target);
+                w0.emit_f(travel_speed * 60.0);
+                w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
+                xy_z_move = w0.string();
+            }
+            else {
+                w0.emit_xy(Vec2d(target.x(), target.y()));
+                w0.emit_f(travel_speed * 60.0);
+                w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
+                xy_z_move = w0.string() + _travel_to_z(target.z(), comment);
+            }
+        }
         m_pos = dest_point;
         this->set_current_position_clear(true);
-        GCodeG1Formatter w1;
-        w1.emit_xyz(target);
-        w1.emit_f(this->config.travel_speed.value * 60.0);
-        //BBS
-        w1.emit_comment(GCodeWriter::full_gcode_comment, comment);
-        return slop_move + w1.string();
+        return slop_move + xy_z_move;
     }
     else if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
@@ -423,7 +451,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
 
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
-    w.emit_f(this->config.travel_speed.value * 60.0);
+    w.emit_f(travel_speed * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
@@ -453,8 +481,10 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     m_pos(2) = z;
 
     double speed = this->config.travel_speed_z.value;
-    if (speed == 0.)
-        speed = this->config.travel_speed.value;
+    if (speed == 0.) {
+        speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
+                                 : this->config.travel_speed.value;
+    }
     
     GCodeG1Formatter w;
     w.emit_z(z);
@@ -469,8 +499,10 @@ std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, c
     m_pos(2) = z;
 
     double speed = this->config.travel_speed_z.value;
-    if (speed == 0.)
-        speed = this->config.travel_speed.value;
+    if (speed == 0.) {
+        speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
+                                 : this->config.travel_speed.value;
+    }
     
     std::string output = "G17\n";
     GCodeG2G3Formatter w(true);
@@ -503,6 +535,9 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
+    if(std::abs(dE) <= std::numeric_limits<double>::epsilon())
+        force_no_extrusion = true;
+    
     if (!force_no_extrusion)
         m_extruder->extrude(dE);
 
@@ -583,15 +618,26 @@ std::string GCodeWriter::retract_for_toolchange(bool before_wipe)
 
 std::string GCodeWriter::_retract(double length, double restart_extra, const std::string &comment)
 {
+    /*  If firmware retraction is enabled, we use a fake value of 1
+    since we ignore the actual configured retract_length which
+    might be 0, in which case the retraction logic gets skipped. */
+    if (this->config.use_firmware_retraction)
+        length = 1;
+
     std::string gcode;
     if (double dE = m_extruder->retract(length, restart_extra);  dE != 0) {
-        //BBS
-        GCodeG1Formatter w;
-        w.emit_e(m_extruder->E());
-        w.emit_f(m_extruder->retract_speed() * 60.);
-        //BBS
-        w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-        gcode = w.string();
+        if (this->config.use_firmware_retraction) {
+            gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
+        }
+        else {
+            // BBS
+            GCodeG1Formatter w;
+            w.emit_e(m_extruder->E());
+            w.emit_f(m_extruder->retract_speed() * 60.);
+            // BBS
+            w.emit_comment(GCodeWriter::full_gcode_comment, comment);
+            gcode = w.string();
+        }
     }
     
     if (FLAVOR_IS(gcfMakerWare))
@@ -608,14 +654,20 @@ std::string GCodeWriter::unretract()
         gcode = "M101 ; extruder on\n";
     
     if (double dE = m_extruder->unretract(); dE != 0) {
-        //BBS
-        // use G1 instead of G0 because G0 will blend the restart with the previous travel move
-        GCodeG1Formatter w;
-        w.emit_e(m_extruder->E());
-        w.emit_f(m_extruder->deretract_speed() * 60.);
-        //BBS
-        w.emit_comment(GCodeWriter::full_gcode_comment, " ; unretract");
-        gcode += w.string();
+        if (this->config.use_firmware_retraction) {
+            gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
+            gcode += this->reset_e();
+        }
+        else {
+            //BBS
+            // use G1 instead of G0 because G0 will blend the restart with the previous travel move
+            GCodeG1Formatter w;
+            w.emit_e(m_extruder->E());
+            w.emit_f(m_extruder->deretract_speed() * 60.);
+            //BBS
+            w.emit_comment(GCodeWriter::full_gcode_comment, " ; unretract");
+            gcode += w.string();
+        }
     }
     
     return gcode;

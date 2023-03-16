@@ -133,7 +133,7 @@ const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadiu
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
 
 std::array<float, 4> Bed3D::AXIS_X_COLOR = decode_color_to_float_array("#FF0000");
-std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#00FF00");
+std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#52c7b8");
 std::array<float, 4> Bed3D::AXIS_Z_COLOR = decode_color_to_float_array("#0000FF");
 
 void Bed3D::update_render_colors()
@@ -613,8 +613,8 @@ void Bed3D::update_model_offset() const
     {
         (*model_offset_ptr)(0) -= 128.f;
         (*model_offset_ptr)(1) -= 128.f;
-        (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
     }
+    (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();

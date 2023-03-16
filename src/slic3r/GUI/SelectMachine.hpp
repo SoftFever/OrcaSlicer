@@ -37,6 +37,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include "Widgets/PopupWindow.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -165,7 +166,7 @@ protected:
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
-#define SELECT_MACHINE_BRAND wxColour(0, 174, 66)
+#define SELECT_MACHINE_BRAND wxColour(0, 150, 136)
 #define SELECT_MACHINE_REMIND wxColour(255,111,0)
 #define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
 
@@ -179,13 +180,13 @@ public:
 
 class ThumbnailPanel;
 
-class SelectMachinePopup : public wxPopupTransientWindow
+class SelectMachinePopup : public PopupWindow
 {
 public:
     SelectMachinePopup(wxWindow *parent);
     ~SelectMachinePopup();
 
-    // wxPopupTransientWindow virtual methods are all overridden to log them
+    // PopupWindow virtual methods are all overridden to log them
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
@@ -260,6 +261,7 @@ enum PrintDialogStatus {
     PrintStatusNeedForceUpgrading,
     PrintStatusNeedConsistencyUpgrading,
     PrintStatusNotSupportedSendToSDCard,
+    PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate
 };
 
@@ -424,7 +426,8 @@ protected:
     void                     show_errors(wxString &info);
     void                     on_ok_btn(wxCommandEvent &event);
     void                     on_ok();
-    void                     on_refresh(wxCommandEvent &event);
+    void                     clear_ip_address_config(wxCommandEvent& e);
+    void                     on_refresh(wxCommandEvent& event);
     void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);
     void                     set_default();

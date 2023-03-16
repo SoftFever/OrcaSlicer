@@ -114,13 +114,14 @@ public:
             double score = LARGE_COST_TO_REJECT+1, best_score = LARGE_COST_TO_REJECT+1;
             double score_all_plates = 0, score_all_plates_best = std::numeric_limits<double>::max();
             typename Placer::PackResult result, result_best, result_firstfit;
-            size_t j = 0;
+            int j = 0;
             while(!was_packed && !cancelled()) {
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
                     result = placers[j].pack(*it, rem(it, store_));
                     score = result.score();
                     score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, score,
                         [](double sum, const Placer& elem) { return sum + elem.score(); });
+                    if (this->unfitindicator_) this->unfitindicator_(it->get().name + " bed_id="+std::to_string(j) + ",score=" + std::to_string(score));
 
                     if(score >= 0 && score < LARGE_COST_TO_REJECT) {
                         if (bed_id_firstfit == -1) {

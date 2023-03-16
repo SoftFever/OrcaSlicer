@@ -21,6 +21,10 @@
 extern "C" {
 #endif // __cplusplus
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
 #ifdef _WIN32
     typedef wchar_t tchar;
 #else
@@ -31,31 +35,33 @@ typedef void* Bambu_Tunnel;
 
 typedef void (*Logger)(void * context, int level, tchar const* msg);
 
-enum Bambu_StreamType
+typedef enum __Bambu_StreamType
 {
     VIDE,
     AUDI
-};
+} Bambu_StreamType;
 
-enum Bambu_VideoSubType
+typedef enum __Bambu_VideoSubType
 {
     AVC1,
-};
+    MJPG,
+} Bambu_VideoSubType;
 
-enum Bambu_AudioSubType
+typedef enum __Bambu_AudioSubType
 {
     MP4A
-};
+} Bambu_AudioSubType;
 
-enum Bambu_FormatType
+typedef enum __Bambu_FormatType
 {
     video_avc_packet,
     video_avc_byte_stream,
+    video_jpeg,
     audio_raw,
     audio_adts
-};
+} Bambu_FormatType;
 
-struct Bambu_StreamInfo
+typedef struct __Bambu_StreamInfo
 {
     Bambu_StreamType type;
     int sub_type;
@@ -75,33 +81,34 @@ struct Bambu_StreamInfo
     } format;
     int format_type;
     int format_size;
+    int max_frame_size;
     unsigned char const * format_buffer;
-};
+} Bambu_StreamInfo;
 
-enum Bambu_SampleFlag
+typedef enum __Bambu_SampleFlag
 {
     f_sync = 1
-};
+} Bambu_SampleFlag;
 
-struct Bambu_Sample
+typedef struct __Bambu_Sample
 {
     int itrack;
     int size;
     int flags;
     unsigned char const * buffer;
     unsigned long long decode_time;
-};
+} Bambu_Sample;
 
-enum Bambu_Error
+typedef enum __Bambu_Error
 {
     Bambu_success,
     Bambu_stream_end,
-    Bambu_would_block, 
+    Bambu_would_block,
     Bambu_buffer_limit
-};
+} Bambu_Error;
 
 #ifdef BAMBU_DYNAMIC
-struct BambuLib {
+typedef struct __BambuLib {
 #endif
 
 BAMBU_EXPORT int BAMBU_FUNC(Bambu_Create)(Bambu_Tunnel* tunnel, char const* path);
@@ -139,7 +146,7 @@ BAMBU_EXPORT char const* BAMBU_FUNC(Bambu_GetLastErrorMsg)();
 BAMBU_EXPORT void BAMBU_FUNC(Bambu_FreeLogMsg)(tchar const* msg);
 
 #ifdef BAMBU_DYNAMIC
-};
+} BambuLib;
 #endif
 
 #ifdef __cplusplus

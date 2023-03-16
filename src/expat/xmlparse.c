@@ -710,7 +710,7 @@ generate_hash_secret_salt(XML_Parser parser)
 {
   /* Process ID is 0 bits entropy if attacker has local access
    * XML_Parser address is few bits of entropy if attacker has local access */
-  // BambuStudio specific: Fix for a following warning, which turns to an error on some Perl/XS installations:
+  // OrcaSlicer specific: Fix for a following warning, which turns to an error on some Perl/XS installations:
   // error: cast from 'XML_Parser' to 'long unsigned int' loses precision [-fpermissive]
   unsigned long *parser_addr = (unsigned long*)&parser;
   const unsigned long entropy =

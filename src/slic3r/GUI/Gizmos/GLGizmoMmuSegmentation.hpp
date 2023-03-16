@@ -83,6 +83,7 @@ public:
 
     // BBS
     bool on_number_key_down(int number);
+    bool on_key_down_select_tool_type(int keyCode);
 
 protected:
     // BBS

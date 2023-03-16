@@ -15,20 +15,20 @@ function check_available_memory_and_disk() {
     MIN_DISK_KB=$((10 * 1024 * 1024))
 
     if [ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]; then
-        echo -e "\nERROR: Bambu Studio Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
+        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
         echo && free -h && echo
         exit 2
     fi
 
     if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]]; then 
-        echo -e "\nERROR: Bambu Studio Builder requires at least $(echo $MIN_DISK_KB |awk '{ printf "%.1fG\n", $1/1024/1024; }') (systen has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
+        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo $MIN_DISK_KB |awk '{ printf "%.1fG\n", $1/1024/1024; }') (systen has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
         echo && df -h . && echo
         exit 1
     fi
 }
 
 unset name
-while getopts ":dsiuhgb" opt; do
+while getopts ":dsiuhgbr" opt; do
   case ${opt} in
     u )
         UPDATE_LIB="1"
@@ -48,13 +48,17 @@ while getopts ":dsiuhgb" opt; do
     g )
         FOUND_GTK3=""
         ;;
+    r )
+	SKIP_RAM_CHECK="1"
+	;;
     h ) echo "Usage: ./BuildLinux.sh [-i][-u][-d][-s][-b][-g]"
         echo "   -i: Generate appimage (optional)"
         echo "   -g: force gtk2 build"
         echo "   -b: build in debug mode"
         echo "   -d: build deps (optional)"
-        echo "   -s: build bambu-studio (optional)"
+        echo "   -s: build orca-slicer (optional)"
         echo "   -u: only update clock & dependency packets (optional and need sudo)"
+	echo "   -r: skip free ram check (low ram compiling)"
         echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
         echo "   and then './BuildLinux.sh -dsi'"
         exit 0
@@ -69,8 +73,9 @@ then
     echo "   -g: force gtk2 build"
     echo "   -b: build in debug mode"
     echo "   -d: build deps (optional)"
-    echo "   -s: build bambu-studio (optional)"
+    echo "   -s: build orca-slicer (optional)"
     echo "   -u: only update clock & dependency packets (optional and need sudo)"
+    echo "   -r: skip free ram check (low ram compiling)"
     echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
     echo "   and then './BuildLinux.sh -dsi'"
     exit 0
@@ -153,7 +158,10 @@ then
     mkdir deps/build
 fi
 
+if ! [[ -n "$SKIP_RAM_CHECK" ]]
+then
 check_available_memory_and_disk
+fi
 
 if [[ -n "$BUILD_DEPS" ]]
 then
@@ -184,7 +192,7 @@ then
         make -j$NCORES
         echo "done"
 
-        # rename wxscintilla # TODO: DeftDawg: Does BambuStudio need this?
+        # rename wxscintilla # TODO: DeftDawg: Does OrcaSlicer need this?
         # echo "[5/9] Renaming wxscintilla library..."
         # pushd destdir/usr/local/lib
         #     if [[ -z "$FOUND_GTK3_DEV" ]]
@@ -214,9 +222,9 @@ then
     fi
     if [[ -n "$BUILD_DEBUG" ]]
     then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
     else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1"
+        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
     
     # cmake
@@ -226,7 +234,7 @@ then
         
         # make Slic3r
         echo "[8/9] Building Slic3r..."
-        make -j$NCORES BambuStudio # Slic3r
+        make -j$NCORES OrcaSlicer # Slic3r
 
         # make .mo
         # make gettext_po_to_mo # FIXME: DeftDawg: complains about msgfmt not existing even in SuperSlicer, did this ever work?

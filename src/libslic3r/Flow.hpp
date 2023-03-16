@@ -65,6 +65,7 @@ public:
     float   height()          const { return m_height; }
     // Spacing between the extrusion centerlines.
     float   spacing()         const { return m_spacing; }
+    void    set_spacing(float spacing) { m_spacing = spacing; }
     coord_t scaled_spacing()  const { return coord_t(scale_(m_spacing)); }
     // Nozzle diameter. 
     float   nozzle_diameter() const { return m_nozzle_diameter; }

@@ -54,6 +54,8 @@ private:
 
     wxTextCtrl* m_flush_multiplier_ebox = nullptr;
     wxStaticText* m_min_flush_label = nullptr;
+
+    std::vector<float> m_matrix;
 };
 
 

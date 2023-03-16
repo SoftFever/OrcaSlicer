@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFL99",
-    "setting_id": "GFSL99",
+    "setting_id": "GFSA04",
     "name": "Anycubic Generic PLA",
     "from": "system",
     "instantiation": "true",

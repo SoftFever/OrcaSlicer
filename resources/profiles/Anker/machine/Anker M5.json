@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Anker M5",
+    "model_id": "Anker-M5",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Anker",
+    "bed_model": "",
+    "bed_texture": "",
+    "hotend_model": "bbl-3dp-hotend.stl",
+    "default_materials": "Anker Generic ABS;Anker Generic PLA;Anker Generic PLA-CF;Anker Generic PETG;Anker Generic TPU;Anker Generic ASA;Anker Generic PC;Anker Generic PVA;Anker Generic PA;Anker Generic PA-CF"
+}

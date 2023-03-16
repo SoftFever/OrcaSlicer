@@ -1020,10 +1020,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	new_full_config.option("filament_settings_id",         true);
 	new_full_config.option("printer_settings_id",          true);
     // BBS
-    int used_filaments = this->extruders().size();
+    int used_filaments = this->extruders(true).size();
+
     //new_full_config.normalize_fdm(used_filaments);
     new_full_config.normalize_fdm_1();
-    t_config_option_keys changed_keys = new_full_config.normalize_fdm_2(used_filaments);
+    t_config_option_keys changed_keys = new_full_config.normalize_fdm_2(objects().size(), used_filaments);
     if (changed_keys.size() > 0) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", got changed_keys, size=%1%")%changed_keys.size();
         for (int i = 0; i < changed_keys.size(); i++)
@@ -1117,17 +1118,19 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status_db.add(*model_object, ModelObjectStatus::New);
     } else {
-        if (m_model.custom_gcode_per_print_z != model.custom_gcode_per_print_z) {
-            update_apply_status(num_extruders_changed  ||
-            	// Tool change G-codes are applied as color changes for a single extruder printer, no need to invalidate tool ordering.
-            	//FIXME The tool ordering may be invalidated unnecessarily if the custom_gcode_per_print_z.mode is not applicable
-            	// to the active print / model state, and then it is reset, so it is being applicable, but empty, thus the effect is the same.
-            	(num_extruders  > 1 && custom_per_printz_gcodes_tool_changes_differ(m_model.custom_gcode_per_print_z.gcodes, model.custom_gcode_per_print_z.gcodes)) ?
-            	// The Tool Ordering and the Wipe Tower are no more valid.
-            	this->invalidate_steps({ psWipeTower, psGCodeExport }) :
-            	// There is no change in Tool Changes stored in custom_gcode_per_print_z, therefore there is no need to update Tool Ordering.
-            	this->invalidate_step(psGCodeExport));
-            m_model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
+        //BBS: replace model custom gcode with current plate custom gcode
+        m_model.curr_plate_index = model.curr_plate_index;
+        if (m_model.get_curr_plate_custom_gcodes() != model.get_curr_plate_custom_gcodes()) {
+            update_apply_status(num_extruders_changed ||
+                // Tool change G-codes are applied as color changes for a single extruder printer, no need to invalidate tool ordering.
+                //FIXME The tool ordering may be invalidated unnecessarily if the custom_gcode_per_print_z.mode is not applicable
+                // to the active print / model state, and then it is reset, so it is being applicable, but empty, thus the effect is the same.
+                (num_extruders > 1 && custom_per_printz_gcodes_tool_changes_differ(m_model.get_curr_plate_custom_gcodes().gcodes, model.get_curr_plate_custom_gcodes().gcodes)) ?
+                // The Tool Ordering and the Wipe Tower are no more valid.
+                this->invalidate_steps({ psWipeTower, psGCodeExport }) :
+                // There is no change in Tool Changes stored in custom_gcode_per_print_z, therefore there is no need to update Tool Ordering.
+                this->invalidate_step(psGCodeExport));
+            m_model.plates_custom_gcodes[m_model.curr_plate_index] = model.get_curr_plate_custom_gcodes();
         }
         if (model_object_list_equal(m_model, model)) {
             // The object list did not change.
@@ -1413,8 +1416,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     }
 
     //BBS: check the config again
-    int new_used_filaments = this->extruders().size();
-    t_config_option_keys new_changed_keys = new_full_config.normalize_fdm_2(new_used_filaments);
+    int new_used_filaments = this->extruders(true).size();
+    t_config_option_keys new_changed_keys = new_full_config.normalize_fdm_2(objects().size(), new_used_filaments);
     if (new_changed_keys.size() > 0) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", got new_changed_keys, size=%1%")%new_changed_keys.size();
         for (int i = 0; i < new_changed_keys.size(); i++)

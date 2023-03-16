@@ -2,22 +2,22 @@
 #include "Label.hpp"
 
 #include <wx/dcgraph.h>
+#include "../GUI_App.hpp"
 
 
 
-wxBEGIN_EVENT_TABLE(SidePopup,wxPopupTransientWindow)
+wxBEGIN_EVENT_TABLE(SidePopup,PopupWindow)
 EVT_PAINT(SidePopup::paintEvent)
 wxEND_EVENT_TABLE()
 
 SidePopup::SidePopup(wxWindow* parent)
-    :wxPopupTransientWindow(parent,
+    :PopupWindow(parent,
     wxBORDER_NONE |
     wxPU_CONTAINS_CONTROLS)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-
 }
 
 SidePopup::~SidePopup()
@@ -27,16 +27,17 @@ SidePopup::~SidePopup()
 
 void SidePopup::OnDismiss()
 {
-    wxPopupTransientWindow::OnDismiss();
+    Slic3r::GUI::wxGetApp().set_side_menu_popup_status(false);
+    PopupWindow::OnDismiss();
 }
 
 bool SidePopup::ProcessLeftDown(wxMouseEvent& event)
 {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 bool SidePopup::Show( bool show )
 {
-    return wxPopupTransientWindow::Show(show);
+    return PopupWindow::Show(show);
 }
 
 void SidePopup::Popup(wxWindow* focus)
@@ -64,7 +65,8 @@ void SidePopup::Popup(wxWindow* focus)
         else
             Position(pos, {0, focus->GetSize().y + 12});
     }
-    wxPopupTransientWindow::Popup();
+    Slic3r::GUI::wxGetApp().set_side_menu_popup_status(true);
+    PopupWindow::Popup();
 }
 
 void SidePopup::Create()

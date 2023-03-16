@@ -133,14 +133,11 @@ private:
     mutable unsigned int m_orient_vbo_id{ 0 };
     GeometryBuffer m_lock_icon;
     mutable unsigned int m_lock_vbo_id{ 0 };
-    GeometryBuffer m_bedtype_icon;
-    mutable unsigned int m_bedtype_vbo_id{ 0 };
+    GeometryBuffer m_plate_settings_icon;
+    mutable unsigned int m_plate_settings_vbo_id{ 0 };
     GeometryBuffer m_plate_idx_icon;
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
     GLTexture m_texture;
-
-    // plate render option
-    bool is_same_bedtype_with_global = true;
 
     mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
@@ -213,10 +210,20 @@ public:
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
 
-    BedType get_bed_type(bool check_global = true) const;
+    BedType get_bed_type() const;
     void set_bed_type(BedType bed_type);
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
+
+    // set print sequence per plate
+    //bool print_seq_same_global = true;
+    void set_print_seq(PrintSequence print_seq = PrintSequence::ByDefault);
+    PrintSequence get_print_seq() const;
+    // Get the real effective print sequence of current plate.
+    // If curr_plate's print_seq is ByDefault, use the global sequence
+    // @return PrintSequence::{ByLayer,ByObject}
+    PrintSequence get_real_print_seq() const;
+
 
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
@@ -258,7 +265,8 @@ public:
 
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const double w, const double wipe_volume) const;
-    std::vector<int> get_extruders() const;
+    std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
+    std::vector<int> get_used_extruders();
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not
@@ -282,6 +290,9 @@ public:
     //remove instance from plate
     int remove_instance(int obj_id, int instance_id);
 
+    //translate instance on the plate
+    void translate_all_instance(Vec3d position);
+
     //update instance exclude state
     void update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);
 
@@ -290,6 +301,8 @@ public:
 
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }
+
+    int printable_instance_size();
 
     //whether it is has printable instances
     bool has_printable_instances();
@@ -481,14 +494,14 @@ class PartPlateList : public ObjectBase
     GLTexture m_locked_hovered_texture;
     GLTexture m_lockopen_texture;
     GLTexture m_lockopen_hovered_texture;
-    GLTexture m_bedtype_texture;
-    GLTexture m_bedtype_changed_texture;
-    GLTexture m_bedtype_hovered_texture;
-    GLTexture m_bedtype_changed_hovered_texture;
+    GLTexture m_plate_settings_texture;
+    GLTexture m_plate_settings_changed_texture;
+    GLTexture m_plate_settings_hovered_texture;
+    GLTexture m_plate_settings_changed_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
     // set render option
     bool render_bedtype_logo = true;
-    bool render_bedtype_setting = true;
+    bool render_plate_settings = true;
 
     bool m_is_dark = false;
 
@@ -558,11 +571,13 @@ public:
     ~PartPlateList();
 
     //this may be happened after machine changed
-    void reset_size(int width, int depth, int height);
+    void reset_size(int width, int depth, int height, bool reload_objects = true, bool update_shapes = false);
     //clear all the instances in the plate, but keep the plates
     void clear(bool delete_plates = false, bool release_print_list = false, bool except_locked = false, int plate_index = -1);
     //clear all the instances in the plate, and delete the plates, only keep the first default plate
     void reset(bool do_init);
+    //compute the origin for printable plate with index i using new width
+    Vec3d compute_origin_using_new_size(int i, int new_width, int new_depth);
 
     //reset partplate to init states
     void reinit();
@@ -570,6 +585,11 @@ public:
     //get the plate stride
     double plate_stride_x();
     double plate_stride_y();
+    void get_plate_size(int& width, int& depth, int& height) {
+        width = m_plate_width;
+        depth = m_plate_depth;
+        height = m_plate_height;
+    }
 
     /*basic plate operations*/
     //create an empty plate and return its index
@@ -606,6 +626,10 @@ public:
 
     PartPlate* get_selected_plate();
 
+    std::vector<PartPlate*> get_nonempty_plate_list();
+
+    std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
+
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
     Pointfs get_exclude_area() { return m_exclude_areas; }
@@ -614,7 +638,7 @@ public:
     int select_plate(int index);
 
     //get the plate counts, not including the invalid plate
-    int get_plate_count();
+    int get_plate_count() const;
 
     //update the plate cols due to plate count change
     void update_plate_cols();
@@ -682,7 +706,7 @@ public:
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
     void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1);
     void render_for_picking_pass();
-    void set_render_option(bool bedtype_texture, bool bedtype_settings);
+    void set_render_option(bool bedtype_texture, bool plate_settings);
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);
     int select_plate_by_obj(int obj_index, int instance_index);

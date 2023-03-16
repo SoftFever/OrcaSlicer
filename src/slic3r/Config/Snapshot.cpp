@@ -374,7 +374,7 @@ static void copy_config_dir_single_level(const boost::filesystem::path &path_src
 #if 0
     if (! boost::filesystem::is_directory(path_dst) && 
         ! boost::filesystem::create_directory(path_dst))
-        throw Slic3r::RuntimeError(std::string("BambuStudio was unable to create a directory at ") + path_dst.string());
+        throw Slic3r::RuntimeError(std::string("OrcaSlicer was unable to create a directory at ") + path_dst.string());
 
     for (auto &dir_entry : boost::filesystem::directory_iterator(path_src))
         if (Slic3r::is_ini_file(dir_entry))
@@ -593,8 +593,8 @@ bool take_config_snapshot_cancel_on_error(const AppConfig &app_config, Snapshot:
         return true;
     } catch (std::exception &err) {
         RichMessageDialog dlg(static_cast<wxWindow*>(wxGetApp().mainframe),
-            _L("BambuStudio has encountered an error while taking a configuration snapshot.") + "\n\n" + from_u8(err.what()) + "\n\n" + from_u8(message),
-            _L("BambuStudio error"),
+            _L("OrcaSlicer has encountered an error while taking a configuration snapshot.") + "\n\n" + from_u8(err.what()) + "\n\n" + from_u8(message),
+            _L("OrcaSlicer error"),
             wxYES_NO);
         dlg.SetYesNoLabels(_L("Continue"), _L("Abort"));
         return dlg.ShowModal() == wxID_YES;

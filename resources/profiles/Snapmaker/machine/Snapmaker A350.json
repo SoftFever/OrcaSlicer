@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Snapmaker A350",
+    "model_id": "SnapmakerA350",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Snapmaker",
+    "bed_model": "",
+    "bed_texture": "",
+    "hotend_model": "hotend.stl",
+    "default_materials": "Snapmaker Generic ABS;Snapmaker Generic PLA;Snapmaker Generic PLA-CF;Snapmaker Generic PETG;Snapmaker Generic TPU;Snapmaker Generic ASA;Snapmaker Generic PC;Snapmaker Generic PVA;Snapmaker Generic PA;Snapmaker Generic PA-CF"
+}

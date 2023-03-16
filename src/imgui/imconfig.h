@@ -186,6 +186,9 @@ namespace ImGui
     const wchar_t SphereButtonDarkIcon     = 0x0826;
     const wchar_t GapFillDarkIcon          = 0x0827;
 
+    const wchar_t TextSearchIcon           = 0x0828;
+    const wchar_t TextSearchCloseIcon      = 0x0829;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

@@ -24,6 +24,7 @@ enum CUSTOM_ID
     ID_TITLE,
     ID_MODEL_STORE,
     ID_PUBLISH,
+    ID_CALIB,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
 };
@@ -194,7 +195,7 @@ void BBLTopbar::Init(wxFrame* parent)
     m_frame = parent;
     m_skip_popup_file_menu = false;
     m_skip_popup_dropdown_menu = false;
-
+    m_skip_popup_calib_menu = false;
     wxInitAllImageHandlers();
 
     this->AddSpacer(5);
@@ -242,6 +243,13 @@ void BBLTopbar::Init(wxFrame* parent)
     m_redo_item->SetDisabledBitmap(redo_inactive_bitmap);
 
     this->AddSpacer(FromDIP(10));
+
+    wxBitmap calib_bitmap = create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE);
+    wxBitmap calib_bitmap_inactive = create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE);
+    m_calib_item = this->AddTool(ID_CALIB, _L("Calibration"), calib_bitmap);
+    m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
+
+    this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
 
     m_title_item = this->AddLabel(ID_TITLE, "", FromDIP(TOPBAR_TITLE_WIDTH));
@@ -255,7 +263,7 @@ void BBLTopbar::Init(wxFrame* parent)
     m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
     this->EnableTool(m_publish_item->GetId(), false);
-    this->AddSpacer(FromDIP(12));
+    this->AddSpacer(FromDIP(4));
 
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
@@ -263,12 +271,12 @@ void BBLTopbar::Init(wxFrame* parent)
     */
 
     //this->AddSeparator();
-    this->AddSpacer(FromDIP(6));
+    this->AddSpacer(FromDIP(4));
 
     wxBitmap iconize_bitmap = create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* iconize_btn = this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);
 
-    this->AddSpacer(FromDIP(6));
+    this->AddSpacer(FromDIP(4));
 
     maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, TOPBAR_ICON_SIZE);
     window_bitmap = create_scaled_bitmap("topbar_win", nullptr, TOPBAR_ICON_SIZE);
@@ -279,12 +287,10 @@ void BBLTopbar::Init(wxFrame* parent)
         maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", maximize_bitmap);
     }
 
-    this->AddSpacer(FromDIP(6));
+    this->AddSpacer(FromDIP(4));
 
     wxBitmap close_bitmap = create_scaled_bitmap("topbar_close", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
-
-    this->AddSpacer(FromDIP(6));
 
     Realize();
     // m_toolbar_h = this->GetSize().GetHeight();
@@ -298,6 +304,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_MENU_CLOSE, &BBLTopbar::OnMenuClose, this);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFileToolItem, this, ID_TOP_FILE_MENU);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnDropdownToolItem, this, ID_TOP_DROPDOWN_MENU);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCalibToolItem, this, ID_CALIB);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnIconize, this, wxID_ICONIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFullScreen, this, wxID_MAXIMIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCloseFrame, this, wxID_CLOSE_FRAME);
@@ -353,17 +360,19 @@ void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
     plater->redo();
 }
 
-void BBLTopbar::EnableUndoRedoItems()
+void BBLTopbar::Enable3DEditorItems()
 {
     this->EnableTool(m_undo_item->GetId(), true);
     this->EnableTool(m_redo_item->GetId(), true);
+    this->EnableTool(m_calib_item->GetId(), true);
     Refresh();
 }
 
-void BBLTopbar::DisableUndoRedoItems()
+void BBLTopbar::Disable3DEditorItems()
 {
     this->EnableTool(m_undo_item->GetId(), false);
     this->EnableTool(m_redo_item->GetId(), false);
+    this->EnableTool(m_calib_item->GetId(), false);
     Refresh();
 }
 
@@ -414,6 +423,11 @@ void BBLTopbar::AddDropDownMenuItem(wxMenuItem* menu_item)
 wxMenu* BBLTopbar::GetTopMenu()
 {
     return &m_top_menu;
+}
+
+wxMenu* BBLTopbar::GetCalibMenu()
+{
+    return &m_calib_menu;
 }
 
 void BBLTopbar::SetTitle(wxString title)
@@ -467,6 +481,10 @@ void BBLTopbar::Rescale() {
     item = this->FindTool(wxID_REDO);
     item->SetBitmap(create_scaled_bitmap("topbar_redo", this, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE));
+
+    item = this->FindTool(ID_CALIB);
+    item->SetBitmap(create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE));
+    item->SetDisabledBitmap(create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_TITLE);
 
@@ -575,6 +593,24 @@ void BBLTopbar::OnDropdownToolItem(wxAuiToolBarEvent& evt)
     }
     else {
         m_skip_popup_dropdown_menu = false;
+    }
+
+    // make sure the button is "un-stuck"
+    tb->SetToolSticky(evt.GetId(), false);
+}
+
+void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent& evt)
+{
+    wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+
+    tb->SetToolSticky(evt.GetId(), true);
+
+    if (!m_skip_popup_calib_menu) {
+        auto rec = this->GetToolRect(ID_CALIB);
+        PopupMenu(&m_calib_menu, wxPoint(rec.GetLeft(), this->GetSize().GetHeight() - 2));
+    }
+    else {
+        m_skip_popup_calib_menu = false;
     }
 
     // make sure the button is "un-stuck"

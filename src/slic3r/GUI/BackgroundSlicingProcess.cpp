@@ -185,14 +185,9 @@ std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::f
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()
 {
-	assert(m_print == m_fff_print);
-	PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-
-	m_fff_print->is_BBL_printer() =
-            preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(
-                &preset_bundle);
-        
-
+    assert(m_print == m_fff_print);
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    m_fff_print->is_BBL_printer() = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
 	//BBS: add the logic to process from an existed gcode file
 	if (m_print->finished()) {
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
@@ -769,8 +764,7 @@ void BackgroundSlicingProcess::finalize_gcode()
 	// is calculated for the unprocessed G-code and it references lines in the memory mapped G-code file by line numbers.
 	// export_path may be changed by the post-processing script as well if the post processing script decides so, see GH #6042.
 	//BBS: don't support running post process scripts
-	//bool post_processed = run_post_process_scripts(output_path, true, "File", export_path, m_fff_print->full_print_config());
-	bool post_processed = false;
+	bool post_processed = run_post_process_scripts(output_path, true, "File", export_path, m_fff_print->full_print_config());
 	auto remove_post_processed_temp_file = [post_processed, &output_path]() {
 		if (post_processed)
 			try {

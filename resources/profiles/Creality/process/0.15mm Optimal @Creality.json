@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_CREALITY_003",
+    "setting_id": "GP004",
     "name": "0.15mm Optimal @Creality",
     "from": "system",
     "instantiation": "true",

@@ -428,7 +428,7 @@ void Selection::remove_curr_plate()
     clear();
 
     for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance_totally(obj_idx, 0)) {
+        if (plate && plate->contain_instance(obj_idx, 0)) {
             std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
             do_add_volumes(volume_idxs);
         }
@@ -2707,7 +2707,7 @@ void Selection::paste_objects_from_clipboard()
             auto start_offset = in_current ? src_object->instances.front()->get_offset() : plate->get_build_volume().center();
             auto point_offset = start_offset - start_point;
             auto empty_cell   = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)}, {bbox.size()(0)+1, bbox.size()(1)+1});
-            displacement    = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_point(2)};
+            displacement      = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_offset(2)};
         }
 
         for (ModelInstance* inst : dst_object->instances)

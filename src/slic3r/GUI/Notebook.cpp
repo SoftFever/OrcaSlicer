@@ -142,7 +142,7 @@ void ButtonsListCtrl::SetSelection(int sel)
     if (m_selection == sel)
         return;
     // BBS: change button color
-    wxColour selected_btn_bg("#00AE42");    // Gradient #00AE42
+    wxColour selected_btn_bg("#009688");    // Gradient #009688
     if (m_selection >= 0) {
         StateColor bg_color = StateColor(
         std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
@@ -157,8 +157,8 @@ void ButtonsListCtrl::SetSelection(int sel)
     m_selection = sel;
 
     StateColor bg_color = StateColor(
-        std::pair{wxColour(0, 174, 66), (int) StateColor::Hovered},
-        std::pair{wxColour(0,174, 66), (int) StateColor::Normal});
+        std::pair{wxColour(0, 150, 136), (int) StateColor::Hovered},
+        std::pair{wxColour(0,150, 136), (int) StateColor::Normal});
     m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
 
     StateColor text_color = StateColor(
@@ -258,5 +258,14 @@ void Notebook::Init()
     m_showEffect = m_hideEffect = wxSHOW_EFFECT_NONE;
 
     m_showTimeout = m_hideTimeout = 0;
+
+    /* On Linux, Gstreamer wxMediaCtrl does not seem to get along well with
+     * 32-bit X11 visuals (the overlay does not work).  Is this a wxWindows
+     * bug?  Is this a Gstreamer bug?  No idea, but it is our problem ... 
+     * and anyway, this transparency thing just isn't all that interesting,
+     * so we just don't do it on Linux. 
+     */
+#ifndef __WXGTK__
     SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+#endif
 }

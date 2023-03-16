@@ -22,6 +22,9 @@ struct ThumbnailData;
 #define EMBEDDED_FILAMENT_FILE_FORMAT      "Metadata/filament_settings_%1%.config"
 #define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/machine_settings_%1%.config"
 
+#define BBL_DESIGNER_PROFILE_ID_TAG      "DesignProfileId"
+#define BBL_DESIGNER_MODEL_ID_TAG        "DesignModelId"
+
 
 //BBS: define assistant struct to store temporary variable during exporting 3mf
 class PackingTemporaryData

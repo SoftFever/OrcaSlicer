@@ -41,6 +41,7 @@ namespace GUI {
      m_printer_img->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_img->Hide();
      m_printer_name = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
+     m_printer_name->SetForegroundColour(*wxBLACK);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_name->SetFont(::Label::Head_14);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
@@ -131,10 +132,10 @@ namespace GUI {
      wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
      m_button_bind = new Button(button_panel, _L("Confirm"));
-     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
      m_button_bind->SetBackgroundColor(btn_bg_green);
-     m_button_bind->SetBorderColor(wxColour(0, 174, 66));
+     m_button_bind->SetBorderColor(wxColour(0, 150, 136));
      m_button_bind->SetTextColor(wxColour("#FFFFFE"));
      m_button_bind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
@@ -317,6 +318,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      m_printer_img->Hide();
      m_printer_name     = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
      m_printer_name->SetFont(::Label::Head_14);
+     m_printer_name->SetForegroundColour(*wxBLACK);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
      m_sizere_left_v->Add(0, 0, 0, wxTOP, 5);
@@ -335,6 +337,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      m_panel_right->SetCornerRadius(FromDIP(8));
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
      m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
+     m_user_name->SetForegroundColour(*wxBLACK);
      m_user_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_user_name->SetFont(::Label::Head_14);
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
@@ -402,10 +405,10 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
 
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
      m_button_unbind = new Button(this, _L("Confirm"));
-     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
      m_button_unbind->SetBackgroundColor(btn_bg_green);
-     m_button_unbind->SetBorderColor(wxColour(0, 174, 66));
+     m_button_unbind->SetBorderColor(wxColour(0, 150, 136));
      m_button_unbind->SetTextColor(wxColour("#FFFFFE"));
      m_button_unbind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_unbind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);

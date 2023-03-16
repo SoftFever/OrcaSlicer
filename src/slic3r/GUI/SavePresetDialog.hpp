@@ -56,7 +56,6 @@ class SavePresetDialog : public DPIDialog
         //BBS: add project embedded preset relate logic
         bool save_to_project() const { return m_save_to_project; }
 
-        StaticBox* m_input_area      {nullptr};
         Preset::Type    m_type;
         ValidationType  m_valid_type;
         std::string		m_preset_name;
@@ -64,7 +63,7 @@ class SavePresetDialog : public DPIDialog
         SavePresetDialog*   m_parent        {nullptr};
         wxStaticBitmap*     m_valid_bmp     {nullptr};
         wxComboBox*         m_combo         {nullptr};
-        wxTextCtrl*         m_input_ctrl    {nullptr};
+        TextInput*         m_input_ctrl    {nullptr};
         wxStaticText*       m_valid_label   {nullptr};
 
         PresetCollection*   m_presets       {nullptr};

@@ -94,7 +94,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_delete->SetBorderColorNormal(wxColor("#FF6F00"));
     m_button_delete->SetTextColorNormal(wxColor("#FF6F00"));
     m_button_management->SetBorderWidth(0);
-    m_button_management->SetBackgroundColorNormal(wxColor("#00AE42"));
+    m_button_management->SetBackgroundColorNormal(wxColor("#009688"));
     m_button_management->SetTextColorNormal(*wxWHITE);
     m_button_management->Enable(false);
 
@@ -181,7 +181,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_supported = true;
         m_lan_mode     = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
-        m_lan_passwd   = obj->access_code;
+        m_lan_passwd   = obj->get_access_code();
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
     } else {
         m_supported = false;

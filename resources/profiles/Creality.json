@@ -1,12 +1,16 @@
 {
     "name": "Creality",
-    "version": "01.04.00.00",
+    "version": "01.05.00.02",
     "force_update": "0",
     "description": "Creality configurations",
     "machine_model_list": [
         {
             "name": "Creality Ender-3 V2",
             "sub_path": "machine/Creality Ender-3 V2.json"
+        },
+        {
+            "name": "Creality CR-10 Max",
+            "sub_path": "machine/Creality CR-10 Max.json"
         }
     ],
     "process_list": [
@@ -77,6 +81,10 @@
         {
             "name": "Creality Ender-3 V2 0.4 nozzle",
             "sub_path": "machine/Creality Ender-3 V2 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality CR-10 Max 0.4 nozzle",
+            "sub_path": "machine/Creality CR-10 Max 0.4 nozzle.json"
         }
     ]
 }

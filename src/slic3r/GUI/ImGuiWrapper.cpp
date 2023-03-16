@@ -82,6 +82,8 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::GapFillDarkIcon            , "gap_fill_dark"                      },
     {ImGui::SphereButtonDarkIcon       , "toolbar_modifier_sphere_dark"       },
 
+    {ImGui::TextSearchIcon             , "im_text_search"             },
+    {ImGui::TextSearchCloseIcon        , "im_text_search_close"       },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -542,6 +544,123 @@ void ImGuiWrapper::set_next_window_size(float x, float y, ImGuiCond cond)
 }
 
 /* BBL style widgets */
+bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& preview_value, const std::vector<std::string>& all_items, std::vector<int>* filtered_items_idx, bool* is_filtered, float item_height)
+{
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    static char pattern_buffer[256] = { 0 };
+    auto simple_match = [](const char* pattern, const char* str) {
+        wxString sub_str = wxString(pattern).Lower();
+        wxString main_str = wxString(str).Lower();
+        return main_str.Find(sub_str);
+    };
+
+    bool is_filtering = false;
+    bool is_new_open = false;
+
+    float sz = ImGui::GetFrameHeight();
+    ImVec2 arrow_size(sz, sz);
+    ImVec2 CursorPos = window->DC.CursorPos;
+    const ImRect arrow_bb(CursorPos, CursorPos + arrow_size);
+
+    float ButtonTextAlignX = g.Style.ButtonTextAlign.x;
+    g.Style.ButtonTextAlign.x = 0;
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { sz, style.FramePadding.y});
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+    if (button(preview_value + label, ImGui::CalcItemWidth(), 0))
+    {
+        ImGui::OpenPopup(label);
+        is_new_open = true;
+    }
+    g.Style.ButtonTextAlign.x = ButtonTextAlignX;
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+    ImGui::BBLRenderArrow(window->DrawList, arrow_bb.Min + ImVec2(ImMax(0.0f, (arrow_size.x - g.FontSize) * 0.5f), ImMax(0.0f, (arrow_size.y - g.FontSize) * 0.5f)), ImGui::GetColorU32(ImGuiCol_Text), ImGuiDir_Down);
+
+    if (is_new_open)
+        memset(pattern_buffer, 0, IM_ARRAYSIZE(pattern_buffer));
+
+    float item_rect_width = ImGui::GetItemRectSize().x;
+    float item_rect_height = item_height ? item_height : ImGui::GetItemRectSize().y;
+    ImGui::SetNextWindowPos({ CursorPos.x, ImGui::GetItemRectMax().y + 4 * m_style_scaling });
+    ImGui::SetNextWindowSize({ item_rect_width, 0 });
+    if (ImGui::BeginPopup(label))
+    {
+        ImGuiWindow* popup_window = ImGui::GetCurrentWindow();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f * m_style_scaling, item_rect_height - g.FontSize) * 0.5f);
+        wchar_t ICON_SEARCH = *pattern_buffer != '\0' ? ImGui::TextSearchCloseIcon : ImGui::TextSearchIcon;
+        const ImVec2 label_size = ImGui::CalcTextSize(into_u8(ICON_SEARCH).c_str(), nullptr, true);
+        const ImVec2 search_icon_pos(ImGui::GetItemRectMax().x - label_size.x, popup_window->DC.CursorPos.y + style.FramePadding.y);
+        ImGui::RenderText(search_icon_pos, into_u8(ICON_SEARCH).c_str());
+
+        auto temp = popup_window->DC.CursorPos;
+        popup_window->DC.CursorPos = search_icon_pos;
+        ImGui::PushStyleColor(ImGuiCol_Button, {0, 0, 0, 0});
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+        ImGui::PushStyleColor(ImGuiCol_Border, { 0, 0, 0, 0 });
+        if (button("##invisible_clear_button", label_size.x, label_size.y))
+        {
+            if (*pattern_buffer != '\0')
+                memset(pattern_buffer, 0, IM_ARRAYSIZE(pattern_buffer));
+        }
+        ImGui::PopStyleColor(5);
+        popup_window->DC.CursorPos = temp;
+
+
+        ImGui::PushItemWidth(item_rect_width);
+        if (is_new_open)
+            ImGui::SetKeyboardFocusHere();
+        ImGui::InputText("##bbl_combo_with_filter_inputText", pattern_buffer, sizeof(pattern_buffer));
+        ImGui::PopItemWidth();
+        ImGui::PopStyleVar();
+
+        if (*pattern_buffer != '\0')
+            is_filtering = true;
+
+        if (is_filtering)
+        {
+            std::vector<std::pair<int, int> > filtered_items_with_priority;// std::pair<index, priority>
+            for (int i = 0; i < all_items.size(); i++)
+            {
+                int priority = simple_match(pattern_buffer, all_items[i].c_str());
+                if (priority != wxNOT_FOUND)
+                    filtered_items_with_priority.push_back({ i, priority });
+            }
+            std::sort(filtered_items_with_priority.begin(), filtered_items_with_priority.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {return (b.second > a.second); });
+            for (auto item : filtered_items_with_priority)
+            {
+                filtered_items_idx->push_back(item.first);
+            }
+        }
+
+        *is_filtered = is_filtering;
+
+        popup_window->DC.CursorPos.y -= 1 * m_style_scaling;
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0f, 1.0f) * m_style_scaling);
+        if (ImGui::BeginListBox("##bbl_combo_with_filter_listBox", { item_rect_width, item_rect_height * 7.75f})) {
+            ImGui::PopStyleVar(2);
+            return true;
+        }
+        else
+        {
+            ImGui::PopStyleVar(2);
+            ImGui::EndPopup();
+            return false;
+        }
+    }
+    else
+        return false;
+}
+
 bool ImGuiWrapper::bbl_input_double(const wxString& label, const double& value, const std::string& format)
 {
     //return ImGui::InputDouble(label.c_str(), const_cast<double *>(&value), 0.0f, 0.0f, format.c_str(), ImGuiInputTextFlags_CharsDecimal);
@@ -554,7 +673,7 @@ bool ImGuiWrapper::bbl_slider_float_style(const std::string &label, float *v, fl
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
     ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
 
     bool ret = bbl_slider_float(label, v, v_min,v_max, format, power, clamp,tooltip);
 
@@ -704,9 +823,9 @@ bool ImGuiWrapper::bbl_checkbox(const wxString &label, bool &value)
     bool result;
     bool b_value = value;
     if (b_value) {
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
     }
     auto label_utf8 = into_u8(label);
     result          = ImGui::BBLCheckbox(label_utf8.c_str(), &value);
@@ -720,9 +839,9 @@ bool ImGuiWrapper::bbl_radio_button(const char *label, bool active)
     bool result;
     bool b_value = active;
     if (b_value) {
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
     }
     result = ImGui::BBLRadioButton(label,active);
     if (b_value) { ImGui::PopStyleColor(3); }
@@ -1636,7 +1755,7 @@ static const ImWchar ranges_keyboard_shortcuts[] =
 #endif // __APPLE__
 
 
-std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height)
+std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height, unsigned *outwidth, unsigned *outheight)
 {
     std::vector<unsigned char> empty_vector;
 
@@ -1666,6 +1785,9 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
     ::nsvgRasterize(rast, image, 0, 0, svg_scale, data.data(), width, height, width * 4);
     ::nsvgDeleteRasterizer(rast);
     ::nsvgDelete(image);
+
+    *outwidth = width;
+    *outheight = height;
 
     return data;
 }
@@ -1745,9 +1867,9 @@ void ImGuiWrapper::push_menu_style(const float scale)
         ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
     }
     else {
         ImGuiWrapper::push_toolbar_style(scale);
@@ -1755,9 +1877,9 @@ void ImGuiWrapper::push_menu_style(const float scale)
         ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
     }
 }
 void ImGuiWrapper::pop_menu_style()
@@ -1780,14 +1902,14 @@ void ImGuiWrapper::push_common_window_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(54 / 255.0f, 54 / 255.0f, 60 / 255.0f, 1.00f));     // 4
         ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR_DARK);                             // 5
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                              // 6
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 7
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                        // 8
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                       // 7
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                        // 8
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(84 / 255.0f, 84 / 255.0f, 90 / 255.0f, 1.00f));    // 9
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(62 / 255.0f, 62 / 255.0f, 69 / 255.0f, 1.00f));     // 10
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
         ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f));    // 13
-        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 14
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                       // 14
     }
     else {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
@@ -1801,14 +1923,14 @@ void ImGuiWrapper::push_common_window_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));  // 4
         ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);                                  // 5
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                              // 6
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 7
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                        // 8
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                       // 7
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                        // 8
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f)); // 9
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f));  // 10
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
         ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImGuiWrapper::COL_GREEN_LIGHT);                           // 13
-        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 14
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));                       // 14
     }
 }
 
@@ -1819,16 +1941,16 @@ void ImGuiWrapper::pop_common_window_style() {
 
 void ImGuiWrapper::push_confirm_button_style() {
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 0.88f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.88f));
     }
     else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 150.f / 255.f, 136.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
@@ -1951,11 +2073,12 @@ void ImGuiWrapper::init_font(bool compress)
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            unsigned outwidth, outheight;
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
             const ImU32* pIn = (ImU32*)raw_data.data();
-            for (int y = 0; y < icon_sz; y++) {
+            for (unsigned y = 0; y < outheight; y++) {
                 ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (int x = 0; x < icon_sz; x++)
+                for (unsigned x = 0; x < outwidth; x++)
                     *pOut++ = *pIn++;
             }
         }
@@ -1967,11 +2090,12 @@ void ImGuiWrapper::init_font(bool compress)
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            unsigned outwidth, outheight;
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
             const ImU32* pIn = (ImU32*)raw_data.data();
-            for (int y = 0; y < icon_sz; y++) {
+            for (unsigned y = 0; y < outheight; y++) {
                 ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (int x = 0; x < icon_sz; x++)
+                for (unsigned x = 0; x < outwidth; x++)
                     *pOut++ = *pIn++;
             }
         }
@@ -1983,11 +2107,12 @@ void ImGuiWrapper::init_font(bool compress)
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            unsigned outwidth, outheight;
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
             const ImU32* pIn = (ImU32*)raw_data.data();
-            for (int y = 0; y < icon_sz; y++) {
+            for (unsigned y = 0; y < outheight; y++) {
                 ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (int x = 0; x < icon_sz; x++)
+                for (unsigned x = 0; x < outwidth; x++)
                     *pOut++ = *pIn++;
             }
         }

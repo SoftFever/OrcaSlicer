@@ -7,6 +7,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
+#include <mutex>
 
 static std::string g_log_folder;
 static std::atomic<int> g_crash_log_count = 0;
@@ -104,127 +105,127 @@ void CBaseException::ShowExceptionResoult(DWORD dwExceptionCode)
 	{
 	case EXCEPTION_ACCESS_VIOLATION:
 		{
-			//OutputString(_T("ACCESS_VIOLATION(%s)\r\n"), _T("¶ÁÐ´·Ç·¨ÄÚ´æ"));
+			//OutputString(_T("ACCESS_VIOLATION(%s)\r\n"), _T("ï¿½ï¿½Ð´ï¿½Ç·ï¿½ï¿½Ú´ï¿½"));
 			OutputString(_T("ACCESS_VIOLATION\r\n"));
 		}
 		return ;
 	case EXCEPTION_DATATYPE_MISALIGNMENT:
 		{
-			//OutputString(_T("DATATYPE_MISALIGNMENT(%s)\r\n"), _T("Ïß³ÌÊÓÍ¼ÔÚ²»Ö§³Ö¶ÔÆëµÄÓ²¼þÉÏ¶ÁÐ´Î´¶ÔÆëµÄÊý¾Ý"));
+			//OutputString(_T("DATATYPE_MISALIGNMENT(%s)\r\n"), _T("ï¿½ß³ï¿½ï¿½ï¿½Í¼ï¿½Ú²ï¿½Ö§ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½Ï¶ï¿½Ð´Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"));
 			OutputString(_T("DATATYPE_MISALIGNMENT\r\n"));
 		}
 		return ;
 	case EXCEPTION_BREAKPOINT:
 		{
-			//OutputString(_T("BREAKPOINT(%s)\r\n"), _T("Óöµ½Ò»¸ö¶Ïµã"));
+			//OutputString(_T("BREAKPOINT(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ïµï¿½"));
 			OutputString(_T("BREAKPOINT\r\n"));
 		}
 		return ;
 	case EXCEPTION_SINGLE_STEP:
 		{
-			//OutputString(_T("SINGLE_STEP(%s)\r\n"), _T("µ¥²½")); //Ò»°ãÊÇ·¢ÉúÔÚµ÷ÊÔÊÂ¼þÖÐ
+			//OutputString(_T("SINGLE_STEP(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½")); //Ò»ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
 			OutputString(_T("SINGLE_STEP\r\n"));
 		}
 		return ;
 	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
 		{
-			//OutputString(_T("ARRAY_BOUNDS_EXCEEDED(%s)\r\n"), _T("Êý×é·ÃÎÊÔ½½ç"));
+			//OutputString(_T("ARRAY_BOUNDS_EXCEEDED(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô½ï¿½ï¿½"));
 			OutputString(_T("ARRAY_BOUNDS_EXCEEDED\r\n"));
 		}
 		return ;
 	case EXCEPTION_FLT_DENORMAL_OPERAND:
 		{
-			//OutputString(_T("FLT_DENORMAL_OPERAND(%s)\r\n"), _T("¸¡µã²Ù×÷µÄÒ»¸ö²Ù×÷Êý²»Õý¹æ£¬¸ø¶¨µÄ¸¡µãÊýÎÞ·¨±íÊ¾")); //²Ù×÷ÊýµÄÎÊÌâ
+			//OutputString(_T("FLT_DENORMAL_OPERAND(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ£¬ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½Ê¾")); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			OutputString(_T("FLT_DENORMAL_OPERAND\r\n"));
 		}
 		return ;
 	case EXCEPTION_FLT_DIVIDE_BY_ZERO:
 		{
-			//OutputString(_T("FLT_DIVIDE_BY_ZERO(%s)\r\n"), _T("¸¡µãÊý³ý0²Ù×÷"));
+			//OutputString(_T("FLT_DIVIDE_BY_ZERO(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½"));
 			OutputString(_T("FLT_DIVIDE_BY_ZERO\r\n"));
 		}
 		return ;
 	case EXCEPTION_FLT_INEXACT_RESULT:
 		{
-			//OutputString(_T("FLT_INEXACT_RESULT(%s)\r\n"), _T("¸¡µãÊý²Ù×÷µÄ½á¹ûÎÞ·¨±íÊ¾")); //ÎÞ·¨±íÊ¾Ò»°ãÊÇÊý¾ÝÌ«Ð¡£¬³¬¹ý¸¡µãÊý±íÊ¾µÄ·¶Î§, ¼ÆËãÖ®ºó²úÉúµÄ½á¹ûÒì³£
+			//OutputString(_T("FLT_INEXACT_RESULT(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½Ê¾")); //ï¿½Þ·ï¿½ï¿½ï¿½Ê¾Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì«Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Ä·ï¿½Î§, ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½ì³£
 			OutputString(_T("FLT_INEXACT_RESULT\r\n"));
 		}
 		return ;
 	case EXCEPTION_FLT_INVALID_OPERATION:
 		{
-			//OutputString(_T("FLT_INVALID_OPERATION(%s)\r\n"), _T("ÆäËû¸¡µãÊýÒì³£"));
+			//OutputString(_T("FLT_INVALID_OPERATION(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì³£"));
 			OutputString(_T("FLT_INVALID_OPERATION\r\n"));
 		}
 		return ;
 	case EXCEPTION_FLT_OVERFLOW:
 		{
-			//OutputString(_T("FLT_OVERFLOW(%s)\r\n"), _T("¸¡µã²Ù×÷µÄÖ¸Êý³¬¹ýÁËÏàÓ¦ÀàÐÍµÄ×î´óÖµ"));
+			//OutputString(_T("FLT_OVERFLOW(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½Öµ"));
 			OutputString(_T("FLT_OVERFLOW\r\n"));
 		}
 		return ;
 	case EXCEPTION_FLT_STACK_CHECK:
 		{
-			//OutputString(_T("STACK_CHECK(%s)\r\n"), _T("Õ»Ô½½ç»òÕßÕ»ÏòÏÂÒç³ö"));
+			//OutputString(_T("STACK_CHECK(%s)\r\n"), _T("Õ»Ô½ï¿½ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"));
 			OutputString(_T("STACK_CHECK\r\n"));
 		}
 		return ;
 	case EXCEPTION_INT_DIVIDE_BY_ZERO:
 		{
-			//OutputString(_T("INT_DIVIDE_BY_ZERO(%s)\r\n"), _T("ÕûÊý³ý0Òì³£"));
+			//OutputString(_T("INT_DIVIDE_BY_ZERO(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ì³£"));
 			OutputString(_T("INT_DIVIDE_BY_ZERO\r\n"));
 		}
 		return ;
 	case EXCEPTION_INVALID_HANDLE:
 		{
-			//OutputString(_T("INVALID_HANDLE(%s)\r\n"), _T("¾ä±úÎÞÐ§"));
+			//OutputString(_T("INVALID_HANDLE(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½Ð§"));
 			OutputString(_T("INVALID_HANDLE\r\n"));
 		}
 		return ;
 	case EXCEPTION_PRIV_INSTRUCTION:
 		{
-			//OutputString(_T("PRIV_INSTRUCTION(%s)\r\n"), _T("Ïß³ÌÊÔÍ¼Ö´ÐÐµ±Ç°»úÆ÷Ä£Ê½²»Ö§³ÖµÄÖ¸Áî"));
+			//OutputString(_T("PRIV_INSTRUCTION(%s)\r\n"), _T("ï¿½ß³ï¿½ï¿½ï¿½Í¼Ö´ï¿½Ðµï¿½Ç°ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½Ö§ï¿½Öµï¿½Ö¸ï¿½ï¿½"));
 			OutputString(_T("PRIV_INSTRUCTION\r\n"));
 		}
 		return ;
 	case EXCEPTION_IN_PAGE_ERROR:
 		{
-			//OutputString(_T("IN_PAGE_ERROR(%s)\r\n"), _T("Ïß³ÌÊÓÍ¼·ÃÎÊÎ´¼ÓÔØµÄÐéÄâÄÚ´æÒ³»òÕß²»ÄÜ¼ÓÔØµÄÐéÄâÄÚ´æÒ³"));
+			//OutputString(_T("IN_PAGE_ERROR(%s)\r\n"), _T("ï¿½ß³ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Î´ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½Ò³ï¿½ï¿½ï¿½ß²ï¿½ï¿½Ü¼ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½Ò³"));
 			OutputString(_T("IN_PAGE_ERROR\r\n"));
 		}
 		return ;
 	case EXCEPTION_ILLEGAL_INSTRUCTION:
 		{
-			//OutputString(_T("ILLEGAL_INSTRUCTION(%s)\r\n"), _T("Ïß³ÌÊÓÍ¼Ö´ÐÐÎÞÐ§Ö¸Áî"));
+			//OutputString(_T("ILLEGAL_INSTRUCTION(%s)\r\n"), _T("ï¿½ß³ï¿½ï¿½ï¿½Í¼Ö´ï¿½ï¿½ï¿½ï¿½Ð§Ö¸ï¿½ï¿½"));
 			OutputString(_T("ILLEGAL_INSTRUCTION\r\n"));
 		}
 		return ;
 	case EXCEPTION_NONCONTINUABLE_EXCEPTION:
 		{
-			//OutputString(_T("NONCONTINUABLE_EXCEPTION(%s)\r\n"), _T("Ïß³ÌÊÔÍ¼ÔÚÒ»¸ö²»¿É¼ÌÐøÖ´ÐÐµÄÒì³£·¢Éúºó¼ÌÐøÖ´ÐÐ"));
+			//OutputString(_T("NONCONTINUABLE_EXCEPTION(%s)\r\n"), _T("ï¿½ß³ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½É¼ï¿½ï¿½ï¿½Ö´ï¿½Ðµï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½"));
 			OutputString(_T("NONCONTINUABLE_EXCEPTION\r\n"));
 		}
 		return ;
 	case EXCEPTION_STACK_OVERFLOW:
 		{
-			//OutputString(_T("STACK_OVERFLOW(%s)\r\n"), _T("Õ»Òç³ö"));
+			//OutputString(_T("STACK_OVERFLOW(%s)\r\n"), _T("Õ»ï¿½ï¿½ï¿½"));
 			OutputString(_T("STACK_OVERFLOW\r\n"));
 		}
 		return ;
 	case EXCEPTION_INVALID_DISPOSITION:
 		{
-			//OutputString(_T("INVALID_DISPOSITION(%s)\r\n"), _T("Òì³£´¦Àí³ÌÐò¸øÒì³£µ÷¶ÈÆ÷·µ»ØÁËÒ»¸öÎÞÐ§ÅäÖÃ")); //Ê¹ÓÃ¸ß¼¶ÓïÑÔ±àÐ´µÄ³ÌÐòÓÀÔ¶²»»áÓöµ½Õâ¸öÒì³£
+			//OutputString(_T("INVALID_DISPOSITION(%s)\r\n"), _T("ï¿½ì³£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½")); //Ê¹ï¿½Ã¸ß¼ï¿½ï¿½ï¿½ï¿½Ô±ï¿½Ð´ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì³£
 			OutputString(_T("INVALID_DISPOSITION\r\n"));
 		}
 		return ;
 	case EXCEPTION_FLT_UNDERFLOW:
 		{
-			//OutputString(_T("FLT_UNDERFLOW(%s)\r\n"), _T("¸¡µãÊý²Ù×÷µÄÖ¸ÊýÐ¡ÓÚÏàÓ¦ÀàÐÍµÄ×îÐ¡Öµ"));
+			//OutputString(_T("FLT_UNDERFLOW(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½Ð¡Öµ"));
 			OutputString(_T("FLT_UNDERFLOW\r\n"));
 		}
 		return ;
 	case EXCEPTION_INT_OVERFLOW:
 		{
-			//OutputString(_T("INT_OVERFLOW(%s)\r\n"), _T("ÕûÊý²Ù×÷Ô½½ç"));
+			//OutputString(_T("INT_OVERFLOW(%s)\r\n"), _T("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô½ï¿½ï¿½"));
 			OutputString(_T("INT_OVERFLOW\r\n"));
 		}
 		return ;
@@ -291,7 +292,7 @@ BOOL CBaseException::GetLogicalAddress(
 
 	DWORD rva = (DWORD)addr - hMod;
 
-	//¼ÆËãµ±Ç°µØÖ·ÔÚµÚ¼¸¸ö½Ú
+	//ï¿½ï¿½ï¿½ãµ±Ç°ï¿½ï¿½Ö·ï¿½ÚµÚ¼ï¿½ï¿½ï¿½ï¿½ï¿½
 	for (unsigned i = 0; i < pNtHdr->FileHeader.NumberOfSections; i++, pSection++ )
 	{
 		DWORD sectionStart = pSection->VirtualAddress;

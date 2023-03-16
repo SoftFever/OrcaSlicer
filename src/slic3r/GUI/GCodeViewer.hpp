@@ -216,6 +216,7 @@ class GCodeViewer
         float fan_speed{ 0.0f };
         float temperature{ 0.0f };
         float volumetric_rate{ 0.0f };
+        float layer_time{ 0.0f };
         unsigned char extruder_id{ 0 };
         unsigned char cp_color_id{ 0 };
         std::vector<Sub_Path> sub_paths;
@@ -398,19 +399,21 @@ class GCodeViewer
             float min;
             float max;
             unsigned int count;
+            bool log_scale;
 
             Range() { reset(); }
-
             void update_from(const float value) {
                 if (value != max && value != min)
                     ++count;
                 min = std::min(min, value);
                 max = std::max(max, value);
             }
-            void reset() { min = FLT_MAX; max = -FLT_MAX; count = 0; }
+            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = false; log_scale = log; }
 
-            float step_size() const { return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f); }
+            float step_size() const;
             Color get_color_at(float value) const;
+            float get_value_at_step(int step) const;
+
         };
 
         struct Ranges
@@ -427,7 +430,9 @@ class GCodeViewer
             Range volumetric_rate;
             // Color mapping by extrusion temperature.
             Range temperature;
-
+            // Color mapping by layer time.
+            Range layer_duration;
+            Range layer_duration_log;
             void reset() {
                 height.reset();
                 width.reset();
@@ -435,6 +440,8 @@ class GCodeViewer
                 fan_speed.reset();
                 volumetric_rate.reset();
                 temperature.reset();
+                layer_duration.reset();
+                layer_duration_log.reset(true);
             }
         };
 
@@ -459,9 +466,8 @@ class GCodeViewer
             size_t first{ 0 };
             size_t last{ 0 };
 
-            bool operator == (const Endpoints& other) const {
-                return first == other.first && last == other.last;
-            }
+            bool operator == (const Endpoints& other) const { return first == other.first && last == other.last; }
+            bool operator != (const Endpoints& other) const { return !operator==(other); }
         };
 
     private:
@@ -490,9 +496,8 @@ class GCodeViewer
         bool operator != (const Layers& other) const {
             if (m_zs != other.m_zs)
                 return true;
-            if (!(m_endpoints == other.m_endpoints))
+            if (m_endpoints != other.m_endpoints)
                 return true;
-
             return false;
         }
     };
@@ -613,6 +618,7 @@ public:
             // see implementation of render() method
             Vec3f m_world_offset;
             float m_z_offset{ 0.5f };
+            GCodeProcessorResult::MoveVertex m_curr_move;
             bool m_visible{ true };
             bool m_is_dark = false;
 
@@ -630,8 +636,10 @@ public:
             void set_visible(bool visible) { m_visible = visible; }
 
             //BBS: GUI refactor: add canvas size
-            void render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const;
+            void render(int canvas_width, int canvas_height, const EViewType& view_type) const;
             void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
+
+            void update_curr_move(const GCodeProcessorResult::MoveVertex move);
         };
 
         class GCodeWindow
@@ -689,9 +697,9 @@ public:
         GCodeWindow gcode_window;
         std::vector<unsigned int> gcode_ids;
         float m_scale = 1.0;
-
+        bool m_show_gcode_window = false;
         //BBS: GUI refactor: add canvas size
-        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
+        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const;
     };
 
     struct ETools
@@ -712,6 +720,8 @@ public:
         Tool,
         ColorPrint,
         FilamentId,
+        LayerTime,
+        LayerTimeLog,
         Count
     };
 
@@ -799,6 +809,8 @@ public:
     void reset_shell();
     void load_shells(const Print& print, bool initialized, bool force_previewing = false);
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
+    //BBS: add all plates filament statistics
+    void render_all_plates_stats(const std::vector<const GCodeProcessorResult*>& gcode_result_list, bool show = true) const;
     //BBS: GUI refactor: add canvas width and height
     void render(int canvas_width, int canvas_height, int right_margin);
     //BBS
@@ -824,6 +836,7 @@ public:
     void enable_moves_slider(bool enable) const;
     void update_moves_slider(bool set_to_max = false);
     void update_layers_slider_mode();
+    void update_marker_curr_move();
 
     bool is_contained_in_bed() const { return m_contained_in_bed; }
     //BBS: add only gcode mode

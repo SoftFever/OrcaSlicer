@@ -23,6 +23,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/string_file.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/spirit/include/karma.hpp>
@@ -239,6 +240,7 @@ static constexpr const char* LAST_TRIANGLE_ID_ATTR = "lastid";
 static constexpr const char* SUBTYPE_ATTR = "subtype";
 static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
+static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
@@ -833,7 +835,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool m_load_restore;
         std::string m_backup_path;
         std::string m_origin_file;
-        // Semantic version of Bambu Studio, that generated this 3MF.
+        // Semantic version of Orca Slicer, that generated this 3MF.
         boost::optional<Semver> m_bambuslicer_generator_version;
         unsigned int m_fdm_supports_painting_version = 0;
         unsigned int m_seam_painting_version         = 0;
@@ -1499,7 +1501,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         lock.close();
 
         if (!m_is_bbl_3mf) {
-            // if the 3mf was not produced by BambuStudio and there is more than one instance,
+            // if the 3mf was not produced by OrcaSlicer and there is more than one instance,
             // split the object in as many objects as instances
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", found 3mf from other vendor, split as instance");
             for (const IdToModelObjectMap::value_type& object : m_objects) {
@@ -1775,6 +1777,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
+
             current_plate_data = plate_data_list[it->first - 1];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
             it++;
@@ -2498,6 +2501,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     void _BBS_3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
     {
+        //BBS: add plate tree related logic
         if (stat.m_uncomp_size > 0) {
             std::string buffer((size_t)stat.m_uncomp_size, 0);
             mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
@@ -2512,45 +2516,71 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             if (main_tree.front().first != "custom_gcodes_per_layer")
                 return;
-            pt::ptree code_tree = main_tree.front().second;
 
-            m_model->custom_gcode_per_print_z.gcodes.clear();
+            auto extract_code = [this](int plate_id, pt::ptree code_tree) {
+                for (const auto& code : code_tree) {
+                    if (code.first == "mode") {
+                        pt::ptree tree = code.second;
+                        std::string mode = tree.get<std::string>("<xmlattr>.value");
+                        m_model->plates_custom_gcodes[plate_id - 1].mode = mode == CustomGCode::SingleExtruderMode ? CustomGCode::Mode::SingleExtruder :
+                            mode == CustomGCode::MultiAsSingleMode ? CustomGCode::Mode::MultiAsSingle :
+                            CustomGCode::Mode::MultiExtruder;
+                    }
+                    if (code.first == "layer") {
+                        pt::ptree tree = code.second;
+                        double print_z = tree.get<double>("<xmlattr>.top_z");
+                        int extruder = tree.get<int>("<xmlattr>.extruder");
+                        std::string color = tree.get<std::string>("<xmlattr>.color");
 
-            for (const auto& code : code_tree) {
-                if (code.first == "mode") {
-                    pt::ptree tree = code.second;
-                    std::string mode = tree.get<std::string>("<xmlattr>.value");
-                    m_model->custom_gcode_per_print_z.mode = mode == CustomGCode::SingleExtruderMode ? CustomGCode::Mode::SingleExtruder :
-                                                             mode == CustomGCode::MultiAsSingleMode  ? CustomGCode::Mode::MultiAsSingle  :
-                                                             CustomGCode::Mode::MultiExtruder;
+                        CustomGCode::Type   type;
+                        std::string         extra;
+                        pt::ptree attr_tree = tree.find("<xmlattr>")->second;
+                        if (attr_tree.find("type") == attr_tree.not_found()) {
+                            // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
+                            // read old data ...
+                            std::string gcode = tree.get<std::string>("<xmlattr>.gcode");
+                            // ... and interpret them to the new data
+                            type = gcode == "M600" ? CustomGCode::ColorChange :
+                                gcode == "M601" ? CustomGCode::PausePrint :
+                                gcode == "tool_change" ? CustomGCode::ToolChange : CustomGCode::Custom;
+                            extra = type == CustomGCode::PausePrint ? color :
+                                type == CustomGCode::Custom ? gcode : "";
+                        }
+                        else {
+                            type = static_cast<CustomGCode::Type>(tree.get<int>("<xmlattr>.type"));
+                            extra = tree.get<std::string>("<xmlattr>.extra");
+                        }
+                        m_model->plates_custom_gcodes[plate_id - 1].gcodes.push_back(CustomGCode::Item{ print_z, type, extruder, color, extra });
+                    }
                 }
-                if (code.first != "layer")
-                    continue;
+            };
 
-                pt::ptree tree = code.second;
-                double print_z          = tree.get<double>      ("<xmlattr>.top_z" );
-                int extruder            = tree.get<int>         ("<xmlattr>.extruder");
-                std::string color       = tree.get<std::string> ("<xmlattr>.color"   );
+            m_model->plates_custom_gcodes.clear();
 
-                CustomGCode::Type   type;
-                std::string         extra;
-                pt::ptree attr_tree = tree.find("<xmlattr>")->second;
-                if (attr_tree.find("type") == attr_tree.not_found()) {
-                    // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
-                    // read old data ...
-                    std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
-                    // ... and interpret them to the new data
-                    type  = gcode == "M600"           ? CustomGCode::ColorChange :
-                            gcode == "M601"           ? CustomGCode::PausePrint  :
-                            gcode == "tool_change"    ? CustomGCode::ToolChange  :   CustomGCode::Custom;
-                    extra = type == CustomGCode::PausePrint ? color :
-                            type == CustomGCode::Custom     ? gcode : "";
+            bool has_plate_info = false;
+            for (const auto& element : main_tree.front().second) {
+                if (element.first == "plate") {
+                    has_plate_info = true;
+
+                    int plate_id = -1;
+                    pt::ptree code_tree = element.second;
+                    for (const auto& code : code_tree) {
+                        if (code.first == "plate_info") {
+                            plate_id = code.second.get<int>("<xmlattr>.id");
+                        }
+
+                    }
+                    if (plate_id == -1)
+                        continue;
+
+                    extract_code(plate_id, code_tree);
                 }
-                else {
-                    type  = static_cast<CustomGCode::Type>(tree.get<int>("<xmlattr>.type"));
-                    extra = tree.get<std::string>("<xmlattr>.extra");
-                }
-                m_model->custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type, extruder, color, extra}) ;
+            }
+
+            if (!has_plate_info) {
+                int plate_id = 1;
+                pt::ptree code_tree = main_tree.front().second;
+                extract_code(plate_id, code_tree);
             }
         }
     }
@@ -2746,7 +2776,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         if (!m_is_bbl_3mf) {
-            // if the 3mf was not produced by BambuStudio and there is only one object,
+            // if the 3mf was not produced by OrcaSlicer and there is only one object,
             // set the object name to match the filename
             if (m_model->objects.size() == 1)
                 m_model->objects.front()->name = m_name;
@@ -3141,19 +3171,23 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 m_is_bbl_3mf = true;
                 m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(12));
             }
+            else if (boost::starts_with(m_curr_characters, "OrcaSlicer-")) {
+                m_is_bbl_3mf = true;
+                m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(11));
+            }
         //TODO: currently use version 0, no need to load&&save this string
         /*} else if (m_curr_metadata_name == BBS_FDM_SUPPORTS_PAINTING_VERSION) {
             m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_fdm_supports_painting_version, FDM_SUPPORTS_PAINTING_VERSION,
-                _(L("The selected 3MF contains FDM supports painted object using a newer version of BambuStudio and is not compatible.")));
+                _(L("The selected 3MF contains FDM supports painted object using a newer version of OrcaSlicer and is not compatible.")));
         } else if (m_curr_metadata_name == BBS_SEAM_PAINTING_VERSION) {
             m_seam_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_seam_painting_version, SEAM_PAINTING_VERSION,
-                _(L("The selected 3MF contains seam painted object using a newer version of BambuStudio and is not compatible.")));
+                _(L("The selected 3MF contains seam painted object using a newer version of OrcaSlicer and is not compatible.")));
         } else if (m_curr_metadata_name == BBS_MM_PAINTING_VERSION) {
             m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
-                _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));*/
+                _(L("The selected 3MF contains multi-material painted object using a newer version of OrcaSlicer and is not compatible.")));*/
         } else if (m_curr_metadata_name == BBL_MODEL_ID_TAG) {
             m_model_id = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_MODEL_NAME_TAG) {
@@ -3442,6 +3476,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 BedType bed_type = BedType::btPC;
                 ConfigOptionEnum<BedType>::from_string(value, bed_type);
                 m_curr_plater->config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+            }
+            else if (key == PRINT_SEQUENCE_ATTR)
+            {
+                PrintSequence print_sequence = PrintSequence::ByLayer;
+                ConfigOptionEnum<PrintSequence>::from_string(value, print_sequence);
+                m_curr_plater->config.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(print_sequence));
             }
             else if (key == GCODE_FILE_ATTR)
             {
@@ -3804,6 +3844,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         //add the shared mesh logic
                         shared_mesh_id = ::atoi(metadata.value.c_str());
                         found_count++;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": line %1%, shared_mesh_id %2%")%__LINE__%shared_mesh_id;
                     }
 
                     if (found_count >= 2)
@@ -3821,6 +3862,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::map<int, ModelVolume*>::iterator iter = m_shared_meshes.find(shared_mesh_id);
                 if (iter != m_shared_meshes.end()) {
                     shared_volume = iter->second;
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": line %1%, found shared mesh, id %2%, mesh %3%")%__LINE__%shared_mesh_id%shared_volume;
                 }
             }
 
@@ -3859,7 +3901,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 TriangleMesh triangle_mesh(std::move(its), volume_data->mesh_stats);
 
                 if (!m_is_bbl_3mf) {
-                    // if the 3mf was not produced by BambuStudio and there is only one instance,
+                    // if the 3mf was not produced by OrcaSlicer and there is only one instance,
                     // bake the transformation into the geometry to allow the reload from disk command
                     // to work properly
                     if (object.instances.size() == 1) {
@@ -3873,11 +3915,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 volume = object.add_volume(std::move(triangle_mesh));
 
-                m_shared_meshes[sub_object->id] = volume;
+                if (shared_mesh_id != -1)
+                    //for some cases the shared mesh is in other plate and not loaded in cli slicing
+                    //we need to use the first one in the same plate instead
+                    m_shared_meshes[shared_mesh_id] = volume;
+                else
+                    m_shared_meshes[sub_object->id] = volume;
             }
             else {
                 //create volume to use shared mesh
                 volume = object.add_volume_with_shared_mesh(*shared_volume);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": line %1%, create volume using shared_mesh %2%")%__LINE__%shared_volume;
             }
             // stores the volume matrix taken from the metadata, if present
             if (has_transform)
@@ -4028,7 +4076,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             TriangleMesh triangle_mesh(std::move(its), volume_data.mesh_stats);
 
             if (!m_is_bbl_3mf) {
-                // if the 3mf was not produced by BambuStudio and there is only one instance,
+                // if the 3mf was not produced by OrcaSlicer and there is only one instance,
                 // bake the transformation into the geometry to allow the reload from disk command
                 // to work properly
                 if (object.instances.size() == 1) {
@@ -4867,7 +4915,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         // Adds content types file ("[Content_Types].xml";).
-        // The content of this file is the same for each BambuStudio 3mf.
+        // The content of this file is the same for each OrcaSlicer 3mf.
         if (!_add_content_types_file_to_archive(archive)) {
             return false;
         }
@@ -5143,7 +5191,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         // Adds relationships file ("_rels/.rels").
-        // The content of this file is the same for each BambuStudio 3mf.
+        // The content of this file is the same for each OrcaSlicer 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!_add_relationships_file_to_archive(archive, {}, {}, {}, temp_data, export_plate_idx)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", _add_relationships_file_to_archive failed\n");
@@ -5345,6 +5393,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         bool sub_model = !objects_data.empty();
         bool write_object = sub_model || !m_split_model;
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", filename %1%, m_split_model %2%,  sub_model %3%")%filename % m_split_model % sub_model;
 
 #if WRITE_ZIP_LANGUAGE_ENCODING
         auto & zip_filename = filename;
@@ -6387,6 +6437,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (bed_type_opt != nullptr && bed_type_names.size() > bed_type_opt->getInt())
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << BED_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << bed_type_names[bed_type_opt->getInt()] << "\"/>\n";
 
+                ConfigOption* print_sequence_opt = plate_data->config.option("print_sequence");
+                t_config_enum_names print_sequence_names = ConfigOptionEnum<PrintSequence>::get_enum_names();
+                if (print_sequence_opt != nullptr && print_sequence_names.size() > print_sequence_opt->getInt())
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PRINT_SEQUENCE_ATTR << "\" " << VALUE_ATTR << "=\"" << print_sequence_names[print_sequence_opt->getInt()] << "\"/>\n";
+
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";
                 if (!plate_data->gcode_file.empty()) {
@@ -6620,46 +6675,50 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
     return result;
 }
 
-bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
+bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
 {
+    //BBS: add plate tree related logic
     std::string out = "";
-
-    if (!model.custom_gcode_per_print_z.gcodes.empty()) {
-        pt::ptree tree;
-        pt::ptree& main_tree = tree.add("custom_gcodes_per_layer", "");
-
-        for (const CustomGCode::Item& code : model.custom_gcode_per_print_z.gcodes) {
-            pt::ptree& code_tree = main_tree.add("layer", "");
+    bool has_custom_gcode = false;
+    pt::ptree tree;
+    pt::ptree& main_tree = tree.add("custom_gcodes_per_layer", "");
+    for (auto custom_gcodes : model.plates_custom_gcodes) {
+            has_custom_gcode = true;
+            pt::ptree& plate_tree = main_tree.add("plate", "");
+            pt::ptree& plate_idx_tree = plate_tree.add("plate_info", "");
+            plate_idx_tree.put("<xmlattr>.id", custom_gcodes.first + 1);
 
             // store data of custom_gcode_per_print_z
-            code_tree.put("<xmlattr>.top_z"   , code.print_z  );
-            code_tree.put("<xmlattr>.type"      , static_cast<int>(code.type));
-            code_tree.put("<xmlattr>.extruder"  , code.extruder );
-            code_tree.put("<xmlattr>.color"     , code.color    );
-            code_tree.put("<xmlattr>.extra"     , code.extra    );
+            for (const CustomGCode::Item& code : custom_gcodes.second.gcodes) {
+                pt::ptree& code_tree = plate_tree.add("layer", "");
+                code_tree.put("<xmlattr>.top_z", code.print_z);
+                code_tree.put("<xmlattr>.type", static_cast<int>(code.type));
+                code_tree.put("<xmlattr>.extruder", code.extruder);
+                code_tree.put("<xmlattr>.color", code.color);
+                code_tree.put("<xmlattr>.extra", code.extra);
 
-            //BBS
-            std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
-                                code.type == CustomGCode::PausePrint  ? config->opt_string("machine_pause_gcode")     :
-                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
-                                code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra;
-            code_tree.put("<xmlattr>.gcode"     , gcode   );
-        }
+                //BBS
+                std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
+                    code.type == CustomGCode::PausePrint ? config->opt_string("machine_pause_gcode") :
+                    code.type == CustomGCode::Template ? config->opt_string("template_custom_gcode") :
+                    code.type == CustomGCode::ToolChange ? "tool_change" : code.extra;
+                code_tree.put("<xmlattr>.gcode", gcode);
+            }
 
-        pt::ptree& mode_tree = main_tree.add("mode", "");
-        // store mode of a custom_gcode_per_print_z
-        mode_tree.put("<xmlattr>.value", model.custom_gcode_per_print_z.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
-                                         model.custom_gcode_per_print_z.mode == CustomGCode::Mode::MultiAsSingle ?  CustomGCode::MultiAsSingleMode :
-                                         CustomGCode::MultiExtruderMode);
+            pt::ptree& mode_tree = plate_tree.add("mode", "");
+            // store mode of a custom_gcode_per_print_z
+            mode_tree.put("<xmlattr>.value", custom_gcodes.second.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
+                custom_gcodes.second.mode == CustomGCode::Mode::MultiAsSingle ? CustomGCode::MultiAsSingleMode :
+                CustomGCode::MultiExtruderMode);
 
-        if (!tree.empty()) {
-            std::ostringstream oss;
-            boost::property_tree::write_xml(oss, tree);
-            out = oss.str();
+    }
+    if (has_custom_gcode) {
+        std::ostringstream oss;
+        boost::property_tree::write_xml(oss, tree);
+        out = oss.str();
 
-            // Post processing("beautification") of the output string
-            boost::replace_all(out, "><", ">\n<");
-        }
+        // Post processing("beautification") of the output string
+        boost::replace_all(out, "><", ">\n<");
     }
 
     if (!out.empty()) {

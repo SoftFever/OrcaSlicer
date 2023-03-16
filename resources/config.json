@@ -9,29 +9,31 @@
                 "FUNC_BUILDPLATE_MARKER_DETECT": false,
                 "FUNC_FLOW_CALIBRATION": false,
                 "FUNC_MONITORING": false,
-                "FUNC_TIMELAPSE": false,
                 "FUNC_MEDIA_FILE": false,
                 "FUNC_REMOTE_TUNNEL": false,
                 "FUNC_LOCAL_TUNNEL": true,
                 "FUNC_VIRTUAL_CAMERA" : false,
                 "FUNC_PRINT_WITHOUT_SD": false,
                 "FUNC_ALTER_RESOLUTION": false,
-                "FUNC_AUTO_SWITCH_FILAMENT": false,
                 "FUNC_CHAMBER_FAN" : false,
-                "FUNC_SEND_TO_SDCARD": false
+                "FUNC_EXTRUSION_CALI": true,
+                "FUNC_PRINT_ALL" : false
             },
             "camera_resolution":["720p"],
-            "bed_temperature_limit": 100,
+            "bed_temperature_limit": 120,
             "model_id": "C11",
             "printer_type": "C11",
+            "ftp_folder" : "sdcard/",
             "printer_thumbnail_image": "printer_thumbnail_p1p"
         },
         {
             "display_name": "Bambu Lab X1",
             "func": {
+                "FUNC_EXTRUSION_CALI": false,
                 "FUNC_LOCAL_TUNNEL": false
             },
             "camera_resolution":["720p","1080p"],
+            "bed_temperature_limit": 120,
             "model_id": "BL-P002",
             "printer_type": "3DPrinter-X1",
             "printer_thumbnail_image": "printer_thumbnail"
@@ -39,10 +41,12 @@
         {
             "display_name": "Bambu Lab X1 Carbon",
             "func": {
+                "FUNC_EXTRUSION_CALI": false,
                 "FUNC_LOCAL_TUNNEL": false
             },
             "model_id": "BL-P001",
             "camera_resolution":["720p","1080p"],
+            "bed_temperature_limit": 120,
             "printer_type": "3DPrinter-X1-Carbon",
             "printer_thumbnail_image": "printer_thumbnail"
         }

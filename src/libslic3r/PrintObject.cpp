@@ -91,7 +91,6 @@ PrintObject::~PrintObject()
     if (m_shared_regions && -- m_shared_regions->m_ref_cnt == 0) delete m_shared_regions;
     clear_layers();
     clear_support_layers();
-    clear_tree_support_layers();
 }
 
 PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
@@ -410,11 +409,49 @@ void PrintObject::ironing()
     }
 }
 
+// BBS
+void PrintObject::clear_overhangs_for_lift()
+{
+    if (!m_shared_object) {
+        for (Layer* l : m_layers)
+            l->loverhangs.clear();
+    }
+}
+
+static const float g_min_overhang_percent_for_lift = 0.3f;
+
+void PrintObject::detect_overhangs_for_lift()
+{
+    if (this->set_started(posDetectOverhangsForLift)) {
+        const float min_overlap = m_config.line_width * g_min_overhang_percent_for_lift;
+        size_t num_layers = this->layer_count();
+        size_t num_raft_layers = m_slicing_params.raft_layers();
+
+        m_print->set_status(78, L("Detect overhangs for auto-lift"));
+
+        this->clear_overhangs_for_lift();
+
+        tbb::spin_mutex layer_storage_mutex;
+        tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
+            [this, min_overlap](const tbb::blocked_range<size_t>& range)
+            {
+                for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+                    Layer& layer = *m_layers[layer_id];
+                    Layer& lower_layer = *layer.lower_layer;
+
+                    ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
+                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
+                }
+            });
+
+        this->set_done(posDetectOverhangsForLift);
+    }
+}
+
 void PrintObject::generate_support_material()
 {
     if (this->set_started(posSupportMaterial)) {
         this->clear_support_layers();
-        this->clear_tree_support_layers();
 
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
             m_print->set_status(50, L("Generating support"));
@@ -479,16 +516,6 @@ void PrintObject::simplify_extrusion_path()
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
                     m_support_layers[layer_idx]->simplify_support_extrusion_path();
-                }
-            }
-        );
-        m_print->throw_if_canceled();
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_tree_support_layers.size()),
-            [this](const tbb::blocked_range<size_t>& range) {
-                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    m_print->throw_if_canceled();
-                    m_tree_support_layers[layer_idx]->simplify_support_extrusion_path();
                 }
             }
         );
@@ -564,19 +591,6 @@ Layer* PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_
     return m_layers.back();
 }
 
-// BBS
-const TreeSupportLayer* PrintObject::get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const
-{
-    coordf_t limit = print_z - epsilon;
-    auto it = Slic3r::lower_bound_by_predicate(m_tree_support_layers.begin(), m_tree_support_layers.end(), [limit](const TreeSupportLayer* layer) { return layer->print_z < limit; });
-    return (it == m_tree_support_layers.end() || (*it)->print_z > print_z + epsilon) ? nullptr : *it;
-}
-
-TreeSupportLayer* PrintObject::get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon)
-{
-    return const_cast<TreeSupportLayer*>(std::as_const(*this).get_tree_support_layer_at_printz(print_z, epsilon));
-}
-
 const SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const
 {
     coordf_t limit = print_z - epsilon;
@@ -589,12 +603,17 @@ SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_
     return const_cast<SupportLayer*>(std::as_const(*this).get_support_layer_at_printz(print_z, epsilon));
 }
 
-void PrintObject::clear_tree_support_layers()
+void PrintObject::clear_support_layers()
 {
     if (!m_shared_object) {
-        for (TreeSupportLayer* l : m_tree_support_layers)
+        for (SupportLayer* l : m_support_layers)
             delete l;
-        m_tree_support_layers.clear();
+        m_support_layers.clear();
+        for (auto l : m_layers) {
+            l->sharp_tails.clear();
+            l->sharp_tails_height.clear();
+            l->cantilevers.clear();
+        }
     }
 }
 
@@ -614,19 +633,11 @@ std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
     return m_tree_support_preview_cache;
 }
 
-TreeSupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
+SupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
 {
-    m_tree_support_layers.emplace_back(new TreeSupportLayer(id, this, height, print_z, slice_z));
-    return m_tree_support_layers.back();
-}
-
-void PrintObject::clear_support_layers()
-{
-    if (!m_shared_object) {
-        for (Layer *l : m_support_layers)
-            delete l;
-        m_support_layers.clear();
-    }
+    m_support_layers.emplace_back(new SupportLayer(id, 0, this, height, print_z, slice_z));
+    m_support_layers.back()->support_type = stInnerTree;
+    return m_support_layers.back();
 }
 
 SupportLayer* PrintObject::add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z)
@@ -679,7 +690,11 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "only_one_wall_first_layer"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
-            || opt_key == "infill_wall_overlap") {
+            || opt_key == "infill_wall_overlap"
+            || opt_key == "seam_gap"
+            || opt_key == "role_based_wipe_speed"
+            || opt_key == "wipe_on_loops"
+            || opt_key == "wipe_speed") {
             steps.emplace_back(posPerimeters);
         } else if (opt_key == "gap_infill_speed"
             || opt_key == "filter_out_gap_fill" ) {
@@ -713,7 +728,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_top_z_distance"
             || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"
-            || opt_key == "xy_contour_compensation") {
+            || opt_key == "xy_contour_compensation"
+            //BBS: [Arthur] the following params affect bottomBridge surface type detection
+            || opt_key == "support_type"
+            || opt_key == "bridge_no_support"
+            || opt_key == "max_bridge_length"
+            || opt_key == "support_interface_top_layers"
+            || opt_key == "support_critical_regions_only"
+            ) {
             steps.emplace_back(posSlice);
         } else if (opt_key == "enable_support") {
             steps.emplace_back(posSupportMaterial);
@@ -752,14 +774,31 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bridge_no_support"
             || opt_key == "max_bridge_length"
             || opt_key == "initial_layer_line_width"
+            || opt_key == "tree_support_adaptive_layer_height"
+            || opt_key == "tree_support_auto_brim"
+            || opt_key == "tree_support_brim_width"
             || opt_key == "tree_support_branch_distance"
             || opt_key == "tree_support_branch_diameter"
             || opt_key == "tree_support_branch_angle"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bottom_shell_layers") {
+        } else if (
+               opt_key == "bottom_shell_layers"
+            || opt_key == "top_shell_layers") {
+            
             steps.emplace_back(posPrepareInfill);
-            if (m_print->config().spiral_mode) {
+
+            const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
+            const auto *new_shell_layers = new_config.option<ConfigOptionInt>(opt_key);
+            assert(old_shell_layers && new_shell_layers);
+
+            bool value_changed = (old_shell_layers->value == 0 && new_shell_layers->value > 0) ||
+                                 (old_shell_layers->value > 0 && new_shell_layers->value == 0);
+
+            if (value_changed && this->object_extruders().size() > 1) {
+                steps.emplace_back(posSlice);
+            }               
+            else if (m_print->config().spiral_mode && opt_key == "bottom_shell_layers") {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
@@ -768,7 +807,6 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "interface_shells"
             || opt_key == "infill_combination"
             || opt_key == "bottom_shell_thickness"
-            || opt_key == "top_shell_layers"
             || opt_key == "top_shell_thickness"
             || opt_key == "minimum_sparse_infill_area"
             || opt_key == "sparse_infill_filament"
@@ -778,7 +816,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
-            || opt_key == "internal_bridge_support_thickness") {
+            || opt_key == "internal_bridge_support_thickness"
+            || opt_key == "bridge_density") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
@@ -821,7 +860,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "detect_overhang_wall"
             //BBS
             || opt_key == "enable_overhang_speed"
-            || opt_key == "detect_thin_wall") {
+            || opt_key == "detect_thin_wall"
+            || opt_key == "precise_outer_wall"
+            || opt_key == "overhang_speed_classic") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow") {
@@ -963,9 +1004,17 @@ void PrintObject::detect_surfaces_type()
             [this, region_id, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
                 // the support from the print.
-                SurfaceType surface_type_bottom_other =
-                    (this->has_support() && m_config.support_top_z_distance.value == 0) ?
-                    stBottom : stBottomBridge;
+                // BBS: the above logic only applys for normal(auto) support. Complete logic:
+                // 1. has support, top z distance=0 (soluble material), auto support
+                // 2. for normal(auto), bridge_no_support is off
+                // 3. for tree(auto), interface top layers=0, max bridge length=0, support_critical_regions_only=false (only in this way the bridge is fully supported)
+                bool bottom_is_fully_supported = this->has_support() && m_config.support_top_z_distance.value == 0 && is_auto(m_config.support_type.value);
+                if (m_config.support_type.value == stNormalAuto)
+                    bottom_is_fully_supported &= !m_config.bridge_no_support.value;
+                else if (m_config.support_type.value == stTreeAuto) {
+                    bottom_is_fully_supported &= (m_config.support_interface_top_layers.value > 0 && m_config.max_bridge_length.value == 0 && m_config.support_critical_regions_only.value==false);
+                }
+                SurfaceType surface_type_bottom_other = bottom_is_fully_supported ? stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
                     // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << region_id << " and layer " << layer->print_z;
@@ -2381,7 +2430,7 @@ void PrintObject::_generate_support_material()
     support_material.generate(*this);
 
     TreeSupport tree_support(*this, m_slicing_params);
-    tree_support.generate_support_areas();
+    tree_support.generate();
 }
 
 // BBS
@@ -2537,6 +2586,7 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
 
 SupportNecessaryType PrintObject::is_support_necessary()
 {
+#if 0
     static const double super_overhang_area_threshold = SQ(scale_(5.0));
 
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
@@ -2619,7 +2669,16 @@ SupportNecessaryType PrintObject::is_support_necessary()
         if (!exceed_overhang.empty())
             return LargeOverhang;
     }
-
+#else
+    TreeSupport tree_support(*this, m_slicing_params);
+    tree_support.support_type = SupportType::stTreeAuto; // need to set support type to fully utilize the power of feature detection
+    tree_support.detect_overhangs();
+    this->clear_support_layers();
+    if (tree_support.has_sharp_tails)
+        return SharpTail;
+    else if (tree_support.has_cantilever)
+        return LargeOverhang;
+#endif
     return NoNeedSupp;
 }
 
@@ -2812,10 +2871,6 @@ static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const index
 void PrintObject::project_and_append_custom_facets(
         bool seam, EnforcerBlockerType type, std::vector<Polygons>& out) const
 {
-    // BBS: Approve adding enforcer support on vertical faces
-    SlabSlicingConfig config;
-    config.isVertical = true;
-
     for (const ModelVolume* mv : this->model_object()->volumes)
         if (mv->is_model_part()) {
             const indexed_triangle_set custom_facets = seam
@@ -2829,7 +2884,7 @@ void PrintObject::project_and_append_custom_facets(
                 else {
                     std::vector<Polygons> projected;
                     // Support blockers or enforcers. Project downward facing painted areas upwards to their respective slicing plane.
-                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){}, config);
+                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){});
                     // Merge these projections with the output, layer by layer.
                     assert(! projected.empty());
                     assert(out.empty() || out.size() == projected.size());
@@ -2871,7 +2926,11 @@ const Layer *PrintObject::get_first_layer_bellow_printz(coordf_t print_z, coordf
     auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
     return (it == m_layers.begin()) ? nullptr : *(--it);
 }
-
+int PrintObject::get_layer_idx_get_printz(coordf_t print_z, coordf_t epsilon) {
+    coordf_t limit = print_z + epsilon;
+    auto     it    = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
+    return (it == m_layers.begin()) ? -1 : std::distance(m_layers.begin(), it);
+}
 // BBS
 const Layer* PrintObject::get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon) const {
     coordf_t limit_upper = bottom_z + epsilon;

@@ -4,7 +4,7 @@
     "name": "Generic PLA Silk",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic PLA @base",
+    "inherits": "Generic PLA Silk @base",
     "filament_max_volumetric_speed": [
         "7.5"
     ],

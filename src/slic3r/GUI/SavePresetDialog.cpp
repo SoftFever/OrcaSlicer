@@ -74,32 +74,30 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     //    combo_sizer->Add(m_combo, 1, wxEXPAND, BORDER_W);
 
 
-    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-    m_input_area = new StaticBox(m_parent, wxID_ANY, wxDefaultPosition, SAVE_PRESET_DIALOG_INPUT_SIZE, wxBORDER_NONE);
-    m_input_area->SetMinSize(SAVE_PRESET_DIALOG_INPUT_SIZE);
-    m_input_area->SetBorderColor(box_border_colour);
-    m_input_area->SetBackgroundColor(box_border_colour);
-    m_input_area->SetCornerRadius(FromDIP(3));
 
     wxBoxSizer *input_sizer_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *input_sizer_v  = new wxBoxSizer(wxVERTICAL);
 
-    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE.x - 2, SAVE_PRESET_DIALOG_INPUT_SIZE.y - 2), 0 | wxBORDER_NONE);
-    //m_input_ctrl->SetBackgroundColour(GetParent()->GetBackgroundColour());
+    /*m_input_ctrl = new wxTextCtrl(this, wxID_ANY, from_u8(preset_name), wxDefaultPosition, wxDefaultSize,wxBORDER_NONE);*/
+
+
+    m_input_ctrl = new ::TextInput(parent, from_u8(preset_name), wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    m_input_ctrl->SetBackgroundColor(input_bg);
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
+    m_input_ctrl->SetMinSize(wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE));
+    m_input_ctrl->SetMaxSize(wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE));
 
 
-    input_sizer_v->Add(m_input_ctrl, 0, wxALL, 1);
-    input_sizer_h->Add(input_sizer_v, 0, wxALL, 1);
-
-    m_input_area->SetSizer(input_sizer_h);
-    m_input_area->Layout();
+    input_sizer_v->Add(m_input_ctrl, 1, wxEXPAND, 0);
+    input_sizer_h->Add(input_sizer_v, 1, wxALIGN_CENTER, 0);
+    input_sizer_h->Layout();
 
     m_valid_label = new wxStaticText(m_parent, wxID_ANY, "");
     m_valid_label->SetForegroundColour(wxColor(255, 111, 0));
 
     sizer->Add(label_top, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, BORDER_W);
-    sizer->Add(m_input_area, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, BORDER_W);
+    sizer->Add(input_sizer_h, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, BORDER_W);
     sizer->Add(m_valid_label, 0, wxEXPAND | wxLEFT | wxRIGHT, BORDER_W);
 
     if (m_type == Preset::TYPE_PRINTER) m_parent->add_info_for_edit_ph_printer(sizer);
@@ -176,7 +174,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
 
 void SavePresetDialog::Item::update()
 {
-    m_preset_name = into_u8(m_input_ctrl->GetValue());
+    m_preset_name = into_u8(m_input_ctrl->GetTextCtrl()->GetValue());
 
     m_valid_type = Valid;
     wxString info_line;
@@ -255,7 +253,6 @@ void SavePresetDialog::Item::update()
     }
 
     m_valid_label->SetLabel(info_line);
-    m_input_area->Refresh();
     m_valid_label->Show(!info_line.IsEmpty());
 
     // update_valid_bmp();
@@ -338,11 +335,11 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     btns->Add(0, 0, 1, wxEXPAND, 5);
 
     m_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_confirm->SetBackgroundColor(btn_bg_green);
-    m_confirm->SetBorderColor(wxColour(0, 174, 66));
+    m_confirm->SetBorderColor(wxColour(0, 150, 136));
     m_confirm->SetTextColor(wxColour("#FFFFFE"));
     m_confirm->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
     m_confirm->SetCornerRadius(FromDIP(12));
@@ -395,7 +392,7 @@ std::string SavePresetDialog::get_name(Preset::Type type)
 void SavePresetDialog::input_name_from_other(std::string new_preset_name) {
     //only work for one-item
     Item* curr_item = m_items[0];
-    curr_item->m_input_ctrl->SetValue(new_preset_name);
+    curr_item->m_input_ctrl->GetTextCtrl()->SetValue(new_preset_name);
 }
 
 void SavePresetDialog::confirm_from_other() {

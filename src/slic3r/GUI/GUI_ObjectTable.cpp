@@ -171,6 +171,16 @@ void GridCellFilamentsEditor::Create(wxWindow* parent,
     }
     m_control = bitmap_combo;
     wxGridCellEditor::Create(parent, id, evtHandler);
+
+    /* bitmap_combo->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {
+         const wxString value = Combo()->GetValue();
+         if (value == m_value)
+             return false;
+
+         m_value = value;
+         return true;
+         e.Skip();
+     });*/
 }
 
 void GridCellFilamentsEditor::SetSize(const wxRect& rect)
@@ -201,7 +211,7 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
     {
         // This event handler is needed to properly dismiss the editor when the popup is closed
         m_control->Bind(wxEVT_COMBOBOX_CLOSEUP, &GridCellFilamentsEditor::OnComboCloseUp, this);
-        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
+        evtHandler = static_cast<wxGridCellEditorEvtHandler*>(m_control->GetEventHandler());
     }
 
     // Don't immediately end if we get a kill focus event within BeginEdit
@@ -242,7 +252,7 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
         // When dropping down the menu, a kill focus event
         // happens after this point, so we can't reset the flag yet.
 #if !defined(__WXGTK20__)
-        evtHandler->SetInSetFocus(false);
+        //evtHandler->SetInSetFocus(false);
 #endif
     }
 }
@@ -334,7 +344,10 @@ void GridCellFilamentsRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &d
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
         dc.DrawRectangle(rect);
-        dc.DrawBitmap(*bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
+        if ( grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) {
+            dc.DrawBitmap(*bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
+        }
+       
         text_rect.x += bitmap_width + grid_cell_border_width * 2;
         text_rect.width -= (bitmap_width + grid_cell_border_width * 2);
     }
@@ -403,7 +416,7 @@ void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
     if (m_control) {
         // This event handler is needed to properly dismiss the editor when the popup is closed
         m_control->Bind(wxEVT_COMBOBOX_CLOSEUP, &GridCellChoiceEditor::OnComboCloseUp, this);
-        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
+        evtHandler = static_cast<wxGridCellEditorEvtHandler*>(m_control->GetEventHandler());
     }
 
     // Don't immediately end if we get a kill focus event within BeginEdit
@@ -426,11 +439,12 @@ void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
     //Combo()->Popup();
 #endif
 
-    if (evtHandler) {
+    if (evtHandler)
+    {
         // When dropping down the menu, a kill focus event
         // happens after this point, so we can't reset the flag yet.
 #if !defined(__WXGTK20__)
-        evtHandler->SetInSetFocus(false);
+        //evtHandler->SetInSetFocus(false);
 #endif
     }
 }
@@ -1957,6 +1971,7 @@ void ObjectGridTable::construct_object_configs(ObjectGrid *object_grid)
         {
             ModelVolume* volume = object->volumes[j];
             ObjectGridRow* volume_grid = new ObjectGridRow(i, j, row_volume);
+            volume_grid->model_volume_type = volume->type();
             volume_grid->config = &(volume->config);
             volume_grid->name.value = volume->name;
             size_t pos = volume_grid->name.value.find_first_not_of(' ');
@@ -2941,11 +2956,21 @@ void ObjectTablePanel::load_data()
                         break;
                     case coEnum:
                         if (col == ObjectGridTable::col_filaments) {
-                            GridCellFilamentsEditor *filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_color_bitmaps);
-                            m_object_grid->SetCellEditor(row, col, filament_editor);
-                            m_object_grid->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
-                        } else {
-                            GridCellChoiceEditor *combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
+                            if (grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) {
+                                GridCellFilamentsEditor* filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_color_bitmaps);
+                                m_object_grid->SetCellEditor(row, col, filament_editor);
+                                m_object_grid->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
+                            }
+                            else {
+                                m_object_grid->SetCellEditor(row, col, new GridCellTextEditor());
+                                auto gcfil = new GridCellFilamentsRenderer();
+                                m_object_grid->SetCellRenderer(row, col, gcfil);
+                                m_object_grid->SetReadOnly(row, col);
+                                //m_object_grid->SetCellFitMode(row, col,  wxGridFitMode::Ellipsize());
+                            }
+                        }
+                        else {
+                            GridCellChoiceEditor* combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
                             m_object_grid->SetCellEditor(row, col, combo_editor);
                             m_object_grid->SetCellRenderer(row, col, new wxGridCellChoiceRenderer());
                         }

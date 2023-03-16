@@ -248,26 +248,27 @@ wxString HMSQuery::query_print_error_msg(int print_error)
 
 int HMSQuery::check_hms_info()
 {
-    int result = 0;
-    bool download_new_hms_info = true;
-
-    // load local hms json file
-    std::string version = "";
-    if (load_from_local(version) == 0) {
-        BOOST_LOG_TRIVIAL(info) << "HMS: check_hms_info current version = " << version;
-        std::string new_version;
-        get_hms_info_version(new_version);
-        BOOST_LOG_TRIVIAL(info) << "HMS: check_hms_info latest version = " << new_version;
-        if (!version.empty() && version == new_version) {
-            download_new_hms_info = false;
+    boost::thread check_thread = boost::thread([this] {
+        bool download_new_hms_info = true;
+        // load local hms json file
+        std::string version = "";
+        if (load_from_local(version) == 0) {
+            BOOST_LOG_TRIVIAL(info) << "HMS: check_hms_info current version = " << version;
+            std::string new_version;
+            get_hms_info_version(new_version);
+            BOOST_LOG_TRIVIAL(info) << "HMS: check_hms_info latest version = " << new_version;
+            if (!version.empty() && version == new_version) {
+                download_new_hms_info = false;
+            }
         }
-    }
-    BOOST_LOG_TRIVIAL(info) << "HMS: check_hms_info need download new hms info = " << download_new_hms_info;
-    // download if version is update
-    if (download_new_hms_info) {
-        result = download_hms_info();
-    }
-    return result;
+        BOOST_LOG_TRIVIAL(info) << "HMS: check_hms_info need download new hms info = " << download_new_hms_info;
+        // download if version is update
+        if (download_new_hms_info) {
+            download_hms_info();
+        }
+        return;
+    });
+    return 0;
 }
 
 std::string get_hms_wiki_url(std::string error_code)

@@ -26,8 +26,6 @@
 namespace Slic3r {
 namespace GUI {
 
-wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
-
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
 	: DPIDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
 	, boldfont(wxGetApp().normal_font())
@@ -158,13 +156,13 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     
     btn->SetCornerRadius(FromDIP(12));
     StateColor btn_bg_green(
-        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
     );
 
     StateColor btn_bd_green(
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
     );
 
     StateColor btn_text_green(

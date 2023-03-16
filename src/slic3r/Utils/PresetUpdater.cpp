@@ -9,6 +9,7 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/string_file.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
@@ -70,39 +71,6 @@ void copy_file_fix(const fs::path &source, const fs::path &target)
 	fs::permissions(target, perms);
 }
 
-//BBS: add directory copy
-void copy_directory_fix(const fs::path &source, const fs::path &target)
-{
-    BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
-    std::string error_message;
-
-    if (fs::exists(target))
-        fs::remove_all(target);
-    fs::create_directories(target);
-    for (auto &dir_entry : boost::filesystem::directory_iterator(source))
-    {
-        std::string source_file = dir_entry.path().string();
-        std::string name = dir_entry.path().filename().string();
-        std::string target_file = target.string() + "/" + name;
-
-        if (boost::filesystem::is_directory(dir_entry)) {
-            const auto target_path = target / name;
-            copy_directory_fix(dir_entry, target_path);
-        }
-        else {
-            //CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
-            CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
-            if (cfr != CopyFileResult::SUCCESS) {
-                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
-                throw Slic3r::CriticalException(GUI::format(
-                    _L("Copying directory %1% to %2% failed: %3%"),
-                    source, target, error_message));
-            }
-        }
-    }
-    return;
-}
-
 struct Update
 {
 	fs::path source;
@@ -136,7 +104,7 @@ struct Update
 	void install() const
 	{
 	    if (is_directory) {
-            copy_directory_fix(source, target);
+            copy_directory_recursively(source, target);
         }
         else {
             copy_file_fix(source, target);
@@ -230,10 +198,11 @@ struct PresetUpdater::priv
 	void prune_tmps() const;
 	void sync_version() const;
 	void parse_version_string(const std::string& body) const;
-    void sync_resources(std::string http_url, std::map<std::string, Resource> &resources, bool check_patch = false,  std::string current_version="");
+    void sync_resources(std::string http_url, std::map<std::string, Resource> &resources, bool check_patch = false,  std::string current_version="", std::string changelog_file="");
     void sync_config(std::string http_url, const VendorMap vendors);
     void sync_tooltip(std::string http_url, std::string language);
     void sync_plugins(std::string http_url, std::string plugin_version);
+    bool get_cached_plugins_version(std::string& cached_version);
 
 	//BBS: refine preset update logic
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
@@ -481,7 +450,7 @@ void PresetUpdater::priv::parse_version_string(const std::string& body) const
 //BBS: refine the Preset Updater logic
 // Download vendor indices. Also download new bundles if an index indicates there's a new one available.
 // Both are saved in cache.
-void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::string, Resource> &resources, bool check_patch, std::string current_version_str)
+void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::string, Resource> &resources, bool check_patch, std::string current_version_str, std::string changelog_file)
 {
     std::map<std::string, Resource>    resource_list;
 
@@ -615,14 +584,25 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
             }
             BOOST_LOG_TRIVIAL(info) << "[BBL Updater]finished unzip the downloaded file " << cache_file_path;
 
-            if (!resource_update->second.description.empty()) {
-                // save the description to disk
-                std::string changelog_file = (cache_path / "changelog").string();
+            // save the description to disk
+            if (changelog_file.empty())
+                changelog_file = (cache_path / "changelog.json").string();
+            else
+                changelog_file = (cache_path / changelog_file).string();
+
+            try {
+                json j;
+                //record the headers
+                j["version"] = resource_update->second.version;
+                j["description"] = resource_update->second.description;
 
                 boost::nowide::ofstream c;
                 c.open(changelog_file, std::ios::out | std::ios::trunc);
-                c << resource_update->second.description << std::endl;
+                c << std::setw(4) << j << std::endl;
                 c.close();
+            }
+            catch(std::exception &err) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<changelog_file<<" got a generic exception, reason = " << err.what();
             }
 
             resource_it.second = resource_update->second;
@@ -849,6 +829,47 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
     }
 }
 
+//return true means there are plugins files
+bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version)
+{
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto cache_folder = data_dir_path / "ota";
+    std::string network_library, player_library;
+    bool has_plugins = false;
+
+#if defined(_MSC_VER) || defined(_WIN32)
+    network_library = cache_folder.string() + "/bambu_networking.dll";
+    player_library = cache_folder.string() + "/BambuSource.dll";
+#elif defined(__WXMAC__)
+    network_library = cache_folder.string() + "/libbambu_networking.dylib";
+    player_library = cache_folder.string() + "/libBambuSource.dylib";
+#else
+    network_library = cache_folder.string() + "/libbambu_networking.so";
+    player_library = cache_folder.string() + "/libBambuSource.so";
+#endif
+
+    if (boost::filesystem::exists(network_library)
+        && boost::filesystem::exists(player_library))
+    {
+        std::string changelog_file = cache_folder.string() + "/network_plugins.json";
+        has_plugins = true;
+        try {
+            boost::nowide::ifstream ifs(changelog_file);
+            json j;
+            ifs >> j;
+
+            cached_version = j["version"];
+        }
+        catch(nlohmann::detail::parse_error &err) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<changelog_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+            //throw ConfigurationError(format("Failed loading json file \"%1%\": %2%", file_path, err.what()));
+        }
+    }
+
+    return has_plugins;
+}
+
 void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version)
 {
     if (plugin_version == "00.00.00.00") {
@@ -858,15 +879,26 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     std::string curr_version = SLIC3R_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
 
+    std::string cached_version;
+    get_cached_plugins_version(cached_version);
+    if (!cached_version.empty())
+        plugin_version = cached_version;
+
     try {
         std::map<std::string, Resource> resources
         {
             {"slicer/plugins/cloud", { using_version, "", "", cache_path.string(), {"plugins"}}}
         };
-        sync_resources(http_url, resources, true, plugin_version);
+        sync_resources(http_url, resources, true, plugin_version, "network_plugins.json");
     }
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_plugins: %1%", e.what());
+    }
+
+    bool result = get_cached_plugins_version(cached_version);
+    if (result) {
+        BOOST_LOG_TRIVIAL(info) << format("[BBL Updater] found new plugins: %1%, prompt to update", cached_version);
+        GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::BBLPluginUpdateAvailable);
     }
 }
 

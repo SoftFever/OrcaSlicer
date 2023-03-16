@@ -35,12 +35,13 @@ namespace Slic3r { namespace GUI {
 json m_ProfileJson;
 
 GuideFrame::GuideFrame(GUI_App *pGUI, long style)
-    : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, style),
+    : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "OrcaSlicer", wxDefaultPosition, wxDefaultSize, style),
 	m_appconfig_new()
 {
+    SetBackgroundColour(*wxWHITE);
     // INI
     m_SectionName = "firstguide";
-    PrivacyUse    = true;
+    PrivacyUse    = false;
     InstallNetplugin = false;
 
     m_MainPtr = pGUI;
@@ -57,7 +58,9 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
         wxLogError("Could not init m_browser");
         return;
     }
-
+    m_browser->Hide();
+    m_browser->SetSize(0, 0);
+    
     SetSizer(topsizer);
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
@@ -123,7 +126,6 @@ GuideFrame::~GuideFrame()
 void GuideFrame::load_url(wxString &url)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " enter, url=" << url.ToStdString();
-    this->Show();
     WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
@@ -223,7 +225,9 @@ void GuideFrame::OnNavigationRequest(wxWebViewEvent &evt)
 void GuideFrame::OnNavigationComplete(wxWebViewEvent &evt)
 {
     //wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
-
+    m_browser->Show();
+    Layout();
+    
     wxString NewUrl = evt.GetURL();
 
     UpdateState();
@@ -520,11 +524,12 @@ bool GuideFrame::IsFirstUse()
 
 int GuideFrame::SaveProfile()
 {
+    // SoftFever: don't collect info
     //privacy
-    if (PrivacyUse == true) {
-        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
-    } else
-        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
+    // if (PrivacyUse == true) {
+    //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
+    // } else
+    //     m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
 
     m_MainPtr->app_config->set("region", m_Region);
 
@@ -827,7 +832,8 @@ bool GuideFrame::run()
     app.preset_bundle->export_selections(*app.app_config);
 
     BOOST_LOG_TRIVIAL(info) << "GuideFrame before ShowModal";
-    if (this->ShowModal() == wxID_OK) {
+    int result = this->ShowModal();
+    if (result == wxID_OK) {
         bool apply_keeped_changes = false;
         BOOST_LOG_TRIVIAL(info) << "GuideFrame returned ok";
         if (! this->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes))
@@ -843,7 +849,7 @@ bool GuideFrame::run()
         BOOST_LOG_TRIVIAL(info) << "GuideFrame applied";
         this->Close();
         return true;
-    } else {
+    } else if (result == wxID_CANCEL) {
         BOOST_LOG_TRIVIAL(info) << "GuideFrame cancelled";
         if (app.preset_bundle->printers.only_default_printers()) {
             //we install the default here
@@ -861,6 +867,8 @@ bool GuideFrame::run()
         else
             return false;
     }
+    else
+        return false;
 }
 
 int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType)

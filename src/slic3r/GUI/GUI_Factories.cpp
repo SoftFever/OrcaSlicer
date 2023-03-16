@@ -78,7 +78,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
-                    {"support_filament", "",8},{"support_interface_filament", "",9},{"support_expansion", "",24},
+                    {"support_filament", "",8},{"support_interface_filament", "",9},{"support_expansion", "",24},{"support_style", "",25},
                      {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},//tree support
                             {"support_top_z_distance", "",13},{"support_bottom_z_distance", "",12},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
                             {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
@@ -90,7 +90,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"ironing_type", "",8},{"ironing_flow", "",9},{"ironing_spacing", "",10},{"bridge_flow", "",11}
+    { L("Quality"), {{"ironing_type", "",8},{"ironing_flow", "",9},{"ironing_spacing", "",10},{"bridge_flow", "",11},{"bridge_density", "", 1}
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
@@ -98,7 +98,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
-                    {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
+                    {"enable_overhang_speed", "",6}, {"overhang_speed_classic", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
                     {"bridge_speed", "",11}, {"gap_infill_speed", "",12}
                     }}
 };
@@ -305,7 +305,7 @@ static ObjectDataViewModel* list_model()
 
 static const Selection& get_selection()
 {
-    return plater()->canvas3D()->get_selection();
+    return plater()->get_current_canvas3D(true)->get_selection();
 }
 
 //				  category ->		vector 			 ( option	;  label )
@@ -432,6 +432,19 @@ std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
     return volume_bmps;
 }
 
+void MenuFactory::append_menu_item_set_visible(wxMenu* menu)
+{
+    bool has_one_shown = false;
+    const Selection& selection = plater()->canvas3D()->get_selection();
+    for (unsigned int i : selection.get_volume_idxs()) {
+        has_one_shown |= selection.get_volume(i)->visible;
+    }
+
+    append_menu_item(menu, wxID_ANY, has_one_shown ?_L("Hide") : _L("Show"), "",
+        [has_one_shown](wxCommandEvent&) { plater()->set_selected_visible(!has_one_shown); }, "", nullptr,
+        []() { return true; }, m_parent);
+}
+
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
 #ifdef __WINDOWS__
@@ -442,6 +455,19 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
+#endif
+}
+
+void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
+{
+#ifdef __WINDOWS__
+    append_menu_item(
+        menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
+        []() { return plater()->can_edit_text(); }, m_parent);
+#else
+    append_menu_item(
+        menu, wxID_ANY, _L("Edit Text"), "", [](wxCommandEvent &) { plater()->edit_text(); }, "", nullptr,
+        []() { return plater()->can_edit_text(); }, m_parent);
 #endif
 }
 
@@ -735,6 +761,8 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
     bool show_flush_option_menu = false;
     ObjectList* object_list = obj_list();
     const Selection& selection = get_selection();
+    if (selection.get_object_idx() < 0)
+        return;
     if (wxGetApp().plater()->get_partplate_list().get_curr_plate()->contains(selection.get_bounding_box())) {
         auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders();
         for (auto extruder : plate_extruders) {
@@ -747,7 +775,7 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
 
     DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
-    
+
     auto keys = select_object_config.keys();
     for (auto key : FREQ_SETTINGS_BUNDLE_FFF["Flush options"]) {
         if (find(keys.begin(), keys.end(), key) == keys.end()) {
@@ -784,7 +812,7 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
     {
         i++;
         wxMenuItem* item = node->GetData();
-        if (item->GetItemLabelText() == "Edit in Parameter Table")
+        if (item->GetItemLabelText() == _L("Edit in Parameter Table"))
             break;
     }
     menu->Insert(i, wxID_ANY, _L("Flush Options"), flush_options_menu);
@@ -1057,6 +1085,7 @@ void MenuFactory::create_bbl_part_menu()
     wxMenu* menu = &m_part_menu;
 
     append_menu_item_delete(menu);
+    append_menu_item_edit_text(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
     append_menu_item_center(menu);
@@ -1310,8 +1339,9 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
             return nullptr;
 
     wxMenu* menu = new MenuWithSeparators();
-    append_menu_item_fix_through_netfabb(menu);
-    append_menu_item_simplify(menu);
+    append_menu_item_set_visible(menu);
+    //append_menu_item_fix_through_netfabb(menu);
+    //append_menu_item_simplify(menu);
     append_menu_item_delete(menu);
     menu->AppendSeparator();
     append_menu_item_change_extruder(menu);
@@ -1328,18 +1358,36 @@ wxMenu* MenuFactory::plate_menu()
 
 wxMenu* MenuFactory::assemble_object_menu()
 {
+    wxMenu* menu = new MenuWithSeparators();
+    // Set Visible
+    append_menu_item_set_visible(menu);
+    // Delete
+    append_menu_item_delete(menu);
+    //// Object Repair
+    //append_menu_item_fix_through_netfabb(menu);
+    //// Object Simplify
+    //append_menu_item_simplify(menu);
+    menu->AppendSeparator();
+
     // Set filament
-    append_menu_item_change_extruder(&m_assemble_object_menu);
-    // Enter per object parameters
-    append_menu_item_per_object_settings(&m_assemble_object_menu);
-    return &m_assemble_object_menu;
+    append_menu_item_change_extruder(menu);
+    //// Enter per object parameters
+    //append_menu_item_per_object_settings(menu);
+    return menu;
 }
 
 wxMenu* MenuFactory::assemble_part_menu()
 {
-    append_menu_item_change_extruder(&m_assemble_part_menu);
-    append_menu_item_per_object_settings(&m_assemble_part_menu);
-    return &m_assemble_part_menu;
+    wxMenu* menu = new MenuWithSeparators();
+
+    append_menu_item_set_visible(menu);
+    append_menu_item_delete(menu);
+    //append_menu_item_simplify(menu);
+    menu->AppendSeparator();
+
+    append_menu_item_change_extruder(menu);
+    //append_menu_item_per_object_settings(menu);
+    return menu;
 }
 
 void MenuFactory::append_menu_item_clone(wxMenu* menu)
@@ -1509,7 +1557,7 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
         }
     }
 
-    wxString menu_text = all_printable ? L("Set Unprintable") : _L("Set Printable");
+    wxString menu_text = all_printable ? _L("Set Unprintable") : _L("Set Printable");
     append_menu_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
         Selection& selection = plater()->canvas3D()->get_selection();
         selection.set_printable(!all_printable);

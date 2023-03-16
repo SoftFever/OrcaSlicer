@@ -386,6 +386,9 @@ public:
 	void			set_values(const wxArrayString &values);
 	boost::any&		get_value() override;
 
+    void set_last_meaningful_value() override;
+    void set_na_value() override;
+
     void            msw_rescale() override;
 
 	void			enable() override ;//{ dynamic_cast<wxBitmapComboBox*>(window)->Enable(); };

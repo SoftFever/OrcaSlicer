@@ -34,6 +34,12 @@ PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::
 void PrintJob::prepare()
 {
     m_plater->get_print_job_data(&job_data);
+    if (&job_data) {
+        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+        auto check_access_code_path = temp_file.c_str();
+        BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
+        job_data._temp_path = fs::path(check_access_code_path);
+    }
 }
 
 void PrintJob::on_exception(const std::exception_ptr &eptr)
@@ -53,53 +59,60 @@ void PrintJob::on_success(std::function<void()> success)
 
 wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
 {
-    int code = 0;
-    std::string error;
-    std::string message;
-    wxString result;
-    if (status >= 400 && status < 500)
-        try {
-        json j = json::parse(body);
-        if (j.contains("code")) {
-            if (!j["code"].is_null())
-                code = j["code"].get<int>();
+    try {
+        int code = 0;
+        std::string error;
+        std::string message;
+        wxString result;
+        if (status >= 400 && status < 500)
+            try {
+            json j = json::parse(body);
+            if (j.contains("code")) {
+                if (!j["code"].is_null())
+                    code = j["code"].get<int>();
+            }
+            if (j.contains("error")) {
+                if (!j["error"].is_null())
+                    error = j["error"].get<std::string>();
+            }
+            if (j.contains("message")) {
+                if (!j["message"].is_null())
+                    message = j["message"].get<std::string>();
+            }
+            switch (status) {
+                ;
+            }
         }
-        if (j.contains("error")) {
-            if (!j["error"].is_null())
-                error = j["error"].get<std::string>();
-        }
-        if (j.contains("message")) {
-            if (!j["message"].is_null())
-                message = j["message"].get<std::string>();
-        }
-        switch (status) {
+        catch (...) {
             ;
         }
-    }
-    catch (...) {
+        else if (status == 503) {
+            return _L("Service Unavailable");
+        }
+        else {
+            wxString unkown_text = _L("Unkown Error.");
+            unkown_text += wxString::Format("status=%u, body=%s", status, body);
+            BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
+            return unkown_text;
+        }
+
+        BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
+
+        result = wxString::Format("code=%u, error=%s", code, from_u8(error));
+        return result;
+    } catch(...) {
         ;
     }
-    else if (status == 503) {
-        return _L("Service Unavailable");
-    }
-    else {
-        wxString unkown_text = _L("Unkown Error.");
-        unkown_text += wxString::Format("status=%u, body=%s", status, body);
-        BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
-        return unkown_text;
-    }
-
-    BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
-
-    result = wxString::Format("code=%u, error=%s", code, from_u8(error));
-    return result;
-}
+    return wxEmptyString;
+} 
 
 void PrintJob::process()
 {
     /* display info */
     wxString msg;
     int curr_percent = 10;
+    NetworkAgent* m_agent = wxGetApp().getAgent();
+    AppConfig* config = wxGetApp().app_config;
 
     if (this->connection_type == "lan") {
         msg = _L("Sending print job over LAN");
@@ -144,8 +157,34 @@ void PrintJob::process()
     else
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
+
     BBL::PrintParams params;
+
+    // local print access
+    params.dev_ip = m_dev_ip;
+    params.use_ssl  = m_local_use_ssl;
+    params.username = "bblp";
+    params.password = m_access_code;
+
+
+    // check access code and ip address
+    if (this->connection_type == "lan") {
+        params.dev_id = m_dev_id;
+        params.project_name = "verify_job";
+        params.filename = job_data._temp_path.string();
+        params.connection_type = this->connection_type;
+
+        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+        if (result != 0) {
+            BOOST_LOG_TRIVIAL(error) << "access code is invalid";
+            m_enter_ip_address_fun_fail();
+            m_job_finished = true;
+            return;
+        }
+    }
+
     params.dev_id = m_dev_id;
+    params.ftp_folder = m_ftp_folder;
     //params.project_name = project_name;
     params.project_name = m_project_name;
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
@@ -161,11 +200,24 @@ void PrintJob::process()
     params.ams_mapping_info     = this->task_ams_mapping_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
+    if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
+        ModelInfo* model_info = wxGetApp().model().model_info.get();
+        auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
+        if (origin_profile_id != model_info->metadata_items.end()) {
+            try {
+                params.origin_profile_id    = stoi(origin_profile_id->second.c_str());
+            }
+            catch(...) {}
+        }
+        auto origin_model_id = model_info->metadata_items.find(BBL_DESIGNER_MODEL_ID_TAG);
+        if (origin_model_id != model_info->metadata_items.end()) {
+            try {
+                params.origin_model_id = origin_model_id->second;
+            }
+            catch(...) {}
+        }
+    }
 
-    // local print access
-    params.dev_ip = m_dev_ip;
-    params.username = "bblp";
-    params.password = m_access_code;
     wxString error_text;
     wxString msg_text;
 
@@ -246,9 +298,6 @@ void PrintJob::process()
             return was_canceled();
         };
 
-
-    NetworkAgent* m_agent = wxGetApp().getAgent();
-
     if (params.connection_type != "lan") {
         if (params.dev_ip.empty())
             params.comments = "no_ip";
@@ -259,32 +308,56 @@ void PrintJob::process()
         else if (params.password.empty())
             params.comments = "no_password";
 
-        if (!this->cloud_print_only
-            && !params.password.empty() 
-            && !params.dev_ip.empty()
-            && this->has_sdcard) {
-            // try to send local with record
-            BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
-            this->update_status(curr_percent, _L("Sending print job over LAN"));
-            result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
-            if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-                params.comments = "wrong_code";
-            } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
-                params.comments = "upload_failed";
-            } else {
-                params.comments = (boost::format("failed(%1%)") % result).str();
+
+        //use ftp only
+        if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
+
+            if (params.password.empty() || params.dev_ip.empty()) {
+                error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                result = BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED;
             }
-            if (result < 0) {
-                // try to send with cloud
-                BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
+            else {
+                BOOST_LOG_TRIVIAL(info) << "print_job: use ftp send print only";
+                this->update_status(curr_percent, _L("Sending print job over LAN"));
+                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+                if (result < 0) {
+                    error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                    // try to send with cloud
+                    BOOST_LOG_TRIVIAL(warning) << "print_job: use ftp send print failed";
+                }
+            }
+        }
+        else {
+            if (!this->cloud_print_only
+                && !params.password.empty()
+                && !params.dev_ip.empty()
+                && this->has_sdcard) {
+                // try to send local with record
+                BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
+                this->update_status(curr_percent, _L("Sending print job over LAN"));
+                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+                if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+                    params.comments = "wrong_code";
+                }
+                else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
+                    params.comments = "upload_failed";
+                }
+                else {
+                    params.comments = (boost::format("failed(%1%)") % result).str();
+                }
+                if (result < 0) {
+                    // try to send with cloud
+                    BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
+                    this->update_status(curr_percent, _L("Sending print job through cloud service"));
+                    result = m_agent->start_print(params, update_fn, cancel_fn);
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
                 this->update_status(curr_percent, _L("Sending print job through cloud service"));
                 result = m_agent->start_print(params, update_fn, cancel_fn);
             }
-        } else {
-            BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
-            this->update_status(curr_percent, _L("Sending print job through cloud service"));
-            result = m_agent->start_print(params, update_fn, cancel_fn);
-        }
+        } 
     } else {
         if (this->has_sdcard) {
             this->update_status(curr_percent, _L("Sending print job over LAN"));
@@ -341,6 +414,16 @@ void PrintJob::finalize() {
 void PrintJob::set_project_name(std::string name)
 {
     m_project_name = name;
+}
+
+void PrintJob::on_check_ip_address_fail(std::function<void()> func)
+{
+    m_enter_ip_address_fun_fail = func;
+}
+
+void PrintJob::on_check_ip_address_success(std::function<void()> func)
+{
+    m_enter_ip_address_fun_success = func;
 }
 
 }} // namespace Slic3r::GUI

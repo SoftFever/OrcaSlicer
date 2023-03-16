@@ -51,8 +51,7 @@ enum ExtrusionLoopRole {
 inline bool is_perimeter(ExtrusionRole role)
 {
     return role == erPerimeter
-        || role == erExternalPerimeter
-        || role == erOverhangPerimeter;
+        || role == erExternalPerimeter;
 }
 
 inline bool is_internal_perimeter(ExtrusionRole role)
@@ -217,12 +216,12 @@ public:
     double total_volume() const override { return mm3_per_mm * unscale<double>(length()); }
 
     void set_overhang_degree(int overhang) {
-        if (is_perimeter(m_role))
+        if (is_perimeter(m_role) || is_bridge(m_role))
             overhang_degree = (overhang < 0)?0:(overhang > 10 ? 10 : overhang);
     };
     int get_overhang_degree() const {
         // only perimeter has overhang degree. Other return 0;
-        if (is_perimeter(m_role))
+        if (is_perimeter(m_role) || is_bridge(m_role))
             return overhang_degree;
         return 0;
     };

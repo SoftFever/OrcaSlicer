@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFG99",
-    "setting_id": "GFSG99",
+    "setting_id": "GFSA04",
     "name": "Anycubic Generic PETG",
     "from": "system",
     "instantiation": "true",
@@ -28,7 +28,7 @@
         "40"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "slow_down_layer_time": [
         "8"

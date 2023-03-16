@@ -124,7 +124,7 @@ EOF
 }
 
 print "\n";
-print "In the next step, you need to build the BambuStudio C++ library.\n";
+print "In the next step, you need to build the OrcaSlicer C++ library.\n";
 print "1) Create a build directory and change to it\n";
 print "2) run cmake .. -DCMAKE_BUILD_TYPE=Release\n";
 print "3) run make\n";

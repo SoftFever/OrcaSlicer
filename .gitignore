@@ -1,6 +1,6 @@
 Build
 Build.bat
-/build/
+/build*/
 deps/build
 MYMETA.json
 MYMETA.yml
@@ -20,6 +20,6 @@ local-lib
 build-linux/*
 deps/build-linux/*
 **/.DS_Store
-install_dir
-install_release
+install_*
+build_*/
 SVG

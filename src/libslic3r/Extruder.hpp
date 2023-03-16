@@ -34,7 +34,7 @@ public:
     double retract(double length, double restart_extra);
     double unretract();
     double E() const { return m_share_extruder ? m_share_E : m_E; }
-    void   reset_E() { m_E = 0.; }
+    void   reset_E() { m_E = 0.; m_share_E = 0.; }
     double e_per_mm(double mm3_per_mm) const { return mm3_per_mm * m_e_per_mm3; }
     double e_per_mm3() const { return m_e_per_mm3; }
     // Used filament volume in mm^3.
@@ -56,6 +56,8 @@ public:
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
 
+    bool   use_firmware_retraction() const;
+
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
@@ -64,7 +66,7 @@ private:
     GCodeConfig *m_config;
     // Print-wide global ID of this extruder.
     unsigned int m_id;
-    // Current state of the extruder axis, may be resetted if relative_e_axis.
+    // Current state of the extruder axis, may be resetted if use_relative_e_distances.
     double       m_E;
     // Current state of the extruder tachometer, used to output the extruded_volume() and used_filament() statistics.
     double       m_absolute_E;

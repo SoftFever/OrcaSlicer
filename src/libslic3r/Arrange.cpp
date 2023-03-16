@@ -78,6 +78,7 @@ using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 
 // A coefficient used in separating bigger items and smaller items.
 const double BIG_ITEM_TRESHOLD = 0.02;
+#define VITRIFY_TEMP_DIFF_THRSH 15  // bed temp can be higher than vitrify temp, but not higher than this thresh
 
 // Fill in the placer algorithm configuration with values carefully chosen for
 // Slic3r.
@@ -423,9 +424,9 @@ protected:
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
                 if (p.is_virt_object) continue;
-                score += lambda3 * (item.bed_temp - p.vitrify_temp > 0);
+                score += lambda3 * (item.bed_temp - p.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
             }
-            score += lambda3 * (item.bed_temp - item.vitrify_temp > 0);
+            score += lambda3 * (item.bed_temp - item.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
             score += lambda4 * hasRowHeightConflict + lambda4 * hasLidHeightConflict;
         }
         else {
@@ -451,20 +452,25 @@ protected:
         }
 
         std::set<int> extruder_ids;
+        int           non_virt_cnt = 0;
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
             if (p.is_virt_object) continue;
-            extruder_ids.insert(p.extrude_id);
-            // add a large cost if not multi materials on same plate is not allowed 
-            if (!params.allow_multi_materials_on_same_plate)
-                score += LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
+            extruder_ids.insert(p.extrude_ids.begin(),p.extrude_ids.end());
+            non_virt_cnt++;
         }
+        extruder_ids.insert(item.extrude_ids.begin(),item.extrude_ids.end());
 
+        // add a large cost if not multi materials on same plate is not allowed
+        if (!params.allow_multi_materials_on_same_plate) {
+            // non_virt_cnt==0 means it's the first object, which can be multi-color
+            if (extruder_ids.size() > 1 && non_virt_cnt > 0)
+                score += LARGE_COST_TO_REJECT * 1.1;
+        }
         // for layered printing, we want extruder change as few as possible
         // this has very weak effect, CAN NOT use a large weight
         if (!params.is_seq_print) {
-            extruder_ids.insert(item.extrude_id);
-            score += 1 * std::max(0, ((int)extruder_ids.size() - 1));
+            score += 1 * std::max(0, ((int) extruder_ids.size() - 1));
         }
 
         return std::make_tuple(score, fullbb);
@@ -600,7 +606,7 @@ public:
             }
             else {
                 return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
-                    (i1.extrude_id != i2.extrude_id ? (i1.extrude_id < i2.extrude_id) : (i1.area() > i2.area()));
+                    (i1.extrude_ids != i2.extrude_ids ? (i1.extrude_ids.front() < i2.extrude_ids.front()) : (i1.area() > i2.area()));
             }
         };
         
@@ -849,7 +855,7 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     item.binId(arrpoly.bed_idx);
     item.priority(arrpoly.priority);
     item.itemId(arrpoly.itemid);
-    item.extrude_id = arrpoly.extrude_ids.front();
+    item.extrude_ids = arrpoly.extrude_ids;
     item.height = arrpoly.height;
     item.name = arrpoly.name;
     //BBS: add virtual object logic

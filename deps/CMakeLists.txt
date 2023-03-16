@@ -1,12 +1,12 @@
 #
-# This CMake project downloads, configures and builds BambuStudio dependencies on Unix and Windows.
+# This CMake project downloads, configures and builds OrcaSlicer dependencies on Unix and Windows.
 #
 # When using this script, it's recommended to perform an out-of-source build using CMake.
 #
 # All the dependencies are installed in a `destdir` directory in the root of the build directory,
 # in a traditional Unix-style prefix structure. The destdir can be used directly by CMake
-# when building BambuStudio - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
-# Warning: On UNIX/Linux, you also need to set -DSLIC3R_STATIC=1 when building BambuStudio.
+# when building OrcaSlicer - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
+# Warning: On UNIX/Linux, you also need to set -DSLIC3R_STATIC=1 when building OrcaSlicer.
 #
 # For better clarity of console output, it's recommended to _not_ use a parallelized build
 # for the top-level command, ie. use `make -j 1` or `ninja -j 1` to force single-threaded top-level
@@ -20,7 +20,7 @@
 # therefore, unfortunatelly, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
 #
 
-project(BambuStudio-deps)
+project(OrcaSlicer-deps)
 cmake_minimum_required(VERSION 3.2)
 
 include(ExternalProject)
@@ -38,7 +38,30 @@ option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
+else() 
+    if(POLICY CMP0135) # DOWNLOAD_EXTRACT_TIMESTAMP
+        cmake_policy(SET CMP0135 NEW)
+    endif()
 endif()
+
+set(IS_CROSS_COMPILE FALSE)
+
+if (APPLE)
+    set(CMAKE_FIND_FRAMEWORK LAST)
+    set(CMAKE_FIND_APPBUNDLE LAST)
+    list(FIND CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} _arch_idx)
+    message(STATUS "prusaslicer_add_cmake_project for Apple")
+    if (CMAKE_OSX_ARCHITECTURES AND _arch_idx LESS 0)
+        message(STATUS "prusaslicer_add_cmake_project for Apple crosscompiling")
+        set(IS_CROSS_COMPILE TRUE)
+        set(CMAKE_CXX_COMPILER_ID "Clang")
+        string(REPLACE ";" "$<SEMICOLON>" CMAKE_OSX_ARCHS "${CMAKE_OSX_ARCHITECTURES}")
+        set(_cmake_osx_arch -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHS})
+        set(_cmake_args_osx_arch CMAKE_ARGS -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHS})
+        message(STATUS "Detect Cross-compilation. Will build for target ${CMAKE_OSX_ARCHS}" )
+    endif ()
+endif ()
+
 
 # On developer machines, it can be enabled to speed up compilation and suppress warnings coming from IGL. 
 # FIXME:
@@ -46,9 +69,9 @@ endif()
 # Slic3r compiles with a different version which will cause runtime errors.
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
-message(STATUS "BambuStudio deps DESTDIR: ${DESTDIR}")
-message(STATUS "BambuStudio dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
-message(STATUS "BambuStudio deps debug build: ${DEP_DEBUG}")
+message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
+message(STATUS "OrcaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
+message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
 
@@ -77,6 +100,7 @@ function(bambustudio_add_cmake_project projectname)
         set(_build_j "/m")
     endif ()
 
+if (NOT IS_CROSS_COMPILE OR NOT APPLE)
     ExternalProject_Add(
         dep_${projectname}
         EXCLUDE_FROM_ALL    ON
@@ -92,6 +116,7 @@ function(bambustudio_add_cmake_project projectname)
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
             -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
+            ${_cmake_osx_arch}
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
             ${P_ARGS_CMAKE_ARGS}
@@ -99,6 +124,26 @@ function(bambustudio_add_cmake_project projectname)
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
+else()
+    ExternalProject_Add(
+        dep_${projectname}
+        EXCLUDE_FROM_ALL    ON
+        INSTALL_DIR         ${DESTDIR}/usr/local
+        DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
+        ${_gen}
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}/usr/local
+            -DBUILD_SHARED_LIBS:BOOL=OFF
+            ${_cmake_osx_arch}
+            "${_configs_line}"
+            ${DEP_CMAKE_OPTS}
+            ${P_ARGS_CMAKE_ARGS}
+       ${P_ARGS_UNPARSED_ARGUMENTS}
+       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
+    )
+
+endif()
 
 endfunction(bambustudio_add_cmake_project)
 
@@ -117,7 +162,7 @@ if (MSVC)
     endif ()
 elseif (APPLE)
     message("OS X SDK Path: ${CMAKE_OSX_SYSROOT}")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
     if (CMAKE_OSX_DEPLOYMENT_TARGET)
         set(DEP_OSX_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
         message("OS X Deployment Target: ${DEP_OSX_TARGET}")

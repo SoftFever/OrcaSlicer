@@ -2126,7 +2126,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     const float  expected_w = CalcItemWidth();
     const float  w  = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
-    const ImRect frame_bb(window->DC.CursorPos - ImVec2(0.0, style.FramePadding.y), window->DC.CursorPos + ImVec2(w - arrow_size * 2, label_size.y + style.FramePadding.y));
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w - arrow_size * 2, label_size.y + style.FramePadding.y * 2));
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id, &frame_bb)) return false;
@@ -3066,9 +3066,9 @@ bool ImGui::DragFloat(const char* label, float* v, float v_speed, float v_min, f
 
 bool ImGui::BBLDragFloat(const char *label, float *v, float v_speed, float v_min, float v_max, const char *format, ImGuiSliderFlags flags)
 {
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
     bool bbl_drag_scalar = BBLDragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
     ImGui::PopStyleColor(3);
     return bbl_drag_scalar;
@@ -4175,7 +4175,7 @@ bool ImGui::BBLInputScalar(const char *label, ImGuiDataType data_type, void *p_d
 
     if (format == NULL) format = DataTypeGetInfo(data_type)->PrintFmt;
 
-    char buf[8];
+    char buf[64];
     DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
 
     bool value_changed = false;
@@ -4389,7 +4389,7 @@ bool ImGui::InputDouble(const char* label, double* v, double step, double step_f
 
 bool ImGui::BBLInputDouble(const char *label, double *v, double step, double step_fast, const char *format, ImGuiInputTextFlags flags)
 {
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
     flags |= ImGuiInputTextFlags_CharsScientific;
     bool bbl_input_scalar = BBLInputScalar(label, ImGuiDataType_Double, (void *) v, (void *) (step > 0.0 ? &step : NULL), (void *) (step_fast > 0.0 ? &step_fast : NULL), format,flags);
     ImGui::PopStyleColor(1);
@@ -7185,7 +7185,9 @@ bool ImGui::BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size_a
     // Render
     if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
     if (hovered || selected) {
-        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        if (hovered && selected)
+            col = GetColorU32(ImGuiCol_Header);
         if (arrow_size == 0) {
             RenderFrame(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
         }
@@ -7204,9 +7206,9 @@ bool ImGui::BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size_a
 
     // Render
     const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-    ImVec2 p_min = bb.Min + ImVec2(2 * style.ItemSpacing.x, (bb.Max.y - bb.Min.y - font_size.y) / 2);
+    ImVec2 p_min = bb.Min + ImVec2(style.ItemInnerSpacing.x, (bb.Max.y - bb.Min.y - font_size.y) / 2);
     ImVec2 p_max = p_min + font_size;
-    window->DrawList->AddImage(user_texture_id, p_min, p_max, uv0, uv1, GetColorU32(tint_col));
+    window->DrawList->AddImage(user_texture_id, p_min, p_max, uv0, uv1, selected || (held && hovered) ? GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)) : GetColorU32(tint_col));
 
     if (flags & ImGuiSelectableFlags_Disabled) PopStyleColor();
 

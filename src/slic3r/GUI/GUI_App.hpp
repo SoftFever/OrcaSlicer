@@ -7,13 +7,14 @@
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
-#include "wxExtensions.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
+#include "slic3r/GUI/WebUserLoginDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
+#include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
 
 #include <wx/app.h>
@@ -53,7 +54,6 @@ class AppConfig;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
-// class PrintHostJobQueue;
 class Model;
 class DeviceManager;
 class NetworkAgent;
@@ -276,7 +276,11 @@ private:
     bool m_networking_cancel_update { false };
     std::shared_ptr<UpgradeNetworkJob> m_upgrade_network_job;
 
+    // login widget
+    ZUserLogin*     login_dlg { nullptr };
+
     VersionInfo version_info;
+    VersionInfo privacy_version_info;
     static std::string version_display;
     HMSQuery    *hms_query { nullptr };
 
@@ -284,7 +288,12 @@ private:
     bool             enable_sync = false;
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
-public:
+    bool             m_side_popup_status{false};
+    HttpServer       m_http_server;
+    bool             m_show_gcode_window{true};
+
+  public:
+    void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
@@ -302,7 +311,11 @@ public:
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
-    std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+    std::string logo_name() const { return is_editor() ? "OrcaSlicer" : "BambuStudio-gcodeviewer"; }
+    
+    // SoftFever
+    bool show_gcode_window() const { return m_show_gcode_window; }
+    void set_show_gcode_window(bool val) { m_show_gcode_window = val; } 
 
     // To be called after the GUI is fully built up.
     // Process command line parameters cached in this->init_params,
@@ -338,6 +351,9 @@ public:
 	void            update_fonts(const MainFrame *main_frame = nullptr);
     void            set_label_clr_modified(const wxColour& clr);
     void            set_label_clr_sys(const wxColour& clr);
+    //update side popup status
+    bool            get_side_menu_popup_status();
+    void            set_side_menu_popup_status(bool status);
 
     const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
@@ -378,7 +394,7 @@ public:
     wxString transition_tridid(int trid_id);
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg();
-    void            ShowUserLogin();
+    void            ShowUserLogin(bool show = true);
     void            ShowOnlyFilament();
     //BBS
     void            request_login(bool show_user_info = false);
@@ -386,7 +402,8 @@ public:
     void            get_login_info();
     bool            is_user_login();
 
-    void            request_user_login(int online_login);
+    void            request_user_login(int online_login = 0);
+    void            request_user_handle(int online_login = 0);
     void            request_user_logout();
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
@@ -399,7 +416,9 @@ public:
 
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
+    void            on_set_selected_machine(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
+    void            on_user_login_handle(wxCommandEvent& evt);
     void            enable_user_preset_folder(bool enable);
 
     // BBS
@@ -410,6 +429,7 @@ public:
 
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
+    void            check_new_version_sf(bool show_tips = false, int by_user = 0);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
@@ -419,8 +439,16 @@ public:
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
-    void            start_sync_user_preset(bool with_progress_dlg = false);
+    void            start_sync_user_preset(bool load_immediately = false, bool with_progress_dlg = false);
     void            stop_sync_user_preset();
+    void            start_http_server();
+    void            stop_http_server();
+
+    void            on_show_check_privacy_dlg(int online_login = 0);
+    void            show_check_privacy_dlg(wxCommandEvent& evt);
+    void            on_check_privacy_update(wxCommandEvent &evt);
+    bool            check_privacy_update();
+    void            check_privacy_version(int online_login = 0);
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
@@ -435,6 +463,9 @@ public:
     ConfigOptionMode get_mode();
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
+    void            show_ip_address_enter_dialog(wxString title = wxEmptyString);
+    void            show_ip_address_enter_dialog_handler(wxCommandEvent &evt);
+    bool            show_modal_ip_address_enter_dialog(wxString title = wxEmptyString);
 
     // BBS
     //void            add_config_menu(wxMenuBar *menu);
@@ -451,8 +482,10 @@ public:
     bool            checked_tab(Tab* tab);
     //BBS: add preset combox re-active logic
     void            load_current_presets(bool active_preset_combox = false, bool check_printer_presets = true);
-    std::vector<std::string>& get_delete_cache_presets();
+    std::vector<std::string> &get_delete_cache_presets();
+    std::vector<std::string> get_delete_cache_presets_lock();
     void            delete_preset_from_cloud(std::string setting_id);
+    void            preset_deleted_from_cloud(std::string setting_id);
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
@@ -480,13 +513,21 @@ public:
     Model&      		 model();
     NotificationManager * notification_manager();
 
+
+    std::string         m_mall_model_download_url;
+    std::string         m_mall_model_download_name;
     ModelMallDialog*    m_mall_home_dialog{ nullptr };
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
+
+    void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
+    void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
+    std::string     get_download_model_url() {return m_mall_model_download_url;}
+    std::string     get_download_model_name() {return m_mall_model_download_name;}
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();
     void            open_publish_page_dialog();
-    void remove_mall_system_dialog();
+    void            remove_mall_system_dialog();
     void            run_script(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
@@ -568,6 +609,7 @@ private:
     //BBS set extra header for http request
     std::map<std::string, std::string> get_extra_header();
     void            init_http_extra_header();
+    void            update_http_extra_header();
     bool            check_older_app_config(Semver current_version, bool backup);
     void            copy_older_config();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
@@ -587,7 +629,9 @@ private:
 
 DECLARE_APP(GUI_App)
 wxDECLARE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
-} // GUI
+
+bool is_support_filament(int extruder_id);
+} // namespace GUI
 } // Slic3r
 
 #endif // slic3r_GUI_App_hpp_

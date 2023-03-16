@@ -14,6 +14,19 @@ index 0bc4f934b9..479431a69c 100644
                  find_package(WAYLANDEGL)
                  if(WAYLANDEGL_FOUND AND wxHAVE_GDK_WAYLAND)
                      list(APPEND OPENGL_LIBRARIES ${WAYLANDEGL_LIBRARIES})
+diff --git a/build/cmake/lib/webview/CMakeLists.txt b/build/cmake/lib/webview/CMakeLists.txt
+index cc3298ff33..8adbeaea4f 100644
+--- a/build/cmake/lib/webview/CMakeLists.txt
++++ b/build/cmake/lib/webview/CMakeLists.txt
+@@ -56,7 +56,7 @@ if(APPLE)
+ elseif(WXMSW)
+     if(wxUSE_WEBVIEW_EDGE)
+         # Update the following variables if updating WebView2 SDK
+-        set(WEBVIEW2_VERSION "1.0.705.50")
++        set(WEBVIEW2_VERSION "1.0.1418.22")
+         set(WEBVIEW2_URL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/${WEBVIEW2_VERSION}")
+         set(WEBVIEW2_SHA256 "6a34bb553e18cfac7297b4031f3eac2558e439f8d16a45945c22945ac404105d")
+ 
 diff --git a/include/wx/fontutil.h b/include/wx/fontutil.h
 index 09ad8c8ef3..3c0c2d8f7e 100644
 --- a/include/wx/fontutil.h

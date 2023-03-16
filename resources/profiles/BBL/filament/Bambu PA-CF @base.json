@@ -6,7 +6,7 @@
     "instantiation": "false",
     "inherits": "fdm_filament_pa",
     "required_nozzle_HRC": [
-        "55"
+        "40"
     ],
     "filament_vendor": [
         "Bambu Lab"
@@ -30,7 +30,7 @@
         "PA-CF"
     ],
     "filament_cost": [
-        "44.99"
+        "84.99"
     ],
     "nozzle_temperature": [
         "280"

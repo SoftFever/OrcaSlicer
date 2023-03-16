@@ -12,6 +12,7 @@
 #include <map>
 
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/clamp.hpp>
 
 namespace Slic3r {
 
@@ -25,22 +26,27 @@ Flow LayerRegion::flow(FlowRole role, double layer_height) const
     return m_region->flow(*m_layer->object(), role, layer_height, m_layer->id() == 0);
 }
 
-Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge) const
+Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge, float bridge_density) const
 {
     const PrintRegion       &region         = this->region();
     const PrintRegionConfig &region_config  = region.config();
     const PrintObject       &print_object   = *this->layer()->object();
+    Flow bridge_flow;
+    auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
     if (thick_bridge) {
         // The old Slic3r way (different from all other slicers): Use rounded extrusions.
         // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
         // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
-        auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
         // Applies default bridge spacing.
-        return Flow::bridging_flow(float(sqrt(region_config.bridge_flow)) * nozzle_diameter, nozzle_diameter);
+        bridge_flow = Flow::bridging_flow(float(sqrt(region_config.bridge_flow)) * nozzle_diameter, nozzle_diameter);
     } else {
         // The same way as other slicers: Use normal extrusions. Apply bridge_flow while maintaining the original spacing.
-        return this->flow(role).with_flow_ratio(region_config.bridge_flow);
+        bridge_flow = this->flow(role).with_flow_ratio(region_config.bridge_flow);
     }
+    bridge_density = boost::algorithm::clamp(bridge_density, 0.1f, 1.0f);
+    bridge_flow.set_spacing(bridge_flow.spacing() + bridge_flow.width() * ((1.0f / bridge_density) - 1.0f));
+    return bridge_flow;
+
 }
 
 // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
@@ -152,11 +158,20 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     {
         // Voids are sparse infills if infill rate is zero.
         Polygons voids;
+
+        double max_grid_area = -1;
+        if (this->layer()->lower_layer != nullptr)
+            max_grid_area = this->layer()->lower_layer->get_sparse_infill_max_void_area();
         for (const Surface &surface : this->fill_surfaces.surfaces) {
             if (surface.is_top()) {
                 // Collect the top surfaces, inflate them and trim them by the bottom surfaces.
                 // This gives the priority to bottom surfaces.
-                surfaces_append(top, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+                if (max_grid_area < 0 || surface.expolygon.area() < max_grid_area)
+                    surfaces_append(top, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+                else
+                    //BBS: Don't need to expand too much in this situation. Expand 3mm to eliminate hole and 1mm for contour
+                    surfaces_append(top, intersection_ex(offset(surface.expolygon.contour, margin / 3.0, EXTERNAL_SURFACES_OFFSET_PARAMETERS),
+                                                         offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS)), surface);
             } else if (surface.surface_type == stBottom || (surface.surface_type == stBottomBridge && lower_layer == nullptr)) {
                 // Grown by 3mm.
                 surfaces_append(bottom, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
@@ -230,7 +245,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 // Grown by 3mm.
                 //BBS: eliminate too narrow area to avoid generating bridge on top layer when wall loop is 1
                 //Polygons polys = offset(bridges[i].expolygon, bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
-                Polygons polys = offset2({ bridges[i].expolygon }, -scale_(nozzle_diameter * 0.1), bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset2({ bridges[i].expolygon }, -scale_(nozzle_diameter * 0.1), bridge_margin + scale_((1.0 / this->region().config().bridge_density.get_abs_value(1.0) - 1.0)*nozzle_diameter/2.0), EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
 				    BOOST_LOG_TRIVIAL(trace) << "Bridge did not fall into the source region!";
                 } else {

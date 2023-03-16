@@ -385,7 +385,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                         wxString y_str = thumbnail.GetNextToken();
                         if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
-                                if (0 <= x && x <= 256 && 0 <= y && y <= 256) {
+                                if (0 <= x &&  0 <= y) {
                                     out_values.push_back(Vec2d(x, y));
                                     continue;
                                 }
@@ -1021,6 +1021,9 @@ void Choice::BUILD()
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
+    if (m_opt.nullable)
+        m_last_meaningful_value = dynamic_cast<ConfigOptionEnumsGenericNullable const *>(m_opt.default_value.get())->get_at(0);
+
 	choice_ctrl* temp;
     auto         dynamic_list = dynamic_lists.find(m_opt.opt_key);
     if (dynamic_list != dynamic_lists.end())
@@ -1209,7 +1212,7 @@ void Choice::set_selection()
 
 void Choice::set_value(const std::string& value, bool change_event)  //! Redundant?
 {
-	m_disable_change_event = !change_event;
+    m_disable_change_event = !change_event;
 
 	size_t idx=0;
 	for (auto el : m_opt.enum_values)
@@ -1291,10 +1294,10 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-		if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style")
 		{
 			std::string key;
-			const t_config_enum_values& map_names = ConfigOptionEnum<InfillPattern>::get_enum_values();
+			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
 			for (auto it : map_names)
 				if (val == it.second) {
 					key = it.first;
@@ -1305,6 +1308,12 @@ void Choice::set_value(const boost::any& value, bool change_event)
 			auto it = std::find(values.begin(), values.end(), key);
 			val = it == values.end() ? 0 : it - values.begin();
 		}
+        if (m_opt.nullable) {
+            if (val != ConfigOptionEnumsGenericNullable::nil_value())
+                m_last_meaningful_value = value;
+            else
+                val = -1;
+        }
 		field->SetSelection(val);
 		break;
 	}
@@ -1370,9 +1379,11 @@ boost::any& Choice::get_value()
     // BBS
 	if (m_opt.type == coEnum || m_opt.type == coEnums)
 	{
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern") {
+        if (m_opt.nullable && field->GetSelection() == -1)
+            m_value = ConfigOptionEnumsGenericNullable::nil_value();
+        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
-			m_value = int(ConfigOptionEnum<InfillPattern>::get_enum_values().at(key));
+			m_value = int(m_opt.enum_keys_map->at(key));
 		}
         // Support ThirdPartyPrinter
         else if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount()) {
@@ -1402,6 +1413,20 @@ boost::any& Choice::get_value()
         get_value_by_opt_type(ret_str);
 
 	return m_value;
+}
+
+void Choice::set_last_meaningful_value()
+{
+    if (m_opt.nullable) {
+        set_value(m_last_meaningful_value, false);
+        on_change_field();
+    }
+}
+
+void Choice::set_na_value()
+{
+    dynamic_cast<choice_ctrl *>(window)->SetSelection(-1);
+    on_change_field();
 }
 
 void Choice::enable()  { dynamic_cast<choice_ctrl*>(window)->Enable(); }

@@ -96,6 +96,18 @@ inline typename Derived::Scalar cross2(const Eigen::MatrixBase<Derived> &v1, con
 template<typename T, int Options>
 inline Eigen::Matrix<T, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> &v) { return Eigen::Matrix<T, 2, 1, Eigen::DontAlign>(- v.y(), v.x()); }
 
+// Angle from v1 to v2, returning double atan2(y, x) normalized to <-PI, PI>.
+template <typename Derived, typename Derived2>
+inline double angle(const Eigen::MatrixBase<Derived>& v1, const Eigen::MatrixBase<Derived2>& v2)
+{
+    static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) == 2, "angle(): first parameter is not a 2D vector");
+    static_assert(Derived2::IsVectorAtCompileTime && int(Derived2::SizeAtCompileTime) == 2, "angle(): second parameter is not a 2D vector");
+    auto v1d = v1.template cast<double>();
+    auto v2d = v2.template cast<double>();
+    return atan2(cross2(v1d, v2d), v1d.dot(v2d));
+}
+
+
 template<class T, int N, int Options>
 Eigen::Matrix<T, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Eigen::Matrix<T, N, 1, Options>> &ptN) { return { ptN.x(), ptN.y() }; }
 
@@ -149,6 +161,21 @@ public:
     Point& operator-=(const Point& rhs) { this->x() -= rhs.x(); this->y() -= rhs.y(); return *this; }
 	Point& operator*=(const double &rhs) { this->x() = coord_t(this->x() * rhs); this->y() = coord_t(this->y() * rhs); return *this; }
     Point operator*(const double &rhs) { return Point(this->x() * rhs, this->y() * rhs); }
+    bool   both_comp(const Point &rhs, const std::string& op) { 
+        if (op == ">")
+            return this->x() > rhs.x() && this->y() > rhs.y();
+        else if (op == "<")
+            return this->x() < rhs.x() && this->y() < rhs.y();
+        return false;
+    }
+    bool any_comp(const Point &rhs, const std::string &op)
+    {
+        if (op == ">")
+            return this->x() > rhs.x() || this->y() > rhs.y();
+        else if (op == "<")
+            return this->x() < rhs.x() || this->y() < rhs.y();
+        return false;
+    }
 
     void   rotate(double angle) { this->rotate(std::cos(angle), std::sin(angle)); }
     void   rotate(double cos_a, double sin_a) {
@@ -182,6 +209,12 @@ inline bool operator<(const Point &l, const Point &r)
 inline Point operator* (const Point& l, const double& r)
 {
     return { coord_t(l.x() * r), coord_t(l.y() * r) };
+}
+
+inline std::ostream &operator<<(std::ostream &os, const Point &pt)
+{
+    os << unscale_(pt.x()) << "," << unscale_(pt.y());
+    return os;
 }
 
 inline bool is_approx(const Point &p1, const Point &p2, coord_t epsilon = coord_t(SCALED_EPSILON))

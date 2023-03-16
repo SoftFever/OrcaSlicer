@@ -16,6 +16,7 @@ public:
     int             plate_idx;
     fs::path        _3mf_path;
     fs::path        _3mf_config_path;
+    fs::path        _temp_path;
     PrintPrepareData() {
         plate_idx = 0;
     }
@@ -28,6 +29,8 @@ class PrintJob : public PlaterJob
     std::string         m_dev_id;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
+    std::function<void()> m_enter_ip_address_fun_fail{ nullptr };
+    std::function<void()> m_enter_ip_address_fun_success{ nullptr };
 
 protected:
 
@@ -39,6 +42,8 @@ public:
 
     std::string m_project_name;
     std::string m_dev_ip;
+    std::string m_ftp_folder;
+    bool        m_local_use_ssl { true };
     std::string m_access_code;
     std::string task_bed_type;
     bool        task_bed_leveling;
@@ -76,6 +81,8 @@ public:
     void process() override;
     void finalize() override;
     void set_project_name(std::string name);
+    void on_check_ip_address_fail(std::function<void()> func);
+    void on_check_ip_address_success(std::function<void()> func);
 };
 
 }} // namespace Slic3r::GUI
