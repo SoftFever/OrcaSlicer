@@ -56,6 +56,7 @@ public:
     std::vector<wxColour> m_def_colors;
     std::vector<wxColour> m_ams_colors;
     std::vector<ColorPicker*> m_color_pickers;
+    std::vector<ColorPicker*> m_ams_color_pickers;
 
 public:
     ColorPickerPopup(wxWindow* parent);
@@ -63,6 +64,7 @@ public:
     void set_ams_colours(std::vector<wxColour> ams);
     void set_def_colour(wxColour col);
     void paintEvent(wxPaintEvent& evt);
+    void Popup();
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 

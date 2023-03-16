@@ -1490,6 +1490,9 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
 
 void SelectMachineDialog::prepare_mode()
 {
+    // disable combobox
+    m_comboBox_printer->Enable();
+
     m_is_in_sending_mode = false;
     if (m_print_job) {
         m_print_job->join();
@@ -1510,6 +1513,9 @@ void SelectMachineDialog::prepare_mode()
 
 void SelectMachineDialog::sending_mode()
 {
+    // disable combobox
+    m_comboBox_printer->Disable();
+
     m_is_in_sending_mode = true;
     if (m_simplebook->GetSelection() != 1){
         m_simplebook->SetSelection(1);

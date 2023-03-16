@@ -966,6 +966,11 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
         fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
         cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
             set_def_colour(cp->m_colour);
+
+            wxCommandEvent evt(EVT_SELECTED_COLOR);
+            unsigned long g_col = ((cp->m_colour.Red() & 0xff) << 16) + ((cp->m_colour.Green() & 0xff) << 8) + (cp->m_colour.Blue() & 0xff);
+            evt.SetInt(g_col);
+            wxPostEvent(GetParent(), evt);
         });
     }
 
@@ -1004,13 +1009,27 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
 
 void ColorPickerPopup::set_ams_colours(std::vector<wxColour> ams)
 {
-    m_ams_colors = ams;
+    if (m_ams_color_pickers.size() > 0) {
+        for (ColorPicker* col_pick:m_ams_color_pickers) {
 
+            std::vector<ColorPicker*>::iterator iter = find(m_color_pickers.begin(), m_color_pickers.end(), col_pick);
+            if (iter != m_color_pickers.end()) {
+                col_pick->Destroy();
+                m_color_pickers.erase(iter);
+            }
+        }
+
+        m_ams_color_pickers.clear();
+    }
+
+
+    m_ams_colors = ams;
     for (wxColour col : m_ams_colors) {
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(col);
         cp->set_selected(false);
         m_color_pickers.push_back(cp);
+        m_ams_color_pickers.push_back(cp);
         m_ams_fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
         cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
             set_def_colour(cp->m_colour);
@@ -1029,19 +1048,20 @@ void ColorPickerPopup::set_ams_colours(std::vector<wxColour> ams)
 void ColorPickerPopup::set_def_colour(wxColour col)
 {
     m_def_col = col;
-    bool set_already = false;
 
     for (ColorPicker* cp : m_color_pickers) {
-
         if (cp->m_selected) {
             cp->set_selected(false);
         }
+    }
 
-        if (cp->m_colour == m_def_col && !set_already) {
+    for (ColorPicker* cp : m_color_pickers) {
+        if (cp->m_colour == m_def_col) {
             cp->set_selected(true);
-            set_already = true;
+            break;
         }
     }
+
     Dismiss();
 }
 
@@ -1054,6 +1074,11 @@ void ColorPickerPopup::paintEvent(wxPaintEvent& evt)
 }
 
 void ColorPickerPopup::OnDismiss() {}
+
+void ColorPickerPopup::Popup() 
+{
+    PopupWindow::Popup();
+}
 
 bool ColorPickerPopup::ProcessLeftDown(wxMouseEvent& event) {
     return PopupWindow::ProcessLeftDown(event);
