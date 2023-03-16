@@ -31,7 +31,7 @@ Prebuilt binaries are available through the [github releases page](https://githu
 >  1. Download the right binaries for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
 >  2. Double click to unzip the package, move OrcaSlicer.app to Application folder.  
 >  3. Run the following command in the terminal to allow running unsigned applications: 
->>>> `xattr -d com.apple.quarantine /Applications/OrcaSlicer.app`.
+>>>> `xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app`.
 
 **Linux(Ubuntu)**:
 > Run the downlaoded AppImage.  
