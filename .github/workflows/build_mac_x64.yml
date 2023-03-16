@@ -41,7 +41,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           curl -LJO https://github.com/SoftFever/FileSharing/releases/download/OrcaSlicer_deps_Mar/OrcaSlicer_dep_mac_x86_64_11-03-2023.tar.gz
-          tar -zxvf OrcaSlicer_dep_mac_x86_64_11-03-2023.tar.gz -C ${{ github.workspace }}/deps/build_x86_64
+          tar -zxf OrcaSlicer_dep_mac_x86_64_11-03-2023.tar.gz -C ${{ github.workspace }}/deps/build_x86_64
           chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
           ls -l ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
           rm OrcaSlicer_dep_mac_x86_64_11-03-2023.tar.gz
@@ -75,7 +75,7 @@ jobs:
         run: |
           export ver=$(grep '^#define SoftFever_VERSION' ./build_x86_64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
-          zip -FSr OrcaSlicer${ver}_nightly_Mac_Intel.zip ${{ github.workspace }}/build_x86_64/OrcaSlicer_x86_64/OrcaSlicer.app
+          zip -FSrq OrcaSlicer${ver}_nightly_Mac_Intel.zip ${{ github.workspace }}/build_x86_64/OrcaSlicer_x86_64/OrcaSlicer.app
 
       # (wip: staple failed, error 65)
       # - name: Notarize the app 
