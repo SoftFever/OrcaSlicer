@@ -1384,11 +1384,20 @@ wxString ObjectGridTable::GetValue (int row, int col)
     }
     else {
         try {
-            ConfigOptionString& option_value = dynamic_cast<ConfigOptionString&>(option);
-            if (grid_row->row_type == row_volume)
+            if (grid_row->row_type == row_volume){
+                ConfigOptionString& option_value = dynamic_cast<ConfigOptionString&>(option);
                 return GUI::from_u8(std::string("  ") + option_value.value);
-            else
-                return GUI::from_u8(option_value.value);
+            }   
+            else {
+                if (option.type() == coInt) {
+                    ConfigOptionInt& option_value = dynamic_cast<ConfigOptionInt&>(option);
+                    return GUI::from_u8(wxString::Format("%d",option_value.value).ToStdString());
+                }else {
+                    ConfigOptionString& option_value = dynamic_cast<ConfigOptionString&>(option);
+                    return GUI::from_u8(option_value.value);
+                }
+
+            }
         }
         catch(...) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("row %1%, col %2%, type %3% ")%row %col %grid_col->type;
