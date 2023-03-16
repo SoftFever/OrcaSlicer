@@ -1591,7 +1591,7 @@ void StatusPanel::show_recenter_dialog() {
         obj->command_go_home();
 }
 
-void StatusPanel::show_error_message(wxString msg, std::string print_error_str)
+void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str)
 {
     if (msg.IsEmpty()) {
         if (m_panel_error_txt->IsShown()) {
@@ -1618,6 +1618,14 @@ void StatusPanel::show_error_message(wxString msg, std::string print_error_str)
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
         }
         m_print_error_dlg->update_text(msg);
+        
+        m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
+            if (obj) {
+                obj->command_clean_print_error(obj->subtask_id_);
+            }
+        });
+        
+
         m_print_error_dlg->on_show();
     }
 }
@@ -1626,7 +1634,7 @@ void StatusPanel::update_error_message()
 {
     if (obj->print_error <= 0) {
         before_error_code = obj->print_error;
-        show_error_message(wxEmptyString);
+        show_error_message(obj, wxEmptyString);
         return;
     } else if (before_error_code != obj->print_error && obj->print_error != skip_print_error) {
         before_error_code = obj->print_error;
@@ -1646,7 +1654,7 @@ void StatusPanel::update_error_message()
                 error_msg = wxString::Format("%s[%s %s]",
                     error_msg,
                     print_error_str, show_time);
-                show_error_message(error_msg, print_error_str);
+                show_error_message(obj, error_msg, print_error_str);
             } else {
                 BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
             }

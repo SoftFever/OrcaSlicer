@@ -312,7 +312,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(wxString msg, std::string print_error_str = "");
+    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "");
     void error_info_reset();
     void show_recenter_dialog();
 

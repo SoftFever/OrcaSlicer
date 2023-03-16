@@ -692,6 +692,7 @@ public:
     int command_get_version(bool with_retry = true);
     int command_request_push_all();
     int command_pushing(std::string cmd);
+    int command_clean_print_error(std::string task_id);
 
     /* command upgrade */
     int command_upgrade_confirm();
