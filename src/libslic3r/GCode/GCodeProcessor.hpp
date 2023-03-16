@@ -238,6 +238,7 @@ namespace Slic3r {
         static bool contains_reserved_tags(const std::string& gcode, unsigned int max_count, std::vector<std::string>& found_tag);
 
         static int get_gcode_last_filament(const std::string &gcode_str);
+        static bool get_last_z_from_gcode(const std::string& gcode_str, double& z);
 
         static const float Wipe_Width;
         static const float Wipe_Height;

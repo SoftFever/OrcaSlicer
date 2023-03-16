@@ -12,6 +12,8 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include <fast_float/fast_float.h>
+
 #include <float.h>
 #include <assert.h>
 
@@ -1919,6 +1921,61 @@ int GCodeProcessor::get_gcode_last_filament(const std::string& gcode_str)
     }
 
     return out_filament;
+}
+
+//BBS: get last z position from gcode
+bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double& z)
+{
+    int str_size = gcode_str.size();
+    int start_index = 0;
+    int end_index = 0;
+    bool is_z_changed = false;
+    while (end_index < str_size) {
+        //find a full line
+        if (gcode_str[end_index] != '\n') {
+            end_index++;
+            continue;
+        }
+        //parse the line
+        if (end_index > start_index) {
+            std::string line_str = gcode_str.substr(start_index, end_index - start_index);
+            line_str.erase(0, line_str.find_first_not_of(" "));
+            line_str.erase(line_str.find_last_not_of(";") + 1);
+            line_str.erase(line_str.find_last_not_of(" ") + 1);
+
+            //command which may have z movement
+            if (line_str.size() > 5 && (line_str.find("G0 ") == 0
+                                       || line_str.find("G1 ") == 0
+                                       || line_str.find("G2 ") == 0
+                                       || line_str.find("G3 ") == 0))
+            {
+                auto z_pos = line_str.find(" Z");
+                double temp_z = 0;
+                if (z_pos != line_str.npos
+                    && z_pos + 2 < line_str.size()) {
+                    // Try to parse the numeric value.
+                    std::string z_sub = line_str.substr(z_pos + 2);
+                    char* c = &z_sub[0];
+                    char* end = c + sizeof(z_sub.c_str());
+
+                    auto is_end_of_word = [](char c) {
+                        return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == 0 || c == ';';
+                    };
+
+                    auto [pend, ec] = fast_float::from_chars(c, end, temp_z);
+                    if (pend != c && is_end_of_word(*pend)) {
+                        // The axis value has been parsed correctly.
+                        z = temp_z;
+                        is_z_changed = true;
+                    }
+                }
+            }
+        }
+        //loop to handle next line
+        start_index = end_index + 1;
+        end_index = start_index;
+    }
+    return is_z_changed;
 }
 
 void GCodeProcessor::process_tags(const std::string_view comment, bool producers_enabled)

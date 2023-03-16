@@ -520,9 +520,20 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
             // retract before toolchange
             toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
-            //BBS: current position and fan_speed is unclear after interting change_filament_gcode
-            toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
-            gcodegen.writer().set_current_position_clear(false);
+            //BBS
+            {
+                //BBS: current position and fan_speed is unclear after interting change_filament_gcode
+                check_add_eol(toolchange_gcode_str);
+                toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
+                gcodegen.writer().set_current_position_clear(false);
+                //BBS: check whether custom gcode changes the z position. Update if changed
+                double temp_z_after_tool_change;
+                if (GCodeProcessor::get_last_z_from_gcode(toolchange_gcode_str, temp_z_after_tool_change)) {
+                    Vec3d pos = gcodegen.writer().get_position();
+                    pos(2) = temp_z_after_tool_change;
+                    gcodegen.writer().set_position(pos);
+                }
+            }
 
             // move to start_pos for wiping after toolchange
             std::string start_pos_str;
@@ -4239,12 +4250,23 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     std::string toolchange_gcode_parsed;
     if (!change_filament_gcode.empty()) {
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
+        check_add_eol(toolchange_gcode_parsed);
         gcode += toolchange_gcode_parsed;
-        check_add_eol(gcode);
-        //BBS: gcode writer doesn't know where the extruder is and whether fan speed is changed after inserting tool change gcode
-        //Set this flag so that normal lift will be used the first time after tool change.
-        gcode += ";_FORCE_RESUME_FAN_SPEED\n";
-        m_writer.set_current_position_clear(false);
+
+        //BBS
+        {
+            //BBS: gcode writer doesn't know where the extruder is and whether fan speed is changed after inserting tool change gcode
+            //Set this flag so that normal lift will be used the first time after tool change.
+            gcode += ";_FORCE_RESUME_FAN_SPEED\n";
+            m_writer.set_current_position_clear(false);
+            //BBS: check whether custom gcode changes the z position. Update if changed
+            double temp_z_after_tool_change;
+            if (GCodeProcessor::get_last_z_from_gcode(toolchange_gcode_parsed, temp_z_after_tool_change)) {
+                Vec3d pos = m_writer.get_position();
+                pos(2) = temp_z_after_tool_change;
+                m_writer.set_position(pos);
+            }
+        }
     }
 
     // BBS. Reset old extruder E-value.
