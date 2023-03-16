@@ -498,14 +498,14 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     imgui.pop_toolbar_style();
 }
 
-void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)
+void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends)
 {
     assert(! m_file.is_open());
     if (m_file.is_open())
         return;
 
     m_filename   = filename;
-    m_lines_ends = std::move(lines_ends);
+    m_lines_ends = lines_ends;
 
     m_selected_line_id = 0;
     m_last_lines_size = 0;
@@ -561,11 +561,11 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         return ret;
     };
 
-    static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
-    static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
-    static const ImVec4 COMMAND_COLOR = { 0.8f, 0.8f, 0.0f, 1.0f };
-    static const ImVec4 PARAMETERS_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
-    static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
+    static const ImVec4 LINE_NUMBER_COLOR = { 0, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f };
+    static const ImVec4 SELECTION_RECT_COLOR = { 0, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f };
+    static const ImVec4 COMMAND_COLOR = m_is_dark ? ImVec4( 240.0f / 255.0f, 240.0f / 255.0f, 240.0f / 255.0f, 1.0f ) : ImVec4( 1.0f, 1.0f, 1.0f, 1.0f );
+    static const ImVec4 PARAMETERS_COLOR = m_is_dark ? ImVec4( 179.0f / 255.0f, 179.0f / 255.0f, 179.0f / 255.0f, 1.0f ) : ImVec4( 206.0f / 255.0f, 206.0f / 255.0f, 206.0f / 255.0f, 1.0f );
+    static const ImVec4 COMMENT_COLOR = m_is_dark ? ImVec4(129.0f / 255.0f, 129.0f / 255.0f, 129.0f / 255.0f, 1.0f) : ImVec4( 172.0f / 255.0f, 172.0f / 255.0f, 172.0f / 255.0f, 1.0f );
 
     if (!m_visible || m_filename.empty() || m_lines_ends.empty() || curr_line_id == 0)
         return;
@@ -615,7 +615,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.6f);
+    ImGui::SetNextWindowBgAlpha(0.8f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
     // center the text in the window by pushing down the first line
@@ -691,7 +691,7 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
     }
 }
 //BBS: GUI refactor: move to the right
-void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const
+void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const
 {
     marker.render(canvas_width, canvas_height, view_type);
 
@@ -702,9 +702,7 @@ void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, 
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
 #endif
     //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
-    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
-        gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
-    }
+    gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width - (float)right_margin, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -898,6 +896,7 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 void GCodeViewer::on_change_color_mode(bool is_dark) {
     m_is_dark = is_dark;
     m_sequential_view.marker.on_change_color_mode(m_is_dark);
+    m_sequential_view.gcode_window.on_change_color_mode(m_is_dark);
 }
 
 void GCodeViewer::set_scale(float scale)
@@ -984,11 +983,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_gcode_result = &gcode_result;
     m_only_gcode_in_preview = only_gcode;
 
-    if (mode == ConfigOptionMode::comDevelop) {
-        m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
-            // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).
-            std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
-    }
+    m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
 
     //BBS: add only gcode mode
     //if (wxGetApp().is_gcode_viewer())
@@ -1092,7 +1087,6 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     bool current_has_print_instances = current_plate->has_printable_instances();
     if (current_plate->is_slice_result_valid() && wxGetApp().model().objects.empty() && !current_has_print_instances)
         only_gcode_3mf = true;
-
     m_layers_slider->set_menu_enable(!(only_gcode || only_gcode_3mf));
     m_layers_slider->set_as_dirty();
     m_moves_slider->set_as_dirty();
@@ -1287,7 +1281,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(legend_height, canvas_width, canvas_height - bottom_margin * m_scale, m_view_type);
+        m_sequential_view.render(legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -4345,7 +4339,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
-    ImGui::SetNextWindowBgAlpha(0.6f);
+    ImGui::SetNextWindowBgAlpha(0.8f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
     ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });

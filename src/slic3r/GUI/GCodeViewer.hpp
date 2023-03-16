@@ -648,6 +648,7 @@ public:
                 std::string parameters;
                 std::string comment;
             };
+            bool m_is_dark = false;
             bool m_visible{ true };
             uint64_t m_selected_line_id{ 0 };
             size_t m_last_lines_size{ 0 };
@@ -661,7 +662,7 @@ public:
         public:
             GCodeWindow() = default;
             ~GCodeWindow() { stop_mapping_file(); }
-            void load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends);
+            void load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends);
             void reset() {
                 stop_mapping_file();
                 m_lines_ends.clear();
@@ -674,6 +675,7 @@ public:
             //BBS: GUI refactor: add canvas size
             //void render(float top, float bottom, uint64_t curr_line_id) const;
             void render(float top, float bottom, float right, uint64_t curr_line_id) const;
+            void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
 
             void stop_mapping_file();
         };
@@ -697,7 +699,7 @@ public:
         float m_scale = 1.0;
 
         //BBS: GUI refactor: add canvas size
-        void render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const;
+        void render(float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const;
     };
 
     struct ETools
