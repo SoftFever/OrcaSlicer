@@ -2469,6 +2469,11 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("gcode_state")) {
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
+                    if (jj.contains("queue_number")) {
+                        this->queue_number = jj["queue_number"].get<int>();
+                    } else {
+                        this->queue_number = 0;
+                    }
 
                     if (jj.contains("task_id")) {
                         this->task_id_ = jj["task_id"].get<std::string>();

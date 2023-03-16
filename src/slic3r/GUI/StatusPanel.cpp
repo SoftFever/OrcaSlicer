@@ -2256,9 +2256,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
             wxString prepare_text;
             if (obj->is_in_prepare())
                 prepare_text = wxString::Format(_L("Downloading..."));
-            else if (obj->print_status == "SLICING")
-                prepare_text = wxString::Format(_L("Cloud Slicing..."));
-            else
+            else if (obj->print_status == "SLICING") {
+                if (obj->queue_number <= 0) {
+                    prepare_text = wxString::Format(_L("Cloud Slicing..."));
+                } else {
+                    prepare_text = wxString::Format(_L("In Cloud Slicing Queue, there are %s tasks ahead."), std::to_string(obj->queue_number));
+                }
+            } else
                 prepare_text = wxString::Format(_L("Downloading..."));
 
             if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100)

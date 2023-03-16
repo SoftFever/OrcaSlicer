@@ -605,7 +605,8 @@ public:
     void parse_status(int flag);
 
     /* printing status */
-    std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
+    std::string print_status;      /* enum string: FINISH, SLICING, RUNNING, PAUSE, INIT, FAILED */
+    int queue_number = 0;
     std::string iot_print_status;  /* iot */
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag = 100;
