@@ -343,11 +343,11 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                             if (!bbox_a.overlap(bbox_b))
                                 continue;
 
-                            if (intersection_ex(expoly_a, expoly_b).empty())
+                            ExPolygons temp = intersection_ex(expoly_b, expoly_a, ApplySafetyOffset::Yes);
+                            if (temp.empty())
                                 continue;
 
-                            ExPolygons temp = intersection_ex(expoly_b, expoly_a);
-                            if (expoly_a.area() > expoly_b.area())
+                            if (expoly_a.contour.length() > expoly_b.contour.length())
                                 trimming_a.insert(trimming_a.end(), temp.begin(), temp.end());
                             else
                                 trimming_b.insert(trimming_b.end(), temp.begin(), temp.end());
@@ -395,6 +395,12 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 // Clip every non-zero region preceding it.
                                 for (int idx_region2 = 0; idx_region2 < idx_region; ++ idx_region2)
                                     if (! temp_slices[idx_region2].expolygons.empty()) {
+                                        // Skip trim_overlap for now, because it slow down the performace so much for some special cases
+#if 1
+                                        if (const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
+                                            !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
+                                            temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+#else
                                         const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                         if (!region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
                                             //BBS: handle negative_volume seperately, always minus the negative volume and don't need to trim overlap
@@ -402,6 +408,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                                 trim_overlap(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
                                             else
                                                 temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+#endif
                                     }
                             }
                         }
