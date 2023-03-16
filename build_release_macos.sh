@@ -76,10 +76,10 @@ cd $WD
 mkdir -p build_$ARCH
 cd build_$ARCH
 echo "building studio..."
-cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer_$ARCH" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
+cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
 cmake --build . --config Release --target ALL_BUILD 
-mkdir -p OrcaSlicer_$ARCH
-cd OrcaSlicer_$ARCH
+mkdir -p OrcaSlicer
+cd OrcaSlicer
 rm -r ./OrcaSlicer.app
 cp -pR ../src/Release/OrcaSlicer.app ./OrcaSlicer.app
 resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)

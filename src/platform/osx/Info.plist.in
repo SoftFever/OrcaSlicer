@@ -13,7 +13,7 @@
   <key>CFBundleShortVersionString</key>
   <string>@SLIC3R_APP_NAME@ @SLIC3R_BUILD_ID@</string>
   <key>CFBundleIdentifier</key>
-  <string>com.bbl.slic3r/</string>
+  <string>com.softfever3d.orca-slic3r/</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundlePackageType</key>

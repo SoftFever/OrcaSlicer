@@ -54,6 +54,8 @@ if (APPLE)
         set(CMAKE_INSTALL_RPATH @executable_path/../Frameworks)
     endif()
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
+    SET(CMAKE_XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.softfever3d.orca-slicer")
+
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -706,7 +708,7 @@ elseif (SLIC3R_FHS)
         )
     endforeach()
 elseif (CMAKE_MACOSX_BUNDLE)
-    install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/OrcaSlicer.app/Contents/resources")
+    # install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/OrcaSlicer.app/Contents/resources")
 else ()
     install(FILES src/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")

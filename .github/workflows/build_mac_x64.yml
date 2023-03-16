@@ -9,9 +9,9 @@ on:
        - SoftFever
     
 jobs:
-  build_win64:
+  build_osx_x86_64:
     name: Build Mac Intel
-    runs-on: macos-latest
+    runs-on: macos-12
 
     steps:
       - uses: actions/checkout@v3
@@ -68,14 +68,14 @@ jobs:
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-          codesign --deep --force --verbose --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_x86_64/OrcaSlicer_x86_64/OrcaSlicer.app
+          codesign --deep --force --verbose --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer.app
       
       - name: pack app
         working-directory: ${{ github.workspace }}
         run: |
           export ver=$(grep '^#define SoftFever_VERSION' ./build_x86_64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
-          zip -FSrq OrcaSlicer${ver}_nightly_Mac_Intel.zip ${{ github.workspace }}/build_x86_64/OrcaSlicer_x86_64/OrcaSlicer.app
+          zip -FSrq OrcaSlicer${ver}_nightly_Mac_Intel_signed.zip ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer.app
 
       # (wip: staple failed, error 65)
       # - name: Notarize the app 
@@ -90,4 +90,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Mac_Intel
-          path: ${{ github.workspace }}/OrcaSlicer*.zip
+          path: ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer*.zip

@@ -9,7 +9,7 @@ on:
        - SoftFever
     
 jobs:
-  build_win64:
+  build_osx_arm64:
     name: Build Mac AppleSilicon
     runs-on: macos-12
 
@@ -20,7 +20,7 @@ jobs:
         run: |
           brew install cmake git gettext zstd
       - run: mkdir -p ${{ github.workspace }}/deps/build_arm64
-      - run: mkdir -p ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_x86_64
+      - run: mkdir -p ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
 
       # - name: build deps
       #   id: cache_deps
@@ -48,7 +48,8 @@ jobs:
 
       - name: Build studio
         working-directory: ${{ github.workspace }}
-        run: ./build_release_macos.sh -s -n -a arm64
+        run: |
+          ./build_release_macos.sh -s -n -a arm64
 
       - name: Sign app
         working-directory: ${{ github.workspace }}
@@ -67,18 +68,20 @@ jobs:
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-          codesign --deep --force --verbose --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_arm64/OrcaSlicer_arm64/OrcaSlicer.app
+          codesign --deep --force --verbose --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer.app
       
-      - name: pack app
+      - name: Pack app
         working-directory: ${{ github.workspace }}
         run: |
           export ver=$(grep '^#define SoftFever_VERSION' ./build_arm64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
-          zip -FSrq OrcaSlicer${ver}_nightly_Mac_AppleSilicon.zip ${{ github.workspace }}/build_arm64/OrcaSlicer_arm64/OrcaSlicer.app
+          cd ${{ github.workspace }}/build_arm64/OrcaSlicer
+          zip -FSrq OrcaSlicer${ver}_nightly_Mac_AppleSilicon_signed.zip ./OrcaSlicer.app
 
       # (wip: staple failed, error 65)
       # - name: Notarize the app 
       #   run: |
+      #     cd ${{ github.workspace }}/build_arm64/OrcaSlicer
       #     xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
       #     ditto -c -k --keepParent "OrcaSlicer.app" "OrcaSlicer.zip"
       #     xcrun notarytool submit "OrcaSlicer.zip" --keychain-profile "notarytool-profile" --wait
@@ -89,4 +92,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Mac_AppleSilicon
-          path: ${{ github.workspace }}/OrcaSlicer*.zip
+          path: ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer*.zip
