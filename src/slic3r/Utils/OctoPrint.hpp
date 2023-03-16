@@ -130,8 +130,11 @@ class PrusaConnect : public PrusaLink
 public:
     PrusaConnect(DynamicPrintConfig* config);
     ~PrusaConnect() override = default;
+    wxString get_test_ok_msg() const override;
+    wxString get_test_failed_msg(wxString& msg) const override;
     PrintHostPostUploadActions get_post_upload_actions() const override { return PrintHostPostUploadAction::StartPrint | PrintHostPostUploadAction::QueuePrint; }
     const char* get_name() const override { return "PrusaConnect"; }
+    bool get_storage(wxArrayString& storage_path, wxArrayString& storage_name) const override { return false; }
 protected:
     void set_http_post_header_args(Http& http, PrintHostPostUploadAction post_action) const override;
 };

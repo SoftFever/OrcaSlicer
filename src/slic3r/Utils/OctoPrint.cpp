@@ -1126,4 +1126,16 @@ void PrusaConnect::set_http_post_header_args(Http& http, PrintHostPostUploadActi
    
 }
 
+wxString PrusaConnect::get_test_ok_msg() const
+{
+    return _(L("Connection to PrusaConnect works correctly."));
+}
+
+wxString PrusaConnect::get_test_failed_msg(wxString& msg) const
+{
+    return GUI::from_u8((boost::format("%s: %s")
+        % _utf8(L("Could not connect to PrusaConnect"))
+        % std::string(msg.ToUTF8())).str());
+}
+
 }
