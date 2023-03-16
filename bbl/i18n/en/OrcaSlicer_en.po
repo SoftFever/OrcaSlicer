@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 00:03+0800\n"
+"POT-Creation-Date: 2023-03-16 21:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7565,6 +7565,9 @@ msgstr ""
 msgid "Z Hop Type"
 msgstr ""
 
+msgid "Z hop type"
+msgstr ""
+
 msgid "Slope"
 msgstr ""
 
@@ -8115,9 +8118,6 @@ msgstr ""
 "This moves the nozzle along the last extrusion path when retracting to clean "
 "any leaked material on the nozzle. This can minimize blobs when printing a "
 "new part after traveling."
-
-msgid "Z hop type"
-msgstr ""
 
 msgid "NormalLift"
 msgstr ""

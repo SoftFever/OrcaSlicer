@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 00:03+0800\n"
+"POT-Creation-Date: 2023-03-16 21:34+0800\n"
 "PO-Revision-Date: 2023-02-21 21:56+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
@@ -8024,6 +8024,9 @@ msgstr ""
 msgid "Z Hop Type"
 msgstr ""
 
+msgid "Z hop type"
+msgstr "Type de saut Z"
+
 msgid "Slope"
 msgstr ""
 
@@ -8643,9 +8646,6 @@ msgstr ""
 "Déplacez la buse le long du dernier chemin d'extrusion lors de la rétraction "
 "pour nettoyer la fuite de matériau sur la buse. Cela peut minimiser les "
 "marques lors de l'impression d'une nouvelle pièce après le trajet"
-
-msgid "Z hop type"
-msgstr "Type de saut Z"
 
 msgid "NormalLift"
 msgstr "Retrait Normal"

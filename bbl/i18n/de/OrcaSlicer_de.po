@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 00:03+0800\n"
+"POT-Creation-Date: 2023-03-16 21:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -8029,6 +8029,9 @@ msgstr ""
 msgid "Z Hop Type"
 msgstr ""
 
+msgid "Z hop type"
+msgstr "Z-Hub Typ"
+
 msgid "Slope"
 msgstr ""
 
@@ -8652,9 +8655,6 @@ msgstr ""
 "Bewegen Sie die Düse beim Zurückziehen entlang des letzten Extrusionsweges, "
 "um ausgetretenes Material an der Düse zu reinigen. Dies kann die Bildung von "
 "Klecksen beim Drucken eines neuen Teils nach der Fahrt minimieren"
-
-msgid "Z hop type"
-msgstr "Z-Hub Typ"
 
 msgid "NormalLift"
 msgstr "Normal"

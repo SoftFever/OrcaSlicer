@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 00:03+0800\n"
+"POT-Creation-Date: 2023-03-16 21:34+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7690,6 +7690,9 @@ msgstr ""
 msgid "Z Hop Type"
 msgstr ""
 
+msgid "Z hop type"
+msgstr ""
+
 msgid "Slope"
 msgstr ""
 
@@ -8250,9 +8253,6 @@ msgstr ""
 "(retraction) om eventueel gelekt materiaal op het mondstuk te reinigen. Dit "
 "kan \"blobs\" minimaliseren bij het printen van een nieuw onderdeel na het "
 "verplaatsen."
-
-msgid "Z hop type"
-msgstr ""
 
 msgid "NormalLift"
 msgstr ""

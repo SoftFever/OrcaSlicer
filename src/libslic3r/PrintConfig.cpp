@@ -2453,7 +2453,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("z_hop_types", coEnums);
     def->label = L("Z Hop Type");
-    def->tooltip = L("");
+    def->tooltip = L("Z hop type");
     def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
     def->enum_values.push_back("Auto Lift");
     def->enum_values.push_back("Normal Lift");
