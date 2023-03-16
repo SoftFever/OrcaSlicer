@@ -43,7 +43,10 @@ jobs:
 
       - name: Build Studio
         shell: bash
-        run: ./BuildLinux.sh -isr
+        run: |
+          ./BuildLinux.sh -isr
+          chmod +x ./build/OrcaSlicer_ubu64.AppImage
+          
       - uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Linux

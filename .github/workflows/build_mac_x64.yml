@@ -90,4 +90,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Mac_Intel
-          path: ${{ github.workspace }}/build_arm64/OrcaSlicer/OrcaSlicer*.zip
+          path: ${{ github.workspace }}/build_x86_64/OrcaSlicer/OrcaSlicer*.zip
