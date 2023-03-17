@@ -3336,27 +3336,27 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
                     translationProcessor.process(evt);
 
-                    //switch (keyCode)
-                    //{
-                    //case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:
-                    //case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN:
-                    //{
-                    //    do_rotate(L("Tool Rotate"));
-                    //    m_gizmos.update_data();
+                    switch (keyCode)
+                    {
+                    case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:
+                    case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN:
+                    {
+                        do_rotate(L("Tool Rotate"));
+                        m_gizmos.update_data();
 
-                    //    // BBS
-                    //    //wxGetApp().obj_manipul()->set_dirty();
-                    //    // Let the plater know that the dragging finished, so a delayed refresh
-                    //    // of the scene with the background processing data should be performed.
-                    //    post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
-                    //    // updates camera target constraints
-                    //    refresh_camera_scene_box();
-                    //    m_dirty = true;
+                        // BBS
+                        //wxGetApp().obj_manipul()->set_dirty();
+                        // Let the plater know that the dragging finished, so a delayed refresh
+                        // of the scene with the background processing data should be performed.
+                        post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+                        // updates camera target constraints
+                        refresh_camera_scene_box();
+                        m_dirty = true;
 
-                    //    break;
-                    //}
-                    //default: { break; }
-                    //}
+                        break;
+                    }
+                    default: { break; }
+                    }
                 }
 
                 // BBS: add select view logic
@@ -3414,22 +3414,22 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
                 else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
-//                    auto do_rotate = [this](double angle_z_rad) {
-//                        m_selection.start_dragging();
-//                        m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
-//                        m_selection.stop_dragging();
-//                        m_dirty = true;
-////                        wxGetApp().obj_manipul()->set_dirty();
-//                    };
+                    auto _do_rotate = [this](double angle_z_rad) {
+                        m_selection.start_dragging();
+                        m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
+                        m_selection.stop_dragging();
+                        m_dirty = true;
+//                        wxGetApp().obj_manipul()->set_dirty();
+                    };
 
                     translationProcessor.process(evt);
 
-                    //switch (keyCode)
-                    //{
-                    //case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:   { do_rotate(0.25 * M_PI); break; }
-                    //case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN: { do_rotate(-0.25 * M_PI); break; }
-                    //default: { break; }
-                    //}
+                    switch (keyCode)
+                    {
+                    case WXK_NUMPAD_PAGEUP:   case WXK_PAGEUP:   { _do_rotate(0.25 * M_PI); break; }
+                    case WXK_NUMPAD_PAGEDOWN: case WXK_PAGEDOWN: { _do_rotate(-0.25 * M_PI); break; }
+                    default: { break; }
+                    }
                 } else if (!m_gizmos.is_enabled()) {
                     // DoubleSlider navigation in Preview
                     if (m_canvas_type == CanvasPreview) {
