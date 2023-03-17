@@ -4,10 +4,10 @@
 <svg
    version="1.1"
    id="svg2"
-   width="1023.9872"
-   height="1023.9927"
-   viewBox="0 0 1023.9872 1023.9927"
-   sodipodi:docname="BambuStudio.svg"
+   width="1024"
+   height="1024"
+   viewBox="0 0 1024 1024"
+   sodipodi:docname="OrcaSlicer_gradient.svg"
    inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -39,12 +39,12 @@
        inkscape:collect="always"
        xlink:href="#linearGradient619"
        id="linearGradient621"
-       x1="0"
-       y1="0"
+       x1="6.0058432"
+       y1="-2.0039091"
        x2="1024"
        y2="1024.9971"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0000572,0,0,1.0000572,-0.06243956,-0.05871163)" />
+       gradientTransform="matrix(1.0000697,0,0,1.0000572,-0.06245207,-0.06244275)" />
   </defs>
   <sodipodi:namedview
      id="namedview4"
@@ -56,35 +56,35 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="0.25"
-     inkscape:cx="292"
-     inkscape:cy="568"
+     inkscape:zoom="0.35355339"
+     inkscape:cx="362.03867"
+     inkscape:cy="726.90577"
      inkscape:window-width="1350"
      inkscape:window-height="1237"
-     inkscape:window-x="486"
-     inkscape:window-y="91"
+     inkscape:window-x="412"
+     inkscape:window-y="78"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" />
   <g
      inkscape:groupmode="layer"
      id="layer1"
      inkscape:label="background"
-     transform="matrix(0.99895749,0,0,0.99799215,-0.93372195,0.0585938)">
+     transform="matrix(0.99895749,0,0,0.99799215,-0.93372196,0.06231743)">
     <rect
-       style="fill:url(#linearGradient621);fill-opacity:1;stroke-width:1.00006"
+       style="fill:url(#linearGradient621);fill-opacity:1;stroke-width:1.00007"
        id="rect457"
-       width="1025.0558"
-       height="1026.0529"
+       width="1025.0686"
+       height="1026.0602"
        x="0.93469638"
-       y="-0.058711685"
-       rx="2.0001144"
-       ry="2.0001144" />
+       y="-0.062442806"
+       rx="2.0001395"
+       ry="2.0001287" />
   </g>
   <g
      id="g8"
      inkscape:groupmode="layer"
      inkscape:label="OrcaS"
-     transform="matrix(1.3333333,0,0,-1.3333333,1.3995581e-8,1055.9963)">
+     transform="matrix(1.3333333,0,0,-1.3333333,0,1056)">
     <g
        id="g10"
        transform="translate(76.258954,16.062441)">
