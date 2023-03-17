@@ -220,7 +220,7 @@ AboutDialog::AboutDialog()
     wxPanel *m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(237)), wxTAB_TRAVERSAL);
 
     wxBoxSizer *panel_versizer = new wxBoxSizer(wxVERTICAL);
-    // wxBoxSizer *vesizer  = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *vesizer  = new wxBoxSizer(wxVERTICAL);
 
     m_panel->SetSizer(panel_versizer);
 
@@ -230,16 +230,16 @@ AboutDialog::AboutDialog()
     main_sizer->Add(m_panel, 1, wxEXPAND | wxALL, 0);
     main_sizer->Add(ver_sizer, 0, wxEXPAND | wxALL, 0);
 
-    // // logo
-    // m_logo_bitmap = ScalableBitmap(this, "BambuStudio_about", 250);
-    // m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp(), wxDefaultPosition,wxDefaultSize, 0);
-    // m_logo->SetSizer(vesizer);
+    // logo
+    m_logo_bitmap = ScalableBitmap(this, "BambuStudio_about", 250);
+    m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp(), wxDefaultPosition,wxDefaultSize, 0);
+    m_logo->SetSizer(vesizer);
 
-    // panel_versizer->Add(m_logo, 1, wxALL | wxEXPAND, 0);
+    panel_versizer->Add(m_logo, 1, wxALL | wxEXPAND, 0);
 
     // version
     {
-        panel_versizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
+        vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
         auto version_string = _L("Orca Slicer ") + " " + std::string(SoftFever_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on BambuStudio %s",std::string(SLIC3R_VERSION)), wxDefaultPosition, wxDefaultSize);
@@ -252,14 +252,14 @@ AboutDialog::AboutDialog()
         #endif
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
-        // version->SetForegroundColour(wxColour("#FFFFFD"));
-        //  if(wxGetApp().dark_mode())
-        //      version->SetBackgroundColour(wxColour("#00675b"));
-        //  else
-        //     version->SetBackgroundColour(wxColour("#009688"));
+        version->SetForegroundColour(wxColour("#FFFFFD"));
+        bs_version->SetForegroundColour(wxColour("#FFFFFD"));
+        version->SetBackgroundColour(wxColour("#4d4d4d"));
+        bs_version->SetBackgroundColour(wxColour("#4d4d4d"));
 
-        panel_versizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-        panel_versizer->Add(bs_version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+
+        vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+        vesizer->Add(bs_version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 // #if BBL_INTERNAL_TESTING
 //         wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
 //         wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
@@ -267,7 +267,7 @@ AboutDialog::AboutDialog()
 //         build_time_text->SetBackgroundColour(wxColour("#00AF42"));
 //         vesizer->Add(build_time_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 // #endif
-        panel_versizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+        vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
     }
 
     wxBoxSizer *text_sizer_horiz = new wxBoxSizer(wxHORIZONTAL);
