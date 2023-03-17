@@ -25,6 +25,7 @@ public:
 
 	// WipeTower height to minimum depth map
 	static const std::map<float, float> min_depth_per_height;
+	static std::vector<std::vector<float>> extract_wipe_volumes(const PrintConfig& config);
 
     struct Extrusion
     {
