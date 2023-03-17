@@ -157,7 +157,7 @@ bool DropDown::HasDismissLongTime()
 {
     auto now = boost::posix_time::microsec_clock::universal_time();
     return !IsShown() &&
-        (now - dismissTime).total_milliseconds() >= 200;
+        (now - dismissTime).total_milliseconds() >= 20;
 }
 
 void DropDown::paintEvent(wxPaintEvent& evt)

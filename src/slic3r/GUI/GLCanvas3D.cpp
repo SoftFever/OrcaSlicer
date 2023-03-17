@@ -679,6 +679,7 @@ GLCanvas3D::Mouse::Mouse()
     , position(DBL_MAX, DBL_MAX)
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
     , ignore_left_up(false)
+    , ignore_right_up(false)
 {
 }
 
@@ -4175,6 +4176,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;
+                m_mouse.ignore_right_up = true;
             }
 
             m_mouse.drag.start_position_2D = pos;
@@ -4264,7 +4266,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
 #endif // ENABLE_RETINA_GL
 
-            if (!m_mouse.dragging) {
+            if (!m_mouse.ignore_right_up) {
                 //BBS post right click event
                 if (!m_hover_plate_idxs.empty()) {
                     post_event(RBtnPlateEvent(EVT_GLCANVAS_PLATE_RIGHT_CLICK, { logical_pos, m_hover_plate_idxs.front() }));
@@ -4928,6 +4930,7 @@ void GLCanvas3D::mouse_up_cleanup()
     m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
     m_mouse.ignore_left_up = false;
+    m_mouse.ignore_right_up = false;
     m_dirty = true;
 
     if (m_canvas->HasCapture())

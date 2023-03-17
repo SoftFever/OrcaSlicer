@@ -334,6 +334,7 @@ class GLCanvas3D
         Vec3d scene_position;
         Drag drag;
         bool ignore_left_up;
+        bool ignore_right_up;
 
         Mouse();
 
