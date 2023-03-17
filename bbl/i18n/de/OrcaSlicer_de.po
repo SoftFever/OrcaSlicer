@@ -477,7 +477,7 @@ msgid "OrcaSlicer got an unhandled exception: %1%"
 msgstr "OrcaSlicer hat eine unbehandelte Ausnahme erzeugt: %1%"
 
 msgid "Downloading Bambu Network Plug-in"
-msgstr "Lade Bambu Network Plug-in herunter"
+msgstr "Lade Orca Network Plug-in herunter"
 
 msgid "Incorrect password"
 msgstr "Falsches Passwort"
@@ -3994,7 +3994,7 @@ msgid "Loading file: %s"
 msgstr "Datei wird geladen: %s"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "Der 3mf stammt nicht von BambuLab, lade nur die Geometriedaten."
+msgstr "Der 3mf stammt nicht vom OrcaSlicer, lade nur die Geometriedaten."
 
 msgid "Load 3mf"
 msgstr "Lade 3mf"
@@ -4423,7 +4423,7 @@ msgid "Associate files to OrcaSlicer"
 msgstr "Dateien mit OrcaSlicer verknüpfen"
 
 msgid "Associate .3mf files to OrcaSlicer"
-msgstr "Zuordnen von .3mf-Dateien zu BambuStudio"
+msgstr "Zuordnen von .3mf-Dateien zu OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
 msgstr ""
@@ -4431,7 +4431,7 @@ msgstr ""
 "Dateien festgelegt"
 
 msgid "Associate .stl files to OrcaSlicer"
-msgstr "Verknüpfung von .stl-Dateien mit BambuStudio"
+msgstr "Verknüpfung von .stl-Dateien mit OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
 msgstr ""
@@ -4439,7 +4439,7 @@ msgstr ""
 "Dateien festgelegt"
 
 msgid "Associate .step/.stp files to OrcaSlicer"
-msgstr "Verknüpfen Sie .step/.stp-Dateien mit BambuStudio"
+msgstr "Verknüpfen Sie .step/.stp-Dateien mit OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
