@@ -2859,8 +2859,9 @@ void GUI_App::init_label_colours()
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
-    m_color_hovered_btn_label       = is_dark_mode ? wxColour(253, 111, 40) : wxColour(252, 77, 1);
-    m_color_selected_btn_bg         = is_dark_mode ? wxColour(95, 73, 62)   : wxColour(228, 220, 216);
+    m_color_hovered_btn_label       = is_dark_mode ? wxColour(255, 255, 254) : wxColour(0,0,0);
+    m_color_default_btn_label       = is_dark_mode ? wxColour(255, 255, 254): wxColour(0,0,0);
+    m_color_selected_btn_bg         = is_dark_mode ? wxColour(84, 84, 91)   : wxColour(206, 206, 206);
 #else
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 #endif
@@ -2889,11 +2890,59 @@ void GUI_App::update_label_colours()
         tab->update_label_colours();
 }
 
+#ifdef _WIN32
+static bool is_focused(HWND hWnd)
+{
+    HWND hFocusedWnd = ::GetFocus();
+    return hFocusedWnd && hWnd == hFocusedWnd;
+}
+
+static bool is_default(wxWindow* win)
+{
+    wxTopLevelWindow* tlw = find_toplevel_parent(win);
+    if (!tlw)
+        return false;
+
+    return win == tlw->GetDefaultItem();
+}
+#endif
+
 void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool just_font/* = false*/)
 {
-    if (wxButton *btn = dynamic_cast<wxButton *>(window)) {
+    if (wxButton *btn = dynamic_cast<wxButton*>(window)) {
         if (btn->GetWindowStyleFlag() & wxBU_AUTODRAW)
             return;
+        else {
+#ifdef _WIN32
+            if (btn->GetId() == wxID_OK || btn->GetId() == wxID_CANCEL) {
+                bool is_focused_button = false;
+                bool is_default_button = false;
+
+                if (!(btn->GetWindowStyle() & wxNO_BORDER)) {
+                    btn->SetWindowStyle(btn->GetWindowStyle() | wxNO_BORDER);
+                    highlited = true;
+                }
+
+                auto mark_button = [this, btn, highlited](const bool mark) {
+                    btn->SetBackgroundColour(mark ? m_color_selected_btn_bg : highlited ? m_color_highlight_default : m_color_window_default);
+                    btn->SetForegroundColour(mark ? m_color_hovered_btn_label :m_color_default_btn_label);
+                    btn->Refresh();
+                    btn->Update();
+                };
+
+                // hovering
+                btn->Bind(wxEVT_ENTER_WINDOW, [mark_button](wxMouseEvent& event) { mark_button(true); event.Skip(); });
+                btn->Bind(wxEVT_LEAVE_WINDOW, [mark_button, btn](wxMouseEvent& event) { mark_button(is_focused(btn->GetHWND())); event.Skip(); });
+                // focusing
+                btn->Bind(wxEVT_SET_FOCUS, [mark_button](wxFocusEvent& event) { mark_button(true); event.Skip(); });
+                btn->Bind(wxEVT_KILL_FOCUS, [mark_button](wxFocusEvent& event) { mark_button(false); event.Skip(); });
+
+                is_focused_button = is_focused(btn->GetHWND());
+                is_default_button = is_default(btn);
+                mark_button(is_focused_button);
+            }
+#endif
+        }
     }
 
     if (Button* btn = dynamic_cast<Button*>(window)) {
@@ -4550,6 +4599,7 @@ int GUI_App::GetSingleChoiceIndex(const wxString& message,
 {
 #ifdef _WIN32
     wxSingleChoiceDialog dialog(nullptr, message, caption, choices);
+    dialog.SetBackgroundColour(*wxWHITE);
     wxGetApp().UpdateDlgDarkUI(&dialog);
 
     dialog.SetSelection(initialSelection);
