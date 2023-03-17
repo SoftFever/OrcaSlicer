@@ -107,7 +107,7 @@ void  PrintBase::set_status(int percent, const std::string &message, unsigned in
 	if (m_status_callback)
         m_status_callback(SlicingStatus(percent, message, flags, warning_step));
     else
-        BOOST_LOG_TRIVIAL(info) <<boost::format("Percent %1%: %2%\n")%percent %message.c_str();
+        BOOST_LOG_TRIVIAL(debug) <<boost::format("Percent %1%: %2%\n")%percent %message.c_str();
 }
 
 void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */,
