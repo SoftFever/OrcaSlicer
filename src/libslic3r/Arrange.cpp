@@ -453,19 +453,23 @@ protected:
 
         std::set<int> extruder_ids;
         int           non_virt_cnt = 0;
+        std::set<int> first_object_extruder_ids;
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
             if (p.is_virt_object) continue;
             extruder_ids.insert(p.extrude_ids.begin(),p.extrude_ids.end());
             non_virt_cnt++;
+            if (non_virt_cnt == 1) { first_object_extruder_ids.insert(p.extrude_ids.begin(), p.extrude_ids.end()); }
         }
         extruder_ids.insert(item.extrude_ids.begin(),item.extrude_ids.end());
 
         // add a large cost if not multi materials on same plate is not allowed
         if (!params.allow_multi_materials_on_same_plate) {
+            bool first_object                 = non_virt_cnt == 0;
+            bool same_color_with_first_object = std::all_of(item.extrude_ids.begin(), item.extrude_ids.end(),
+                                                            [&](int color) { return first_object_extruder_ids.find(color) != first_object_extruder_ids.end(); });
             // non_virt_cnt==0 means it's the first object, which can be multi-color
-            if (extruder_ids.size() > 1 && non_virt_cnt > 0)
-                score += LARGE_COST_TO_REJECT * 1.1;
+            if (!(first_object || same_color_with_first_object)) score += LARGE_COST_TO_REJECT * 1.3;
         }
         // for layered printing, we want extruder change as few as possible
         // this has very weak effect, CAN NOT use a large weight
