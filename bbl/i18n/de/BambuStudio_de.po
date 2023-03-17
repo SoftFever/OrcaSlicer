@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 10:26+0800\n"
+"POT-Creation-Date: 2023-03-17 16:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -250,8 +250,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "einheitliche Skala"
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
 msgstr "Schneiden"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Movement:"
 msgstr "Bewegung:"
@@ -262,14 +292,26 @@ msgstr "Bewegung"
 msgid "Height"
 msgstr "Höhe"
 
-msgid "Keep upper part"
-msgstr "Oberen Teil behalten"
+msgid "Add/Edit connectors"
+msgstr ""
 
-msgid "Keep lower part"
-msgstr "Unteren Teil behalten"
+msgid "Upper part"
+msgstr ""
 
-msgid "Cut to parts"
-msgstr "In Einzelteile schneiden"
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
+msgstr ""
 
 msgid "Auto Segment"
 msgstr "Automatische Segmentierung"
@@ -279,6 +321,77 @@ msgstr "Schnitt ausführen"
 
 msgid "Reset"
 msgstr "Zurücksetzen"
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Shape"
+msgstr "Form"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Warning"
+msgstr "Warnung"
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "Netzname"
@@ -339,9 +452,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "Kann nicht angewendet werden, wenn die Vorschau angezeigt wird."
-
-msgid "Cancel"
-msgstr "Abbrechen"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operation wird bereits abgebrochen. Bitte warten Sie einige Sekunden."
@@ -410,9 +520,6 @@ msgstr ""
 
 msgid "Notice"
 msgstr "Hinweis"
-
-msgid "Warning"
-msgstr "Warnung"
 
 msgid "Undefined"
 msgstr "Undefiniert"
@@ -849,6 +956,9 @@ msgstr "Spiegeln"
 msgid "Mirror object"
 msgstr "Objekt spiegeln"
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr "Primitiv hinzufügen"
 
@@ -1009,6 +1119,9 @@ msgid "Click the icon to edit color painting of the object"
 msgstr ""
 "Klicken Sie auf das Symbol, um die Farbgebung des Objekts zu bearbeiten"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr "Lade Datei"
 
@@ -1033,6 +1146,31 @@ msgstr ""
 "Wechseln Sie in den Einstellungsmodus pro Objekt, um die "
 "Prozesseinstellungen der ausgewählten Objekte zu bearbeiten."
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "Das Löschen des letzten festen Teils ist nicht erlaubt."
 
@@ -1041,6 +1179,30 @@ msgstr "Das Zielobjekt enthält nur einen Teil und kann nicht geteilt werden."
 
 msgid "Assembly"
 msgstr "Zusammenbau"
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr ""
+
+msgid "Group manipulation"
+msgstr ""
+
+msgid "Object Settings to modify"
+msgstr ""
+
+msgid "Part Settings to modify"
+msgstr ""
+
+msgid "Layer range Settings to modify"
+msgstr ""
+
+msgid "Part manipulation"
+msgstr ""
+
+msgid "Instance manipulation"
+msgstr ""
 
 msgid "Object"
 msgstr "Objekt"
@@ -1689,6 +1851,9 @@ msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.5)"
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.5, N in 0.6~2.0)"
 
+msgid "Other color"
+msgstr ""
+
 msgid "Dynamic flow calibration"
 msgstr "Dynamische Druckflusskalibrierung"
 
@@ -1912,8 +2077,8 @@ msgstr ""
 "Filamentinformationen aktualisiert wurden. Während des Drucks wird die "
 "verbleibende Kapazität automatisch aktualisiert."
 
-msgid "AMS auto switch filament"
-msgstr "Filament in AMS automatisch wechseln"
+msgid "AMS filament backup"
+msgstr ""
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -2053,9 +2218,6 @@ msgstr "Kreisförmig"
 
 msgid "Custom"
 msgstr "Benutzerdefiniert"
-
-msgid "Shape"
-msgstr "Form"
 
 msgid "Load shape from STL..."
 msgstr "Lade Form von STL..."
@@ -2744,12 +2906,6 @@ msgstr "Montageansicht"
 
 msgid "Select Plate"
 msgstr "Druckplatte wählen"
-
-msgid "All Plates"
-msgstr ""
-
-msgid "Stats"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "Zurücksetzen der Montage"
@@ -3557,6 +3713,10 @@ msgid "Cloud Slicing..."
 msgstr "Cloud Slicing..."
 
 #, c-format, boost-format
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Layers: %s"
 msgstr "Schichten: %s"
 
@@ -3710,6 +3870,12 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d Objekt hat gemalte Farbe."
 msgstr[1] "%1$d Objekte haben gemalte Farbe."
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "ERROR"
 msgstr "Fehler"
 
@@ -3757,6 +3923,9 @@ msgstr "Supports malen"
 
 msgid "Color painting"
 msgstr "Farbe malen"
+
+msgid "Cut connectors"
+msgstr ""
 
 msgid "Layers"
 msgstr "Schichten"
@@ -4097,6 +4266,15 @@ msgstr "Exportiere STL Datei:"
 
 msgid "Save file as:"
 msgstr "Speichere Datei als:"
+
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
 
 msgid "The selected object couldn't be split."
 msgstr "Das ausgewählte Objekt konnte nicht geteilt werden."
@@ -4550,6 +4728,9 @@ msgstr "AMS Filament"
 msgid "Click to pick filament color"
 msgstr "Klicken, um die Farbe des Filaments auszuwählen"
 
+msgid "Please choose the filament colour"
+msgstr ""
+
 msgid "Add/Remove presets"
 msgstr "Voreinstellungen hinzufügen/entfernen"
 
@@ -4722,6 +4903,9 @@ msgid "Offline"
 msgstr "Offline"
 
 msgid "(LAN)"
+msgstr ""
+
+msgid "Search"
 msgstr ""
 
 msgid "My Device"
@@ -5013,11 +5197,9 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
-"Bei der Verwendung von Supportmaterial für die Support-Schnittstelle "
-"empfehlen wir die folgenden Einstellungen:\n"
-"0 oberer Z-Abstand, 0 Schnittstellenabstand, konzentrisches Muster."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -5424,13 +5606,6 @@ msgstr "Allgemein"
 
 msgid "Capabilities"
 msgstr "Fähigkeiten"
-
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr ""
-"Der P1P-Drucker unterstützt keine smoothen Zeitraffer, bitte verwenden Sie "
-"stattdessen traditionelle Zeitraffer."
 
 msgid "Select presets to compare"
 msgstr ""
@@ -6661,6 +6836,15 @@ msgid ""
 "the brim width is analysed and calculated automatically."
 msgstr ""
 
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr "Lücke zwischen Rand und Objekt"
 
@@ -7046,9 +7230,6 @@ msgstr "Filamentdichte. Nur für die Statistik"
 
 msgid "g/cm³"
 msgstr "g/cm³"
-
-msgid "Type"
-msgstr "Typ"
 
 msgid "The material type of filament"
 msgstr "Material des Filaments."
@@ -7980,8 +8161,8 @@ msgstr "Unterer Z-Abstand"
 msgid "The z gap between the bottom support interface and object"
 msgstr "Die Z-Lücke zwischen der unteren Supportschnittstelle und dem Objekt"
 
-msgid "Support base"
-msgstr "Supportbasis"
+msgid "Support/raft base"
+msgstr ""
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -8002,6 +8183,9 @@ msgid ""
 msgstr ""
 "Deckt die obere Kontaktschicht der Supports mit Schleifen ab. Standardmäßig "
 "deaktiviert."
+
+msgid "Support/raft interface"
+msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -8077,9 +8261,6 @@ msgstr ""
 msgid "Speed of support"
 msgstr "Druckgeschwindigkeit für Supports"
 
-msgid "Style"
-msgstr "Stil"
-
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
@@ -8114,10 +8295,9 @@ msgstr "Unabhängige Support-Schichthöhe"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
 msgstr ""
-"Die Supportebene verwendet eine von der Objektebene unabhängige Ebenenhöhe. "
-"Dies unterstützt die Anpassung der Z-Lücke und spart Druckzeit."
 
 msgid "Threshold angle"
 msgstr "Schwellenwinkel"
@@ -8519,6 +8699,18 @@ msgid "Update the configs values of 3mf to latest."
 msgstr ""
 "Aktualisieren Sie die Konfigurationswerte von 3mf auf den neuesten Stand."
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Ausgabe Modellinformationen"
 
@@ -8566,6 +8758,12 @@ msgstr "Filamenteinstellungen laden"
 
 msgid "Load filament settings from the specified file list"
 msgstr "Filamenteinstellungen aus der angegebenen Dateiliste laden"
+
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
 
 msgid "Output directory"
 msgstr "Ausgabeverzeichnis"
@@ -8947,6 +9145,45 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid "Keep upper part"
+#~ msgstr "Oberen Teil behalten"
+
+#~ msgid "Keep lower part"
+#~ msgstr "Unteren Teil behalten"
+
+#~ msgid "Cut to parts"
+#~ msgstr "In Einzelteile schneiden"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "Filament in AMS automatisch wechseln"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "Bei der Verwendung von Supportmaterial für die Support-Schnittstelle "
+#~ "empfehlen wir die folgenden Einstellungen:\n"
+#~ "0 oberer Z-Abstand, 0 Schnittstellenabstand, konzentrisches Muster."
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "Der P1P-Drucker unterstützt keine smoothen Zeitraffer, bitte verwenden "
+#~ "Sie stattdessen traditionelle Zeitraffer."
+
+#~ msgid "Support base"
+#~ msgstr "Supportbasis"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr ""
+#~ "Die Supportebene verwendet eine von der Objektebene unabhängige "
+#~ "Ebenenhöhe. Dies unterstützt die Anpassung der Z-Lücke und spart "
+#~ "Druckzeit."
 
 #~ msgid ""
 #~ "\n"

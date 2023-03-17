@@ -233,10 +233,6 @@ void Button::messureSize()
 {
     wxClientDC dc(this);
     dc.GetTextExtent(GetLabel(), &textSize.width, &textSize.height, &textSize.x, &textSize.y);
-    if (minSize.GetWidth() > 0) {
-        wxWindow::SetMinSize(minSize);
-        return;
-    }
     wxSize szContent = textSize.GetSize();
     if (this->active_icon.bmp().IsOk()) {
         if (szContent.y > 0) {
@@ -251,7 +247,11 @@ void Button::messureSize()
     wxSize size = szContent + paddingSize * 2;
     if (minSize.GetHeight() > 0)
         size.SetHeight(minSize.GetHeight());
-    wxWindow::SetMinSize(size);
+
+    if (minSize.GetWidth() > size.GetWidth())
+        wxWindow::SetMinSize(minSize);
+    else
+        wxWindow::SetMinSize(size);
 }
 
 void Button::mouseDown(wxMouseEvent& event)

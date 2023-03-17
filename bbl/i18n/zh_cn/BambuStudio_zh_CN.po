@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 10:26+0800\n"
+"POT-Creation-Date: 2023-03-17 16:18+0800\n"
 "PO-Revision-Date: 2023-02-24 10:40+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -251,8 +251,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "等比例缩放"
 
+msgid "Left click"
+msgstr "左击"
+
+msgid "Add connector"
+msgstr "添加连接件"
+
+msgid "Right click"
+msgstr "右击"
+
+msgid "Remove connector"
+msgstr "删除连接件"
+
+msgid "Drag"
+msgstr "拖拽"
+
+msgid "Move connector"
+msgstr "移动连接件"
+
+msgid "Add connector to selection"
+msgstr "选择连接件"
+
+msgid "Remove connector from selection"
+msgstr "取消选择连接件"
+
+msgid "Select all connectors"
+msgstr "选择所有连接件"
+
 msgid "Cut"
 msgstr "剪切"
+
+msgid "Connector"
+msgstr "连接件"
 
 msgid "Movement:"
 msgstr "移动："
@@ -263,14 +293,26 @@ msgstr "移动"
 msgid "Height"
 msgstr "高度"
 
-msgid "Keep upper part"
-msgstr "保留上半部分"
+msgid "Add/Edit connectors"
+msgstr "添加/编辑连接件"
 
-msgid "Keep lower part"
-msgstr "保留下半部分"
+msgid "Upper part"
+msgstr "上半部分"
 
-msgid "Cut to parts"
-msgstr "切割为零件"
+msgid "Lower part"
+msgstr "下半部分"
+
+msgid "Keep"
+msgstr "保持"
+
+msgid "Place on cut"
+msgstr "切割面放置到热床"
+
+msgid "Flip"
+msgstr "翻转"
+
+msgid "After cut"
+msgstr "切割后"
 
 msgid "Auto Segment"
 msgstr "自动分割"
@@ -280,6 +322,79 @@ msgstr "执行切割"
 
 msgid "Reset"
 msgstr "重置"
+
+msgid "Connectors"
+msgstr "连接件"
+
+msgid "Remove connectors"
+msgstr "删除所有连接件"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Prizm"
+msgstr "棱柱"
+
+msgid "Frustum"
+msgstr "锥体"
+
+msgid "Square"
+msgstr "正方形"
+
+msgid "Hexagon"
+msgstr "六边形"
+
+msgid "Style"
+msgstr "样式"
+
+msgid "Shape"
+msgstr "形状"
+
+msgid "Depth ratio"
+msgstr "深度"
+
+msgid "Confirm connectors"
+msgstr "确认"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Invalid connectors detected"
+msgstr "检测到无效连接件"
+
+msgid "connector is out of cut contour"
+msgstr "个连接件超出了切割面范围"
+
+msgid "connectors are out of cut contour"
+msgstr "个连接件超出了切割面范围"
+
+msgid "connector is out of object"
+msgstr "个连接件穿透了模型"
+
+msgid "connectors is out of object"
+msgstr "个连接件穿透了模型"
+
+msgid "Some connectors are overlapped"
+msgstr "存在连接件相互重叠"
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+"无效状态。\n"
+"切割后没有选中要保留的部分"
+
+msgid "Plug"
+msgstr "插销"
+
+msgid "Dowel"
+msgstr "销钉"
+
+msgid "Tolerance"
+msgstr "容差"
 
 msgid "Mesh name"
 msgstr "Mesh名"
@@ -336,9 +451,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "处理预览的过程中无法应用。"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "操作已在取消中，请等待片刻。"
@@ -407,9 +519,6 @@ msgstr "水平文字"
 
 msgid "Notice"
 msgstr "通知"
-
-msgid "Warning"
-msgstr "警告"
 
 msgid "Undefined"
 msgstr "未定义"
@@ -830,6 +939,9 @@ msgstr "镜像"
 msgid "Mirror object"
 msgstr "镜像对象"
 
+msgid "Invalidate cut info"
+msgstr "解除切割关系"
+
 msgid "Add Primitive"
 msgstr "添加标准模型"
 
@@ -974,6 +1086,9 @@ msgstr "点击此图标可编辑这个对象的支撑绘制"
 msgid "Click the icon to edit color painting of the object"
 msgstr "点击此图标可编辑这个对象的颜色绘制"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr "点击这个图标可将对象移动到热床上"
+
 msgid "Loading file"
 msgstr "载入文件中"
 
@@ -994,6 +1109,34 @@ msgid ""
 "objects."
 msgstr "切换到对象设置模式，以编辑所选对象的工艺参数"
 
+msgid "Delete connector from object which is a part of cut"
+msgstr "删除的连接件属于切割对象的一部分"
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr "删除的实体属于切割对象的一部分"
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr "删除的负体积属于切割对象的一部分"
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr "为保证切割关系，您可以将所有关联对象的连接件一起删除。"
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+"该行为将破坏切割关系，在此之后将无法保证模型一致性。\n"
+"\n"
+"如果要操作子部件或者负零件，需要先解除切割关系。"
+
+msgid "Delete all connectors"
+msgstr "删除所有连接件"
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
 
@@ -1002,6 +1145,30 @@ msgstr "目标对象仅包含一个零件，无法被拆分。"
 
 msgid "Assembly"
 msgstr "组合体"
+
+msgid "Cut Connectors information"
+msgstr "切割连接件信息"
+
+msgid "Object manipulation"
+msgstr "操作对象"
+
+msgid "Group manipulation"
+msgstr "操作组"
+
+msgid "Object Settings to modify"
+msgstr "要修改的对象设置"
+
+msgid "Part Settings to modify"
+msgstr "要修改的零件设置"
+
+msgid "Layer range Settings to modify"
+msgstr "要修改的图层范围设置"
+
+msgid "Part manipulation"
+msgstr "零件操作"
+
+msgid "Instance manipulation"
+msgstr "实例操作"
 
 msgid "Object"
 msgstr "对象"
@@ -1613,6 +1780,9 @@ msgstr "请输入有效的数值 (K的范围为0~0.5）"
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "请输入有效的数值 (K的范围为0~0.5, N的范围为0.6~2.0）"
 
+msgid "Other color"
+msgstr "其他颜色"
+
 msgid "Dynamic flow calibration"
 msgstr "动态流量标定"
 
@@ -1813,8 +1983,8 @@ msgstr ""
 "AMS读取Bambu Lab耗材丝信息同时推算料卷的剩余容量。在打印过程中，剩余容量会自"
 "动更新。"
 
-msgid "AMS auto switch filament"
-msgstr "AMS自动续料"
+msgid "AMS filament backup"
+msgstr "AMS材料备份"
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -1937,9 +2107,6 @@ msgstr "圆"
 
 msgid "Custom"
 msgstr "自定义"
-
-msgid "Shape"
-msgstr "形状"
 
 msgid "Load shape from STL..."
 msgstr "从STL文件加载形状..."
@@ -2597,12 +2764,6 @@ msgstr "装配体视图"
 
 msgid "Select Plate"
 msgstr "选择盘"
-
-msgid "All Plates"
-msgstr "所有盘"
-
-msgid "Stats"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "退出装配体视图"
@@ -3395,6 +3556,10 @@ msgid "Cloud Slicing..."
 msgstr "云切片中..."
 
 #, c-format, boost-format
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
+msgstr "前面还有%s个任务在云端切片队列中"
+
+#, c-format, boost-format
 msgid "Layers: %s"
 msgstr ""
 
@@ -3540,6 +3705,11 @@ msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d对象有涂色。"
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] "%1$d对象加载为一个切割对象的子部件"
+
 msgid "ERROR"
 msgstr ""
 
@@ -3587,6 +3757,9 @@ msgstr "支撑绘制"
 
 msgid "Color painting"
 msgstr "颜色绘制"
+
+msgid "Cut connectors"
+msgstr "切割连接件"
 
 msgid "Layers"
 msgstr "层"
@@ -3891,6 +4064,17 @@ msgstr "导出 STL 文件："
 
 msgid "Save file as:"
 msgstr "文件另存为："
+
+msgid "Delete object which is a part of cut object"
+msgstr "删除切割对象的一部分"
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
+"您正尝试删除切割对象的一部分，这将破坏切割对应关系，删除之后，将无法再保证模"
+"型的一致性。"
 
 msgid "The selected object couldn't be split."
 msgstr "选中的模型不可分裂。"
@@ -4319,6 +4503,9 @@ msgstr "AMS 打印丝"
 msgid "Click to pick filament color"
 msgstr "点击设置材料颜色"
 
+msgid "Please choose the filament colour"
+msgstr "请选择材料颜色"
+
 msgid "Add/Remove presets"
 msgstr "添加/删除配置"
 
@@ -4483,6 +4670,9 @@ msgstr "离线"
 
 msgid "(LAN)"
 msgstr "（局域网）"
+
+msgid "Search"
+msgstr "搜索"
 
 msgid "My Device"
 msgstr "我的设备"
@@ -4737,10 +4927,9 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
-"当使用支撑材料的支撑界面时，我们推荐以下设置。\n"
-"0顶层z距离，0界面层间距，同心图案。"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -5100,11 +5289,6 @@ msgstr "常规"
 
 msgid "Capabilities"
 msgstr "能力"
-
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr "P1P打印机不支持平滑模式的延时摄影，请改用传统模式。"
 
 msgid "Select presets to compare"
 msgstr "选择要比较的预设"
@@ -6203,6 +6387,15 @@ msgid ""
 "the brim width is analysed and calculated automatically."
 msgstr "设置外墙brim的生成方式，选择自动意味着brim的宽度会被自动分析计算。"
 
+msgid "Outer brim only"
+msgstr "仅外侧"
+
+msgid "Inner brim only"
+msgstr "仅内侧"
+
+msgid "Outer and inner brim"
+msgstr "内侧和外侧"
+
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
 
@@ -6549,9 +6742,6 @@ msgstr "耗材丝的密度。只用于统计信息。"
 
 msgid "g/cm³"
 msgstr "g/cm³"
-
-msgid "Type"
-msgstr "类型"
 
 msgid "The material type of filament"
 msgstr "耗材丝的材料类型"
@@ -7381,8 +7571,8 @@ msgstr "底部Z距离"
 msgid "The z gap between the bottom support interface and object"
 msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间隙"
 
-msgid "Support base"
-msgstr "支撑主体"
+msgid "Support/raft base"
+msgstr "支撑/筏层主体"
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -7399,6 +7589,9 @@ msgstr "接触面采用圈形走线。"
 msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr "使用圈形走线覆盖顶部接触面。默认关闭。"
+
+msgid "Support/raft interface"
+msgstr "支撑/筏层界面"
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -7467,9 +7660,6 @@ msgstr "在水平方向对普通支撑进行拓展（+）或收缩（-）"
 msgid "Speed of support"
 msgstr "支撑打印速度"
 
-msgid "Style"
-msgstr "样式"
-
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
@@ -7500,8 +7690,9 @@ msgstr "支撑独立层高"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
-msgstr "支撑使用不同于对象的层高。这样可以支持自定义Z方向间隙并节省打印时间。"
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
+msgstr ""
 
 msgid "Threshold angle"
 msgstr "阈值角度"
@@ -7850,6 +8041,18 @@ msgstr ""
 msgid "Update the configs values of 3mf to latest."
 msgstr ""
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "输出模型信息"
 
@@ -7897,6 +8100,12 @@ msgstr "加载耗材丝设置"
 
 msgid "Load filament settings from the specified file list"
 msgstr "从指定文件加载耗材丝设置"
+
+msgid "Skip Objects"
+msgstr "零件跳过"
+
+msgid "Skip some objects in this print"
+msgstr "打印过程中跳过一些零件"
 
 msgid "Output directory"
 msgstr "输出路径"
@@ -8247,6 +8456,43 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Keep upper part"
+#~ msgstr "保留上半部分"
+
+#~ msgid "Keep lower part"
+#~ msgstr "保留下半部分"
+
+#~ msgid "Cut to parts"
+#~ msgstr "切割为零件"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "AMS自动续料"
+
+#~ msgid "All Plates"
+#~ msgstr "所有盘"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "当使用支撑材料的支撑界面时，我们推荐以下设置。\n"
+#~ "0顶层z距离，0界面层间距，同心图案。"
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr "P1P打印机不支持平滑模式的延时摄影，请改用传统模式。"
+
+#~ msgid "Support base"
+#~ msgstr "支撑主体"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr ""
+#~ "支撑使用不同于对象的层高。这样可以支持自定义Z方向间隙并节省打印时间。"
 
 #~ msgid ""
 #~ "This controls brim position including outer side of models, inner side of "
@@ -9364,9 +9610,6 @@ msgstr ""
 #~ msgid "Smart"
 #~ msgstr "自动"
 
-#~ msgid "Keep"
-#~ msgstr "保持"
-
 #~ msgid "Total Size:"
 #~ msgstr "总尺寸："
 
@@ -9456,15 +9699,6 @@ msgstr ""
 
 #~ msgid "No brim"
 #~ msgstr "无"
-
-#~ msgid "Outer brim only"
-#~ msgstr "仅外侧"
-
-#~ msgid "Inner brim only"
-#~ msgstr "仅内侧"
-
-#~ msgid "Outer and inner brim"
-#~ msgstr "内侧和外侧"
 
 #~ msgid "X/Y Axis"
 #~ msgstr "X/Y 轴"
@@ -10924,9 +11158,6 @@ msgstr ""
 #~ msgid "(Re)slice"
 #~ msgstr "重新切片"
 
-#~ msgid "Search"
-#~ msgstr "搜索"
-
 #~ msgid "Select Plater Tab"
 #~ msgstr "选择 构建板 选项卡"
 
@@ -12217,27 +12448,6 @@ msgstr ""
 
 #~ msgid "Add Layers"
 #~ msgstr "添加图层"
-
-#~ msgid "Group manipulation"
-#~ msgstr "操作组"
-
-#~ msgid "Object manipulation"
-#~ msgstr "操作对象"
-
-#~ msgid "Object Settings to modify"
-#~ msgstr "要修改的对象设置"
-
-#~ msgid "Part Settings to modify"
-#~ msgstr "要修改的零件设置"
-
-#~ msgid "Layer range Settings to modify"
-#~ msgstr "要修改的图层范围设置"
-
-#~ msgid "Part manipulation"
-#~ msgstr "零件操作"
-
-#~ msgid "Instance manipulation"
-#~ msgstr "实例操作"
 
 #~ msgid "Height ranges"
 #~ msgstr "高度范围"

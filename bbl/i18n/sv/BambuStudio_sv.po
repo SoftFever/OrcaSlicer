@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 10:26+0800\n"
+"POT-Creation-Date: 2023-03-17 16:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -249,8 +249,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "enhetlig skala"
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
 msgstr "Beskär"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Movement:"
 msgstr "Rörelse:"
@@ -261,14 +291,26 @@ msgstr "Rörelse"
 msgid "Height"
 msgstr "Höjd"
 
-msgid "Keep upper part"
-msgstr "Behåll övre del"
+msgid "Add/Edit connectors"
+msgstr ""
 
-msgid "Keep lower part"
-msgstr "Behåll lägre del"
+msgid "Upper part"
+msgstr ""
 
-msgid "Cut to parts"
-msgstr "Beskär till delar"
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
+msgstr ""
 
 msgid "Auto Segment"
 msgstr "Automatisk Segment"
@@ -278,6 +320,77 @@ msgstr "Utför beskärning"
 
 msgid "Reset"
 msgstr "Återställ"
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Shape"
+msgstr "Form"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Warning"
+msgstr "Varning"
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "Mesh namn"
@@ -337,9 +450,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "Kan inte tillämpas när processen förhandsgranskas."
-
-msgid "Cancel"
-msgstr "Avbryt"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Åtgärden avbryts redan. Vänligen vänta."
@@ -408,9 +518,6 @@ msgstr ""
 
 msgid "Notice"
 msgstr "Iakttag"
-
-msgid "Warning"
-msgstr "Varning"
 
 msgid "Undefined"
 msgstr "Oidentifierad"
@@ -840,6 +947,9 @@ msgstr "Spegelvänd"
 msgid "Mirror object"
 msgstr "Spegelvänd objektet"
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr "Lägg till Primitiv"
 
@@ -987,6 +1097,9 @@ msgstr "Klicka på ikonen för att redigera support färgläggningen av objektet
 msgid "Click the icon to edit color painting of the object"
 msgstr "Klicka på ikonen för att redigera färgläggningen av objektet"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr "Laddar fil"
 
@@ -1009,6 +1122,31 @@ msgstr ""
 "Växla till inställningsläge för varje objekt för att redigera process "
 "inställningar för valda objekt."
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "Ej tillåtet att radera den senaste fasta delen."
 
@@ -1017,6 +1155,30 @@ msgstr "Det valda objektet innehåller endast en del och kan inte delas."
 
 msgid "Assembly"
 msgstr "Montering"
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr ""
+
+msgid "Group manipulation"
+msgstr ""
+
+msgid "Object Settings to modify"
+msgstr ""
+
+msgid "Part Settings to modify"
+msgstr ""
+
+msgid "Layer range Settings to modify"
+msgstr ""
+
+msgid "Part manipulation"
+msgstr ""
+
+msgid "Instance manipulation"
+msgstr ""
 
 msgid "Object"
 msgstr "Objekt"
@@ -1662,6 +1824,9 @@ msgstr "Ange ett giltigt värde (K i 0 ~ 0,5)"
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Ange ett giltigt värde (K i 0 ~ 0,5, N i 0,6 ~ 2,0)"
 
+msgid "Other color"
+msgstr ""
+
 msgid "Dynamic flow calibration"
 msgstr "Dynamic flow calibration"
 
@@ -1878,8 +2043,8 @@ msgstr ""
 "filament informationen har uppdaterats. Under utskrift uppdateras den "
 "återstående kapaciteten automatiskt."
 
-msgid "AMS auto switch filament"
-msgstr "AMS automatisk växling av filament"
+msgid "AMS filament backup"
+msgstr ""
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -2015,9 +2180,6 @@ msgstr "Cirkulär"
 
 msgid "Custom"
 msgstr "Custom"
-
-msgid "Shape"
-msgstr "Form"
 
 msgid "Load shape from STL..."
 msgstr "Ladda form ifrån STL..."
@@ -2693,12 +2855,6 @@ msgstr "Monterings vy"
 
 msgid "Select Plate"
 msgstr "Välj Byggplatta"
-
-msgid "All Plates"
-msgstr ""
-
-msgid "Stats"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "Monterings retur"
@@ -3499,6 +3655,10 @@ msgid "Cloud Slicing..."
 msgstr "Moln beredning..."
 
 #, c-format, boost-format
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Layers: %s"
 msgstr "Lager: %s"
 
@@ -3648,6 +3808,12 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d Objektet har färgläggning.@%1$d Objekten har färgläggning."
 msgstr[1] "%1$d Objektet har färgläggning.@%1$d Objekten har färgläggning."
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "ERROR"
 msgstr "FEL"
 
@@ -3695,6 +3861,9 @@ msgstr "Support färgläggning"
 
 msgid "Color painting"
 msgstr "Färgläggning"
+
+msgid "Cut connectors"
+msgstr ""
 
 msgid "Layers"
 msgstr "Lager"
@@ -4025,6 +4194,15 @@ msgstr "Exportera STL-fil:"
 
 msgid "Save file as:"
 msgstr "Spara fil som:"
+
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
 
 msgid "The selected object couldn't be split."
 msgstr "Det valda objektet kan inte delas."
@@ -4462,6 +4640,9 @@ msgstr "AMS-filament"
 msgid "Click to pick filament color"
 msgstr "Tryck för att välja filament färg"
 
+msgid "Please choose the filament colour"
+msgstr ""
+
 msgid "Add/Remove presets"
 msgstr "Lägg till/Ta bort förinställningar"
 
@@ -4628,6 +4809,9 @@ msgid "Offline"
 msgstr "Offline"
 
 msgid "(LAN)"
+msgstr ""
+
+msgid "Search"
 msgstr ""
 
 msgid "My Device"
@@ -4905,11 +5089,9 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
-"När du använder supportmaterial för support gränssnittet rekommenderar vi "
-"följande inställningar:\n"
-"0 topp z-avstånd, 0 gränssnittsavstånd, koncentriskt mönster."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -5308,13 +5490,6 @@ msgstr "Allmän"
 
 msgid "Capabilities"
 msgstr "Förmågor"
-
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr ""
-"P1P-skrivaren stöder inte smooth timelapse, använd traditionell timelapse "
-"istället."
 
 msgid "Select presets to compare"
 msgstr ""
@@ -6491,6 +6666,15 @@ msgid ""
 "the brim width is analysed and calculated automatically."
 msgstr ""
 
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr "Avstånd mellan brim och modell"
 
@@ -6867,9 +7051,6 @@ msgstr "Filament densitet, endast för statistiska ändamål"
 
 msgid "g/cm³"
 msgstr "g/cm³"
-
-msgid "Type"
-msgstr "Typ"
 
 msgid "The material type of filament"
 msgstr "Filament material"
@@ -7786,8 +7967,8 @@ msgstr "Nedre Z-avstånd"
 msgid "The z gap between the bottom support interface and object"
 msgstr "Z-gapet mellan botten support och objektets anläggningsyta"
 
-msgid "Support base"
-msgstr "Support bas"
+msgid "Support/raft base"
+msgstr ""
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -7807,6 +7988,9 @@ msgid ""
 msgstr ""
 "Täcker den övre kontaktytan av support med öglor. Den är inaktiverad som "
 "standard."
+
+msgid "Support/raft interface"
+msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -7881,9 +8065,6 @@ msgstr ""
 msgid "Speed of support"
 msgstr "Support hastighet"
 
-msgid "Style"
-msgstr "Stil"
-
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
@@ -7916,10 +8097,9 @@ msgstr "Oberoende support lagerhöjd"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
 msgstr ""
-"Supportens lager använder lagerhöjd oberoende med objektlager. Detta är för "
-"att stödja anpassning av z-gap och spara utskriftstid."
 
 msgid "Threshold angle"
 msgstr "Gräns vinkel"
@@ -8305,6 +8485,18 @@ msgstr "Aktuell"
 msgid "Update the configs values of 3mf to latest."
 msgstr "Uppdatera konfigurations värdena i 3mf till det senaste."
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Mata ut modell information"
 
@@ -8352,6 +8544,12 @@ msgstr "Ladda filament inställningar"
 
 msgid "Load filament settings from the specified file list"
 msgstr "Ladda filament inställningar ifrån vald fil"
+
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
 
 msgid "Output directory"
 msgstr "Mata ut katalog"
@@ -8725,6 +8923,44 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid "Keep upper part"
+#~ msgstr "Behåll övre del"
+
+#~ msgid "Keep lower part"
+#~ msgstr "Behåll lägre del"
+
+#~ msgid "Cut to parts"
+#~ msgstr "Beskär till delar"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "AMS automatisk växling av filament"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "När du använder supportmaterial för support gränssnittet rekommenderar vi "
+#~ "följande inställningar:\n"
+#~ "0 topp z-avstånd, 0 gränssnittsavstånd, koncentriskt mönster."
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "P1P-skrivaren stöder inte smooth timelapse, använd traditionell timelapse "
+#~ "istället."
+
+#~ msgid "Support base"
+#~ msgstr "Support bas"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr ""
+#~ "Supportens lager använder lagerhöjd oberoende med objektlager. Detta är "
+#~ "för att stödja anpassning av z-gap och spara utskriftstid."
 
 #~ msgid ""
 #~ "\n"

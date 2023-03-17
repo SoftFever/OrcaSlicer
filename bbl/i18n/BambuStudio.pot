@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 10:26+0800\n"
+"POT-Creation-Date: 2023-03-17 16:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -251,7 +251,37 @@ msgstr ""
 msgid "uniform scale"
 msgstr ""
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
+msgstr ""
+
+msgid "Connector"
 msgstr ""
 
 msgid "Movement:"
@@ -263,13 +293,25 @@ msgstr ""
 msgid "Height"
 msgstr ""
 
-msgid "Keep upper part"
+msgid "Add/Edit connectors"
 msgstr ""
 
-msgid "Keep lower part"
+msgid "Upper part"
 msgstr ""
 
-msgid "Cut to parts"
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
 msgstr ""
 
 msgid "Auto Segment"
@@ -279,6 +321,77 @@ msgid "Perform cut"
 msgstr ""
 
 msgid "Reset"
+msgstr ""
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "Shape"
+msgstr ""
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Warning"
+msgstr ""
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
 msgstr ""
 
 msgid "Mesh name"
@@ -335,9 +448,6 @@ msgid "%1%"
 msgstr ""
 
 msgid "Can't apply when proccess preview."
-msgstr ""
-
-msgid "Cancel"
 msgstr ""
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -406,9 +516,6 @@ msgid "Horizontal text"
 msgstr ""
 
 msgid "Notice"
-msgstr ""
-
-msgid "Warning"
 msgstr ""
 
 msgid "Undefined"
@@ -825,6 +932,9 @@ msgstr ""
 msgid "Mirror object"
 msgstr ""
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr ""
 
@@ -972,6 +1082,9 @@ msgstr ""
 msgid "Click the icon to edit color painting of the object"
 msgstr ""
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr ""
 
@@ -992,6 +1105,31 @@ msgid ""
 "objects."
 msgstr ""
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr ""
 
@@ -999,6 +1137,30 @@ msgid "The target object contains only one part and can not be splited."
 msgstr ""
 
 msgid "Assembly"
+msgstr ""
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr ""
+
+msgid "Group manipulation"
+msgstr ""
+
+msgid "Object Settings to modify"
+msgstr ""
+
+msgid "Part Settings to modify"
+msgstr ""
+
+msgid "Layer range Settings to modify"
+msgstr ""
+
+msgid "Part manipulation"
+msgstr ""
+
+msgid "Instance manipulation"
 msgstr ""
 
 msgid "Object"
@@ -1599,6 +1761,9 @@ msgstr ""
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr ""
 
+msgid "Other color"
+msgstr ""
+
 msgid "Dynamic flow calibration"
 msgstr ""
 
@@ -1782,7 +1947,7 @@ msgid ""
 "automatically."
 msgstr ""
 
-msgid "AMS auto switch filament"
+msgid "AMS filament backup"
 msgstr ""
 
 msgid ""
@@ -1902,9 +2067,6 @@ msgid "Circular"
 msgstr ""
 
 msgid "Custom"
-msgstr ""
-
-msgid "Shape"
 msgstr ""
 
 msgid "Load shape from STL..."
@@ -2512,12 +2674,6 @@ msgid "Assembly View"
 msgstr ""
 
 msgid "Select Plate"
-msgstr ""
-
-msgid "All Plates"
-msgstr ""
-
-msgid "Stats"
 msgstr ""
 
 msgid "Assembly Return"
@@ -3295,6 +3451,10 @@ msgid "Cloud Slicing..."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid "Layers: %s"
 msgstr ""
 
@@ -3442,6 +3602,12 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] ""
 msgstr[1] ""
 
+#, possible-c-format, possible-boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "ERROR"
 msgstr ""
 
@@ -3488,6 +3654,9 @@ msgid "Support painting"
 msgstr ""
 
 msgid "Color painting"
+msgstr ""
+
+msgid "Cut connectors"
 msgstr ""
 
 msgid "Layers"
@@ -3784,6 +3953,15 @@ msgid "Export STL file:"
 msgstr ""
 
 msgid "Save file as:"
+msgstr ""
+
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
 msgstr ""
 
 msgid "The selected object couldn't be split."
@@ -4205,6 +4383,9 @@ msgstr ""
 msgid "Click to pick filament color"
 msgstr ""
 
+msgid "Please choose the filament colour"
+msgstr ""
+
 msgid "Add/Remove presets"
 msgstr ""
 
@@ -4368,6 +4549,9 @@ msgid "Offline"
 msgstr ""
 
 msgid "(LAN)"
+msgstr ""
+
+msgid "Search"
 msgstr ""
 
 msgid "My Device"
@@ -4602,7 +4786,8 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
 
 msgid ""
@@ -4952,11 +5137,6 @@ msgid "General"
 msgstr ""
 
 msgid "Capabilities"
-msgstr ""
-
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
 msgstr ""
 
 msgid "Select presets to compare"
@@ -6029,6 +6209,15 @@ msgid ""
 "the brim width is analysed and calculated automatically."
 msgstr ""
 
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr ""
 
@@ -6352,9 +6541,6 @@ msgid "Filament density. For statistics only"
 msgstr ""
 
 msgid "g/cm³"
-msgstr ""
-
-msgid "Type"
 msgstr ""
 
 msgid "The material type of filament"
@@ -7154,7 +7340,7 @@ msgstr ""
 msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
-msgid "Support base"
+msgid "Support/raft base"
 msgstr ""
 
 msgid ""
@@ -7170,6 +7356,9 @@ msgstr ""
 
 msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
+msgstr ""
+
+msgid "Support/raft interface"
 msgstr ""
 
 msgid ""
@@ -7237,9 +7426,6 @@ msgstr ""
 msgid "Speed of support"
 msgstr ""
 
-msgid "Style"
-msgstr ""
-
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
@@ -7266,7 +7452,8 @@ msgstr ""
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
 msgstr ""
 
 msgid "Threshold angle"
@@ -7573,6 +7760,18 @@ msgstr ""
 msgid "Update the configs values of 3mf to latest."
 msgstr ""
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr ""
 
@@ -7619,6 +7818,12 @@ msgid "Load Filament Settings"
 msgstr ""
 
 msgid "Load filament settings from the specified file list"
+msgstr ""
+
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
 msgstr ""
 
 msgid "Output directory"

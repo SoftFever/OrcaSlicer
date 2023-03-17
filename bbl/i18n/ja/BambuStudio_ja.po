@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-24 10:26+0800\n"
+"POT-Creation-Date: 2023-03-17 16:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -247,8 +247,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "スケール"
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
 msgstr "カット"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Movement:"
 msgstr "移動"
@@ -259,14 +289,26 @@ msgstr "移動"
 msgid "Height"
 msgstr "高度"
 
-msgid "Keep upper part"
-msgstr "上の部分を残す"
+msgid "Add/Edit connectors"
+msgstr ""
 
-msgid "Keep lower part"
-msgstr "下の部分を残す"
+msgid "Upper part"
+msgstr ""
 
-msgid "Cut to parts"
-msgstr "パーツに割り切る"
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
+msgstr ""
 
 msgid "Auto Segment"
 msgstr "自動分割"
@@ -276,6 +318,77 @@ msgstr "カットを実行"
 
 msgid "Reset"
 msgstr "リセット"
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Type"
+msgstr "タイプ"
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Style"
+msgstr "スタイル"
+
+msgid "Shape"
+msgstr "形状"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消し"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "メッシュ名"
@@ -334,9 +447,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "プレビュー処理中は適用できません"
-
-msgid "Cancel"
-msgstr "取消し"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "操作を取り消し中、少々お待ちください。"
@@ -405,9 +515,6 @@ msgstr ""
 
 msgid "Notice"
 msgstr "通知"
-
-msgid "Warning"
-msgstr "警告"
 
 msgid "Undefined"
 msgstr "未定義"
@@ -831,6 +938,9 @@ msgstr "反転"
 msgid "Mirror object"
 msgstr "オブジェクトを反転"
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr "プリミティブを追加"
 
@@ -975,6 +1085,9 @@ msgstr "オブジェクトのサポートを編集します"
 msgid "Click the icon to edit color painting of the object"
 msgstr "オブジェクトに色塗りをします"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr "ファイルを読み込み中"
 
@@ -996,6 +1109,31 @@ msgid ""
 "objects."
 msgstr "オブジェクト設定で、各オブジェクトの造形設定を指定できます。"
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "最後のソリッドパーツは削除できません。"
 
@@ -1004,6 +1142,30 @@ msgstr "オブジェクトは一つだけのパーツが入っており、分割
 
 msgid "Assembly"
 msgstr "アセンブリ"
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr ""
+
+msgid "Group manipulation"
+msgstr ""
+
+msgid "Object Settings to modify"
+msgstr ""
+
+msgid "Part Settings to modify"
+msgstr ""
+
+msgid "Layer range Settings to modify"
+msgstr ""
+
+msgid "Part manipulation"
+msgstr ""
+
+msgid "Instance manipulation"
+msgstr ""
 
 msgid "Object"
 msgstr "OBJ"
@@ -1632,6 +1794,9 @@ msgstr "有効な値を入力してください (0 ~ 0.5)"
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "有効な値を入力してください (K: 0 ~ 0.5, N: 0.6 ~ 2.0)"
 
+msgid "Other color"
+msgstr ""
+
 msgid "Dynamic flow calibration"
 msgstr "流量キャリブレーション"
 
@@ -1828,8 +1993,8 @@ msgstr ""
 "BambuLab純正フィラメントの場合、残量の推定を行います。造形時に、残量自動的に"
 "更新します。"
 
-msgid "AMS auto switch filament"
-msgstr "AMSフィラメント自動切替え"
+msgid "AMS filament backup"
+msgstr ""
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -1958,9 +2123,6 @@ msgstr "円形"
 
 msgid "Custom"
 msgstr "カスタム"
-
-msgid "Shape"
-msgstr "形状"
 
 msgid "Load shape from STL..."
 msgstr "STLからシェープデータを読込む"
@@ -2612,12 +2774,6 @@ msgstr "組立て"
 
 msgid "Select Plate"
 msgstr "プレートを選択"
-
-msgid "All Plates"
-msgstr ""
-
-msgid "Stats"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "戻る"
@@ -3407,6 +3563,10 @@ msgid "Cloud Slicing..."
 msgstr "クラウドにてスライス中"
 
 #, c-format, boost-format
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Layers: %s"
 msgstr "積層: %s"
 
@@ -3554,6 +3714,11 @@ msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$dのオブジェクトは色が付いています"
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+
 msgid "ERROR"
 msgstr "エラー"
 
@@ -3602,6 +3767,9 @@ msgstr "サポートペイント"
 
 msgid "Color painting"
 msgstr "色塗り"
+
+msgid "Cut connectors"
+msgstr ""
 
 msgid "Layers"
 msgstr "積層"
@@ -3919,6 +4087,15 @@ msgstr "STLファイルをエクスポート:"
 
 msgid "Save file as:"
 msgstr "名前を付けて保存"
+
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
 
 msgid "The selected object couldn't be split."
 msgstr "選択したオブジェクトを分割できませんでした。"
@@ -4351,6 +4528,9 @@ msgstr "AMSフィラメント"
 msgid "Click to pick filament color"
 msgstr "フィラメントの色を選択"
 
+msgid "Please choose the filament colour"
+msgstr ""
+
 msgid "Add/Remove presets"
 msgstr "プリセットの追加/削除"
 
@@ -4514,6 +4694,9 @@ msgid "Offline"
 msgstr "オフライン"
 
 msgid "(LAN)"
+msgstr ""
+
+msgid "Search"
 msgstr ""
 
 msgid "My Device"
@@ -4763,11 +4946,9 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -5140,13 +5321,6 @@ msgstr "一般"
 
 msgid "Capabilities"
 msgstr "能力"
-
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr ""
-"P1Pプリンターはスムージタイムラプスをサポートしません、通常タイムラプスに切替"
-"えます。"
 
 msgid "Select presets to compare"
 msgstr ""
@@ -6288,6 +6462,15 @@ msgid ""
 "the brim width is analysed and calculated automatically."
 msgstr ""
 
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr "ブリムとオブジェクトの間隔"
 
@@ -6644,9 +6827,6 @@ msgstr "フィラメント密度"
 
 msgid "g/cm³"
 msgstr "g/cm³"
-
-msgid "Type"
-msgstr "タイプ"
 
 msgid "The material type of filament"
 msgstr "フィラメント素材タイプ"
@@ -7500,8 +7680,8 @@ msgstr "底面とのZ間隔"
 msgid "The z gap between the bottom support interface and object"
 msgstr "サポート底面とオブジェクトのZ方向間隔"
 
-msgid "Support base"
-msgstr "サポート基材"
+msgid "Support/raft base"
+msgstr ""
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -7521,6 +7701,9 @@ msgid ""
 msgstr ""
 "これにより、サポートの上部接触層がループで覆われます。デフォルトでは無効に"
 "なっています。"
+
+msgid "Support/raft interface"
+msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -7591,9 +7774,6 @@ msgstr "+/-でサポートの水平サイズを調整します"
 msgid "Speed of support"
 msgstr "サポートの造形速度です。"
 
-msgid "Style"
-msgstr "スタイル"
-
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
@@ -7623,8 +7803,9 @@ msgstr "独立サポート層ピッチ"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
-msgstr "サポートの積層ピッチは独立で設定できます。"
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
+msgstr ""
 
 msgid "Threshold angle"
 msgstr "閾値角度"
@@ -7981,6 +8162,18 @@ msgstr "最新の状態です。"
 msgid "Update the configs values of 3mf to latest."
 msgstr "3mfの構成値を更新"
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "出力モデル情報"
 
@@ -8028,6 +8221,12 @@ msgstr "フィラメント設定を読込む"
 
 msgid "Load filament settings from the specified file list"
 msgstr "指定したファイルリストからフィラメント設定を読込む"
+
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
 
 msgid "Output directory"
 msgstr "出力先フォルダ"
@@ -8373,6 +8572,42 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Keep upper part"
+#~ msgstr "上の部分を残す"
+
+#~ msgid "Keep lower part"
+#~ msgstr "下の部分を残す"
+
+#~ msgid "Cut to parts"
+#~ msgstr "パーツに割り切る"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "AMSフィラメント自動切替え"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "P1Pプリンターはスムージタイムラプスをサポートしません、通常タイムラプスに"
+#~ "切替えます。"
+
+#~ msgid "Support base"
+#~ msgstr "サポート基材"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr "サポートの積層ピッチは独立で設定できます。"
 
 #~ msgid ""
 #~ "\n"
