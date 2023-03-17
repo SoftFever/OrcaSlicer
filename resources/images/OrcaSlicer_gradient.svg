@@ -4,17 +4,30 @@
 <svg
    version="1.1"
    id="svg2"
-   width="814.987"
-   height="1023.9927"
-   viewBox="0 0 814.987 1023.9927"
-   sodipodi:docname="OrcaSlicer_gradient_narrow.svg"
+   width="1024"
+   height="1024"
+   viewBox="0 0 1024 1024"
+   sodipodi:docname="OrcaSlicer_gradient.svg"
    inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs6">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient619">
+      <stop
+         style="stop-color:#d9d9d9;stop-opacity:1;"
+         offset="0"
+         id="stop615" />
+      <stop
+         style="stop-color:#f9f9f9;stop-opacity:1;"
+         offset="1"
+         id="stop617" />
+    </linearGradient>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath16">
@@ -22,6 +35,16 @@
          d="M 0,792 H 612 V 0 H 0 Z"
          id="path14" />
     </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient619"
+       id="linearGradient621"
+       x1="6.0058432"
+       y1="-2.0039091"
+       x2="1024"
+       y2="1024.9971"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0000697,0,0,1.0000572,-0.06245207,-0.06244275)" />
   </defs>
   <sodipodi:namedview
      id="namedview4"
@@ -30,26 +53,41 @@
      borderopacity="0.25"
      inkscape:showpageshadow="2"
      inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="true"
+     inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="443.35595"
-     inkscape:cy="564.27121"
-     inkscape:window-width="3440"
-     inkscape:window-height="1369"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="g8" />
+     inkscape:zoom="0.35355339"
+     inkscape:cx="362.03867"
+     inkscape:cy="726.90577"
+     inkscape:window-width="1350"
+     inkscape:window-height="1237"
+     inkscape:window-x="412"
+     inkscape:window-y="78"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="background"
+     transform="matrix(0.99895749,0,0,0.99799215,-0.93372196,0.06231743)">
+    <rect
+       style="fill:url(#linearGradient621);fill-opacity:1;stroke-width:1.00007"
+       id="rect457"
+       width="1025.0686"
+       height="1026.0602"
+       x="0.93469638"
+       y="-0.062442806"
+       rx="2.0001395"
+       ry="2.0001287" />
+  </g>
   <g
      id="g8"
      inkscape:groupmode="layer"
      inkscape:label="OrcaS"
-     transform="matrix(1.3333333,0,0,-1.3333333,1.3995581e-8,1055.9963)">
+     transform="matrix(1.3333333,0,0,-1.3333333,0,1056)">
     <g
        id="g10"
-       transform="translate(1.2589521,16.062441)">
+       transform="translate(76.258954,16.062441)">
       <g
          id="g12"
          clip-path="url(#clipPath16)">
