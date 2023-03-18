@@ -15,7 +15,6 @@
 #define _L(s) Slic3r::I18N::translate(s)
 
 #define USE_PLAN_LAYER_HEIGHTS 1
-#define HEIGHT_TO_SWITCH_INFILL_DIRECTION 30 // change infill direction every 20mm
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -686,9 +685,12 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     : m_object(&object), m_slicing_params(slicing_params), m_object_config(&object.config())
 {
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
-        
+    support_type = m_object_config->support_type;
+    support_style = m_object_config->support_style;
+    if (support_style == smsDefault)
+        support_style = smsTreeHybrid;
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
-    if (m_object_config->support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpRectilinear;
+    if (support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpRectilinear;
     m_support_params.base_fill_pattern      = 
         support_pattern == smpLightning ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
@@ -701,8 +703,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
                                                   ipConcentric :
                                                   (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
-    support_type                             = m_object_config->support_type;
-    is_slim                                  = is_tree_slim(support_type, m_object_config->support_style);
+    is_slim                                  = is_tree_slim(support_type, support_style);
     MAX_BRANCH_RADIUS                        = 10.0;
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
@@ -915,7 +916,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
                 if (max_bridge_length > 0 && overhang_areas.size() > 0) {
                     // do not break bridge for normal part in TreeHybrid
-                    bool break_bridge = !(config.support_style == smsTreeHybrid && area(overhang_areas) > m_support_params.thresh_big_overhang);
+                    bool break_bridge = !(support_style == smsTreeHybrid && area(overhang_areas) > m_support_params.thresh_big_overhang);
                     m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &overhang_areas, max_bridge_length, break_bridge);
                 }
 
@@ -1503,9 +1504,6 @@ void TreeSupport::generate_toolpaths()
     }
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
-    auto obj_size = m_object->size();
-    bool obj_is_vertical = obj_size.x() < obj_size.y();
-    int num_layers_to_change_infill_direction = int(HEIGHT_TO_SWITCH_INFILL_DIRECTION / object_config.layer_height.value);  // change direction every 30mm
 
     std::shared_ptr<Fill> filler_interface = std::shared_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
     std::shared_ptr<Fill> filler_Roof1stLayer = std::shared_ptr<Fill>(Fill::new_from_type(ipRectilinear));
@@ -1513,7 +1511,7 @@ void TreeSupport::generate_toolpaths()
     filler_interface->set_bounding_box(bbox_object);
     filler_Roof1stLayer->set_bounding_box(bbox_object);
     filler_support->set_bounding_box(bbox_object);
-    filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
+    filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);
     filler_Roof1stLayer->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);
 
     // generate tree support tool paths
@@ -1585,7 +1583,7 @@ void TreeSupport::generate_toolpaths()
                         // base_areas
                         filler_support->spacing = support_flow.spacing();
                         Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
-                        if (layer_id>0 && area_group.dist_to_top < 10 && !with_infill && m_object_config->support_style!=smsTreeHybrid) {
+                        if (layer_id>0 && area_group.dist_to_top < 10 && !with_infill && support_style!=smsTreeHybrid) {
                             if (area_group.dist_to_top < 5)  // 1 wall at the top <5mm
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, 1, flow, erSupportMaterial);
                             else // at least 2 walls for range [5,10)
@@ -3325,7 +3323,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
         for (const ExPolygon &overhang_part : overhang)
         {
             BoundingBox overhang_bounds = get_extents(overhang_part);
-            if (config.support_style.value==smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang) {
+            if (support_style==smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang) {
                 Point candidate = overhang_bounds.center();
                 if (!overhang_part.contains(candidate))
                     move_inside_expoly(overhang_part, candidate);

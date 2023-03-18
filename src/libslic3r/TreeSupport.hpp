@@ -381,6 +381,7 @@ public:
     bool  has_sharp_tails = false;
     bool  has_cantilever = false;
     SupportType support_type;
+    SupportMaterialStyle support_style;
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;

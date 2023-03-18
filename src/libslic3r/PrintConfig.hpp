@@ -117,7 +117,7 @@ inline bool is_tree(SupportType stype)
 };
 inline bool is_tree_slim(SupportType type, SupportMaterialStyle style)
 {
-    return is_tree(type) && (style==smsDefault || style==smsTreeSlim);
+    return is_tree(type) && style==smsTreeSlim;
 };
 inline bool is_auto(SupportType stype)
 {
