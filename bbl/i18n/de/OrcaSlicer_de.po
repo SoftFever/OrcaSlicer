@@ -4423,7 +4423,7 @@ msgid "Associate files to OrcaSlicer"
 msgstr "Dateien mit OrcaSlicer verknüpfen"
 
 msgid "Associate .3mf files to OrcaSlicer"
-msgstr "Zuordnen von .3mf-Dateien zu OrcaSlicer"
+msgstr "Dateiendung .3mf mit OrcaSlicer verknüpfen"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
 msgstr ""
@@ -4431,7 +4431,7 @@ msgstr ""
 "Dateien festgelegt"
 
 msgid "Associate .stl files to OrcaSlicer"
-msgstr "Verknüpfung von .stl-Dateien mit OrcaSlicer"
+msgstr "Dateiendung .stl mit OrcaSlicer verknüpfen"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
 msgstr ""
@@ -4439,7 +4439,7 @@ msgstr ""
 "Dateien festgelegt"
 
 msgid "Associate .step/.stp files to OrcaSlicer"
-msgstr "Verknüpfen Sie .step/.stp-Dateien mit OrcaSlicer"
+msgstr "Dateiendung .step/.stp mit OrcaSlicer verknüpfen"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
@@ -5090,7 +5090,7 @@ msgid "Jerk(XY)"
 msgstr "Jerk(XY)"
 
 msgid "Raft"
-msgstr "Raft"
+msgstr "Druckbasis (Raft)"
 
 msgid "Support filament"
 msgstr "Supportfilament"
@@ -6991,7 +6991,7 @@ msgstr ""
 "Diese separate Einstellung beeinflusst die Geschwindigkeit von Umfängen mit einem Radius <= small_perimeter_threshold (normalerweise Löcher). Wenn es als Prozentsatz ausgedrückt wird (z.B. 80%), wird es auf die oben genannte Einstellung der Geschwindigkeit der Außenwand berechnet. Setzen Sie es auf Null für automatisch."
 
 msgid "mm/s or %"
-msgstr "mm o. %"
+msgstr "mm/s o. %"
 
 msgid "Small perimeters threshold"
 msgstr "Schwelle für kleine Strukturen"
@@ -7596,7 +7596,7 @@ msgstr "Klipper"
 
 #, fuzzy
 msgid "Label objects"
-msgstr "Zu Objekten"
+msgstr "Objekte beschriften"
 
 msgid ""
 "Enable this to add comments into the G-Code labeling print moves with what "
@@ -7617,7 +7617,7 @@ msgstr ""
 "Aktivieren Sie diese Option, um eine kommentierte G-Code-Datei zu erhalten, in der jede Zeile durch einen beschreibenden Text erklärt wird. Wenn Sie von der SD-Karte drucken, kann das zusätzliche Gewicht der Datei dazu führen, dass Ihre Firmware langsamer wird."
 
 msgid "Infill combination"
-msgstr "Kombination der Füllung"
+msgstr "Füllungskombination"
 
 msgid ""
 "Automatically Combine sparse infill of several layers to print together to "
@@ -7973,33 +7973,33 @@ msgstr ""
 "Konfigurationseinstellungen durch Lesen von Umgebungsvariablen abrufen."
 
 msgid "Raft contact Z distance"
-msgstr "Floß Kontakt Z Abstand"
+msgstr "Z Abstand Objekt Druckbasis "
 
 msgid "Z gap between object and raft. Ignored for soluble interface"
-msgstr "Z-Lücke zwischen Objekt und Floß. Ignoriert für lösliche Schnittstelle"
+msgstr "Z-Abstand zwischen Objekt und Druckbasis. Bei löslicher Oberfläche ignoriert"
 
 msgid "Raft expansion"
-msgstr "Floß Erweiterung"
+msgstr "Druckbasis Erweiterung"
 
 msgid "Expand all raft layers in XY plane"
-msgstr "Alle Floßschichten in der XY-Ebene ausdehnen"
+msgstr "Druckbasis in der XY-Ebene erweitern"
 
 msgid "Initial layer density"
 msgstr "Dichte der Anfangsschicht"
 
 msgid "Density of the first raft or support layer"
-msgstr "Dichte der ersten Schicht von Floß oder Support"
+msgstr "Dichte der ersten Schicht der Druckbasis oder Support"
 
 msgid "Initial layer expansion"
 msgstr "Ausdehnung der ersten Schicht"
 
 msgid "Expand the first raft or support layer to improve bed plate adhesion"
 msgstr ""
-"Ausdehnung der ersten Floß- oder Support-Schicht um die Druckplattenhaftung "
+"Ausdehnung der ersten Druckbasis oder Support-Schicht um die Druckplattenhaftung "
 "zu verbessern"
 
 msgid "Raft layers"
-msgstr "Floßschichten"
+msgstr "Druckbasisschichten"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
@@ -8404,7 +8404,7 @@ msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
 "filament for support and current filament is used"
 msgstr ""
-"Filament zum Drucken der Unterstützungsbasis und des Schwimmstegs. "
+"Filament zum Drucken der Unterstützungsbasis und der Druckbasis. "
 "„Standard“ bedeutet, dass kein bestimmtes Filament für die Unterstützung "
 "verwendet wird und das aktuelle Filament verwendet wird"
 
