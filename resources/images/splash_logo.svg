@@ -7,7 +7,7 @@
    width="814.987"
    height="1023.9927"
    viewBox="0 0 814.987 1023.9927"
-   sodipodi:docname="OrcaSlicer_gradient_narrow.svg"
+   sodipodi:docname="splash_logo.svg"
    inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -22,6 +22,42 @@
          d="M 0,792 H 612 V 0 H 0 Z"
          id="path14" />
     </clipPath>
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       inkscape:label="Drop Shadow"
+       id="filter398"
+       x="-0.122229"
+       y="-0.10200664"
+       width="1.244458"
+       height="1.2040133">
+      <feFlood
+         flood-opacity="0.498039"
+         flood-color="rgb(0,0,0)"
+         result="flood"
+         id="feFlood388" />
+      <feComposite
+         in="flood"
+         in2="SourceGraphic"
+         operator="in"
+         result="composite1"
+         id="feComposite390" />
+      <feGaussianBlur
+         in="composite1"
+         stdDeviation="30.5296"
+         result="blur"
+         id="feGaussianBlur392" />
+      <feOffset
+         dx="0"
+         dy="0"
+         result="offset"
+         id="feOffset394" />
+      <feComposite
+         in="SourceGraphic"
+         in2="offset"
+         operator="over"
+         result="composite2"
+         id="feComposite396" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="namedview4"
@@ -34,7 +70,7 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="0.70710678"
-     inkscape:cx="443.35595"
+     inkscape:cx="321.73359"
      inkscape:cy="564.27121"
      inkscape:window-width="3440"
      inkscape:window-height="1369"
@@ -49,7 +85,8 @@
      transform="matrix(1.3333333,0,0,-1.3333333,1.3995581e-8,1055.9963)">
     <g
        id="g10"
-       transform="translate(1.2589521,16.062441)">
+       transform="translate(1.2589521,16.062441)"
+       style="filter:url(#filter398)">
       <g
          id="g12"
          clip-path="url(#clipPath16)">
