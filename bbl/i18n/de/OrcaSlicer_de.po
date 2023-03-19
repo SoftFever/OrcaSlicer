@@ -1149,7 +1149,7 @@ msgid "Outer wall speed"
 msgstr "Druckgeschwindigkeit der Außenwand"
 
 msgid "Plate"
-msgstr "Druckplatte"
+msgstr "Aktuelle Platte drucken"
 
 msgid "Brim"
 msgstr "Umrandung"
@@ -1464,7 +1464,7 @@ msgid "Failed to send the print job. Please try again."
 msgstr "Eine SD-Karte muss vor dem Drucken über LAN eingelegt werden."
 
 msgid "Send to Printer failed. Please try again."
-msgstr "Senden an Drucker fehlgeschlagen. Bitte versuchen Sie es erneut."
+msgstr "Senden an den Drucker fehlgeschlagen. Bitte versuchen Sie es erneut."
 
 msgid "No space left on Printer SD card"
 msgstr "Kein Speicherplatz mehr auf der SD-Karte des Druckers."
@@ -1473,10 +1473,10 @@ msgid "Sending gcode file over LAN"
 msgstr "Sende Gcode-Datei über LAN"
 
 msgid "Sending gcode file through cloud service"
-msgstr "Senden einer Gcode-Datei über den Cloud-Service"
+msgstr "Sende Gcode-Datei über den Cloud-Service"
 
 msgid "Sending gcode file to sdcard"
-msgstr "Senden Gcode-Datei an SDKarte"
+msgstr "Sende Gcode-Datei an SDKarte"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
@@ -2884,19 +2884,19 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "Bevor ein neues Modell erstellt wird, wird %1% geschlossen. Möchten Sie fortfahren?"
 
 msgid "Slice plate"
-msgstr "Druckplatte slicen"
+msgstr "Aktuelle Platte slicen"
 
 msgid "Print plate"
-msgstr "Druckplatte"
+msgstr "Aktuelle Platte drucken"
 
 msgid "Slice all"
-msgstr "Alle Slicen"
+msgstr "Alle Platten slicen"
 
 msgid "Export G-code file"
-msgstr "G-Code exportieren"
+msgstr "G-Code als Datei exportieren"
 
 msgid "Send"
-msgstr "Senden"
+msgstr "Aktuelle Platte senden"
 
 msgid "Export plate sliced file"
 msgstr "Exportiere aktuelle Platte als STL Datei"
@@ -2905,10 +2905,10 @@ msgid "Export all sliced file"
 msgstr "Exportiere alle Platten als STL Dateien"
 
 msgid "Print all"
-msgstr "Alle Druckplatten drucken"
+msgstr "Alle Platten drucken"
 
 msgid "Send all"
-msgstr "Alles Senden"
+msgstr "Alle Platten senden"
 
 msgid "Keyboard Shortcuts"
 msgstr "Tastaturkürzel"
@@ -6536,7 +6536,7 @@ msgstr ""
 "Filament den Druck auf der strukturierten PEI-Platte nicht unterstützt"
 
 msgid "Initial layer"
-msgstr "Wände"
+msgstr "Erste Schicht"
 
 msgid "Initial layer bed temperature"
 msgstr "Druckbettemperatur für die erste Schicht"
@@ -6719,7 +6719,7 @@ msgstr ""
 "obere Füllungsmuster zu schaffen"
 
 msgid "Only one wall on first layer"
-msgstr "Nur eine Wand auf den ersten Fläche"
+msgstr "Nur eine Wand in der ersten Schicht"
 
 msgid ""
 "Use only one wall on first layer, to give more space to the bottom infill "
