@@ -3,10 +3,7 @@ name: Build Mac AppleSilicon
 on: 
     push:
       branches: 
-       - SoftFever
-    pull_request:
-      branches: 
-       - SoftFever
+       - main
     
 jobs:
   build_osx_arm64:

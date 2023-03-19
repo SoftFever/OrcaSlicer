@@ -3,10 +3,7 @@ name: Build Win64
 on: 
     push:
       branches: 
-       - SoftFever
-    pull_request:
-      branches: 
-       - SoftFever 
+       - main
 
 jobs:
   build_win64:

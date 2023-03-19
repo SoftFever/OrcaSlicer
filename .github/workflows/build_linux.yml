@@ -3,10 +3,7 @@ name: Build Linux
 on: 
     push:
       branches: 
-       - SoftFever
-    pull_request:
-      branches: 
-       - SoftFever
+       - main
     
 jobs:
   appimage-builder:
