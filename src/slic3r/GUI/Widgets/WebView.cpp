@@ -6,6 +6,8 @@
 #include <wx/webviewfshandler.h>
 #if wxUSE_WEBVIEW_EDGE
 #include <wx/msw/webview_edge.h>
+#elif defined(__WXMAC__)
+#include <wx/osx/webview_webkit.h>
 #endif
 #include <wx/uri.h>
 #if defined(__WIN32__) || defined(__WXMAC__)
@@ -73,6 +75,16 @@ public:
     };
 private:
     wxString pendingUserAgent;
+};
+
+#elif defined __WXOSX__
+
+class WebViewWebKit : public wxWebViewWebKit
+{
+    ~WebViewWebKit() override
+    {
+        RemoveScriptMessageHandler("wx");
+    }
 };
 
 #endif
@@ -152,6 +164,8 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 
 #ifdef __WIN32__
     wxWebView* webView = new WebViewEdge;
+#elif defined(__WXOSX__)
+    wxWebView *webView = new WebViewWebKit;
 #else
     auto webView = wxWebView::New();
 #endif
@@ -184,9 +198,6 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 #endif
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": begin to add script message handler for wx.";
         Slic3r::GUI::wxGetApp().set_adding_script_handler(true);
-        webView->Bind(wxEVT_DESTROY, [webView] (auto & e) {
-            webView->RemoveScriptMessageHandler("wx");
-        });
         if (!webView->AddScriptMessageHandler("wx"))
             wxLogError("Could not add script message handler");
         Slic3r::GUI::wxGetApp().set_adding_script_handler(false);
