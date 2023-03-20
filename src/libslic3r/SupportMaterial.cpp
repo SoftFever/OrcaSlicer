@@ -1486,14 +1486,13 @@ static const double sharp_tail_max_support_height = 16.f;
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
 // no_interface_offset: minimum of external perimeter widths
-static inline Polygons detect_overhangs(
+static inline ExPolygons detect_overhangs(
     const Layer             &layer,
     const size_t             layer_id,
     Polygons                &lower_layer_polygons,
     const PrintConfig       &print_config, 
     const PrintObjectConfig &object_config,
     SupportAnnotations      &annotations, 
-    SlicesMarginCache       &slices_margin, 
     const double             gap_xy
 #ifdef SLIC3R_DEBUG
     , size_t                 iRun
@@ -1546,9 +1545,6 @@ static inline Polygons detect_overhangs(
             }
         }
 
-        const ExPolygons& lower_layer_sharptails = lower_layer.sharp_tails;
-        auto& lower_layer_sharptails_height = lower_layer.sharp_tails_height;
-
         float lower_layer_offset  = 0;
         for (LayerRegion *layerm : layer.regions()) {
             // Extrusion width accounts for the roundings of the extrudates.
@@ -1598,73 +1594,13 @@ static inline Polygons detect_overhangs(
                 for (ExPolygon& expoly : layerm->raw_slices) {
                     bool is_sharp_tail = false;
                     float accum_height = layer.height;
-                    do {
-                        if (!g_config_support_sharp_tails) {
-                            is_sharp_tail = false;
-                            break;
-                        }
 
-                        // 1. nothing below
-                        // Check whether this is a sharp tail region.
-                        // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
-                        if (intersection_ex({ expoly }, lower_layer_expolys).empty()) {
-                            is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.5*fw).empty();
-                            break;
-                        }
-
-                        // 2. something below
-                        // check whether this is above a sharp tail region.
-
-                        // 2.1 If no sharp tail below, this is considered as common region.
-                        ExPolygons supported_by_lower = intersection_ex({ expoly }, lower_layer_sharptails);
-                        if (supported_by_lower.empty()) {
-                            is_sharp_tail = false;
-                            break;
-                        }
-
-                        // 2.2 If sharp tail below, check whether it support this region enough.
-                        float supported_area = 0.f;
-                        BoundingBox bbox;
-                        for (ExPolygon& temp : supported_by_lower) {
-                            supported_area += temp.area();
-                            bbox.merge(get_extents(temp));
-                        }
-#if 0
-                        if (supported_area > area_thresh_well_supported) {
-                            is_sharp_tail = false;
-                            break;
-                        }
-#endif
-                        if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
-                            is_sharp_tail = false;
-                            break;
-                        }
-
-                        // 2.3 check whether sharp tail exceed the max height
-                        for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
-                            if (!intersection_ex(*lower_sharp_tail_height.first, expoly).empty()) {
-                                accum_height += lower_sharp_tail_height.second;
-                                break;
-                            }
-                        }
-
-                        if (accum_height >= sharp_tail_max_support_height) {
-                            is_sharp_tail = false;
-                            break;
-                        }
-
-                        // 2.4 if the area grows fast than threshold, it get connected to other part or
-                        // it has a sharp slop and will be auto supported.
-                        ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
-                        Point      size_diff            = get_extents(new_overhang_expolys).size() - get_extents(lower_layer_sharptails).size();
-                        if (size_diff.both_comp(Point(scale_(5),scale_(5)),">") || !offset_ex(new_overhang_expolys, -5.0 * fw).empty()) {
-                            is_sharp_tail = false;
-                            break;
-                        }
-
-                        // 2.5 mark the expoly as sharptail
-                        is_sharp_tail = true;
-                    } while (0);
+                    // 1. nothing below
+                    // Check whether this is a sharp tail region.
+                    // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
+                    if (g_config_support_sharp_tails && overlaps({ expoly }, lower_layer_expolys)) {
+                        is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.5*fw).empty();
+                    }
 
                     if (is_sharp_tail) {
                         ExPolygons overhang = diff_ex({ expoly }, lower_layer_polygons);
@@ -1702,8 +1638,7 @@ static inline Polygons detect_overhangs(
         } // for each layer.region
     }
 
-    // BBS: hotfix to make sure ccw polygon is before cw polygon
-    return to_polygons(union_ex(overhang_polygons));
+    return union_ex(overhang_polygons);
 }
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
@@ -2127,27 +2062,27 @@ static void merge_contact_layers(const SlicingParameters &slicing_params, double
 
 
 struct OverhangCluster {
-    std::map<int, std::vector<Polygon*>> layer_overhangs;
-    Polygons merged_overhangs_dilated;
+    std::map<int, std::vector<ExPolygon*>> layer_overhangs;
+    ExPolygons merged_overhangs_dilated;
     int min_layer = 1e7;
     int max_layer = 0;
     coordf_t offset_scaled = 0;
 
-    OverhangCluster(Polygon* overhang, int layer_nr, coordf_t offset_scaled) {
+    OverhangCluster(ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
         this->offset_scaled = offset_scaled;
         insert(overhang, layer_nr);
     }
 
-    void insert(Polygon* overhang_new, int layer_nr) {
+    void insert(ExPolygon* overhang_new, int layer_nr) {
         if (layer_overhangs.find(layer_nr) != layer_overhangs.end()) {
             layer_overhangs[layer_nr].push_back(overhang_new);
         }
         else {
-            layer_overhangs.emplace(layer_nr, std::vector<Polygon*>{ overhang_new });
+            layer_overhangs.emplace(layer_nr, std::vector<ExPolygon*>{ overhang_new });
         }
-        Polygons overhang_dilated = offset_scaled > EPSILON ? expand(*overhang_new, offset_scaled) : Polygons{ *overhang_new };
+        ExPolygons overhang_dilated = offset_scaled > EPSILON ? offset_ex(*overhang_new, offset_scaled) : ExPolygons{ *overhang_new };
         if (!overhang_dilated.empty())
-            merged_overhangs_dilated = union_(merged_overhangs_dilated, overhang_dilated);
+            merged_overhangs_dilated = union_ex(merged_overhangs_dilated, overhang_dilated);
         min_layer = std::min(min_layer, layer_nr);
         max_layer = std::max(max_layer, layer_nr);
     }
@@ -2156,24 +2091,25 @@ struct OverhangCluster {
         return max_layer - min_layer + 1;
     }
 
-    bool intersects(const Polygon& overhang_new, int layer_nr) {
+    bool intersects(const ExPolygon& overhang_new, int layer_nr) {
         if (layer_nr < 1)
             return false;
 
-        auto it = layer_overhangs.find(layer_nr - 1);
-        if (it == layer_overhangs.end())
+        //auto it = layer_overhangs.find(layer_nr - 1);
+        //if (it == layer_overhangs.end())
+        //    return false;
+        //ExPolygons overhangs_lower;
+        //for (ExPolygon* poly : it->second) {
+        //    overhangs_lower.push_back(*poly);
+        //}
+        if (layer_nr<min_layer - 1 || layer_nr>max_layer + 1)
             return false;
-
-        Polygons overhangs_lower;
-        for (Polygon* poly : it->second) {
-            overhangs_lower.push_back(*poly);
-        }
-        const Polygons overhang_dilated = expand(overhang_new, offset_scaled);
-        return !intersection(overhang_dilated, overhangs_lower).empty();
+        const ExPolygons overhang_dilated = offset_ex(overhang_new, offset_scaled);
+        return overlaps(overhang_dilated, merged_overhangs_dilated);
     }
 };
 
-static void add_overhang(std::vector<OverhangCluster>& clusters, Polygon* overhang, int layer_nr, coordf_t offset_scaled) {
+static void add_overhang(std::vector<OverhangCluster>& clusters, ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
     bool found = false;
     for (int i = 0; i < clusters.size(); i++) {
         auto& cluster = clusters[i];
@@ -2224,37 +2160,137 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     contact_out.assign(num_layers * 2, nullptr);
     tbb::spin_mutex layer_storage_mutex;
 
-    std::vector<Polygons> overhangs_per_layers(num_layers);
-    for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
-        const Layer& layer = *object.layers()[layer_id];
-        Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
-        SlicesMarginCache   slices_margin;
+    std::vector<ExPolygons> overhangs_per_layers(num_layers);
+    size_t layer_id_start = this->has_raft() ? 0 : 1;
+     // main part of overhang detection can be parallel
+    tbb::parallel_for(tbb::blocked_range<size_t>(layer_id_start, num_layers),
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
+                const Layer& layer = *object.layers()[layer_id];
+                Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
 
-        Polygons overhang_polygons = detect_overhangs(layer, layer_id, lower_layer_polygons, *m_print_config, *m_object_config, annotations, slices_margin, m_support_params.gap_xy
+                overhangs_per_layers[layer_id] = detect_overhangs(layer, layer_id, lower_layer_polygons, *m_print_config, *m_object_config, annotations, m_support_params.gap_xy
 #ifdef SLIC3R_DEBUG
-            , iRun
+                    , iRun
 #endif // SLIC3R_DEBUG
-        );
+                );
 
-        overhangs_per_layers[layer_id] = std::move(overhang_polygons);
+                if (object.print()->canceled())
+                    break;
+            }
+        }
+    ); // end tbb::parallel_for
 
-        if (object.print()->canceled())
-            return MyLayersPtr();
+    if (object.print()->canceled())
+        return MyLayersPtr();
+
+    // check if the sharp tails should be extended higher
+    bool detect_first_sharp_tail_only = false;
+    const coordf_t extrusion_width = m_object_config->line_width.value;
+    const coordf_t extrusion_width_scaled = scale_(extrusion_width);
+    if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
+        for (size_t layer_nr = 0; layer_nr < object.layer_count(); layer_nr++) {
+            if (object.print()->canceled())
+                break;
+
+            const Layer* layer = object.get_layer(layer_nr);
+            const Layer* lower_layer = layer->lower_layer;
+            // skip if:
+            // 1) if the current layer is already detected as sharp tails
+            // 2) lower layer has no sharp tails
+            if (!lower_layer || layer->sharp_tails.empty() == false || lower_layer->sharp_tails.empty() == true)
+                continue;
+            ExPolygons lower_polys;
+            for (const ExPolygon& expoly : lower_layer->lslices) {
+                if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
+                    lower_polys.emplace_back(expoly);
+                }
+            }
+
+            // BBS detect sharp tail
+            const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
+            auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
+            for (const ExPolygon& expoly : layer->lslices) {
+                bool  is_sharp_tail = false;
+                float accum_height = layer->height;
+                do {
+                    // 2. something below
+                    // check whether this is above a sharp tail region.
+
+                    // 2.1 If no sharp tail below, this is considered as common region.
+                    ExPolygons supported_by_lower = intersection_ex({ expoly }, lower_layer_sharptails);
+                    if (supported_by_lower.empty()) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.2 If sharp tail below, check whether it support this region enough.
+#if 0
+                    // judge by area isn't reliable, failure cases include 45 degree rotated cube
+                    float       supported_area = area(supported_by_lower);
+                    if (supported_area > area_thresh_well_supported) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+#endif
+                    BoundingBox bbox = get_extents(supported_by_lower);
+                    if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.3 check whether sharp tail exceed the max height
+                    for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
+                        if (lower_sharp_tail_height.first->overlaps(expoly)) {
+                            accum_height += lower_sharp_tail_height.second;
+                            break;
+                        }
+                    }
+                    if (accum_height >= sharp_tail_max_support_height) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.4 if the area grows fast than threshold, it get connected to other part or
+                    // it has a sharp slop and will be auto supported.
+                    ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
+                    Point size_diff = get_extents(new_overhang_expolys).size() - get_extents(lower_layer_sharptails).size();
+                    if (size_diff.both_comp(Point(scale_(5), scale_(5)), ">") || !offset_ex(new_overhang_expolys, -5.0 * extrusion_width_scaled).empty()) {
+                        is_sharp_tail = false;
+                        break;
+                    }
+
+                    // 2.5 mark the expoly as sharptail
+                    is_sharp_tail = true;
+                } while (0);
+
+                if (is_sharp_tail) {
+                    ExPolygons overhang = diff_ex({ expoly }, lower_layer->lslices);
+                    layer->sharp_tails.push_back(expoly);
+                    layer->sharp_tails_height.insert({ &expoly, accum_height });
+                    append(overhangs_per_layers[layer_nr], overhang);
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+                    SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), object.bounding_box());
+                    if (svg.is_opened()) svg.draw(overhang, "yellow");
+#endif
+                }
+
+            }
+        }
     }
 
     if (object.print()->canceled())
         return MyLayersPtr();
 
-    // BBS
+    // BBS group overhang clusters
     if (g_config_remove_small_overhangs) {
         std::vector<OverhangCluster> clusters;
         double fw_scaled = scale_(m_object_config->line_width);
-        std::set<Polygon*> removed_overhang;
+        std::set<ExPolygon*> removed_overhang;
 
-        for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
-            for (Polygon& overhang : overhangs_per_layers[layer_id]) {
-                if (overhang.is_counter_clockwise())
-                    add_overhang(clusters, &overhang, layer_id, fw_scaled);
+        for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
+            for (auto& overhang : overhangs_per_layers[layer_id]) {
+                add_overhang(clusters, &overhang, layer_id, fw_scaled);
             }
         }
 
@@ -2276,8 +2312,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             // 3. check whether the small overhang is sharp tail
             bool is_sharp_tail = false;
             for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
-                const Layer& layer = *object.layers()[layer_id];
-                if (!intersection_ex(layer.sharp_tails, cluster.merged_overhangs_dilated).empty()) {
+                const Layer* layer = object.get_layer(layer_id);
+                if (overlaps(layer->sharp_tails, cluster.merged_overhangs_dilated)) {
                     is_sharp_tail = true;
                     break;
                 }
@@ -2293,7 +2329,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             double dist_max = 0;
             Points cluster_pts;
             for (auto& poly : cluster.merged_overhangs_dilated)
-                append(cluster_pts, poly.points);
+                append(cluster_pts, poly.contour.points);
             for (auto& pt : cluster_pts) {
                 double dist_pt = std::numeric_limits<double>::max();
                 for (auto& poly : cluster_boundary) {
@@ -2307,30 +2343,20 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
             // 5. remove small overhangs
             for (auto overhangs : cluster.layer_overhangs) {
-                for (Polygon* poly : overhangs.second)
+                for (auto* poly : overhangs.second)
                     removed_overhang.insert(poly);
             }
         }
 
-        for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
-            Polygons& layer_overhangs = overhangs_per_layers[layer_id];
+        for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
+            auto& layer_overhangs = overhangs_per_layers[layer_id];
             if (layer_overhangs.empty())
                 continue;
 
-            bool remove_hole = false;
             for (int poly_idx = 0; poly_idx < layer_overhangs.size(); poly_idx++) {
-                Polygon* overhang = &layer_overhangs[poly_idx];
-                if (overhang->is_counter_clockwise()) {
-                    if (removed_overhang.find(overhang) != removed_overhang.end()) {
-                        remove_hole = true;
-                        overhang->clear();
-                    }
-                    else
-                        remove_hole = false;
-                }
-                else {
-                    if (remove_hole)
-                        overhang->clear();
+                auto* overhang = &layer_overhangs[poly_idx];
+                if (removed_overhang.find(overhang) != removed_overhang.end()) {
+                    overhang->clear();
                 }
             }
         }
@@ -2339,9 +2365,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     if (object.print()->canceled())
         return MyLayersPtr();
 
-    for (size_t layer_id = this->has_raft() ? 0 : 1; layer_id < num_layers; layer_id++) {
+    for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
         const Layer& layer = *object.layers()[layer_id];
-        Polygons            overhang_polygons = overhangs_per_layers[layer_id];
+        Polygons            overhang_polygons = to_polygons(overhangs_per_layers[layer_id]);
         Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
         SlicesMarginCache   slices_margin;
 

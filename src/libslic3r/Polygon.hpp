@@ -75,7 +75,8 @@ public:
 
     bool intersection(const Line& line, Point* intersection) const;
     bool first_intersection(const Line& line, Point* intersection) const;
-    bool intersections(const Line &line, Points *intersections) const;
+    bool intersections(const Line& line, Points* intersections) const;
+    bool overlaps(const Polygons& other) const;
 
     // Considering CCW orientation of this polygon, find all convex resp. concave points
     // with the angle at the vertex larger than a threshold.
@@ -265,6 +266,8 @@ inline Polygons to_polygons(std::vector<Points> &&paths)
 // Do polygons match? If they match, they must have the same topology,
 // however their contours may be rotated.
 bool polygons_match(const Polygon &l, const Polygon &r);
+
+bool overlaps(const Polygons& polys1, const Polygons& polys2);
 } // Slic3r
 
 // start Boost

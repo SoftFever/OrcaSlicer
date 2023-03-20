@@ -207,7 +207,18 @@ bool Polygon::intersections(const Line &line, Points *intersections) const
     }
     return intersections->size() > intersections_size;
 }
+bool Polygon::overlaps(const Polygons& other) const
+{
+    if (this->empty() || other.empty())
+        return false;
+    Polylines pl_out = intersection_pl(to_polylines(other), *this);
 
+    // See unit test SCENARIO("Clipper diff with polyline", "[Clipper]")
+    // for in which case the intersection_pl produces any intersection.
+    return !pl_out.empty() ||
+        // If *this is completely inside other, then pl_out is empty, but the expolygons overlap. Test for that situation.
+        std::any_of(other.begin(), other.end(), [this](auto& poly) {return poly.contains(this->points.front()); });
+}
 // Filter points from poly to the output with the help of FilterFn.
 // filter function receives two vectors:
 // v1: this_point - previous_point
@@ -622,6 +633,15 @@ bool polygons_match(const Polygon &l, const Polygon &r)
         if (*it_l != *it_r)
             return false;
     return true;
+}
+
+bool overlaps(const Polygons& polys1, const Polygons& polys2)
+{
+    for (const Polygon& poly1 : polys1) {
+        if (poly1.overlaps(polys2))
+            return true;
+    }
+    return false;
 }
 
 bool contains(const Polygon &polygon, const Point &p, bool border_result)

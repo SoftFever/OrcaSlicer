@@ -925,9 +925,6 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                     if (!offset_ex(poly, -0.1 * extrusion_width_scaled).empty())
                         ts_layer->overhang_areas.emplace_back(poly);
                 }
-
-             
-
             }
         }
     ); // end tbb::parallel_for
