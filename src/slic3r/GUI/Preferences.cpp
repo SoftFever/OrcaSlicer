@@ -415,6 +415,9 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
         app_config->save();
+        long backup_interval = 0;
+        m_backup_interval_time.ToLong(&backup_interval);
+        Slic3r::set_backup_interval(backup_interval);
         e.Skip();
     });
 
@@ -422,6 +425,9 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
         app_config->save();
+        long backup_interval = 0;
+        m_backup_interval_time.ToLong(&backup_interval);
+        Slic3r::set_backup_interval(backup_interval);
         e.Skip();
     });
 
@@ -553,6 +559,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
          // backup
         if (param == "backup_switch") {
             bool pbool = app_config->get("backup_switch") == "true" ? true : false;
+            std::string backup_interval = "10";
+            app_config->get("backup_interval", backup_interval);
+            Slic3r::set_backup_interval(pbool ? boost::lexical_cast<long>(backup_interval) : 0);
             if (m_backup_interval_textinput != nullptr) { m_backup_interval_textinput->Enable(pbool); }
         }
 

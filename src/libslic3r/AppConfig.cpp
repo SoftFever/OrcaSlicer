@@ -286,7 +286,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("backup_switch").empty()) {
-        set_bool("backup_switch", false);
+        set_bool("backup_switch", true);
     }
 
     if (get("backup_interval").empty()) {

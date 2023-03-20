@@ -7397,7 +7397,10 @@ public:
         while (true)
         {
             while (m_tasks.empty()) {
-                m_cond.timed_wait(lock, m_next_backup);
+                if (m_interval > 0)
+                    m_cond.timed_wait(lock, m_next_backup);
+                else
+                    m_cond.wait(lock);
                 if (m_interval > 0 && boost::get_system_time() > m_next_backup) {
                     m_tasks.push_back({ Backup, 0, std::string(), nullptr, ++m_task_seq });
                     m_next_backup += boost::posix_time::seconds(m_interval);
