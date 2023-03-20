@@ -270,7 +270,7 @@ AboutDialog::AboutDialog()
 
     wxBoxSizer *text_sizer_horiz = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *text_sizer = new wxBoxSizer(wxVERTICAL);
-    text_sizer_horiz->Add( 0, 0, 0, wxLEFT, FromDIP(23));
+    text_sizer_horiz->Add( 0, 0, 0, wxLEFT, FromDIP(20));
 
     std::vector<wxString> text_list;
     text_list.push_back(_L("Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by Merill(supermerill)."));
@@ -317,8 +317,7 @@ AboutDialog::AboutDialog()
     wxBoxSizer *copyright_ver_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *copyright_hor_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    copyright_hor_sizer->Add(copyright_ver_sizer, 0, wxALL,5);
-    copyright_hor_sizer->Add( 0, 0, 0, wxLEFT, FromDIP(120));
+    copyright_hor_sizer->Add(copyright_ver_sizer, 0, wxLEFT, FromDIP(20));
 
     wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2021-2023 Lunkuo All Rights Reserved", wxDefaultPosition, wxDefaultSize);
     html_text->SetForegroundColour(wxColour(107, 107, 107));
@@ -363,10 +362,10 @@ AboutDialog::AboutDialog()
     copyright_button_ver->Add( 0, 0, 0, wxTOP, FromDIP(10));
     copyright_button_ver->Add(button_portions, 0, wxALL,0);
 
-    copyright_hor_sizer->Add(copyright_button_ver, 0, wxALL,0);
-    copyright_hor_sizer->Add( 0, 0, 0, wxRIGHT, FromDIP(13));
+    copyright_hor_sizer->AddStretchSpacer();
+    copyright_hor_sizer->Add(copyright_button_ver, 0, wxRIGHT, FromDIP(20));
 
-    ver_sizer->Add(copyright_hor_sizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,0);
+    ver_sizer->Add(copyright_hor_sizer, 0, wxEXPAND ,0);
     ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(30));
     button_portions->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
 
