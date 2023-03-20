@@ -316,7 +316,7 @@ enum class ModelVolumeType : int {
     SUPPORT_ENFORCER
 };
 
-enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipUpper, FlipLower, PlaceOnCutUpper, PlaceOnCutLower, CreateDowels };
+enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipUpper, FlipLower, PlaceOnCutUpper, PlaceOnCutLower, CreateDowels, CutToParts, InvalidateCutInfo };
 using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
 ENABLE_ENUM_BITMASK_OPERATORS(ModelObjectCutAttribute);
 
@@ -475,6 +475,8 @@ public:
     void clone_for_cut(ModelObject **obj);
     Transform3d calculate_cut_plane_inverse_matrix(const std::array<Vec3d, 4> &plane_points);
     void process_connector_cut(ModelVolume *volume,
+                               const Transform3d & instance_matrix,
+                               const Transform3d& cut_matrix,
                                ModelObjectCutAttributes attributes,
                                ModelObject *upper, ModelObject *lower,
                                std::vector<ModelObject *> &dowels,
@@ -485,8 +487,15 @@ public:
                               ModelObjectCutAttributes attributes,
                               ModelObject *            upper,
                               ModelObject *            lower);
+    void process_volume_cut(ModelVolume *            volume,
+                            const Transform3d &      instance_matrix,
+                            const Transform3d &      cut_matrix,
+                            ModelObjectCutAttributes attributes,
+                            TriangleMesh &           upper_mesh,
+                            TriangleMesh &           lower_mesh);
     void process_solid_part_cut(ModelVolume *            volume,
                                 const Transform3d &      instance_matrix,
+                                const Transform3d &      cut_matrix,
                                 const std::array<Vec3d, 4> &plane_points,
                                 ModelObjectCutAttributes attributes,
                                 ModelObject *            upper,

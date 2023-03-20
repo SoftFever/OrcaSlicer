@@ -113,6 +113,7 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     , m_last_active_id(0)
     , m_keep_upper(true)
     , m_keep_lower(true)
+    , m_cut_to_parts(false)
     , m_do_segment(false)
     , m_segment_smoothing_alpha(0.5)
     , m_segment_number(5)
@@ -350,6 +351,7 @@ void GLGizmoAdvancedCut::reset_all()
 
     m_keep_upper = true;
     m_keep_lower = true;
+    m_cut_to_parts = false;
     m_place_on_cut_upper = true;
     m_place_on_cut_lower = false;
     m_rotate_upper = false;
@@ -653,11 +655,13 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
             wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(),
                                      only_if(m_keep_upper, ModelObjectCutAttribute::KeepUpper) |
                                      only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower) |
+                                     only_if(m_cut_to_parts, ModelObjectCutAttribute::CutToParts) |
                                      only_if(m_place_on_cut_upper, ModelObjectCutAttribute::PlaceOnCutUpper) |
                                      only_if(m_place_on_cut_lower, ModelObjectCutAttribute::PlaceOnCutLower) |
                                      only_if(m_rotate_upper, ModelObjectCutAttribute::FlipUpper) |
                                      only_if(m_rotate_lower, ModelObjectCutAttribute::FlipLower) |
-                                     only_if(create_dowels_as_separate_object, ModelObjectCutAttribute::CreateDowels));
+                                     only_if(create_dowels_as_separate_object, ModelObjectCutAttribute::CreateDowels) |
+                                     only_if(!has_connectors, ModelObjectCutAttribute::InvalidateCutInfo));
         }
     }
 }
@@ -1393,7 +1397,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     ImGui::PopStyleVar(1);
     m_imgui->disabled_end();
 
-    m_imgui->disabled_begin(!m_keep_upper || !m_keep_lower);
+    m_imgui->disabled_begin(!m_keep_upper || !m_keep_lower || m_cut_to_parts);
     if (m_imgui->button(_L("Add/Edit connectors"))) set_connectors_editing(true);
     m_imgui->disabled_end();
 
@@ -1406,22 +1410,22 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
             label_width = width;
     }
 
-    auto render_part_action_line = [this, label_width](const wxString& label, const wxString& suffix, bool& keep_part, bool& place_on_cut_part, bool& rotate_part) {
-        CutConnectors &connectors = m_c->selection_info()->model_object()->cut_connectors;
-
+    CutConnectors &connectors              = m_c->selection_info()->model_object()->cut_connectors;
+    const bool has_connectors = !connectors.empty();
+    auto render_part_action_line = [this, label_width, &connectors](const wxString &label, const wxString &suffix, bool &keep_part, bool &place_on_cut_part, bool &rotate_part) {
         bool keep = true;
         ImGui::AlignTextToFramePadding();
         m_imgui->text(label);
 
         ImGui::SameLine(label_width);
 
-        m_imgui->disabled_begin(!connectors.empty());
+        m_imgui->disabled_begin(!connectors.empty() || m_cut_to_parts);
         m_imgui->bbl_checkbox(_L("Keep") + suffix, connectors.empty() ? keep_part : keep);
         m_imgui->disabled_end();
 
         ImGui::SameLine();
 
-        m_imgui->disabled_begin(!keep_part);
+        m_imgui->disabled_begin(!keep_part || m_cut_to_parts);
         if (m_imgui->bbl_checkbox(_L("Place on cut") + suffix, place_on_cut_part))
             rotate_part = false;
         ImGui::SameLine();
@@ -1434,6 +1438,9 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     render_part_action_line( _L("Upper part"), "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
     render_part_action_line( _L("Lower part"), "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
 
+    m_imgui->disabled_begin(has_connectors);
+    m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
+    m_imgui->disabled_end();
 
 #if 0
     // Auto segment input

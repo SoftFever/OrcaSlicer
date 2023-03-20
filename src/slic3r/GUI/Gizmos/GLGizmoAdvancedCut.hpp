@@ -48,6 +48,7 @@ private:
 
     bool m_keep_upper;
     bool m_keep_lower;
+    bool m_cut_to_parts;
     bool m_place_on_cut_upper{true};
     bool m_place_on_cut_lower{false};
     bool m_rotate_upper{false};
