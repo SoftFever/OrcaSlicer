@@ -112,7 +112,8 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
     int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
     int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
-    MoveWindow(this->m_hWnd, (screenwidth - pSize.x) / 2, MaxY, pSize.x, pSize.y, TRUE);
+    wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
+    Move(tmpPT);
 
     //Param
     m_AutotestToken = "";
