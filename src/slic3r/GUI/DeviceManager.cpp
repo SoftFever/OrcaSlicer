@@ -3149,6 +3149,16 @@ int MachineObject::parse_json(std::string payload)
                                         } else {
                                             curr_tray->color = "";
                                         }
+
+                                        curr_tray->cols.clear();
+                                        if (tray_it->contains("cols")) {
+                                            if ((*tray_it)["cols"].is_array()) {
+                                                for (auto it = (*tray_it)["cols"].begin(); it != (*tray_it)["cols"].end(); it++) {
+                                                   curr_tray->cols.push_back(it.value().get<std::string>());
+                                                }
+                                            }
+                                        }
+                                 
                                         if (tray_it->contains("remain")) {
                                             curr_tray->remain = (*tray_it)["remain"].get<int>();
                                         } else {
@@ -3297,6 +3307,16 @@ int MachineObject::parse_json(std::string payload)
                                 else {
                                     vt_tray.color = "";
                                 }
+
+                                vt_tray.cols.clear();
+                                if (jj["vt_tray"].contains("cols")) {
+                                    if (jj["vt_tray"].is_array()) {
+                                        for (auto it = jj["vt_tray"].begin(); it != jj["vt_tray"].end(); it++) {
+                                            vt_tray.cols.push_back(it.value().get<std::string>());
+                                        }
+                                    }
+                                }
+
                                 if (jj["vt_tray"].contains("remain")) {
                                     vt_tray.remain = jj["vt_tray"]["remain"].get<int>();
                                 }
@@ -3371,6 +3391,16 @@ int MachineObject::parse_json(std::string payload)
                                     tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
                                     tray_it->second->type = jj["tray_type"].get<std::string>();
                                     tray_it->second->color = jj["tray_color"].get<std::string>();
+
+                                    /*tray_it->second->cols.clear();
+                                    if (jj.contains("cols")) {
+                                        if (jj["cols"].is_array()) {
+                                            for (auto it = jj["cols"].begin(); it != jj["cols"].end(); it++) {
+                                                tray_it->second->cols.push_back(it.value().get<std::string>());
+                                            }
+                                        }
+                                    }*/
+
                                     tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
                                     // delay update
                                     tray_it->second->set_hold_count();

@@ -58,6 +58,10 @@ bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
                     info.material_colour = AMS_TRAY_DEFAULT_COL;
                 }
 
+                for (std::string cols:it->second->cols) {
+                    info.material_cols.push_back(AmsTray::decode_color(cols));
+                }
+
                 if (MachineObject::is_bbl_filament(it->second->tag_uid)) {
                     info.material_state = AMSCanType::AMS_CAN_TYPE_BRAND;
                 } else {
@@ -840,15 +844,33 @@ void AMSLib::doRender(wxDC &dc)
     int height = size.y - FromDIP(8);
     int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
 
-    
-
     int top = height - curr_height;
 
     if (curr_height >= FromDIP(6)) {
 #ifdef __APPLE__
          dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
 #else
-         dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
+        //gradient
+        if (m_info.material_cols.size() > 1) {
+            int left = FromDIP(4);
+            float total_width = size.x - FromDIP(8);
+            int gwidth = std::round(total_width / (m_info.material_cols.size() - 1));
+
+            for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
+
+                if ( (left + gwidth) > (size.x - FromDIP(8)) ) {
+                    gwidth = (size.x - FromDIP(4)) - left;
+                }
+
+                auto rect = wxRect(left, height - curr_height + FromDIP(4), gwidth, curr_height);
+                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i+1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+            dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
+        }
+        
 #endif
 
        

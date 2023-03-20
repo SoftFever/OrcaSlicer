@@ -136,6 +136,7 @@ struct Caninfo
     int             material_remain = 100;
     float           k = 0.0f;
     float           n = 0.0f;
+    std::vector<wxColour> material_cols;
 };
 
 struct AMSinfo

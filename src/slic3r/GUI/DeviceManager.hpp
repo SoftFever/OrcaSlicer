@@ -193,6 +193,7 @@ public:
     std::string     type;
     std::string     sub_brands;
     std::string     color;
+    std::vector<std::string> cols;
     std::string     weight;
     std::string     diameter;
     std::string     temp;
