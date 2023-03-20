@@ -556,6 +556,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         app_config->set_bool(param, checkbox->GetValue());
         app_config->save();
 
+        if (param == "staff_pick_switch") {
+            bool pbool = app_config->get("staff_pick_switch") == "true";
+            wxGetApp().switch_staff_pick(pbool);
+        }
+
          // backup
         if (param == "backup_switch") {
             bool pbool = app_config->get("backup_switch") == "true" ? true : false;
@@ -846,6 +851,10 @@ wxWindow* PreferencesDialog::create_general_page()
                                                          _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
 #endif // _WIN32
 
+    auto title_modelmall = create_item_title(_L("Model Mall"), page, _L("Model Mall"));
+    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
+    auto item_modelmall = create_item_checkbox(_L("Show staff-picks"), page, _L("Show staff-picks"), 50, "staff_pick_switch");
+
 
     auto title_backup = create_item_title(_L("Backup"), page, _L("Backup"));
     //auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
@@ -876,9 +885,12 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
+    sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+
     sizer_page->Add(title_backup, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
-    sizer_page->Add(item_backup_interval, 0, wxTOP,FromDIP(3));
+    sizer_page->Add(item_backup_interval, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
