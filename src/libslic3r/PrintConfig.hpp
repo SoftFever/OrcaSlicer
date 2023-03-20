@@ -104,7 +104,7 @@ enum SupportMaterialStyle {
 };
 
 enum SupportMaterialInterfacePattern {
-    smipAuto, smipRectilinear, smipConcentric,
+    smipAuto, smipRectilinear, smipConcentric, smipRectilinearInterlaced, smipGrid
 };
 
 // BBS

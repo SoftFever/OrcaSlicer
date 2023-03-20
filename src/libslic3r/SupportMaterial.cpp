@@ -412,7 +412,12 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         support_pattern == smpHoneycomb ? ipHoneycomb :
         m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-    m_support_params.contact_fill_pattern   =
+    if (m_object_config->support_interface_pattern == smipGrid)
+        m_support_params.contact_fill_pattern = ipGrid;
+    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+        m_support_params.contact_fill_pattern = ipRectilinear;
+    else
+        m_support_params.contact_fill_pattern =
         (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
         m_object_config->support_interface_pattern == smipConcentric ?
         ipConcentric :
@@ -3642,7 +3647,6 @@ static inline void fill_expolygon_generate_paths(
     ExPolygon              &&expolygon,
     Fill                    *filler,
     const FillParams        &fill_params,
-    float                    density,
     ExtrusionRole            role,
     const Flow              &flow)
 {
@@ -3664,12 +3668,11 @@ static inline void fill_expolygons_generate_paths(
     ExPolygons             &&expolygons,
     Fill                    *filler,
     const FillParams        &fill_params,
-    float                    density,
     ExtrusionRole            role,
     const Flow              &flow)
 {
     for (ExPolygon &expoly : expolygons)
-        fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
+        fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, role, flow);
 }
 
 static inline void fill_expolygons_generate_paths(
@@ -3683,7 +3686,7 @@ static inline void fill_expolygons_generate_paths(
     FillParams fill_params;
     fill_params.density     = density;
     fill_params.dont_adjust = true;
-    fill_expolygons_generate_paths(dst, std::move(expolygons), filler, fill_params, density, role, flow);
+    fill_expolygons_generate_paths(dst, std::move(expolygons), filler, fill_params, role, flow);
 }
 
 static inline void fill_expolygons_with_sheath_generate_paths(
@@ -3731,7 +3734,7 @@ static inline void fill_expolygons_with_sheath_generate_paths(
         }
         extrusion_entities_append_paths(out, polylines, erSupportMaterial, flow.mm3_per_mm(), flow.width(), flow.height());
         // Fill in the rest.
-        fill_expolygons_generate_paths(out, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, density, role, flow);
+        fill_expolygons_generate_paths(out, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, role, flow);
         if (no_sort && ! eec->empty())
             dst.emplace_back(eec.release());
     }
@@ -4581,13 +4584,23 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 double density = interface_as_base ? m_support_params.support_density : m_support_params.interface_density;
                 filler_interface->spacing = interface_as_base ? m_support_params.support_material_flow.spacing() : m_support_params.support_material_interface_flow.spacing();
                 filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / density));
+                // BBS support more interface patterns
+                FillParams fill_params;
+                fill_params.density = density;
+                fill_params.dont_adjust = true;
+                if (m_object_config->support_interface_pattern == smipGrid) {
+                    filler_interface->angle = Geometry::deg2rad(m_support_params.base_angle);
+                    fill_params.dont_sort = true;
+                }
+                if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+                    filler_interface->layer_id = support_layer.interface_id();
                 fill_expolygons_generate_paths(
                     // Destination
                     layer_ex.extrusions, 
                     // Regions to fill
                     union_safety_offset_ex(layer_ex.polygons_to_extrude()),
                     // Filler and its parameters
-                    filler_interface.get(), float(density),
+                    filler_interface.get(), fill_params,
                     // Extrusion parameters
                     erSupportMaterialInterface, interface_flow);
             }

@@ -1636,11 +1636,13 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
         double                       arc_length;
     };
     std::vector<Arc> arches;
-    arches.reserve(graph.map_infill_end_point_to_boundary.size());
-    for (ContourIntersectionPoint &cp : graph.map_infill_end_point_to_boundary)
-        if (cp.contour_idx != boundary_idx_unconnected && cp.next_on_contour != &cp && cp.could_connect_next())
-            arches.push_back({ &cp, path_length_along_contour_ccw(&cp, cp.next_on_contour, graph.boundary_params[cp.contour_idx].back()) });
-    std::sort(arches.begin(), arches.end(), [](const auto &l, const auto &r) { return l.arc_length < r.arc_length; });
+    if (!params.dont_sort) {
+        arches.reserve(graph.map_infill_end_point_to_boundary.size());
+        for (ContourIntersectionPoint& cp : graph.map_infill_end_point_to_boundary)
+            if (cp.contour_idx != boundary_idx_unconnected && cp.next_on_contour != &cp && cp.could_connect_next())
+                arches.push_back({ &cp, path_length_along_contour_ccw(&cp, cp.next_on_contour, graph.boundary_params[cp.contour_idx].back()) });
+        std::sort(arches.begin(), arches.end(), [](const auto& l, const auto& r) { return l.arc_length < r.arc_length; });
+    }
 
     //FIXME improve the Traveling Salesman problem with 2-opt and 3-opt local optimization.
     for (Arc &arc : arches)

@@ -698,10 +698,15 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
                                                                                                                         ipSupportBase;
 
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-    m_support_params.contact_fill_pattern   = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
-                                                    m_object_config->support_interface_pattern == smipConcentric ?
-                                                  ipConcentric :
-                                                  (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
+    if (m_object_config->support_interface_pattern == smipGrid)
+        m_support_params.contact_fill_pattern = ipGrid;
+    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+        m_support_params.contact_fill_pattern = ipRectilinear;
+    else
+        m_support_params.contact_fill_pattern = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
+        m_object_config->support_interface_pattern == smipConcentric ?
+        ipConcentric :
+        (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
     is_slim                                  = is_tree_slim(support_type, support_style);
     MAX_BRANCH_RADIUS                        = 10.0;
@@ -1573,6 +1578,12 @@ void TreeSupport::generate_toolpaths()
                         // roof_areas
                         fill_params.density       = interface_density;
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
+                        if (m_object_config->support_interface_pattern == smipGrid) {
+                            filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
+                            fill_params.dont_sort = true;
+                        }
+                        if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+                            filler_interface->layer_id = round(area_group.dist_to_top / ts_layer->height);
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface.get(), fill_params, erSupportMaterialInterface,
                                                        m_support_material_interface_flow);
                     }
