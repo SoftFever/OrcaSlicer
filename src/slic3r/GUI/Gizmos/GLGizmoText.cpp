@@ -21,6 +21,7 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include "libslic3r/SVG.hpp"
+#include <codecvt>
 
 namespace Slic3r {
 namespace GUI {
@@ -1378,6 +1379,11 @@ TriangleMesh GLGizmoText::get_text_mesh(const char* text_str, const Vec3d &posit
     Vec3d new_text_dir = project_on_plane(text_up_dir, normal);
     new_text_dir.normalize();
     Geometry::rotation_from_two_vectors(old_text_dir, new_text_dir, rotation_axis, phi, &rotation_matrix);
+
+    static double const PI = 3.141592653589793238;
+    if (abs(phi - PI) < EPSILON)
+        rotation_axis = normal;
+
     mesh.rotate(phi, rotation_axis);
 
     const Selection &        selection               = m_parent.get_selection();
@@ -1439,10 +1445,11 @@ void GLGizmoText::generate_text_volume(bool is_temp)
     if (text.empty())
         return;
 
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> str_cnv;
+    std::wstring ws = boost::nowide::widen(m_text);
     std::vector<std::string> alphas;
-    if (!get_utf8_sub_strings(m_text, strlen(m_text), alphas)) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("Text: input text is not utf8");
-        return;
+    for (auto w : ws) {
+        alphas.push_back(str_cnv.to_bytes(w));
     }
 
     update_text_positions(alphas);
