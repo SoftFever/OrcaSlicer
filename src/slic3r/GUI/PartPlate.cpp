@@ -2335,16 +2335,21 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
     //	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Failed to rename the output G-code file from %1% to %2%, error code %3%") % filename.c_str() % path.c_str() %
     //error.message(); 	return -1;
     //}
-    if (boost::filesystem::exists(filename)) {
-        assert(m_tmp_gcode_path.empty());
-        m_tmp_gcode_path         = filename;
-        m_gcode_result->filename = filename;
-        m_print->set_gcode_file_ready();
+	if (boost::filesystem::exists(filename)) {
+		assert(m_tmp_gcode_path.empty());
+		m_tmp_gcode_path = filename;
+		m_gcode_result->filename = filename;
+		m_print->set_gcode_file_ready();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from %1% to %2%, finished") % filename.c_str() % filename.c_str();
-    }
+		update_slice_result_valid_state(true);
 
-	update_slice_result_valid_state(true);
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": found valid gcode file %1%") % filename.c_str();
+	}
+	else {
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not find gcode file %1%") % filename.c_str();
+		ret = -1;
+	}
+
 	m_ready_for_slice = true;
 	return ret;
 }

@@ -1718,7 +1718,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 for (auto connector : cut_object_info->second.connectors) {
                     assert(0 <= connector.volume_id && connector.volume_id <= int(model_object->volumes.size()));
-                    model_object->volumes[connector.volume_id]->cut_info = 
+                    model_object->volumes[connector.volume_id]->cut_info =
                         ModelVolume::CutInfo(CutConnectorType(connector.type), connector.r_tolerance, connector.h_tolerance, true);
                 }
             }
@@ -3270,7 +3270,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_end_metadata()
     {
         if ((m_curr_metadata_name == BBS_3MF_VERSION)||(m_curr_metadata_name == BBS_3MF_VERSION1)) {
-            m_is_bbl_3mf = true;
+            //m_is_bbl_3mf = true;
             m_version = (unsigned int)atoi(m_curr_characters.c_str());
             /*if (m_check_version && (m_version > VERSION_BBS_3MF_COMPATIBLE)) {
                 // std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
