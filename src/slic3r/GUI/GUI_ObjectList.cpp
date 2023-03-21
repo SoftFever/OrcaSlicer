@@ -946,15 +946,13 @@ void ObjectList::selection_changed()
         const ItemType type = m_objects_model->GetItemType(item);
         // to correct visual hints for layers editing on the Scene
         if (type & (itLayer|itLayerRoot)) {
-            //BBS remove obj_layers
-            // wxGetApp().obj_layers()->reset_selection();
+            wxGetApp().obj_layers()->reset_selection();
 
             if (type & itLayerRoot)
                 wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
             else {
-                //BBS remove obj_layers
-                //wxGetApp().obj_layers()->set_selectable_range(m_objects_model->GetLayerRangeByItem(item));
-                //wxGetApp().obj_layers()->update_scene_from_editor_selection();
+                wxGetApp().obj_layers()->set_selectable_range(m_objects_model->GetLayerRangeByItem(item));
+                wxGetApp().obj_layers()->update_scene_from_editor_selection();
             }
         }
     }
@@ -1221,7 +1219,10 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 
             get_selected_item_indexes(obj_idx, vol_idx, item);
             //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
-            dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
+            if (m_objects_model->GetItemType(item) & itLayer)
+                dynamic_cast<TabPrintLayer*>(wxGetApp().get_layer_tab())->reset_model_config();
+            else
+                dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
         }
         else if (col_num == colName)
         {
@@ -2865,8 +2866,7 @@ void ObjectList::layers_editing()
         return;
 
     // to correct visual hints for layers editing on the Scene, reset previous selection
-    //BBS remove obj_layers
-    //wxGetApp().obj_layers()->reset_selection();
+    wxGetApp().obj_layers()->reset_selection();
     wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
 
     // select LayerRoor item and expand
@@ -3268,7 +3268,14 @@ void ObjectList::part_selection_changed()
                     m_config = &(*m_objects)[obj_idx]->config;
                     disable_ss_manipulation = (*m_objects)[obj_idx]->is_cut();
                 }
-                // BBS: remove height range logics
+                else if (type & (itLayerRoot | itLayer)) {
+                    og_name = type & itLayerRoot ? _L("Height ranges") : _L("Settings for height range");
+                    update_and_show_layers = true;
+                    update_and_show_settings = true;
+
+                    if (type & itLayer)
+                        m_config = &get_item_config(item);
+                }
             }
         }
     }
@@ -3300,8 +3307,7 @@ void ObjectList::part_selection_changed()
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;
     else if (update_and_show_layers) {
-        //BBS remove obj layers
-        //wxGetApp().obj_layers()->get_og()->set_name(" ");
+        ;//wxGetApp().obj_layers()->get_og()->set_name(" " + og_name + " ");
     }
 
     update_min_height();
@@ -3313,8 +3319,7 @@ void ObjectList::part_selection_changed()
     // BBS
     //wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
-    //BBS
-    //wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
+    wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
     wxGetApp().plater()->show_object_info();
 
     panel.Layout();
@@ -3330,13 +3335,33 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
         return ret;
 
     const bool is_object_settings = m_objects_model->GetItemType(parent_item) == itObject;
+    const bool is_volume_settings = m_objects_model->GetItemType(parent_item) == itVolume;
+    const bool is_layer_settings = m_objects_model->GetItemType(parent_item) == itLayer;
     if (!is_object_settings) {
         ModelVolumeType volume_type = m_objects_model->GetVolumeType(parent_item);
         if (volume_type == ModelVolumeType::NEGATIVE_VOLUME || volume_type == ModelVolumeType::SUPPORT_BLOCKER || volume_type == ModelVolumeType::SUPPORT_ENFORCER)
             return ret;
     }
 
-    SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(config, is_object_settings);
+    SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(config, is_object_settings, is_layer_settings);
+    if (is_layer_settings) {
+        auto tab_object = dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab());
+        auto object_cfg = tab_object->get_config();
+        if (config->opt_float("layer_height") == object_cfg->opt_float("layer_height")) {
+            SettingsFactory::Bundle new_cat_options;
+            for (auto cat_opt : cat_options) {
+                std::vector<string> temp;
+                for (auto value : cat_opt.second) {
+                    if (value != "layer_height")
+                        temp.push_back(value);
+                }
+                if (!temp.empty())
+                    new_cat_options[cat_opt.first] = temp;
+            }
+            cat_options = new_cat_options;
+        }
+    }
+
     if (cat_options.empty()) {
 #if NEW_OBJECT_SETTING
         ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());

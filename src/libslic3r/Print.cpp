@@ -1114,6 +1114,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (layer_height > min_nozzle_diameter)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
 
+            for (auto range : object->m_model_object->layer_config_ranges) {
+                double range_layer_height = range.second.opt_float("layer_height");
+                if (range_layer_height > object->m_slicing_params.max_layer_height ||
+                    range_layer_height < object->m_slicing_params.min_layer_height)
+                    return  { L("Layer height cannot exceed nozzle diameter"), nullptr, "layer_height" };
+            }
+
             // Validate extrusion widths.
             std::string err_msg;
             if (!validate_extrusion_width(object->config(), "line_width", layer_height, err_msg))

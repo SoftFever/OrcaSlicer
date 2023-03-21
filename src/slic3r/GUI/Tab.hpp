@@ -461,7 +461,7 @@ public:
 
 	void update_model_config();
 
-	void reset_model_config();
+	virtual void reset_model_config();
 
 	bool has_key(std::string const &key);
 
@@ -504,6 +504,17 @@ public:
 	~TabPrintPart() {}
 protected:
 	virtual void    notify_changed(ObjectBase * object) override;
+};
+
+class TabPrintLayer : public TabPrintModel
+{
+public:
+	//BBS: GUI refactor
+	TabPrintLayer(ParamsPanel* parent);
+	~TabPrintLayer() {}
+protected:
+	virtual void    notify_changed(ObjectBase* object) override;
+	virtual void    update_custom_dirty() override;
 };
 
 class TabFilament : public Tab

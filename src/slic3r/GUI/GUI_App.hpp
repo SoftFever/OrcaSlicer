@@ -66,6 +66,7 @@ class MainFrame;
 class Sidebar;
 class ObjectSettings;
 class ObjectList;
+class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
@@ -455,6 +456,7 @@ public:
 
     Tab*            get_tab(Preset::Type type);
     Tab*            get_model_tab(bool part = false);
+    Tab*            get_layer_tab();
     ConfigOptionMode get_mode();
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
@@ -502,6 +504,7 @@ public:
     Sidebar&             sidebar();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
+    ObjectLayers*        obj_layers();
     Plater*              plater();
     const Plater*        plater() const;
     ParamsPanel*         params_panel();

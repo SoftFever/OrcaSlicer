@@ -1207,7 +1207,7 @@ void ObjectDataViewModel::DeleteSettings(const wxDataViewItem& parent)
     node->set_action_icon(false);
     ItemChanged(parent);
 #else
-     if volume has a "settings"item, than delete it before volume deleting
+    // if volume has a "settings"item, than delete it before volume deleting
     if (node->GetChildCount() > 0 && node->GetNthChild(0)->GetType() == itSettings) {
         auto settings_node = node->GetNthChild(0);
         auto settings_item = wxDataViewItem(settings_node);
@@ -2208,8 +2208,10 @@ void ObjectDataViewModel::Rescale()
             break;
         case itLayerRoot:
             node->m_bmp = create_scaled_bitmap(LayerRootIcon);
+            break;
         case itLayer:
             node->m_bmp = create_scaled_bitmap(LayerIcon);
+            break;
         case itInfo:
             node->m_bmp = m_info_bmps.at(node->m_info_item_type);
             break;

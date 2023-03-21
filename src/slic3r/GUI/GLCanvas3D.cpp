@@ -4760,6 +4760,7 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
 void GLCanvas3D::handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type)
 {
     std::string field = "layer_" + std::to_string(type) + "_" + std::to_string(range.first) + "_" + std::to_string(range.second);
+    m_gizmos.reset_all_states();
     handle_sidebar_focus_event(field, true);
 }
 
@@ -8063,8 +8064,7 @@ void GLCanvas3D::_render_sla_slices()
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
-    //BBS do not render sidebar hints
-    //m_selection.render_sidebar_hints(m_sidebar_field, m_gizmos.get_uniform_scaling());
+    m_selection.render_sidebar_hints(m_sidebar_field, m_gizmos.get_uniform_scaling());
 }
 
 void GLCanvas3D::_update_volumes_hover_state()

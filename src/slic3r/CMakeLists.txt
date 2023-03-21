@@ -195,6 +195,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Factories.hpp
     GUI/GUI_ObjectList.cpp
     GUI/GUI_ObjectList.hpp
+    GUI/GUI_ObjectLayers.cpp
+    GUI/GUI_ObjectLayers.hpp
     GUI/GUI_AuxiliaryList.cpp
     GUI/GUI_AuxiliaryList.hpp
     GUI/GUI_ObjectSettings.cpp

@@ -2283,8 +2283,9 @@ void TabPrintModel::reset_model_config()
     wxGetApp().plater()->take_snapshot(std::string("Reset Options"));
     for (auto config : m_object_configs) {
         auto rmkeys = intersect(m_keys, config.second->keys());
-        for (auto & k : rmkeys)
+        for (auto& k : rmkeys) {
             config.second->erase(k);
+        }
         notify_changed(config.first);
     }
     update_model_config();
@@ -2403,6 +2404,44 @@ void TabPrintPart::notify_changed(ObjectBase * object)
 {
     auto vol = dynamic_cast<ModelVolume*>(object);
     wxGetApp().obj_list()->object_config_options_changed({vol->get_object(), vol});
+}
+
+static std::string layer_height = "layer_height";
+TabPrintLayer::TabPrintLayer(ParamsPanel* parent) :
+    TabPrintModel(parent, concat({ layer_height }, PrintRegionConfig().keys()))
+{
+    m_parent_tab = wxGetApp().get_model_tab();
+}
+
+void TabPrintLayer::notify_changed(ObjectBase * object)
+{
+    for (auto config : m_object_configs) {
+        if (!config.second->has(layer_height)) {
+            auto option = m_parent_tab->get_config()->option(layer_height);
+            config.second->set_key_value(layer_height, option->clone());
+        }
+        auto objects_list = wxGetApp().obj_list();
+        wxDataViewItemArray items;
+        objects_list->GetSelections(items);
+        for (auto item : items)
+            objects_list->add_settings_item(item, &config.second->get());
+    }
+}
+
+void TabPrintLayer::update_custom_dirty()
+{
+    for (auto k : m_null_keys) m_options_list[k] = 0;
+    for (auto k : m_all_keys) m_options_list[k] &= ~osSystemValue;
+
+    auto option = m_parent_tab->get_config()->option(layer_height);
+    for (auto config : m_object_configs) {
+        if (!config.second->has(layer_height)) {
+            config.second->set_key_value(layer_height, option->clone());
+            m_options_list[layer_height] = osInitValue | osSystemValue;
+        }
+        else if (config.second->opt_float(layer_height) == option->getFloat())
+            m_options_list[layer_height] = osInitValue | osSystemValue;
+    }
 }
 
 bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)

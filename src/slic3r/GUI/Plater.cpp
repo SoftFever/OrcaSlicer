@@ -325,6 +325,7 @@ struct Sidebar::priv
 
     ObjectList          *m_object_list{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
+    ObjectLayers        *object_layers{ nullptr };
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
@@ -924,6 +925,10 @@ Sidebar::Sidebar(Plater *parent)
 #endif
     }
 
+    p->object_layers = new ObjectLayers(p->scrolled);
+    p->object_layers->Hide();
+    p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, 0);
+
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
     SetSizer(sizer);
@@ -1456,6 +1461,11 @@ ObjectList* Sidebar::obj_list()
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
+}
+
+ObjectLayers* Sidebar::obj_layers()
+{
+    return p->object_layers;
 }
 
 wxPanel* Sidebar::scrolled_panel()

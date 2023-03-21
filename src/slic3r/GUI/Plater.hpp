@@ -63,6 +63,7 @@ namespace GUI {
 class MainFrame;
 class ConfigOptionsGroup;
 class ObjectSettings;
+class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
@@ -128,6 +129,7 @@ public:
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
+    ObjectLayers*           obj_layers();
     wxPanel*                scrolled_panel();
     wxPanel* print_panel();
     wxPanel* filament_panel();

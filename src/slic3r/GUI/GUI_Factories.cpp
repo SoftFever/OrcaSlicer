@@ -18,6 +18,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
+#include "ParamsPanel.hpp"
 
 namespace Slic3r
 {
@@ -200,7 +201,7 @@ std::map<std::string, std::vector<SimpleSettingData>> SettingsFactory::get_all_v
 }
 
 
-SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* config, bool is_object_settings)
+SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* config, bool is_object_settings, bool is_layer_settings/* = false*/)
 {
     auto opt_keys = config->keys();
     if (opt_keys.empty())
@@ -208,6 +209,8 @@ SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* co
 
     // update options list according to print technology
     auto full_current_opts = get_options(!is_object_settings);
+    if (is_layer_settings)
+        full_current_opts.push_back("layer_height");
     for (int i = opt_keys.size() - 1; i >= 0; --i)
         if (find(full_current_opts.begin(), full_current_opts.end(), opt_keys[i]) == full_current_opts.end())
             opt_keys.erase(opt_keys.begin() + i);
@@ -506,6 +509,15 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
         append_submenu(menu, sub_menu, wxID_ANY, _(item.first), "", item.second,
             []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
     }
+
+    append_menu_item_layers_editing(menu);
+}
+
+wxMenuItem* MenuFactory::append_menu_item_layers_editing(wxMenu* menu)
+{
+    return append_menu_item(menu, wxID_ANY, _L("Height range Modifier"), "",
+        [](wxCommandEvent&) { obj_list()->layers_editing(); wxGetApp().params_panel()->switch_to_object(); }, "", menu,
+        []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
 }
 
 wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
@@ -549,7 +561,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
 
     if (printer_technology() == ptFFF ||
         (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
-        menu->SetFirstSeparator();
+        ;// menu->SetFirstSeparator();
 
     // detect itemm for adding of the setting
     ObjectList* object_list = obj_list();
@@ -573,7 +585,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
     // BBS remvoe freq setting popupmenu
     // create_freq_settings_popupmenu(menu, is_object_settings, item);
 
-    menu->SetSecondSeparator();
+    //menu->SetSecondSeparator();
 
     // Add full settings list
     auto  menu_item = new wxMenuItem(menu, wxID_ANY, menu_name);

@@ -1093,6 +1093,7 @@ void MainFrame::create_preset_tabs()
     add_created_tab(new TabPrint(m_param_panel), "cog");
     add_created_tab(new TabPrintObject(m_param_panel), "cog");
     add_created_tab(new TabPrintPart(m_param_panel), "cog");
+    add_created_tab(new TabPrintLayer(m_param_panel), "cog");
     add_created_tab(new TabFilament(m_param_dialog->panel()), "spool");
     /* BBS work around to avoid appearance bug */
     //add_created_tab(new TabSLAPrint(m_param_panel));

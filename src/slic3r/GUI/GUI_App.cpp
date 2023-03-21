@@ -4908,6 +4908,11 @@ Tab* GUI_App::get_model_tab(bool part)
     return model_tabs_list[part ? 1 : 0];
 }
 
+Tab* GUI_App::get_layer_tab()
+{
+    return model_tabs_list[2];
+}
+
 ConfigOptionMode GUI_App::get_mode()
 {
     if (!app_config->has("user_mode"))
@@ -5602,6 +5607,11 @@ ObjectSettings* GUI_App::obj_settings()
 ObjectList* GUI_App::obj_list()
 {
     return sidebar().obj_list();
+}
+
+ObjectLayers* GUI_App::obj_layers()
+{
+    return sidebar().obj_layers();
 }
 
 Plater* GUI_App::plater()
