@@ -95,7 +95,7 @@ std::vector<std::string> init_occt_fonts()
     return stdFontNames;
 }
 
-static bool TextToBRep(const char* text, const char* font, const float theTextHeight, Font_FontAspect& theFontAspect, TopoDS_Shape& theShape)
+static bool TextToBRep(const char* text, const char* font, const float theTextHeight, Font_FontAspect& theFontAspect, TopoDS_Shape& theShape, double& text_width)
 {
     Standard_Integer anArgIt = 1;
     Standard_CString aName = "text_shape";
@@ -122,8 +122,24 @@ static bool TextToBRep(const char* text, const char* font, const float theTextHe
 
     aPenAx3 = gp_Ax3(aPenLoc, aNormal, aDirection);
 
+    Handle(Font_TextFormatter) aFormatter = new Font_TextFormatter();
+    aFormatter->Reset();
+    aFormatter->SetupAlignment(aHJustification, aVJustification);
+    aFormatter->Append(aText, *aFont.FTFont());
+    aFormatter->Format();
+
+    // get the text width
+    text_width                  = 0;
+    NCollection_String coll_str = aText;
+    for (NCollection_Utf8Iter anIter = coll_str.Iterator(); *anIter != 0;) {
+        const Standard_Utf32Char aCharThis = *anIter;
+        const Standard_Utf32Char aCharNext = *++anIter;
+        double                   width     = aFont.AdvanceX(aCharThis, aCharNext);
+        text_width += width;
+    }
+
     Font_BRepTextBuilder aBuilder;
-    theShape = aBuilder.Perform(aFont, aText, aPenAx3, aHJustification, aVJustification);
+    theShape = aBuilder.Perform(aFont, aFormatter, aPenAx3);
     return true;
 }
 
@@ -221,7 +237,7 @@ static void MakeMesh(TopoDS_Shape& theSolid, TriangleMesh& theMesh)
     theMesh.from_stl(stl);
 }
 
-void load_text_shape(const char*text, const char* font, const float text_height, const float thickness, bool is_bold, bool is_italic, TriangleMesh& text_mesh)
+void load_text_shape(const char*text, const char* font, const float text_height, const float thickness, bool is_bold, bool is_italic, TextResult &text_result)
 {
     Handle(Font_FontMgr) aFontMgr = Font_FontMgr::GetInstance();
     if (aFontMgr->GetAvailableFonts().IsEmpty())
@@ -238,14 +254,14 @@ void load_text_shape(const char*text, const char* font, const float text_height,
     else
         aFontAspect = Font_FontAspect_Regular;
 
-    if (!TextToBRep(text, font, text_height, aFontAspect, aTextBase))
+    if (!TextToBRep(text, font, text_height, aFontAspect, aTextBase, text_result.text_width))
         return;
 
     TopoDS_Shape aTextShape;
     if (!Prism(aTextBase, thickness, aTextShape))
         return;
 
-    MakeMesh(aTextShape, text_mesh);
+    MakeMesh(aTextShape, text_result.text_mesh);
 }
 
 }; // namespace Slic3r

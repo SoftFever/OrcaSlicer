@@ -934,10 +934,9 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
         } else {
             alpha = texts[i];
         }
-        TriangleMesh mesh;
-        load_text_shape(alpha.c_str(), m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, mesh);
-        auto   center      = mesh.bounding_box().center();
-        double half_x_length = center.x();
+        TextResult text_result;
+        load_text_shape(alpha.c_str(), m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, text_result);
+        double half_x_length = text_result.text_width / 2;
         text_lengths.emplace_back(half_x_length);
     }
 
@@ -1356,13 +1355,13 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
 TriangleMesh GLGizmoText::get_text_mesh(const char* text_str, const Vec3d &position, const Vec3d &normal, const Vec3d& text_up_dir)
 {
-    TriangleMesh mesh;
-    load_text_shape(text_str, m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, mesh);
+    TextResult   text_result;
+    load_text_shape(text_str, m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, text_result);
+    TriangleMesh mesh = text_result.text_mesh;
 
     auto   center      = mesh.bounding_box().center();
     double mesh_offset = center.z();
-
-    mesh.translate(-center.x(), -m_font_size / 4, -center.z());
+    mesh.translate(-text_result.text_width / 2, -m_font_size / 4, -center.z());
 
     double   phi;
     Vec3d    rotation_axis;
