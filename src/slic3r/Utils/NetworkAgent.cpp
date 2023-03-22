@@ -1144,6 +1144,7 @@ int NetworkAgent::get_my_profile(std::string token, unsigned int *http_code, std
 
 int NetworkAgent::track_enable(bool enable)
 {
+    enable_track = enable;
     int ret = 0;
     if (network_agent && track_enable_ptr) {
         ret = track_enable_ptr(network_agent, enable);
@@ -1155,6 +1156,9 @@ int NetworkAgent::track_enable(bool enable)
 
 int NetworkAgent::track_event(std::string evt_key, std::string content)
 {
+    if (!this->enable_track)
+        return 0;
+
     int ret = 0;
     if (network_agent && track_event_ptr) {
         ret = track_event_ptr(network_agent, evt_key, content);

@@ -3954,6 +3954,7 @@ void GUI_App::check_track_enable()
         wxString os_desc = wxGetOsDescription();
         int major = 0, minor = 0, micro = 0;
         header_json["os"] = std::string(os_desc.ToUTF8());
+        header_json["name"] = std::string(SLIC3R_APP_NAME);
         if (m_agent) {
             m_agent->track_header(header_json.dump());
             m_agent->track_enable(true);

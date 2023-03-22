@@ -170,9 +170,8 @@ public:
     int track_event(std::string evt_key, std::string content);
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
-
 private:
-
+    bool enable_track = false;
     void*                   network_agent { nullptr };
 
     static func_check_debug_consistent         check_debug_consistent_ptr;
