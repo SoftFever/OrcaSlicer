@@ -26,6 +26,17 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>bambustudioopen url</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>bambustudioopen</string>
+      </array>
+    </dict>
+  </array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
