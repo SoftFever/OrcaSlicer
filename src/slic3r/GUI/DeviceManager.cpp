@@ -1393,6 +1393,14 @@ void MachineObject::parse_version_func()
     }
 }
 
+bool MachineObject::is_studio_cmd(int sequence_id)
+{
+    if (sequence_id >= START_SEQ_ID && sequence_id < END_SEQ_ID) {
+        return true;
+    }
+    return false;
+}
+
 int MachineObject::command_get_version(bool with_retry)
 {
     BOOST_LOG_TRIVIAL(info) << "command_get_version";
@@ -2355,6 +2363,16 @@ int MachineObject::parse_json(std::string payload)
 
         if (j.contains("print")) {
             json jj = j["print"];
+            int sequence_id = 0;
+            if (jj.contains("sequence_id")) {
+                std::string str_seq = jj["sequence_id"].get<std::string>();
+                try {
+                    sequence_id = stoi(str_seq);
+                }
+                catch(...) {
+                    ;
+                }
+            }
             if (jj.contains("command")) {
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
@@ -3298,9 +3316,23 @@ int MachineObject::parse_json(std::string payload)
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of gcode_line = " << j.dump(4);
+                    if (m_agent && is_studio_cmd(sequence_id)) {
+                        json t;
+                        t["dev_id"] = this->dev_id;
+                        t["signal"] = this->wifi_signal;
+                        m_agent->track_event("ack_cmd_gcode_line", t.dump());
+                    }
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
+
+                    if (m_agent && is_studio_cmd(sequence_id)) {
+                        json t;
+                        t["dev_id"] = this->dev_id;
+                        t["signal"] = this->wifi_signal;
+                        m_agent->track_event("ack_cmd_project_file", t.dump());
+                    }
+
                     std::string result;
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();
@@ -3558,8 +3590,13 @@ int MachineObject::publish_gcode(std::string gcode_str)
     j["print"]["param"] = gcode_str;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    if (m_agent)
+    if (m_agent) {
         j["print"]["user_id"] = m_agent->get_user_id();
+        json t;
+        t["dev_id"] = this->dev_id;
+        t["signal"] = this->wifi_signal;
+        m_agent->track_event("cmd_gcode_line", t.dump());
+    }
     return publish_json(j.dump());
 }
 

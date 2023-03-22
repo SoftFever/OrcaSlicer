@@ -33,6 +33,8 @@
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
 #define VIRTUAL_TRAY_ID         254
+#define START_SEQ_ID            20000
+#define END_SEQ_ID              30000
 
 inline int correct_filament_temperature(int filament_temp)
 {
@@ -389,7 +391,7 @@ public:
     };
 
     /* static members and functions */
-    static inline int m_sequence_id = 20000;
+    static inline int m_sequence_id = START_SEQ_ID;
     static std::string parse_printer_type(std::string type_str);
     static std::string get_preset_printer_model_name(std::string printer_type);
     static std::string get_preset_printer_thumbnail_img(std::string printer_type);
@@ -684,6 +686,7 @@ public:
     ~MachineObject();
 
     void parse_version_func();
+    bool is_studio_cmd(int seq);
     /* command commands */
     int command_get_version(bool with_retry = true);
     int command_request_push_all();
