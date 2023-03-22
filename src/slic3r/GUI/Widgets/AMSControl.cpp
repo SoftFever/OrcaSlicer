@@ -716,12 +716,23 @@ void AMSLib::render(wxDC &dc)
             dc.DrawText(L("?"), pot);
         } else {
             auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
+            std::vector<std::string> split_char_arr = {" ", "-"};
+            bool has_split = false;
+            std::string has_split_char = " ";
 
-            if (m_info.material_name.find(' ') != std::string::npos) {
+            for (std::string split_char : split_char_arr) {
+                if (m_info.material_name.find(split_char) != std::string::npos) {
+                    has_split = true;
+                    has_split_char = split_char;
+                }
+            }
+
+
+            if (has_split) {
                 dc.SetFont(::Label::Body_12);
 
-                auto line_top    = m_info.material_name.substr(0, m_info.material_name.find(' '));
-                auto line_bottom = m_info.material_name.substr(m_info.material_name.find(' '));
+                auto line_top    = m_info.material_name.substr(0, m_info.material_name.find(has_split_char));
+                auto line_bottom = m_info.material_name.substr(m_info.material_name.find(has_split_char));
 
                 auto line_top_tsize    = dc.GetMultiLineTextExtent(line_top);
                 auto line_bottom_tsize = dc.GetMultiLineTextExtent(line_bottom);
