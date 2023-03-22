@@ -1379,10 +1379,18 @@ void MachineObject::parse_version_func()
                 is_support_ai_monitoring                = true;
                 is_support_ams_humidity                 = true;
             }
-            local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+            if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+                local_use_ssl = false;
+            else {
+                local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+            }
         }
     } else if (printer_type == "C11") {
-        local_use_ssl = true;
+        if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+            local_use_ssl = false;
+        else {
+            local_use_ssl = true;
+        }
         is_cloud_print_only = true;
         if (ota_version != module_vers.end()) {
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
