@@ -861,7 +861,7 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 8 * scale, 1 * scale });
 		ImGui::BeginTooltip();
-		imgui.text(_u8L("Safely remove hardware."));
+		imgui.text(_L("Safely remove hardware."));
 		ImGui::EndTooltip();
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar();

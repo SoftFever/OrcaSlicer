@@ -854,8 +854,8 @@ UpgradePanel::~UpgradePanel()
 
 void UpgradePanel::msw_rescale() 
 { 
-    /*if (m_push_upgrade_panel)
-        m_push_upgrade_panel->msw_rescale();*/
+    if (m_push_upgrade_panel)
+        m_push_upgrade_panel->msw_rescale();
 }
 
 void UpgradePanel::clean_push_upgrade_panel()
@@ -907,7 +907,7 @@ void UpgradePanel::update(MachineObject *obj)
                 force_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                     if (m_obj) {
                         m_obj->command_upgrade_confirm();
-                        m_obj->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress;
+                        m_obj->upgrade_display_state = MachineObject::UpgradingDisplayState::UpgradingInProgress;
                         m_obj->upgrade_display_hold_count = HOLD_COUNT_MAX;
                     }
                 });

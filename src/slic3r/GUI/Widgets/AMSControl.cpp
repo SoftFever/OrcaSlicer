@@ -2768,8 +2768,11 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (notfound) return;
     if (cans == nullptr) return;
 
-    if (!ams_id.empty() && !canid.empty() && (ams_id != m_last_ams_id || m_last_tray_id != canid)) {
+    if (!ams_id.empty() && (ams_id != m_last_ams_id || m_last_tray_id != canid)) {
         SetAmsStep(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        m_vams_extra_road->OnVamsLoading(false);
+        m_extruder->OnVamsLoading(false);
+        m_vams_road->OnVamsLoading(false);
     }
 
 
