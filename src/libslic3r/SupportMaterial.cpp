@@ -614,6 +614,29 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     layers_append(layers_sorted, base_interface_layers);
     // Sort the layers lexicographically by a raising print_z and a decreasing height.
     std::sort(layers_sorted.begin(), layers_sorted.end(), [](auto *l1, auto *l2) { return *l1 < *l2; });
+
+    // BBS: MusangKing - erase mini layer heights (< 0.08mm) arised by top/bottom_z_distance & top_contacts under variable layer height
+    if (this->synchronize_layers() && !object.slicing_parameters().soluble_interface) {
+        auto thres = m_support_params.support_layer_height_min - EPSILON;
+        for (size_t i = 1; i < layers_sorted.size() - 1; ++i) {
+            auto& lowr = layers_sorted[i - 1];
+            auto& curr = layers_sorted[i];
+            auto& higr = layers_sorted[i + 1];
+            // "Rounding" suspicious top/bottom contacts
+            if (curr->layer_type == sltTopContact || curr->layer_type == sltBottomContact) {
+                // Check adjacent-layer print_z diffs
+                coordf_t height_low = curr->print_z - lowr->print_z;
+                coordf_t height_high = higr->print_z - curr->print_z;
+                if (height_low < thres || height_high < thres) {
+                    // Mark to-be-deleted layer as Unknown type
+                    curr->layer_type = sltUnknown;
+                }
+            }
+        }
+        // Retains the order
+        layers_sorted.erase(std::remove_if(layers_sorted.begin(), layers_sorted.end(), [](MyLayer* l) {return l->layer_type == sltUnknown; }), layers_sorted.end());
+    }
+
     int layer_id = 0;
     int layer_id_interface = 0;
     assert(object.support_layers().empty());
@@ -693,6 +716,18 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
                 ++layer_id;
             }
             i = j;
+        }
+    }
+#endif /* SLIC3R_DEBUG */
+
+#if 0 // #ifdef SLIC3R_DEBUG
+    // check bounds
+    std::ofstream out;
+    out.open("./SVG/ns_support_layers.txt");
+    if (out.is_open()) {
+        out << "### Support Layers ###" << std::endl;
+        for (auto& i : object.support_layers()) {
+            out << i->print_z << std::endl;
         }
     }
 #endif /* SLIC3R_DEBUG */
@@ -1801,7 +1836,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
     } else {
         print_z  = layer.bottom_z() - slicing_params.gap_support_object;
-        height   = print_config.independent_support_layer_height ? 0. : object_config.layer_height;
+        height   = print_config.independent_support_layer_height ? 0. : layer.lower_layer->height/*object_config.layer_height*/; // BBS: need to consider adaptive layer heights
         bottom_z = print_z - height;
         // Ignore this contact area if it's too low.
         // Don't want to print a layer below the first layer height as it may not stick well.
@@ -3065,6 +3100,36 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
         assert(top_contacts[i]->height > 0.);
 #endif /* _DEBUG */
 
+#if 0 // #ifdef SLIC3R_DEBUG
+    // check bounds
+    std::ofstream out;
+    out.open("./SVG/ns_bounds.txt");
+    if (out.is_open()) {
+        if (!top_contacts.empty()) {
+            out << "### Top Contacts ###" << std::endl;
+            for (auto& t : top_contacts) {
+                out << t->print_z << std::endl;
+            }
+        }
+        if (!bottom_contacts.empty()) {
+            out << "### Bottome Contacts ###" << std::endl;
+            for (auto& b : bottom_contacts) {
+                out << b->print_z << std::endl;
+            }
+        }
+        if (!intermediate_layers.empty()) {
+            out << "### Intermediate Layers ###" << std::endl;
+            for (auto& i : intermediate_layers) {
+                out << i->print_z << std::endl;
+            }
+        }
+        out << "### Slice Layers ###" << std::endl;
+        for (size_t j = 0; j < object.layers().size(); ++j) {
+            out << object.layers()[j]->print_z << std::endl;
+        }
+    }
+#endif /* SLIC3R_DEBUG */
+    
     return intermediate_layers;
 }
 
