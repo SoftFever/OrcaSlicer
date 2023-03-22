@@ -63,7 +63,7 @@ Points SinglePathProvider::s_end;
 // Clip source polygon to be used as a clipping polygon with a bouding box around the source (to be clipped) polygon.
 // Useful as an optimization for expensive ClipperLib operations, for example when clipping source polygons one by one
 // with a set of polygons covering the whole layer below.
-template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox, std::vector<PointType> &out)
+template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox, std::vector<PointType> &out, const bool get_entire_polygons=false)
 {
     out.clear();
     const size_t cnt = src.size();
@@ -97,16 +97,21 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
 
     // Never produce just a single point output polygon.
     if (!out.empty())
-        if (int sides_next = sides(out.front());
+        if(get_entire_polygons){
+            out=src;
+        }else{
+            if (int sides_next = sides(out.front());
             // The last point is inside. Take it.
             sides_this == 0 ||
             // Either this point is outside and previous or next is inside, or
             // the edge possibly cuts corner of the bounding box.
             (sides_prev & sides_this & sides_next) == 0)
             out.emplace_back(src.back());
+        }
+
 }
 
-    void clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox, Points &out) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out); }
+void clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox, Points &out, const bool get_entire_polygons) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out, get_entire_polygons); }
 void clip_clipper_polygon_with_subject_bbox(const ZPoints &src, const BoundingBox &bbox, ZPoints &out) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out); }
 
 template<typename PointType> [[nodiscard]] std::vector<PointType> clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox)
@@ -123,10 +128,10 @@ void clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBo
     clip_clipper_polygon_with_subject_bbox(src.points, bbox, out.points);
 }
 
-[[nodiscard]] Polygon clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBox &bbox)
+[[nodiscard]] Polygon clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBox &bbox, const bool get_entire_polygons)
 {
     Polygon out;
-    clip_clipper_polygon_with_subject_bbox(src.points, bbox, out.points);
+    clip_clipper_polygon_with_subject_bbox(src.points, bbox, out.points, get_entire_polygons);
     return out;
 }
 
@@ -138,21 +143,21 @@ void clip_clipper_polygon_with_subject_bbox(const Polygon &src, const BoundingBo
     out.erase(std::remove_if(out.begin(), out.end(), [](const Polygon &polygon) { return polygon.empty(); }), out.end());
     return out;
 }
-[[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygon &src, const BoundingBox &bbox)
+[[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygon &src, const BoundingBox &bbox, const bool get_entire_polygons)
 {
     Polygons out;
     out.reserve(src.num_contours());
-    out.emplace_back(clip_clipper_polygon_with_subject_bbox(src.contour, bbox));
-    for (const Polygon &p : src.holes) out.emplace_back(clip_clipper_polygon_with_subject_bbox(p, bbox));
+    out.emplace_back(clip_clipper_polygon_with_subject_bbox(src.contour, bbox, get_entire_polygons));
+    for (const Polygon &p : src.holes) out.emplace_back(clip_clipper_polygon_with_subject_bbox(p, bbox, get_entire_polygons));
     out.erase(std::remove_if(out.begin(), out.end(), [](const Polygon &polygon) { return polygon.empty(); }), out.end());
     return out;
 }
-[[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygons &src, const BoundingBox &bbox)
+[[nodiscard]] Polygons clip_clipper_polygons_with_subject_bbox(const ExPolygons &src, const BoundingBox &bbox, const bool get_entire_polygons)
 {
     Polygons out;
     out.reserve(number_polygons(src));
     for (const ExPolygon &p : src) {
-        Polygons temp = clip_clipper_polygons_with_subject_bbox(p, bbox);
+        Polygons temp = clip_clipper_polygons_with_subject_bbox(p, bbox, get_entire_polygons);
         out.insert(out.end(), temp.begin(), temp.end());
     }
 
