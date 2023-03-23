@@ -284,6 +284,10 @@ void AppConfig::set_defaults()
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }
+    
+    if (get("max_recent_count").empty()) {
+        set("max_recent_count", "18");
+    }
 
     if (get("staff_pick_switch").empty()) {
         set_bool("staff_pick_switch", true);

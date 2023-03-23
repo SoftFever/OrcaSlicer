@@ -178,6 +178,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     wxGetApp().app_config->set_bool("dump_video", false);
 
+    wxString max_recent_count_str = wxGetApp().app_config->get("max_recent_count");
+    long max_recent_count = 18;
+    if (max_recent_count_str.ToLong(&max_recent_count))
+        set_max_recent_count((int)max_recent_count);
 
     //reset log level
     auto loglevel = wxGetApp().app_config->get("severity_level");
@@ -2498,6 +2502,23 @@ void MainFrame::show_publish_button(bool show)
     }
 }
 
+void MainFrame::set_max_recent_count(int max)
+{
+    max = max < 0 ? 0 : max > 10000 ? 10000 : max;
+    size_t count = m_recent_projects.GetCount();
+    m_recent_projects.SetMaxFiles(max);
+    if (count != m_recent_projects.GetCount()) {
+        count = m_recent_projects.GetCount();
+        std::vector<std::string> recent_projects;
+        for (size_t i = 0; i < count; ++i) {
+            recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+        }
+        wxGetApp().app_config->set_recent_projects(recent_projects);
+        wxGetApp().app_config->save();
+        m_webview->SendRecentList("");
+    }
+}
+
 void MainFrame::open_menubar_item(const wxString& menu_name,const wxString& item_name)
 {
     if (m_menubar == nullptr)
@@ -3005,6 +3026,14 @@ void MainFrame::FileHistory::LoadThumbnails()
         }
     });
     m_load_called = true;
+}
+
+inline void MainFrame::FileHistory::SetMaxFiles(int max)
+{
+    m_fileMaxFiles  = max;
+    size_t numFiles = m_fileHistory.size();
+    while (numFiles > m_fileMaxFiles)
+        RemoveFileFromHistory(--numFiles);
 }
 
 void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)

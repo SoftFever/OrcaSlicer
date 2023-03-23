@@ -154,6 +154,8 @@ class MainFrame : public DPIFrame
         size_t FindFileInHistory(const wxString &file);
 
         void LoadThumbnails();
+
+        void SetMaxFiles(int max);
     private:
         std::deque<std::string> m_thumbnails;
         bool m_load_called = false;
@@ -243,6 +245,7 @@ public:
 
     void        update_title();
     void        show_publish_button(bool show);
+    void        set_max_recent_count(int max);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);

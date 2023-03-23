@@ -378,6 +378,51 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
     return m_sizer_tcombox;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    auto        input_title   = new wxStaticText(parent, wxID_ANY, title);
+    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetFont(::Label::Body_13);
+    input_title->SetToolTip(tooltip);
+    input_title->Wrap(-1);
+
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    input->GetTextCtrl()->SetValue(app_config->get(param));
+
+    auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    second_title->SetFont(::Label::Body_13);
+    second_title->SetToolTip(tooltip);
+    second_title->Wrap(-1);
+
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
+    sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 3);
+    sizer_input->Add(second_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input, onchange](wxCommandEvent &e) {
+        auto value = input->GetTextCtrl()->GetValue();
+        app_config->set(param, std::string(value.mb_str()));
+        app_config->save();
+        onchange(value);
+        e.Skip();
+    });
+
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input, onchange](wxFocusEvent &e) {
+        auto value = input->GetTextCtrl()->GetValue();
+        app_config->set(param, std::string(value.mb_str()));
+        app_config->save();
+        onchange(value);
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param)
 {
     wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
@@ -400,10 +445,10 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     second_title->Wrap(-1);
 
     m_sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
-    m_sizer_input->Add(input_title, 0, wxALIGN_CENTER | wxALL, 3);
-    m_sizer_input->Add(input, 0, wxALIGN_CENTER, 0);
+    m_sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
+    m_sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
     m_sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 3);
-    m_sizer_input->Add(second_title, 0, wxALIGN_CENTER| wxALL, 3);
+    m_sizer_input->Add(second_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
 
 
     input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) {
@@ -856,10 +901,15 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_modelmall = create_item_checkbox(_L("Show staff-picks"), page, _L("Show staff-picks"), 50, "staff_pick_switch");
 
 
-    auto title_backup = create_item_title(_L("Backup"), page, _L("Backup"));
-    //auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Auto-Backup"), 50, "backup_switch");
-    auto item_backup_interval = create_item_backup_input(_L("Backup interval"), page, _L("Backup interval"), "backup_interval");
+    auto title_project = create_item_title(_L("Project"), page, "");
+    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
+        long max = 0;
+        if (value.ToLong(&max))
+            wxGetApp().mainframe->set_max_recent_count(max);
+    });
+    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
+    auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
+    auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
 
     //downloads
     auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
@@ -888,9 +938,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
 
-    sizer_page->Add(title_backup, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
-    sizer_page->Add(item_backup_interval, 0, wxTOP, FromDIP(3));
+    item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
     sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
