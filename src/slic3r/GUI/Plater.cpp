@@ -7555,7 +7555,7 @@ int Plater::new_project(bool skip_confirm, bool silent)
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
                 _L("You can keep the modifield presets to the new project, discard or save changes as new presets."));
         using ab = UnsavedChangesDialog::ActionButtons;
-        int act_buttons = ab::KEEP;
+        int act_buttons = ab::KEEP | ab::REMEMBER_CHOISE;
         if (!yes_or_no)
             act_buttons |= ab::SAVE;
         return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons, &transfer_preset_changes);
@@ -8870,14 +8870,21 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
         return wxID_NO;
     }
 
-    auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
-        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
+    MessageDialog dlg(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
+        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+    dlg.show_dsa_button(_L("Remember my choice."));
+    auto choise = wxGetApp().app_config->get("save_project_choise");
+    auto result = choise.empty() ? dlg.ShowModal() : choise == "yes" ? wxID_YES : wxID_NO;
     if (result == wxID_CANCEL)
         return result;
-    else if (result == wxID_YES) {
-        result = save_project();
-        if (result == wxID_CANCEL)
-            return result;
+    else {
+        if (dlg.get_checkbox_state())
+            wxGetApp().app_config->set("save_project_choise", result == wxID_YES ? "yes" : "no");
+        if (result == wxID_YES) {
+            result = save_project();
+            if (result == wxID_CANCEL)
+                return result;
+        }
     }
 
     if (second_check && !second_check(result == wxID_YES)) return wxID_CANCEL;

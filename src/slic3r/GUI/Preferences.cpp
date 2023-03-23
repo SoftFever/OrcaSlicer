@@ -666,6 +666,40 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     return m_sizer_checkbox;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_button(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::function<void()> onclick)
+{
+    wxBoxSizer *m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    auto m_staticTextPath = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    // m_staticTextPath->SetMaxSize(wxSize(FromDIP(440), -1));
+    m_staticTextPath->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    m_staticTextPath->SetFont(::Label::Body_13);
+    m_staticTextPath->Wrap(-1);
+
+    auto m_button_download = new Button(parent, title2);
+
+    StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    m_button_download->SetBackgroundColor(abort_bg);
+    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    m_button_download->SetBorderColor(abort_bd);
+    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    m_button_download->SetTextColor(abort_text);
+    m_button_download->SetFont(Label::Body_10);
+    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
+    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
+    m_button_download->SetCornerRadius(FromDIP(12));
+
+    m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
+
+    m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    m_sizer_checkbox->Add(m_button_download, 0, wxALL, FromDIP(5));
+
+    return m_sizer_checkbox;
+}
+
 wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding_left, std::string param)
 {
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
@@ -881,8 +915,11 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
 
-    auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
+    auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
+    auto item_save_presets = create_item_button(_L("Clear my choice on the unsaved presets."), _L("Clear"), page, _L("Clear my choice on the unsaved presets."), []() {
+        wxGetApp().app_config->set("save_preset_choise", "");
+    });
 
 #ifdef _WIN32
     auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
@@ -907,6 +944,9 @@ wxWindow* PreferencesDialog::create_general_page()
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
+    auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, _L("Clear my choice on the unsaved projects."), []() {
+        wxGetApp().app_config->set("save_project_choise", "");
+    });
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
     auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
     auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
@@ -927,8 +967,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(title_sync_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_save_presets, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
     sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
@@ -940,6 +981,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 

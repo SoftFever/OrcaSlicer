@@ -1394,6 +1394,8 @@ std::string GUI_App::get_plugin_url(std::string name, std::string country_code)
 
     std::string curr_version = SLIC3R_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
+    if (name == "cameratools")
+        using_version = curr_version.substr(0, 6) + "00.00";
     url += (boost::format("?slicer/%1%/cloud=%2%") % name % using_version).str();
     //url += (boost::format("?slicer/plugins/cloud=%1%") % "01.01.00.00").str();
     return url;
@@ -5246,6 +5248,8 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
         int act_buttons = UnsavedChangesDialog::ActionButtons::SAVE;
         if (dont_save_insted_of_discard)
             act_buttons |= UnsavedChangesDialog::ActionButtons::DONT_SAVE;
+        if (remember_choice)
+            act_buttons |= UnsavedChangesDialog::ActionButtons::REMEMBER_CHOISE;
         UnsavedChangesDialog dlg(caption, header, "", act_buttons);
         if (dlg.ShowModal() == wxID_CANCEL)
             return false;

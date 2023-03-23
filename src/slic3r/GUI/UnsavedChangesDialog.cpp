@@ -27,6 +27,7 @@
 #include "BitmapCache.hpp"
 #include "PresetComboBoxes.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/CheckBox.hpp"
 
 using boost::optional;
 
@@ -818,6 +819,22 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
 }
 
 
+inline int UnsavedChangesDialog::ShowModal()
+{
+    auto choise_key = "save_preset_choise"; 
+    auto choise     = wxGetApp().app_config->get(choise_key);
+    long result = 0;
+    if ((m_buttons & REMEMBER_CHOISE) && !choise.empty() && wxString(choise).ToLong(&result) && (1 << result) & (m_buttons | DONT_SAVE)) {
+        m_exit_action = Action(result);
+        return 0;
+    }
+    int r = wxDialog::ShowModal();
+    if (r != wxID_CANCEL && dynamic_cast<::CheckBox*>(FindWindowById(wxID_APPLY))->GetValue()) {
+        wxGetApp().app_config->set(choise_key, std::to_string(int(m_exit_action)));
+    }
+    return r;
+}
+
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, const wxString &header)
 {
     SetBackgroundColour(*wxWHITE);
@@ -934,6 +951,17 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
      m_sizer_main->Add(m_info_line, 0, wxLEFT | wxRIGHT, 20);*/
 
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
+
+    auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto checkbox       = new ::CheckBox(this, wxID_APPLY);
+    checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+
+    auto checkbox_text = new wxStaticText(this, wxID_ANY, _L("Remember my choice."), wxDefaultPosition, wxDefaultSize, 0);
+    checkbox_sizer->Add(checkbox_text, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+    checkbox_text->SetFont(::Label::Body_13);
+    checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
+    m_sizer_button->Add(checkbox_sizer, 0, wxLEFT, FromDIP(22));
+    checkbox_sizer->Show(bool(m_buttons & REMEMBER_CHOISE));
 
     m_sizer_button->Add(0, 0, 1, 0, 0);
 

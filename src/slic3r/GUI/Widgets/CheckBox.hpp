@@ -8,7 +8,7 @@
 class CheckBox : public wxBitmapToggleButton
 {
 public:
-	CheckBox(wxWindow * parent = NULL);
+	CheckBox(wxWindow * parent, int id = wxID_ANY);
 
 public:
 	void SetValue(bool value) override;
