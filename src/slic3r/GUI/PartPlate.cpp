@@ -1256,10 +1256,14 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 
 	if (conside_custom_gcode) {
 		//BBS
-		if (m_model->plates_custom_gcodes.find(m_plate_index) != m_model->plates_custom_gcodes.end()) {
-			for (auto item : m_model->plates_custom_gcodes.at(m_plate_index).gcodes) {
-				if (item.type == CustomGCode::Type::ToolChange)
-					plate_extruders.push_back(item.extruder);
+        int nums_extruders = 0;
+        if (const ConfigOptionStrings *color_option = dynamic_cast<const ConfigOptionStrings *>(wxGetApp().preset_bundle->project_config.option("filament_colour"))) {
+            nums_extruders = color_option->values.size();
+			if (m_model->plates_custom_gcodes.find(m_plate_index) != m_model->plates_custom_gcodes.end()) {
+				for (auto item : m_model->plates_custom_gcodes.at(m_plate_index).gcodes) {
+					if (item.type == CustomGCode::Type::ToolChange && item.extruder <= nums_extruders)
+						plate_extruders.push_back(item.extruder);
+				}
 			}
 		}
 	}
