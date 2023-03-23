@@ -90,6 +90,29 @@ namespace Slic3r {
 
     struct GCodeProcessorResult
     {
+        //BBS
+        struct ConflictResult
+        {
+            bool conflicted;
+            std::string obj1Name;
+            std::string obj2Name;
+
+            void set(const std::string &o1, const std::string &o2)
+            {
+                conflicted = true;
+                obj1Name  = o1;
+                obj2Name  = o2;
+            }
+
+            void reset() {
+                conflicted = false;
+                obj1Name.clear();
+                obj2Name.clear();
+            }
+
+            ConflictResult()                       = default;
+            ConflictResult(const ConflictResult &) = default;
+        }conflict_result;
 
         struct SettingsIds
         {

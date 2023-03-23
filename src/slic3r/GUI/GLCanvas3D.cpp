@@ -2706,6 +2706,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         //BBS: always load shell at preview, do this in load_shells
         //m_gcode_viewer.update_shells_color_by_extruder(m_config);
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
+        _set_warning_notification_if_needed(EWarning::GCodeConflict);
     }
 
     m_gcode_viewer.refresh(gcode_result, str_tool_colors);
@@ -8785,7 +8786,10 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
     else {
         if (wxGetApp().is_editor()) {
             if (current_printer_technology() != ptSLA)
-                show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
+                if (warning == EWarning::ToolpathOutside)
+                    show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
+                else if (warning==EWarning::GCodeConflict)
+                    show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.conflicted;
         }
     }
 
@@ -8824,6 +8828,13 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
     switch (warning) {
+    case EWarning::GCodeConflict: {
+        std::string objName1 = m_gcode_viewer.m_conflict_result.obj1Name;
+        std::string objName2 = m_gcode_viewer.m_conflict_result.obj2Name;
+        text                 = (boost::format(L("Conflicts of gcode paths have been found. Please separate the conflicted objects farther (%s <-> %s).")) % objName1 % objName2).str();
+        error                = ErrorType::SLICING_ERROR;
+        break;
+    }
     case EWarning::ObjectOutside:      text = _u8L("An object is layed over the boundary of plate."); break;
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the boundary of plate."); error = ErrorType::SLICING_ERROR; break;
     // BBS: remove _u8L() for SLA

@@ -774,6 +774,28 @@ private:
     Vec3d   m_origin;
     //BBS: modified_count
     int     m_modified_count {0};
+    //BBS
+    struct ConflictResult
+    {
+        bool conflicted;
+        PrintObject *obj1;
+        PrintObject *obj2;
+        //TODO
+        //the actual loaction
+
+        void set(PrintObject *o1, PrintObject *o2)
+        {
+            conflicted = true;
+            obj1  = o1;
+            obj2  = o2;
+        }
+        void reset()
+        {
+            conflicted = false;
+            obj1  = nullptr;
+            obj2  = nullptr;
+        }
+    }m_conflict_result;
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;

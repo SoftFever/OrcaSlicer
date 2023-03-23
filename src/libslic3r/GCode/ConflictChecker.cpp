@@ -201,6 +201,7 @@ ConflictRet ConflictChecker::find_inter_of_lines(const LineWithIDs &lines)
 
 ConflictRet ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectPtrs objs) // find the first intersection point of lines in different objects
 {
+    if (objs.size() <= 1) { return {}; }
     LinesBucketQueue conflictQueue;
     for (PrintObject *obj : objs) {
         auto layers = getAllLayersExtrusionPathsFromObject(obj);

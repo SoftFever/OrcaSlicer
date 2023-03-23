@@ -1097,6 +1097,9 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_layers_slider->set_as_dirty();
     m_moves_slider->set_as_dirty();
 
+    //BBS
+    m_conflict_result = gcode_result.conflict_result;
+
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
     //BBS: add logs

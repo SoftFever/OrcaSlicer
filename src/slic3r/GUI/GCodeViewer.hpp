@@ -722,6 +722,9 @@ public:
         Count
     };
 
+    //BBS
+    GCodeProcessorResult::ConflictResult m_conflict_result;
+
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };

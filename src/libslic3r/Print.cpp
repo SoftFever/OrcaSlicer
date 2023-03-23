@@ -1669,20 +1669,20 @@ void Print::process(bool use_cache)
     // BBS
     if(!m_no_check)
     {
-        this->set_started(psConflictCheck);
-        this->set_status(70, L("Checking gcode path conflicts."));
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();
         auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects);
         auto            endTime     = Clock::now();
         volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
+        BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs.";
+
         if (conflictRes.has_value()) {
+            m_conflict_result.set(conflictRes.value()._obj1, conflictRes.value()._obj2);
             auto         objName1 = conflictRes.value()._obj1->m_model_object->name;
             auto         objName2 = conflictRes.value()._obj2->m_model_object->name;
-            //throw Slic3r::SlicingError((boost::format(L("Conflicts of gcode paths have been found. Please separate the conflicted objects (%s + %s) farther.")) % objName1% objName2).str());
-            this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, (boost::format(L("Conflicts of gcode paths have been found. Please separate the conflicted objects (%s <-> %s) farther.")) % objName1 % objName2).str());
+        } else {
+            m_conflict_result.reset();
         }
-         this->set_done(psConflictCheck);
     }
 
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
@@ -1713,6 +1713,12 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     const Vec3d origin = this->get_plate_origin();
     gcode.set_gcode_offset(origin(0), origin(1));
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
+    //BBS
+    if (m_conflict_result.conflicted) {
+        result->conflict_result.set(m_conflict_result.obj1->m_model_object->name, m_conflict_result.obj2->m_model_object->name);
+    } else {
+        result->conflict_result.reset();
+    }
     return path.c_str();
 }
 
