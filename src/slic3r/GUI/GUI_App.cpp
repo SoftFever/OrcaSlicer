@@ -1186,7 +1186,8 @@ void GUI_App::post_init()
             std::string http_url = get_http_url(app_config->get_country_code());
             std::string language = GUI::into_u8(current_language_code());
             std::string network_ver = Slic3r::NetworkAgent::get_version();
-            this->preset_updater->sync(http_url, language, network_ver, preset_bundle);
+            bool        sys_preset  = app_config->get("sync_system_preset") == "true";
+            this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
 
             //BBS: check new version
             this->check_new_version();

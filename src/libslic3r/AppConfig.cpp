@@ -293,6 +293,10 @@ void AppConfig::set_defaults()
         set_bool("staff_pick_switch", true);
     }
 
+    if (get("sync_system_preset").empty()) {
+        set_bool("sync_system_preset", true);
+    }
+
     if (get("backup_switch").empty()) {
         set_bool("backup_switch", true);
     }

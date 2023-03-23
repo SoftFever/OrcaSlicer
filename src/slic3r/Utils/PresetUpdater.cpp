@@ -1206,7 +1206,7 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
 	// Copy the whole vendors data for use in the background thread
 	// Unfortunatelly as of C++11, it needs to be copied again
 	// into the closure (but perhaps the compiler can elide this).
-	VendorMap vendors = preset_bundle->vendors;
+    VendorMap vendors = preset_bundle ? preset_bundle->vendors : VendorMap{};
 
 	p->thread = std::thread([this, vendors, http_url, language, plugin_version]() {
 		this->p->prune_tmps();
@@ -1215,7 +1215,8 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
 		this->p->sync_version();
 		if (p->cancel)
 			return;
-		this->p->sync_config(http_url, std::move(vendors));
+        if (!vendors.empty())
+		    this->p->sync_config(http_url, std::move(vendors));
 		if (p->cancel)
 			return;
 		this->p->sync_plugins(http_url, plugin_version);
