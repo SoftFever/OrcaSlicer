@@ -650,16 +650,17 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                     BOOST_LOG_TRIVIAL(warning) << "Preset type is unknown, not loading: " << name;
                     continue;
                 }
+                if (overwrite == 0) overwrite = 1;
                 if (auto p = collection->find_preset(name, false)) {
                     if (p->is_default || p->is_system) {
                         BOOST_LOG_TRIVIAL(warning) << "Preset already present and is system preset, not loading: " << name;
                         continue;
                     }
                     overwrite = override_confirm(name);
-                    if (overwrite == 0 || overwrite == 2) {
-                        BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
-                        continue;
-                    }
+                }
+                if (overwrite == 0 || overwrite == 2) {
+                    BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+                    continue;
                 }
 
                 DynamicPrintConfig new_config;
