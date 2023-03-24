@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-17 16:18+0800\n"
+"POT-Creation-Date: 2023-03-24 17:47+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -311,6 +311,9 @@ msgstr ""
 
 msgid "After cut"
 msgstr ""
+
+msgid "Cut to parts"
+msgstr "In delen knippen"
 
 msgid "Auto Segment"
 msgstr "Automatische segmenteren"
@@ -1880,14 +1883,14 @@ msgstr "Bed Temperatuur"
 msgid "Max volumetric speed"
 msgstr "Maximale volumetrische snelheid"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Printbed temperatuur"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -2365,11 +2368,8 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"De spiraalmodus werkt alleen als de wandlussen 1 zijn, de ondersteuning is "
-"uitgeschakeld, de bovenste lagen 0 zijn, de sparse infill 0 is en het "
-"timelapse-type traditioneel is"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2832,6 +2832,9 @@ msgstr "Object spiegelen"
 
 msgid "Tool Move"
 msgstr "Beweeg tool"
+
+msgid "Tool Rotate"
+msgstr ""
 
 msgid "Move Object"
 msgstr "Beweeg object"
@@ -3555,6 +3558,13 @@ msgstr "Niet toegankelijk in LAN-only modus!"
 
 msgid "Missing LAN ip of printer!"
 msgstr "LAN-IP van de printer ontbreekt!"
+
+#, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -6445,6 +6455,15 @@ msgstr "Printbed %d: %s ondersteunt filament %s niet."
 msgid "Generating skirt & brim"
 msgstr "Skirt en brim worden gegenereerd"
 
+msgid "Checking gcode path conflicts."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects (%s <-> %s) farther."
+msgstr ""
+
 msgid "Exporting G-code"
 msgstr "G-code exporteren"
 
@@ -7169,9 +7188,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Filament laadt tijd"
@@ -8230,6 +8246,9 @@ msgstr ""
 "niet-oplosbare support interfaces is Rechtlijnig, terwijl het "
 "standaardpatroon voor oplosbare support interfaces Concentrisch is."
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "Basis patroon afstand"
 
@@ -8693,6 +8712,12 @@ msgstr ""
 msgid "max slicing time per plate in seconds."
 msgstr ""
 
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Model informatie weergeven"
 
@@ -9123,14 +9148,26 @@ msgstr ""
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
 
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "De spiraalmodus werkt alleen als de wandlussen 1 zijn, de ondersteuning "
+#~ "is uitgeschakeld, de bovenste lagen 0 zijn, de sparse infill 0 is en het "
+#~ "timelapse-type traditioneel is"
+
 #~ msgid "Keep upper part"
 #~ msgstr "Bewaar het bovenstee deel"
 
 #~ msgid "Keep lower part"
 #~ msgstr "Bewaar het onderste deel"
-
-#~ msgid "Cut to parts"
-#~ msgstr "In delen knippen"
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "AMS automatische filament overschakelen"

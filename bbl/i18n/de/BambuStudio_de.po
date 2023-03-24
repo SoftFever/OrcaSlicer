@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-17 16:18+0800\n"
+"POT-Creation-Date: 2023-03-24 17:47+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -312,6 +312,9 @@ msgstr ""
 
 msgid "After cut"
 msgstr ""
+
+msgid "Cut to parts"
+msgstr "In Einzelteile schneiden"
 
 msgid "Auto Segment"
 msgstr "Automatische Segmentierung"
@@ -1882,14 +1885,14 @@ msgstr "Druckbetttemperatur"
 msgid "Max volumetric speed"
 msgstr "Maximale Volumengeschwindigkeit"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Druckbetttemperatur"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Starten"
@@ -2381,11 +2384,8 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"Der Spiralmodus funktioniert nur, wenn die Wandschleifen 1 sind, Support "
-"deaktiviert ist, die oberen Schalenschichten 0 sind, die Füllungsdichte 0 "
-"ist und der Zeitraffertyp traditionell ist."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2849,6 +2849,9 @@ msgstr "Objekt spiegeln"
 
 msgid "Tool Move"
 msgstr "Werkzeugbewegung"
+
+msgid "Tool Rotate"
+msgstr ""
 
 msgid "Move Object"
 msgstr "Objekt bewegen"
@@ -3575,6 +3578,13 @@ msgstr "Im reinen LAN-Modus nicht zugänglich!"
 
 msgid "Missing LAN ip of printer!"
 msgstr "Fehlende LAN IP des Druckers!"
+
+#, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -6468,6 +6478,15 @@ msgstr "Druckplatte %d: %s unterstützt kein Filament %s"
 msgid "Generating skirt & brim"
 msgstr "Erzeugen von Schürze und Rand (skirt & brim)"
 
+msgid "Checking gcode path conflicts."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects (%s <-> %s) farther."
+msgstr ""
+
 msgid "Exporting G-code"
 msgstr "Exportiere G-Code"
 
@@ -7195,9 +7214,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale Wischmenge im Wischturm"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Ladedauer des Filaments"
@@ -8244,6 +8260,9 @@ msgstr ""
 "lösliche Auflageschnittstellen ist Geradlinig, während das Standardmuster "
 "für lösliche Auflageschnittstellen konzentrisch ist"
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "Abstand des Grundmusters"
 
@@ -8711,6 +8730,12 @@ msgstr ""
 msgid "max slicing time per plate in seconds."
 msgstr ""
 
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Ausgabe Modellinformationen"
 
@@ -9146,14 +9171,26 @@ msgstr ""
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
 
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "Der Spiralmodus funktioniert nur, wenn die Wandschleifen 1 sind, Support "
+#~ "deaktiviert ist, die oberen Schalenschichten 0 sind, die Füllungsdichte 0 "
+#~ "ist und der Zeitraffertyp traditionell ist."
+
 #~ msgid "Keep upper part"
 #~ msgstr "Oberen Teil behalten"
 
 #~ msgid "Keep lower part"
 #~ msgstr "Unteren Teil behalten"
-
-#~ msgid "Cut to parts"
-#~ msgstr "In Einzelteile schneiden"
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "Filament in AMS automatisch wechseln"

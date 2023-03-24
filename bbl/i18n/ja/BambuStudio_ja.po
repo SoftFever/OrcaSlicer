@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-17 16:18+0800\n"
+"POT-Creation-Date: 2023-03-24 17:47+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -309,6 +309,9 @@ msgstr ""
 
 msgid "After cut"
 msgstr ""
+
+msgid "Cut to parts"
+msgstr "パーツに割り切る"
 
 msgid "Auto Segment"
 msgstr "自動分割"
@@ -1821,14 +1824,14 @@ msgstr "ベッド温度"
 msgid "Max volumetric speed"
 msgstr "最大体積速度"
 
-msgid "\\u2103"
-msgstr "u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "ベッド温度"
 
-msgid "mm\\u00B3"
-msgstr "mmu00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -2254,10 +2257,8 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"スパイラルモードを使用するには、壁面層数を１、サポートを無効、トップ面層数を"
-"０、充填密度を０にする必要があります"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2717,6 +2718,9 @@ msgstr "オブジェクトを反転"
 
 msgid "Tool Move"
 msgstr "ツール 移動"
+
+msgid "Tool Rotate"
+msgstr ""
 
 msgid "Move Object"
 msgstr "オブジェクトを移動"
@@ -3429,6 +3433,13 @@ msgstr "ローカルモードではアクセスできません"
 
 msgid "Missing LAN ip of printer!"
 msgstr "プリンターのIPが見つかりません"
+
+#, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -6140,6 +6151,15 @@ msgstr "プレート %d: %s がフィラメント %s を使用できません"
 msgid "Generating skirt & brim"
 msgstr "スカートとブリムを生成"
 
+msgid "Checking gcode path conflicts."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects (%s <-> %s) farther."
+msgstr ""
+
 msgid "Exporting G-code"
 msgstr "G-codeをエクスポート中"
 
@@ -6792,9 +6812,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "プライムタワー上最小フラッシュ量"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "フィラメントロード時間"
@@ -7759,6 +7776,9 @@ msgstr ""
 "サポート接触面のパターンです。非可溶性材を使用する場合はRectilinear、可溶性材"
 "を使用する場合同心です。"
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "基本パターン間隔"
 
@@ -8174,6 +8194,12 @@ msgstr ""
 msgid "max slicing time per plate in seconds."
 msgstr ""
 
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "出力モデル情報"
 
@@ -8573,14 +8599,25 @@ msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
 
+#~ msgid "\\u2103"
+#~ msgstr "u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mmu00B3"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "スパイラルモードを使用するには、壁面層数を１、サポートを無効、トップ面層数"
+#~ "を０、充填密度を０にする必要があります"
+
 #~ msgid "Keep upper part"
 #~ msgstr "上の部分を残す"
 
 #~ msgid "Keep lower part"
 #~ msgstr "下の部分を残す"
-
-#~ msgid "Cut to parts"
-#~ msgstr "パーツに割り切る"
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "AMSフィラメント自動切替え"

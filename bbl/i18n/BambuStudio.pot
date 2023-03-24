@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-17 16:18+0800\n"
+"POT-Creation-Date: 2023-03-24 17:47+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -312,6 +312,9 @@ msgid "Flip"
 msgstr ""
 
 msgid "After cut"
+msgstr ""
+
+msgid "Cut to parts"
 msgstr ""
 
 msgid "Auto Segment"
@@ -1788,13 +1791,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm\\u00B3"
+msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -2183,7 +2186,7 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
 
 msgid ""
@@ -2617,6 +2620,9 @@ msgid "Mirror Object"
 msgstr ""
 
 msgid "Tool Move"
+msgstr ""
+
+msgid "Tool Rotate"
 msgstr ""
 
 msgid "Move Object"
@@ -3320,6 +3326,13 @@ msgid "Not accessible in LAN-only mode!"
 msgstr ""
 
 msgid "Missing LAN ip of printer!"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -5926,6 +5939,15 @@ msgstr ""
 msgid "Generating skirt & brim"
 msgstr ""
 
+msgid "Checking gcode path conflicts."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects (%s <-> %s) farther."
+msgstr ""
+
 msgid "Exporting G-code"
 msgstr ""
 
@@ -6512,9 +6534,6 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"
@@ -7411,6 +7430,9 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr ""
 
@@ -7770,6 +7792,12 @@ msgid "mstpp"
 msgstr ""
 
 msgid "max slicing time per plate in seconds."
+msgstr ""
+
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
 msgid "Output Model Info"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-17 16:18+0800\n"
+"POT-Creation-Date: 2023-03-24 17:47+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -312,6 +312,9 @@ msgstr ""
 
 msgid "After cut"
 msgstr ""
+
+msgid "Cut to parts"
+msgstr "Cortar por partes"
 
 msgid "Auto Segment"
 msgstr "Segmento Automático"
@@ -1948,14 +1951,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm\\u00B3"
-msgstr "mm\\ u00b3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -2444,11 +2447,8 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"El modo espiral solo funciona cuando los bucles de pared son 1, el soporte "
-"está desactivado, las capas superiores son 0, la densidad de relleno "
-"disperso es 0 y el tipo de lapso de tiempo es tradicional"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2933,6 +2933,9 @@ msgstr "Espejar Objeto"
 
 msgid "Tool Move"
 msgstr "Herramienta Mover"
+
+msgid "Tool Rotate"
+msgstr ""
 
 msgid "Move Object"
 msgstr "Mover Objeto"
@@ -3668,6 +3671,13 @@ msgstr "¡No se puede acceder en modo solo LAN!"
 
 msgid "Missing LAN ip of printer!"
 msgstr "¡Falta la IP LAN de la impresora!"
+
+#, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -6562,6 +6572,15 @@ msgstr "La placa %d: %s no admite el filamento %s."
 msgid "Generating skirt & brim"
 msgstr "Generando falda y ala"
 
+msgid "Checking gcode path conflicts."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects (%s <-> %s) farther."
+msgstr ""
+
 msgid "Exporting G-code"
 msgstr "Exportando código G"
 
@@ -7287,9 +7306,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
@@ -8340,6 +8356,9 @@ msgstr ""
 "interfaz de soporte no soluble es Rectilíneo, mientras que el patrón por "
 "defecto para la interfaz de soporte soluble es Concéntrico"
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "Espaciamiento del patrón base"
 
@@ -8801,6 +8820,12 @@ msgstr ""
 msgid "max slicing time per plate in seconds."
 msgstr ""
 
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Información del modelo de salida"
 
@@ -9231,14 +9256,26 @@ msgstr ""
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
 
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\ u00b3"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "El modo espiral solo funciona cuando los bucles de pared son 1, el "
+#~ "soporte está desactivado, las capas superiores son 0, la densidad de "
+#~ "relleno disperso es 0 y el tipo de lapso de tiempo es tradicional"
+
 #~ msgid "Keep upper part"
 #~ msgstr "Mantener la parte superior"
 
 #~ msgid "Keep lower part"
 #~ msgstr "Mantener la parte inferior"
-
-#~ msgid "Cut to parts"
-#~ msgstr "Cortar por partes"
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "Cambio automático de filamento AMS"
