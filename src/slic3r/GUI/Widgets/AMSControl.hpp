@@ -594,7 +594,7 @@ public:
     void SetHumidity(std::string amsid, int humidity);
     void UpdateStepCtrl();
     void CreateAms();
-    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool has_extrusion_cali = true);
+    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool has_extrusion_cali = true, bool is_reset = false);
     void AddAms(AMSinfo info, bool refresh = true);
     void SetExtruder(bool on_off, bool is_vams, wxColour col);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);

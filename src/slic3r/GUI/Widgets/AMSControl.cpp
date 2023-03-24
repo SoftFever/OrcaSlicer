@@ -2430,7 +2430,7 @@ void AMSControl::Reset()
 
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
     std::vector<AMSinfo>::iterator it;
-    UpdateAms(ams_info, false);
+    UpdateAms(ams_info, false, false, true);
     m_current_show_ams  = "";
     m_current_ams       = "";
     m_current_senect    = "";
@@ -2485,7 +2485,7 @@ void AMSControl::update_vams_kn_value(AmsTray tray)
     m_vams_lib->Refresh();
 }
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool has_extrusion_cali)
+void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool has_extrusion_cali, bool is_reset)
 {
     std::string curr_ams_id = GetCurentAms();
     std::string curr_can_id = GetCurrentCan(curr_ams_id);
@@ -2523,14 +2523,17 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
     // update cans
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
-        if (i < info.size()) {
-            cans->amsCans->m_info = m_ams_info[i];
-            cans->amsCans->Update(m_ams_info[i]);
-            cans->amsCans->show_sn_value(has_extrusion_cali);
+
+        for (auto ifo : m_ams_info) {
+            if (ifo.ams_id == cans->amsIndex) {
+                cans->amsCans->m_info = ifo;
+                cans->amsCans->Update(ifo);
+                cans->amsCans->show_sn_value(has_extrusion_cali);
+            }
         }
     }
 
-    if (m_current_senect.empty() && info.size() > 0) {
+    /*if (m_current_senect.empty() && info.size() > 0) {
         if (curr_ams_id.empty()) {
             SwitchAms(info[0].ams_id);
             return;
@@ -2543,6 +2546,12 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
                 if (i < info.size()) { cans->amsCans->SelectCan(curr_can_id); }
             }
             return;
+        }
+    }*/
+
+    if ( m_current_show_ams.empty() && !is_reset ) {
+        if (info.size() > 0) {
+            SwitchAms(info[0].ams_id);
         }
     }
 }
@@ -2593,7 +2602,6 @@ void AMSControl::SwitchAms(std::string ams_id)
         AmsItems *item = m_ams_item_list[i];
         if (item->amsItem->m_amsinfo.ams_id == m_current_show_ams) {
             item->amsItem->OnSelected();
-            //item->amsItem->ShowHumidity();
             m_current_senect = ams_id;
 
             for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
@@ -2614,7 +2622,9 @@ void AMSControl::SwitchAms(std::string ams_id)
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
-        if (cans->amsCans->m_info.ams_id == ams_id) { m_simplebook_cans->SetSelection(cans->amsCans->m_selection); }
+        if (cans->amsCans->m_info.ams_id == ams_id) { 
+            m_simplebook_cans->SetSelection(cans->amsCans->m_selection);
+        }
     }
 
     m_current_ams = ams_id;
@@ -2743,6 +2753,7 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, wxColour col)
         m_vams_road->OnVamsLoading(false);
     } else {
         m_extruder->TurnOn(col);
+        m_extruder->OnAmsLoading(true, col);
     }
 
     if (is_vams && on_off) {
