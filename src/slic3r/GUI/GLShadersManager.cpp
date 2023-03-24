@@ -45,9 +45,6 @@ std::pair<bool, std::string> GLShadersManager::init()
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
 
-    // used to render cut connectors
-    valid &= append_shader("gouraud_light_uniform", {"gouraud_light_uniform.vs", "gouraud_light_uniform.fs"});
-
     // used to render objects in 3d editor
     //if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0)) {
     if (0) {

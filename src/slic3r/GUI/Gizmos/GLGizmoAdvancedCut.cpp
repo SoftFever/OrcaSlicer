@@ -558,11 +558,11 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         Transform3d scale_tf = Transform3d::Identity();
         scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-        const Transform3d view_model_matrix = camera.get_view_matrix() * translate_tf * m_rotate_matrix * scale_tf;
+        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
 
         std::array<float, 4> color = picking_color_component(i+1);
-        render_connector_model(m_shapes[connectors[i].attribs], color, view_model_matrix);
+        render_connector_model(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
     }
 }
 
@@ -1004,9 +1004,8 @@ void GLGizmoAdvancedCut::render_connectors()
         Transform3d scale_tf = Transform3d::Identity();
         scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-        const Transform3d view_model_matrix = camera.get_view_matrix() * translate_tf * m_rotate_matrix * scale_tf;
+        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-        //render_color = {1.f, 0.f, 0.f, 1.f};
         render_connector_model(m_shapes[connector.attribs], render_color, view_model_matrix);
     }
 }
@@ -1032,20 +1031,25 @@ void GLGizmoAdvancedCut::render_cut_line()
     glDisable(GL_LINE_STIPPLE);
 }
 
-void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const std::array<float, 4>& color, Transform3d view_model_matrix)
+void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking)
 {
-    GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light_uniform");
+    glPushMatrix();
+    GLShaderProgram *shader = nullptr;
+    if (for_picking)
+        shader = wxGetApp().get_shader("cali");
+    else
+        shader = wxGetApp().get_shader("gouraud_light");
     if (shader) {
         shader->start_using();
 
-        shader->set_uniform("view_model_matrix", view_model_matrix);
-        shader->set_uniform("projection_matrix", wxGetApp().plater()->get_camera().get_projection_matrix());
+        glsafe(::glMultMatrixd(view_model_matrix.data()));
 
         model.set_color(-1, color);
         model.render();
 
         shader->stop_using();
     }
+    glPopMatrix();
 }
 
 void GLGizmoAdvancedCut::clear_selection()
