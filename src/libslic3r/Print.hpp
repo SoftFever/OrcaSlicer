@@ -51,6 +51,7 @@ struct groupedVolumeSlices
 enum SupportNecessaryType {
     NoNeedSupp=0,
     SharpTail,
+    Cantilever,
     LargeOverhang,
 };
 

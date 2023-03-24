@@ -458,7 +458,7 @@ void PrintObject::generate_support_material()
 
             this->_generate_support_material();
             m_print->throw_if_canceled();
-        } else {
+        } else if(!m_print->get_no_check_flag()) {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
             m_print->set_status(50, L("Checking support necessity"));
             typedef std::chrono::high_resolution_clock clock_;
@@ -468,20 +468,16 @@ void PrintObject::generate_support_material()
             SupportNecessaryType sntype = this->is_support_necessary();
 
             double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
-            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(0)
-                << "is_support_necessary took " << (duration / 60) << " minutes and "
-                << std::setprecision(3)
-                << std::fmod(duration, 60.0) << " seconds." << std::endl;
+            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(0) << "is_support_necessary takes " << duration << " secs.";
 
             if (sntype != NoNeedSupp) {
-                if (sntype == SharpTail) {
-                    std::string warning_message = format(L("It seems object %s has completely floating regions. Please re-orient the object or enable support generation."),
-                                                         this->model_object()->name);
-                    this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
-                } else {
-                    std::string warning_message = format(L("It seems object %s has large overhangs. Please enable support generation."), this->model_object()->name);
-                    this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
-                }
+                std::map<SupportNecessaryType, std::string> reasons = {
+                    {SharpTail,L("floating regions")},
+                    {Cantilever,L("floating cantilever")},
+                    {LargeOverhang,L("large overhangs")} };
+                std::string warning_message = format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
+                    this->model_object()->name, reasons[sntype]);
+                this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
 
 #if 0
@@ -2580,9 +2576,9 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
 
 SupportNecessaryType PrintObject::is_support_necessary()
 {
-#if 0
     static const double super_overhang_area_threshold = SQ(scale_(5.0));
-
+    const double cantilevel_dist_thresh = scale_(6);
+#if 0
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
     int enforce_support_layers = m_config.enforce_support_layers;
     const coordf_t extrusion_width = m_config.line_width.value;
@@ -2670,8 +2666,8 @@ SupportNecessaryType PrintObject::is_support_necessary()
     this->clear_support_layers();
     if (tree_support.has_sharp_tails)
         return SharpTail;
-    else if (tree_support.has_cantilever)
-        return LargeOverhang;
+    else if (tree_support.has_cantilever && tree_support.max_cantilevel_dist > cantilevel_dist_thresh)
+        return Cantilever;
 #endif
     return NoNeedSupp;
 }

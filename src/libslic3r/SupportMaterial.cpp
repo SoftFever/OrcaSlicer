@@ -1638,8 +1638,8 @@ static inline ExPolygons detect_overhangs(
                     // 1. nothing below
                     // Check whether this is a sharp tail region.
                     // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
-                    if (g_config_support_sharp_tails && overlaps({ expoly }, lower_layer_expolys)) {
-                        is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.5*fw).empty();
+                    if (g_config_support_sharp_tails && overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
+                        is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.1*fw).empty();
                     }
 
                     if (is_sharp_tail) {
@@ -2366,6 +2366,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             if (layer->lower_layer == NULL) continue;
             Layer* lower_layer = layer->lower_layer;
             auto cluster_boundary = intersection(cluster.merged_overhangs_dilated, offset(lower_layer->lslices, scale_(0.5)));
+            if (cluster_boundary.empty()) continue;
             double dist_max = 0;
             Points cluster_pts;
             for (auto& poly : cluster.merged_overhangs_dilated)
