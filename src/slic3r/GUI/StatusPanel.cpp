@@ -1266,6 +1266,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_EXTRUSION_CALI, &StatusPanel::on_filament_extrusion_cali, this);
     Bind(EVT_AMS_LOAD, &StatusPanel::on_ams_load, this);
     Bind(EVT_AMS_UNLOAD, &StatusPanel::on_ams_unload, this);
+    Bind(EVT_AMS_FILAMENT_BACKUP, &StatusPanel::on_ams_filament_backup, this);
     Bind(EVT_AMS_SETTINGS, &StatusPanel::on_ams_setting_click, this);
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
@@ -2649,6 +2650,15 @@ void StatusPanel::on_ams_load_curr()
 void StatusPanel::on_ams_unload(SimpleEvent &event)
 {
     if (obj) { obj->command_ams_switch(255); }
+}
+
+void StatusPanel::on_ams_filament_backup(SimpleEvent& event)
+{
+    if (obj && obj->filam_bak.size() > 0) {
+        AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
+        m_replace_material_popup->update_machine_obj(obj);
+        m_replace_material_popup->ShowModal();
+    }
 }
 
 void StatusPanel::on_ams_setting_click(SimpleEvent &event)

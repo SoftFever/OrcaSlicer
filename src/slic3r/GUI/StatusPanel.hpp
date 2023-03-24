@@ -277,6 +277,7 @@ protected:
     SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
+
     FanControlPopup* m_fan_control_popup{nullptr};
 
     ExtrusionCalibration *m_extrusion_cali_dlg{nullptr};
@@ -340,7 +341,8 @@ protected:
     void on_ams_load(SimpleEvent &event);
     void on_ams_load_curr();
     void on_ams_unload(SimpleEvent &event);
-    void on_ams_setting_click(SimpleEvent &event);
+    void on_ams_filament_backup(SimpleEvent& event);
+    void on_ams_setting_click(SimpleEvent& event);
     void on_filament_edit(wxCommandEvent &event);
     void on_ext_spool_edit(wxCommandEvent &event);
     void on_filament_extrusion_cali(wxCommandEvent &event);

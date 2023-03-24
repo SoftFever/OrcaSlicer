@@ -1107,4 +1107,382 @@ void MappingContainer::doRender(wxDC& dc)
     dc.DrawBitmap(ams_mapping_item_container, 0, 0);
 }
 
+AmsReplaceMaterialDialog::AmsReplaceMaterialDialog(wxWindow* parent)
+    : DPIDialog(parent, wxID_ANY, _L("Filaments replace"), wxDefaultPosition, wxDefaultSize, wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
+{
+    SetBackgroundColour(*wxWHITE);
+    create();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void AmsReplaceMaterialDialog::create()
+{
+    SetSize(wxSize(FromDIP(376), -1));
+    SetMinSize(wxSize(FromDIP(376), -1));
+    SetMaxSize(wxSize(FromDIP(376), -1));
+
+    // set icon for dialog
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    SetSizeHints(wxDefaultSize, wxDefaultSize);
+
+    m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    auto m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
+    m_main_sizer->Add(m_top_line, 0, wxEXPAND, 0);
+
+
+    auto m_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    
+    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
+        std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
+        std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+
+    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+    StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+    auto m_button_close = new Button(this, _L("Close"));
+    m_button_close->SetCornerRadius(FromDIP(11));
+    m_button_close->SetBackgroundColor(btn_bg_white);
+    m_button_close->SetBorderColor(btn_bd_white);
+    m_button_close->SetTextColor(btn_text_white);
+    m_button_close->SetFont(Label::Body_13);
+    m_button_close->SetMinSize(wxSize(FromDIP(42), FromDIP(24)));
+    m_button_close->Bind(wxEVT_BUTTON, [this](auto& e) {
+        EndModal(wxCLOSE);
+    });
+
+    m_button_sizer->Add( 0, 0, 1, wxEXPAND, 0 );
+    m_button_sizer->Add(m_button_close, 0, wxALIGN_CENTER, 0);
+
+
+    m_groups_sizer = new wxBoxSizer(wxVERTICAL);
+    m_main_sizer->Add(0,0,0, wxTOP, FromDIP(12));
+    m_main_sizer->Add(m_groups_sizer,0,wxEXPAND|wxLEFT|wxRIGHT, FromDIP(16));
+    m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
+    m_main_sizer->Add(m_button_sizer,0,wxEXPAND|wxLEFT|wxRIGHT, FromDIP(16));
+    m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
+    
+
+    CenterOnParent();
+    SetSizer(m_main_sizer);
+    Layout();
+    Fit();
+}
+
+std::vector<bool> AmsReplaceMaterialDialog::GetStatus(unsigned int status)
+{
+    std::vector<bool> listStatus;
+    bool current = false;
+    for (int i = 0; i < 16; i++) {
+        if (status & (1 << i)) {
+            current = true;
+        }
+        else {
+            current = false;
+        }
+        listStatus.push_back(current);
+    }
+    return listStatus;
+}
+
+void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
+{
+    if (obj) {m_obj = obj;}
+    else {return;}
+
+    AmsTray* tray_list[4*4];
+    for (auto i = 0; i < 4*4; i++) {
+        tray_list[i] = nullptr;
+    }
+
+    try {
+        for (auto ams_info : obj->amsList) {
+            int ams_id_int = atoi(ams_info.first.c_str()) * 4;
+
+            for (auto tray_info : ams_info.second->trayList) {
+                int tray_id_int = atoi(tray_info.first.c_str());
+                tray_id_int =  ams_id_int + tray_id_int;
+                tray_list[tray_id_int] = tray_info.second;
+            }
+        }
+    }
+    catch (...) {}
+
+    //creat group
+    int group_index = 1;
+    for (int filam : m_obj->filam_bak) {
+         auto status_list = GetStatus(filam);
+
+         wxColour       group_color;
+         std::string    group_material;
+
+         //get color & material
+         for (auto i = 0; i < status_list.size(); i++) {
+             if (status_list[i] && tray_list[i] != nullptr) {
+                 group_color = AmsTray::decode_color(tray_list[i]->color);
+                 group_material = tray_list[i]->get_display_filament_type();
+             }
+         }
+
+         m_groups_sizer->Add(create_split_line(wxString::Format("%s%d", _L("Group"), group_index), group_color, group_material, status_list), 0, wxEXPAND, 0);
+         m_groups_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+         group_index++;
+    }
+
+    Layout();
+    Fit();
+}
+
+wxWindow* AmsReplaceMaterialDialog::create_split_line(wxString gname, wxColour col, wxString material, std::vector<bool> status_list)
+{
+    wxColour background_color = wxColour(0xF4F4F4);
+
+    if (abs(col.Red() - background_color.Red()) <= 5 && 
+        abs(col.Green() - background_color.Green()) <= 5 && 
+        abs(col.Blue() - background_color.Blue()) <= 5) {
+        background_color = wxColour(0xE6E6E6);
+    }
+
+    auto m_panel_group = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_panel_group->SetCornerRadius(FromDIP(4));
+    m_panel_group->SetBackgroundColor(StateColor(std::pair<wxColour, int>(background_color, StateColor::Normal)));
+
+    m_panel_group->SetSize(wxSize(FromDIP(344), -1));
+    m_panel_group->SetMinSize(wxSize(FromDIP(344), -1));
+    m_panel_group->SetMaxSize(wxSize(FromDIP(344), -1));
+
+    wxBoxSizer* group_sizer = new wxBoxSizer(wxVERTICAL);
+
+    //group title
+    wxBoxSizer* title_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto group_name = new Label(m_panel_group, gname);
+    group_name->SetFont(::Label::Head_12);
+
+    Button* material_info = new Button(m_panel_group, material);
+    material_info->SetFont(Label::Head_12);
+    material_info->SetCornerRadius(FromDIP(2));
+    material_info->SetBorderColor(background_color);
+
+    if (col.GetLuminance() < 0.5)
+        material_info->SetTextColor(*wxWHITE);
+    else
+        material_info->SetTextColor(0x6B6B6B);
+    
+    material_info->SetMinSize(wxSize(-1, FromDIP(24)));
+    material_info->SetBackgroundColor(col);
+
+
+    title_sizer->Add(group_name, 0, wxALIGN_CENTER, 0);
+    title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
+    title_sizer->Add(material_info, 0, wxALIGN_CENTER, 0);
+
+
+    //group item
+    wxGridSizer* grid_Sizer = new wxGridSizer(0, 8, 0, 0);
+
+    for (int i = 0; i < status_list.size(); i++) {
+        if (status_list[i]) {
+            AmsRMItem* amsitem = new AmsRMItem(m_panel_group, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+            amsitem->set_color(col);
+
+            //set current tray
+            if (!m_obj->m_tray_now.empty() && m_obj->m_tray_now == std::to_string(i)) {
+                amsitem->set_focus(true);
+            }
+
+            amsitem->set_type(RMTYPE_NORMAL);
+            amsitem->set_index(wxGetApp().transition_tridid(i).ToStdString());
+            amsitem->SetBackgroundColour(background_color);
+            grid_Sizer->Add(amsitem, 0, wxALIGN_CENTER | wxTOP | wxBottom, FromDIP(10));
+        }
+    }
+
+    //add the first tray
+    for (int i = 0; i < status_list.size(); i++) {
+        if (status_list[i]) {
+            AmsRMItem* amsitem = new AmsRMItem(m_panel_group, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+            amsitem->set_color(col);
+            amsitem->set_type(RMTYPE_VIRTUAL);
+            amsitem->set_index(wxGetApp().transition_tridid(i).ToStdString());
+            amsitem->SetBackgroundColour(background_color);
+            grid_Sizer->Add(amsitem, 0, wxALIGN_CENTER | wxTOP | wxBottom, FromDIP(10));
+            break;
+        }
+    }
+
+    group_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    group_sizer->Add(title_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
+    group_sizer->Add(grid_Sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
+    group_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+    m_panel_group->SetSizer(group_sizer);
+    m_panel_group->Layout();
+    group_sizer->Fit(m_panel_group);
+    return m_panel_group;
+}
+
+void AmsReplaceMaterialDialog::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void AmsReplaceMaterialDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+
+}
+
+AmsRMItem::AmsRMItem(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+{
+    wxWindow::Create(parent, id, pos, size);
+
+    SetSize(wxSize(FromDIP(42), FromDIP(32)));
+    SetMinSize(wxSize(FromDIP(42), FromDIP(32)));
+    SetMaxSize(wxSize(FromDIP(42), FromDIP(32)));
+
+    SetBackgroundColour(*wxWHITE);
+
+    Bind(wxEVT_PAINT, &AmsRMItem::paintEvent, this);
+}
+
+void AmsRMItem::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AmsRMItem::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AmsRMItem::doRender(wxDC& dc)
+{
+    wxSize size = GetSize();
+
+    if (m_type == RMTYPE_NORMAL) {
+        dc.SetPen(wxPen(m_color, 2));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    }
+    else {
+        dc.SetPen(wxPen(m_color, 2, wxSHORT_DASH));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    }
+
+    //top bottom line
+    dc.DrawLine(FromDIP(0), FromDIP(4), size.x - FromDIP(5), FromDIP(4));
+    dc.DrawLine(FromDIP(0), size.y - FromDIP(4), size.x - FromDIP(5), size.y - FromDIP(4));
+
+    //left right line
+    dc.DrawLine(FromDIP(1), FromDIP(4), FromDIP(1), FromDIP(11));
+    dc.DrawLine(FromDIP(1), FromDIP(22), FromDIP(1), size.y - FromDIP(4));
+
+    dc.DrawLine(size.x - FromDIP(5), FromDIP(4), size.x - FromDIP(5), FromDIP(11));
+    dc.DrawLine(size.x - FromDIP(5), FromDIP(22), size.x - FromDIP(5), size.y - FromDIP(4));
+
+    //delta
+    dc.DrawLine(FromDIP(0), FromDIP(11), FromDIP(5), size.y / 2);
+    dc.DrawLine(FromDIP(0), FromDIP(22), FromDIP(5), size.y / 2);
+
+    dc.DrawLine(size.x - FromDIP(5), FromDIP(11), size.x - FromDIP(1), size.y / 2);
+    dc.DrawLine(size.x - FromDIP(5), FromDIP(22), size.x - FromDIP(1), size.y / 2);
+
+
+    if (m_focus) {
+        dc.SetPen(wxPen(wxColour(0x00AE42), 2));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawLine(FromDIP(0), FromDIP(1), size.x - FromDIP(5), FromDIP(1));
+        dc.DrawLine(FromDIP(0), size.y - FromDIP(1), size.x - FromDIP(5), size.y - FromDIP(1));
+    }
+
+    if (m_selected) {
+    }
+
+    auto tsize = dc.GetMultiLineTextExtent(m_index);
+    auto tpot = wxPoint((size.x - tsize.x) / 2 - FromDIP(2), (size.y - tsize.y) / 2 + FromDIP(2));
+    dc.SetTextForeground(wxColour(0x6B6B6B));
+    dc.SetFont(::Label::Head_12);
+    dc.DrawText(m_index, tpot);
+}
+
+AmsRMArrow::AmsRMArrow(wxWindow* parent)
+{
+
+    wxWindow::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    SetBackgroundColour(*wxWHITE);
+    Bind(wxEVT_PAINT, &AmsRMArrow::paintEvent, this);
+
+    m_bitmap_left = ScalableBitmap(this, "replace_arrow_left", 7);
+    m_bitmap_right = ScalableBitmap(this, "replace_arrow_right", 7);
+    m_bitmap_down = ScalableBitmap(this, "replace_arrow_down", 7);
+
+
+        SetSize(wxSize(FromDIP(16), FromDIP(32)));
+        SetMinSize(wxSize(FromDIP(16), FromDIP(32)));
+        SetMaxSize(wxSize(FromDIP(16), FromDIP(32)));
+}
+
+void AmsRMArrow::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AmsRMArrow::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AmsRMArrow::doRender(wxDC& dc)
+{
+    wxSize size = GetSize();
+
+    dc.SetPen(wxPen(wxColour(0, 174, 66)));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+
+
+    dc.SetPen(wxPen(wxColour(0xACACAC)));
+    dc.SetBrush(wxBrush(wxColour(0xACACAC)));
+    dc.DrawCircle(size.x / 2, size.y / 2, FromDIP(7));
+}
+
 }} // namespace Slic3r::GUI

@@ -239,6 +239,75 @@ public:
 };
 
 
+class AmsReplaceMaterialDialog : public DPIDialog
+{
+public:
+    AmsReplaceMaterialDialog(wxWindow* parent);
+    ~AmsReplaceMaterialDialog() {};
+
+public:
+    wxWindow*   create_split_line(wxString gname, wxColour col, wxString material, std::vector<bool> status_list);
+    void        create();
+    void        update_machine_obj(MachineObject* obj);
+    void        on_left_down(wxMouseEvent& evt);
+    void        paintEvent(wxPaintEvent& evt);
+    void        on_dpi_changed(const wxRect &suggested_rect) override;
+    std::vector<bool>        GetStatus(unsigned int status);
+
+public:
+    wxBoxSizer* m_main_sizer{nullptr};
+    wxBoxSizer* m_groups_sizer{nullptr};
+
+    MachineObject* m_obj{nullptr};
+};
+
+
+enum RMTYPE {
+    RMTYPE_NORMAL   = 0,
+    RMTYPE_VIRTUAL  = 1,
+};
+
+class AmsRMItem : public wxWindow
+{
+public:
+    AmsRMItem(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    ~AmsRMItem() {};
+
+public:
+    void set_color(wxColour col) {m_color = col;};
+    void set_type(RMTYPE type) {m_type = type;};
+    void set_index(std::string index) {m_index = index;};
+    void set_focus(bool focus) {m_focus = focus;};
+
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
+private:
+    RMTYPE      m_type;
+    wxColour    m_color;
+    std::string m_index;
+    bool        m_focus = false;
+    bool        m_selected = false;
+};
+
+class AmsRMArrow : public wxWindow
+{
+public:
+    AmsRMArrow(wxWindow* parent);
+    ~AmsRMArrow() {};
+
+public:
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
+private:
+    ScalableBitmap m_bitmap_left;
+    ScalableBitmap m_bitmap_right;
+    ScalableBitmap m_bitmap_down;
+};
+
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
 }} // namespace Slic3r::GUI

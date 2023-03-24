@@ -433,6 +433,8 @@ public:
     std::string get_printer_thumbnail_img_str();
     std::string product_name;       // set by iot service, get /user/print
 
+    std::vector<int> filam_bak;
+
     std::string bind_user_name;
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */

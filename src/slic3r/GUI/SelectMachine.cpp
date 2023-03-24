@@ -1197,8 +1197,28 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
 
+    auto m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
+    auto m_ams_backup_tip = new Label(m_panel_prepare, _L("Ams filament backup"));
+    m_ams_backup_tip->SetFont(::Label::Head_12);
+    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
+    m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
+    auto img_ams_backup = new wxStaticBitmap(m_panel_prepare, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_ams_backup->SetBackgroundColour(*wxWHITE);
 
-    m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_backup->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_backup->Add(img_ams_backup, 0, wxALL, FromDIP(3));
+    m_sizer_backup->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
+
+    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
+    img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
+
+    m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+    img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup();});
+    img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup();});
+
+
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(btn_bg_enable);
     m_button_ensure->SetBorderColor(btn_bg_enable);
@@ -1206,9 +1226,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetCornerRadius(FromDIP(12));
-
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok_btn, this);
+
+    m_sizer_pcont->Add(m_sizer_backup, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+    m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+
+
     m_sizer_prepare->Add(m_sizer_pcont, 0, wxEXPAND, 0);
     m_panel_prepare->SetSizer(m_sizer_prepare);
     m_panel_prepare->Layout();
@@ -1332,6 +1356,17 @@ void SelectMachineDialog::check_fcous_state(wxWindow* window)
     auto children = window->GetChildren();
     for (auto child : children) {
         check_fcous_state(child);
+    }
+}
+
+void SelectMachineDialog::popup_filament_backup()
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    if (dev->get_selected_machine() && dev->get_selected_machine()->filam_bak.size() > 0) {
+        AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
+        m_replace_material_popup->update_machine_obj(dev->get_selected_machine());
+        m_replace_material_popup->ShowModal();
     }
 }
 

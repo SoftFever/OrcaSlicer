@@ -2673,6 +2673,21 @@ int MachineObject::parse_json(std::string payload)
                         ;
                     }
 
+                    /*get filam_bak*/
+                    try {
+                        if (jj.contains("filam_bak")) {
+                            filam_bak.clear();
+                            if (jj["filam_bak"].is_array()) {
+                                for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
+                                    filam_bak.push_back(it.value().get<int>());
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+
                     /* get fimware type */
                     try {
                         if (jj.contains("lifecycle")) {

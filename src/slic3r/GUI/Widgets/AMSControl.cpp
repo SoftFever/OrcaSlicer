@@ -19,6 +19,7 @@ wxDEFINE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
+wxDEFINE_EVENT(EVT_AMS_FILAMENT_BACKUP, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
@@ -1769,14 +1770,16 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_left   = new wxBoxSizer(wxVERTICAL);
 
+    //ams tip
     m_sizer_ams_tips = new wxBoxSizer(wxHORIZONTAL);
-    auto m_ams_tip = new wxStaticText(m_amswin, wxID_ANY, _L("AMS"));
+    auto m_ams_tip = new Label(m_amswin, _L("AMS"));
     m_ams_tip->SetFont(::Label::Body_12);
     m_ams_tip->SetBackgroundColour(*wxWHITE);
     auto img_amsmapping_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     img_amsmapping_tip->SetBackgroundColour(*wxWHITE);
-    m_sizer_ams_tips->Add(m_ams_tip, 0, wxALIGN_CENTER, 0);
-    m_sizer_ams_tips->Add(img_amsmapping_tip, 0, wxALL, FromDIP(2));
+
+    m_sizer_ams_tips->Add(m_ams_tip, 0, wxTOP, FromDIP(5));
+    m_sizer_ams_tips->Add(img_amsmapping_tip, 0, wxALL, FromDIP(3));
 
     img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {
          wxPoint img_pos = img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
@@ -1785,12 +1788,34 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
          m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
          m_ams_introduce_popup.Popup();
     });
-
-    img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+    img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
          m_ams_introduce_popup.Dismiss();
     });
 
 
+    //backup tips
+    auto m_ams_backup_tip = new Label(m_amswin, _L("Ams filament backup"));
+    m_ams_backup_tip->SetFont(::Label::Head_12);
+    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
+    m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
+    auto img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_ams_backup->SetBackgroundColour(*wxWHITE);
+
+    m_sizer_ams_tips->Add( 0, 0, 1, wxEXPAND, 0 );
+    m_sizer_ams_tips->Add(img_ams_backup, 0, wxALL, FromDIP(3));
+    m_sizer_ams_tips->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
+
+    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND);});
+    img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND);});
+
+    m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW);});
+    img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW);});
+
+    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP));});
+    img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP));});
+
+
+    //ams cans
     m_panel_can = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
     m_panel_can->SetMinSize(AMS_CANS_SIZE);
     m_panel_can->SetCornerRadius(FromDIP(10));
@@ -1825,20 +1850,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_none_ams_panel->SetSizer(sizer_ams_panel_h);
     m_none_ams_panel->Layout();
 
-    /*wxBoxSizer *sizer_ams_panel = new wxBoxSizer(wxHORIZONTAL);
-    AMSinfo     none_ams = AMSinfo{ "0", std::vector<Caninfo>{Caninfo{"0", wxEmptyString, *wxWHITE, AMSCanType::AMS_CAN_TYPE_EMPTY}} };
-    auto        amscans = new AmsCans(m_none_ams_panel, wxID_ANY, none_ams);
-    sizer_ams_panel->Add(amscans, 0, wxALL, 0);
-    sizer_ams_panel->Add(0, 0, 0, wxLEFT, 20);
-    auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("Click the pencil icon to edit the filament."), wxDefaultPosition, wxDefaultSize, 0);
-    m_tip_none_ams->Wrap(150);
-    m_tip_none_ams->SetFont(::Label::Body_13);
-    m_tip_none_ams->SetForegroundColour(AMS_CONTROL_GRAY500);
-    m_tip_none_ams->SetMinSize({150, -1});
-    sizer_ams_panel->Add(m_tip_none_ams, 0, wxALIGN_CENTER, 0);
-    m_none_ams_panel->SetSizer(sizer_ams_panel);
-    m_none_ams_panel->Layout();*/
-
     m_simplebook_ams->AddPage(m_simplebook_cans, wxEmptyString, true);
     m_simplebook_ams->AddPage(m_none_ams_panel, wxEmptyString, false);
 
@@ -1846,7 +1857,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_can->Layout();
     m_sizer_cans->Fit(m_panel_can);
 
-    m_sizer_left->Add(m_sizer_ams_tips, 0, wxALIGN_CENTER, 0);
+    m_sizer_left->Add(m_sizer_ams_tips, 0, wxEXPAND, 0);
     m_sizer_left->Add(m_panel_can, 1, wxEXPAND, 0);
 
     wxBoxSizer *m_sizer_left_bottom = new wxBoxSizer(wxHORIZONTAL);
@@ -1888,6 +1899,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_button_area = new wxWindow(m_amswin, wxID_ANY);
     m_button_area->SetBackgroundColour(m_amswin->GetBackgroundColour());
+
+
+    wxBoxSizer *m_sizer_button = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
 
     m_button_extrusion_cali = new Button(m_button_area, _L("Cali"));
@@ -1914,7 +1928,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
     m_sizer_button_area->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(6));
 
-    m_button_area->SetSizer(m_sizer_button_area);
+    m_sizer_button->Add(m_sizer_button_area, 0, 1, wxEXPAND, 0);
+
+    m_button_area->SetSizer(m_sizer_button);
     m_button_area->Layout();
     m_button_area->Fit();
 
@@ -2002,8 +2018,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         m_ams_introduce_popup.Dismiss();
         });
 
-    m_sizer_vams_tips->Add(m_vams_tip, 0, wxALIGN_CENTER, 0);
-    m_sizer_vams_tips->Add(img_vams_tip, 0, wxALL, FromDIP(2));
+    m_sizer_vams_tips->Add(m_vams_tip, 0, wxTOP, FromDIP(5));
+    m_sizer_vams_tips->Add(img_vams_tip, 0, wxALL, FromDIP(3));
 
     m_vams_extra_road = new AMSVirtualRoad(m_amswin, wxID_ANY);
     m_vams_extra_road->SetMinSize(wxSize(m_panel_virtual->GetSize().x + FromDIP(16), -1));

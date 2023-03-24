@@ -365,7 +365,8 @@ public:
 
     void check_focus(wxWindow* window);
     void check_fcous_state(wxWindow* window);
-    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
+    void popup_filament_backup();
+    wxWindow* create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     wxWindow* create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
     void      update_select_layout(MachineObject *obj);
     void      prepare_mode();
