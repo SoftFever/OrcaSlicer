@@ -31,9 +31,9 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_year = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
     m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
     m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
-    m_button_year->SetToolTip(L("Group files by year, recent first."));
-    m_button_month->SetToolTip(L("Group files by month, recent first."));
-    m_button_all->SetToolTip(L("Show all files, recent first."));
+    m_button_year->SetToolTip(_L("Group files by year, recent first."));
+    m_button_month->SetToolTip(_L("Group files by month, recent first."));
+    m_button_all->SetToolTip(_L("Show all files, recent first."));
     m_button_all->SetFont(Label::Head_14); // sync with m_last_mode
     for (auto b : {m_button_year, m_button_month, m_button_all}) {
         b->SetBackgroundColor(StateColor());
