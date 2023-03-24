@@ -70,6 +70,7 @@ private:
     std::vector<std::pair<wxString, wxString>> m_shortcuts;
     double m_label_width{150.0};
     double m_control_width{ 200.0 };
+    double m_editing_window_width;
 
     CutConnectorType         m_connector_type;
     size_t                   m_connector_style;

@@ -499,9 +499,12 @@ void GLGizmoAdvancedCut::on_render()
     update_clipper();
     if (m_connectors_editing) {
         render_connectors();
-        render_clipper_cut();
     }
-    else if(!m_connectors_editing) {
+    
+    // render_clipper_cut for get the cut plane result
+    render_clipper_cut();
+
+    if(!m_connectors_editing) {
         check_conflict_for_all_connectors();
         render_cut_plane_and_grabbers();
     }
@@ -1012,7 +1015,9 @@ void GLGizmoAdvancedCut::render_connectors()
 
 void GLGizmoAdvancedCut::render_clipper_cut()
 {
+    glsafe(::glEnable(GL_DEPTH_TEST));
     m_c->object_clipper()->render_cut();
+    glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
 void GLGizmoAdvancedCut::render_cut_line()
@@ -1401,8 +1406,11 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     ImGui::PopStyleVar(1);
     m_imgui->disabled_end();
 
+    CutConnectors &connectors     = m_c->selection_info()->model_object()->cut_connectors;
+    const bool     has_connectors = !connectors.empty();
+
     m_imgui->disabled_begin(!m_keep_upper || !m_keep_lower || m_cut_to_parts);
-    if (m_imgui->button(_L("Add/Edit connectors"))) set_connectors_editing(true);
+    if (m_imgui->button(has_connectors ? _L("Edit connectors") : _L("Add connectors"))) set_connectors_editing(true);
     m_imgui->disabled_end();
 
     ImGui::Separator();
@@ -1414,8 +1422,6 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
             label_width = width;
     }
 
-    CutConnectors &connectors              = m_c->selection_info()->model_object()->cut_connectors;
-    const bool has_connectors = !connectors.empty();
     auto render_part_action_line = [this, label_width, &connectors](const wxString &label, const wxString &suffix, bool &keep_part, bool &place_on_cut_part, bool &rotate_part) {
         bool keep = true;
         ImGui::AlignTextToFramePadding();
@@ -1476,8 +1482,18 @@ void GLGizmoAdvancedCut::init_connectors_input_window_data()
 {
     CutConnectors &connectors = m_c->selection_info()->model_object()->cut_connectors;
 
-    m_label_width    = m_imgui->get_font_size() * 6.f;
+    float connectors_cap    = m_imgui->calc_text_size(_L("Connectors")).x;
+    float type_cap          = m_imgui->calc_text_size(_L("Type")).x;
+    float style_cap         = m_imgui->calc_text_size(_L("Style")).x;
+    float shape_cap         = m_imgui->calc_text_size(_L("Shape")).x;
+    float depth_ratio_cap   = m_imgui->calc_text_size(_L("Depth ratio")).x;
+    float size_cap          = m_imgui->calc_text_size(_L("Size")).x;
+    float max_lable_size = std::max(std::max(std::max(connectors_cap, type_cap), std::max(style_cap, shape_cap)), std::max(depth_ratio_cap, size_cap));
+
+    m_label_width   = double(max_lable_size + 3 + ImGui::GetStyle().WindowPadding.x);
     m_control_width  = m_imgui->get_font_size() * 9.f;
+
+    m_editing_window_width = 1.45 * m_control_width + 11;
 
     if (m_connectors_editing && m_selected_count > 0) {
         float             depth_ratio           {UndefFloat};
@@ -1605,7 +1621,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
         set_connectors_editing(false);
     }
 
-    ImGui::SameLine(2.75f * m_label_width);
+    ImGui::SameLine(m_label_width + m_editing_window_width - m_imgui->calc_text_size(_L("Cancel")).x - m_imgui->get_style_scaling() * 8);
 
     if (m_imgui->button(_L("Cancel"))) {
         reset_connectors();
@@ -1684,16 +1700,15 @@ bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vecto
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
     ImGui::SameLine(m_label_width);
-    ImGui::PushItemWidth(m_control_width);
+    ImGui::PushItemWidth(m_editing_window_width);
 
     size_t selection_out = selection_idx;
-    // It is necessary to use BeginGroup(). Otherwise, when using SameLine() is called, then other items will be drawn inside the combobox.
-    ImGui::BeginGroup();
-    ImVec2 combo_pos = ImGui::GetCursorScreenPos();
-    if (ImGui::BeginCombo(("##" + label).c_str(), "")) {
+
+    if (ImGui::BBLBeginCombo(("##" + label).c_str(), lines[selection_idx].c_str(), 0)) {
         for (size_t line_idx = 0; line_idx < lines.size(); ++line_idx) {
             ImGui::PushID(int(line_idx));
-            if (ImGui::Selectable("", line_idx == selection_idx)) selection_out = line_idx;
+            if (ImGui::Selectable("", line_idx == selection_idx))
+                selection_out = line_idx;
 
             ImGui::SameLine();
             ImGui::Text("%s", lines[line_idx].c_str());
@@ -1702,15 +1717,6 @@ bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vecto
 
         ImGui::EndCombo();
     }
-
-    ImVec2      backup_pos = ImGui::GetCursorScreenPos();
-    ImGuiStyle &style      = ImGui::GetStyle();
-
-    ImGui::SetCursorScreenPos(ImVec2(combo_pos.x + style.FramePadding.x, combo_pos.y + style.FramePadding.y));
-    std::string str_line = selection_out < lines.size() ? lines[selection_out] : " ";
-    ImGui::Text("%s", str_line.c_str());
-    ImGui::SetCursorScreenPos(backup_pos);
-    ImGui::EndGroup();
 
     bool is_changed = selection_idx != selection_out;
     selection_idx   = selection_out;
@@ -1722,10 +1728,18 @@ bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vecto
 
 bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in)
 {
+    double slider_with          = 0.24 * m_editing_window_width; // m_control_width * 0.35;
+    double item_in_gap          = 0.01 * m_editing_window_width;
+    double item_out_gap         = 0.02 * m_editing_window_width;
+    double first_input_width    = 0.33 * m_editing_window_width;
+    double second_input_width   = 0.15 * m_editing_window_width;
+
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
     ImGui::SameLine(m_label_width);
-    ImGui::PushItemWidth(m_control_width * 0.85f);
+    ImGui::PushItemWidth(slider_with);
+
+    double left_width = m_label_width + slider_with + item_in_gap;
 
     bool m_imperial_units = false;
 
@@ -1744,17 +1758,29 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     }
     std::string format = value_in < 0.f ? " " : m_imperial_units ? "%.4f  " + _u8L("in") : "%.2f  " + _u8L("mm");
 
-    m_imgui->slider_float(("##" + label).c_str(), &value, min_size, mean_size, format.c_str());
+    m_imgui->bbl_slider_float_style(("##" + label).c_str(), &value, min_size, mean_size, format.c_str());
+
+    ImGui::SameLine(left_width);
+    ImGui::PushItemWidth(first_input_width);
+    ImGui::BBLDragFloat(("##input_" + label).c_str(), &value, 0.05f, min_size, mean_size, format.c_str());
+
     value_in = value * float(m_imperial_units ? units_in_to_mm : 1.0);
 
-    ImGui::SameLine(m_label_width + m_control_width + 3);
-    ImGui::PushItemWidth(m_control_width * 0.3f);
+    left_width += (first_input_width + item_out_gap);
+    ImGui::SameLine(left_width);
+    ImGui::PushItemWidth(slider_with);
 
     float       old_tolerance, tolerance = old_tolerance = tolerance_in * 100.f;
     std::string format_t      = tolerance_in < 0.f ? " " : "%.f %%";
     float       min_tolerance = tolerance_in < 0.f ? UndefMinVal : 0.f;
 
-    m_imgui->slider_float(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, 20.f, format_t.c_str(), 1.f, true, _L("Tolerance"));
+    m_imgui->bbl_slider_float_style(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, 20.f, format_t.c_str(), 1.f, true, _L("Tolerance"));
+    
+    left_width += (slider_with + item_in_gap);
+    ImGui::SameLine(left_width);
+    ImGui::PushItemWidth(second_input_width);
+    ImGui::BBLDragFloat(("##tolerance_input_" + label).c_str(), &tolerance, 0.05f, min_tolerance, 20.f, format_t.c_str());
+    
     tolerance_in = tolerance * 0.01f;
 
     return !is_approx(old_val, value) || !is_approx(old_tolerance, tolerance);
