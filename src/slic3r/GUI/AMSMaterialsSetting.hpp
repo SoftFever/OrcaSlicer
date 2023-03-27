@@ -119,6 +119,7 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
     void on_select_ok(wxCommandEvent &event);
+    void on_select_reset(wxCommandEvent &event);
     void on_select_close(wxCommandEvent &event);
     void on_clr_picker(wxMouseEvent &event);
     bool is_virtual_tray();
@@ -137,6 +138,7 @@ protected:
     wxStaticText *      m_title_temperature;
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
+    Button *            m_button_reset;
     Button *            m_button_confirm;
     wxStaticText*       m_tip_readonly;
     Button *            m_button_close;
