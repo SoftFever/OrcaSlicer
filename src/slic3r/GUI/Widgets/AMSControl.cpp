@@ -1374,7 +1374,31 @@ void AMSItem::doRender(wxDC &dc)
             dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
         }
 
-        dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
+        if (iter->material_cols.size() > 1) {
+            int fleft = left;
+            float total_width = AMS_ITEM_CUBE_SIZE.x;
+            int gwidth = std::round(total_width / (iter->material_cols.size() - 1));
+
+            for (int i = 0; i < iter->material_cols.size() - 1; i++) {
+
+                if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
+                    gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                }
+
+                auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
+                dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
+                fleft += gwidth;
+            }
+
+            dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRoundedRectangle(left - 1, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2 - 1, AMS_ITEM_CUBE_SIZE.x + 2, AMS_ITEM_CUBE_SIZE.y + 2, 2);
+
+        }else {
+            dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
+        }
+
+        
         left += AMS_ITEM_CUBE_SIZE.x;
         left += m_space;
     }

@@ -536,6 +536,13 @@ void AMSMaterialsSetting::set_color(wxColour color)
     m_clr_picker->set_color(color);
 }
 
+void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
+{
+    //m_clrData->SetColour(color);
+    m_clr_picker->set_colors(colors);
+}
+
+
 void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 {
     unsigned int color_num  = event.GetInt();
@@ -836,6 +843,7 @@ ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*=
 
     wxWindow::Create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &ColorPicker::paintEvent, this);
+    m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
 }
 
 ColorPicker::~ColorPicker(){}
@@ -843,6 +851,12 @@ ColorPicker::~ColorPicker(){}
 void ColorPicker::set_color(wxColour col)
 {
     m_colour = col;
+    Refresh();
+}
+
+void ColorPicker::set_colors(std::vector<wxColour> cols)
+{
+    m_cols = cols;
     Refresh();
 }
 
@@ -894,6 +908,24 @@ void ColorPicker::doRender(wxDC& dc)
         dc.SetPen(wxPen(wxColour(0x6B6B6B)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawCircle(size.x / 2, size.x / 2, radius);
+
+        if (m_cols.size() > 1) {
+            int left = FromDIP(0);
+            float total_width = size.x;
+            int gwidth = std::round(total_width / (m_cols.size() - 1));
+
+            for (int i = 0; i < m_cols.size() - 1; i++) {
+
+                if ((left + gwidth) > (size.x)) {
+                    gwidth = size.x - left;
+                }
+
+                auto rect = wxRect(left, 0, gwidth, size.y);
+                dc.GradientFillLinear(rect, m_cols[i], m_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+            dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
+        }
     }
 }
 

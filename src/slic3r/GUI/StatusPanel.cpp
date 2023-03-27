@@ -2763,6 +2763,14 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         n_val = wxString::Format("%.3f", tray_it->second->n);
                         wxColor color = AmsTray::decode_color(tray_it->second->color);
                         m_filament_setting_dlg->set_color(color);
+
+                        std::vector<wxColour> cols;
+                        for (auto col : tray_it->second->cols) {
+                            cols.push_back( AmsTray::decode_color(col));
+                        }
+
+                        m_filament_setting_dlg->set_colors(cols);
+
                         m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
                         m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
                         if (!m_filament_setting_dlg->m_is_third) {

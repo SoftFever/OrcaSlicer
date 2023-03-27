@@ -31,7 +31,9 @@ namespace Slic3r { namespace GUI {
 class ColorPicker : public wxWindow
 {
 public:
+    wxBitmap        m_bitmap_border;
     wxColour        m_colour;
+    std::vector<wxColour>        m_cols;
     bool            m_selected{false};
     bool            m_show_full{false};
     
@@ -39,6 +41,7 @@ public:
     ~ColorPicker();
 
     void set_color(wxColour col);
+    void set_colors(std::vector<wxColour>  cols);
     void set_selected(bool sel) {m_selected = sel;Refresh();};
     void set_show_full(bool full) {m_show_full = full;Refresh();};
 
@@ -92,6 +95,7 @@ public:
     void post_select_event();
 
     void set_color(wxColour color);
+    void set_colors(std::vector<wxColour> colors);
 
     void on_picker_color(wxCommandEvent& color);
     MachineObject* obj{ nullptr };
