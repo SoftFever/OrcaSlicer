@@ -4999,7 +4999,7 @@ void GLCanvas3D::update_sequential_clearance()
             cache_hull_2d.reserve(hull_2d.points.size());
             for (const Point& p : hull_2d.points) {
                 cache_hull_2d.emplace_back(unscale<double>(p.x()), unscale<double>(p.y()), 0.0);
-            }            
+            }
         }
         m_sequential_print_clearance_first_displacement = false;
     }
@@ -5519,8 +5519,14 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //if (thumbnail_params.transparent_background)
     if (for_picking)
         glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
-    else
-        glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
+    else {
+        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
+        //glsafe(::glClearColor(0.50f, 0.5f, 0.5f, 1.0f));
+        //glsafe(::glClearColor(0.121568f, 0.121568f, 0.121568f, 1.0f));
+        glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
+        //glsafe(::glClearColor(0.37647f, 0.37647f, 0.37647f, 0.5f)); too lite
+        //glsafe(::glClearColor(0.23529f, 0.26666f, 0.2745f, 1.0f));
+    }
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -5574,7 +5580,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     }
     else {
         shader->start_using();
-        shader->set_uniform("emission_factor", 0.0f);
+        shader->set_uniform("emission_factor", 0.1f);
         for (GLVolume* vol : visible_volumes) {
             //BBS set render color for thumbnails
             curr_color[0] = vol->color[0];
@@ -7301,7 +7307,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 
     bool is_hovered = false;
 
-    m_sel_plate_toolbar.set_icon_size(80.0f * f_scale, 80.0f * f_scale);
+    m_sel_plate_toolbar.set_icon_size(100.0f * f_scale, 100.0f * f_scale);
 
     float button_width = m_sel_plate_toolbar.icon_width;
     float button_height = m_sel_plate_toolbar.icon_height;
@@ -7321,7 +7327,9 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImVec4 button_active = ImVec4(0.12f, 0.56f, 0.92, 1.0f);
     ImVec4 button_hover = ImVec4(0.67f, 0.67f, 0.67, 1.0f);
     ImVec4 scroll_col = ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));
+    //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));
+    //use white text as the background switch to black
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, window_bg);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, scroll_col);
@@ -7696,7 +7704,7 @@ void GLCanvas3D::_render_paint_toolbar() const
     float constraint_window_width = canvas_w - 2 * return_button_margin;
     ImGui::SetNextWindowSizeConstraints({ 0, 0 }, { constraint_window_width, FLT_MAX });
     imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    
+
     const float cursor_y = ImGui::GetCursorPosY();
     const ImVec2 arrow_button_size = ImVec2(0.375f * button_size.x, ImGui::GetWindowHeight());
     const ImRect left_arrow_button = ImRect(ImGui::GetCurrentWindow()->Pos, ImGui::GetCurrentWindow()->Pos + arrow_button_size);
@@ -7740,7 +7748,7 @@ void GLCanvas3D::_render_paint_toolbar() const
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
         ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
-        
+
         imgui.push_bold_font();
         ImVec2 number_label_size = ImGui::CalcTextSize(std::to_string(i + 1).c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y);
