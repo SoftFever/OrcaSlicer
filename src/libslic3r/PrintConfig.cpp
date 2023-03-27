@@ -4638,6 +4638,13 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("normative_check", coBool);
+    def->label = L("Normative check");
+    def->tooltip = L("Check the normative items.");
+    def->cli = "normative_check";
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(true));
+
     /*def = this->add("help_fff", coBool);
     def->label = L("Help (FFF options)");
     def->tooltip = L("Show the full list of print/G-code configuration options.");

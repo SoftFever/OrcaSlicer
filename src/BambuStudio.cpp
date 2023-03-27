@@ -490,7 +490,7 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data_src;
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -504,6 +504,9 @@ int CLI::run(int argc, char **argv)
     ConfigOptionInt* slice_option = m_config.option<ConfigOptionInt>("slice");
     if (slice_option)
         plate_to_slice = slice_option->value;
+    ConfigOptionBool* normative_check_option = m_config.option<ConfigOptionBool>("normative_check");
+    if (normative_check_option)
+        normative_check = normative_check_option->value;
     ConfigOptionBool* uptodate_option = m_config.option<ConfigOptionBool>("uptodate");
     if (uptodate_option)
         up_config_to_date = uptodate_option->value;
@@ -513,7 +516,7 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << "found a gcode file:" << file << ", will start as gcode viewer\n";
             break;
         }*/
-    BOOST_LOG_TRIVIAL(info) << "plate_to_slice="<< plate_to_slice << std::endl;
+    BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice=%1%, normative_check=%2%")%plate_to_slice %normative_check;
     //if (!start_as_gcodeviewer) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
@@ -561,6 +564,17 @@ int CLI::run(int argc, char **argv)
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
+                    }
+
+                    if (normative_check) {
+                        ConfigOptionStrings* postprocess_scripts = config.option<ConfigOptionStrings>("post_process");
+                        if (postprocess_scripts) {
+                            std::vector<std::string> postprocess_values = postprocess_scripts->values;
+                            if (postprocess_values.size() > 0) {
+                                BOOST_LOG_TRIVIAL(error) << boost::format("normative_check: postprocess not supported, array size %1%")%postprocess_values.size();
+                                flush_and_exit(CLI_POSTPROCESS_NOT_SUPPORTED);
+                            }
+                        }
                     }
 
                     /*for (ModelObject *model_object : model.objects)
