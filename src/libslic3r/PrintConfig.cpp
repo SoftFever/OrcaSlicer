@@ -108,7 +108,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
-    { "all",            int(FuzzySkinType::All) }
+    { "all",            int(FuzzySkinType::All) },
+    { "allwalls",       int(FuzzySkinType::AllWalls)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinType)
 
@@ -1428,8 +1429,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("none");
     def->enum_values.push_back("external");
     def->enum_values.push_back("all");
+    def->enum_values.push_back("allwalls");
     def->enum_labels.push_back(L("None"));
-    def->enum_labels.push_back(L("Outer wall"));
+    def->enum_labels.push_back(L("Contour"));
+    def->enum_labels.push_back(L("Contour and hole"));
     def->enum_labels.push_back(L("All walls"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));

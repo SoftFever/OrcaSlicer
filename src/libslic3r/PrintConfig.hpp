@@ -40,6 +40,7 @@ enum class FuzzySkinType {
     None,
     External,
     All,
+    AllWalls,
 };
 
 enum PrintHostType {
