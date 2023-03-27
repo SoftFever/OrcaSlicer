@@ -747,7 +747,7 @@ static std::vector<std::string> s_Preset_print_options {
      "initial_layer_infill_speed", "only_one_wall_top", 
      "timelapse_type", "internal_bridge_support_thickness",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
-     "wall_distribution_count", "min_feature_size", "min_bead_width"
+     "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process"
 };
 
 static std::vector<std::string> s_Preset_filament_options {

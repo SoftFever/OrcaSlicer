@@ -2023,6 +2023,13 @@ void TabPrint::build()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
+        optgroup = page->new_optgroup(L("Post-processing scripts"), L"param_gcode", 0);
+        option = optgroup->get_option("post_process");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = 15;
+        optgroup->append_single_option_line(option);
+
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));

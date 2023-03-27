@@ -2028,6 +2028,19 @@ void PrintConfigDef::init_fff_params()
     def->max = 1000;
     def->set_default_value(new ConfigOptionInt(2));
 
+    def = this->add("post_process", coStrings);
+    def->label = L("Post-processing Scripts");
+    def->tooltip = L("If you want to process the output G-code through custom scripts, "
+        "just list their absolute paths here. Separate multiple scripts with a semicolon. "
+        "Scripts will be passed the absolute path to the G-code file as the first argument, "
+        "and variables of settings also can be read");
+    def->gui_flags = "serialized";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 6;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings());
+
     def = this->add("printer_model", coString);
     //def->label = L("Printer type");
     //def->tooltip = L("Type of the printer");
