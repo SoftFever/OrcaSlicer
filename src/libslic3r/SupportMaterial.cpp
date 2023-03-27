@@ -31,9 +31,9 @@
 #endif // SUPPORT_USE_AGG_RASTERIZER
 
 // #define SLIC3R_DEBUG
-
+// #define SUPPORT_TREE_DEBUG_TO_SVG
 // Make assert active if SLIC3R_DEBUG
-#ifdef SLIC3R_DEBUG
+#if defined(SLIC3R_DEBUG) || defined(SUPPORT_TREE_DEBUG_TO_SVG)
     #define DEBUG
     #define _DEBUG
     #undef NDEBUG
@@ -996,16 +996,18 @@ public:
             if (!support_polygons_simplified.empty())
                 bbox.merge(get_extents(support_polygons_simplified));
             SVG svg(debug_out_path("extract_support_from_grid_trimmed-%s-%d-%d-%lf.svg", step_name, iRun, layer_id, print_z).c_str(), bbox);
-            svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
-            svg.draw(islands, "red", 0.5f);
-            svg.draw(union_ex(out), "green", 0.5f);
-            svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
-            svg.draw_outline(islands, "red", "red", scale_(0.05));
-            svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
-            svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
-            for (const Point &pt : samples)
-                svg.draw(pt, "black", coord_t(scale_(0.15)));
-            svg.Close();
+            if (svg.is_opened()) {
+                svg.draw(union_ex(support_polygons_simplified), "gray", 0.25f);
+                svg.draw(islands, "red", 0.5f);
+                svg.draw(union_ex(out), "green", 0.5f);
+                svg.draw(union_ex(*m_support_polygons), "blue", 0.5f);
+                svg.draw_outline(islands, "red", "red", scale_(0.05));
+                svg.draw_outline(union_ex(out), "green", "green", scale_(0.05));
+                svg.draw_outline(union_ex(*m_support_polygons), "blue", "blue", scale_(0.05));
+                for (const Point& pt : samples)
+                    svg.draw(pt, "black", coord_t(scale_(0.15)));
+                svg.Close();
+            }
     #endif /* SLIC3R_DEBUG */
 
             if (m_support_angle != 0.)
@@ -1638,7 +1640,7 @@ static inline ExPolygons detect_overhangs(
                     // 1. nothing below
                     // Check whether this is a sharp tail region.
                     // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
-                    if (g_config_support_sharp_tails && overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
+                    if (g_config_support_sharp_tails && !overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
                         is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.1*fw).empty();
                     }
 
@@ -2107,6 +2109,9 @@ struct OverhangCluster {
     int min_layer = 1e7;
     int max_layer = 0;
     coordf_t offset_scaled = 0;
+    bool is_cantilever = false;
+    bool is_sharp_tail = false;
+    bool is_small_overhang = false;
 
     OverhangCluster(ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
         this->offset_scaled = offset_scaled;
@@ -2240,12 +2245,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             // 2) lower layer has no sharp tails
             if (!lower_layer || layer->sharp_tails.empty() == false || lower_layer->sharp_tails.empty() == true)
                 continue;
-            ExPolygons lower_polys;
-            for (const ExPolygon& expoly : lower_layer->lslices) {
-                if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
-                    lower_polys.emplace_back(expoly);
-                }
-            }
 
             // BBS detect sharp tail
             const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
@@ -2335,57 +2334,70 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
         }
 
         for (OverhangCluster& cluster : clusters) {
-            // 1. check overhang span size is smaller than 3mm
-            //auto bbox_size = get_extents(cluster.merged_overhangs_dilated).size();
-            //const double dimension_limit = scale_(3.0) + 2 * fw_scaled;
-            //if (bbox_size.x() > dimension_limit || bbox_size.y() > dimension_limit)
-            //    continue;
-
-            double area = 0.f;
-            // 2. check overhang cluster size is smaller than 3.0 * fw_scaled
-            auto erode1 = offset(cluster.merged_overhangs_dilated, -2.5 * fw_scaled);
-            for (Polygon& poly : erode1)
-                area += poly.area() * (poly.is_counter_clockwise() ? 1.0 : -1.0);
-            if (std::abs(area) > SQ(scale_(0.1)))
-                continue;
 
             // 3. check whether the small overhang is sharp tail
-            bool is_sharp_tail = false;
+            cluster.is_sharp_tail = false;
             for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
                 const Layer* layer = object.get_layer(layer_id);
                 if (overlaps(layer->sharp_tails, cluster.merged_overhangs_dilated)) {
-                    is_sharp_tail = true;
+                    cluster.is_sharp_tail = true;
                     break;
                 }
             }
-            if (is_sharp_tail)
+            if (cluster.is_sharp_tail)
                 continue;
 
-            // 4. check whether the overhang cluster is cantilever (far awary from main body)
-            const Layer* layer = object.get_layer(cluster.min_layer);
-            if (layer->lower_layer == NULL) continue;
-            Layer* lower_layer = layer->lower_layer;
-            auto cluster_boundary = intersection(cluster.merged_overhangs_dilated, offset(lower_layer->lslices, scale_(0.5)));
-            if (cluster_boundary.empty()) continue;
-            double dist_max = 0;
-            Points cluster_pts;
-            for (auto& poly : cluster.merged_overhangs_dilated)
-                append(cluster_pts, poly.contour.points);
-            for (auto& pt : cluster_pts) {
-                double dist_pt = std::numeric_limits<double>::max();
-                for (auto& poly : cluster_boundary) {
-                    double d = poly.distance_to(pt);
-                    dist_pt = std::min(dist_pt, d);
+            if (!cluster.is_sharp_tail) {
+                // 4. check whether the overhang cluster is cantilever (far awary from main body)
+                const Layer* layer = object.get_layer(cluster.min_layer);
+                if (layer->lower_layer == NULL) continue;
+                Layer* lower_layer = layer->lower_layer;
+                auto cluster_boundary = intersection(cluster.merged_overhangs_dilated, offset(lower_layer->lslices, scale_(0.5)));
+                if (cluster_boundary.empty()) continue;
+                double dist_max = 0;
+                Points cluster_pts;
+                for (auto& poly : cluster.merged_overhangs_dilated)
+                    append(cluster_pts, poly.contour.points);
+                for (auto& pt : cluster_pts) {
+                    double dist_pt = std::numeric_limits<double>::max();
+                    for (auto& poly : cluster_boundary) {
+                        double d = poly.distance_to(pt);
+                        dist_pt = std::min(dist_pt, d);
+                    }
+                    dist_max = std::max(dist_max, dist_pt);
                 }
-                dist_max = std::max(dist_max, dist_pt);
+                if (dist_max > scale_(3)) {
+                    cluster.is_cantilever = true;
+                    continue;
+                }
             }
-            if (dist_max > 5.0 * fw_scaled)
-                continue;
+
+            if (!cluster.is_sharp_tail && !cluster.is_cantilever) {
+                // 2. check overhang cluster size is small
+                cluster.is_small_overhang = false;
+                auto erode1 = offset_ex(cluster.merged_overhangs_dilated, -2.5 * fw_scaled);
+                if (area(erode1) < SQ(scale_(0.1))) {
+                    cluster.is_small_overhang = true;
+                }
+            }
+
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+            const Layer* layer1 = object.get_layer(cluster.min_layer);
+            BoundingBox bbox = get_extents(cluster.merged_overhangs_dilated);
+            bbox.merge(get_extents(layer1->lslices));
+            SVG svg(format("SVG/overhangCluster_%s_%s_tail=%s_cantilever=%s_small=%s.svg", cluster.min_layer, layer1->print_z, cluster.is_sharp_tail, cluster.is_cantilever, cluster.is_small_overhang), bbox);
+            if (svg.is_opened()) {
+                svg.draw(layer1->lslices, "red");
+                svg.draw(cluster.merged_overhangs_dilated, "blue");
+            }
+#endif
 
             // 5. remove small overhangs
-            for (auto overhangs : cluster.layer_overhangs) {
-                for (auto* poly : overhangs.second)
-                    removed_overhang.insert(poly);
+            if (cluster.is_small_overhang) {
+                for (auto overhangs : cluster.layer_overhangs) {
+                    for (auto* poly : overhangs.second)
+                        removed_overhang.insert(poly);
+                }
             }
         }
 

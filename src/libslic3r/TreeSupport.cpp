@@ -763,6 +763,8 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         int max_layer = 0;
         coordf_t offset = 0;
         bool is_cantilever = false;
+        bool is_sharp_tail = false;
+        bool is_small_overhang = false;
         OverhangCluster(const ExPolygon* expoly, int layer_nr) {
             push_back(expoly, layer_nr);
         }
@@ -951,12 +953,6 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
             // 2) lower layer has no sharp tails
             if (!lower_layer || layer->sharp_tails.empty() == false || lower_layer->sharp_tails.empty() == true)
                 continue;
-            ExPolygons lower_polys;
-            for (const ExPolygon& expoly : lower_layer->lslices) {
-                if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
-                    lower_polys.emplace_back(expoly);
-                }
-            }
 
             // BBS detect sharp tail
             const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
@@ -1047,9 +1043,21 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
-    // check whether the overhang cluster is cantilever (far awary from main body)
+    // check whether the overhang cluster is sharp tail or cantilever
     max_cantilevel_dist = 0;
     for (auto& cluster : overhangClusters) {
+        // 3. check whether the small overhang is sharp tail
+        cluster.is_sharp_tail = false;
+        for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
+            Layer* layer = m_object->get_layer(layer_id);
+            if (overlaps(layer->sharp_tails, cluster.merged_poly)) {
+                cluster.is_sharp_tail = true;
+                break;
+            }
+        }
+        if (cluster.is_sharp_tail) continue;
+
+        // check whether the overhang cluster is cantilever (far awary from main body)
         Layer* layer = m_object->get_layer(cluster.min_layer);
         if (layer->lower_layer == NULL) continue;
         Layer* lower_layer = layer->lower_layer;
@@ -1083,45 +1091,28 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         if (blockers.size() < m_object->layer_count())
             blockers.resize(m_object->layer_count());
         for (auto& cluster : overhangClusters) {
-            auto erode1 = offset_ex(cluster.merged_poly, -1.5*extrusion_width_scaled);
-            //DEBUG
-            bool save_poly = false;
-            if (save_poly) {
-                erode1 = offset_ex(cluster.merged_poly, -1*extrusion_width_scaled);
-                double a = area(erode1);
-                erode1[0].contour.remove_duplicate_points();
-                a = area(erode1);
-                auto tmp = offset_ex(erode1, extrusion_width_scaled);
-                SVG svg("SVG/merged_poly_"+std::to_string(cluster.min_layer)+".svg", m_object->bounding_box());
-                if (svg.is_opened()) {
-                    svg.draw_outline(cluster.merged_poly, "yellow");
-                    svg.draw_outline(erode1, "yellow");
-                }
+            // 4. check whether the overhang cluster is cantilever or sharp tail
+            if (cluster.is_cantilever || cluster.is_sharp_tail) continue;
+
+            if (!cluster.is_sharp_tail && !cluster.is_cantilever) {
+                // 2. check overhang cluster size is smaller than 3.0 * fw_scaled
+                auto erode1 = offset_ex(cluster.merged_poly, -1.5 * extrusion_width_scaled);
+                cluster.is_small_overhang = area(erode1) < SQ(scale_(0.1));
             }
 
-            // 1. check overhang span size is smaller than 3mm
-            //auto bbox_size = get_extents(cluster.merged_poly).size();
-            //const double dimension_limit = scale_(3.0) + 2 * extrusion_width_scaled;
-            //if (bbox_size.x() > dimension_limit || bbox_size.y() > dimension_limit)
-            //    continue;
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+            const Layer* layer1 = m_object->get_layer(cluster.min_layer);
+            BoundingBox bbox = cluster.merged_bbox;
+            bbox.merge(get_extents(layer1->lslices));
+            SVG svg(format("SVG/overhangCluster_%s_%s_tail=%s_cantilever=%s_small=%s.svg", cluster.min_layer, layer1->print_z, cluster.is_sharp_tail, cluster.is_cantilever, cluster.is_small_overhang), bbox);
+            if (svg.is_opened()) {
+                svg.draw(layer1->lslices, "red");
+                svg.draw(cluster.merged_poly, "blue");
+            }
+#endif
 
-            // 2. check overhang cluster size is smaller than 3.0 * fw_scaled
-            if (area(erode1) > SQ(scale_(0.1)))
+            if (!cluster.is_small_overhang)
                 continue;
-
-            // 3. check whether the small overhang is sharp tail
-            bool is_sharp_tail = false;
-            for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
-                Layer* layer = m_object->get_layer(layer_id);
-                if(overlaps(layer->sharp_tails, cluster.merged_poly)) {
-                    is_sharp_tail = true;
-                    break;
-                }
-            }
-            if (is_sharp_tail) continue;
-
-            // 4. check whether the overhang cluster is cantilever
-            if (cluster.is_cantilever) continue;
 
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int  layer_nr   = it->first;

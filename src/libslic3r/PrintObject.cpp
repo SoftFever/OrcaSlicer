@@ -2501,19 +2501,21 @@ void PrintObject::remove_bridges_from_contacts(
             if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1) {
                 auto bbox      = get_extents(surface.expolygon);
                 auto bbox_size = bbox.size();
-                if (bbox_size[0] < max_bridge_length || bbox_size[1] < max_bridge_length)
+                if (bbox_size[0] < max_bridge_length && bbox_size[1] < max_bridge_length)
                     polygons_append(bridges, surface.expolygon);
                 else {
                     if (break_bridge) {
                         Polygons holes;
-                        int      x0 = bbox.min.x();
-                        int      x1 = bbox.max.x();
-                        int      y0 = bbox.min.y();
-                        int      y1 = bbox.max.y();
+                        coord_t  x0 = bbox.min.x();
+                        coord_t  x1 = bbox.max.x();
+                        coord_t  y0 = bbox.min.y();
+                        coord_t  y1 = bbox.max.y();
                         const int grid_lw = int(w/2); // grid line width
 
-#if 1
-                        if (fabs(surface.bridge_angle-0)<fabs(surface.bridge_angle-M_PI_2)) {
+                        Vec2f bridge_direction{ cos(surface.bridge_angle),sin(surface.bridge_angle) };
+                        if (fabs(bridge_direction(0)) > fabs(bridge_direction(1)))
+                        {   // cut bridge along x-axis if bridge direction is aligned to x-axis more than to y-axis
+                            // Note: surface.bridge_angle may be pi, so we can't compare it to 0 & pi/2.
                             int step = bbox_size(0) / ceil(bbox_size(0) / max_bridge_length);
                             for (int x = x0 + step; x < x1; x += step) {
                                 Polygon poly;
@@ -2528,17 +2530,6 @@ void PrintObject::remove_bridges_from_contacts(
                                 holes.emplace_back(poly);
                             }
                         }
-#else
-                        int stepx = bbox_size(0) / ceil(bbox_size(0) / max_bridge_length);
-                        int stepy  = bbox_size(1) / ceil(bbox_size(1) / max_bridge_length);
-                        for (int x = x0 + stepx; x < x1; x += stepx)
-                            for (int y = y0 + stepy; y < y1; y += stepy) {
-                                Polygon poly;
-                                poly.points = {Point(x-grid_lw, y - grid_lw), Point(x+grid_lw, y - grid_lw), Point(x+grid_lw, y + grid_lw), Point(x-grid_lw, y + grid_lw)};
-                                holes.emplace_back(poly);
-                            }
-
-#endif
                         auto expoly = diff_ex(surface.expolygon, holes);
                         polygons_append(bridges, expoly);
                     }
