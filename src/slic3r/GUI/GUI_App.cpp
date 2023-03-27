@@ -2050,6 +2050,19 @@ void GUI_App::init_app_config()
         m_datadir_redefined = true;
     }
 
+    // start log here
+    std::time_t       t        = std::time(0);
+    std::tm *         now_time = std::localtime(&t);
+    std::stringstream buf;
+    buf << std::put_time(now_time, "debug_%a_%b_%d_%H_%M_%S_");
+    buf << get_current_pid() << ".log";
+    std::string log_filename = buf.str();
+#if !BBL_RELEASE_TO_PUBLIC
+    set_log_path_and_level(log_filename, 5);
+#else
+    set_log_path_and_level(log_filename, 3);
+#endif
+
     //BBS: remove GCodeViewer as seperate APP logic
 	if (!app_config)
         app_config = new AppConfig();
@@ -2173,19 +2186,6 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
-    //start log here
-    std::time_t t = std::time(0);
-    std::tm* now_time = std::localtime(&t);
-    std::stringstream buf;
-    buf << std::put_time(now_time, "debug_%a_%b_%d_%H_%M_%S_");
-    buf << get_current_pid() << ".log";
-    std::string log_filename = buf.str();
-#if !BBL_RELEASE_TO_PUBLIC
-    set_log_path_and_level(log_filename, 5);
-#else
-    set_log_path_and_level(log_filename, 3);
-#endif
-
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();
 #ifdef NDEBUG

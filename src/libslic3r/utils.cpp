@@ -897,6 +897,8 @@ CopyFileResult copy_file(const std::string &from, const std::string &to, std::st
         goto __finished;
     }
 
+	FlushFileBuffers(handledst);
+
 __finished:
     if (src_wstr)
         delete[] src_wstr;
