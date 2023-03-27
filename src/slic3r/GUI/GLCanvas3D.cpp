@@ -3596,7 +3596,8 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     double direction_factor = 1.0;
 #endif
     auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
-    if (evt.CmdDown()) {
+    bool zoom_to_mouse = wxGetApp().app_config->get("zoom_to_mouse") == "true";
+    if (!zoom_to_mouse) {// zoom to center
         _update_camera_zoom(delta);
     }
     else {
