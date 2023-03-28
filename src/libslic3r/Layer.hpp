@@ -269,6 +269,7 @@ protected:
         ExPolygon *area;
         int        type;
         coordf_t   dist_to_top; // mm dist to top
+        bool need_infill = false;
         AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
     enum OverhangType { Detected = 0, Enforced };

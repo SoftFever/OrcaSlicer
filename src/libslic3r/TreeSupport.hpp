@@ -239,6 +239,7 @@ public:
          , height(0.0)
         {}
 
+        // when dist_mm_to_top_==0, new node's dist_mm_to_top=parent->dist_mm_to_top + parent->height;
         Node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
              coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_=0)
          : distance_to_top(distance_to_top)
