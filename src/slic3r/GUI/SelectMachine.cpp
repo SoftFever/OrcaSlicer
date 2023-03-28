@@ -2068,14 +2068,34 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     auto mapping_result = m_mapping_popup.parse_ams_mapping(obj_->amsList);
     auto has_unknown_filament = false;
     // check if ams mapping is has errors, tpu
-    bool has_tpu_filament = false;
+    bool has_prohibited_filament = false;
+    wxString prohibited_error = wxEmptyString;
+
 
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+
         auto tid = m_ams_mapping_result[i].tray_id;
+
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
-        if (filament_type == "TPU") {
-            has_tpu_filament = true;
+        std::string filament_brand;
+
+        for (auto fs : m_filaments) {
+            if (fs.id == m_ams_mapping_result[i].id) {
+                filament_brand = boost::to_upper_copy(m_filaments[i].brand);
+            }
         }
+
+        if (filament_type == "TPU") {
+            has_prohibited_filament = true;
+            prohibited_error = wxString::Format(_L("%s is not supported by AMS."), "TPU");
+        }else if (filament_type == "PET-CF" && filament_brand == "BAMBULAB") {
+            has_prohibited_filament = true;
+            prohibited_error = wxString::Format(_L("%s is not supported by AMS."), "PET-CF");
+        }else if (filament_type == "PA6-CF" && filament_brand == "BAMBULAB") {
+            has_prohibited_filament = true;
+            prohibited_error = wxString::Format(_L("%s is not supported by AMS."), "PA6-CF");
+        }
+
         for (auto miter : mapping_result) {
             //matching
             if (miter.id == tid) {
@@ -2087,8 +2107,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
     }
 
-    if (has_tpu_filament && obj_->has_ams() && ams_check->GetValue()) {
-        wxString tpu_tips = wxString::Format(_L("The %s filament is too soft to be used with the AMS"), "TPU");
+    if (has_prohibited_filament && obj_->has_ams() && ams_check->GetValue()) {
+        wxString tpu_tips = prohibited_error;
         show_errors(tpu_tips);
         return;
     }
@@ -3043,6 +3063,7 @@ void SelectMachineDialog::set_default()
     //sizer_thumbnail->Layout();
 
     std::vector<std::string> materials;
+    std::vector<std::string> brands;
     std::vector<std::string> display_materials;
     {
         auto preset_bundle = wxGetApp().preset_bundle;
@@ -3053,6 +3074,7 @@ void SelectMachineDialog::set_default()
                     std::string filament_type = iter->config.get_filament_type(display_filament_type);
                     display_materials.push_back(display_filament_type);
                     materials.push_back(filament_type);
+                    brands.push_back(iter->vendor->name);
                 }
             }
         }
@@ -3147,6 +3169,7 @@ void SelectMachineDialog::set_default()
             FilamentInfo info;
             info.id    = extruder;
             info.type  = materials[extruder];
+            info.brand = brands[extruder];
             info.color = colour_rgb.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
             m_filaments.push_back(info);
         }
