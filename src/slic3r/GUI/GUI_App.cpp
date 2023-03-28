@@ -1150,10 +1150,11 @@ void GUI_App::post_init()
                 json j;
                 j["time"] = file_name.substr(file_name.find("crash") + strlen("crash") + 1);
                 j["verion"] = std::string(SLIC3R_VERSION);
-                j["content"] = data.str();
-                if (agent) {
-                    agent->track_event("studio_crash", j.dump());
-                }
+                j["content"] = decode_path(data.str().c_str());
+                try {
+                    if (agent) {
+                        agent->track_event("studio_crash", j.dump()); }
+                } catch (...) {}
                 std::string new_file_name = file_name.insert(0, "_done_");
                 boost::filesystem::rename(iter->path(), iter->path().parent_path() / boost::filesystem::path(new_file_name + iter->path().extension().string()));
             }
