@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 21:34+0800\n"
+"POT-Creation-Date: 2023-03-29 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3694,6 +3694,9 @@ msgstr "Filament settings"
 msgid "Printer settings"
 msgstr "Printer settings"
 
+msgid "Untitled"
+msgstr "Untitled"
+
 #, boost-format
 msgid " plate %1%:"
 msgstr " plate %1%:"
@@ -3777,9 +3780,6 @@ msgid ""
 "Orca Slicer or restart Orca Slicer to check if there is an update to system "
 "presets."
 msgstr ""
-
-msgid "Untitled"
-msgstr "Untitled"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4376,6 +4376,9 @@ msgstr ""
 
 msgid "Print sequence"
 msgstr "Print sequence"
+
+msgid "Plate name"
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr ""
@@ -7562,9 +7565,6 @@ msgstr ""
 "hitting the print when traveling more. Using spiral lines to lift z can "
 "prevent stringing."
 
-msgid "Z Hop Type"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -8118,12 +8118,6 @@ msgstr ""
 "This moves the nozzle along the last extrusion path when retracting to clean "
 "any leaked material on the nozzle. This can minimize blobs when printing a "
 "new part after traveling."
-
-msgid "NormalLift"
-msgstr ""
-
-msgid "SpiralLift"
-msgstr ""
 
 msgid "Wipe Distance"
 msgstr "Wipe distance"

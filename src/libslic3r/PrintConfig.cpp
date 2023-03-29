@@ -107,14 +107,6 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
 
-static t_config_enum_values s_keys_map_LiftType {
-    { "NormalLift",         int(LiftType::NormalLift) },
-    { "LazyLift",           int(LiftType::LazyLift) },
-    { "SpiralLift",         int(LiftType::SpiralLift) }
-};
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LiftType)
-
-
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
@@ -2452,7 +2444,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("z_hop_types", coEnums);
-    def->label = L("Z Hop Type");
+    def->label = L("Z hop type");
     def->tooltip = L("Z hop type");
     def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
     def->enum_values.push_back("Auto Lift");
@@ -2464,7 +2456,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Slope"));
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSpiral });
+    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
 
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
@@ -3231,19 +3223,6 @@ void PrintConfigDef::init_fff_params()
                      "This can minimize blob when print new part after travel");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
-
-    def = this->add("z_lift_type", coEnum);
-    def->label = L("Z hop type");
-    def->tooltip = L("Z hop type");
-    def->enum_keys_map = &ConfigOptionEnum<LiftType>::get_enum_values();
-    def->enum_values.push_back("NormalLift");
-    def->enum_values.push_back("SpiralLift");
-    // def->enum_values.push_back("LazyLift");
-    def->enum_labels.push_back(L("NormalLift"));
-    def->enum_labels.push_back(L("SpiralLift"));
-    // def->enum_labels.push_back(L("LazyLift"));
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<LiftType>(LiftType::SpiralLift));
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
@@ -4308,7 +4287,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type"
+        "z_hop_type", "z_lift_type"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

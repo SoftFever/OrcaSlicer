@@ -135,5 +135,5 @@
     "wipe": [
         "0"
     ],
-    "z_lift_type": "NormalLift"
+    "z_hop_types": "Normal Lift"
 }

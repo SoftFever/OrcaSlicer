@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 21:34+0800\n"
+"POT-Creation-Date: 2023-03-29 23:15+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3720,6 +3720,9 @@ msgstr "Filament beállítások"
 msgid "Printer settings"
 msgstr "Nyomtató beállítások"
 
+msgid "Untitled"
+msgstr "Névtelen"
+
 #, boost-format
 msgid " plate %1%:"
 msgstr " %1% tálca:"
@@ -3803,9 +3806,6 @@ msgid ""
 "Orca Slicer or restart Orca Slicer to check if there is an update to system "
 "presets."
 msgstr ""
-
-msgid "Untitled"
-msgstr "Névtelen"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4410,6 +4410,9 @@ msgstr ""
 
 msgid "Print sequence"
 msgstr "Nyomtatás sorrendje"
+
+msgid "Plate name"
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr ""
@@ -7637,9 +7640,6 @@ msgstr ""
 "nagyobb mozgás közben a tárgynak ütközzön. A Z tengely emelésekor használt "
 "körkörös mozgás megelőzheti a szálazást."
 
-msgid "Z Hop Type"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -8203,12 +8203,6 @@ msgstr ""
 "hogy a fúvókából szivárgott anyagot eltávolítsa. Ez minimálisra csökkentheti "
 "a pöttyöket, amikor a nyomtatófej a mozgást követően egy egy új alkatrész "
 "nyomtatásába kezd."
-
-msgid "NormalLift"
-msgstr ""
-
-msgid "SpiralLift"
-msgstr ""
 
 msgid "Wipe Distance"
 msgstr "Törlési távolság"

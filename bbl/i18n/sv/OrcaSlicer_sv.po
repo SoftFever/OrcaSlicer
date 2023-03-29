@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 21:34+0800\n"
+"POT-Creation-Date: 2023-03-29 23:15+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3696,6 +3696,9 @@ msgstr "Filament inställningar"
 msgid "Printer settings"
 msgstr "Skrivarens inställningar"
 
+msgid "Untitled"
+msgstr "Ej namngiven"
+
 #, boost-format
 msgid " plate %1%:"
 msgstr " platta %1%:"
@@ -3779,9 +3782,6 @@ msgid ""
 "Orca Slicer or restart Orca Slicer to check if there is an update to system "
 "presets."
 msgstr ""
-
-msgid "Untitled"
-msgstr "Ej namngiven"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4373,6 +4373,9 @@ msgstr ""
 
 msgid "Print sequence"
 msgstr "Utskrifts sekvens"
+
+msgid "Plate name"
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr ""
@@ -7560,9 +7563,6 @@ msgstr ""
 "den förflyttas. Att använda spirallinjer för att lyfta z kan förhindra "
 "strängning"
 
-msgid "Z Hop Type"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -8114,12 +8114,6 @@ msgstr ""
 "Detta flyttarnozzeln längs den sista extruderingsbanan när det retrakterar "
 "för att rengöra eventuellt läckt material på nozzeln. Detta kan minimera "
 "blobbar när du skriver ut en ny del efter förflyttning"
-
-msgid "NormalLift"
-msgstr ""
-
-msgid "SpiralLift"
-msgstr ""
 
 msgid "Wipe Distance"
 msgstr "Avskrapnings avstånd"

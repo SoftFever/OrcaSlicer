@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 21:34+0800\n"
+"POT-Creation-Date: 2023-03-29 23:15+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3730,6 +3730,9 @@ msgstr "Ajustes del filamento"
 msgid "Printer settings"
 msgstr "Ajustes de la impresora"
 
+msgid "Untitled"
+msgstr "Sin título"
+
 #, boost-format
 msgid " plate %1%:"
 msgstr " placa %1%:"
@@ -3813,9 +3816,6 @@ msgid ""
 "Orca Slicer or restart Orca Slicer to check if there is an update to system "
 "presets."
 msgstr ""
-
-msgid "Untitled"
-msgstr "Sin título"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4426,6 +4426,9 @@ msgstr ""
 
 msgid "Print sequence"
 msgstr "Secuencia de impresión"
+
+msgid "Plate name"
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr ""
@@ -7673,9 +7676,6 @@ msgstr ""
 "boquilla golpee la impresión cuando se desplaza. El uso de la línea espiral "
 "para levantar z puede evitar el encordado"
 
-msgid "Z Hop Type"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -8235,12 +8235,6 @@ msgstr ""
 "Mueva la boquilla a lo largo de la última trayectoria de extrusión cuando se "
 "retraiga para limpiar el material filtrado en la boquilla. Esto puede "
 "minimizar las manchas cuando se imprime una nueva pieza después del recorrido"
-
-msgid "NormalLift"
-msgstr ""
-
-msgid "SpiralLift"
-msgstr ""
 
 msgid "Wipe Distance"
 msgstr "Distancia de limpieza"

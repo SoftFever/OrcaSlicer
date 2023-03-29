@@ -1,6 +1,6 @@
 {
     "name": "Tronxy",
-    "version": "01.04.10.1",
+    "version": "01.05.10.1",
     "force_update": "0",
     "description": "Tronxy configurations",
     "machine_model_list": [
