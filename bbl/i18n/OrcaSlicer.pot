@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-16 21:34+0800\n"
+"POT-Creation-Date: 2023-03-29 23:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3584,6 +3584,9 @@ msgstr ""
 msgid "Printer settings"
 msgstr ""
 
+msgid "Untitled"
+msgstr ""
+
 #, possible-boost-format
 msgid " plate %1%:"
 msgstr ""
@@ -3666,9 +3669,6 @@ msgid ""
 "There are some unknown filaments mapped to generic preset. Please update "
 "Orca Slicer or restart Orca Slicer to check if there is an update to system "
 "presets."
-msgstr ""
-
-msgid "Untitled"
 msgstr ""
 
 #, possible-boost-format
@@ -4252,6 +4252,9 @@ msgid "Same as Global Print Sequence"
 msgstr ""
 
 msgid "Print sequence"
+msgstr ""
+
+msgid "Plate name"
 msgstr ""
 
 msgid "Same as Global Bed Type"
@@ -7224,9 +7227,6 @@ msgid ""
 "print when travel move. Using spiral line to lift z can prevent stringing"
 msgstr ""
 
-msgid "Z Hop Type"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -7736,12 +7736,6 @@ msgstr ""
 msgid ""
 "Move nozzle along the last extrusion path when retracting to clean leaked "
 "material on nozzle. This can minimize blob when print new part after travel"
-msgstr ""
-
-msgid "NormalLift"
-msgstr ""
-
-msgid "SpiralLift"
 msgstr ""
 
 msgid "Wipe Distance"
