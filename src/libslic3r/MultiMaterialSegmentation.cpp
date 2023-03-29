@@ -1525,6 +1525,12 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     triangles_by_color_bottom.assign(num_extruders, std::vector<ExPolygons>(num_layers * 2));
     triangles_by_color_top.assign(num_extruders, std::vector<ExPolygons>(num_layers * 2));
 
+    // BBS: use shell_triangles_by_color_bottom & shell_triangles_by_color_top to save the top and bottom embedded layers's color information
+    std::vector<std::vector<ExPolygons>> shell_triangles_by_color_bottom(num_extruders);
+    std::vector<std::vector<ExPolygons>> shell_triangles_by_color_top(num_extruders);
+    shell_triangles_by_color_bottom.assign(num_extruders, std::vector<ExPolygons>(num_layers * 2));
+    shell_triangles_by_color_top.assign(num_extruders, std::vector<ExPolygons>(num_layers * 2));
+
     struct LayerColorStat {
         // Number of regions for a queried color.
         int     num_regions             { 0 };
@@ -1567,7 +1573,8 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     };
 
     tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers, granularity), [&granularity, &num_layers, &num_extruders, &layer_color_stat, &top_raw, &triangles_by_color_top,
-                                                                               &throw_on_cancel_callback, &input_expolygons, &bottom_raw, &triangles_by_color_bottom](const tbb::blocked_range<size_t> &range) {
+                                                                               &throw_on_cancel_callback, &input_expolygons, &bottom_raw, &triangles_by_color_bottom,
+                                                                               &shell_triangles_by_color_top, &shell_triangles_by_color_bottom](const tbb::blocked_range<size_t> &range) {
         size_t group_idx   = range.begin() / granularity;
         size_t layer_idx_offset = (group_idx & 1) * num_layers;
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
@@ -1590,7 +1597,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                 ExPolygons last = opening_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
                                     break;
-                                append(triangles_by_color_top[color_idx][last_idx + layer_idx_offset], std::move(last));
+                                append(shell_triangles_by_color_top[color_idx][last_idx + layer_idx_offset], std::move(last));
                             }
                         }
                     }
@@ -1610,7 +1617,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                 ExPolygons last = opening_ex(intersection_ex(bottom_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);
                                 if (last.empty())
                                     break;
-                                append(triangles_by_color_bottom[color_idx][last_idx + layer_idx_offset], std::move(last));
+                                append(shell_triangles_by_color_bottom[color_idx][last_idx + layer_idx_offset], std::move(last));
                             }
                         }
                     }
@@ -1620,15 +1627,38 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
 
     std::vector<std::vector<ExPolygons>> triangles_by_color_merged(num_extruders);
     triangles_by_color_merged.assign(num_extruders, std::vector<ExPolygons>(num_layers));
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&triangles_by_color_merged, &triangles_by_color_bottom, &triangles_by_color_top, &num_layers, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&triangles_by_color_merged, &triangles_by_color_bottom, &triangles_by_color_top, &num_layers, &throw_on_cancel_callback,
+                                                                  &shell_triangles_by_color_top, &shell_triangles_by_color_bottom](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
             throw_on_cancel_callback();
+            ExPolygons painted_exploys;
             for (size_t color_idx = 0; color_idx < triangles_by_color_merged.size(); ++color_idx) {
                 auto &self = triangles_by_color_merged[color_idx][layer_idx];
                 append(self, std::move(triangles_by_color_bottom[color_idx][layer_idx]));
                 append(self, std::move(triangles_by_color_bottom[color_idx][layer_idx + num_layers]));
                 append(self, std::move(triangles_by_color_top[color_idx][layer_idx]));
                 append(self, std::move(triangles_by_color_top[color_idx][layer_idx + num_layers]));
+                self = union_ex(self);
+
+                append(painted_exploys, self);
+            }
+
+            painted_exploys = union_ex(painted_exploys);
+
+            //BBS: merge the top and bottom shell layers
+            for (size_t color_idx = 0; color_idx < triangles_by_color_merged.size(); ++color_idx) {
+                auto &self = triangles_by_color_merged[color_idx][layer_idx];
+
+                auto top_area = diff_ex(union_ex(shell_triangles_by_color_top[color_idx][layer_idx],
+                                                 shell_triangles_by_color_top[color_idx][layer_idx + num_layers]),
+                                        painted_exploys);
+
+                auto bottom_area = diff_ex(union_ex(shell_triangles_by_color_bottom[color_idx][layer_idx],
+                                                    shell_triangles_by_color_bottom[color_idx][layer_idx + num_layers]),
+                                          painted_exploys);
+
+                append(self, top_area);
+                append(self, bottom_area);
                 self = union_ex(self);
             }
             // Trim one region by the other if some of the regions overlap.
