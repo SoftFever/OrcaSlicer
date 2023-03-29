@@ -516,11 +516,9 @@ bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wx
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
     const unsigned char* src = image.GetData();
-    /* for debug use
-    std::ofstream fout;
-    fout.open(text_str+std::to_string(m_width)+"_"+std::to_string(m_height)+".rgb", std::ios::out);
-    fout.write((const char*)src, 3 * m_width * m_height);
-    fout.close();*/
+     //for debug use
+    //image.SaveFile(text_str+"_test.png", wxBITMAP_TYPE_PNG);
+
     for (int h = 0; h < m_height; ++h) {
         unsigned char* dst = data.data() + 4 * h * m_width;
         for (int w = 0; w < m_width; ++w) {

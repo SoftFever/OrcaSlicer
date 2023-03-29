@@ -11508,6 +11508,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             else
                 dlg.sync_print_seq(0);
 
+            dlg.set_plate_name(curr_plate->get_plate_name());
+
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
                 BedType old_bed_type = curr_plate->get_bed_type();
@@ -11531,6 +11533,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 wxGetApp().plater()->config_change_notification(plate_config, std::string("print_sequence"));
                 });
             dlg.ShowModal();
+            curr_plate->set_plate_name(dlg.get_plate_name().ToStdString());
 
             this->schedule_background_process();
         }

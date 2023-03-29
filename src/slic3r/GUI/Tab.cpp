@@ -1647,7 +1647,7 @@ void Tab::on_presets_changed()
     if (is_bbl_vendor_preset)
         wxGetApp().plater()->get_partplate_list().set_render_option(true, true);
     else
-        wxGetApp().plater()->get_partplate_list().set_render_option(false, false);
+        wxGetApp().plater()->get_partplate_list().set_render_option(false, true);
 
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)

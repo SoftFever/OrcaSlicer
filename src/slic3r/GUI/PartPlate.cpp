@@ -74,7 +74,44 @@ std::array<float, 4> PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
 std::array<float, 4> PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
 std::array<float, 4> PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
 
+// get text extent with wxMemoryDC
+void get_text_extent(const wxString &msg, wxCoord &w, wxCoord &h, wxFont *font)
+{
+  wxMemoryDC memDC;
+  if (font)
+    memDC.SetFont(*font);
+  memDC.GetTextExtent(msg, &w, &h);
+}
 
+
+wxFont* find_font(const std::string& text_str, int max_size = 32)
+{
+  auto is_font_suitable = [](std::string str, wxFont &font, int max_size) {
+    wxString msg(str);
+	wxCoord w, h;
+	get_text_extent(msg, w, h, &font);
+
+    if (w <= max_size)
+      return true;
+    else
+      return false;
+  };
+  wxFont *font = nullptr;
+  if (is_font_suitable(text_str, Label::Head_24, max_size))
+    font = &Label::Head_24;
+  else if (is_font_suitable(text_str, Label::Head_20, max_size))
+    font = &Label::Head_20;
+  else if (is_font_suitable(text_str, Label::Head_18, max_size))
+    font = &Label::Head_18;
+  else if (is_font_suitable(text_str, Label::Head_16, max_size))
+    font = &Label::Head_16;
+  else if (is_font_suitable(text_str, Label::Head_14, max_size))
+    font = &Label::Head_14;
+  else
+    font = &Label::Head_12;
+
+  return font;
+}
 void PartPlate::update_render_colors()
 {
 	PartPlate::SELECT_COLOR			= GLColor(RenderColor::colors[RenderCol_Plate_Selected]);
@@ -131,6 +168,7 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
+	m_plate_name_vbo_id = 0;
 }
 
 BedType PartPlate::get_bed_type() const
@@ -744,8 +782,33 @@ void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const Ge
 	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
+void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
+{
+	if (m_name_texture.get_id() == 0)
+		generate_plate_name_texture();
 
-void PartPlate::render_icons(bool bottom, int hover_id) const
+	if (m_plate_name_vbo_id == 0 && m_plate_name_icon.get_vertices_data_size() > 0) {
+		glsafe(::glGenBuffers(1, &m_plate_name_vbo_id));
+		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_plate_name_vbo_id));
+		glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_plate_name_icon.get_vertices_data_size(), (const GLvoid*)m_plate_name_icon.get_vertices_data(), GL_STATIC_DRAW));
+		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+	}
+
+	unsigned int stride = m_plate_name_icon.get_vertex_data_size();
+	GLuint tex_id = (GLuint)m_name_texture.get_id();
+	glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
+	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_plate_name_vbo_id));
+	if (position_id != -1)
+		glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_plate_name_icon.get_position_offset()));
+	if (tex_coords_id != -1)
+		glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_plate_name_icon.get_tex_coords_offset()));
+	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_plate_name_icon.get_vertices_count()));
+
+	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+}
+
+void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 {
 	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
@@ -766,54 +829,69 @@ void PartPlate::render_icons(bool bottom, int hover_id) const
         if (tex_coords_id != -1) {
             glsafe(::glEnableVertexAttribArray(tex_coords_id));
         }
-
-        if (hover_id == 1)
-            render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_hovered_texture, m_del_vbo_id);
-        else
-            render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture, m_del_vbo_id);
-
-        if (hover_id == 2)
-            render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_hovered_texture, m_orient_vbo_id);
-        else
-            render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture, m_orient_vbo_id);
-
-        if (hover_id == 3)
-            render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_hovered_texture, m_arrange_vbo_id);
-        else
-            render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture, m_arrange_vbo_id);
-
-        if (hover_id == 4) {
-            if (this->is_locked())
-                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_hovered_texture, m_lock_vbo_id);
+        if (!only_name) {
+            if (hover_id == 1)
+                render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_hovered_texture,
+                                    m_del_vbo_id);
             else
-                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_hovered_texture, m_lock_vbo_id);
-        }
-        else {
-            if (this->is_locked())
-                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture, m_lock_vbo_id);
+                render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture,
+                                    m_del_vbo_id);
+
+            if (hover_id == 2)
+                render_icon_texture(position_id, tex_coords_id, m_orient_icon,
+                                    m_partplate_list->m_orient_hovered_texture, m_orient_vbo_id);
             else
-                render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
-        }
+                render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture,
+                                    m_orient_vbo_id);
 
-        if (m_partplate_list->render_plate_settings) {
-            if (hover_id == 5) {
-                if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
-                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
+            if (hover_id == 3)
+                render_icon_texture(position_id, tex_coords_id, m_arrange_icon,
+                                    m_partplate_list->m_arrange_hovered_texture, m_arrange_vbo_id);
+            else
+                render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture,
+                                    m_arrange_vbo_id);
+
+            if (hover_id == 4) {
+                if (this->is_locked())
+                    render_icon_texture(position_id, tex_coords_id, m_lock_icon,
+                                        m_partplate_list->m_locked_hovered_texture, m_lock_vbo_id);
                 else
-                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture, m_plate_settings_vbo_id);
-            }
-            else {
-                if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
-                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
+                    render_icon_texture(position_id, tex_coords_id, m_lock_icon,
+                                        m_partplate_list->m_lockopen_hovered_texture, m_lock_vbo_id);
+            } else {
+                if (this->is_locked())
+                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture,
+                                        m_lock_vbo_id);
                 else
-                    render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);
+                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture,
+                                        m_lock_vbo_id);
+            }
+
+            if (m_partplate_list->render_plate_settings) {
+                if (hover_id == 5) {
+                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
+                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
+                                          m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
+                    else
+                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
+                                          m_partplate_list->m_plate_settings_changed_hovered_texture,
+                                          m_plate_settings_vbo_id);
+                } else {
+                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
+                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
+                                          m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
+                    else
+                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
+                                          m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);
+                }
+            }
+
+            if (m_plate_index >= 0 && m_plate_index < MAX_PLATE_COUNT) {
+                render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon,
+                                    m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
             }
         }
-
-        if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
-            render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
-        }
-
+		render_plate_name_texture(position_id, tex_coords_id);
         if (tex_coords_id != -1)
             glsafe(::glDisableVertexAttribArray(tex_coords_id));
 
@@ -1190,6 +1268,10 @@ void PartPlate::release_opengl_resource()
 		glsafe(::glDeleteBuffers(1, &m_plate_idx_vbo_id));
 		m_plate_idx_vbo_id = 0;
 	}
+	if (m_plate_name_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
+		m_plate_name_vbo_id = 0;
+	}
 }
 
 std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
@@ -1385,7 +1467,7 @@ void PartPlate::clear(bool clear_sliced_result)
 		m_ready_for_slice = true;
 		update_slice_result_valid_state(false);
 	}
-
+	m_name_texture.reset();
 	return;
 }
 
@@ -1471,6 +1553,50 @@ Vec3d PartPlate::get_center_origin()
 	origin(2) = m_origin.z();
 
 	return origin;
+}
+
+void PartPlate::generate_plate_name_texture()
+{
+	// generate m_name_texture texture from m_name with generate_from_text_string
+	m_name_texture.reset();
+	auto text = m_name.empty()? _L("Untitled") : m_name;
+	wxCoord w, h;
+	auto* font = &Label::Head_48;
+	wxColour foreground(0x0, 0x96, 0x88, 0xff);
+    if (!m_name_texture.generate_from_text_string(text.ToStdString(), *font, *wxBLACK, foreground))
+		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
+    auto bed_ext = get_extents(m_shape);
+    auto factor = bed_ext.size()(1) / 200.0;
+	ExPolygon poly;
+	float offset_x = 1;
+    w = int(factor * (m_name_texture.get_width() * 16) / m_name_texture.get_height());
+    h = int(factor * 16);
+    Vec2d p = m_shape[3] + Vec2d(0, h*0.6);
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y)});
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y) });
+
+	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+	if (!m_plate_name_icon.set_from_triangles(triangles, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+
+	if (m_plate_name_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
+		m_plate_name_vbo_id = 0;
+	}
+}
+void PartPlate::set_plate_name(const std::string& name) 
+{ 
+	// compare if name equal to m_name, case sensitive
+    if (boost::equals(m_name, name))
+        return;
+
+	m_name = name;
+    if (m_print != nullptr)
+        m_print->set_plate_name(name);
+
+	generate_plate_name_texture();
 }
 
 //get the print's object, result and index
@@ -2100,6 +2226,8 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		calc_vertex_for_icons(4, m_plate_settings_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
+		// calc vertex for plate name
+		generate_plate_name_texture();
 	}
 
 	calc_height_limit();
@@ -2172,35 +2300,8 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 
 	render_height_limit(mode);
 
-	if (!only_body) {
-		/*float render_color[4];
-		::memcpy((void*)m_grabber_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
-
-		render_color[0] = 1.0f - m_grabber_color[0];
-		render_color[1] = 1.0f - m_grabber_color[1];
-		render_color[2] = 1.0f - m_grabber_color[2];
-		render_color[3] = m_grabber_color[3];
-
-
-		if (m_hover_id == 0)
-			render_grabber(m_grabber_color, true);
-		else
-			render_grabber(render_color, true);
-
-		if (m_selected) {
-			if (m_hover_id == 1)
-				render_left_arrow(m_grabber_color, true);
-			else
-				render_left_arrow(render_color, true);
-
-			if (m_hover_id == 2)
-				render_right_arrow(m_grabber_color, true);
-			else
-				render_right_arrow(render_color, true);
-		}*/
-		render_icons(bottom, hover_id);
-	}
-	else if (!force_background_color){
+	render_icons(bottom, only_body, hover_id);
+	if (!force_background_color){
 		render_only_numbers(bottom);
 	}
 	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
@@ -2666,32 +2767,9 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
-	auto is_font_suitable = [](std::string text_str, wxFont& font, int max_size) {
-		wxMemoryDC memDC;
-		wxCoord w, h;
-		wxString msg(text_str);
-		memDC.SetFont(font);
-		memDC.GetMultiLineTextExtent(msg, &w, &h);
-		if (w <= max_size)
-			return true;
-		else
-			return false;;
-	};
-	wxFont* font = nullptr;
+
 	std::string text_str = "01";
-	int max_size = 32;
-	if (is_font_suitable(text_str, Label::Head_24, max_size))
-		font = &Label::Head_24;
-	else if (is_font_suitable(text_str, Label::Head_20, max_size))
-		font = &Label::Head_20;
-	else if (is_font_suitable(text_str, Label::Head_18, max_size))
-		font = &Label::Head_18;
-	else if (is_font_suitable(text_str, Label::Head_16, max_size))
-		font = &Label::Head_16;
-	else if (is_font_suitable(text_str, Label::Head_14, max_size))
-		font = &Label::Head_14;
-	else
-		font = &Label::Head_12;
+	wxFont* font = find_font(text_str,32);
 
 	for (int i = 0; i < MAX_PLATE_COUNT; i++) {
 		if (m_idx_textures[i].get_id() == 0) {
@@ -2701,7 +2779,7 @@ void PartPlateList::generate_icon_textures()
 			else
 				file_name = std::to_string(i+1);
 
-			wxColour foreground(0x0, 0xae, 0x42, 0xff);
+			wxColour foreground(0x0, 0x96, 0x88, 0xff);
 			if (!m_idx_textures[i].generate_from_text_string(file_name, *font, *wxBLACK, foreground)) {
 				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 			}
@@ -4409,6 +4487,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		PlateData* plate_data_item = new PlateData();
 		plate_data_item->locked = m_plate_list[i]->m_locked;
 		plate_data_item->plate_index = m_plate_list[i]->m_plate_index;
+		plate_data_item->plate_name = m_plate_list[i]->get_plate_name();
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% before load, width %2%, height %3%, size %4%!")
 			%(i+1) %m_plate_list[i]->thumbnail_data.width %m_plate_list[i]->thumbnail_data.height %m_plate_list[i]->thumbnail_data.pixels.size();
 		plate_data_item->plate_thumbnail.load_from(m_plate_list[i]->thumbnail_data);
@@ -4482,6 +4561,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		int index = create_plate(false);
 		m_plate_list[index]->m_locked = plate_data_list[i]->locked;
 		m_plate_list[index]->config()->apply(plate_data_list[i]->config);
+		m_plate_list[index]->set_plate_name(plate_data_list[i]->plate_name);
 		if (plate_data_list[i]->plate_index != index)
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;

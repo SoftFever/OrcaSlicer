@@ -23,14 +23,19 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     top_sizer->SetFlexibleDirection(wxBOTH);
     top_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
-    m_bed_type_choice = new ComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240),-1), 0, NULL, wxCB_READONLY );
-    for (BedType i = btDefault; i < btCount; i = BedType(int(i) + 1)) {
+    bool is_bbl = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    if (is_bbl) {
+      m_bed_type_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0,
+                                       NULL, wxCB_READONLY);
+      for (BedType i = btDefault; i < btCount; i = BedType(int(i) + 1)) {
         m_bed_type_choice->Append(to_bed_type_name(i));
+      }
+      wxStaticText *m_bed_type_txt = new wxStaticText(this, wxID_ANY, _L("Bed type"));
+      m_bed_type_txt->SetFont(Label::Body_14);
+      top_sizer->Add(m_bed_type_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+      top_sizer->Add(m_bed_type_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
     }
-    wxStaticText* m_bed_type_txt = new wxStaticText(this, wxID_ANY, _L("Bed type"));
-    m_bed_type_txt->SetFont(Label::Body_14);
-    top_sizer->Add(m_bed_type_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_bed_type_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT |wxALL, FromDIP(5));
+
 
     wxBoxSizer* m_sizer_selectbox = new wxBoxSizer(wxHORIZONTAL);
     m_print_seq_choice = new ComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240),-1), 0, NULL, wxCB_READONLY );
@@ -42,6 +47,12 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     m_print_seq_txt->SetFont(Label::Body_14);
     top_sizer->Add(m_print_seq_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT |wxALL, FromDIP(5));
     top_sizer->Add(m_print_seq_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT |wxALL, FromDIP(5));
+
+    auto plate_name_txt = new wxStaticText(this, wxID_ANY, _L("Plate name"));
+    plate_name_txt->SetFont(Label::Body_14);
+    m_ti_plate_name = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, wxSize(FromDIP(240),-1), wxTE_PROCESS_ENTER);
+    top_sizer->Add(plate_name_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT |wxALL, FromDIP(5));
+    top_sizer->Add(m_ti_plate_name, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT |wxALL, FromDIP(5));
 
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
 
@@ -154,5 +165,11 @@ void PlateSettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
     m_button_ok->Rescale();
     m_button_cancel->Rescale();
 }
+
+wxString PlateSettingsDialog::get_plate_name() const {
+    return m_ti_plate_name->GetTextCtrl()->GetValue(); 
+}
+
+void PlateSettingsDialog::set_plate_name(const wxString &name) { m_ti_plate_name->GetTextCtrl()->SetValue(name); }
 
 }} // namespace Slic3r::GUI

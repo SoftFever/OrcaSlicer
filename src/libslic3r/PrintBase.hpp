@@ -511,6 +511,9 @@ public:
     int get_plate_index() const { return m_plate_index; }
     void set_plate_index(int index) { m_plate_index = index; }
 
+    //SoftFever plate name
+    std::string get_plate_name() const { return m_plate_name; }
+    void set_plate_name(const std::string& name) { m_plate_name = name; }
 protected:
 	friend class PrintObjectBase;
     friend class BackgroundSlicingProcess;
@@ -544,6 +547,9 @@ protected:
 
     //BBS: add plate id into print base
     int m_plate_index{ 0 };
+
+    // SoftFever: current plate name
+    std::string m_plate_name;
 
     // Callback to be evoked regularly to update state of the UI thread.
     status_callback_type                    m_status_callback;
