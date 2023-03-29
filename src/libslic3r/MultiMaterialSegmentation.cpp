@@ -48,6 +48,13 @@ struct segment_traits<Slic3r::ColoredLine> {
 //#define MMU_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
 
 namespace Slic3r {
+bool is_equal(float left, float right, float eps = 1e-3) {
+    return abs(left - right) <= eps;
+}
+
+bool is_less(float left, float right, float eps = 1e-3) {
+    return left + eps < right;
+}
 
 // Assumes that is at most same projected_l length or below than projection_l
 static bool project_line_on_line(const Line &projection_l, const Line &projected_l, Line *new_projected)
@@ -1883,7 +1890,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                         for (auto layer_it = first_layer; layer_it != (last_layer + 1); ++layer_it) {
                             const Layer *layer     = *layer_it;
                             size_t       layer_idx = layer_it - layers.begin();
-                            if (input_expolygons[layer_idx].empty() || facet[0].z() > layer->slice_z || layer->slice_z > facet[2].z())
+                            if (input_expolygons[layer_idx].empty() || is_less(layer->slice_z, facet[0].z()) || is_less(facet[2].z(), layer->slice_z))
                                 continue;
 
                             // https://kandepet.com/3d-printing-slicing-3d-objects/
@@ -1891,7 +1898,12 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             Vec3f line_start_f = facet[0] + t * (facet[2] - facet[0]);
                             Vec3f line_end_f;
 
-                            if (facet[1].z() > layer->slice_z) {
+                            // BBS: When one side of a triangle coincides with the slice_z.
+                            if ((is_equal(facet[0].z(), facet[1].z()) && is_equal(facet[1].z(), layer->slice_z))
+                                || (is_equal(facet[1].z(), facet[2].z()) && is_equal(facet[1].z(), layer->slice_z))) {
+                                line_end_f = facet[1];
+                            }
+                            else if (facet[1].z() > layer->slice_z) {
                                 // [P0, P2] and [P0, P1]
                                 float t1   = (float(layer->slice_z) - facet[0].z()) / (facet[1].z() - facet[0].z());
                                 line_end_f = facet[0] + t1 * (facet[1] - facet[0]);
