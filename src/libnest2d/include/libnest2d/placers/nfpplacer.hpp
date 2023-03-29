@@ -602,6 +602,21 @@ private:
         return nfp::subtract({innerNfp}, nfps);
     }
 
+    Shapes calcnfp(const RawShape &sliding, const Shapes &stationarys, const Box &bed, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
+    {
+        using namespace nfp;
+
+        Shapes nfps(stationarys.size());
+        Item   slidingItem(sliding);
+        __parallel::enumerate(stationarys.begin(), stationarys.end(), [&nfps, sliding, &slidingItem](const RawShape &stationary, size_t n) {
+            auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(stationary, sliding);
+            correctNfpPosition(subnfp_r, stationary, slidingItem);
+            nfps[n] = subnfp_r.first;
+        });
+
+        RawShape innerNfp = nfpInnerRectBed(bed, sliding).first;
+        return nfp::subtract({innerNfp}, nfps);
+    }
 
     template<class Level>
     Shapes calcnfp(const Item &/*trsh*/, Level)
@@ -702,18 +717,31 @@ private:
             };
         }
 
-        if(items_.empty()) {
+        bool first_object = std::all_of(items_.begin(), items_.end(), [&](const Item &rawShape) { return rawShape.is_virt_object && !rawShape.is_wipe_tower; });
+
+        // item won't overlap with virtual objects if it's inside or touches NFP
+        auto overlapWithVirtObject = [&]() -> double {
+            if (items_.empty()) return 0;
+            nfps   = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
+            auto v = item.referenceVertex();
+            for (const RawShape &nfp : nfps) {
+                if (sl::isInside(v, nfp) || sl::touches(v, nfp)) { return 0; }
+            }
+            return 1;
+        };
+
+        if (first_object) {
             setInitialPosition(item);
             auto best_tr = item.translation();
             auto best_rot = item.rotation();
-            best_overfit = overfit(item.transformedShape(), bin_);
+            best_overfit = overfit(item.transformedShape(), bin_) + overlapWithVirtObject();
 
             for(auto rot : config_.rotations) {
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
                 setInitialPosition(item);
                 double of = 0.;
-                if ((of = overfit(item.transformedShape(), bin_)) < best_overfit) {
+                if ((of = overfit(item.transformedShape(), bin_)) + overlapWithVirtObject() < best_overfit) {
                     best_overfit = of;
                     best_tr = item.translation();
                     best_rot = item.rotation();
@@ -725,7 +753,8 @@ private:
                 global_score = 0.2;
             item.rotation(best_rot);
             item.translation(best_tr);
-        } else {
+        }
+        if (can_pack == false) {
 
             Pile merged_pile = merged_pile_;
 
@@ -1086,13 +1115,33 @@ private:
 
         auto d = cb - ci;       
 
-        // BBS TODO we assume the exclude region contains bottom left corner. If not, change the code below
-        if (!config_.m_excluded_regions.empty()) { // do not move to left to much to avoid clash with excluded regions
-            if (d.x() < 0) {
-                d.x() = 0;// std::max(long(d.x()), long(bbin.maxCorner().x() - bb.maxCorner().x()));
+        // BBS make sure the item won't clash with excluded regions
+        if(1)
+        {
+            std::vector<RawShape> objs,excludes;
+            for (const Item &item : items_) {
+                if (item.isFixed()) continue;
+                objs.push_back(item.transformedShape());
             }
-            if (d.y() < 0) {
-                d.y() = 0;// std::max(long(d.y()), long(bbin.maxCorner().y() - bb.maxCorner().y()));
+            RawShape objs_convex_hull = sl::convexHull(objs);
+            if (objs.size() != 0) {
+                for (const Item &item : config_.m_excluded_regions) { excludes.push_back(item.transformedShape()); }
+                for (const Item &item : items_) {
+                    if (item.isFixed()) { excludes.push_back(item.transformedShape()); }
+                }
+                Box  binbb          = sl::boundingBox(bin_);
+                auto allowShifts    = calcnfp(objs_convex_hull, excludes, binbb, Lvl<MaxNfpLevel::value>());
+                int  maxAllowShiftX = 0;
+                int  maxAllowShiftY = 0;
+                for (const auto &shiftShape : allowShifts) {
+                    auto shiftBox  = sl::boundingBox(shiftShape); // assume that the exclude region is box so that the nfp is box.
+                    maxAllowShiftX = shiftBox.width();
+                    maxAllowShiftY = shiftBox.height();
+                }
+                int finalShiftX = std::min(std::abs(maxAllowShiftX), std::abs(d.x()));
+                int finalShiftY = std::min(std::abs(maxAllowShiftY), std::abs(d.y()));
+                d.x()           = d.x() > 0 ? finalShiftX : -finalShiftX;
+                d.y()           = d.y() > 0 ? finalShiftY : -finalShiftY;
             }
         }
         for(Item& item : items_)
@@ -1104,7 +1153,10 @@ private:
         Box bb = item.boundingBox();
         
         Vertex ci, cb;
-        auto bbin = sl::boundingBox(bin_);
+        Box    bbin = sl::boundingBox(bin_);
+        Vertex shrink(10, 10);
+        bbin.maxCorner() -= shrink;
+        bbin.minCorner() += shrink;
 
         switch(config_.starting_point) {
         case Config::Alignment::CENTER: {

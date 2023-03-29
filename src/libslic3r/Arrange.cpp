@@ -85,7 +85,7 @@ const double BIG_ITEM_TRESHOLD = 0.02;
 template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
-    if (params.is_seq_print || params.excluded_regions.empty()==false) {
+    if (params.is_seq_print) {
         // Align the arranged pile into the center of the bin
         pcfg.alignment = PConf::Alignment::CENTER;
         // Start placing the items from the center of the print bed
@@ -95,7 +95,7 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
         // Align the arranged pile into the center of the bin
         pcfg.alignment = PConf::Alignment::CENTER;
         // Start placing the items from the center of the print bed
-        pcfg.starting_point = PConf::Alignment::CENTER;
+        pcfg.starting_point = PConf::Alignment::TOP_RIGHT;
     }
 
     // Try 4 angles (45 degree step) and find the one with min cost
