@@ -973,7 +973,7 @@ static void generic_exception_handle()
 //#endif
 }
 
-static vector<string> split_str(const string& src, const string& separator)
+static std::vector<std::string> split_str(const std::string& src, const std::string& separator)
 {
     size_t pos;
     size_t start_pos = 0;
@@ -5500,6 +5500,27 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
     }*/
     wxApp::OSXStoreOpenFiles(fileNames);
 }
+
+void GUI_App::MacOpenURL(const wxString& url)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get mac url " << url;
+
+    if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
+        auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
+
+        std::string download_origin_url;
+        for (auto input_str : input_str_arr) {
+            if (!input_str.empty()) download_origin_url = input_str;
+        }
+
+        std::string download_file_url = url_decode(download_origin_url);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
+        if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
+            request_model_download(download_file_url);
+        }
+    }
+}
+
 // wxWidgets override to get an event on open files.
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
@@ -5565,6 +5586,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
             start_new_gcodeviewer(&filename);*/
     }
 }
+
 #endif /* __APPLE */
 
 Sidebar& GUI_App::sidebar()
