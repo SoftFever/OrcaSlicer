@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 17:47+0800\n"
+"POT-Creation-Date: 2023-03-29 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -292,7 +292,10 @@ msgstr "Movimiento"
 msgid "Height"
 msgstr "Altura"
 
-msgid "Add/Edit connectors"
+msgid "Edit connectors"
+msgstr ""
+
+msgid "Add connectors"
 msgstr ""
 
 msgid "Upper part"
@@ -328,11 +331,20 @@ msgstr "Reiniciar"
 msgid "Connectors"
 msgstr ""
 
-msgid "Remove connectors"
-msgstr ""
-
 msgid "Type"
 msgstr "Tipo"
+
+msgid "Style"
+msgstr "Estilo"
+
+msgid "Shape"
+msgstr "Forma"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
 
 msgid "Prizm"
 msgstr ""
@@ -344,15 +356,6 @@ msgid "Square"
 msgstr ""
 
 msgid "Hexagon"
-msgstr ""
-
-msgid "Style"
-msgstr "Estilo"
-
-msgid "Shape"
-msgstr "Forma"
-
-msgid "Depth ratio"
 msgstr ""
 
 msgid "Confirm connectors"
@@ -713,12 +716,6 @@ msgid "The uploads are still ongoing"
 msgstr "El envío aún están en curso"
 
 msgid "Stop them and continue anyway?"
-msgstr "¿Detenerlos y continuar de todos modos?"
-
-msgid "Ongoing uploads"
-msgstr "El envío todavía esta en curso"
-
-msgid "Stop them and continue anyway?"
 msgstr "¿Detenerlas y continuar de todos modos?"
 
 msgid "Ongoing uploads"
@@ -873,15 +870,6 @@ msgid "Reload from disk"
 msgstr "Recargar desde el disco"
 
 msgid "Reload the selected parts from disk"
-msgstr "Recargar las piezas seleccionadas desde el disco"
-
-msgid "Replace with STL"
-msgstr "Sustituir por STL"
-
-msgid "Replace the selected part with new STL"
-msgstr "Sustituir la pieza seleccionada por un STL nuevo"
-
-msgid "Reload the selected parts from disk"
 msgstr "Recargar las partes seleccionadas desde disco"
 
 msgid "Replace with STL"
@@ -925,7 +913,7 @@ msgid "Flush into objects' support"
 msgstr "Depositar en el soporte de los objetos"
 
 msgid "Edit in Parameter Table"
-msgstr "Editar en la tabla de parámetros"
+msgstr "Editar en tabla de parámetros"
 
 msgid "Convert from inch"
 msgstr "Convertir desde pulgadas"
@@ -1006,7 +994,8 @@ msgid "Auto orientation"
 msgstr "Orientación automática"
 
 msgid "Auto orient the object to improve print quality."
-msgstr "Orienta automáticamente el objeto para mejorar la calidad de la impresión."
+msgstr ""
+"Orienta automáticamente el objeto para mejorar la calidad de la impresión."
 
 msgid "Split the selected object into mutiple objects"
 msgstr "Dividir el objeto seleccionado en múltiples objetos"
@@ -1052,9 +1041,6 @@ msgstr "Centrar"
 
 msgid "Edit Process Settings"
 msgstr "Editar configuración del proceso"
-
-msgid "Edit in Parameter Table"
-msgstr "Editar en tabla de parámetros"
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
@@ -1356,16 +1342,19 @@ msgid "Open Preferences."
 msgstr "Abrir preferencias"
 
 msgid "Open next tip."
-msgstr "Abrir el siguiente consejo"
-
-msgid "Open Documentation in web browser."
-msgstr "Abrir documentación en el navegador web"
-
-msgid "Open next tip."
 msgstr "Abrir siguiente sugerencia."
 
 msgid "Open Documentation in web browser."
 msgstr "Abrir documentación en el navegador"
+
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
 
 msgid "Custom G-code"
 msgstr "Código G personalizado"
@@ -1376,14 +1365,14 @@ msgstr "Introduzca el código G personalizado en la capa actual:"
 msgid "OK"
 msgstr "OK"
 
+msgid "Jump to Layer"
+msgstr "Saltar a la capa"
+
 msgid "Jump to layer"
 msgstr "Saltar a la capa"
 
 msgid "Please enter the layer number"
 msgstr "Por favor, introduzca el número de capa"
-
-msgid "Jump to Layer"
-msgstr "Saltar a la capa"
 
 msgid "Add Pause"
 msgstr "Añadir pausa"
@@ -1394,41 +1383,29 @@ msgstr "Agregar código G personalizado"
 msgid "Add Custom Template"
 msgstr "Añadir plantilla personalizada"
 
-msgid "Jump to Layer"
-msgstr "Saltar a la capa"
-
 msgid "Filament "
 msgstr "Filamento"
 
-msgid "Add Custom Template"
-msgstr "Añadir plantilla personalizada"
+msgid "Delete Pause"
+msgstr ""
 
-msgid "Start"
-msgstr "Iniciar"
+msgid "Delete Custom Template"
+msgstr ""
 
-msgid "G-code"
-msgstr "G-code"
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
+msgstr ""
 
 msgid "No printer"
 msgstr "Sin impresión"
 
 msgid "..."
 msgstr "..."
-
-msgid "Heat the nozzle"
-msgstr "Calentar la boquilla"
-
-msgid "Cut filament"
-msgstr "Cortar filamento"
-
-msgid "Pull back current filament"
-msgstr "Extraer el filamento actual"
-
-msgid "Push new filament into extruder"
-msgstr "Empuje el nuevo filamento en el extrusor"
-
-msgid "Purge old filament"
-msgstr "Purgar el filamento antiguo"
 
 msgid "?"
 msgstr "?"
@@ -1665,37 +1642,21 @@ msgstr "Enviando la configuración de impresión"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Enviado correctamente. Se mostrará automáticamente en el dispositivo en %ss"
-
-msgid "An SD card needs to be inserted before printing via LAN."
-msgstr "Se debe insertar una tarjeta microSD antes de imprimir mediante LAN."
-
-msgid "Failed to send the print job. Please try again."
-msgstr "No se pudo enviar la impresión. Vuelve a intentarlo."
-
-msgid "Send to Printer failed. Please try again."
-msgstr "No se pudo enviar a la impresora. Vuelve a intentarlo."
-
-msgid "No space left on Printer SD card"
 msgstr ""
-
-msgid "Sending gcode file over LAN"
-msgstr "Envío de un archivo G-code a través de LAN"
-
-msgid "Sending gcode file through cloud service"
-msgstr "Envío de archivos G-code a través del servicio en la nube"
-
-msgid "Sending gcode file to sdcard"
-msgstr "Envío de un archivo G-code a la tarjeta microSD"
+"Enviado correctamente. Se mostrará automáticamente en el dispositivo en %ss"
 
 msgid "An SD card needs to be inserted before printing via LAN."
-msgstr "Es necesario insertar una tarjeta SD antes de imprimir a través de red local."
+msgstr ""
+"Es necesario insertar una tarjeta SD antes de imprimir a través de red local."
 
 msgid "Failed to send the print job. Please try again."
 msgstr "No se pudo enviar el trabajo de impresión. Inténtalo de nuevo."
 
 msgid "Send to Printer failed. Please try again."
 msgstr "El envio a la impresora falló. Inténtelo de nuevo."
+
+msgid "No space left on Printer SD card"
+msgstr ""
 
 msgid "Sending gcode file over LAN"
 msgstr "Enviando archivo g-code a través de red local"
@@ -1714,7 +1675,7 @@ msgid "An SD card needs to be inserted before sending to printer."
 msgstr "Debe insertar una tarjeta microSD antes de enviar a la impresora."
 
 msgid "Please log out and login to the printer again."
-msgstr "Cierre sesión y vuelva a iniciarla en la impresora."
+msgstr "Cierre la sesión y vuelva a iniciar sesión en la impresora."
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr ""
@@ -1772,9 +1733,6 @@ msgstr ""
 msgid "Attention!"
 msgstr "¡Atención!"
 
-msgid "Please log out and login to the printer again."
-msgstr "Cierre la sesión y vuelva a iniciar sesión en la impresora."
-
 msgid "Downloading"
 msgstr "Descargando"
 
@@ -1786,12 +1744,6 @@ msgstr "Cancelado"
 
 msgid "Install successfully."
 msgstr "Instalación correcta"
-
-msgid "Installing"
-msgstr "Instalando…"
-
-msgid "Install failed"
-msgstr "Error de instalación"
 
 msgid "Installing"
 msgstr "Instalando"
@@ -1920,6 +1872,9 @@ msgstr "Introduzca un valor válido (K en 0~0.5)"
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Introduzca un valor válido (K en 0~0.5, N en 0.6~2.0)"
 
+msgid "You need to select the material type and color firet."
+msgstr ""
+
 msgid "Other color"
 msgstr ""
 
@@ -2014,13 +1969,13 @@ msgid "Enable AMS"
 msgstr "Habilitar AMS"
 
 msgid "Print with filaments in the AMS"
-msgstr "Imprima con filamento en el AMS"
+msgstr "Imprimir con filamentos en el AMS"
 
 msgid "Disable AMS"
-msgstr "Deshabilitar AMS"
+msgstr "Desactivar AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr "Impresión con filamento en una bobina externa"
+msgstr "Imprimir con el filamento montado en la parte posterior del chasis"
 
 msgid "Cabin humidity"
 msgstr "Humedad de cabina"
@@ -2053,15 +2008,6 @@ msgstr ""
 "horas o una noche entera en absorber la humedad. Las bajas temperaturas "
 "también ralentizan el proceso. Durante este tiempo, es posible que el "
 "indicador no represente la humedad de la cámara con precisión."
-
-msgid "Print with filaments in the AMS"
-msgstr "Imprimir con filamentos en el AMS"
-
-msgid "Disable AMS"
-msgstr "Desactivar AMS"
-
-msgid "Print with the filament mounted on the back of chassis"
-msgstr "Imprimir con el filamento montado en la parte posterior del chasis"
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2704,7 +2650,7 @@ msgid "Height: "
 msgstr "Altura: "
 
 msgid "Width: "
-msgstr "Ancho: "
+msgstr "Anchura: "
 
 msgid "Speed: "
 msgstr "Velocidad: "
@@ -2714,18 +2660,6 @@ msgstr "Flujo: "
 
 msgid "Layer Time: "
 msgstr "Tiempo de capa: "
-
-msgid "Fan Speed: "
-msgstr "Velocidad del ventilador:"
-
-msgid "Width: "
-msgstr "Anchura: "
-
-msgid "Speed: "
-msgstr "Velocidad: "
-
-msgid "Flow: "
-msgstr "Flujo: "
 
 msgid "Fan Speed: "
 msgstr "Velocidad del ventilador: "
@@ -2868,9 +2802,6 @@ msgstr "Planificar tiempo"
 msgid "Model printing time"
 msgstr "Tiempo de impresión del modelo"
 
-msgid "Total time"
-msgstr "Tiempo total"
-
 msgid "Switch to silent mode"
 msgstr "Cambiar al modo silencioso"
 
@@ -3003,10 +2934,6 @@ msgstr "volver"
 msgid "Paint Toolbar"
 msgstr "Barra de herramientas de pintura"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "Ratio de Explosión"
 
@@ -3027,6 +2954,12 @@ msgstr "Volumen:"
 
 msgid "Size:"
 msgstr "Tamaño:"
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects farther (%s <-> %s)."
+msgstr ""
 
 msgid "An object is layed over the boundary of plate."
 msgstr "Un objeto está sobre el límite de la placa."
@@ -3160,7 +3093,7 @@ msgid "Slice plate"
 msgstr "Laminar placa"
 
 msgid "Print plate"
-msgstr "Placa de impresión"
+msgstr "Imprimir placa"
 
 msgid "Slice all"
 msgstr "Laminar todo"
@@ -3170,9 +3103,6 @@ msgstr "Exportar archivo G-code"
 
 msgid "Send"
 msgstr "Enviar"
-
-msgid "Print plate"
-msgstr "Imprimir placa"
 
 msgid "Export plate sliced file"
 msgstr "Exportar la placa de impresión actual"
@@ -3601,15 +3531,6 @@ msgstr "Mes"
 
 msgid "All Files"
 msgstr "Todos los archivos"
-
-msgid "Group files by year, recent first."
-msgstr "Agrupe los archivos por año, primero los recientes."
-
-msgid "Group files by month, recent first."
-msgstr "Agrupe los archivos por mes, primero los recientes."
-
-msgid "Show all files, recent first."
-msgstr "Mostrar todos los archivos, primero los recientes."
 
 msgid "Group files by year, recent first."
 msgstr "Agrupar ficheros por año, primero los más recientes"
@@ -4156,9 +4077,6 @@ msgid "Remove last filament"
 msgstr "Retirar el último filamento"
 
 msgid "Synchronize filament list from AMS"
-msgstr "Sincronizar la lista de filamentos de AMS"
-
-msgid "Synchronize filament list from AMS"
 msgstr "Sincronizar filamentos desde AMS"
 
 msgid "Set filaments to use"
@@ -4255,24 +4173,15 @@ msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "El 3mf no es Bambu lab, solo se carga datos de geometría."
 
 msgid "Load 3mf"
-msgstr "cargar 3mf"
-
-msgid "The Config can not be loaded."
-msgstr "No se puede cargar la configuración"
-
-msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-msgstr ""
-"El 3mf fue generado por una versión antigua de Bambu Studio, solo se "
-"cargaran datos de geometría."
-
-msgid "Load 3mf"
 msgstr "Cargar 3mf"
 
 msgid "The Config can not be loaded."
 msgstr "La configuración no puede ser cargada."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-msgstr "3mf generado con versión antigua de Bambu Studio, se cargan datos de geometría unicamente"
+msgstr ""
+"3mf generado con versión antigua de Bambu Studio, se cargan datos de "
+"geometría unicamente"
 
 #, c-format, boost-format
 msgid ""
@@ -4476,13 +4385,6 @@ msgstr "descargando proyecto..."
 msgid "Project downloaded %d%%"
 msgstr "Proyecto descargado %d%%"
 
-msgid "downloading project ..."
-msgstr "descargado proyecto..."
-
-#, c-format, boost-format
-msgid "Project downloaded %d%%"
-msgstr "Proyecto %d%% descargado"
-
 msgid "The selected file"
 msgstr "El archivo seleccionado"
 
@@ -4525,6 +4427,9 @@ msgstr "Todos los objetos serán eliminados, deseas continuar?"
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "El proyecto actual tiene cambios sin guardar, ¿guardarlos antes de continuar?"
+
+msgid "Remember my choice."
+msgstr ""
 
 msgid "Number of copies:"
 msgstr "Número de copias:"
@@ -4685,8 +4590,8 @@ msgstr "Mostrar la «Sugerencia del día» después del inicio"
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "Si está activado, se muestran sugerencias útiles al inicio."
 
-msgid "User sync"
-msgstr "Sincronización del usuario"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -4695,6 +4600,15 @@ msgstr ""
 
 msgid "User Sync"
 msgstr "Sincronización de usuario"
+
+msgid "Auto sync system presets(Printer/Filament/Process)"
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to BambuStudio"
 msgstr "Asociar archivos a BambuStudio"
@@ -4723,14 +4637,33 @@ msgstr ""
 "Si se activa, ajusta BambuStudio como aplicación por defecto para abrir "
 "archivos .step"
 
-msgid "Backup"
-msgstr "Copia de seguridad"
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
+
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "Copia de seguridad automática"
 
-msgid "Backup interval"
-msgstr "Intervalo de copia de seguridad"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "Descargas"
@@ -4749,6 +4682,9 @@ msgstr "Mostrar la página de inicio en el arranque"
 
 msgid "Sync settings"
 msgstr "Ajustes de sincronización"
+
+msgid "User sync"
+msgstr "Sincronización del usuario"
 
 msgid "Preset sync"
 msgstr "Sincronización preestablecida"
@@ -4856,10 +4792,10 @@ msgid "Project-inside presets"
 msgstr "Preajustes internos del proyecto"
 
 msgid "Add/Remove filaments"
-msgstr "Añadir/quitar filamentos"
+msgstr ""
 
 msgid "Add/Remove materials"
-msgstr "Añadir/eliminar materiales"
+msgstr "Añadir/quitar materiales"
 
 msgid "Add/Remove printers"
 msgstr "Añadir/quitar impresoras"
@@ -4896,12 +4832,6 @@ msgstr ""
 
 msgid "Log Out"
 msgstr ""
-
-msgid "Add/Remove materials"
-msgstr "Añadir/quitar materiales"
-
-msgid "Add/Remove printers"
-msgstr "Añadir/quitar impresoras"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -5184,8 +5114,8 @@ msgstr ""
 "a generar el g-code después de seleccionar el tipo de impresora correcto."
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "El filamento %s es demasiado blando para usarlo con el AMS"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -5314,8 +5244,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Al grabar timelapse sin el cabezal de la herramienta, se recomienda añadir "
 "una «Torre de purga para el timelapse» \n"
@@ -5379,6 +5309,9 @@ msgstr "Modo especial"
 
 msgid "G-code output"
 msgstr "Resultado gcode"
+
+msgid "Post-processing scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Frecuente"
@@ -6572,15 +6505,6 @@ msgstr "La placa %d: %s no admite el filamento %s."
 msgid "Generating skirt & brim"
 msgstr "Generando falda y ala"
 
-msgid "Checking gcode path conflicts."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects (%s <-> %s) farther."
-msgstr ""
-
 msgid "Exporting G-code"
 msgstr "Exportando código G"
 
@@ -7499,6 +7423,12 @@ msgstr ""
 msgid "None"
 msgstr "Ninguno"
 
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
+
 msgid "All walls"
 msgstr "Todas las paredes"
 
@@ -7934,6 +7864,16 @@ msgstr "Velocidad de la pared interior"
 
 msgid "Number of walls of every layer"
 msgstr "Número de paredes de cada capa"
+
+msgid "Post-processing Scripts"
+msgstr ""
+
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and variables of settings also can be read"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Distancia Z de contacto de la balsa"
@@ -8826,6 +8766,12 @@ msgstr ""
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Información del modelo de salida"
 
@@ -8918,20 +8864,20 @@ msgstr "Generar soporte"
 msgid "Checking support necessity"
 msgstr "Comprobación de la necesidad de soporte"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
 msgstr ""
-"Parece que el objeto %s tiene regiones completamente flotantes. Reoriente el "
-"objeto o habilite la generación de soporte."
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
-"Parece que el objeto %s tiene grandes voladizos. Habilite la generación de "
-"soporte."
 
 msgid "Optimizing toolpath"
 msgstr "Optimización de la trayectoria de la herramienta"
@@ -9255,6 +9201,37 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "Start"
+#~ msgstr "Iniciar"
+
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
+#~ msgid "Backup"
+#~ msgstr "Copia de seguridad"
+
+#~ msgid "Backup interval"
+#~ msgstr "Intervalo de copia de seguridad"
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "El filamento %s es demasiado blando para usarlo con el AMS"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "Parece que el objeto %s tiene regiones completamente flotantes. Reoriente "
+#~ "el objeto o habilite la generación de soporte."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "Parece que el objeto %s tiene grandes voladizos. Habilite la generación "
+#~ "de soporte."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"

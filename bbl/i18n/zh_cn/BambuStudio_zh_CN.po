@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 17:47+0800\n"
-"PO-Revision-Date: 2023-02-24 10:40+0800\n"
+"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"PO-Revision-Date: 2023-03-29 12:43+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -293,8 +293,11 @@ msgstr "移动"
 msgid "Height"
 msgstr "高度"
 
-msgid "Add/Edit connectors"
-msgstr "添加/编辑连接件"
+msgid "Edit connectors"
+msgstr "编辑连接件"
+
+msgid "Add connectors"
+msgstr "添加连接件"
 
 msgid "Upper part"
 msgstr "上半部分"
@@ -329,11 +332,20 @@ msgstr "重置"
 msgid "Connectors"
 msgstr "连接件"
 
-msgid "Remove connectors"
-msgstr "删除所有连接件"
-
 msgid "Type"
 msgstr "类型"
+
+msgid "Style"
+msgstr "样式"
+
+msgid "Shape"
+msgstr "形状"
+
+msgid "Depth ratio"
+msgstr "深度"
+
+msgid "Remove connectors"
+msgstr "删除所有连接件"
 
 msgid "Prizm"
 msgstr "棱柱"
@@ -346,15 +358,6 @@ msgstr "正方形"
 
 msgid "Hexagon"
 msgstr "六边形"
-
-msgid "Style"
-msgstr "样式"
-
-msgid "Shape"
-msgstr "形状"
-
-msgid "Depth ratio"
-msgstr "深度"
 
 msgid "Confirm connectors"
 msgstr "确认"
@@ -1307,6 +1310,15 @@ msgstr "打开下一条提示"
 msgid "Open Documentation in web browser."
 msgstr "在web浏览器中打开文档。"
 
+msgid "Pause:"
+msgstr "暂停"
+
+msgid "Custom Template:"
+msgstr "自定义模板："
+
+msgid "Custom G-code:"
+msgstr "自定义G代码："
+
 msgid "Custom G-code"
 msgstr "自定义 G-code"
 
@@ -1315,6 +1327,9 @@ msgstr "输入当前层上使用的自定义G-code："
 
 msgid "OK"
 msgstr "确认"
+
+msgid "Jump to Layer"
+msgstr "跳转到层"
 
 msgid "Jump to layer"
 msgstr "跳转到层"
@@ -1331,17 +1346,23 @@ msgstr "添加自定义G-code"
 msgid "Add Custom Template"
 msgstr "添加自定义模板"
 
-msgid "Jump to Layer"
-msgstr "跳转到层"
-
 msgid "Filament "
 msgstr "耗材丝"
 
-msgid "Start"
-msgstr "首层"
+msgid "Delete Pause"
+msgstr "删除暂停"
 
-msgid "G-code"
-msgstr ""
+msgid "Delete Custom Template"
+msgstr "删除自定义模板"
+
+msgid "Edit Custom G-code"
+msgstr "编辑自定义G代码"
+
+msgid "Delete Custom G-code"
+msgstr "删除自定义G代码"
+
+msgid "Delete Filament Change"
+msgstr "删除耗材丝更新"
 
 msgid "No printer"
 msgstr "无打印机"
@@ -1609,13 +1630,13 @@ msgid "Import file"
 msgstr "导入文件"
 
 msgid "Import model and profile"
-msgstr ""
+msgstr "导入模型和配置"
 
 msgid "Import profile only"
-msgstr ""
+msgstr "仅导入配置"
 
 msgid "Import model only"
-msgstr ""
+msgstr "仅导入模型"
 
 msgid "Accurate"
 msgstr ""
@@ -1635,10 +1656,10 @@ msgid ""
 msgstr ""
 
 msgid "Importing canceled."
-msgstr ""
+msgstr "导入已取消。"
 
 msgid "Importing done."
-msgstr ""
+msgstr "导入完成。"
 
 msgid ""
 "The imported SLA archive did not contain any presets. The current SLA "
@@ -1783,6 +1804,9 @@ msgstr "请输入有效的数值 (K的范围为0~0.5）"
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "请输入有效的数值 (K的范围为0~0.5, N的范围为0.6~2.0）"
 
+msgid "You need to select the material type and color firet."
+msgstr ""
+
 msgid "Other color"
 msgstr "其他颜色"
 
@@ -1903,8 +1927,8 @@ msgid ""
 "process. During this time, the indicator may not represent the chamber "
 "accurately."
 msgstr ""
-"注意：当盖子打开或更换干燥剂包装时，可能需要数小时或一晚才能吸收水分，低温也会"
-"减慢这一过程。在此期间，指示器的数值可能并不准确。"
+"注意：当盖子打开或更换干燥剂包装时，可能需要数小时或一晚才能吸收水分，低温也"
+"会减慢这一过程。在此期间，指示器的数值可能并不准确。"
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2248,8 +2272,8 @@ msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延"
-"时摄影时有效。"
+"旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
+"影时有效。"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2326,7 +2350,7 @@ msgstr ""
 msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
-msgstr ""
+msgstr "逐件打印时，挤出机可能与裙边碰撞。因此将裙边的层数重置为1。"
 
 msgid "Auto bed leveling"
 msgstr "自动热床调平"
@@ -2780,10 +2804,6 @@ msgstr "返回"
 msgid "Paint Toolbar"
 msgstr "上色工具条"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr "快捷键 %1%"
-
 msgid "Explosion Ratio"
 msgstr "爆炸比例"
 
@@ -2804,6 +2824,12 @@ msgstr "体积："
 
 msgid "Size:"
 msgstr "尺寸："
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects farther (%s <-> %s)."
+msgstr "发现gcode路径的冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
 
 msgid "An object is layed over the boundary of plate."
 msgstr "检测到有对象放在盘的边界上。"
@@ -3221,11 +3247,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
-msgstr ""
+msgstr "有一个同名的文件 %s。你想覆盖它吗？"
 
 #, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to override it."
-msgstr ""
+msgstr "有一个同名的配置 %s。你想覆盖它吗？"
 
 msgid "Overwrite file"
 msgstr "覆盖文件"
@@ -3248,7 +3274,7 @@ msgid "Export result"
 msgstr "导出结果"
 
 msgid "Select profile to load:"
-msgstr ""
+msgstr "选择要加载的配置："
 
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
@@ -3431,10 +3457,10 @@ msgstr "未找到打印机的局域网地址！"
 
 #, c-format, boost-format
 msgid "You are going to delete %u files. Are you sure to continue?"
-msgstr ""
+msgstr "你正在删除%u个文件，你确定吗？"
 
 msgid "Delete files"
-msgstr ""
+msgstr "删除文件"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3706,7 +3732,7 @@ msgid "Open Folder."
 msgstr "打开目录。"
 
 msgid "Safely remove hardware."
-msgstr ""
+msgstr "安全移除硬件。"
 
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
@@ -4006,10 +4032,10 @@ msgid ""
 msgstr "该3mf的版本%s比%s的版本%s要新，建议升级你的软件。"
 
 msgid "Invalid values found in the 3mf:"
-msgstr ""
+msgstr "在3mf文件中发现无效值："
 
 msgid "Please correct them in the param tabs"
-msgstr ""
+msgstr "请在参数页更正它们"
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr "该3mf文件与软件不兼容，将只加载几何数据。"
@@ -4213,6 +4239,9 @@ msgstr "即将删除所有对象，是否继续？"
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "当前项目包含未保存的修改，是否先保存？"
 
+msgid "Remember my choice."
+msgstr "记住我的选择。"
+
 msgid "Number of copies:"
 msgstr "克隆数量："
 
@@ -4366,14 +4395,23 @@ msgstr "启动后显示“每日小贴士”通知"
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "如果启用，将在启动时显示有用的提示。"
 
-msgid "User sync"
-msgstr "用户同步"
+msgid "Presets"
+msgstr "预设"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "同步用户预设（打印机/耗材丝/工艺）"
 
 msgid "User Sync"
 msgstr "用户同步"
+
+msgid "Auto sync system presets(Printer/Filament/Process)"
+msgstr "自动同步预设（打印机/耗材丝/工艺）"
+
+msgid "System Sync"
+msgstr "系统同步"
+
+msgid "Clear my choice on the unsaved presets."
+msgstr "清除我对未保存的预置的选择。"
 
 msgid "Associate files to BambuStudio"
 msgstr "Bambu Studio文件关联"
@@ -4396,14 +4434,33 @@ msgstr "使用Bambu Studio打开.step/.stp文件"
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
 
-msgid "Backup"
-msgstr "备份"
+msgid "Online Models"
+msgstr "在线模型"
+
+msgid "Show online staff-picked models on the home page"
+msgstr "在主页上显示工作人员挑选的在线模型"
+
+msgid "Maximum recent projects"
+msgstr "近期项目的最大数量"
+
+msgid "Maximum count of recent projects"
+msgstr "近期项目的最大计数"
+
+msgid "Clear my choice on the unsaved projects."
+msgstr "清除我对未保存的项目的选择。"
 
 msgid "Auto-Backup"
 msgstr "自动备份"
 
-msgid "Backup interval"
-msgstr "备份间隔时长"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr "定期备份你的项目，以便从偶尔的崩溃中恢复过来。"
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr "备份的周期"
 
 msgid "Downloads"
 msgstr "下载"
@@ -4422,6 +4479,9 @@ msgstr "启动时显示主页"
 
 msgid "Sync settings"
 msgstr "同步设置"
+
+msgid "User sync"
+msgstr "用户同步"
 
 msgid "Preset sync"
 msgstr "配置同步"
@@ -4829,8 +4889,8 @@ msgstr ""
 "后重新切片。"
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "%s耗材太软，无法与AMS一起使用"
+msgid "%s is not supported by AMS."
+msgstr "%s耗材无法在AMS中使用"
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4943,12 +5003,14 @@ msgid ""
 "0 top z distance, 0 interface spacing, concentric pattern and disable "
 "independent support layer height"
 msgstr ""
+"当使用支持界面的支持材料时，我们推荐以下设置：\n"
+"0顶层z距离，0接触层间距，同心图案，并且禁用独立支撑层高"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击构建板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -5008,6 +5070,9 @@ msgstr "特殊模式"
 
 msgid "G-code output"
 msgstr "G-code 输出"
+
+msgid "Post-processing scripts"
+msgstr "后处理脚本"
 
 msgid "Frequent"
 msgstr "常用"
@@ -5437,7 +5502,7 @@ msgid "Objects list"
 msgstr "对象列表"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
-msgstr ""
+msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
 
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
@@ -6100,15 +6165,6 @@ msgstr "盘%d：%s不支持耗材丝 %s"
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
-
-msgid "Checking gcode path conflicts."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects (%s <-> %s) farther."
-msgstr ""
 
 msgid "Exporting G-code"
 msgstr "正在导出G-code"
@@ -6900,6 +6956,12 @@ msgstr "打印外墙时随机抖动，使外表面产生绒效果。这个设置
 msgid "None"
 msgstr "无"
 
+msgid "Contour"
+msgstr "轮廓"
+
+msgid "Contour and hole"
+msgstr "轮廓和孔"
+
 msgid "All walls"
 msgstr "所有墙"
 
@@ -7288,6 +7350,19 @@ msgstr "内圈墙打印速度"
 msgid "Number of walls of every layer"
 msgstr "每一层的墙层数"
 
+msgid "Post-processing Scripts"
+msgstr "后处理脚本"
+
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and variables of settings also can be read"
+msgstr ""
+"如果你想通过自定义脚本来处理输出的G代码，只需在这里列出它们的绝对路径。用分号"
+"来分隔多个脚本。脚本将被传递给G代码文件的绝对路径作为第一个参数，设置的变量也"
+"可以被读取。"
+
 msgid "Raft contact Z distance"
 msgstr "筏层Z间距"
 
@@ -7665,7 +7740,7 @@ msgstr ""
 "图案为同心。"
 
 msgid "Rectilinear Interlaced"
-msgstr ""
+msgstr "交叠的直线"
 
 msgid "Base pattern spacing"
 msgstr "主体图案线距"
@@ -7715,6 +7790,8 @@ msgid ""
 "support customizing z-gap and save print time.This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
+"支撑层使用与对象层独立的层高。这是为了支持自定义z-gap并且节省打印时间。当擦料"
+"塔被启用时，这个选项将无效。"
 
 msgid "Threshold angle"
 msgstr "阈值角度"
@@ -8025,7 +8102,7 @@ msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "旋转花瓶模式下非法的值"
 
 msgid "too large line width "
-msgstr "过大的线宽值 "
+msgstr "线宽过大"
 
 msgid " not in range "
 msgstr " 不在合理的区间"
@@ -8043,10 +8120,10 @@ msgid "Export slicing data to a folder."
 msgstr "导出切片数据到目录"
 
 msgid "Load slicing data"
-msgstr ""
+msgstr "导入切片数据"
 
 msgid "Load cached slicing data from directory"
-msgstr ""
+msgstr "从目录导入缓存的切片数据"
 
 msgid "Slice"
 msgstr "切片"
@@ -8079,6 +8156,12 @@ msgid "No check"
 msgstr ""
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
 msgstr ""
 
 msgid "Output Model Info"
@@ -8172,16 +8255,20 @@ msgstr "正在生成支撑"
 msgid "Checking support necessity"
 msgstr "正在检查支撑必要性"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
-msgstr "似乎对象%s有完全浮空的区域。请调整朝向或打开支撑生成。"
+msgid "floating regions"
+msgstr "浮空区域"
+
+msgid "floating cantilever"
+msgstr "浮空悬臂"
+
+msgid "large overhangs"
+msgstr "大面积悬空"
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
-msgstr "似乎对象%s有很大面积的悬垂面。请打开支撑生成。"
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
+msgstr "似乎对象%s有%s。请重新调整对象的方向或启用支持生成。"
 
 msgid "Optimizing toolpath"
 msgstr "正在优化走线"
@@ -8484,6 +8571,45 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Zoom to mouse position"
+#~ msgstr "放大到鼠标位置"
+
+#~ msgid ""
+#~ "Zoom in towards the mouse pointer's position in the 3D view, rather than "
+#~ "the 2D window center."
+#~ msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
+
+#~ msgid "Add/Edit connectors"
+#~ msgstr "添加/编辑连接件"
+
+#~ msgid "Start"
+#~ msgstr "首层"
+
+#, boost-format
+#~ msgid "Shortcut key %1%"
+#~ msgstr "快捷键 %1%"
+
+#~ msgid "Backup"
+#~ msgstr "备份"
+
+#~ msgid "Backup interval"
+#~ msgstr "备份间隔时长"
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "%s耗材太软，无法与AMS一起使用"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr "似乎对象%s有完全浮空的区域。请调整朝向或打开支撑生成。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr "似乎对象%s有很大面积的悬垂面。请打开支撑生成。"
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "
@@ -11537,9 +11663,6 @@ msgstr ""
 #~ msgid "choose a directory"
 #~ msgstr "选择文件夹"
 
-#~ msgid "Post-processing scripts"
-#~ msgstr "后处理脚本"
-
 #~ msgid "Print speed override"
 #~ msgstr "覆盖打印速度"
 
@@ -12182,8 +12305,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

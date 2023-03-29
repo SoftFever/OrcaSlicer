@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 17:47+0800\n"
+"POT-Creation-Date: 2023-03-29 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -292,7 +292,10 @@ msgstr "Bewegung"
 msgid "Height"
 msgstr "Höhe"
 
-msgid "Add/Edit connectors"
+msgid "Edit connectors"
+msgstr ""
+
+msgid "Add connectors"
 msgstr ""
 
 msgid "Upper part"
@@ -328,11 +331,20 @@ msgstr "Zurücksetzen"
 msgid "Connectors"
 msgstr ""
 
-msgid "Remove connectors"
-msgstr ""
-
 msgid "Type"
 msgstr "Typ"
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Shape"
+msgstr "Form"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
 
 msgid "Prizm"
 msgstr ""
@@ -344,15 +356,6 @@ msgid "Square"
 msgstr ""
 
 msgid "Hexagon"
-msgstr ""
-
-msgid "Style"
-msgstr "Stil"
-
-msgid "Shape"
-msgstr "Form"
-
-msgid "Depth ratio"
 msgstr ""
 
 msgid "Confirm connectors"
@@ -1349,6 +1352,15 @@ msgstr "Nächsten Tipp öffnen"
 msgid "Open Documentation in web browser."
 msgstr "Dokumentation im Webbrowser öffnen"
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "Benutzerdefinierter G-Code"
 
@@ -1359,6 +1371,9 @@ msgstr ""
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Jump to Layer"
+msgstr "Zur Schicht springen"
 
 msgid "Jump to layer"
 msgstr "Zur Schicht springen"
@@ -1375,17 +1390,23 @@ msgstr "Benutzerdefinierten G-Code hinzufügen"
 msgid "Add Custom Template"
 msgstr "Benutzerdefinierte Vorlage hinzufügen"
 
-msgid "Jump to Layer"
-msgstr "Zur Schicht springen"
-
 msgid "Filament "
 msgstr "Filament"
 
-msgid "Start"
-msgstr "Starten"
+msgid "Delete Pause"
+msgstr ""
 
-msgid "G-code"
-msgstr "G-Code"
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
+msgstr ""
 
 msgid "No printer"
 msgstr "Kein Drucker"
@@ -1853,6 +1874,9 @@ msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.5, N in 0.6~2.0)"
+
+msgid "You need to select the material type and color firet."
+msgstr ""
 
 msgid "Other color"
 msgstr ""
@@ -2919,10 +2943,6 @@ msgstr "Zurück"
 msgid "Paint Toolbar"
 msgstr "Malwerkzeuge"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "Explosionsverhältnis"
 
@@ -2943,6 +2963,12 @@ msgstr "Volumen:"
 
 msgid "Size:"
 msgstr "Größe:"
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects farther (%s <-> %s)."
+msgstr ""
 
 msgid "An object is layed over the boundary of plate."
 msgstr "Ein Objekt ragt über die Begrenzung der Druckplatte."
@@ -4420,6 +4446,9 @@ msgstr ""
 "Das aktuelle Projekt hat ungespeicherte Änderungen, speichern Sie es, bevor "
 "Sie fortfahren?"
 
+msgid "Remember my choice."
+msgstr ""
+
 msgid "Number of copies:"
 msgstr "Anzahl der Kopien:"
 
@@ -4580,8 +4609,8 @@ msgstr ""
 "Wenn diese Option aktiviert ist, werden beim Starten nützliche Hinweise "
 "angezeigt."
 
-msgid "User sync"
-msgstr "Benutzer-Synchronisation"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -4590,6 +4619,15 @@ msgstr ""
 
 msgid "User Sync"
 msgstr "Benutzer-Synchronisation"
+
+msgid "Auto sync system presets(Printer/Filament/Process)"
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to BambuStudio"
 msgstr "Dateien mit BambuStudio verknüpfen"
@@ -4618,14 +4656,33 @@ msgstr ""
 "Wenn aktiviert, wird BambuStudio als Standardanwendung zum Öffnen von .step-"
 "Dateien festgelegt"
 
-msgid "Backup"
-msgstr "Sicherung"
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
+
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "Automatische Datensicherung"
 
-msgid "Backup interval"
-msgstr "Sicherungsintervall"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "Downloads"
@@ -4644,6 +4701,9 @@ msgstr "Startseite beim Starten anzeigen"
 
 msgid "Sync settings"
 msgstr "Synchronisationseinstellungen"
+
+msgid "User sync"
+msgstr "Benutzer-Synchronisation"
 
 msgid "Preset sync"
 msgstr "Voreinstellungs Synchronisation"
@@ -5081,8 +5141,8 @@ msgstr ""
 "Auswahl des richtigen Druckertyps erneut zu Slicen."
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "Das %s Filament ist zu weich für die Verwendung mit dem AMS"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -5214,8 +5274,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wipe Tower\" (Zeitraffer-Wischturm) hinzuzufügen, indem Sie mit "
@@ -5279,6 +5339,9 @@ msgstr "Spezialmodus"
 
 msgid "G-code output"
 msgstr "G-Code-Ausgabe"
+
+msgid "Post-processing scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Häufig"
@@ -6478,15 +6541,6 @@ msgstr "Druckplatte %d: %s unterstützt kein Filament %s"
 msgid "Generating skirt & brim"
 msgstr "Erzeugen von Schürze und Rand (skirt & brim)"
 
-msgid "Checking gcode path conflicts."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects (%s <-> %s) farther."
-msgstr ""
-
 msgid "Exporting G-code"
 msgstr "Exportiere G-Code"
 
@@ -7406,6 +7460,12 @@ msgstr ""
 msgid "None"
 msgstr "Keine"
 
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
+
 msgid "All walls"
 msgstr "Alle Wände"
 
@@ -7841,6 +7901,16 @@ msgstr "Druckgeschwindigkeit der Innenwand"
 
 msgid "Number of walls of every layer"
 msgstr "Anzahl der Wände jeder Schicht"
+
+msgid "Post-processing Scripts"
+msgstr ""
+
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and variables of settings also can be read"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Floß Kontakt Z Abstand"
@@ -8736,6 +8806,12 @@ msgstr ""
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Ausgabe Modellinformationen"
 
@@ -8827,20 +8903,20 @@ msgstr "Support generieren"
 msgid "Checking support necessity"
 msgstr "Überprüfung der Notwendigkeit der Supports"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
 msgstr ""
-"Es scheint, dass das Objekt %s vollständig schwebende Bereiche hat. Bitte "
-"richten Sie das Objekt neu aus oder aktivieren Sie die Supportgenerierung."
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
-"Es scheint, dass Objekt %s große Überhänge hat. Bitte aktivieren Sie die "
-"Support-Generierung."
 
 msgid "Optimizing toolpath"
 msgstr "Optimieren des Werkzeugwegs"
@@ -9170,6 +9246,37 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid "Start"
+#~ msgstr "Starten"
+
+#~ msgid "G-code"
+#~ msgstr "G-Code"
+
+#~ msgid "Backup"
+#~ msgstr "Sicherung"
+
+#~ msgid "Backup interval"
+#~ msgstr "Sicherungsintervall"
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "Das %s Filament ist zu weich für die Verwendung mit dem AMS"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "Es scheint, dass das Objekt %s vollständig schwebende Bereiche hat. Bitte "
+#~ "richten Sie das Objekt neu aus oder aktivieren Sie die Supportgenerierung."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "Es scheint, dass Objekt %s große Überhänge hat. Bitte aktivieren Sie die "
+#~ "Support-Generierung."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"
@@ -10112,8 +10219,8 @@ msgstr ""
 #~ "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, "
 #~ "einen \"Timelapse Wipe Tower\" (Zeitraffer-Wischturm) hinzuzufügen\n"
 #~ "hinzuzufügen, indem Sie mit der rechten Maustaste auf die leere Position "
-#~ "der Bauplatte klicken und \"Primitiv hinzufügen\"->\"Timelapse Wipe Tower"
-#~ "\" wählen.\n"
+#~ "der Bauplatte klicken und \"Primitiv hinzufügen\"->\"Timelapse Wipe "
+#~ "Tower\" wählen.\n"
 
 #~ msgid ""
 #~ "When sparse infill density is low, the internal solid infill or internal "

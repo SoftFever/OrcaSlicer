@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 17:47+0800\n"
+"POT-Creation-Date: 2023-03-29 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -289,7 +289,10 @@ msgstr "移動"
 msgid "Height"
 msgstr "高度"
 
-msgid "Add/Edit connectors"
+msgid "Edit connectors"
+msgstr ""
+
+msgid "Add connectors"
 msgstr ""
 
 msgid "Upper part"
@@ -325,11 +328,20 @@ msgstr "リセット"
 msgid "Connectors"
 msgstr ""
 
-msgid "Remove connectors"
-msgstr ""
-
 msgid "Type"
 msgstr "タイプ"
+
+msgid "Style"
+msgstr "スタイル"
+
+msgid "Shape"
+msgstr "形状"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
 
 msgid "Prizm"
 msgstr ""
@@ -341,15 +353,6 @@ msgid "Square"
 msgstr ""
 
 msgid "Hexagon"
-msgstr ""
-
-msgid "Style"
-msgstr "スタイル"
-
-msgid "Shape"
-msgstr "形状"
-
-msgid "Depth ratio"
 msgstr ""
 
 msgid "Confirm connectors"
@@ -1307,6 +1310,15 @@ msgstr "次のヒント"
 msgid "Open Documentation in web browser."
 msgstr "ブラウザで開く"
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "カスタム G-code"
 
@@ -1315,6 +1327,9 @@ msgstr "現在の積層にカスタムG-codeを追加"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Jump to Layer"
+msgstr "積層に移動"
 
 msgid "Jump to layer"
 msgstr "積層に移動"
@@ -1331,17 +1346,23 @@ msgstr "カスタムG-codeを追加"
 msgid "Add Custom Template"
 msgstr "カスタムテンプレートを追加"
 
-msgid "Jump to Layer"
-msgstr "積層に移動"
-
 msgid "Filament "
 msgstr "フィラメント"
 
-msgid "Start"
-msgstr "開始"
+msgid "Delete Pause"
+msgstr ""
 
-msgid "G-code"
-msgstr "G-code"
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
+msgstr ""
 
 msgid "No printer"
 msgstr "プリンタ無し"
@@ -1796,6 +1817,9 @@ msgstr "有効な値を入力してください (0 ~ 0.5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "有効な値を入力してください (K: 0 ~ 0.5, N: 0.6 ~ 2.0)"
+
+msgid "You need to select the material type and color firet."
+msgstr ""
 
 msgid "Other color"
 msgstr ""
@@ -2788,10 +2812,6 @@ msgstr "戻る"
 msgid "Paint Toolbar"
 msgstr "ペイント ツールバー"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "分解比率"
 
@@ -2812,6 +2832,12 @@ msgstr "ボリューム"
 
 msgid "Size:"
 msgstr "サイズ:"
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects farther (%s <-> %s)."
+msgstr ""
 
 msgid "An object is layed over the boundary of plate."
 msgstr "プレートの境界を超えるオブジェクトがあります"
@@ -4237,6 +4263,9 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "現在のプロジェクトには未保存の変更があります。続行する前に保存しますか?"
 
+msgid "Remember my choice."
+msgstr ""
+
 msgid "Number of copies:"
 msgstr "複製数"
 
@@ -4389,14 +4418,23 @@ msgstr "起動後「毎日のヒント」を表示"
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "有効になる場合、起動時にヒントを表示されます。"
 
-msgid "User sync"
-msgstr "ユーザー同期"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "ユーザープリセットの自動同期 (プリンター/フィラメント/プロセス)"
 
 msgid "User Sync"
 msgstr "ユーザー同期"
+
+msgid "Auto sync system presets(Printer/Filament/Process)"
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to BambuStudio"
 msgstr "ファイルをBambu Studioに関連付ける"
@@ -4419,14 +4457,33 @@ msgstr ".step/.stpファイルをBambu Studioに関連付けます。"
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "デフォルトで.step/.stpファイルをBambu Studioで開く"
 
-msgid "Backup"
-msgstr "バックアップ"
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
+
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "自動バックアップ"
 
-msgid "Backup interval"
-msgstr "時間間隔"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "ダウンロード"
@@ -4445,6 +4502,9 @@ msgstr "起動時にホームページを表示"
 
 msgid "Sync settings"
 msgstr "同期設定"
+
+msgid "User sync"
+msgstr "ユーザー同期"
 
 msgid "Preset sync"
 msgstr "プリセット同期"
@@ -4846,8 +4906,8 @@ msgstr ""
 "か、一致機種でスライスしてください。"
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "%sは柔らかい為AMSに使用できません"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4964,8 +5024,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "ヘッド無しのタイムラプスビデオを録画する時に、「タイムラプスプライムタワー」"
 "を追加してください。プレートで右クリックして、「プリミティブを追加」→「タイム"
@@ -5026,6 +5086,9 @@ msgstr "特別モード"
 
 msgid "G-code output"
 msgstr "G-code出力"
+
+msgid "Post-processing scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "よく使う"
@@ -6151,15 +6214,6 @@ msgstr "プレート %d: %s がフィラメント %s を使用できません"
 msgid "Generating skirt & brim"
 msgstr "スカートとブリムを生成"
 
-msgid "Checking gcode path conflicts."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects (%s <-> %s) farther."
-msgstr ""
-
 msgid "Exporting G-code"
 msgstr "G-codeをエクスポート中"
 
@@ -6990,6 +7044,12 @@ msgstr ""
 msgid "None"
 msgstr "無し"
 
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
+
 msgid "All walls"
 msgstr "すべての壁"
 
@@ -7384,6 +7444,16 @@ msgstr "内壁の造形速度です。"
 
 msgid "Number of walls of every layer"
 msgstr "壁面の層数です。"
+
+msgid "Post-processing Scripts"
+msgstr ""
+
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and variables of settings also can be read"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "ラフト接触面Z間隔"
@@ -8200,6 +8270,12 @@ msgstr ""
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "出力モデル情報"
 
@@ -8291,20 +8367,20 @@ msgstr "サポートを生成"
 msgid "Checking support necessity"
 msgstr "サポートの必要性を確認"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
 msgstr ""
-"オブジェクト %s がプレートに接触していません。向きを調整するか、サポートを有"
-"効にしてください。"
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
-"オブジェクト %s に大きなオーバーハングがあります、サポートを有効にしてくださ"
-"い。"
 
 msgid "Optimizing toolpath"
 msgstr "ツールパスを最適化"
@@ -8598,6 +8674,37 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Start"
+#~ msgstr "開始"
+
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
+#~ msgid "Backup"
+#~ msgstr "バックアップ"
+
+#~ msgid "Backup interval"
+#~ msgstr "時間間隔"
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "%sは柔らかい為AMSに使用できません"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "オブジェクト %s がプレートに接触していません。向きを調整するか、サポートを"
+#~ "有効にしてください。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "オブジェクト %s に大きなオーバーハングがあります、サポートを有効にしてくだ"
+#~ "さい。"
 
 #~ msgid "\\u2103"
 #~ msgstr "u2103"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 17:47+0800\n"
+"POT-Creation-Date: 2023-03-29 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -291,7 +291,10 @@ msgstr "Rörelse"
 msgid "Height"
 msgstr "Höjd"
 
-msgid "Add/Edit connectors"
+msgid "Edit connectors"
+msgstr ""
+
+msgid "Add connectors"
 msgstr ""
 
 msgid "Upper part"
@@ -327,11 +330,20 @@ msgstr "Återställ"
 msgid "Connectors"
 msgstr ""
 
-msgid "Remove connectors"
-msgstr ""
-
 msgid "Type"
 msgstr "Typ"
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Shape"
+msgstr "Form"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
 
 msgid "Prizm"
 msgstr ""
@@ -343,15 +355,6 @@ msgid "Square"
 msgstr ""
 
 msgid "Hexagon"
-msgstr ""
-
-msgid "Style"
-msgstr "Stil"
-
-msgid "Shape"
-msgstr "Form"
-
-msgid "Depth ratio"
 msgstr ""
 
 msgid "Confirm connectors"
@@ -1330,6 +1333,15 @@ msgstr "Öppna nästa tips"
 msgid "Open Documentation in web browser."
 msgstr "Öppna dokumentationen i webbläsaren"
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "Custom G-kod"
 
@@ -1338,6 +1350,9 @@ msgstr "Ange anpassad G-kod som används på det aktuella lagret:"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Jump to Layer"
+msgstr "Hoppa till lager"
 
 msgid "Jump to layer"
 msgstr "Jump to layer"
@@ -1354,17 +1369,23 @@ msgstr "Lägg till anpassad G-kod"
 msgid "Add Custom Template"
 msgstr "Lägg till anpassad mall"
 
-msgid "Jump to Layer"
-msgstr "Hoppa till lager"
-
 msgid "Filament "
 msgstr "Filament "
 
-msgid "Start"
-msgstr "Start"
+msgid "Delete Pause"
+msgstr ""
 
-msgid "G-code"
-msgstr "G-kod"
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
+msgstr ""
 
 msgid "No printer"
 msgstr "Ingen skrivare"
@@ -1826,6 +1847,9 @@ msgstr "Ange ett giltigt värde (K i 0 ~ 0,5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Ange ett giltigt värde (K i 0 ~ 0,5, N i 0,6 ~ 2,0)"
+
+msgid "You need to select the material type and color firet."
+msgstr ""
 
 msgid "Other color"
 msgstr ""
@@ -2868,10 +2892,6 @@ msgstr "tillbaka"
 msgid "Paint Toolbar"
 msgstr "Färgläggningsverktyg"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "Explosions Förhållande"
 
@@ -2892,6 +2912,12 @@ msgstr "Volym:"
 
 msgid "Size:"
 msgstr "Storlek:"
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects farther (%s <-> %s)."
+msgstr ""
 
 msgid "An object is layed over the boundary of plate."
 msgstr "Ett objekt är placerad över byggplattans begränsningar."
@@ -4345,6 +4371,9 @@ msgstr "Alla objekt kommer att raderas, fortsätta?"
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "Nuvarande projekt har ej sparade ändringar, spara innan du går vidare?"
 
+msgid "Remember my choice."
+msgstr ""
+
 msgid "Number of copies:"
 msgstr "Antal kopior:"
 
@@ -4498,8 +4527,8 @@ msgstr "Visa \"Dagens tips\" efter start"
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "Om aktiverad visas användbara tips vid start."
 
-msgid "User sync"
-msgstr "Användar synkronisering"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -4508,6 +4537,15 @@ msgstr ""
 
 msgid "User Sync"
 msgstr "Användar synkronisering"
+
+msgid "Auto sync system presets(Printer/Filament/Process)"
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to BambuStudio"
 msgstr "Associerade filer till Bambu Studio"
@@ -4530,14 +4568,33 @@ msgstr "Associera .step/.stp-filer till BambuStudio"
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "Om aktiverad, väljs Bambu Studio som standard att öppna .step filer"
 
-msgid "Backup"
-msgstr "Säkerhetskopiering"
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
+
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "Auto Säkerhetskopiera"
 
-msgid "Backup interval"
-msgstr "Säkerhetskopierings intervall"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "Nedladdningar"
@@ -4556,6 +4613,9 @@ msgstr "Visa hemsida vid uppstart"
 
 msgid "Sync settings"
 msgstr "Sync inställningar"
+
+msgid "User sync"
+msgstr "Användar synkronisering"
 
 msgid "Preset sync"
 msgstr "Förinställd synkronisering"
@@ -4981,8 +5041,8 @@ msgstr ""
 "efter att ha valt rätt skrivartyp."
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "Filament %s är för mjukt för att kunna användas med AMS"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -5106,8 +5166,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
 "till ett \"Timelapse Wipe Tower\".\n"
@@ -5170,6 +5230,9 @@ msgstr "Special läge"
 
 msgid "G-code output"
 msgstr "G-kod utgång"
+
+msgid "Post-processing scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Återkommande"
@@ -6328,15 +6391,6 @@ msgstr "Plate %d: %s stöder inte filamentet %s"
 msgid "Generating skirt & brim"
 msgstr "Skapar Skirt & Brim"
 
-msgid "Checking gcode path conflicts."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects (%s <-> %s) farther."
-msgstr ""
-
 msgid "Exporting G-code"
 msgstr "Exporterar G-kod"
 
@@ -6738,9 +6792,9 @@ msgid ""
 "quality for needle and small details"
 msgstr ""
 "Aktivera detta val för att sänka utskifts hastigheten för att göra den sista "
-"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets tröskel"
-"\", detta så att lager kan kylas under en längre tid. Detta kan förbättra "
-"kylnings kvaliteten för små detaljer"
+"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets "
+"tröskel\", detta så att lager kan kylas under en längre tid. Detta kan "
+"förbättra kylnings kvaliteten för små detaljer"
 
 msgid "Normal printing"
 msgstr "Normal utskrift"
@@ -7225,6 +7279,12 @@ msgstr ""
 msgid "None"
 msgstr "Ingen"
 
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
+
 msgid "All walls"
 msgstr "Alla väggar"
 
@@ -7649,6 +7709,16 @@ msgstr "Hastighet för inre vägg"
 
 msgid "Number of walls of every layer"
 msgstr "Antal väggar för varje lager"
+
+msgid "Post-processing Scripts"
+msgstr ""
+
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and variables of settings also can be read"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Raft kontakt Z avstånd"
@@ -8522,6 +8592,12 @@ msgstr ""
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Mata ut modell information"
 
@@ -8613,20 +8689,20 @@ msgstr "Skapa support"
 msgid "Checking support necessity"
 msgstr "Kontrollera supportens nödvändighet"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
 msgstr ""
-"Det verkar som att objekt %s har helt flytande regioner. Omorientera "
-"objektet eller aktivera supportgenerering."
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
-"Det verkar som om objekt %s har stora överhäng. Vänligen aktivera "
-"supportgenerering."
 
 msgid "Optimizing toolpath"
 msgstr "Optimerar verktygsbanan"
@@ -8948,6 +9024,37 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid "Start"
+#~ msgstr "Start"
+
+#~ msgid "G-code"
+#~ msgstr "G-kod"
+
+#~ msgid "Backup"
+#~ msgstr "Säkerhetskopiering"
+
+#~ msgid "Backup interval"
+#~ msgstr "Säkerhetskopierings intervall"
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "Filament %s är för mjukt för att kunna användas med AMS"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "Det verkar som att objekt %s har helt flytande regioner. Omorientera "
+#~ "objektet eller aktivera supportgenerering."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "Det verkar som om objekt %s har stora överhäng. Vänligen aktivera "
+#~ "supportgenerering."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

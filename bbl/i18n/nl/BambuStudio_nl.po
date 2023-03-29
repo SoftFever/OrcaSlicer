@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 17:47+0800\n"
+"POT-Creation-Date: 2023-03-29 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -291,7 +291,10 @@ msgstr "Beweging"
 msgid "Height"
 msgstr "Hoogte"
 
-msgid "Add/Edit connectors"
+msgid "Edit connectors"
+msgstr ""
+
+msgid "Add connectors"
 msgstr ""
 
 msgid "Upper part"
@@ -327,11 +330,20 @@ msgstr "Terugzetten"
 msgid "Connectors"
 msgstr ""
 
-msgid "Remove connectors"
-msgstr ""
-
 msgid "Type"
 msgstr "Type"
+
+msgid "Style"
+msgstr "Stijl"
+
+msgid "Shape"
+msgstr "Vorm"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
 
 msgid "Prizm"
 msgstr ""
@@ -343,15 +355,6 @@ msgid "Square"
 msgstr ""
 
 msgid "Hexagon"
-msgstr ""
-
-msgid "Style"
-msgstr "Stijl"
-
-msgid "Shape"
-msgstr "Vorm"
-
-msgid "Depth ratio"
 msgstr ""
 
 msgid "Confirm connectors"
@@ -1346,6 +1349,15 @@ msgstr "Volgende tip openen"
 msgid "Open Documentation in web browser."
 msgstr "Documentatie openen in een webbrowser"
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "Aangepaste G-code"
 
@@ -1354,6 +1366,9 @@ msgstr "Voer de aangepaste G-code in die op de huidige laag wordt gebruikt:"
 
 msgid "OK"
 msgstr "Offline"
+
+msgid "Jump to Layer"
+msgstr "Spring naar laag"
 
 msgid "Jump to layer"
 msgstr "Jump to layer"
@@ -1370,17 +1385,23 @@ msgstr "Aangepaste G-code toevoegen"
 msgid "Add Custom Template"
 msgstr "Aangepaste sjabloon toevoegen"
 
-msgid "Jump to Layer"
-msgstr "Spring naar laag"
-
 msgid "Filament "
 msgstr "Filament"
 
-msgid "Start"
-msgstr "Starten"
+msgid "Delete Pause"
+msgstr ""
 
-msgid "G-code"
-msgstr "G-code"
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
+msgstr ""
 
 msgid "No printer"
 msgstr "Geen printer"
@@ -1851,6 +1872,9 @@ msgstr "Voer een geldige waarde in (K in 0 ~ 0,5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Voer een geldige waarde in (K in 0 ~ 0,5, N in 0,6 ~ 2,0)"
+
+msgid "You need to select the material type and color firet."
+msgstr ""
 
 msgid "Other color"
 msgstr ""
@@ -2902,10 +2926,6 @@ msgstr "Terug"
 msgid "Paint Toolbar"
 msgstr "Kleur instellingen"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "Vergrotings ratio"
 
@@ -2926,6 +2946,12 @@ msgstr "Volume:"
 
 msgid "Size:"
 msgstr "Maat:"
+
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects farther (%s <-> %s)."
+msgstr ""
 
 msgid "An object is layed over the boundary of plate."
 msgstr "Er bevind zich een object buiten de grenzen van de printplaat."
@@ -4406,6 +4432,9 @@ msgstr ""
 "Het huidige project heeft niet-opgeslagen wijzigingen. Wilt u eerst opslaan "
 "voordat u verder gaat?"
 
+msgid "Remember my choice."
+msgstr ""
+
 msgid "Number of copies:"
 msgstr "Aantal kopieën:"
 
@@ -4565,8 +4594,8 @@ msgid "If enabled, useful hints are displayed at startup."
 msgstr ""
 "Indien ingeschakeld, worden bij het opstarten nuttige tips weergegeven."
 
-msgid "User sync"
-msgstr "Gebruikerssynchronisatie"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -4575,6 +4604,15 @@ msgstr ""
 
 msgid "User Sync"
 msgstr "Gebruiker synchroniseren"
+
+msgid "Auto sync system presets(Printer/Filament/Process)"
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to BambuStudio"
 msgstr "Koppel bestanden aan Bambu Studio"
@@ -4603,14 +4641,33 @@ msgstr ""
 "Indien ingeschakeld, wordt Bambu Studio ingesteld als de standaardtoepassing "
 "om .step-bestanden te openen"
 
-msgid "Backup"
-msgstr "Backup"
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
+
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "Automatisch backup maken"
 
-msgid "Backup interval"
-msgstr "Backupinterval"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "Downloads"
@@ -4629,6 +4686,9 @@ msgstr "Toon startpagina bij opstanden"
 
 msgid "Sync settings"
 msgstr "Synchroniseer instellingen"
+
+msgid "User sync"
+msgstr "Gebruikerssynchronisatie"
 
 msgid "Preset sync"
 msgstr "Voorinstellingen synchronizeren"
@@ -5062,8 +5122,8 @@ msgstr ""
 "raadzaam opnieuw te slicen nadat het juiste printertype is geselecteerd."
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "Het %s-filament is te zacht om te worden gebruikt met de AMS"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -5193,8 +5253,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Bij het opnemen van timelapse zonder toolhead is het aan te raden om een "
 "„Timelapse Wipe Tower” toe te voegen \n"
@@ -5258,6 +5318,9 @@ msgstr "Speciale modus"
 
 msgid "G-code output"
 msgstr "G-code uitvoer"
+
+msgid "Post-processing scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Veelgebruikt"
@@ -6455,15 +6518,6 @@ msgstr "Printbed %d: %s ondersteunt filament %s niet."
 msgid "Generating skirt & brim"
 msgstr "Skirt en brim worden gegenereerd"
 
-msgid "Checking gcode path conflicts."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects (%s <-> %s) farther."
-msgstr ""
-
 msgid "Exporting G-code"
 msgstr "G-code exporteren"
 
@@ -7383,6 +7437,12 @@ msgstr ""
 msgid "None"
 msgstr "Geen"
 
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
+
 msgid "All walls"
 msgstr "Alle wanden"
 
@@ -7816,6 +7876,16 @@ msgstr "Dit is de snelheid voor de binnenste wanden"
 
 msgid "Number of walls of every layer"
 msgstr "Dit is het aantal wanden per laag."
+
+msgid "Post-processing Scripts"
+msgstr ""
+
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and variables of settings also can be read"
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Vlot (raft) contact Z afstand:"
@@ -8718,6 +8788,12 @@ msgstr ""
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Model informatie weergeven"
 
@@ -8809,20 +8885,20 @@ msgstr "Support genereren"
 msgid "Checking support necessity"
 msgstr "Controleren of support is noodzakelijk"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
 msgstr ""
-"Het lijkt erop dat object %s volledig zwevende gebieden heeft. Heroriënteer "
-"het object of schakel het genereren van ondersteuning in."
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
-"Het lijkt erop dat object %s grote overhangen heeft. Schakel het genereren "
-"van ondersteuning in."
 
 msgid "Optimizing toolpath"
 msgstr "Optimaliseren van het pad"
@@ -9147,6 +9223,37 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Start"
+#~ msgstr "Starten"
+
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
+#~ msgid "Backup"
+#~ msgstr "Backup"
+
+#~ msgid "Backup interval"
+#~ msgstr "Backupinterval"
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "Het %s-filament is te zacht om te worden gebruikt met de AMS"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "Het lijkt erop dat object %s volledig zwevende gebieden heeft. "
+#~ "Heroriënteer het object of schakel het genereren van ondersteuning in."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "Het lijkt erop dat object %s grote overhangen heeft. Schakel het "
+#~ "genereren van ondersteuning in."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"

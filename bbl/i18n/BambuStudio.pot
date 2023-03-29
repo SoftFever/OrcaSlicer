@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 17:47+0800\n"
+"POT-Creation-Date: 2023-03-29 14:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -293,7 +293,10 @@ msgstr ""
 msgid "Height"
 msgstr ""
 
-msgid "Add/Edit connectors"
+msgid "Edit connectors"
+msgstr ""
+
+msgid "Add connectors"
 msgstr ""
 
 msgid "Upper part"
@@ -329,10 +332,19 @@ msgstr ""
 msgid "Connectors"
 msgstr ""
 
-msgid "Remove connectors"
+msgid "Type"
 msgstr ""
 
-msgid "Type"
+msgid "Style"
+msgstr ""
+
+msgid "Shape"
+msgstr ""
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
 msgstr ""
 
 msgid "Prizm"
@@ -345,15 +357,6 @@ msgid "Square"
 msgstr ""
 
 msgid "Hexagon"
-msgstr ""
-
-msgid "Style"
-msgstr ""
-
-msgid "Shape"
-msgstr ""
-
-msgid "Depth ratio"
 msgstr ""
 
 msgid "Confirm connectors"
@@ -1302,6 +1305,15 @@ msgstr ""
 msgid "Open Documentation in web browser."
 msgstr ""
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr ""
 
@@ -1309,6 +1321,9 @@ msgid "Enter Custom G-code used on current layer:"
 msgstr ""
 
 msgid "OK"
+msgstr ""
+
+msgid "Jump to Layer"
 msgstr ""
 
 msgid "Jump to layer"
@@ -1326,16 +1341,22 @@ msgstr ""
 msgid "Add Custom Template"
 msgstr ""
 
-msgid "Jump to Layer"
-msgstr ""
-
 msgid "Filament "
 msgstr ""
 
-msgid "Start"
+msgid "Delete Pause"
 msgstr ""
 
-msgid "G-code"
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
 msgstr ""
 
 msgid "No printer"
@@ -1762,6 +1783,9 @@ msgid "Please input a valid value (K in 0~0.5)"
 msgstr ""
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgstr ""
+
+msgid "You need to select the material type and color firet."
 msgstr ""
 
 msgid "Other color"
@@ -2691,10 +2715,6 @@ msgstr ""
 msgid "Paint Toolbar"
 msgstr ""
 
-#, possible-boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr ""
 
@@ -2714,6 +2734,12 @@ msgid "Volume:"
 msgstr ""
 
 msgid "Size:"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Conflicts of gcode paths have been found. Please separate the conflicted "
+"objects farther (%s <-> %s)."
 msgstr ""
 
 msgid "An object is layed over the boundary of plate."
@@ -4099,6 +4125,9 @@ msgstr ""
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 
+msgid "Remember my choice."
+msgstr ""
+
 msgid "Number of copies:"
 msgstr ""
 
@@ -4246,13 +4275,22 @@ msgstr ""
 msgid "If enabled, useful hints are displayed at startup."
 msgstr ""
 
-msgid "User sync"
+msgid "Presets"
 msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
 
 msgid "User Sync"
+msgstr ""
+
+msgid "Auto sync system presets(Printer/Filament/Process)"
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
 msgstr ""
 
 msgid "Associate files to BambuStudio"
@@ -4276,13 +4314,32 @@ msgstr ""
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
 
-msgid "Backup"
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
+
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
 msgstr ""
 
 msgid "Auto-Backup"
 msgstr ""
 
-msgid "Backup interval"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
 msgstr ""
 
 msgid "Downloads"
@@ -4301,6 +4358,9 @@ msgid "Show home page on startup"
 msgstr ""
 
 msgid "Sync settings"
+msgstr ""
+
+msgid "User sync"
 msgstr ""
 
 msgid "Preset sync"
@@ -4700,7 +4760,7 @@ msgid ""
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "The %s filament is too soft to be used with the AMS"
+msgid "%s is not supported by AMS."
 msgstr ""
 
 msgid ""
@@ -4806,8 +4866,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -4862,6 +4922,9 @@ msgid "Special mode"
 msgstr ""
 
 msgid "G-code output"
+msgstr ""
+
+msgid "Post-processing scripts"
 msgstr ""
 
 msgid "Frequent"
@@ -5939,15 +6002,6 @@ msgstr ""
 msgid "Generating skirt & brim"
 msgstr ""
 
-msgid "Checking gcode path conflicts."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects (%s <-> %s) farther."
-msgstr ""
-
 msgid "Exporting G-code"
 msgstr ""
 
@@ -6700,6 +6754,12 @@ msgstr ""
 msgid "None"
 msgstr ""
 
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
+
 msgid "All walls"
 msgstr ""
 
@@ -7074,6 +7134,16 @@ msgid "Speed of inner wall"
 msgstr ""
 
 msgid "Number of walls of every layer"
+msgstr ""
+
+msgid "Post-processing Scripts"
+msgstr ""
+
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and variables of settings also can be read"
 msgstr ""
 
 msgid "Raft contact Z distance"
@@ -7800,6 +7870,12 @@ msgstr ""
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr ""
 
@@ -7889,15 +7965,19 @@ msgstr ""
 msgid "Checking support necessity"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
+msgstr ""
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
 
 msgid "Optimizing toolpath"
