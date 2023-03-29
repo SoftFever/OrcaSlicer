@@ -21,6 +21,7 @@ wxFont Label::sysFont(int size, bool bold)
     }
     return font;
 }
+wxFont Label::Head_48;
 wxFont Label::Head_24;
 wxFont Label::Head_20;
 wxFont Label::Head_18;
@@ -64,6 +65,7 @@ void Label::initSysFont()
     Head_12 = Label::sysFont(12, true);
     Head_10 = Label::sysFont(10, true);
 
+    Head_48 = Label::sysFont(48, true);
     Body_16 = Label::sysFont(16, false);
     Body_15 = Label::sysFont(15, false);
     Body_14 = Label::sysFont(14, false);

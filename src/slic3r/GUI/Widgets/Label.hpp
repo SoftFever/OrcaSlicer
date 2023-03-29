@@ -35,6 +35,7 @@ public:
 	static wxFont Head_12;
     static wxFont Head_10;
 
+	static wxFont Head_48;
 	static wxFont Body_16;
 	static wxFont Body_15;
 	static wxFont Body_14;

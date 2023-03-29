@@ -148,6 +148,15 @@ private:
     // BBS
     DynamicPrintConfig m_config;
 
+    // SoftFever
+    // part plate name
+    std::string m_name;
+    GeometryBuffer m_plate_name_icon;
+    mutable unsigned int m_plate_name_vbo_id{ 0 };
+    GLTexture m_name_texture;
+    wxCoord m_name_texture_width;
+    wxCoord m_name_texture_height;
+
     void init();
     bool valid_instance(int obj_id, int instance_id);
     void generate_print_polygon(ExPolygon &print_polygon);
@@ -161,6 +170,8 @@ private:
     void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
+    //void calc_vertex_for_name_tex(GeometryBuffer &buffer);
+
     void render_background(bool force_default_color = false) const;
     void render_logo(bool bottom) const;
     void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
@@ -175,8 +186,9 @@ private:
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
     void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
-    void render_icons(bool bottom, int hover_id = -1) const;
+    void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
     void render_only_numbers(bool bottom) const;
+    void render_plate_name_texture(int position_id, int tex_coords_id);
     void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
     void on_render_for_picking() const;
     std::array<float, 4> picking_color_component(int idx) const;
@@ -241,6 +253,13 @@ public:
 
     //get the plate's index
     int get_index() { return m_plate_index; }
+
+    // SoftFever
+    //get the plate's name
+    std::string get_plate_name() { return m_name; }
+    void generate_plate_name_texture();
+    //set the plate's name
+    void set_plate_name(const std::string& name);
 
     //get the print's object, result and index
     void get_print(PrintBase **print, GCodeResult **result, int *index);

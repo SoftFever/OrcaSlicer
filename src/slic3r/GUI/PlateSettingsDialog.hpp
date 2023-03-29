@@ -49,11 +49,15 @@ public:
         return choice;
     };
 
+    wxString get_plate_name() const;
+    void set_plate_name(const wxString& name);
+
 protected:
     ComboBox* m_print_seq_choice { nullptr };
     ComboBox* m_bed_type_choice { nullptr };
     Button* m_button_ok;
     Button* m_button_cancel;
+    TextInput *m_ti_plate_name;
 };
 
 }} // namespace Slic3r::GUI

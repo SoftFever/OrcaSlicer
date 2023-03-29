@@ -70,6 +70,7 @@ struct PlateData
     std::string     pattern_bbox_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
+    std::string     plate_name;
     std::vector<FilamentInfo> slice_filaments_info;
     DynamicPrintConfig config;
     bool            is_support_used {false};
