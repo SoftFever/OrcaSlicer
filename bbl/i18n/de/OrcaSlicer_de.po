@@ -32,19 +32,19 @@ msgid "Pen size"
 msgstr "Pinselgröße"
 
 msgid "Left mouse button"
-msgstr "Linke Maustaste"
+msgstr "linke Maustaste"
 
 msgid "Enforce supports"
 msgstr "Support erzwingen"
 
 msgid "Right mouse button"
-msgstr "Rechte Maustaste"
+msgstr "rechte Maustaste"
 
 msgid "Block supports"
 msgstr "Support blockieren"
 
 msgid "Shift + Left mouse button"
-msgstr "Shift + Linke Maustaste"
+msgstr "Shift + linke Maustaste"
 
 msgid "Erase"
 msgstr "Löschen"
@@ -1414,7 +1414,7 @@ msgid "Please check the printer network connection."
 msgstr "Bitte die Drucker Netzwerkverbindung prüfen."
 
 msgid "Abnormal print file data. Please slice again"
-msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
+msgstr "Fehlerhafte Daten in der Druckdatei. Bitte slicen Sie erneut"
 
 msgid "Task canceled"
 msgstr "Auftrag abgebrochen"
@@ -1429,7 +1429,7 @@ msgstr ""
 "Die Verbindung zum Cloud-Dienst ist fehlgeschlagen. Bitte versuche es erneut."
 
 msgid "Print file not found, please slice again"
-msgstr "Druckdatei nicht gefunden, bitte noch einmal probieren (erneut Slicen)"
+msgstr "Druckdatei nicht gefunden, bitte noch einmal (erneut Slicen)"
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
@@ -1486,7 +1486,7 @@ msgstr "Sende Gcode-Datei an SDKarte"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
-msgstr "Erfolgreich gesendet. Aktuelle Seite wird in %s s geschlossen"
+msgstr "Erfolgreich gesendet. Aktuelle Seite wird in %s S geschlossen"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "Vor dem Senden an den Drucker muss eine SD-Karte eingelegt werden."
@@ -2259,9 +2259,9 @@ msgid ""
 msgstr ""
 "Prime Tower funktioniert nicht, wenn Adaptive Schichthöhe oder unabhängige "
 "Support-Schichthöhe aktiviert ist.\n"
-"Was möchten Sie beibehalten?\n"
-"YES - Prime Tower beibehalten\n"
-"NEIN - Adaptive Schichthöhe und Unabhängige Support-Schichthöhe beibehalten"
+"Was möchten Sie behalten?\n"
+"YES - Prime Tower behalten\n"
+"NEIN - Adaptive Schichthöhe und unabhängige Support-Schichthöhe behalten"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height is on.\n"
@@ -2270,9 +2270,9 @@ msgid ""
 "NO  - Keep Adaptive Layer Height"
 msgstr ""
 "Prime Tower funktioniert nicht, wenn Adaptive Schichthöhet aktiviert ist.\n"
-"Was möchten Sie beibehalten?\n"
-"YES - Prime Tower beibehalten\n"
-"NEIN - Adaptive Schichthöhe beibehalten"
+"Was möchten Sie behalten?\n"
+"YES - Prime Tower behalten\n"
+"NEIN - Adaptive Schichthöhe behalten"
 
 msgid ""
 "Prime tower does not work when Independent Support Layer Height is on.\n"
@@ -2282,9 +2282,9 @@ msgid ""
 msgstr ""
 "Prime Tower funktioniert nicht, wenn Unabhängige Support-Schichthöhe "
 "aktiviert ist.\n"
-"Was möchten Sie beibehalten?\n"
-"YES - Prime Tower beibehalten\n"
-"NEIN - Adaptive Schichthöhe beibehalten"
+"Was möchten Sie behalten?\n"
+"YES - Prime Tower behalten\n"
+"NEIN - Adaptive Schichthöhe behalten"
 
 #, boost-format
 msgid "%1% infill pattern doesn't support 100%% density."
@@ -2601,7 +2601,7 @@ msgid "Color change"
 msgstr "Farbwechsel"
 
 msgid "Print"
-msgstr "Druck"
+msgstr "aktuelle Platte drucken"
 
 msgid "Pause"
 msgstr "Pause"
@@ -2631,13 +2631,13 @@ msgid "Switch to silent mode"
 msgstr "Zum Leisemodus wechseln"
 
 msgid "Switch to normal mode"
-msgstr "Zum Normalen Modus wechseln"
+msgstr "Zum normalen Modus wechseln"
 
 msgid "Variable layer height"
 msgstr "Variable Schichthöhe"
 
 msgid "Adaptive"
-msgstr "Adaptiv"
+msgstr "Adaptive"
 
 msgid "Quality / Speed"
 msgstr "Qualität / Geschwindigkeit"
@@ -2652,25 +2652,25 @@ msgid "Keep min"
 msgstr "Minimum einhalten"
 
 msgid "Left mouse button:"
-msgstr "Linke Maustaste:"
+msgstr "linke Maustaste:"
 
 msgid "Add detail"
 msgstr "Detail zufügen"
 
 msgid "Right mouse button:"
-msgstr "Rechte Maustaste:"
+msgstr "rechte Maustaste:"
 
 msgid "Remove detail"
 msgstr "Detail entfernen"
 
 msgid "Shift + Left mouse button:"
-msgstr "Gross + Linke Maustaste:"
+msgstr "Gross + linke Maustaste:"
 
 msgid "Reset to base"
 msgstr "Parameter zurücksetzen"
 
 msgid "Shift + Right mouse button:"
-msgstr "Gross + Rechte Maustaste:"
+msgstr "Gross + rechte Maustaste:"
 
 msgid "Smoothing"
 msgstr "Glättung"
@@ -2700,7 +2700,7 @@ msgid "Enable rotation"
 msgstr "Rotation aktivieren"
 
 msgid "Optimize support interface area"
-msgstr "Optimieren Sie den Support-Schnittstellenbereich"
+msgstr "Optimiere den Support-Schnittstellenbereich"
 
 msgid "Orient"
 msgstr "Orientieren"
@@ -5476,8 +5476,8 @@ msgid ""
 "preset?"
 msgstr ""
 "Sie haben einige Einstellungen der Voreinstellung „%1%“ geändert. \n"
-"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Wechsel der "
-"Voreinstellung behalten?"
+"Möchten Sie diese geänderten Einstellungen (neuer Wert) \n"
+"nach dem Wechsel der Voreinstellung behalten?"
 
 msgid ""
 "You have changed some preset settings. \n"
@@ -5485,8 +5485,8 @@ msgid ""
 "preset?"
 msgstr ""
 "Sie haben einige voreingestellten Werte geändert.\n"
-"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Wechsel der "
-"Voreinstellung beibehalten?"
+"Möchten Sie diese geänderten Einstellungen (neuer Wert)\n"
+"nach dem Wechsel der Voreinstellung behalten?"
 
 msgid "Extruders count"
 msgstr "Anzahl der Extruder"
@@ -5691,13 +5691,13 @@ msgid "Movement in camera space"
 msgstr "Bewegung im Kameraraum"
 
 msgid "⌥+Left mouse button"
-msgstr "⌥+Linke Maustaste"
+msgstr "⌥+linke Maustaste"
 
 msgid "Select a part"
 msgstr "Wählen Sie ein Teil aus"
 
 msgid "⌘+Left mouse button"
-msgstr "⌘+Linke Maustaste"
+msgstr "⌘+linke Maustaste"
 
 msgid "Select multiple objects"
 msgstr "Mehrere Objekte auswählen"
@@ -5706,10 +5706,10 @@ msgid "Ctrl+Any arrow"
 msgstr "Strg+beliebiger Pfeil"
 
 msgid "Alt+Left mouse button"
-msgstr "Alt+Linke Maustaste"
+msgstr "Alt+linke Maustaste"
 
 msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Linke Maustaste"
+msgstr "Ctrl+linke Maustaste"
 
 msgid "Shift+Left mouse button"
 msgstr "Umschalt + linke Maustaste"
@@ -9982,7 +9982,7 @@ msgstr ""
 #~ msgstr "Strg + beliebiger Pfeil"
 
 #~ msgid "Ctrl + Left mouse button"
-#~ msgstr "Strg + Linke Maustaste"
+#~ msgstr "Strg + linke Maustaste"
 
 #~ msgid "Debug"
 #~ msgstr "Debuggen"
@@ -10428,7 +10428,7 @@ msgstr ""
 #~ msgstr ""
 #~ "Sie haben einige voreingestellte Einstellungen geändert. \n"
 #~ "Möchten Sie diese geänderten Einstellungen nach dem Wechsel der "
-#~ "Voreinstellung beibehalten?"
+#~ "Voreinstellung behalten?"
 
 #~ msgid "Zig zag"
 #~ msgstr "Zick-Zack"
