@@ -231,24 +231,26 @@ typedef struct _cli_callback_mgr {
             lck.unlock();
             return;
         }
+        int old_total_progress = m_total_progress;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": percent="<<percent<< ", warning_step=" << warning_step << ", plate_index = "<< m_plate_index<<", plate_count="<< m_plate_count<<", message="<<message;
-	if (warning_step == -1) {
+        if (warning_step == -1) {
             m_progress = percent;
-            if ((m_plate_index >= 1)&&(m_plate_index <= m_plate_count)) {
-                if (m_plate_count <= 1)
-                    m_total_progress = 0.9*m_progress;
-                else {
-                    m_total_progress = ((float)(m_plate_index - 1)*90)/m_plate_count + ((float)m_progress*0.9)/m_plate_count;
-                }
+            if ((m_plate_count <= 1) && (m_plate_index >= 1))
+                m_total_progress = 3 + 0.9*m_progress;
+            else if ((m_plate_count > 1) && (m_plate_index >= 1)) {
+                m_total_progress = 3 + ((float)(m_plate_index - 1)*90)/m_plate_count + ((float)m_progress*0.9)/m_plate_count;
             }
             else
                 m_total_progress = m_progress;
-	}
+        }
+        if (m_total_progress < old_total_progress)
+            m_total_progress = old_total_progress;
         m_message = message;
         m_warning_step = warning_step;
         m_data_ready = true;
         lck.unlock();
         m_condition.notify_one();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": m_total_progress="<<m_total_progress;
         return;
     }
 
@@ -498,18 +500,31 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
+    std::string pipe_name;
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
     ConfigOptionInt* slice_option = m_config.option<ConfigOptionInt>("slice");
     if (slice_option)
         plate_to_slice = slice_option->value;
+
     ConfigOptionBool* normative_check_option = m_config.option<ConfigOptionBool>("normative_check");
     if (normative_check_option)
         normative_check = normative_check_option->value;
+
     ConfigOptionBool* uptodate_option = m_config.option<ConfigOptionBool>("uptodate");
     if (uptodate_option)
         up_config_to_date = uptodate_option->value;
+
+    ConfigOptionString* pipe_option = m_config.option<ConfigOptionString>("pipe");
+    if (pipe_option) {
+        pipe_name = pipe_option->value;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Will use pipe %1%")%pipe_name;
+#if defined(__linux__) || defined(__LINUX__)
+        g_cli_callback_mgr.start(pipe_name);
+#endif
+    }
+
     /*for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
@@ -1368,6 +1383,13 @@ int CLI::run(int argc, char **argv)
     arrange_cfg.min_obj_distance = scaled(min_object_distance(m_print_config));
 
     BOOST_LOG_TRIVIAL(info) << "will start transforms, commands count " << m_transforms.size() << "\n";
+#if defined(__linux__) || defined(__LINUX__)
+    if (g_cli_callback_mgr.is_started()) {
+        PrintBase::SlicingStatus slicing_status{1, "Loading files finished"};
+        cli_status_callback(slicing_status);
+    }
+#endif
+
     for (auto const &opt_key : m_transforms) {
         BOOST_LOG_TRIVIAL(info) << "process transform " << opt_key << "\n";
         if (opt_key == "merge") {
@@ -1762,10 +1784,7 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "help_sla") {
             this->print_help(true, ptSLA);
         } else if (opt_key == "pipe") {
-#if defined(__linux__) || defined(__LINUX__)
-            std::string pipe_name = m_config.option<ConfigOptionString>("pipe")->value;
-            g_cli_callback_mgr.start(pipe_name);
-#endif
+            //already processed before
         } else if (opt_key == "load_slicedata") {
             load_slicedata = true;
             load_slice_data_dir = m_config.opt_string(opt_key);
@@ -1807,8 +1826,10 @@ int CLI::run(int argc, char **argv)
             export_to_3mf = true;
             export_3mf_file = m_config.opt_string(opt_key);
         }else if(opt_key=="no_check"){
-            no_check = true;
+            no_check = m_config.opt_bool(opt_key);
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
+        } else if (opt_key == "normative_check") {
+            //already processed before
         } else if (opt_key == "export_slicedata") {
             export_slicedata = true;
             export_slice_data_dir = m_config.opt_string(opt_key);
@@ -1842,6 +1863,12 @@ int CLI::run(int argc, char **argv)
                 flush_and_exit(1);
             }*/
             BOOST_LOG_TRIVIAL(info) << "Need to slice for plate "<<plate_to_slice <<", total plate count "<<partplate_list.get_plate_count()<<" partplates!" << std::endl;
+#if defined(__linux__) || defined(__LINUX__)
+            if (g_cli_callback_mgr.is_started()) {
+                PrintBase::SlicingStatus slicing_status{3, "Prepare slicing"};
+                cli_status_callback(slicing_status);
+            }
+#endif
             // Make a copy of the model if the current action is not the last action, as the model may be
             // modified by the centering and such.
             Model model_copy;
@@ -1972,6 +1999,7 @@ int CLI::run(int argc, char **argv)
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
                         print->apply(model, new_print_config);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
                         StringObjectException warning;
                         auto err = print->validate(&warning);
@@ -2002,7 +2030,11 @@ int CLI::run(int argc, char **argv)
                                     print->set_status_callback(cli_status_callback);
                                     g_cli_callback_mgr.set_plate_info(index+1, (plate_to_slice== 0)?partplate_list.get_plate_count():1);
                                     if (!warning.string.empty()) {
-                                        PrintBase::SlicingStatus slicing_status{2, warning.string, 0, 0};
+                                        PrintBase::SlicingStatus slicing_status{4, warning.string, 0, 0};
+                                        cli_status_callback(slicing_status);
+                                    }
+                                    else {
+                                        PrintBase::SlicingStatus slicing_status{4, "Slicing begins"};
                                         cli_status_callback(slicing_status);
                                     }
                                 }
@@ -2017,6 +2049,12 @@ int CLI::run(int argc, char **argv)
                                     }
                                     else {
                                         BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
+#if defined(__linux__) || defined(__LINUX__)
+                                        if (g_cli_callback_mgr.is_started()) {
+                                            PrintBase::SlicingStatus slicing_status{69, "Cache data loaded"};
+                                            cli_status_callback(slicing_status);
+                                        }
+#endif
                                         print->process(true);
                                         BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
                                     }
@@ -2099,7 +2137,7 @@ int CLI::run(int argc, char **argv)
 #if defined(__linux__) || defined(__LINUX__)
                 if (g_cli_callback_mgr.is_started()) {
                     int plate_count = (plate_to_slice== 0)?partplate_list.get_plate_count():1;
-                    g_cli_callback_mgr.set_plate_info(plate_count+1, plate_count);
+                    g_cli_callback_mgr.set_plate_info(0, plate_count);
                 }
 #endif
 /*
@@ -2153,7 +2191,7 @@ int CLI::run(int argc, char **argv)
 
 #if defined(__linux__) || defined(__LINUX__)
         if (g_cli_callback_mgr.is_started()) {
-            PrintBase::SlicingStatus slicing_status{91, "Generate thumbnails"};
+            PrintBase::SlicingStatus slicing_status{94, "Generate thumbnails"};
             cli_status_callback(slicing_status);
         }
 #endif
@@ -2626,7 +2664,7 @@ int CLI::run(int argc, char **argv)
 
 #if defined(__linux__) || defined(__LINUX__)
         if (g_cli_callback_mgr.is_started()) {
-            PrintBase::SlicingStatus slicing_status{95, "Exporting 3mf"};
+            PrintBase::SlicingStatus slicing_status{97, "Exporting 3mf"};
             cli_status_callback(slicing_status);
         }
 #endif

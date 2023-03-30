@@ -4634,14 +4634,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def = this->add("no_check", coBool);
     def->label = L("No check");
     def->tooltip = L("Do not run any validity checks, such as gcode path conflicts check.");
-    def->cli = "no_check";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("normative_check", coBool);
     def->label = L("Normative check");
     def->tooltip = L("Check the normative items.");
-    def->cli = "normative_check";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(true));
 
