@@ -4036,16 +4036,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 TriangleMesh triangle_mesh(std::move(its), volume_data->mesh_stats);
 
-                if (!m_is_bbl_3mf) {
-                    // if the 3mf was not produced by BambuStudio and there is only one instance,
-                    // bake the transformation into the geometry to allow the reload from disk command
-                    // to work properly
-                    if (object.instances.size() == 1) {
-                        triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix(), false);
-                        object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
-                        //FIXME do the mesh fixing?
-                    }
-                }
+                // BBS: no need to multiply the instance matrix into the volume
+                //if (!m_is_bbl_3mf) {
+                //    // if the 3mf was not produced by BambuStudio and there is only one instance,
+                //    // bake the transformation into the geometry to allow the reload from disk command
+                //    // to work properly
+                //    if (object.instances.size() == 1) {
+                //        triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix(), false);
+                //        object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
+                //        //FIXME do the mesh fixing?
+                //    }
+                //}
                 if (triangle_mesh.volume() < 0)
                     triangle_mesh.flip_triangles();
 
