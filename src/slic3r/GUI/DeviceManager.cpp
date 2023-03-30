@@ -2384,12 +2384,14 @@ int MachineObject::parse_json(std::string payload)
             json jj = j["print"];
             int sequence_id = 0;
             if (jj.contains("sequence_id")) {
-                std::string str_seq = jj["sequence_id"].get<std::string>();
-                try {
-                    sequence_id = stoi(str_seq);
-                }
-                catch(...) {
-                    ;
+                if (jj["sequence_id"].is_string()) {
+                    std::string str_seq = jj["sequence_id"].get<std::string>();
+                    try {
+                        sequence_id = stoi(str_seq);
+                    }
+                    catch(...) {
+                        ;
+                    }
                 }
             }
             if (jj.contains("command")) {
