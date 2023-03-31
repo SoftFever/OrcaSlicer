@@ -91,7 +91,25 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
     description = model.model_info->description;
     update_type = model.model_info->origin;
 
-    if (model.design_info != nullptr)
+
+    try {
+        if (!model.model_info->copyright.empty()) {
+            json copy_right = json::parse(model.model_info->copyright);
+
+            if (copy_right.is_array()) {
+                for (auto it = copy_right.begin(); it != copy_right.end(); it++) {
+                    if ((*it).contains("author")) {
+                        model_author = (*it)["author"].get<std::string>();
+                    }
+                }
+            }
+        }
+    }
+    catch (...) {
+        ;
+    }
+
+    if (model_author.empty() && model.design_info != nullptr)
         model_author = model.design_info->Designer;
 
     if (model.profile_info != nullptr) {
