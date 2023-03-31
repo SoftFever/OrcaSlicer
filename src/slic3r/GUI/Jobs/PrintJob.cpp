@@ -384,7 +384,8 @@ void PrintJob::process()
         } else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
             msg_text = timeout_to_upload_str;
         } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
-            msg_text = _L("Failed to send the print job. Please try again.");
+            msg_text = _L("Failed to send the print job. Please try again."); 
+            this->show_networking_test();
         } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
             msg_text = _L("Failed to send the print job. Please try again.");
         } else {

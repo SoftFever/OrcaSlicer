@@ -29,23 +29,16 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_status_text = new wxStaticText(m_self, wxID_ANY, wxEmptyString);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
-    m_status_text->SetSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
+    m_status_text->SetSize(wxSize(m_self->FromDIP(300), m_self->FromDIP(46)));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(300), m_self->FromDIP(46)));
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
 
-  /*  block_left = new wxWindow(m_prog, wxID_ANY, wxPoint(0, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-      block_left->SetBackgroundColour(wxColour(255, 255, 255));
-      block_right = new wxWindow(m_prog, wxID_ANY, wxPoint(m_prog->GetSize().GetWidth() - 2, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-      block_right->SetBackgroundColour(wxColour(255, 255, 255));*/
-
-    m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
-
-     StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
     m_cancelbutton = new Button(m_self, _L("Cancel"));
-    m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(64), m_self->FromDIP(24)));
+    m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
     m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
     m_cancelbutton->SetBorderColor(btn_bd_white);
     m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
@@ -60,9 +53,16 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_stext_percent->SetForegroundColour(wxColour(107, 107, 107));
     m_stext_percent->SetFont(::Label::Body_13);
     m_stext_percent->Wrap(-1);
-    m_sizer_bottom->Add(m_stext_percent, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 10);
 
+    m_hyperlink = new wxHyperlinkCtrl(m_self, wxID_ANY, _L("Check the status of current system services"), wxT("https://status.bambulab.com/"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink->SetFont(::Label::Body_12);
+    m_hyperlink->Hide();
+    m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
+    m_sizer_bottom->Add(m_stext_percent, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 10);
+    m_sizer_bottom->Add(m_hyperlink, 0, wxALIGN_CENTER, 10);
+    m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_bottom->Add(m_cancelbutton, 0, wxALIGN_CENTER, 0);
+
 
     m_sizer_body->Add(m_status_text, 0, 0, 0);
     m_sizer_body->Add(0, 0, 0, wxTOP, 1);
@@ -121,6 +121,38 @@ void BBLStatusBarSend::clear_percent()
 {
     //set_percent_text(wxEmptyString);
     m_cancelbutton->Hide();
+}
+
+void BBLStatusBarSend::show_networking_test()
+{
+    m_prog->Hide();
+    m_stext_percent->Hide();
+    m_hyperlink->Show();
+
+    std::string url;
+    std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
+
+
+    if (country_code == "US") {
+        url = "https://status.bambulab.com";
+    }
+    else if (country_code == "CN") {
+        url = "https://status.bambulab.cn";
+    }
+    else if (country_code == "ENV_CN_DEV") {
+        url = "https://status.bambu-lab.com";
+    }
+    else if (country_code == "ENV_CN_QA") {
+        url = "https://status.bambu-lab.com";
+    }
+    else if (country_code == "ENV_CN_PRE") {
+        url = "https://status.bambu-lab.com";
+    }
+    else {
+        url = "https://status.bambu-lab.com";
+    }
+
+    m_hyperlink->SetURL(url);
 }
 
 void BBLStatusBarSend::show_progress(bool show)
@@ -234,7 +266,7 @@ void BBLStatusBarSend::set_status_text(const wxString& txt)
     //auto txtss = "The printing project is being uploaded... 25%%";
     //m_status_text->SetLabelText(txtss);
     wxString str;
-    format_text(m_status_text, m_self->FromDIP(280), txt, str);
+    format_text(m_status_text, m_self->FromDIP(300), txt, str);
     m_status_text->SetLabelText(str);
     m_self->Layout();
     //if (is_english_text(str)) m_status_text->Wrap(m_self->FromDIP(280));
@@ -281,9 +313,13 @@ bool BBLStatusBarSend::update_status(wxString &msg, bool &was_cancel, int percen
 
 void BBLStatusBarSend::reset()
 {
+    m_hyperlink->Hide();
+    m_prog->Show();
+    m_stext_percent->Show();
     m_cancelbutton->Show();
-    set_status_text("");
     m_was_cancelled = false;
+
+    set_status_text("");
     set_progress(0);
     set_percent_text(wxString::Format("%d%%", 0));
 }
