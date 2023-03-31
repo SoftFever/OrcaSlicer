@@ -256,7 +256,7 @@ public:
 
     // SoftFever
     //get the plate's name
-    std::string get_plate_name() { return m_name; }
+    std::string get_plate_name() const { return m_name; }
     void generate_plate_name_texture();
     //set the plate's name
     void set_plate_name(const std::string& name);
@@ -640,6 +640,7 @@ public:
 
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
+    const PartPlate* get_curr_plate() const { return m_plate_list[m_current_plate]; }
 
     std::vector<PartPlate*>& get_plate_list() { return m_plate_list; };
 

@@ -6568,8 +6568,12 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
 wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) const
 {
     std::string plate_index_str;
-    if (partplate_list.get_plate_count() > 1)
+    auto plate_name = partplate_list.get_curr_plate()->get_plate_name();
+    if (!plate_name.empty())
+        plate_index_str = (boost::format("_%1%") % plate_name).str();
+    else if (partplate_list.get_plate_count() > 1)
         plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+
     if (!m_project_folder.empty()) {
         if (!only_filename) {
             if (export_all) {
@@ -6587,7 +6591,7 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
         }
     } else {
         if (only_filename) {
-            if(m_project_name == L"Untitled")
+            if(m_project_name == _L("Untitled"))
                 return fs::path(model.objects.front()->name).replace_extension().c_str() + wxString(plate_index_str) + extension;
 
             if (export_all)
