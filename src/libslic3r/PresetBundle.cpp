@@ -666,9 +666,10 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 DynamicPrintConfig new_config;
                 Preset *      inherit_preset  = nullptr;
                 ConfigOption *inherits_config = config.option(BBL_JSON_KEY_INHERITS);
+                std::string        inherits_value;
                 if (inherits_config) {
                     ConfigOptionString *option_str     = dynamic_cast<ConfigOptionString *>(inherits_config);
-                    std::string         inherits_value = option_str->value;
+                    inherits_value = option_str->value;
                     inherit_preset = collection->find_preset(inherits_value, false, true);
                 }
                 if (inherit_preset) {
@@ -685,6 +686,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 Preset &preset     = collection->load_preset(collection->path_from_name(name), name, std::move(new_config), false);
                 preset.is_external = true;
                 preset.version     = *version;
+                inherit_preset     = collection->find_preset(inherits_value, false, true); // pointer maybe wrong after insert, redo find
                 if (inherit_preset)
                     preset.base_id     = inherit_preset->setting_id;
                 Preset::normalize(preset.config);

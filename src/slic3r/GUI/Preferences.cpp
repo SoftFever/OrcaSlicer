@@ -920,7 +920,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
-    auto item_system_sync        = create_item_checkbox(_L("Auto sync system presets(Printer/Filament/Process)"), page, _L("System Sync"), 50, "sync_system_preset");
+    auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
     auto item_save_presets = create_item_button(_L("Clear my choice on the unsaved presets."), _L("Clear"), page, _L("Clear my choice on the unsaved presets."), []() {
         wxGetApp().app_config->set("save_preset_choise", "");
     });
