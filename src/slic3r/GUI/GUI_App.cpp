@@ -5663,7 +5663,7 @@ void GUI_App::open_mall_page_dialog()
     //model url
     
     wxString language_code = this->current_language_code().BeforeFirst('_');
-    model_url += (language_code.ToStdString() + "/models");
+    model_url = language_code.ToStdString();
 
     if (getAgent() && mainframe) {
 
