@@ -1236,14 +1236,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Default filament color");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionStrings{""});
+    def->set_default_value(new ConfigOptionStrings{"#F2754E"});
 
     def = this->add("filament_colour", coStrings);
     def->label = L("Color");
     def->tooltip = L("Only used as a visual help on UI");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionStrings{ "#009688" });
+    def->set_default_value(new ConfigOptionStrings{ "#F2754E" });
 
     //bbs
     def          = this->add("required_nozzle_HRC", coInts);

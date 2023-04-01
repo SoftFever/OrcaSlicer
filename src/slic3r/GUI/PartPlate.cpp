@@ -1562,7 +1562,7 @@ void PartPlate::generate_plate_name_texture()
 	auto text = m_name.empty()? _L("Untitled") : m_name;
 	wxCoord w, h;
 	auto* font = &Label::Head_48;
-	wxColour foreground(0x0, 0x96, 0x88, 0xff);
+	wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
     if (!m_name_texture.generate_from_text_string(text.ToStdString(), *font, *wxBLACK, foreground))
 		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
     auto bed_ext = get_extents(m_shape);
@@ -2779,7 +2779,7 @@ void PartPlateList::generate_icon_textures()
 			else
 				file_name = std::to_string(i+1);
 
-			wxColour foreground(0x0, 0x96, 0x88, 0xff);
+			wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
 			if (!m_idx_textures[i].generate_from_text_string(file_name, *font, *wxBLACK, foreground)) {
 				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 			}
