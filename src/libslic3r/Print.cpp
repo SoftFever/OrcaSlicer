@@ -159,7 +159,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "accel_to_decel_factor",
         "wipe_on_loops",
         "gcode_comments",
-        "gcode_label_objects"
+        "gcode_label_objects", 
+        "exclude_object"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -3327,6 +3328,16 @@ int Print::load_cached_data(const std::string& directory)
     object_filenames.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret;
     return ret;
+}
+
+BoundingBoxf3 PrintInstance::get_bounding_box() {
+    return print_object->model_object()->instance_bounding_box(*model_instance, false);
+}
+
+Polygon PrintInstance::get_convex_hull_2d() {
+    Polygon poly = print_object->model_object()->convex_hull_2d(model_instance->get_matrix());
+    poly.douglas_peucker(0.1);
+    return poly;
 }
 
 } // namespace Slic3r

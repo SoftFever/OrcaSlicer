@@ -202,6 +202,9 @@ public:
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z);
 
+    // SoftFever
+    std::string set_object_info(Print* print);
+
     // append full config to the given string
     static void append_full_config(const Print& print, std::string& str);
 
@@ -377,13 +380,13 @@ private:
 
 	struct InstanceToPrint
 	{
-		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id) :
-			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id) {}
+		InstanceToPrint(ObjectByExtruder &object_by_extruder, const PrintObject &print_object, size_t instance_id) :
+			object_by_extruder(object_by_extruder), print_object(print_object), instance_id(instance_id) {}
 
 		// Repository
 		ObjectByExtruder		&object_by_extruder;
 		// Index into std::vector<LayerToPrint>, which contains Object and Support layers for the current print_z, collected for a single object, or for possibly multiple objects with multiple instances.
-		const size_t       		 layer_id;
+        size_t get_object_id() const;
 		const PrintObject 		&print_object;
 		// Instance idx of the copy of a print object.
 		const size_t			 instance_id;

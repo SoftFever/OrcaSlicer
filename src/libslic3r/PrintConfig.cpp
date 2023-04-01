@@ -1813,7 +1813,13 @@ void PrintConfigDef::init_fff_params()
                    "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(1));
-    
+
+    def = this->add("exclude_object", coBool);
+    def->label = L("Exclude objects");
+    def->tooltip = L("Enable this option to add EXCLUDE OBJECT command in g-code");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(1));
+
     def = this->add("gcode_comments", coBool);
     def->label = L("Verbose G-code");
     def->tooltip = L("Enable this to get a commented G-code file, with each line explained by a descriptive text. "

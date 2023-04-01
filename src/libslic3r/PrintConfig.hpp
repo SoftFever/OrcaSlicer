@@ -1003,6 +1003,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // SoftFever
     ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionBool,                gcode_label_objects))
+    ((ConfigOptionBool,                exclude_object))
     ((ConfigOptionBool,                gcode_comments))
 
 )

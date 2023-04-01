@@ -191,6 +191,13 @@ struct PrintInstance
 	const ModelInstance *model_instance;
 	// Shift of this instance's center into the world coordinates.
 	Point 				 shift;
+    
+    BoundingBoxf3   get_bounding_box();
+    Polygon get_convex_hull_2d();
+    // SoftFever
+    // 
+    // instance id
+    size_t               id;
 };
 
 typedef std::vector<PrintInstance> PrintInstances;
@@ -292,6 +299,7 @@ public:
     Transform3d                  trafo_centered() const
         { Transform3d t = this->trafo(); t.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0)); return t; }
     const PrintInstances&        instances() const      { return m_instances; }
+    PrintInstances &instances() { return m_instances; }
 
     // Whoever will get a non-const pointer to PrintObject will be able to modify its layers.
     LayerPtrs&                   layers()               { return m_layers; }
@@ -417,7 +425,12 @@ public:
 
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
-private:
+
+    // SoftFever
+    size_t get_id() const { return m_id; }
+    void set_id(size_t id) { m_id = id; }
+
+  private:
     // to be called from Print only.
     friend class Print;
 
@@ -500,6 +513,12 @@ private:
     ExtrusionEntityCollection               m_skirt;
 
     PrintObject*                            m_shared_object{ nullptr };
+
+    
+    // SoftFever
+    // 
+    // object id
+    size_t               m_id;
 
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.

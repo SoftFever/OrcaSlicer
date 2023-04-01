@@ -2058,6 +2058,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gcode_add_line_number");
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
+        optgroup->append_single_option_line("exclude_object");
         Option option = optgroup->get_option("filename_format");
         // option.opt.full_width = true;
         option.opt.is_code = true;
