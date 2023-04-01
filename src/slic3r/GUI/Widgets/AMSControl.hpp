@@ -588,11 +588,11 @@ public:
     void PlayRridLoading(wxString amsid, wxString canid);
     void StopRridLoading(wxString amsid, wxString canid);
 
-    void SetFilamentStep(int item_idx, FilamentStepType f_type);
+    void SetFilamentStep(int item_idx, FilamentStepType f_type, bool is_extrusion_exist = false);
     void ShowFilamentTip(bool hasams = true);
 
     void SetHumidity(std::string amsid, int humidity);
-    void UpdateStepCtrl();
+    void UpdateStepCtrl(bool is_extrusion_exist);
     void CreateAms();
     void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool has_extrusion_cali = true, bool is_reset = false);
     void AddAms(AMSinfo info, bool refresh = true);

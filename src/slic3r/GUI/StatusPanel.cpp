@@ -2042,7 +2042,12 @@ void StatusPanel::update_ams(MachineObject *obj)
                 }
             } else if (obj->ams_status_sub == 0x05) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    if(m_is_load_with_temp){
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }else{
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }
+                    
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
@@ -2056,7 +2061,11 @@ void StatusPanel::update_ams(MachineObject *obj)
                 }
             } else if (obj->ams_status_sub == 0x07) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    if (m_is_load_with_temp) {
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }else{
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
@@ -2144,23 +2153,23 @@ void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is
         enable[ACTION_BTN_UNLOAD] = false;
     }
 
-    /*if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+    if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         enable[ACTION_BTN_LOAD] = false;
         enable[ACTION_BTN_UNLOAD] = false;
-    }*/
+    }
 
     // select current
     if (is_curr_tray_selected) {
         enable[ACTION_BTN_LOAD] = false;
     }
 
-    /*if (!obj->is_filament_at_extruder()) {
+    if (!obj->is_filament_at_extruder()) {
         enable[ACTION_BTN_UNLOAD] = false;
     }
 
-    if (obj->m_tray_now == "255") {
-        enable[ACTION_BTN_UNLOAD] = false;
-    }*/
+//    if (obj->m_tray_now == "255") {
+//        enable[ACTION_BTN_UNLOAD] = false;
+//    }
 
     m_ams_control->SetActionState(enable);
 }
@@ -2587,6 +2596,14 @@ void StatusPanel::on_ams_load_curr()
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
+        m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
+        if(!obj->is_filament_at_extruder()){
+            m_is_load_with_temp = true;
+        }else{
+            m_is_load_with_temp = false;
+        }
+        
+        
         //virtual tray
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
             /*if (con_load_dlg == nullptr) {

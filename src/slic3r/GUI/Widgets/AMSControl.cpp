@@ -10,6 +10,7 @@
 namespace Slic3r { namespace GUI {
 
 static const int LOAD_STEP_COUNT    = 5;
+static const int LOAD_WITH_TEMP_STEP_COUNT    = 3;
 static const int UNLOAD_STEP_COUNT  = 3;
 static const int VT_LOAD_STEP_COUNT = 4;
 
@@ -2197,7 +2198,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     AddPage(m_amswin, wxEmptyString, false);
     AddPage(m_simplebook_calibration, wxEmptyString, false);
 
-    UpdateStepCtrl();
+    UpdateStepCtrl(false);
 
     m_button_extrusion_cali->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_extrusion_cali), NULL, this);
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
@@ -2403,15 +2404,35 @@ void AMSControl::msw_rescale()
     Refresh();
 }
 
-void AMSControl::UpdateStepCtrl()
+void AMSControl::UpdateStepCtrl(bool is_extrusion)
 {
-    wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
-        _L("Heat the nozzle"),
-        _L("Cut filament"),
-        _L("Pull back current filament"),
-        _L("Push new filament into extruder"),
-        _L("Purge old filament"),
-    };
+    m_filament_load_step->DeleteAllItems();
+    m_filament_unload_step->DeleteAllItems();
+    m_filament_vt_load_step->DeleteAllItems();
+    
+    if(is_extrusion){
+        wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
+            _L("Heat the nozzle"),
+            _L("Cut filament"),
+            _L("Pull back current filament"),
+            _L("Push new filament into extruder"),
+            _L("Purge old filament"),
+        };
+        
+        for (int i = 0; i < LOAD_STEP_COUNT; i++) {
+            m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
+        }
+    }else{
+        wxString FILAMENT_LOAD_STEP_STRING[LOAD_WITH_TEMP_STEP_COUNT] = {
+            _L("Heat the nozzle"),
+            _L("Push new filament into extruder"),
+            _L("Purge old filament"),
+        };
+        
+        for (int i = 0; i < LOAD_WITH_TEMP_STEP_COUNT; i++) {
+            m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
+        }
+    }
 
     wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
         _L("Heat the nozzle"),
@@ -2426,9 +2447,9 @@ void AMSControl::UpdateStepCtrl()
         _L("Pull back current filament")
     };
 
-    for (int i = 0; i < LOAD_STEP_COUNT; i++) {
-        m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
-    }
+//    for (int i = 0; i < LOAD_STEP_COUNT; i++) {
+//        m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
+//    }
     for (int i = 0; i < UNLOAD_STEP_COUNT; i++) {
         m_filament_unload_step->AppendItem(FILAMENT_UNLOAD_STEP_STRING[i]);
     }
@@ -2687,7 +2708,7 @@ void AMSControl::SwitchAms(std::string ams_id)
     }
 }
 
-void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type)
+void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type, bool is_extrusion_exist)
 {
     if (item_idx == FilamentStep::STEP_IDLE) {
         m_simplebook_right->SetSelection(0);

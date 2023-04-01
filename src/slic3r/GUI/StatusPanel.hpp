@@ -290,6 +290,7 @@ protected:
     int          m_last_timelapse = -1;
     int          m_last_extrusion = -1;
     int          m_last_vcamera   = -1;
+    bool         m_is_load_with_temp = false;
 
     wxWebRequest web_request;
     bool bed_temp_input    = false;
