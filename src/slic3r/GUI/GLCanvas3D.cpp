@@ -3059,12 +3059,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
 #endif
         case WXK_ESCAPE: { deselect_all(); break; }
-        //case WXK_F5: {
-        //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
-        //        (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
-        //        post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
-        //    break;
-        //}
+        case WXK_F5: {
+            if (wxGetApp().mainframe->is_printer_view())
+                wxGetApp().mainframe->load_printer_url();
+            
+            //if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
+            //    (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
+            //    post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
+            break;
+        }
 
         // BBS: use keypad to change extruder
         case '1':

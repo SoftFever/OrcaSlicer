@@ -3240,6 +3240,27 @@ void MainFrame::load_printer_url(wxString url)
     evt->SetString(url);
     wxQueueEvent(this, evt);
 }
+
+void MainFrame::load_printer_url()
+{
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+        return;
+    
+    auto cfg = preset_bundle.printers.get_edited_preset().config;
+    wxString url =
+        cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
+    if (!url.empty()) {
+        if (!url.Lower().starts_with("http"))
+            url = wxString::Format("http://%s", url);
+
+        load_printer_url(url);
+    }
+}
+
+bool MainFrame::is_printer_view() const { return m_tabpanel->GetSelection() == TabPosition::tpMonitor; }
+
+
 void MainFrame::refresh_plugin_tips()
 {
     if (m_webview != nullptr)
