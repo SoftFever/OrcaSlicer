@@ -4631,7 +4631,7 @@ std::string GCode::set_object_info(Print* print) {
         object->set_id(object_id++);
         size_t inst_id = 0;
         for (PrintInstance &inst : object->instances()) {
-            inst.id = inst_id;
+            inst.id = inst_id++;
             if (this->config().exclude_object && print->config().gcode_flavor.value == gcfKlipper) {
                 auto bbox = inst.get_bounding_box();
                 gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << get_instance_name(object, inst)
