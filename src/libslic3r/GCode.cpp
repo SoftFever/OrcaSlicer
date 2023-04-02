@@ -2472,7 +2472,7 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
             const PrintObject *print_object = layers[layer_id].original_object;
             //const PrintObject *print_object = layers[layer_id].object();
             if (print_object)
-                out.emplace_back(object_by_extruder, *print_object, single_object_instance_idx);
+                out.emplace_back(object_by_extruder, layer_id, *print_object, single_object_instance_idx);
         }
     } else {
         // Create mapping from PrintObject* to ObjectByExtruder*.
@@ -2500,7 +2500,7 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
                 auto it = std::lower_bound(sorted.begin(), sorted.end(), key);
                 if (it != sorted.end() && it->first == &print_object)
                     // ObjectByExtruder for this PrintObject was found.
-                    out.emplace_back(*it->second, print_object, instance->id);
+                    out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance - print_object.instances().data());
             }
         }
     }
@@ -3178,7 +3178,8 @@ GCode::LayerResult GCode::process_layer(
             if (is_anything_overridden && print_wipe_extrusions == 0)
                 gcode+="; PURGING FINISHED\n";
             for (InstanceToPrint &instance_to_print : instances_to_print) {
-                const LayerToPrint &layer_to_print = layers[instance_to_print.get_object_id()];
+                const auto& inst = instance_to_print.print_object.instances()[instance_to_print.instance_id];
+                const LayerToPrint &layer_to_print = layers[instance_to_print.layer_id];
                 // To control print speed of the 1st object layer printed over raft interface.
                 bool object_layer_over_raft = layer_to_print.object_layer && layer_to_print.object_layer->id() > 0 &&
                     instance_to_print.print_object.slicing_parameters().raft_layers() == layer_to_print.object_layer->id();
@@ -3189,12 +3190,12 @@ GCode::LayerResult GCode::process_layer(
                     m_avoid_crossing_perimeters.init_layer(*m_layer);
                 bool reset_e = false;
                 if (this->config().gcode_label_objects) {
-                    gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
+                    gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " + std::to_string(inst.id) + "\n";
                     reset_e = true;
                 }
                 if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper) {
                     gcode += std::string("EXCLUDE_OBJECT_START NAME=") +
-                             get_instance_name(&instance_to_print.print_object, instance_to_print.instance_id) + "\n";
+                             get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
                     reset_e = true;
                 }
                 // ref to: https://github.com/SoftFever/OrcaSlicer/pull/205/commits/7f1fe0bd544077626080aa1a9a0576aa735da1a4#r1083470162
@@ -3203,14 +3204,14 @@ GCode::LayerResult GCode::process_layer(
                 m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
 
                 // When starting a new object, use the external motion planner for the first travel move.
-                const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                const Point &offset = inst.shift;
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
                 if (m_last_obj_copy != this_object_copy)
                     m_avoid_crossing_perimeters.use_external_mp_once();
                 m_last_obj_copy = this_object_copy;
                 this->set_origin(unscale(offset));
                 if (instance_to_print.object_by_extruder.support != nullptr) {
-                    m_layer = layers[instance_to_print.get_object_id()].support_layer;
+                    m_layer = layers[instance_to_print.layer_id].support_layer;
                     m_object_layer_over_raft = false;
 
                     //BBS: print supports' brims first
@@ -3288,12 +3289,12 @@ GCode::LayerResult GCode::process_layer(
                     gcode += this->extrude_infill(print,by_region_specific, true);
                 }
                 if (this->config().gcode_label_objects) {
-                    gcode += std::string("; stop printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
+                    gcode += std::string("; stop printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " + std::to_string(inst.id) + "\n";
                     reset_e = true;
                 }
                 if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper) {
                     gcode += std::string("EXCLUDE_OBJECT_END NAME=") +
-                             get_instance_name(&instance_to_print.print_object, instance_to_print.instance_id) + "\n";
+                             get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
                     reset_e = true;
                 }
                 if (reset_e && !m_config.use_relative_e_distances)
@@ -4769,6 +4770,5 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 // Index into std::vector<LayerToPrint>, which contains Object and Support layers for the current print_z, collected for
 // a single object, or for possibly multiple objects with multiple instances.
 
-inline size_t GCode::InstanceToPrint::get_object_id() const { return print_object.get_id(); }
 
 } // namespace Slic3r
