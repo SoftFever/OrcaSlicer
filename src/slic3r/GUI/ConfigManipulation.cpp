@@ -698,7 +698,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     if(gcflavor == gcfKlipper)
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
 
-    toggle_field("exclude_object", gcflavor == gcfKlipper);
+    toggle_line("exclude_object", gcflavor == gcfKlipper);
 
 }
 

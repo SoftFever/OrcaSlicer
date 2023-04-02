@@ -34,5 +34,6 @@
     "upward_compatible_machine":[
         "Bambu Lab X1 0.4 nozzle",
         "Bambu Lab X1 Carbon 0.4 nozzle"
-    ]
+    ],
+    "bbl_calib_mark_logo": "0"
   }

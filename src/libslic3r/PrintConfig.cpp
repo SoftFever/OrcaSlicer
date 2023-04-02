@@ -2224,7 +2224,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Volume of nozzle between the cutter and the end of nozzle");
     def->sidetext = L("mm³");
     def->mode = comAdvanced;
-    def->readonly = true;
+    def->readonly = false;
     def->set_default_value(new ConfigOptionFloat { 0.0 });
 
     def = this->add("start_end_points", coPoints);
@@ -2502,6 +2502,12 @@ void PrintConfigDef::init_fff_params()
                    "handle the retraction. This is only supported in recent Marlin.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("bbl_calib_mark_logo", coBool);
+    def->label = L("Show auto-calibration marks");
+    def->tooltip = "";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
