@@ -206,6 +206,24 @@ static constexpr const char* ASSEMBLE_ITEM_TAG = "assemble_item";
 static constexpr const char* SLICE_HEADER_TAG = "header";
 static constexpr const char* SLICE_HEADER_ITEM_TAG = "header_item";
 
+// text_info
+static constexpr const char* TEXT_INFO_TAG        = "text_info";
+static constexpr const char* TEXT_ATTR            = "text";
+static constexpr const char* FONT_NAME_ATTR       = "font_name";
+static constexpr const char* FONT_INDEX_ATTR      = "font_index";
+static constexpr const char* FONT_SIZE_ATTR       = "font_size";
+static constexpr const char* THICKNESS_ATTR       = "thickness";
+static constexpr const char* EMBEDED_DEPTH_ATTR   = "embeded_depth";
+static constexpr const char* ROTATE_ANGLE_ATTR    = "rotate_angle";
+static constexpr const char* TEXT_GAP_ATTR        = "text_gap";
+static constexpr const char* BOLD_ATTR            = "bold";
+static constexpr const char* ITALIC_ATTR          = "italic";
+static constexpr const char* SURFACE_TEXT_ATTR    = "surface_text";
+static constexpr const char* KEEP_HORIZONTAL_ATTR = "keep_horizontal";
+static constexpr const char* HIT_MESH_ATTR        = "hit_mesh";
+static constexpr const char* HIT_POSITION_ATTR    = "hit_position";
+static constexpr const char* HIT_NORMAL_ATTR      = "hit_normal";
+
 // BBS: encrypt
 static constexpr const char* RELATIONSHIP_TAG = "Relationship";
 static constexpr const char* PID_ATTR = "pid";
@@ -369,6 +387,33 @@ bool bbs_get_attribute_value_bool(const char** attributes, unsigned int attribut
 {
     const char* text = bbs_get_attribute_value_charptr(attributes, attributes_size, attribute_key);
     return (text != nullptr) ? (bool)::atoi(text) : true;
+}
+
+void add_vec3(std::stringstream &stream, const Slic3r::Vec3f &tr)
+{
+    for (unsigned r = 0; r < 3; ++r) {
+        stream << tr(r);
+        if (r != 2)
+            stream << " ";
+    }
+}
+
+Slic3r::Vec3f get_vec3_from_string(const std::string &pos_str)
+{
+    Slic3r::Vec3f pos(0, 0, 0);
+    if (pos_str.empty())
+        return pos;
+
+    std::vector<std::string> values;
+    boost::split(values, pos_str, boost::is_any_of(" "), boost::token_compress_on);
+
+    if (values.size() != 3)
+        return pos;
+
+    for (int i = 0; i < 3; ++i)
+        pos(i) = ::atof(values[i].c_str());
+
+    return pos;
 }
 
 Slic3r::Transform3d bbs_get_transform_from_3mf_specs_string(const std::string& mat_str)
@@ -656,6 +701,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 MetadataList metadata;
                 RepairedMeshErrors mesh_stats;
                 ModelVolumeType part_type;
+                TextInfo text_info;
 
                 VolumeMetadata(unsigned int first_triangle_id, unsigned int last_triangle_id, ModelVolumeType type = ModelVolumeType::MODEL_PART)
                     : first_triangle_id(first_triangle_id)
@@ -1059,6 +1105,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_assemble_item(const char** attributes, unsigned int num_attributes);
         bool _handle_end_assemble_item();
+
+        bool _handle_start_text_info_item(const char **attributes, unsigned int num_attributes);
+        bool _handle_end_text_info_item();
 
         // BBS: callbacks to parse the .rels file
         static void XMLCALL _handle_start_relationships_element(void* userData, const char* name, const char** attributes);
@@ -2820,6 +2869,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
             res = _handle_start_assemble_item(attributes, num_attributes);
+        else if (::strcmp(TEXT_INFO_TAG, name) == 0)
+            res = _handle_start_text_info_item(attributes, num_attributes);
 
         if (!res)
             _stop_xml_parser();
@@ -3851,6 +3902,56 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
+    bool _BBS_3MF_Importer::_handle_start_text_info_item(const char **attributes, unsigned int num_attributes)
+    {
+        IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
+        if (object == m_objects_metadata.end()) {
+            add_error("can not find object for text_info, id " + std::to_string(m_curr_config.object_id));
+            return false;
+        }
+        if ((m_curr_config.volume_id == -1) || ((object->second.volumes.size() - 1) < m_curr_config.volume_id)) {
+            add_error("can not find part for text_info");
+            return false;
+        }
+
+        ObjectMetadata::VolumeMetadata &volume = object->second.volumes[m_curr_config.volume_id];
+
+        TextInfo text_info;
+        text_info.m_text         = bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR);
+        text_info.m_font_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR);
+
+        text_info.m_curr_font_idx = bbs_get_attribute_value_int(attributes, num_attributes, FONT_INDEX_ATTR);
+
+        text_info.m_font_size = bbs_get_attribute_value_float(attributes, num_attributes, FONT_SIZE_ATTR);
+        text_info.m_thickness = bbs_get_attribute_value_float(attributes, num_attributes, THICKNESS_ATTR);
+        text_info.m_embeded_depth = bbs_get_attribute_value_float(attributes, num_attributes, EMBEDED_DEPTH_ATTR);
+        text_info.m_rotate_angle  = bbs_get_attribute_value_float(attributes, num_attributes, ROTATE_ANGLE_ATTR);
+        text_info.m_text_gap      = bbs_get_attribute_value_float(attributes, num_attributes, TEXT_GAP_ATTR);
+
+        text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
+        text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
+        text_info.m_is_surface_text = bbs_get_attribute_value_int(attributes, num_attributes, SURFACE_TEXT_ATTR);
+        text_info.m_keep_horizontal = bbs_get_attribute_value_int(attributes, num_attributes, KEEP_HORIZONTAL_ATTR);
+
+        text_info.m_rr.mesh_id = bbs_get_attribute_value_int(attributes, num_attributes, HIT_MESH_ATTR);
+
+        std::string hit_pos = bbs_get_attribute_value_string(attributes, num_attributes, HIT_POSITION_ATTR);
+        if (!hit_pos.empty())
+            text_info.m_rr.hit = get_vec3_from_string(hit_pos);
+
+        std::string hit_normal = bbs_get_attribute_value_string(attributes, num_attributes, HIT_NORMAL_ATTR);
+        if (!hit_normal.empty())
+            text_info.m_rr.normal = get_vec3_from_string(hit_normal);
+
+        volume.text_info = text_info;
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_text_info_item()
+    {
+        return true;
+    }
+
     void XMLCALL _BBS_3MF_Importer::_handle_start_relationships_element(void* userData, const char* name, const char** attributes)
     {
         _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
@@ -4102,6 +4203,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
 
             volume->set_type(volume_data->part_type);
+
+            if (!volume_data->text_info.m_text.empty())
+                volume->set_text_info(volume_data->text_info);
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data->metadata) {
@@ -6522,6 +6626,38 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
+    void _add_text_info_to_archive(std::stringstream& stream, const TextInfo& text_info) {
+        stream << "      <" << TEXT_INFO_TAG << " ";
+
+        stream << TEXT_ATTR << "=\"" << text_info.m_text << "\" ";
+        stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
+
+        stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
+
+        stream << FONT_SIZE_ATTR << "=\"" << text_info.m_font_size << "\" ";
+        stream << THICKNESS_ATTR << "=\"" << text_info.m_thickness << "\" ";
+        stream << EMBEDED_DEPTH_ATTR << "=\"" << text_info.m_embeded_depth << "\" ";
+        stream << ROTATE_ANGLE_ATTR << "=\"" << text_info.m_rotate_angle << "\" ";
+        stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
+
+        stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
+        stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
+        stream << SURFACE_TEXT_ATTR << "=\"" << (text_info.m_is_surface_text ? 1 : 0) << "\" ";
+        stream << KEEP_HORIZONTAL_ATTR << "=\"" << (text_info.m_keep_horizontal ? 1 : 0) << "\" ";
+
+        stream << HIT_MESH_ATTR << "=\"" << text_info.m_rr.mesh_id << "\" ";
+
+        stream << HIT_POSITION_ATTR << "=\"";
+        add_vec3(stream, text_info.m_rr.hit);
+        stream << "\" ";
+
+        stream << HIT_NORMAL_ATTR << "=\"";
+        add_vec3(stream, text_info.m_rr.normal);
+        stream << "\" ";
+
+        stream << "/>\n";
+    }
+
     bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx, bool save_gcode, bool use_loaded_id)
     {
         std::stringstream stream;
@@ -6617,6 +6753,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             for (const std::string& key : volume->config.keys()) {
                                 stream << "      <" << METADATA_TAG << " "<< KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
+
+                            const TextInfo &text_info = volume->get_text_info();
+                            if (!text_info.m_text.empty())
+                                _add_text_info_to_archive(stream, text_info);
 
                             //add the shared mesh logic
                             const TriangleMesh* current_mesh = volume->mesh_ptr();
