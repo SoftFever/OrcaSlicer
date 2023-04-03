@@ -2261,7 +2261,11 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_SUPPORT_LAYERS                  "support_layers"
 #define JSON_TREE_SUPPORT_LAYERS                  "tree_support_layers"
 #define JSON_LAYER_REGIONS                  "layer_regions"
+#define JSON_FIRSTLAYER_GROUPS                  "first_layer_groups"
 
+#define JSON_FIRSTLAYER_GROUP_ID                  "group_id"
+#define JSON_FIRSTLAYER_GROUP_VOLUME_IDS          "volume_ids"
+#define JSON_FIRSTLAYER_GROUP_SLICES               "slices"
 
 #define JSON_LAYER_PRINT_Z            "print_z"
 #define JSON_LAYER_SLICE_Z            "slice_z"
@@ -2585,6 +2589,24 @@ static void to_json(json& j, const LayerRegion& layer_region) {
     j.push_back({JSON_LAYER_REGION_FILLS, std::move(fills_json)});
 
     return;
+}
+
+static void to_json(json& j, const groupedVolumeSlices& first_layer_group) {
+    json volumes_json = json::array(), slices_json = json::array();
+    j[JSON_FIRSTLAYER_GROUP_ID] = first_layer_group.groupId;
+
+    for (const ObjectID& obj_id : first_layer_group.volume_ids)
+    {
+        volumes_json.push_back(obj_id.id);
+    }
+    j[JSON_FIRSTLAYER_GROUP_VOLUME_IDS] = std::move(volumes_json);
+
+    for (const ExPolygon& slice_expolygon : first_layer_group.slices) {
+        json slice_expolygon_json = slice_expolygon;
+
+        slices_json.push_back(std::move(slice_expolygon_json));
+    }
+    j[JSON_FIRSTLAYER_GROUP_SLICES] = std::move(slices_json);
 }
 
 //load apis from json
@@ -2933,6 +2955,29 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
     return;
 }
 
+static void from_json(const json& j, groupedVolumeSlices& firstlayer_group)
+{
+    firstlayer_group.groupId               =   j[JSON_FIRSTLAYER_GROUP_ID];
+
+    int volume_count = j[JSON_FIRSTLAYER_GROUP_VOLUME_IDS].size();
+    for (int volume_index = 0; volume_index < volume_count; volume_index++)
+    {
+        ObjectID obj_id;
+
+        obj_id.id = j[JSON_FIRSTLAYER_GROUP_VOLUME_IDS][volume_index];
+        firstlayer_group.volume_ids.push_back(std::move(obj_id));
+    }
+
+    int slices_count = j[JSON_FIRSTLAYER_GROUP_SLICES].size();
+    for (int slice_index = 0; slice_index < slices_count; slice_index++)
+    {
+        ExPolygon polygon;
+
+        polygon = j[JSON_FIRSTLAYER_GROUP_SLICES][slice_index];
+        firstlayer_group.slices.push_back(std::move(polygon));
+    }
+}
+
 int Print::export_cached_data(const std::string& directory, bool with_space)
 {
     int ret = 0;
@@ -2999,7 +3044,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name;
 
         try {
-            json root_json, layers_json = json::array(), support_layers_json = json::array();
+            json root_json, layers_json = json::array(), support_layers_json = json::array(), first_layer_groups = json::array();
 
             root_json[JSON_OBJECT_NAME] = model_obj->name;
             root_json[JSON_IDENTIFY_ID] = identify_id;
@@ -3108,6 +3153,35 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
             } // for each layer*/
             root_json[JSON_SUPPORT_LAYERS] = std::move(support_layers_json);
 
+            const std::vector<groupedVolumeSlices> &first_layer_obj_groups =  obj->firstLayerObjGroups();
+            for (size_t s_group_index = 0; s_group_index < first_layer_obj_groups.size(); ++ s_group_index) {
+                groupedVolumeSlices group = first_layer_obj_groups[s_group_index];
+
+                //convert the id
+                for (ObjectID& obj_id : group.volume_ids)
+                {
+                    const ModelVolume* currentModelVolumePtr = nullptr;
+                    //BBS: support shared object logic
+                    const PrintObject* shared_object = obj->get_shared_object();
+                    if (!shared_object)
+                        shared_object = obj;
+                    const ModelVolumePtrs& volumes_ptr = shared_object->model_object()->volumes;
+                    size_t volume_count = volumes_ptr.size();
+                    for (size_t index = 0; index < volume_count; index ++) {
+                        currentModelVolumePtr = volumes_ptr[index];
+                        if (currentModelVolumePtr->id() == obj_id) {
+                            obj_id.id = index;
+                            break;
+                        }
+                    }
+                }
+
+                json first_layer_group_json;
+
+                first_layer_group_json = group;
+                first_layer_groups.push_back(std::move(first_layer_group_json));
+            }
+            root_json[JSON_FIRSTLAYER_GROUPS] = std::move(first_layer_groups);
 
             filename_vector.push_back(file_name);
             json_vector.push_back(std::move(root_json));
@@ -3239,12 +3313,14 @@ int Print::load_cached_data(const std::string& directory)
 
             std::string name = root_json.at(JSON_OBJECT_NAME);
             int identify_id = root_json.at(JSON_IDENTIFY_ID);
-            int layer_count = 0, support_layer_count = 0;
+            int layer_count = 0, support_layer_count = 0, firstlayer_group_count = 0;
 
             layer_count = root_json[JSON_LAYERS].size();
             support_layer_count = root_json[JSON_SUPPORT_LAYERS].size();
+            firstlayer_group_count = root_json[JSON_FIRSTLAYER_GROUPS].size();
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, identify_id %2%, layer_count %3%, support_layer_count %4%")%name %identify_id %layer_count %support_layer_count;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, identify_id %2%, layer_count %3%, support_layer_count %4%, firstlayer_group_count %5%")
+                %name %identify_id %layer_count %support_layer_count %firstlayer_group_count;
 
             Layer* previous_layer = NULL;
             //create layer and layer regions
@@ -3324,6 +3400,31 @@ int Print::load_cached_data(const std::string& directory)
                     }
                 }
             );
+
+            //load first group volumes
+            std::vector<groupedVolumeSlices>& firstlayer_objgroups = obj->firstLayerObjGroupsMod();
+            for (int index = 0; index < firstlayer_group_count; index++)
+            {
+                json& firstlayer_group_json = root_json[JSON_FIRSTLAYER_GROUPS][index];
+                groupedVolumeSlices firstlayer_group = firstlayer_group_json;
+                //convert the id
+                for (ObjectID& obj_id : firstlayer_group.volume_ids)
+                {
+                    ModelVolume* currentModelVolumePtr = nullptr;
+                    ModelVolumePtrs& volumes_ptr = obj->model_object()->volumes;
+                    size_t volume_count = volumes_ptr.size();
+                    if (obj_id.id < volume_count) {
+                        currentModelVolumePtr = volumes_ptr[obj_id.id];
+                        obj_id = currentModelVolumePtr->id();
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": can not find volume_id %1% from object file %2% in firstlayer groups, volume_count %3%!")
+                            %obj_id.id %object_filenames[obj_index].first %volume_count;
+                        return CLI_IMPORT_CACHE_LOAD_FAILED;
+                    }
+                }
+                firstlayer_objgroups.push_back(std::move(firstlayer_group));
+            }
 
             count ++;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": load object %1% from %2% successfully.")%count%object_filenames[obj_index].first;

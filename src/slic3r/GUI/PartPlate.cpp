@@ -137,14 +137,12 @@ BedType PartPlate::get_bed_type(bool load_from_project) const
 {
 	std::string bed_type_key = "curr_bed_type";
 
-	// should be called in GUI context
-	assert(m_plater != nullptr);
 	if (m_config.has(bed_type_key)) {
 		BedType bed_type = m_config.opt_enum<BedType>(bed_type_key);
 		return bed_type;
 	}
 
-	if (!load_from_project || !wxGetApp().preset_bundle)
+	if (!load_from_project || !m_plater || !wxGetApp().preset_bundle)
 		return btDefault;
 
 	DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
@@ -225,9 +223,6 @@ void PartPlate::set_print_seq(PrintSequence print_seq)
 PrintSequence PartPlate::get_print_seq() const
 {
     std::string print_seq_key = "print_sequence";
-
-    // should be called in GUI context
-    assert(m_plater != nullptr);
 
     if (m_config.has(print_seq_key)) {
         PrintSequence print_seq = m_config.opt_enum<PrintSequence>(print_seq_key);
