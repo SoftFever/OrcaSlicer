@@ -2451,6 +2451,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                     plate->update_slice_result_valid_state(false);
                 }
             }
+            set_plater_dirty(true);
 
             preview->on_tick_changed(tick_event_type);
 
