@@ -721,7 +721,7 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
     // BBS: first layer slices are sorted by volume group, if the first layer is empty and replaced by the 2nd layer
 // the later will be stored in "object->firstLayerObjGroupsMod()"
     int firstLayerReplacedBy = 0;
-    if (!buggy_layers.empty() && buggy_layers.front() == 0)
+    if (!buggy_layers.empty() && buggy_layers.front() == 0 && layers.size() > 1)
         firstLayerReplacedBy = 1;
 
     const auto           scaled_resolution = scaled<double>(object->print()->config().resolution.value);
