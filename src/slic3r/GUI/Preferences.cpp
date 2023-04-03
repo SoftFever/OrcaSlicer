@@ -133,6 +133,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_JAPANESE)) {
             language_name = wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_ITALIAN)) {
+            language_name = wxString::FromUTF8("\x69\x74\x61\x6c\x69\x61\x6e\x6f");
+        }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
@@ -886,7 +889,8 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_SWEDISH,
         wxLANGUAGE_DUTCH,
         wxLANGUAGE_HUNGARIAN,
-        wxLANGUAGE_JAPANESE
+        wxLANGUAGE_JAPANESE,
+        wxLANGUAGE_ITALIAN
     };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
