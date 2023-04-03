@@ -5464,12 +5464,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     double width = volumes_box.max.x() - volumes_box.min.x();
     double depth = volumes_box.max.y() - volumes_box.min.y();
     double height = volumes_box.max.z() - volumes_box.min.z();
-    volumes_box.max.x() = volumes_box.max.x() + width * 0.25f;
-    volumes_box.min.x() = volumes_box.min.x() - width * 0.25f;
-    volumes_box.max.y() = volumes_box.max.y() + depth * 0.25f;
-    volumes_box.min.y() = volumes_box.min.y() - depth * 0.25f;
-    volumes_box.max.z() = volumes_box.max.z() + height * 0.25f;
-    volumes_box.min.z() = volumes_box.min.z() - height * 0.25f;
+    volumes_box.max.x() = volumes_box.max.x() + width * 0.1f;
+    volumes_box.min.x() = volumes_box.min.x() - width * 0.1f;
+    volumes_box.max.y() = volumes_box.max.y() + depth * 0.1f;
+    volumes_box.min.y() = volumes_box.min.y() - depth * 0.1f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.1f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.1f;
 
     Camera camera;
     camera.set_type(camera_type);
@@ -5525,7 +5525,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
         //glsafe(::glClearColor(0.50f, 0.5f, 0.5f, 1.0f));
         //glsafe(::glClearColor(0.121568f, 0.121568f, 0.121568f, 1.0f));
-        glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
+        //glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
+        glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
         //glsafe(::glClearColor(0.37647f, 0.37647f, 0.37647f, 0.5f)); too lite
         //glsafe(::glClearColor(0.23529f, 0.26666f, 0.2745f, 1.0f));
     }
