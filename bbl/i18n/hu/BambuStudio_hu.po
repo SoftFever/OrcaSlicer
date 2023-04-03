@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"POT-Creation-Date: 2023-04-03 12:20+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -520,6 +520,9 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "Megjegyzés"
 
@@ -819,6 +822,9 @@ msgstr "Hide"
 msgid "Show"
 msgstr "Show"
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "Kiválasztott objektum törlése"
 
@@ -836,6 +842,9 @@ msgstr "Henger"
 
 msgid "Cone"
 msgstr "Kúp"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "Beállítások hozzáadása"
@@ -1195,6 +1204,12 @@ msgid "Part manipulation"
 msgstr ""
 
 msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
 msgstr ""
 
 msgid "Object"
@@ -1853,6 +1868,9 @@ msgstr "Factor N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Please input a valid value (K in 0~0.5)"
 
@@ -2376,23 +2394,6 @@ msgstr ""
 "Igen  - Módosítsa ezeket a beállításokat, és automatikusan engedélyezze a "
 "spirál mód használatát\n"
 "Nem - Ne használja a spirál módot ez alkalommal"
-
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
-msgstr ""
-"The Arachne engine only works when overhang slowdown is disabled.\n"
-"This may cause decline in the quality of overhang surface when printing "
-"quickly."
-
-msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"Disable overhang slowdown automatically? \n"
-"Yes - Enable Arachne and disable overhang slowing down\n"
-"No  - Don't use Arachne for this print"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3176,6 +3177,9 @@ msgstr "Jelenlegi projekt mentése egy fájlba"
 
 msgid "Save Project as"
 msgstr "Projekt mentése másként"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "Jelenlegi projekt mentése másként"
@@ -5177,13 +5181,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 
 msgid "Line width"
 msgstr "Nyomtatott vonal szélessége"
@@ -5712,6 +5716,9 @@ msgstr "Objektumok listája"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "Másolás a vágólapra"
 
@@ -5739,6 +5746,12 @@ msgstr "Mouse wheel"
 msgid "Zoom View"
 msgstr "Zoom View"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5747,6 +5760,9 @@ msgstr ""
 "Automatikusan beállítja a kijelölt objektumok vagy az összes objektum "
 "tájolását. Ha vannak kijelölt objektumok, akkor csak a kijelölteket, "
 "ellenkező esetben az aktuális tálcán lévő összes objektumot orientálja."
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Az oldalsáv összecsukása/kinyitása"
@@ -5813,6 +5829,9 @@ msgstr "Shift+Bármelyik nyílgomb"
 
 msgid "Movement step set to 1 mm"
 msgstr "Mozgatás lépéstávolsága 1mm-re állítva"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "filament hozzárendelése az objektumhoz/tárgyhoz"
@@ -9083,6 +9102,24 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "The Arachne engine only works when overhang slowdown is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when printing "
+#~ "quickly."
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "Disable overhang slowdown automatically? \n"
+#~ "Yes - Enable Arachne and disable overhang slowing down\n"
+#~ "No  - Don't use Arachne for this print"
 
 #~ msgid "Start"
 #~ msgstr "Start"

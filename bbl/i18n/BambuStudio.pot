@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"POT-Creation-Date: 2023-04-03 12:20+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -521,6 +521,9 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr ""
 
@@ -802,6 +805,9 @@ msgstr ""
 msgid "Show"
 msgstr ""
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr ""
 
@@ -818,6 +824,9 @@ msgid "Cylinder"
 msgstr ""
 
 msgid "Cone"
+msgstr ""
+
+msgid "Height range Modifier"
 msgstr ""
 
 msgid "Add settings"
@@ -1167,6 +1176,12 @@ msgid "Part manipulation"
 msgstr ""
 
 msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
 msgstr ""
 
 msgid "Object"
@@ -1779,6 +1794,9 @@ msgstr ""
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr ""
 
@@ -2217,17 +2235,6 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
 "No  - Give up using spiral mode this time"
-msgstr ""
-
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
-msgstr ""
-
-msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
-"No  - Give up using arachne this time"
 msgstr ""
 
 msgid ""
@@ -2982,6 +2989,9 @@ msgid "Save current project to file"
 msgstr ""
 
 msgid "Save Project as"
+msgstr ""
+
+msgid "Shift+"
 msgstr ""
 
 msgid "Save current project as"
@@ -4866,8 +4876,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -5349,6 +5359,9 @@ msgstr ""
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr ""
 
@@ -5376,10 +5389,19 @@ msgstr ""
 msgid "Zoom View"
 msgstr ""
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
+msgstr ""
+
+msgid "Shift+Tab"
 msgstr ""
 
 msgid "Collapse/Expand the sidebar"
@@ -5446,6 +5468,9 @@ msgid "Shift+Any arrow"
 msgstr ""
 
 msgid "Movement step set to 1 mm"
+msgstr ""
+
+msgid "Esc"
 msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"

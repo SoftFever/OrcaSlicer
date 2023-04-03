@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"POT-Creation-Date: 2023-04-03 12:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -519,6 +519,9 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "通知"
 
@@ -808,6 +811,9 @@ msgstr "非表示"
 msgid "Show"
 msgstr "表示"
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "選択したオブジェクトを削除"
 
@@ -825,6 +831,9 @@ msgstr "シリンダー"
 
 msgid "Cone"
 msgstr "コーン"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "設定を追加"
@@ -1171,6 +1180,12 @@ msgid "Part manipulation"
 msgstr ""
 
 msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
 msgstr ""
 
 msgid "Object"
@@ -1812,6 +1827,9 @@ msgstr "係数N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "有効な値を入力してください (0 ~ 0.5)"
 
@@ -2292,22 +2310,6 @@ msgstr ""
 "これらの設定を変更しますか？\n"
 "はい - 変更して、スパイラルモードを有効にします\n"
 "いいえ - 変更せず、スパイラルモードを有効しません"
-
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
-msgstr ""
-"Arachneを使用するには、オーハーハング減速を無効にする必要があります。従って"
-"オーバーハングの造形品質が劣る可能性があります。"
-
-msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"オーバーハング減速を無効にしますか？\n"
-"はい - Arachneを有効し、オーバーハング減速を無効にする\n"
-"いいえ - Arachneを無効にします"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3085,6 +3087,9 @@ msgstr "現在のプロジェクトを保存"
 
 msgid "Save Project as"
 msgstr "プロジェクトを名前を付けて保存"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "プロジェクトを名前を付けて保存"
@@ -5024,8 +5029,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "ヘッド無しのタイムラプスビデオを録画する時に、「タイムラプスプライムタワー」"
 "を追加してください。プレートで右クリックして、「プリミティブを追加」→「タイム"
@@ -5532,6 +5537,9 @@ msgstr "オブジェクト一覧"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "コピー"
 
@@ -5559,11 +5567,20 @@ msgstr "マウスホイール"
 msgid "Zoom View"
 msgstr "ズーム"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr "選択した或いは全てのオブジェクトの向きを自動調整します。"
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "サイドバーを展開/隠す"
@@ -5630,6 +5647,9 @@ msgstr "Shift + ↑↓←→"
 
 msgid "Movement step set to 1 mm"
 msgstr "移動ステップを1mmに設定"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "キー1-9: オブジェクト/パーツのフィラメントを設定"
@@ -8674,6 +8694,23 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "Arachneを使用するには、オーハーハング減速を無効にする必要があります。従っ"
+#~ "てオーバーハングの造形品質が劣る可能性があります。"
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "オーバーハング減速を無効にしますか？\n"
+#~ "はい - Arachneを有効し、オーバーハング減速を無効にする\n"
+#~ "いいえ - Arachneを無効にします"
 
 #~ msgid "Start"
 #~ msgstr "開始"

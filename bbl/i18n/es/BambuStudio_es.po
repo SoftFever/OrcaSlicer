@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"POT-Creation-Date: 2023-04-03 12:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -524,6 +524,9 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "Date cuenta"
 
@@ -827,6 +830,9 @@ msgstr "Ocultar"
 msgid "Show"
 msgstr "Mostrar"
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "Eliminar el objeto seleccionado"
 
@@ -844,6 +850,9 @@ msgstr "Cilindro"
 
 msgid "Cone"
 msgstr "Cono"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "Añadir ajustes"
@@ -1204,6 +1213,12 @@ msgid "Part manipulation"
 msgstr ""
 
 msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
 msgstr ""
 
 msgid "Object"
@@ -1866,6 +1881,9 @@ msgstr "Factor N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Introduzca un valor válido (K en 0~0.5)"
 
@@ -2404,24 +2422,6 @@ msgstr ""
 "¿Cambiar estos ajustes automáticamente? \n"
 "Sí - Cambiar estos ajustes y activar el modo espiral automáticamente\n"
 "No - Dejar de usar el modo espiral esta vez"
-
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
-msgstr ""
-"El motor Arachne solo funciona cuando la ralentización por voladizo está "
-"desactivada.\n"
-"Esto puede provocar una disminución en la calidad de los voladizos al "
-"imprimir rápidamente."
-
-msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"¿Desactivar automáticamente la ralentización del voladizo?\n"
-"Sí - Activar Arachne y desactivar la ralentización del voladizo\n"
-"No - No utilizar Arachne para esta impresión"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3211,6 +3211,9 @@ msgstr "Guardar el proyecto actual en un archivo"
 
 msgid "Save Project as"
 msgstr "Guardar proyecto como"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "Guardar el proyecto actual como"
@@ -5244,8 +5247,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Al grabar timelapse sin el cabezal de la herramienta, se recomienda añadir "
 "una «Torre de purga para el timelapse» \n"
@@ -5783,6 +5786,9 @@ msgstr "Lista de objetos"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "Copiar al portapapeles"
 
@@ -5812,6 +5818,12 @@ msgstr "Rueda de ratón"
 msgid "Zoom View"
 msgstr "Zoom de vista"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5820,6 +5832,9 @@ msgstr ""
 "Orienta automáticamente los objetos seleccionados o todos los objetos.Si hay "
 "objetos seleccionados, sólo orienta los seleccionados.En caso contrario, "
 "orientará todos los objetos del disco actual."
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Ocultar/Expandir barra lateral"
@@ -5886,6 +5901,9 @@ msgstr "Mayúsculas+Cualquier flecha"
 
 msgid "Movement step set to 1 mm"
 msgstr "Paso de movimiento configurado a 1 mm"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "teclado 1-9: ajustar el filamento para el objeto/pieza"
@@ -9201,6 +9219,25 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "El motor Arachne solo funciona cuando la ralentización por voladizo está "
+#~ "desactivada.\n"
+#~ "Esto puede provocar una disminución en la calidad de los voladizos al "
+#~ "imprimir rápidamente."
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "¿Desactivar automáticamente la ralentización del voladizo?\n"
+#~ "Sí - Activar Arachne y desactivar la ralentización del voladizo\n"
+#~ "No - No utilizar Arachne para esta impresión"
 
 #~ msgid "Start"
 #~ msgstr "Iniciar"

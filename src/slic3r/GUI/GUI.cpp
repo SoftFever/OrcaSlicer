@@ -84,7 +84,7 @@ const std::string& shortkey_ctrl_prefix()
 #ifdef __APPLE__
 		"⌘+"
 #else
-		"Ctrl+"
+		_u8L("Ctrl+")
 #endif
 		;
 	return str;

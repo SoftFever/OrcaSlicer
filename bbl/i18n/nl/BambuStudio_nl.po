@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"POT-Creation-Date: 2023-04-03 12:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -523,6 +523,9 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "Let op"
 
@@ -820,6 +823,9 @@ msgstr "Verbergen"
 msgid "Show"
 msgstr "Weergeven"
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "Verwijder het geselecteerde object"
 
@@ -837,6 +843,9 @@ msgstr "Cilinder"
 
 msgid "Cone"
 msgstr "Kegel"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "Instellingen toevoegen"
@@ -1200,6 +1209,12 @@ msgid "Part manipulation"
 msgstr ""
 
 msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
 msgstr ""
 
 msgid "Object"
@@ -1867,6 +1882,9 @@ msgstr "Factor N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Voer een geldige waarde in (K in 0 ~ 0,5)"
 
@@ -2403,23 +2421,6 @@ msgstr ""
 "Wilt u de voorgestelde instellingen automatisch aanpassen? \n"
 "Ja - Pas de instellingen aan en zet de vaas modus automatisch aan\n"
 "Nee - Pas de vaas modus deze keer niet toe"
-
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
-msgstr ""
-"De Arachne-motor werkt alleen als vertraging van de overhang is "
-"uitgeschakeld. Dit kan leiden tot een achteruitgang van de kwaliteit van het "
-"overhangende oppervlak bij snel printen."
-
-msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"Overhangvertraging automatisch uitschakelen?\n"
-"Ja - Arachne inschakelen en overhangvertraging uitschakelen\n"
-"Nee - Arachne niet gebruiken voor deze afdruk"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3203,6 +3204,9 @@ msgstr "Bewaar huidig project als"
 
 msgid "Save Project as"
 msgstr "Bewaar project als"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "Bewaar huidig project als"
@@ -5253,8 +5257,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Bij het opnemen van timelapse zonder toolhead is het aan te raden om een "
 "„Timelapse Wipe Tower” toe te voegen \n"
@@ -5798,6 +5802,9 @@ msgstr "Object lijst"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "Kopieer naar klembord"
 
@@ -5827,6 +5834,12 @@ msgstr "Muiswiel"
 msgid "Zoom View"
 msgstr "Zoom View"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5835,6 +5848,9 @@ msgstr ""
 "Oriënteert automatisch geselecteerde objecten of alle objecten. Als er "
 "geselecteerde objecten zijn, oriënteert het alleen de geselecteerde "
 "objecten. Anders oriënteert het alle objecten op de disk."
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "De menubalk in-/uitschuiven"
@@ -5901,6 +5917,9 @@ msgstr "Shift+willekeurige pijl"
 
 msgid "Movement step set to 1 mm"
 msgstr "Bewegingsinterval ingesteld op 1mm"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "Toets 1-9: kies filament voor het object/onderdeel"
@@ -9223,6 +9242,24 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "De Arachne-motor werkt alleen als vertraging van de overhang is "
+#~ "uitgeschakeld. Dit kan leiden tot een achteruitgang van de kwaliteit van "
+#~ "het overhangende oppervlak bij snel printen."
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "Overhangvertraging automatisch uitschakelen?\n"
+#~ "Ja - Arachne inschakelen en overhangvertraging uitschakelen\n"
+#~ "Nee - Arachne niet gebruiken voor deze afdruk"
 
 #~ msgid "Start"
 #~ msgstr "Starten"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"POT-Creation-Date: 2023-04-03 12:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -524,6 +524,9 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr "Strg+"
+
 msgid "Notice"
 msgstr "Hinweis"
 
@@ -825,6 +828,9 @@ msgstr "Ausblenden"
 msgid "Show"
 msgstr "Anzeigen"
 
+msgid "Del"
+msgstr "Entf"
+
 msgid "Delete the selected object"
 msgstr "Ausgewähltes Objekt löschen"
 
@@ -842,6 +848,9 @@ msgstr "Zylinder"
 
 msgid "Cone"
 msgstr "Kegel"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "Einstellungen hinzufügen"
@@ -1208,6 +1217,12 @@ msgid "Part manipulation"
 msgstr ""
 
 msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
 msgstr ""
 
 msgid "Object"
@@ -1869,6 +1884,9 @@ msgstr "Faktor N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.5)"
 
@@ -2419,24 +2437,6 @@ msgstr ""
 "Diese Einstellungen automatisch ändern? \n"
 "Ja - Diese Einstellungen ändern und den Spiralmodus automatisch aktivieren\n"
 "Nein - Verzichten Sie dieses Mal auf den Spiralmodus"
-
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
-msgstr ""
-"Die Arachne-Engine funktioniert nur, wenn die Überhangverlangsamung "
-"deaktiviert ist.\n"
-"Dies kann zu einer Verschlechterung der Qualität der Überhangsfläche führen, "
-"wenn schnell gedruckt wird."
-
-msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"Automatische Verlangsamung des Überhangs deaktivieren?\n"
-"Ja - Arachne aktivieren und die Überhangsverlangsamung deaktivieren\n"
-"Nein - Arachne für diesen Druck nicht verwenden"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3221,6 +3221,9 @@ msgstr "Aktuelles Projekt in Datei speichern"
 
 msgid "Save Project as"
 msgstr "Projekt speichern als"
+
+msgid "Shift+"
+msgstr "Umschalt+"
 
 msgid "Save current project as"
 msgstr "Aktuelles Projekt speichern als"
@@ -5274,8 +5277,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wipe Tower\" (Zeitraffer-Wischturm) hinzuzufügen, indem Sie mit "
@@ -5819,6 +5822,9 @@ msgstr "Liste der Objekte"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "Ctrl+Shift+G"
+msgstr "Strg+Umschalt+G"
+
 msgid "Copy to clipboard"
 msgstr "Zu Zwischenablage kopieren"
 
@@ -5846,6 +5852,12 @@ msgstr "Mausrad"
 msgid "Zoom View"
 msgstr "Zoom der Ansicht"
 
+msgid "Shift+A"
+msgstr "Umschalt+A"
+
+msgid "Shift+R"
+msgstr "Umschalt+R"
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5854,6 +5866,9 @@ msgstr ""
 "Orientiert ausgewählte Objekte oder alle Objekte automatisch. Wenn es "
 "ausgewählte Objekte gibt, werden nur die ausgewählten Objekte ausgerichtet. "
 "Andernfalls werden alle Objekte auf der aktuellen Druckplatte ausgerichtet."
+
+msgid "Shift+Tab"
+msgstr "Umschalt+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Seitenleiste zu-/ausklappen"
@@ -5886,7 +5901,7 @@ msgid "Ctrl+Left mouse button"
 msgstr "Strg+Linke Maustaste"
 
 msgid "Shift+Left mouse button"
-msgstr "Umschalttaste+linke Maustaste"
+msgstr "Umschalt+linke Maustaste"
 
 msgid "Select objects by rectangle"
 msgstr "Objekte per Rechteck auswählen"
@@ -5916,10 +5931,13 @@ msgid "Move selection 10 mm in positive X direction"
 msgstr "Auswahl 10 mm in positiver X-Richtung verschieben"
 
 msgid "Shift+Any arrow"
-msgstr "Umschalttaste+beliebiger Pfeil"
+msgstr "Umschalt+beliebiger Pfeil"
 
 msgid "Movement step set to 1 mm"
 msgstr "Bewegungsschritt auf 1 mm eingestellt"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "Tastatur 1-9: Filament für Objekt/Teil einstellen"
@@ -6040,7 +6058,7 @@ msgid "Move slider 5x faster"
 msgstr "Schieberegler 5x schneller bewegen"
 
 msgid "Shift+Mouse wheel"
-msgstr "Umschalttaste+Mausrad"
+msgstr "Umschalt+Mausrad"
 
 msgid "Release Note"
 msgstr "Hinweis zur Veröffentlichung"
@@ -9247,6 +9265,25 @@ msgstr ""
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
 
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "Die Arachne-Engine funktioniert nur, wenn die Überhangverlangsamung "
+#~ "deaktiviert ist.\n"
+#~ "Dies kann zu einer Verschlechterung der Qualität der Überhangsfläche "
+#~ "führen, wenn schnell gedruckt wird."
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "Automatische Verlangsamung des Überhangs deaktivieren?\n"
+#~ "Ja - Arachne aktivieren und die Überhangsverlangsamung deaktivieren\n"
+#~ "Nein - Arachne für diesen Druck nicht verwenden"
+
 #~ msgid "Start"
 #~ msgstr "Starten"
 
@@ -10219,8 +10256,8 @@ msgstr ""
 #~ "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, "
 #~ "einen \"Timelapse Wipe Tower\" (Zeitraffer-Wischturm) hinzuzufügen\n"
 #~ "hinzuzufügen, indem Sie mit der rechten Maustaste auf die leere Position "
-#~ "der Bauplatte klicken und \"Primitiv hinzufügen\"->\"Timelapse Wipe "
-#~ "Tower\" wählen.\n"
+#~ "der Bauplatte klicken und \"Primitiv hinzufügen\"->\"Timelapse Wipe Tower"
+#~ "\" wählen.\n"
 
 #~ msgid ""
 #~ "When sparse infill density is low, the internal solid infill or internal "

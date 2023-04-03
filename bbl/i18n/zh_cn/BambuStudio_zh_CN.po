@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 14:51+0800\n"
+"POT-Creation-Date: 2023-04-03 12:20+0800\n"
 "PO-Revision-Date: 2023-03-29 12:43+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -523,6 +523,9 @@ msgstr "附着曲面"
 msgid "Horizontal text"
 msgstr "水平文字"
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "通知"
 
@@ -809,6 +812,9 @@ msgstr "隐藏"
 msgid "Show"
 msgstr "显示"
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "删除所选对象"
 
@@ -826,6 +832,9 @@ msgstr "圆柱体"
 
 msgid "Cone"
 msgstr "锥体"
+
+msgid "Height range Modifier"
+msgstr "高度范围修改器"
 
 msgid "Add settings"
 msgstr "添加设置"
@@ -1175,6 +1184,12 @@ msgstr "零件操作"
 
 msgid "Instance manipulation"
 msgstr "实例操作"
+
+msgid "Height ranges"
+msgstr "高度范围"
+
+msgid "Settings for height range"
+msgstr "高度范围设置"
 
 msgid "Object"
 msgstr "对象"
@@ -1798,6 +1813,9 @@ msgstr "系数N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "不支持在打印时设置虚拟槽位信息"
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "请输入有效的数值 (K的范围为0~0.5）"
 
@@ -2283,22 +2301,6 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
-
-msgid ""
-"Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
-msgstr ""
-"Arachne引擎只在关闭悬垂降速时起作用。\n"
-"这可能会导致高速打印时悬垂表面质量的下降。"
-
-msgid ""
-"Disable overhang slowing down automatically? \n"
-"Yes - Enable arachne and disable overhang slowing down\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"自动关闭悬垂降速？\n"
-"是 - 使用arachne并关闭悬垂降速\n"
-"否 - 此次放弃使用arachne"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -3078,6 +3080,9 @@ msgstr "保存当前项目到文件"
 
 msgid "Save Project as"
 msgstr "项目另存为"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "项目另存为"
@@ -5009,8 +5014,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击构建板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -5504,6 +5509,9 @@ msgstr "对象列表"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
 
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
@@ -5531,6 +5539,12 @@ msgstr "鼠标滚轮"
 msgid "Zoom View"
 msgstr "缩放视角"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5538,6 +5552,9 @@ msgid ""
 msgstr ""
 "自动调整选定零件/所有零件的方向,\n"
 "有选定零件时调整选定零件的朝向,没有选择零件时调整当前盘所有零件的朝向"
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "收起/展开 侧边栏"
@@ -5604,6 +5621,9 @@ msgstr "Shift+方向键"
 
 msgid "Movement step set to 1 mm"
 msgstr "沿X、Y轴以1mm为步进移动对象"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "按键1-9：设置对象/零件的耗材丝"
@@ -8571,6 +8591,23 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "Arachne引擎只在关闭悬垂降速时起作用。\n"
+#~ "这可能会导致高速打印时悬垂表面质量的下降。"
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "自动关闭悬垂降速？\n"
+#~ "是 - 使用arachne并关闭悬垂降速\n"
+#~ "否 - 此次放弃使用arachne"
 
 #~ msgid "Zoom to mouse position"
 #~ msgstr "放大到鼠标位置"
@@ -12305,8 +12342,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
@@ -12411,9 +12448,6 @@ msgstr ""
 
 #~ msgid "Slab"
 #~ msgstr "板坯"
-
-#~ msgid "Height range Modifier"
-#~ msgstr "高度范围修改器"
 
 #~ msgid "Set as a Separated Object"
 #~ msgstr "设置为独立的对象"
@@ -12601,12 +12635,6 @@ msgstr ""
 
 #~ msgid "Add Layers"
 #~ msgstr "添加图层"
-
-#~ msgid "Height ranges"
-#~ msgstr "高度范围"
-
-#~ msgid "Settings for height range"
-#~ msgstr "高度范围设置"
 
 #~ msgid "Delete Selected Item"
 #~ msgstr "删除所选项目"

@@ -1974,26 +1974,27 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
 
 static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, std::function<bool(void)> can_change_view)
 {
+    const std::string& ctrl = GUI::shortkey_ctrl_prefix();
     // The camera control accelerators are captured by GLCanvas3D::on_char().
-    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\tCtrl+0", _L("Default View"), [mainFrame](wxCommandEvent&) {
+    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\t" + ctrl + "0", _L("Default View"), [mainFrame](wxCommandEvent&) {
         mainFrame->select_view("plate");
         mainFrame->plater()->get_current_canvas3D()->zoom_to_bed();
         },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
     //view_menu->AppendSeparator();
     //TRN To be shown in the main menu View->Top
-    append_menu_item(view_menu, wxID_ANY, _L("Top") + "\tCtrl+1", _L("Top View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("top"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Top") + "\t" + ctrl + "1", _L("Top View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("top"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
     //TRN To be shown in the main menu View->Bottom
-    append_menu_item(view_menu, wxID_ANY, _L("Bottom") + "\tCtrl+2", _L("Bottom View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("bottom"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Bottom") + "\t" + ctrl + "2", _L("Bottom View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("bottom"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Front") + "\tCtrl+3", _L("Front View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("front"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Front") + "\t" + ctrl + "3", _L("Front View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("front"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Rear") + "\tCtrl+4", _L("Rear View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("rear"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Rear") + "\t" + ctrl + "4", _L("Rear View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("rear"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Left") + "\tCtrl+5", _L("Left View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("left"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Left") + "\t" + ctrl + "5", _L("Left View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("left"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Right") + "\tCtrl+6", _L("Right View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("right"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Right") + "\t" + ctrl + "6", _L("Right View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("right"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 }
 
@@ -2003,6 +2004,8 @@ void MainFrame::init_menubar_as_editor()
     wxMenuBar::SetAutoWindowMenu(false);
     m_menubar = new wxMenuBar();
 #endif
+    
+    const std::string& ctrl = GUI::shortkey_ctrl_prefix();
 
     // File menu
     wxMenu* fileMenu = new wxMenu;
@@ -2014,17 +2017,17 @@ void MainFrame::init_menubar_as_editor()
                          []{ return true; }, this);
 #endif
         // New Project
-        append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\tCtrl+N", _L("Start a new project"),
+        append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\t" + ctrl + "N", _L("Start a new project"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
             [this](){return can_start_new_project(); }, this);
         // Open Project
 
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\t" + ctrl + "O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "menu_open", nullptr,
             [this](){return can_open_project(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\t" + ctrl + "O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "", nullptr,
             [this](){return can_open_project(); }, this);
 #endif
@@ -2051,22 +2054,22 @@ void MainFrame::init_menubar_as_editor()
 
         // BBS: close save project
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\tCtrl+S", _L("Save current project to file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\tCtrl+S", _L("Save current project to file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 #endif
 
 
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
@@ -2077,13 +2080,13 @@ void MainFrame::init_menubar_as_editor()
         // BBS
         wxMenu *import_menu = new wxMenu();
 #ifndef __APPLE__
-        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\t" + ctrl + "I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
             m_plater->add_file();
         } }, "menu_import", nullptr,
             [this](){return can_add_models(); }, this);
 #else
-        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\t" + ctrl + "I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return can_add_models(); }, this);
 #endif
@@ -2103,7 +2106,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_core_3mf(); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export .gcode.3mf
-        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots + "\tCtrl+G", _L("Export current sliced file"),
+        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots + "\t" + ctrl + "G", _L("Export current sliced file"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_gcode(); }, this);
 
@@ -2147,32 +2150,32 @@ void MainFrame::init_menubar_as_editor()
 
 #ifndef __APPLE__
         // BBS undo
-        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\tCtrl+Z",
+        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
             _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
             "menu_undo", nullptr, [this](){return m_plater->can_undo(); }, this);
         // BBS redo
-        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\tCtrl+Y",
+        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\t" + ctrl + "Y",
             _L("Redo"), [this](wxCommandEvent&) { m_plater->redo(); },
             "menu_redo", nullptr, [this](){return m_plater->can_redo(); }, this);
         editMenu->AppendSeparator();
         // BBS Cut TODO
-        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\tCtrl+X",
+        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\t" + ctrl + "X",
             _L("Cut selection to clipboard"), [this](wxCommandEvent&) {m_plater->cut_selection_to_clipboard(); },
             "menu_cut", nullptr, [this]() {return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Copy
-        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\tCtrl+C",
+        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\t" + ctrl + "C",
             _L("Copy selection to clipboard"), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
             "menu_copy", nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Paste
-        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\tCtrl+V",
+        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\t" + ctrl + "V",
             _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "menu_paste", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
         // BBS Delete selected
-        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tDel",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\t" + _L("Del"),
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\tCtrl+D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2185,24 +2188,24 @@ void MainFrame::init_menubar_as_editor()
         editMenu->AppendSeparator();
 #else
         // BBS undo
-        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\tCtrl+Z",
+        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
             _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
             "", nullptr, [this](){return m_plater->can_undo(); }, this);
         // BBS redo
-        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\tCtrl+Y",
+        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\t" + ctrl + "Y",
             _L("Redo"), [this](wxCommandEvent&) { m_plater->redo(); },
             "", nullptr, [this](){return m_plater->can_redo(); }, this);
         editMenu->AppendSeparator();
         // BBS Cut TODO
-        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\tCtrl+X",
+        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\t" + ctrl + "X",
             _L("Cut selection to clipboard"), [this](wxCommandEvent&) {m_plater->cut_selection_to_clipboard(); },
             "", nullptr, [this]() {return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Copy
-        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\tCtrl+C",
+        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\t" + ctrl + "C",
             _L("Copy selection to clipboard"), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
             "", nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Paste
-        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\tCtrl+V",
+        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\t" + ctrl + "V",
             _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
 #if 0
@@ -2212,12 +2215,12 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\tCtrl+D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
-        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\tCtrl+M",
+        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\t" + ctrl + "M",
             _L("Clone copies of selections"),[this](wxCommandEvent&) {
                 m_plater->clone_selection();
             },
@@ -2226,7 +2229,7 @@ void MainFrame::init_menubar_as_editor()
 #endif
 
         // BBS Select All
-        append_menu_item(editMenu, wxID_ANY, _L("Select all") + "\tCtrl+A",
+        append_menu_item(editMenu, wxID_ANY, _L("Select all") + "\t" + ctrl + "A",
             _L("Selects all objects"), [this](wxCommandEvent&) { m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
         // BBS Deslect All
@@ -2285,7 +2288,7 @@ void MainFrame::init_menubar_as_editor()
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
 
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Labels") + "\tCtrl+E", _L("Show object labels in 3D scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Labels") + "\t" + ctrl + "E", _L("Show object labels in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
 
@@ -2316,7 +2319,7 @@ void MainFrame::init_menubar_as_editor()
     //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
-    auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\tCtrl+P", "");
+    auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
 
 #endif
     //auto printer_item = new wxMenuItem(parent_menu, ConfigMenuPrinter + config_id_base, _L("Printer"), "");
@@ -2416,7 +2419,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent &) { Slic3r::GUI::about();},
         "", nullptr, []() { return true; }, this, 0);
     append_menu_item(
-        parent_menu, wxID_ANY, _L("Preferences") + "\tCtrl+,", "",
+        parent_menu, wxID_ANY, _L("Preferences") + "\t" + ctrl + ",", "",
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
@@ -2443,7 +2446,7 @@ void MainFrame::init_menubar_as_editor()
     //BBS add Preference
 
     append_menu_item(
-        m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\tCtrl+P", "",
+        m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\t" + ctrl + "P", "",
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
