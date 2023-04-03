@@ -824,21 +824,24 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     };
     std::vector<OverhangCluster> overhangClusters;
 
-    auto find_and_insert_cluster = [](auto& regionClusters, const ExPolygon& region, int layer_nr, coordf_t offset) {
-        bool found = false;
-        for (int i = 0; i < regionClusters.size();i++) {
-            auto& cluster = regionClusters[i];
-            if (cluster.push_back_if_intersects(region, layer_nr, offset)) {
-                found = true;
+    auto find_and_insert_cluster = [](auto &regionClusters, const ExPolygon &region, int layer_nr, coordf_t offset) {
+        OverhangCluster *cluster = nullptr;
+        for (int i = 0; i < regionClusters.size(); i++) {
+            auto cluster_i = &regionClusters[i];
+            if (cluster_i->push_back_if_intersects(region, layer_nr, offset)) {
+                cluster = cluster_i;
                 break;
             }
         }
-        if (!found) {
-            regionClusters.emplace_back(&region, layer_nr);
+        if (!cluster) {
+            cluster = &regionClusters.emplace_back(&region, layer_nr);
         }
+        return cluster;
     };
 
-    if (!is_tree(stype)) return;    
+    if (!is_tree(stype)) return;   
+
+    max_cantilever_dist = 0;
 
     // main part of overhang detection can be parallel
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
@@ -912,25 +915,42 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
                             if (!overhang.empty())
                                 has_sharp_tails = true;
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                            SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), m_object->bounding_box());
-                            if (svg.is_opened()) {
-                                svg.draw(overhang, "yellow");
-                                svg.draw(lower_layer->lslices, "red");
-                            }
-#endif
-                        }
+                        }                        
                     }
                 }
 
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
                 for (ExPolygon& poly : overhang_areas) {
-                    if (!offset_ex(poly, -0.1 * extrusion_width_scaled).empty())
-                        ts_layer->overhang_areas.emplace_back(poly);
+                    if (offset_ex(poly, -0.1 * extrusion_width_scaled).empty()) continue;
+                    ts_layer->overhang_areas.emplace_back(poly);
+
+                    // check cantilever
+                    {
+                        auto cluster_boundary_ex = intersection_ex(poly, offset_ex(lower_layer->lslices, scale_(0.5)));
+                        Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
+                        if (cluster_boundary.empty()) continue;
+                        double dist_max = 0;
+                        for (auto& pt : poly.contour.points) {
+                            double dist_pt = std::numeric_limits<double>::max();
+                            for (auto& ply : cluster_boundary) {
+                                double d = ply.distance_to(pt);
+                                dist_pt = std::min(dist_pt, d);
+                            }
+                            dist_max = std::max(dist_max, dist_pt);
+                        }
+                        if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base                            
+                            max_cantilever_dist = std::max(max_cantilever_dist, dist_max);
+                            layer->cantilevers.emplace_back(poly);
+                            BOOST_LOG_TRIVIAL(debug) << "found a cantilever cluster. layer_nr=" << layer_nr << dist_max;
+                            has_cantilever = true;
+                        }
+                    }
                 }
             }
         }
     ); // end tbb::parallel_for
+
+    BOOST_LOG_TRIVIAL(info) << "max_cantilever_dist=" << max_cantilever_dist;
 
     // check if the sharp tails should be extended higher
     if (is_auto(stype) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
@@ -1026,8 +1046,11 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         if (m_object->print()->canceled())
             break;
         SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
+        Layer* layer = m_object->get_layer(layer_nr);
         for (auto& overhang : ts_layer->overhang_areas) {
-            find_and_insert_cluster(overhangClusters, overhang, layer_nr, extrusion_width_scaled);
+            OverhangCluster* cluster = find_and_insert_cluster(overhangClusters, overhang, layer_nr, extrusion_width_scaled);
+            if (overlaps({ overhang },layer->cantilevers))
+                cluster->is_cantilever = true;
         }
     }
 
@@ -1035,57 +1058,19 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     auto blockers  = m_object->slice_support_blockers();
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
-
-    // check whether the overhang cluster is sharp tail or cantilever
-    max_cantilevel_dist = 0;
-    for (auto& cluster : overhangClusters) {
-        // 3. check whether the small overhang is sharp tail
-        cluster.is_sharp_tail = false;
-        for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
-            Layer* layer = m_object->get_layer(layer_id);
-            if (overlaps(layer->sharp_tails, cluster.merged_poly)) {
-                cluster.is_sharp_tail = true;
-                break;
-            }
-        }
-        if (cluster.is_sharp_tail) continue;
-
-        // check whether the overhang cluster is cantilever (far awary from main body)
-        Layer* layer = m_object->get_layer(cluster.min_layer);
-        if (layer->lower_layer == NULL) continue;
-        Layer* lower_layer = layer->lower_layer;
-        auto cluster_boundary = intersection(cluster.merged_poly, offset(lower_layer->lslices, scale_(0.5)));
-        if (cluster_boundary.empty()) continue;
-        double dist_max = 0;
-        Points cluster_pts;
-        for (auto& poly : cluster.merged_poly)
-            append(cluster_pts, poly.contour.points);
-        for (auto& pt : cluster_pts) {
-            double dist_pt = std::numeric_limits<double>::max();
-            for (auto& poly : cluster_boundary) {
-                double d = poly.distance_to(pt);
-                dist_pt = std::min(dist_pt, d);
-            }
-            dist_max = std::max(dist_max, dist_pt);
-        }
-        if (dist_max > scale_(3)) {  // this cluster is cantilever if the farmost point is larger than 3mm away from base
-            for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
-                int  layer_nr = it->first;
-                auto p_overhang = it->second;
-                m_object->get_layer(layer_nr)->cantilevers.emplace_back(*p_overhang);
-            }
-            max_cantilevel_dist = std::max(max_cantilevel_dist, dist_max);
-            cluster.is_cantilever = true;
-        }
-    }
-    BOOST_LOG_TRIVIAL(info) << "max_cantilevel_dist=" << max_cantilevel_dist;
-
     if (is_auto(stype) && g_config_remove_small_overhangs) {
         if (blockers.size() < m_object->layer_count())
             blockers.resize(m_object->layer_count());
         for (auto& cluster : overhangClusters) {
-            // 4. check whether the overhang cluster is cantilever or sharp tail
-            if (cluster.is_cantilever || cluster.is_sharp_tail) continue;
+            // 3. check whether the small overhang is sharp tail
+            cluster.is_sharp_tail = false;
+            for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
+                Layer* layer = m_object->get_layer(layer_id);
+                if (overlaps(layer->sharp_tails, cluster.merged_poly)) {
+                    cluster.is_sharp_tail = true;
+                    break;
+                }
+            }
 
             if (!cluster.is_sharp_tail && !cluster.is_cantilever) {
                 // 2. check overhang cluster size is smaller than 3.0 * fw_scaled
@@ -1111,15 +1096,6 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                 int  layer_nr   = it->first;
                 auto p_overhang = it->second;
                 blockers[layer_nr].push_back(p_overhang->contour);
-                // auto dilate1 = offset_ex(*p_overhang, extrusion_width_scaled);
-                // auto erode1 = offset_ex(*p_overhang, -extrusion_width_scaled);
-                // Layer* layer = m_object->get_layer(layer_nr);
-                // auto inter_with_others = intersection_ex(dilate1, diff_ex(layer->lslices, *p_overhang));
-                //// the following cases are small overhangs:
-                //// 1) overhang is single line (erode1.empty()==true)
-                //// 2) overhang is not island (intersects with others)
-                // if (erode1.empty() && !inter_with_others.empty())
-                //    blockers[layer_nr].push_back(p_overhang->contour);
             }
         }
     }
@@ -1133,6 +1109,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         auto layer = m_object->get_layer(layer_nr);
         auto lower_layer = layer->lower_layer;
         if (support_critical_regions_only) {
+            ts_layer->overhang_areas.clear();
             if (lower_layer == nullptr)
                 ts_layer->overhang_areas = layer->sharp_tails;
             else
@@ -1177,7 +1154,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         if (layer->overhang_areas.empty())
             continue;
 
-        SVG svg(get_svg_filename(std::to_string(layer->print_z), "overhang_areas"), m_object->bounding_box());
+        SVG svg(format("SVG/overhang_areas_%s.svg", layer->print_z), m_object->bounding_box());
         if (svg.is_opened()) {
             svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
             svg.draw(layer->overhang_areas, "red");

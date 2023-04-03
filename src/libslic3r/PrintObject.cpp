@@ -2657,7 +2657,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
     this->clear_support_layers();
     if (tree_support.has_sharp_tails)
         return SharpTail;
-    else if (tree_support.has_cantilever && tree_support.max_cantilevel_dist > cantilevel_dist_thresh)
+    else if (tree_support.has_cantilever && tree_support.max_cantilever_dist > cantilevel_dist_thresh)
         return Cantilever;
 #endif
     return NoNeedSupp;

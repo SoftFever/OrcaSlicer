@@ -381,7 +381,7 @@ public:
     bool  has_overhangs = false;
     bool  has_sharp_tails = false;
     bool  has_cantilever = false;
-    double max_cantilevel_dist = 0;
+    double max_cantilever_dist = 0;
     SupportType support_type;
     SupportMaterialStyle support_style;
 

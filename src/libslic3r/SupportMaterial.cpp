@@ -1651,7 +1651,7 @@ static inline ExPolygons detect_overhangs(
                         overhang = offset_ex(overhang, 0.05 * fw);
                         polygons_append(diff_polygons, to_polygons(overhang));
                     }
-                }
+                }               
             }
 
             if (diff_polygons.empty())
@@ -1680,7 +1680,30 @@ static inline ExPolygons detect_overhangs(
         } // for each layer.region
     }
 
-    return union_ex(overhang_polygons);
+    ExPolygons overhang_areas = union_ex(overhang_polygons);
+    // check cantilever
+    if (layer.lower_layer) {
+        for (ExPolygon& poly : overhang_areas) {
+            float fw = float(layer.regions().front()->flow(frExternalPerimeter).scaled_width());
+            auto cluster_boundary_ex = intersection_ex(poly, offset_ex(layer.lower_layer->lslices, scale_(0.5)));
+            Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
+            if (cluster_boundary.empty()) continue;
+            double dist_max = 0;
+            for (auto& pt : poly.contour.points) {
+                double dist_pt = std::numeric_limits<double>::max();
+                for (auto& ply : cluster_boundary) {
+                    double d = ply.distance_to(pt);
+                    dist_pt = std::min(dist_pt, d);
+                }
+                dist_max = std::max(dist_max, dist_pt);
+            }
+            if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base                            
+                layer.cantilevers.emplace_back(poly);
+            }
+        }
+    }
+
+    return overhang_areas;
 }
 
 // Tuple: overhang_polygons, contact_polygons, enforcer_polygons, no_interface_offset
@@ -2154,19 +2177,21 @@ struct OverhangCluster {
     }
 };
 
-static void add_overhang(std::vector<OverhangCluster>& clusters, ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
+static OverhangCluster* add_overhang(std::vector<OverhangCluster>& clusters, ExPolygon* overhang, int layer_nr, coordf_t offset_scaled) {
+    OverhangCluster* cluster = nullptr;
     bool found = false;
     for (int i = 0; i < clusters.size(); i++) {
-        auto& cluster = clusters[i];
-        if (cluster.intersects(*overhang, layer_nr)) {
-            cluster.insert(overhang, layer_nr);
-            found = true;
+        auto cluster_i = &clusters[i];
+        if (cluster_i->intersects(*overhang, layer_nr)) {
+            cluster_i->insert(overhang, layer_nr);
+            cluster = cluster_i;
             break;
         }
     }
-    if (!found) {
-        clusters.emplace_back(overhang, layer_nr, offset_scaled);
+    if (!cluster) {
+        cluster = &clusters.emplace_back(overhang, layer_nr, offset_scaled);
     }
+    return cluster;
 };
 
 // Generate top contact layers supporting overhangs.
@@ -2328,13 +2353,15 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
         std::set<ExPolygon*> removed_overhang;
 
         for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
+            const Layer* layer = object.get_layer(layer_id);
             for (auto& overhang : overhangs_per_layers[layer_id]) {
-                add_overhang(clusters, &overhang, layer_id, fw_scaled);
+                OverhangCluster* cluster = add_overhang(clusters, &overhang, layer_id, fw_scaled);
+                if (overlaps({ overhang }, layer->cantilevers))
+                    cluster->is_cantilever = true;
             }
         }
 
         for (OverhangCluster& cluster : clusters) {
-
             // 3. check whether the small overhang is sharp tail
             cluster.is_sharp_tail = false;
             for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
@@ -2342,33 +2369,6 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                 if (overlaps(layer->sharp_tails, cluster.merged_overhangs_dilated)) {
                     cluster.is_sharp_tail = true;
                     break;
-                }
-            }
-            if (cluster.is_sharp_tail)
-                continue;
-
-            if (!cluster.is_sharp_tail) {
-                // 4. check whether the overhang cluster is cantilever (far awary from main body)
-                const Layer* layer = object.get_layer(cluster.min_layer);
-                if (layer->lower_layer == NULL) continue;
-                Layer* lower_layer = layer->lower_layer;
-                auto cluster_boundary = intersection(cluster.merged_overhangs_dilated, offset(lower_layer->lslices, scale_(0.5)));
-                if (cluster_boundary.empty()) continue;
-                double dist_max = 0;
-                Points cluster_pts;
-                for (auto& poly : cluster.merged_overhangs_dilated)
-                    append(cluster_pts, poly.contour.points);
-                for (auto& pt : cluster_pts) {
-                    double dist_pt = std::numeric_limits<double>::max();
-                    for (auto& poly : cluster_boundary) {
-                        double d = poly.distance_to(pt);
-                        dist_pt = std::min(dist_pt, d);
-                    }
-                    dist_max = std::max(dist_max, dist_pt);
-                }
-                if (dist_max > scale_(3)) {
-                    cluster.is_cantilever = true;
-                    continue;
                 }
             }
 
