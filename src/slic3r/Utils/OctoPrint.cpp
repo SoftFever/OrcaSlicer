@@ -161,7 +161,7 @@ bool OctoPrint::test(wxString &msg) const
 
 wxString OctoPrint::get_test_ok_msg () const
 {
-    return _(L("Connection to OctoPrint works correctly."));
+    return _(L("Connection to OctoPrint/Klipper works correctly."));
 }
 
 wxString OctoPrint::get_test_failed_msg (wxString &msg) const
