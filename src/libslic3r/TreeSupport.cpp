@@ -1146,7 +1146,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
             ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, offset_ex(blocker, scale_(radius_sample_resolution)));
         }
 
-        if (max_bridge_length > 0 && ts_layer->overhang_areas.size() > 0) {
+        if (max_bridge_length > 0 && ts_layer->overhang_areas.size() > 0 && lower_layer) {
             // do not break bridge for normal part in TreeHybrid
             bool break_bridge = !(support_style == smsTreeHybrid && area(ts_layer->overhang_areas) > m_support_params.thresh_big_overhang);
             m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &ts_layer->overhang_areas, max_bridge_length, break_bridge);
