@@ -1789,13 +1789,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
 
-    if (print.config().gcode_flavor == gcfKlipper) {
-
-      this->_print_first_layer_bed_temperature(file, print, "",
-                                               initial_extruder_id, true);
-      this->_print_first_layer_extruder_temperatures(
-          file, print, "", initial_extruder_id, false);
-    }
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
 
@@ -1808,7 +1801,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             file.writeln(this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values[initial_extruder_id], initial_extruder_id, &config));
     }
 */
-    this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, true);
+    if (is_bbl_printers)
+        this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, true);
     print.throw_if_canceled();
 
     // Set other general things.
