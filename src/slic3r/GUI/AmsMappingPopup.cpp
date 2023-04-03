@@ -45,7 +45,13 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
     SetMaxSize(MATERIAL_ITEM_SIZE);
     SetBackgroundColour(*wxWHITE);
 
-    Bind(wxEVT_PAINT, &MaterialItem::paintEvent, this);
+    m_main_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_main_panel, 1, wxEXPAND);
+    this->SetSizer(main_sizer);
+    this->Layout();
+
+    m_main_panel->Bind(wxEVT_PAINT, &MaterialItem::paintEvent, this);
     wxGetApp().UpdateDarkUI(this);
  }
 
@@ -89,7 +95,7 @@ void MaterialItem::on_normal()
 
 void MaterialItem::paintEvent(wxPaintEvent &evt) 
 {  
-    wxPaintDC dc(this);
+    wxPaintDC dc(m_main_panel);
     render(dc);
 
     //PrepareDC(buffdc);

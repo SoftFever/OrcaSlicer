@@ -66,6 +66,7 @@ public:
     MaterialItem(wxWindow *parent,wxColour mcolour, wxString mname);
     ~MaterialItem();
 
+    wxPanel*    m_main_panel;
     wxColour    m_material_coloul;
     wxString    m_material_name;
 

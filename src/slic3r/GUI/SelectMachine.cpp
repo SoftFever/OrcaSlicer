@@ -1024,6 +1024,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_rename_input->SetMinSize(wxSize(FromDIP(380), FromDIP(24)));
     m_rename_input->SetMaxSize(wxSize(FromDIP(380), FromDIP(24)));
     m_rename_input->Bind(wxEVT_TEXT_ENTER, [this](auto& e) {on_rename_enter();});
+    m_rename_input->Bind(wxEVT_KILL_FOCUS, [this](auto& e) {
+        if (!m_rename_input->HasFocus() && !m_rename_text->HasFocus())
+            on_rename_enter();
+        else
+            e.Skip(); });
     rename_edit_sizer_v->Add(m_rename_input, 1, wxALIGN_CENTER, 0);
 
 
@@ -1217,7 +1222,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
     img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
 
-    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup();});
+    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); on_rename_enter(); });
     img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup();});
 
 
@@ -3501,7 +3506,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
      SetBackgroundStyle(wxBG_STYLE_CUSTOM);
      wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-     m_staticbitmap    = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
+     m_staticbitmap    = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
      sizer->Add(m_staticbitmap, 1, wxEXPAND|wxALL, 0);
      SetSizer(sizer);
      Layout();
