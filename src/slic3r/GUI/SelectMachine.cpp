@@ -3109,7 +3109,11 @@ void SelectMachineDialog::set_default()
                     std::string filament_type = iter->config.get_filament_type(display_filament_type);
                     display_materials.push_back(display_filament_type);
                     materials.push_back(filament_type);
-                    brands.push_back(iter->vendor->name);
+
+                    if (iter->vendor && !iter->vendor->name.empty())
+                        brands.push_back(iter->vendor->name);
+                    else
+                        brands.push_back("");
                 }
             }
         }
