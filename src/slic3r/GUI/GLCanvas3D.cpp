@@ -3059,12 +3059,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
 #endif
         case WXK_ESCAPE: { deselect_all(); break; }
-        //case WXK_F5: {
-        //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
-        //        (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
-        //        post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
-        //    break;
-        //}
+        case WXK_F5: {
+            if (wxGetApp().mainframe->is_printer_view())
+                wxGetApp().mainframe->load_printer_url();
+            
+            //if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
+            //    (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
+            //    post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
+            break;
+        }
 
         // BBS: use keypad to change extruder
         case '1':
@@ -4968,7 +4971,7 @@ void GLCanvas3D::update_sequential_clearance()
     // the results are then cached for following displacements
     if (m_sequential_print_clearance_first_displacement) {
         m_sequential_print_clearance.m_hull_2d_cache.clear();
-        float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_max_radius.value - EPSILON));
+        float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
         double mitter_limit = scale_(0.1);
         m_sequential_print_clearance.m_hull_2d_cache.reserve(m_model->objects.size());
         for (size_t i = 0; i < m_model->objects.size(); ++i) {

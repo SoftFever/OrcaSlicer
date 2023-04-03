@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 23:15+0800\n"
-"PO-Revision-Date: 2023-01-16 11:26+0800\n"
+"POT-Creation-Date: 2023-04-02 11:05+0800\n"
+"PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -7001,6 +7001,12 @@ msgid ""
 "setup and Wipe into Object / Wipe into Infill."
 msgstr ""
 
+msgid "Exclude objects"
+msgstr "对象排除"
+
+msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
+msgstr "开启此选项以支持对象排除"
+
 msgid "Verbose G-code"
 msgstr "注释G-code"
 
@@ -7457,6 +7463,9 @@ msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
 "handle the retraction. This is only supported in recent Marlin."
 msgstr ""
+
+msgid "Show auto-calibration marks"
+msgstr "显示雷达标定线"
 
 msgid "Seam position"
 msgstr "接缝位置"

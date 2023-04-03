@@ -1644,8 +1644,10 @@ void Tab::on_presets_changed()
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
     bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    auto& printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     if (is_bbl_vendor_preset)
-        wxGetApp().plater()->get_partplate_list().set_render_option(true, true);
+        wxGetApp().plater()->get_partplate_list().set_render_option(
+            !printer_cfg.option<ConfigOptionBool>("bbl_calib_mark_logo")->value, true);
     else
         wxGetApp().plater()->get_partplate_list().set_render_option(false, true);
 
@@ -2058,6 +2060,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("gcode_add_line_number");
         optgroup->append_single_option_line("gcode_comments");
         optgroup->append_single_option_line("gcode_label_objects");
+        optgroup->append_single_option_line("exclude_object");
         Option option = optgroup->get_option("filename_format");
         // option.opt.full_width = true;
         option.opt.is_code = true;
@@ -2817,14 +2820,17 @@ void TabFilament::toggle_options()
               m_preset_bundle);
     }
 
-    if (m_active_page->title() == "Cooling")
-    {
-        bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
-        toggle_option("slow_down_min_speed", cooling);
+    if (m_active_page->title() == "Cooling") {
+      bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
+      toggle_option("slow_down_min_speed", cooling);
 
-        bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
-        for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
+      bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
+      for (auto el : {"overhang_fan_speed", "overhang_fan_threshold"})
             toggle_option(el, has_enable_overhang_bridge_fan);
+
+      toggle_option(
+          "additional_cooling_fan_speed",
+          m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("auxiliary_fan")->value);
     }
     if (m_active_page->title() == "Filament")
     {
@@ -2937,6 +2943,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
+        optgroup->append_single_option_line("bbl_calib_mark_logo");
         optgroup->append_single_option_line("nozzle_volume");
         // BBS
 #if 0
@@ -3602,8 +3609,6 @@ void TabPrinter::toggle_options()
     //}
     if (m_active_page->title() == "Basic information") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
-        // Hide relative extrusion option for BBL printers
-        toggle_line("use_relative_e_distances", !is_BBL_printer);
 
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
@@ -3615,14 +3620,12 @@ void TabPrinter::toggle_options()
 
         // SoftFever: hide BBL specific settings
         for (auto el :
-             {"scan_first_layer", "machine_load_filament_time",
-                        "machine_unload_filament_time", "nozzle_type"})
+             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "nozzle_type", "bbl_calib_mark_logo"})
           toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
-        for (auto el :
-            { "use_firmware_retraction" })
-            toggle_line(el, !is_BBL_printer);
+        for (auto el : {"use_firmware_retraction", "use_relative_e_distances"})
+          toggle_line(el, !is_BBL_printer);
     }
 
     wxString extruder_number;

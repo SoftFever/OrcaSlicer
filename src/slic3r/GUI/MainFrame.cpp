@@ -864,13 +864,13 @@ void MainFrame::show_option(bool show)
     }
 }
 
-void MainFrame::init_tabpanel()
-{
-    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
-    // with multiple high resolution displays connected.
-   // BBS
-    wxBoxSizer* side_tools = create_side_tools();
-    m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+void MainFrame::init_tabpanel() {
+    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on
+    // Windows 10 with multiple high resolution displays connected.
+    // BBS
+    wxBoxSizer *side_tools = create_side_tools();
+    m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools,
+                              wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(*wxWHITE);
 
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
@@ -879,21 +879,32 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
-    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
-        int old_sel = e.GetOldSelection();
-        int new_sel = e.GetSelection();
-        if (wxGetApp().preset_bundle &&
-            wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
-            new_sel == tpMonitor) {
-            if (!wxGetApp().getAgent()) {
-                e.Veto();
-                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins")%old_sel %new_sel;
-                if (m_plater) {
-                    wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
-                    wxQueueEvent(m_plater, evt);
-                }
-            }
+    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent &e) {
+      int old_sel = e.GetOldSelection();
+      int new_sel = e.GetSelection();
+      if (wxGetApp().preset_bundle &&
+          wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
+          new_sel == tpMonitor) {
+        if (!wxGetApp().getAgent()) {
+          e.Veto();
+          BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") %
+                                         old_sel % new_sel;
+          if (m_plater) {
+            wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
+            wxQueueEvent(m_plater, evt);
+          }
         }
+      } else {
+        if (new_sel == tpMonitor && wxGetApp().preset_bundle != nullptr) {
+          auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+          wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host")
+                                                                    : cfg.opt_string("print_host_webui");
+          if (url.empty()) {
+            wxString url = wxString::Format("file://%s/web/orca/missing_connection.html", from_u8(resources_dir()));
+            m_printer_view->load_url(url);
+          }
+        }
+      }
     });
 
 #ifdef __WXMSW__
@@ -3240,6 +3251,27 @@ void MainFrame::load_printer_url(wxString url)
     evt->SetString(url);
     wxQueueEvent(this, evt);
 }
+
+void MainFrame::load_printer_url()
+{
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+        return;
+    
+    auto cfg = preset_bundle.printers.get_edited_preset().config;
+    wxString url =
+        cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
+    if (!url.empty()) {
+        if (!url.Lower().starts_with("http"))
+            url = wxString::Format("http://%s", url);
+
+        load_printer_url(url);
+    }
+}
+
+bool MainFrame::is_printer_view() const { return m_tabpanel->GetSelection() == TabPosition::tpMonitor; }
+
+
 void MainFrame::refresh_plugin_tips()
 {
     if (m_webview != nullptr)

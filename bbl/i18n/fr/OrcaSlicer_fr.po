@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 23:15+0800\n"
+"POT-Creation-Date: 2023-04-02 11:05+0800\n"
 "PO-Revision-Date: 2023-02-21 21:56+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
@@ -7556,6 +7556,12 @@ msgid ""
 "setup and Wipe into Object / Wipe into Infill."
 msgstr ""
 
+msgid "Exclude objects"
+msgstr ""
+
+msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
+msgstr ""
+
 msgid "Verbose G-code"
 msgstr ""
 
@@ -8077,6 +8083,9 @@ msgid ""
 msgstr ""
 "Ce réglage expérimental utilise les commandes G10 et G11 pour que le "
 "firmware gère la rétraction. Ceci n'est supporté que dans les Marlin récents."
+
+msgid "Show auto-calibration marks"
+msgstr ""
 
 msgid "Seam position"
 msgstr "Position de la jointure"

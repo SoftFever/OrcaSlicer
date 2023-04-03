@@ -881,6 +881,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionFloatOrPercent,      initial_layer_travel_speed))
+    ((ConfigOptionBool,                bbl_calib_mark_logo))
 
 )
 
@@ -917,7 +918,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
     ((ConfigOptionFloat,              extruder_clearance_height_to_lid))//BBS
     ((ConfigOptionFloat,              extruder_clearance_radius))
-    ((ConfigOptionFloat,              extruder_clearance_max_radius))
     ((ConfigOptionStrings,            extruder_colour))
     ((ConfigOptionPoints,             extruder_offset))
     ((ConfigOptionBools,              reduce_fan_stop_start_freq))
@@ -1003,6 +1003,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // SoftFever
     ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionBool,                gcode_label_objects))
+    ((ConfigOptionBool,                exclude_object))
     ((ConfigOptionBool,                gcode_comments))
 
 )

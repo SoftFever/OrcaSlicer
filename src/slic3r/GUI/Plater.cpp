@@ -2217,8 +2217,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
-        "extruder_clearance_radius", "extruder_clearance_max_radius",
-        "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_distance",
+        "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -6568,8 +6567,12 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
 wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) const
 {
     std::string plate_index_str;
-    if (partplate_list.get_plate_count() > 1)
+    auto plate_name = partplate_list.get_curr_plate()->get_plate_name();
+    if (!plate_name.empty())
+        plate_index_str = (boost::format("_%1%") % plate_name).str();
+    else if (partplate_list.get_plate_count() > 1)
         plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+
     if (!m_project_folder.empty()) {
         if (!only_filename) {
             if (export_all) {
@@ -6587,7 +6590,7 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
         }
     } else {
         if (only_filename) {
-            if(m_project_name == L"Untitled")
+            if(m_project_name == _L("Untitled"))
                 return fs::path(model.objects.front()->name).replace_extension().c_str() + wxString(plate_index_str) + extension;
 
             if (export_all)

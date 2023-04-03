@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 23:15+0800\n"
+"POT-Creation-Date: 2023-04-02 11:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -7659,6 +7659,12 @@ msgstr ""
 "kompatibel mit der Einzeldruckerdüsen-Mehrmaterial-Konfiguration und mit der "
 "Option zum Wischen in das Objekt / in den Innenfüllbereich."
 
+msgid "Exclude objects"
+msgstr ""
+
+msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
+msgstr ""
+
 msgid "Verbose G-code"
 msgstr "ausführlicher G-Code"
 
@@ -8176,6 +8182,9 @@ msgstr ""
 "Diese experimentelle Einstellung nutzt die Befehle G10 und G11, um die "
 "Firmware das Zurückziehen zu handhaben.Dies wird nur von aktuellen Marlin-"
 "Firmware unterstützt."
+
+msgid "Show auto-calibration marks"
+msgstr ""
 
 msgid "Seam position"
 msgstr "Nahtposition"

@@ -88,7 +88,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
-        "extruder_clearance_max_radius",
         "extruder_colour",
         "extruder_offset",
         "filament_flow_ratio",
@@ -159,7 +158,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "accel_to_decel_factor",
         "wipe_on_loops",
         "gcode_comments",
-        "gcode_label_objects"
+        "gcode_label_objects", 
+        "exclude_object"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -491,7 +491,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 convex_hull = offset(convex_hull_no_offset,
                         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                        float(scale_(0.5 * print.config().extruder_clearance_max_radius.value - EPSILON)),
+                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
                         jtRound, scale_(0.1)).front();
                 // instance.shift is a position of a centered object, while model object may not be centered.
                 // Convert the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
@@ -3327,6 +3327,16 @@ int Print::load_cached_data(const std::string& directory)
     object_filenames.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret;
     return ret;
+}
+
+BoundingBoxf3 PrintInstance::get_bounding_box() {
+    return print_object->model_object()->instance_bounding_box(*model_instance, false);
+}
+
+Polygon PrintInstance::get_convex_hull_2d() {
+    Polygon poly = print_object->model_object()->convex_hull_2d(model_instance->get_matrix());
+    poly.douglas_peucker(0.1);
+    return poly;
 }
 
 } // namespace Slic3r

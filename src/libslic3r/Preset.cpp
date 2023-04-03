@@ -755,7 +755,8 @@ static std::vector<std::string> s_Preset_print_options {
     "role_based_wipe_speed", "wipe_speed", "accel_to_decel_enable", "accel_to_decel_factor", "wipe_on_loops",
     "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
     "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
-    "tree_support_brim_width", "gcode_comments", "gcode_label_objects", "initial_layer_travel_speed"
+    "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
+    "initial_layer_travel_speed", "exclude_object"
 
 };
 
@@ -795,7 +796,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "printable_area", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "gcode_flavor",
     "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "change_filament_gcode",
-    "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius",  "extruder_clearance_max_radius","extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
+    "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
@@ -805,9 +806,8 @@ static std::vector<std::string> s_Preset_printer_options {
     "host_type", "print_host", "printhost_apikey",
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
-    "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
-    "thumbnails", "use_firmware_retraction", "use_relative_e_distances"
-};
+    "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails",
+    "use_firmware_retraction", "use_relative_e_distances", "bbl_calib_mark_logo"};
 
 static std::vector<std::string> s_Preset_sla_print_options {
     "layer_height",

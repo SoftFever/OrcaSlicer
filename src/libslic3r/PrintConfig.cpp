@@ -1146,14 +1146,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
-    def           = this->add("extruder_clearance_max_radius", coFloat);
-    def->label    = L("Max Radius");
-    def->tooltip  = L("Max clearance radius around extruder. Used for collision avoidance in by-object printing.");
-    def->sidetext = L("mm");
-    def->min      = 0;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(68));
-
     def = this->add("extruder_colour", coStrings);
     def->label = L("Extruder Color");
     def->tooltip = L("Only used as a visual help on UI");
@@ -1236,14 +1228,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Default filament color");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionStrings{""});
+    def->set_default_value(new ConfigOptionStrings{"#F2754E"});
 
     def = this->add("filament_colour", coStrings);
     def->label = L("Color");
     def->tooltip = L("Only used as a visual help on UI");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionStrings{ "#009688" });
+    def->set_default_value(new ConfigOptionStrings{ "#F2754E" });
 
     //bbs
     def          = this->add("required_nozzle_HRC", coInts);
@@ -1813,7 +1805,13 @@ void PrintConfigDef::init_fff_params()
                    "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(1));
-    
+
+    def = this->add("exclude_object", coBool);
+    def->label = L("Exclude objects");
+    def->tooltip = L("Enable this option to add EXCLUDE OBJECT command in g-code");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(1));
+
     def = this->add("gcode_comments", coBool);
     def->label = L("Verbose G-code");
     def->tooltip = L("Enable this to get a commented G-code file, with each line explained by a descriptive text. "
@@ -2202,7 +2200,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
     def->enum_labels.push_back("PrusaLink");
-    def->enum_labels.push_back("OctoPrint");
+    def->enum_labels.push_back("Octo/Klipper");
     def->enum_labels.push_back("Duet");
     def->enum_labels.push_back("FlashAir");
     def->enum_labels.push_back("AstroBox");
@@ -2218,7 +2216,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Volume of nozzle between the cutter and the end of nozzle");
     def->sidetext = L("mm³");
     def->mode = comAdvanced;
-    def->readonly = true;
+    def->readonly = false;
     def->set_default_value(new ConfigOptionFloat { 0.0 });
 
     def = this->add("start_end_points", coPoints);
@@ -2496,6 +2494,12 @@ void PrintConfigDef::init_fff_params()
                    "handle the retraction. This is only supported in recent Marlin.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("bbl_calib_mark_logo", coBool);
+    def->label = L("Show auto-calibration marks");
+    def->tooltip = "";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
