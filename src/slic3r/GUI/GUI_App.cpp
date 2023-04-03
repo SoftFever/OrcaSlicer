@@ -1141,22 +1141,26 @@ void GUI_App::post_init()
         {
             std::string file_name = iter->path().stem().string();
             if (boost::starts_with(file_name, "crash")) {
-                std::ifstream ifs(iter->path().string(), ios::in);
-                std::stringstream data;
-                data << ifs.rdbuf();
-                ifs.close();
+                if (file_name.find("done") == std::string::npos) {
+                    std::ifstream ifs(iter->path().string(), ios::in);
+                    std::stringstream data;
+                    data << ifs.rdbuf();
+                    ifs.close();
 
-                NetworkAgent* agent = wxGetApp().getAgent();
-                json j;
-                j["time"] = file_name.substr(file_name.find("crash") + strlen("crash") + 1);
-                j["verion"] = std::string(SLIC3R_VERSION);
-                j["content"] = decode_path(data.str().c_str());
-                try {
-                    if (agent) {
-                        agent->track_event("studio_crash", j.dump()); }
-                } catch (...) {}
-                std::string new_file_name = file_name.insert(0, "_done_");
-                boost::filesystem::rename(iter->path(), iter->path().parent_path() / boost::filesystem::path(new_file_name + iter->path().extension().string()));
+                    NetworkAgent* agent = wxGetApp().getAgent();
+                    json j;
+                    j["time"] = file_name.substr(file_name.find("crash") + strlen("crash") + 1);
+                    j["verion"] = std::string(SLIC3R_VERSION);
+                    j["content"] = decode_path(data.str().c_str());
+                    try {
+                        if (agent) {
+                            agent->track_event("studio_crash", j.dump());
+                        }
+                    }
+                    catch (...) {}
+                    std::string new_file_name = file_name.append("_done");
+                    boost::filesystem::rename(iter->path(), iter->path().parent_path() / boost::filesystem::path(new_file_name + iter->path().extension().string()));
+                }
             }
         }
     }
