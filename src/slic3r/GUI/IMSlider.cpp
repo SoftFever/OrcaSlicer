@@ -227,6 +227,8 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         return;
     }
 
+    static bool last_spiral_vase_status = false;
+
     const bool was_empty = m_ticks.empty();
 
     m_ticks.ticks.clear();
@@ -242,6 +244,30 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
         m_ticks.erase_all_ticks_with_code(ToolChange);
+        post_ticks_changed_event();
+    }
+
+    if (last_spiral_vase_status != m_is_spiral_vase) {
+        last_spiral_vase_status = m_is_spiral_vase;
+        if (!m_ticks.empty()) {
+            m_ticks.ticks.clear();
+            post_ticks_changed_event();
+        }
+    }
+
+    //auto has_tick_execpt = [this](CustomGCode::Type type) {
+    //    for (const TickCode& tick : m_ticks.ticks)
+    //        if (tick.type != type) return true;
+
+    //    return false;
+    //};
+    if ((!m_ticks.empty() /*&& has_tick_execpt(PausePrint)*/) && m_draw_mode == dmSequentialFffPrint) {
+        for (auto it{ m_ticks.ticks.begin() }, end{ m_ticks.ticks.end() }; it != end;) {
+            if (true/*it->type != PausePrint*/)
+                it = m_ticks.ticks.erase(it);
+            else
+                ++it;
+        }
         post_ticks_changed_event();
     }
 
@@ -285,6 +311,7 @@ void IMSlider::SetDrawMode(bool is_sequential_print)
 {
     m_draw_mode = is_sequential_print   ? dmSequentialFffPrint  : 
                                           dmRegular; 
+    m_can_change_color = m_can_change_color && !(m_draw_mode == dmSequentialFffPrint);
 }
 
 void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder, bool can_change_color)
@@ -1216,7 +1243,7 @@ void IMSlider::render_add_menu()
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            if (!m_can_change_color || m_draw_mode == dmSequentialFffPrint) {
+            if (!m_can_change_color) {
                 begin_menu(_u8L("Change Filament").c_str(), false);
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
@@ -1262,7 +1289,7 @@ void IMSlider::render_edit_menu(const TickCode& tick)
         case CustomGCode::ToolChange: {
             int extruder_num = m_extruder_colors.size();
             if (extruder_num > 1) {
-                if (!m_can_change_color || m_draw_mode == dmSequentialFffPrint) {
+                if (!m_can_change_color) {
                     begin_menu(_u8L("Change Filament").c_str(), false);
                 }
                 else if (begin_menu(_u8L("Change Filament").c_str())) {
