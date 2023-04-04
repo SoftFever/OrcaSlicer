@@ -1561,7 +1561,12 @@ void PartPlate::generate_plate_name_texture()
 	m_name_texture.reset();
 	auto text = m_name.empty()? _L("Untitled") : m_name;
 	wxCoord w, h;
+#ifdef WIN32
 	auto* font = &Label::Head_48;
+#else
+	auto* font = &Label::Head_32;
+#endif
+
 	wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
     if (!m_name_texture.generate_from_text_string(text.ToStdString(), *font, *wxBLACK, foreground))
 		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
