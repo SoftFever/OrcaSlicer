@@ -519,10 +519,12 @@ int CLI::run(int argc, char **argv)
     ConfigOptionString* pipe_option = m_config.option<ConfigOptionString>("pipe");
     if (pipe_option) {
         pipe_name = pipe_option->value;
-        BOOST_LOG_TRIVIAL(info) << boost::format("Will use pipe %1%")%pipe_name;
+        if (!pipe_name.empty()) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("Will use pipe %1%")%pipe_name;
 #if defined(__linux__) || defined(__LINUX__)
-        g_cli_callback_mgr.start(pipe_name);
+            g_cli_callback_mgr.start(pipe_name);
 #endif
+        }
     }
 
     /*for (const std::string& file : m_input_files)

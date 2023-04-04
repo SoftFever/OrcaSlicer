@@ -4668,7 +4668,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->label = L("Send progress to pipe");
     def->tooltip = L("Send progress to pipe.");
     def->cli_params = "pipename";
-    def->set_default_value(new ConfigOptionString("cli_pipe"));
+    def->set_default_value(new ConfigOptionString(""));
 }
 
 //BBS: remove unused command currently
