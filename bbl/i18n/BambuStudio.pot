@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 12:20+0800\n"
+"POT-Creation-Date: 2023-04-04 14:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1254,6 +1254,18 @@ msgstr ""
 msgid "Remove parameter"
 msgstr ""
 
+msgid "to"
+msgstr ""
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr ""
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 
@@ -1387,6 +1399,9 @@ msgid "Empty"
 msgstr ""
 
 msgid "AMS"
+msgstr ""
+
+msgid "Ams filament backup"
 msgstr ""
 
 msgid "AMS not connected"
@@ -1947,6 +1962,12 @@ msgstr ""
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr ""
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr ""
 
@@ -2385,9 +2406,6 @@ msgstr ""
 msgid "N/A"
 msgstr ""
 
-msgid "Invalid numeric."
-msgstr ""
-
 #, possible-c-format, possible-boost-format
 msgid "%s can't be percentage"
 msgstr ""
@@ -2489,9 +2507,6 @@ msgid "above"
 msgstr ""
 
 msgid "from"
-msgstr ""
-
-msgid "to"
 msgstr ""
 
 msgid "Color Scheme"
@@ -4279,6 +4294,14 @@ msgstr ""
 msgid "Units"
 msgstr ""
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr ""
 
@@ -4294,7 +4317,7 @@ msgstr ""
 msgid "User Sync"
 msgstr ""
 
-msgid "Auto sync system presets(Printer/Filament/Process)"
+msgid "Update built-in Presets automatically."
 msgstr ""
 
 msgid "System Sync"

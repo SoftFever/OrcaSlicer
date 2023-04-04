@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 12:20+0800\n"
+"POT-Creation-Date: 2023-04-04 14:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1281,6 +1281,18 @@ msgstr "Ytterligare process inställning"
 msgid "Remove parameter"
 msgstr "Ta bort parameter"
 
+msgid "to"
+msgstr "till"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "Ogiltig siffra."
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 "En cell kan endast kopieras till en eller flertalet celler i samma kolumn"
@@ -1416,6 +1428,9 @@ msgstr "Tom"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS ej ansluten"
@@ -2029,6 +2044,12 @@ msgstr "Skriv ut med filament i AMS"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Skriv ut med filament på en extern spole"
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS Inställningar"
 
@@ -2552,9 +2573,6 @@ msgstr "Parameter namn"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "Ogiltig siffra."
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan inte vara procent"
@@ -2660,9 +2678,6 @@ msgstr "över"
 
 msgid "from"
 msgstr "från"
-
-msgid "to"
-msgstr "till"
 
 msgid "Color Scheme"
 msgstr "Färgschema"
@@ -4524,6 +4539,14 @@ msgstr "Brittisk standard"
 msgid "Units"
 msgstr "Enheter"
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Visa \"Dagens tips\" efter start"
 
@@ -4541,7 +4564,7 @@ msgstr ""
 msgid "User Sync"
 msgstr "Användar synkronisering"
 
-msgid "Auto sync system presets(Printer/Filament/Process)"
+msgid "Update built-in Presets automatically."
 msgstr ""
 
 msgid "System Sync"

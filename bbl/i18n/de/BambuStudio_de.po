@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 12:20+0800\n"
+"POT-Creation-Date: 2023-04-04 14:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1299,6 +1299,18 @@ msgstr "Zusätzliche Prozessvoreinstellung"
 msgid "Remove parameter"
 msgstr "Parameter entfernen"
 
+msgid "to"
+msgstr "bis"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "Ungültige Zahl."
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 "eine Zelle kann nur in eine oder mehrere Zellen in derselben Spalte kopiert "
@@ -1437,6 +1449,9 @@ msgstr "Leer"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS ist nicht verbunden"
@@ -2060,6 +2075,12 @@ msgstr "Mit Filament in der AMS drucken"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Drucken mit Filament von einer externen Spule"
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS Einstellungen"
 
@@ -2603,9 +2624,6 @@ msgstr "Name des Parameters"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "Ungültige Zahl."
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kann nicht Prozent sein"
@@ -2711,9 +2729,6 @@ msgstr "über"
 
 msgid "from"
 msgstr "von"
-
-msgid "to"
-msgstr "bis"
 
 msgid "Color Scheme"
 msgstr "Farbschema"
@@ -4604,6 +4619,14 @@ msgstr "Impirisch"
 msgid "Units"
 msgstr "Einheiten"
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Benachrichtigung \"Tipp des Tages\" nach dem Start anzeigen"
 
@@ -4623,7 +4646,7 @@ msgstr ""
 msgid "User Sync"
 msgstr "Benutzer-Synchronisation"
 
-msgid "Auto sync system presets(Printer/Filament/Process)"
+msgid "Update built-in Presets automatically."
 msgstr ""
 
 msgid "System Sync"

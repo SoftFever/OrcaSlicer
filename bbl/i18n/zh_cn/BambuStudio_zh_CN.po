@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 12:20+0800\n"
+"POT-Creation-Date: 2023-04-04 14:45+0800\n"
 "PO-Revision-Date: 2023-03-29 12:43+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1259,6 +1259,18 @@ msgstr "附加工艺预设"
 msgid "Remove parameter"
 msgstr "删除参数"
 
+msgid "to"
+msgstr "到"
+
+msgid "Remove height range"
+msgstr "移除高度范围"
+
+msgid "Add height range"
+msgstr "添加高度范围"
+
+msgid "Invalid numeric."
+msgstr "数值错误。"
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr "一个单元格仅能被复制到同一列的一个或多个单元格"
 
@@ -1332,7 +1344,7 @@ msgid "Custom Template:"
 msgstr "自定义模板："
 
 msgid "Custom G-code:"
-msgstr "自定义G代码："
+msgstr "自定义G-code："
 
 msgid "Custom G-code"
 msgstr "自定义 G-code"
@@ -1371,13 +1383,13 @@ msgid "Delete Custom Template"
 msgstr "删除自定义模板"
 
 msgid "Edit Custom G-code"
-msgstr "编辑自定义G代码"
+msgstr "编辑自定义G-code"
 
 msgid "Delete Custom G-code"
-msgstr "删除自定义G代码"
+msgstr "删除自定义G-code"
 
 msgid "Delete Filament Change"
-msgstr "删除耗材丝更新"
+msgstr "删除耗材丝更换"
 
 msgid "No printer"
 msgstr "无打印机"
@@ -1393,6 +1405,9 @@ msgstr "空"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS未连接"
@@ -1973,6 +1988,12 @@ msgstr "采用AMS里的材料打印"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "采用挂载在机箱背部的材料打印"
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS 设置"
 
@@ -2465,9 +2486,6 @@ msgstr "参数名称"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "数值错误。"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s 不可以是百分比"
@@ -2573,9 +2591,6 @@ msgstr "高于"
 
 msgid "from"
 msgstr "从"
-
-msgid "to"
-msgstr "到"
 
 msgid "Color Scheme"
 msgstr "颜色方案"
@@ -4394,6 +4409,14 @@ msgstr "英制"
 msgid "Units"
 msgstr "单位"
 
+msgid "Zoom to mouse position"
+msgstr "放大到鼠标位置"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "启动后显示“每日小贴士”通知"
 
@@ -4409,8 +4432,8 @@ msgstr "同步用户预设（打印机/耗材丝/工艺）"
 msgid "User Sync"
 msgstr "用户同步"
 
-msgid "Auto sync system presets(Printer/Filament/Process)"
-msgstr "自动同步预设（打印机/耗材丝/工艺）"
+msgid "Update built-in Presets automatically."
+msgstr "自动更新系统预设"
 
 msgid "System Sync"
 msgstr "系统同步"
@@ -8592,6 +8615,9 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
+#~ msgid "Auto sync system presets(Printer/Filament/Process)"
+#~ msgstr "自动同步预设（打印机/耗材丝/工艺）"
+
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
 #~ "This may cause decline in the quality of overhang surface when print "
@@ -8608,14 +8634,6 @@ msgstr ""
 #~ "自动关闭悬垂降速？\n"
 #~ "是 - 使用arachne并关闭悬垂降速\n"
 #~ "否 - 此次放弃使用arachne"
-
-#~ msgid "Zoom to mouse position"
-#~ msgstr "放大到鼠标位置"
-
-#~ msgid ""
-#~ "Zoom in towards the mouse pointer's position in the 3D view, rather than "
-#~ "the 2D window center."
-#~ msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
 
 #~ msgid "Add/Edit connectors"
 #~ msgstr "添加/编辑连接件"
@@ -10709,12 +10727,6 @@ msgstr ""
 
 #~ msgid "To height"
 #~ msgstr "到高度"
-
-#~ msgid "Remove height range"
-#~ msgstr "移除高度范围"
-
-#~ msgid "Add height range"
-#~ msgstr "添加高度范围"
 
 #~ msgid "Local coordinates"
 #~ msgstr "本地坐标"

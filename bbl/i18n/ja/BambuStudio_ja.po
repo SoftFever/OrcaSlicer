@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 12:20+0800\n"
+"POT-Creation-Date: 2023-04-04 14:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1259,6 +1259,18 @@ msgstr "他のプリセット"
 msgid "Remove parameter"
 msgstr "パラメータを削除"
 
+msgid "to"
+msgstr "→"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "無効な数値"
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr "一つのセルは、同じ列のセルにしかコピーできません"
 
@@ -1393,6 +1405,9 @@ msgstr "空"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS が接続されていません"
@@ -1987,6 +2002,12 @@ msgstr "AMSのフィラメントで造形します"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "外部スプールホルダーのフィラメントで造形します"
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS 設定"
 
@@ -2475,9 +2496,6 @@ msgstr "パラメータ名"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "無効な数値"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s をパーセンテージにすることはできません"
@@ -2582,9 +2600,6 @@ msgstr "以上"
 
 msgid "from"
 msgstr "from"
-
-msgid "to"
-msgstr "→"
 
 msgid "Color Scheme"
 msgstr "配色スキーム"
@@ -4417,6 +4432,14 @@ msgstr "インチ"
 msgid "Units"
 msgstr "単位"
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "起動後「毎日のヒント」を表示"
 
@@ -4432,7 +4455,7 @@ msgstr "ユーザープリセットの自動同期 (プリンター/フィラメ
 msgid "User Sync"
 msgstr "ユーザー同期"
 
-msgid "Auto sync system presets(Printer/Filament/Process)"
+msgid "Update built-in Presets automatically."
 msgstr ""
 
 msgid "System Sync"

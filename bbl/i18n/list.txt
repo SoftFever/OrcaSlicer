@@ -21,6 +21,7 @@ src/slic3r/GUI/GUI_Init.cpp
 src/slic3r/GUI/GUI_Factories.cpp
 src/slic3r/GUI/GUI_ObjectList.cpp
 src/slic3r/GUI/GUI_ObjectSettings.cpp
+src/slic3r/GUI/GUI_ObjectLayers.cpp
 src/slic3r/GUI/GUI_ObjectTable.cpp
 src/slic3r/GUI/GUI_ObjectTable.hpp
 src/slic3r/GUI/GUI_ObjectTableSettings.cpp
