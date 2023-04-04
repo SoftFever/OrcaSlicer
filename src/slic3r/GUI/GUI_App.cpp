@@ -1738,6 +1738,8 @@ void GUI_App::restart_networking()
             mainframe->refresh_plugin_tips();
         if (plater_)
             plater_->get_notification_manager()->bbl_close_plugin_install_notification();
+
+        if (app_config->get("sync_user_preset") == "true") { start_sync_user_preset(); }
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
 }
