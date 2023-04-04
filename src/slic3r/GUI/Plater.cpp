@@ -3249,9 +3249,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config_substitutions.empty()) show_substitutions_info(config_substitutions.substitutions, filename.string());
 
                     // BBS
-                    this->model.plates_custom_gcodes = model.plates_custom_gcodes;
-                    this->model.design_info = model.design_info;
-                    this->model.model_info  = model.model_info;
+                    if (load_model && !load_config) {
+                        ;
+                    }
+                    else {
+                        this->model.plates_custom_gcodes = model.plates_custom_gcodes;
+                        this->model.design_info = model.design_info;
+                        this->model.model_info = model.model_info;
+                    }
                 }
 
                 if (load_config) {
