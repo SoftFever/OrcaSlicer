@@ -19,6 +19,9 @@
 #include "TopExp_Explorer.hxx"
 #include "TopoDS.hxx"
 #include "BRepExtrema_SelfIntersection.hxx"
+#include "clipper/clipper.hpp"
+
+using namespace ClipperLib;
 
 namespace Slic3r {
 const double STEP_TRANS_CHORD_ERROR = 0.005;
@@ -188,12 +191,63 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
                 }
             }
             // keep the start and end points of profile connected
-            profile_line_points.back().second = profile_line_points[0].first;
+            if (shape->fill.gradient != nullptr)
+                profile_line_points.back().second = profile_line_points[0].first;
             
             if (is_profile_self_interaction(profile_line_points))
                 BOOST_LOG_TRIVIAL(warning) << "the profile is self interaction.";
 
             path_line_points.push_back(profile_line_points);
+        }
+
+        if (shape->fill.gradient == nullptr) {
+            double scale_size = 1e6;
+            std::vector<std::vector<std::pair<gp_Pnt, gp_Pnt>>> new_path_line_points;
+            float stroke_width = shape->strokeWidth * scale_size;
+            Polygons polygons;
+            bool close_polygon = false;
+            for (int i = 0; i < path_line_points.size(); ++i) {
+                ClipperLib::Path pt_path;
+                for (auto line_point : path_line_points[i]) { 
+                    pt_path.push_back(IntPoint(line_point.first.X() * scale_size, line_point.first.Y() * scale_size));
+                }
+                pt_path.push_back(IntPoint(path_line_points[i].back().second.X() * scale_size, path_line_points[i].back().second.Y() * scale_size));
+
+                ClipperLib::Paths         out_paths;
+                ClipperLib::ClipperOffset co;
+                if (pt_path.front() == pt_path.back()) {
+                    co.AddPath(pt_path, ClipperLib::jtMiter, ClipperLib::etClosedLine);
+                    close_polygon = true;
+                } else {
+                    co.AddPath(pt_path, ClipperLib::jtMiter, ClipperLib::etOpenSquare);
+                    close_polygon = false;
+                }
+                co.Execute(out_paths, stroke_width / 2);
+
+                for (auto out_path : out_paths) {
+                    polygons.emplace_back(Polygon(out_path));
+                }
+            }
+
+            if (!close_polygon)
+                polygons = union_(polygons);
+
+            std::vector<std::pair<gp_Pnt, gp_Pnt>> profile_line_points;
+            for (auto polygon : polygons) {
+                profile_line_points.clear();
+                for (int i = 0; i < polygon.size() - 1; ++i) {
+                    gp_Pnt pt1(double(polygon[i][0] / scale_size), double(polygon[i][1] / scale_size), 0);
+                    gp_Pnt pt2(double(polygon[i + 1][0] / scale_size), double(polygon[i + 1][1] / scale_size), 0);
+                    profile_line_points.push_back({pt1, pt2});
+                }
+                gp_Pnt pt1(double(polygon.back()[0] / scale_size), double(polygon.back()[1] / scale_size), 0);
+                gp_Pnt pt2(double(polygon.front()[0] / scale_size), double(polygon.front()[1] / scale_size), 0);
+                profile_line_points.push_back({pt1, pt2});
+
+                new_path_line_points.push_back(profile_line_points);
+            }
+
+            path_line_points = new_path_line_points;
         }
 
         // generate all profile curves
