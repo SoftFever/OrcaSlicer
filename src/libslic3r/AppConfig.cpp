@@ -300,7 +300,7 @@ void AppConfig::set_defaults()
         set_bool("sync_system_preset", true);
     }
 
-    if (get("backup_switch").empty()) {
+    if (get("backup_switch").empty() || get("version") < "01.06.00.00") {
         set_bool("backup_switch", true);
     }
 
