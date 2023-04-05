@@ -14,6 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
+      - run: mkdir -p ${{ github.workspace }}/deps/build
+      - run: mkdir -p ${{ github.workspace }}/deps/build/destdir
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf build-essential cmake curl eglexternalplatform-dev \
