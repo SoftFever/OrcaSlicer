@@ -172,7 +172,7 @@
         },
         {
             "name": "Snapmaker J1 0.6 nozzle",
-            "sub_path": "machine/Snapmaker j1 0.6 nozzle.json"
+            "sub_path": "machine/Snapmaker J1 0.6 nozzle.json"
         }
     ]
 }
