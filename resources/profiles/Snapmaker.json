@@ -113,12 +113,12 @@
             "sub_path": "filament/Snapmaker Generic PA-CF.json"
         },
         {
-            "name": "Snapmaker Generic PLA",
-            "sub_path": "filament/Snapmaker Generic PLA.json"
+            "name": "Snapmaker J1 PLA",
+            "sub_path": "filament/Snapmaker J1 PLA.json"
         },
         {
-            "name": "Snapmaker Generic PLA-CF",
-            "sub_path": "filament/Snapmaker Generic PLA-CF.json"
+            "name": "Snapmaker J1 PLA-CF",
+            "sub_path": "filament/Snapmaker J1 PLA-CF.json"
         },
         {
             "name": "Snapmaker J1 PETG",
