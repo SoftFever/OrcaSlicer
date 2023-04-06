@@ -1112,13 +1112,14 @@ void NotificationManager::PrintHostUploadNotification::render_bar(ImGuiWrapper& 
 }
 void NotificationManager::PrintHostUploadNotification::render_left_sign(ImGuiWrapper& imgui)
 {
-	if (m_uj_state == UploadJobState::PB_ERROR) {
-		std::string text;
-		text = ImGui::ErrorMarker;
-		ImGui::SetCursorPosX(m_line_height / 3);
-		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
-		imgui.text(text.c_str());
-	}
+	// BBS: do not render left button
+	//if (m_uj_state == UploadJobState::PB_ERROR) {
+	//	std::string text;
+	//	text = ImGui::ErrorMarker;
+	//	ImGui::SetCursorPosX(m_line_height / 3);
+	//	ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
+	//	imgui.text(text.c_str());
+	//}
 }
 void NotificationManager::PrintHostUploadNotification::render_cancel_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
