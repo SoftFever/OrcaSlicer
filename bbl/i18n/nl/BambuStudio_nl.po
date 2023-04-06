@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 08:26+0800\n"
+"POT-Creation-Date: 2023-04-06 19:20+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1937,14 +1937,14 @@ msgstr "Bed Temperatuur"
 msgid "Max volumetric speed"
 msgstr "Maximale volumetrische snelheid"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Printbed temperatuur"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -3670,8 +3670,8 @@ msgstr "Stop"
 msgid "0"
 msgstr "0"
 
-msgid "Layers: N/A"
-msgstr "Lagen: N/A"
+msgid "Layer: N/A"
+msgstr ""
 
 msgid "Clear"
 msgstr "Wissen"
@@ -3747,12 +3747,12 @@ msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %s"
-msgstr "Lagen: %s"
+msgid "Layer: %s"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
-msgstr "Lagen: %d/%d"
+msgid "Layer: %d/%d"
+msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
@@ -3763,11 +3763,6 @@ msgstr "Nog steeds aan het ontladen"
 
 msgid "Still load"
 msgstr "Laad nog steeds"
-
-msgid "AMS settings are not supported for external spool"
-msgstr ""
-"De huidige AMS-instellingen ondersteunen het gebruik van een externe spoel "
-"niet."
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Selecteer een AMS-slot voor de kalibratie."
@@ -7283,9 +7278,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "Filament laadt tijd"
 
@@ -9266,6 +9258,28 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Lagen: N/A"
+
+#, c-format, boost-format
+#~ msgid "Layers: %s"
+#~ msgstr "Lagen: %s"
+
+#, c-format, boost-format
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Lagen: %d/%d"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "De huidige AMS-instellingen ondersteunen het gebruik van een externe "
+#~ "spoel niet."
 
 #~ msgid ""
 #~ "\n"

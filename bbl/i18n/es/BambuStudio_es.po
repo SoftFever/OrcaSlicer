@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 08:26+0800\n"
+"POT-Creation-Date: 2023-04-06 19:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1939,14 +1939,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm\\u00B3"
-msgstr "mm\\ u00b3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -3680,8 +3680,8 @@ msgstr "Detener"
 msgid "0"
 msgstr "0"
 
-msgid "Layers: N/A"
-msgstr "Capas: N/A"
+msgid "Layer: N/A"
+msgstr ""
 
 msgid "Clear"
 msgstr "Borrar"
@@ -3757,12 +3757,12 @@ msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %s"
-msgstr "Capas: %s"
+msgid "Layer: %s"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
-msgstr "Capas: %d/%d"
+msgid "Layer: %d/%d"
+msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
@@ -3774,9 +3774,6 @@ msgstr "Todavía estoy descargando"
 
 msgid "Still load"
 msgstr "Todavía estoy cargando"
-
-msgid "AMS settings are not supported for external spool"
-msgstr "La configuración actual de AMS no admite el uso de una bobina externa."
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Seleccione una ranura AMS antes de realizar la calibración."
@@ -7272,9 +7269,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
 
@@ -9245,6 +9239,27 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\ u00b3"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Capas: N/A"
+
+#, c-format, boost-format
+#~ msgid "Layers: %s"
+#~ msgstr "Capas: %s"
+
+#, c-format, boost-format
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Capas: %d/%d"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "La configuración actual de AMS no admite el uso de una bobina externa."
 
 #~ msgid ""
 #~ "\n"

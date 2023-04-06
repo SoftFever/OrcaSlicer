@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 08:26+0800\n"
+"POT-Creation-Date: 2023-04-06 19:20+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1911,14 +1911,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "\\u2103"
-msgstr "\\u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -3634,8 +3634,8 @@ msgstr "Stopp"
 msgid "0"
 msgstr "0"
 
-msgid "Layers: N/A"
-msgstr "Lager: N/A"
+msgid "Layer: N/A"
+msgstr ""
 
 msgid "Clear"
 msgstr "Rensa"
@@ -3710,12 +3710,12 @@ msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %s"
-msgstr "Lager: %s"
+msgid "Layer: %s"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
-msgstr "Lager: %d/%d"
+msgid "Layer: %d/%d"
+msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr "Värm nozzeln till över 170 grader innan du laddar filamentet."
@@ -3725,9 +3725,6 @@ msgstr "Matar ut fortfarande"
 
 msgid "Still load"
 msgstr "Laddar fortfarande"
-
-msgid "AMS settings are not supported for external spool"
-msgstr "Aktuell AMS-inställningar stöder inte användning av en extern spole."
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Välj ett AMS-fack innan kalibrering."
@@ -7129,9 +7126,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
 
@@ -8173,8 +8167,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Rectilinear Interlaced"
 msgstr ""
@@ -9065,6 +9059,27 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Lager: N/A"
+
+#, c-format, boost-format
+#~ msgid "Layers: %s"
+#~ msgstr "Lager: %s"
+
+#, c-format, boost-format
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Lager: %d/%d"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "Aktuell AMS-inställningar stöder inte användning av en extern spole."
 
 #~ msgid ""
 #~ "\n"

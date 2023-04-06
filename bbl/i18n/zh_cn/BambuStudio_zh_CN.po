@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 08:26+0800\n"
+"POT-Creation-Date: 2023-04-06 19:20+0800\n"
 "PO-Revision-Date: 2023-03-29 12:43+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1869,14 +1869,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -1968,7 +1968,7 @@ msgid ""
 msgstr "配置当前打印任务应使用哪个AMS槽位"
 
 msgid "Filament used in this print job"
-msgstr "当前打印打印使用的料丝"
+msgstr "当前打印使用的料丝"
 
 msgid "AMS slot used for this filament"
 msgstr "当前料丝对应的AMS槽位"
@@ -3544,7 +3544,7 @@ msgstr "停止"
 msgid "0"
 msgstr ""
 
-msgid "Layers: N/A"
+msgid "Layer: N/A"
 msgstr ""
 
 msgid "Clear"
@@ -3619,11 +3619,11 @@ msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr "前面还有%s个任务在云端切片队列中"
 
 #, c-format, boost-format
-msgid "Layers: %s"
+msgid "Layer: %s"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
+msgid "Layer: %d/%d"
 msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
@@ -3634,9 +3634,6 @@ msgstr "继续退料"
 
 msgid "Still load"
 msgstr "继续进料"
-
-msgid "AMS settings are not supported for external spool"
-msgstr "AMS设置对外置料盘无效"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "请先选择一个AMS槽位后进行标定"
@@ -3794,7 +3791,7 @@ msgid "Warning:"
 msgstr "警告："
 
 msgid "Export successfully."
-msgstr "导出成功."
+msgstr "发送成功."
 
 msgid " (Repair)"
 msgstr "（修复）"
@@ -6835,9 +6832,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -8617,6 +8611,9 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr "AMS设置对外置料盘无效"
 
 #~ msgid "Auto sync system presets(Printer/Filament/Process)"
 #~ msgstr "自动同步预设（打印机/耗材丝/工艺）"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 08:26+0800\n"
+"POT-Creation-Date: 2023-04-06 19:20+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1848,13 +1848,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm\\u00B3"
+msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -3448,7 +3448,7 @@ msgstr ""
 msgid "0"
 msgstr ""
 
-msgid "Layers: N/A"
+msgid "Layer: N/A"
 msgstr ""
 
 msgid "Clear"
@@ -3519,11 +3519,11 @@ msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Layers: %s"
+msgid "Layer: %s"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Layers: %d/%d"
+msgid "Layer: %d/%d"
 msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
@@ -3533,9 +3533,6 @@ msgid "Still unload"
 msgstr ""
 
 msgid "Still load"
-msgstr ""
-
-msgid "AMS settings are not supported for external spool"
 msgstr ""
 
 msgid "Please select an AMS slot before calibration"
@@ -6636,9 +6633,6 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"
