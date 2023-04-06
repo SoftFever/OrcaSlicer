@@ -2283,6 +2283,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_PRINT_ALL:
         func_name = "FUNC_PRINT_ALL";
         break;
+    case FUNC_VIRTUAL_TYAY:
+        func_name = "FUNC_VIRTUAL_TYAY";
+        break;
     default:
         return true;
     }

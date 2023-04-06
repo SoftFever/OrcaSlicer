@@ -1096,11 +1096,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     return sizer;
 }
 
-void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_vt_load)
+void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load)
 {
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode(show, support_virtual_tray, support_vt_load);
+    m_ams_control->show_noams_mode(show, support_virtual_tray, support_extrustion_cali, support_vt_load);
     if (m_show_ams_group != show) {
         Fit();
     }
@@ -1924,7 +1924,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         if (is_support_extrusion_cali) {
             m_ams_control->update_vams_kn_value(obj->vt_tray);
         }
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
+        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
         return;
     }
 
@@ -1933,7 +1933,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_control->update_vams_kn_value(obj->vt_tray);
     }
 
-    show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
+    show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
@@ -2684,11 +2684,11 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
     if (obj) {
         m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
         m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
-        std::string ams_id = m_ams_control->GetCurentAms();
-        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            wxString txt = _L("AMS settings are not supported for external spool");
-            MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
+        std::string ams_id = m_ams_control->GetCurentShowAms();
+        if (obj->amsList.size() == 0) {
+            /* wxString txt = _L("AMS settings are not supported for external spool");
+             MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
+             msg_dlg.ShowModal();*/
             return;
         } else {
             try {

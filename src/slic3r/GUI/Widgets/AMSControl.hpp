@@ -284,6 +284,7 @@ public:
 public:
     wxColour     GetLibColour();
     Caninfo      m_info;
+    MachineObject* m_obj = {nullptr};
     int          m_can_index;
     void         Update(Caninfo info, bool refresh = true);
     void         UnableSelected() { m_unable_selected = true; };
@@ -571,6 +572,7 @@ protected:
     std::string m_last_tray_id;
 public:
     std::string GetCurentAms();
+    std::string GetCurentShowAms();
     std::string GetCurrentCan(std::string amsid);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
@@ -610,7 +612,7 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
-    void show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load = false);
+    void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load = false);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray);

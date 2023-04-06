@@ -757,16 +757,25 @@ void AMSLib::render(wxDC &dc)
         }
 
         //draw k&n
-        if (m_show_kn) {
-            wxString str_k = wxString::Format("K %1.3f", m_info.k);
-            wxString str_n = wxString::Format("N %1.3f", m_info.n);
-            dc.SetFont(::Label::Body_11);
-            auto tsize = dc.GetMultiLineTextExtent(str_k);
-            auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
-            dc.DrawText(str_k, pot_k);
-
-            //auto pot_n = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(18) + tsize.y * 2);
-            //dc.DrawText(str_n, pot_n);
+        if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+            if (m_show_kn){
+                wxString str_k = wxString::Format("K %1.3f", m_info.k);
+                wxString str_n = wxString::Format("N %1.3f", m_info.n);
+                dc.SetFont(::Label::Body_11);
+                auto tsize = dc.GetMultiLineTextExtent(str_k);
+                auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
+                dc.DrawText(str_k, pot_k);
+            }
+        }
+        else if(m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL){
+            if (m_show_kn) {
+                wxString str_k = wxString::Format("K %1.3f", m_info.k);
+                wxString str_n = wxString::Format("N %1.3f", m_info.n);
+                dc.SetFont(::Label::Body_11);
+                auto tsize = dc.GetMultiLineTextExtent(str_k);
+                auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
+                dc.DrawText(str_k, pot_k);
+            }
         }
     }
 
@@ -939,6 +948,12 @@ void AMSLib::doRender(wxDC &dc)
 
 void AMSLib::Update(Caninfo info, bool refresh)
 {
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    if (dev->get_selected_machine() && dev->get_selected_machine() != m_obj) {
+        m_obj = dev->get_selected_machine();
+    }
+
     m_info = info;
     Layout();
     if (refresh) Refresh();
@@ -2250,6 +2265,7 @@ void AMSControl::init_scaled_buttons()
 }
 
 std::string AMSControl::GetCurentAms() { return m_current_ams; }
+std::string AMSControl::GetCurentShowAms() { return m_current_show_ams; }
 
 std::string AMSControl::GetCurrentCan(std::string amsid)
 {
@@ -2497,11 +2513,12 @@ void AMSControl::Reset()
     m_current_senect    = "";
 }
 
-void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load)
+void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load)
 {
     show_vams(support_virtual_tray);
     m_sizer_ams_tips->Show(support_virtual_tray);
-    if (!support_virtual_tray)
+
+    if (!support_extrustion_cali)
         m_button_extrusion_cali->Hide();
     else {
         m_button_extrusion_cali->Show();
