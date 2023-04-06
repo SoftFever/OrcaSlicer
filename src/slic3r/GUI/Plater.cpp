@@ -5337,6 +5337,18 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             preview->set_as_dirty();
         };
 
+    //BBS: add the collapse logic
+    if (panel == preview && q->only_gcode_mode()) {
+        this->sidebar->collapse(true);
+        preview->get_canvas3d()->enable_select_plate_toolbar(false);
+    }
+    else if (panel == preview && q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
+        preview->get_canvas3d()->enable_select_plate_toolbar(false);
+    }
+    else {
+        preview->get_canvas3d()->enable_select_plate_toolbar(true);
+    }
+
     if (current_panel == panel)
     {
         //BBS: add slice logic when switch to preview page
@@ -5362,17 +5374,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     }
 //#endif
     current_panel = panel;
-    //BBS: add the collapse logic
-    if (current_panel == preview && q->only_gcode_mode()) {
-        this->sidebar->collapse(true);
-        preview->get_canvas3d()->enable_select_plate_toolbar(false);
-    }
-    else if (current_panel == preview && q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
-        preview->get_canvas3d()->enable_select_plate_toolbar(false);
-    }
-    else {
-        preview->get_canvas3d()->enable_select_plate_toolbar(true);
-    }
 
     // to reduce flickering when changing view, first set as visible the new current panel
     for (wxPanel* p : panels) {
