@@ -31,6 +31,7 @@ wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 
 bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
 {
@@ -1030,8 +1031,15 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
 
             if (mouse_pos.x > rect.x + GetSize().x - FromDIP(25) && 
                 mouse_pos.y > rect.y + GetSize().y - FromDIP(25)) {
-                wxCommandEvent event(EVT_AMS_SHOW_HUMIDITY_TIPS);
-                wxPostEvent(GetParent()->GetParent(), event);
+                wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
+                wxPostEvent(GetParent()->GetParent(), show_event);
+
+#ifdef __WXMSW__
+                wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+                wxPostEvent(GetParent()->GetParent(), close_event);
+#endif // __WXMSW__
+
+               
             }
         }
     });
@@ -1803,6 +1811,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
          m_ams_introduce_popup.set_mode(true);
          m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
          m_ams_introduce_popup.Popup();
+
+#ifdef __WXMSW__
+         wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+         wxPostEvent(this, close_event);
+#endif // __WXMSW__
     });
     img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
          m_ams_introduce_popup.Dismiss();
@@ -2028,11 +2041,16 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         m_ams_introduce_popup.set_mode(false);
         m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
         m_ams_introduce_popup.Popup();
-        });
+
+#ifdef __WXMSW__
+        wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+        wxPostEvent(this, close_event);
+#endif // __WXMSW__
+    });
 
     img_vams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_ams_introduce_popup.Dismiss();
-        });
+    });
 
     m_sizer_vams_tips->Add(m_vams_tip, 0, wxTOP, FromDIP(5));
     m_sizer_vams_tips->Add(img_vams_tip, 0, wxALL, FromDIP(3));

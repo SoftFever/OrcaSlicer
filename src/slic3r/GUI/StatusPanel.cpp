@@ -3058,16 +3058,13 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     });
     popUp->Bind(wxEVT_SHOW, [this, popUp](auto &e) {
         if (!e.IsShown()) {
-           /* wxGetApp().CallAfter([this, popUp] { 
-                
-            });*/
             popUp->Destroy();
             m_showing_speed_popup = false;
             speed_dismiss_time = boost::posix_time::microsec_clock::universal_time();
         }
         });
     
-    m_ams_control->Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this, popUp](auto& e) {
+    m_ams_control->Bind(EVT_CLEAR_SPEED_CONTROL, [this, popUp](auto& e) {
         if (m_showing_speed_popup) {
             if (popUp && popUp->IsShown()) {
                 popUp->Show(false);
