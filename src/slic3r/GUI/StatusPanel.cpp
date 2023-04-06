@@ -1921,7 +1921,9 @@ void StatusPanel::update_ams(MachineObject *obj)
             BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         }
         bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-        if (is_support_extrusion_cali) {
+        bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+
+        if (is_support_virtual_tray) {
             m_ams_control->update_vams_kn_value(obj->vt_tray);
         }
         show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
@@ -1929,7 +1931,9 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-    if (is_support_extrusion_cali) {
+    bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+
+    if (is_support_virtual_tray) {
         m_ams_control->update_vams_kn_value(obj->vt_tray);
     }
 

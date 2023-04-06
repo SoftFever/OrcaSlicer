@@ -757,7 +757,7 @@ void AMSLib::render(wxDC &dc)
         }
 
         //draw k&n
-        if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+        if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
             if (m_show_kn){
                 wxString str_k = wxString::Format("K %1.3f", m_info.k);
                 wxString str_n = wxString::Format("N %1.3f", m_info.n);
@@ -2562,6 +2562,18 @@ void AMSControl::update_vams_kn_value(AmsTray tray)
     m_vams_lib->m_info.material_colour = tray.get_color();
     m_vams_lib->Refresh();
 }
+
+void AMSControl::reset_vams()
+{
+    m_vams_lib->m_info.k = 0;
+    m_vams_lib->m_info.n = 0;
+    m_vams_lib->m_info.material_name = wxEmptyString;
+    m_vams_lib->m_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
+    m_vams_info.material_name = wxEmptyString;
+    m_vams_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
+    m_vams_lib->Refresh();
+}
+
 
 void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool has_extrusion_cali, bool is_reset)
 {

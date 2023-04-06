@@ -617,7 +617,8 @@ public:
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray);
 
-    void post_event(wxEvent &&event);
+    void reset_vams();
+    void post_event(wxEvent&& event);
 
     virtual bool Enable(bool enable = true);
 

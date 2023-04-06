@@ -419,7 +419,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
 
         // set k / n value
-        if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+        if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
             // set extrusion cali ratio
             int cali_tray_id = ams_id * 4 + tray_id;
 
@@ -477,7 +477,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     else {
         if (!m_is_third) {
             // check and set k n
-            if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+            if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
                 if (!ExtrusionCalibration::check_k_validation(k_text)) {
                     wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
                     wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
@@ -489,7 +489,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
 
             // set k / n value
-            if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+            if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
                 // set extrusion cali ratio
                 int cali_tray_id = ams_id * 4 + tray_id;
 
@@ -575,7 +575,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         }
         else {
             if (obj) {
-                if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+                if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
                     if (!ExtrusionCalibration::check_k_validation(k_text)) {
                         wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
                         wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
@@ -596,7 +596,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                 }
 
                 // set k / n value
-                if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+                if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
                     // set extrusion cali ratio
                     int cali_tray_id = ams_id * 4 + tray_id;
 
@@ -698,7 +698,7 @@ void AMSMaterialsSetting::update_widgets()
         else
             m_panel_normal->Hide();
         m_panel_kn->Show();
-    } else if (obj && obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+    } else if (obj && obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
         m_panel_normal->Show();
         m_panel_kn->Show();
     } else {
@@ -749,7 +749,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
         if (!m_is_third) {
             m_button_reset->Hide();
-            if (obj && obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+            if (obj && obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
                 m_button_confirm->Show();
             } else {
                 m_button_confirm->Hide();
