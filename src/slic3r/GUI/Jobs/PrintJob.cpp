@@ -110,6 +110,7 @@ void PrintJob::process()
 {
     /* display info */
     wxString msg;
+    wxString error_str;
     int curr_percent = 10;
     NetworkAgent* m_agent = wxGetApp().getAgent();
     AppConfig* config = wxGetApp().app_config;
@@ -232,19 +233,22 @@ void PrintJob::process()
         30,     // PrintingStageUpload
         70,     // PrintingStageWaiting
         75,     // PrintingStageRecord
-        99,     // PrintingStageSending
+        97,     // PrintingStageSending
         100     // PrintingStageFinished
     };
 
-    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
-                        if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
+    bool is_try_lan_mode = false;
+    bool is_try_lan_mode_failed = false;
+
+    auto update_fn = [this, &is_try_lan_mode, &is_try_lan_mode_failed, &msg, &error_str, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
+                        if (stage == BBL::SendingPrintJobStage::PrintingStageCreate && !is_try_lan_mode_failed) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
                             } else {
                                 msg = _L("Sending print job through cloud service");
                             }
                         }
-                        else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload && !is_try_lan_mode_failed) {
                             if (code >= 0 && code <= 100 && !info.empty()) {
                                 if (this->connection_type == "lan") {
                                     msg = _L("Sending print job over LAN");
@@ -261,10 +265,10 @@ void PrintJob::process()
                                 msg = _L("Sending print job through cloud service");
                             }
                         }
-                        else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord) {
+                        else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord && !is_try_lan_mode) {
                             msg = _L("Sending print configuration");
                         }
-                        else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageSending && !is_try_lan_mode) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
                             } else {
@@ -294,9 +298,11 @@ void PrintJob::process()
 
                         if (code > 100 || code < 0) {
                             error_text = this->get_http_error_msg(code, info);
-                            msg += wxString::Format("[%s]", error_text);
+                            error_str = wxString::Format("[%s]", error_text);
+                        } else {
+                            error_str = wxEmptyString;
                         }
-                        this->update_status(curr_percent, msg);
+                        this->update_status(curr_percent, msg + error_str);
                     };
 
     auto cancel_fn = [this]() {
@@ -324,6 +330,7 @@ void PrintJob::process()
             else {
                 BOOST_LOG_TRIVIAL(info) << "print_job: use ftp send print only";
                 this->update_status(curr_percent, _L("Sending print job over LAN"));
+                is_try_lan_mode = true;
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
                 if (result < 0) {
                     error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
@@ -341,7 +348,10 @@ void PrintJob::process()
                 BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
                 this->update_status(curr_percent, _L("Sending print job over LAN"));
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
-                if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+                if (result == 0) {
+                    params.comments = "";
+                }
+                else if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
                     params.comments = "wrong_code";
                 }
                 else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
@@ -351,6 +361,7 @@ void PrintJob::process()
                     params.comments = (boost::format("failed(%1%)") % result).str();
                 }
                 if (result < 0) {
+                    is_try_lan_mode_failed = true;
                     // try to send with cloud
                     BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
                     this->update_status(curr_percent, _L("Sending print job through cloud service"));
