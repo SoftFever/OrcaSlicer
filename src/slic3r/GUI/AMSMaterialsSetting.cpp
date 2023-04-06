@@ -914,11 +914,12 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) { this->R
 
 ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
 {
+    wxWindow::Create(parent, id, pos, size);
+
     SetSize(wxSize(FromDIP(25), FromDIP(25)));
     SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
     SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
 
-    wxWindow::Create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &ColorPicker::paintEvent, this);
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
 }
