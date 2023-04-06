@@ -128,6 +128,7 @@ class FakeWebView : public wxWebView
 wxDEFINE_EVENT(EVT_WEBVIEW_RECREATED, wxCommandEvent);
 
 static std::vector<wxWebView*> g_webviews;
+static std::vector<wxWebView*> g_delay_webviews;
 
 class WebViewRef : public wxObjectRefData
 {
@@ -193,16 +194,27 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
         Slic3r::GUI::WKWebView_setTransparentBackground(wkWebView);
 #endif
+        auto addScriptMessageHandler = [] (wxWebView *webView) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": begin to add script message handler for wx.";
+            Slic3r::GUI::wxGetApp().set_adding_script_handler(true);
+            if (!webView->AddScriptMessageHandler("wx"))
+                wxLogError("Could not add script message handler");
+            Slic3r::GUI::wxGetApp().set_adding_script_handler(false);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished add script message handler for wx.";
+        };
 #ifndef __WIN32__
-        webView->CallAfter([webView] {
+        webView->CallAfter([webView, addScriptMessageHandler] {
 #endif
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": begin to add script message handler for wx.";
-        Slic3r::GUI::wxGetApp().set_adding_script_handler(true);
-        if (!webView->AddScriptMessageHandler("wx"))
-            wxLogError("Could not add script message handler");
-        Slic3r::GUI::wxGetApp().set_adding_script_handler(false);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished add script message handler for wx.";
-
+            if (Slic3r::GUI::wxGetApp().is_adding_script_handler()) {
+                g_delay_webviews.push_back(webView);
+            } else {
+                addScriptMessageHandler(webView);
+                while (!g_delay_webviews.empty()) {
+                    auto views = std::move(g_delay_webviews);
+                    for (auto wv : views)
+                        addScriptMessageHandler(wv);
+                }
+            }
 #ifndef __WIN32__
         });
 #endif
