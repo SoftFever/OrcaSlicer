@@ -608,7 +608,7 @@ void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons 
     }
 }
 
-std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std::function<void()> &throw_if_canceled)
+std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std::function<void()> &throw_if_canceled, int &firstLayerReplacedBy)
 {
     std::string error_msg;//BBS
 
@@ -720,10 +720,14 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
 
     // BBS: first layer slices are sorted by volume group, if the first layer is empty and replaced by the 2nd layer
 // the later will be stored in "object->firstLayerObjGroupsMod()"
-    int firstLayerReplacedBy = 0;
     if (!buggy_layers.empty() && buggy_layers.front() == 0 && layers.size() > 1)
         firstLayerReplacedBy = 1;
 
+    return error_msg;
+}
+
+void groupingVolumesForBrim(PrintObject* object, LayerPtrs& layers, int firstLayerReplacedBy)
+{
     const auto           scaled_resolution = scaled<double>(object->print()->config().resolution.value);
     auto partsObjSliceByVolume = findPartVolumes(object->firstLayerObjSliceMod(), object->model_object()->volumes);
     groupingVolumes(partsObjSliceByVolume, object->firstLayerObjGroupsMod(), scaled_resolution, firstLayerReplacedBy);
@@ -731,8 +735,6 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
     reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices);
-
-    return error_msg;
 }
 
 // Called by make_perimeters()
@@ -757,10 +759,12 @@ void PrintObject::slice()
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
     this->slice_volumes();
     m_print->throw_if_canceled();
+    int firstLayerReplacedBy = 0;
+
 #if 1
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
-    std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); });
+    std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); }, firstLayerReplacedBy);
     m_print->throw_if_canceled();
     //BBS: send warning message to slicing callback
     if (!warning.empty()) {
@@ -768,6 +772,10 @@ void PrintObject::slice()
         this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
     }
 #endif
+
+    // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
+    groupingVolumesForBrim(this, m_layers, firstLayerReplacedBy);
+
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),

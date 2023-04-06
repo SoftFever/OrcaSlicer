@@ -197,7 +197,7 @@ public:
 protected:
     friend class PrintObject;
     friend std::vector<Layer*> new_layers(PrintObject*, const std::vector<coordf_t>&);
-    friend std::string fix_slicing_errors(PrintObject* object, LayerPtrs&, const std::function<void()>&);
+    friend std::string fix_slicing_errors(PrintObject* object, LayerPtrs&, const std::function<void()>&, int &);
 
     Layer(size_t id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
         upper_layer(nullptr), lower_layer(nullptr), slicing_errors(false),
