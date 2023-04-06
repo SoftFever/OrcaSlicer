@@ -289,7 +289,7 @@ void ObjectLayers::sys_color_changed()
         if (item->IsSizer()) {// case when we have editor with buttons
             for (size_t btn : {2, 3}) { // del_btn, add_btn
                 wxSizerItem* b_item = item->GetSizer()->GetItem(btn);
-                if (b_item->IsWindow()) {
+                if (b_item && b_item->IsWindow()) {
                     auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
                     if (button != nullptr)
                         button->msw_rescale();

@@ -1259,12 +1259,11 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
         if (item)
         {
             const ItemType type = m_objects_model->GetItemType(item);
-            if (!(type & (itPlate | itObject | itVolume | itLayer | itInstance)))
+            if (!(type & (itPlate | itObject | itVolume | itInstance)))
                 return;
 
             menu =  type & itPlate                                              ? plater->plate_menu() :
                     type & itInstance                                           ? plater->instance_menu() :
-                    type & itLayer                                              ? plater->layer_menu() :
                     type & itVolume                                             ? plater->part_menu() :
                     printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
         }
