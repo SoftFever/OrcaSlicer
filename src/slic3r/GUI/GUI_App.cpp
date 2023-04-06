@@ -4425,6 +4425,9 @@ void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_d
 {
     if (!m_agent || !m_agent->is_user_login()) return;
 
+    if (load_immediately)
+        remove_user_presets();
+
     enable_user_preset_folder(true);
 
     // has already start sync
@@ -4540,6 +4543,9 @@ void GUI_App::stop_sync_user_preset()
     if (!wxGetApp().m_is_closing)
         remove_user_presets();
     enable_user_preset_folder(false);
+
+    preset_bundle->load_user_presets(DEFAULT_USER_FOLDER_NAME, ForwardCompatibilitySubstitutionRule::Enable);
+    mainframe->update_side_preset_ui();
 
     if (!enable_sync)
         return;

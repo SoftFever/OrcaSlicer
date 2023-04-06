@@ -241,12 +241,12 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     //BBS: change system config to json
     std::tie(substitutions, errors_cummulative) = this->load_system_presets_from_json(substitution_rule);
 
-    // Load default user presets always
-    load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
     // BBS load preset from user's folder, load system default if
     // BBS: change directories by design
     std::string dir_user_presets = config.get("preset_folder");
-    if (!dir_user_presets.empty()) {
+    if (dir_user_presets.empty()) {
+        load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
+    } else {
         load_user_presets(dir_user_presets, substitution_rule);
     }
 
