@@ -1790,7 +1790,10 @@ void GCodeViewer::update_layers_slider_mode()
 void GCodeViewer::update_marker_curr_move() {
     if ((int)m_last_result_id != -1) {
         auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this](auto move) {
-            return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
+                if (m_sequential_view.current.last < m_sequential_view.gcode_ids.size() && m_sequential_view.current.last >= 0) {
+                    return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
+                }
+                return false;
             });
         if (it != m_gcode_result->moves.end())
             m_sequential_view.marker.update_curr_move(*it);
