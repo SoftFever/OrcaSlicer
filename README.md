@@ -59,6 +59,17 @@ Prebuilt binaries are available through the [github releases page](https://githu
   - run `BuildLinux.sh -udisr`
 
 
+# Note: 
+If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
+```
+# Enable object exclusion
+[exclude_object]
+
+# Enable arcs support
+[gcode_arcs]
+resolution: 0.1
+```
+
 # License
 Orca Slicer is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
 
