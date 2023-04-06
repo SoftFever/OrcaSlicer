@@ -752,7 +752,10 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     // a region is considered well supported if the number of layers below it exceeds this threshold
     const int thresh_layers_below = 10 / config.layer_height;
     double obj_height = m_object->size().z();
-    double threshold_rad = (config.support_threshold_angle.value < EPSILON ? 30 : config.support_threshold_angle.value + 1) * M_PI / 180.;
+    // +1 makes the threshold inclusive
+    double thresh_angle = config.support_threshold_angle.value > EPSILON ? config.support_threshold_angle.value + 1 : 30;
+    thresh_angle = std::min(thresh_angle, 89.); // should be smaller than 90
+    const double threshold_rad = Geometry::deg2rad(thresh_angle);
 
     // for small overhang removal
     struct OverhangCluster {
@@ -3289,7 +3292,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     size_t support_roof_layers = config.support_interface_top_layers.value;
     if (support_roof_layers > 0)
         support_roof_layers += 1; // BBS: add a normal support layer below interface (if we have interface)
-    coordf_t  thresh_angle           = config.support_threshold_angle.value < EPSILON ? 30.f : config.support_threshold_angle.value;
+    coordf_t  thresh_angle = std::min(89.f, config.support_threshold_angle.value < EPSILON ? 30.f : config.support_threshold_angle.value);
     coordf_t  half_overhang_distance = scale_(tan(thresh_angle * M_PI / 180.0) * layer_height / 2);
 
     // fix bug of generating support for very thin objects

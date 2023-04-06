@@ -1549,9 +1549,10 @@ static inline ExPolygons detect_overhangs(
     const bool   buildplate_only = ! annotations.buildplate_covered.empty();
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
-    const double threshold_rad   = (object_config.support_threshold_angle.value > 0) ?
-        M_PI * double(object_config.support_threshold_angle.value + 1) / 180. : // +1 makes the threshold inclusive
-        0.;
+    // +1 makes the threshold inclusive
+    double thresh_angle = object_config.support_threshold_angle.value > 0 ? object_config.support_threshold_angle.value + 1 : 0;
+    thresh_angle = std::min(thresh_angle, 89.); // BBS should be smaller than 90
+    const double threshold_rad = Geometry::deg2rad(thresh_angle);
     const coordf_t max_bridge_length = scale_(object_config.max_bridge_length.value);
     const bool bridge_no_support = object_config.bridge_no_support.value;
     const coordf_t xy_expansion = scale_(object_config.support_expansion.value);
@@ -1731,11 +1732,6 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
     // BBS.
     const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
     const bool   buildplate_only = !annotations.buildplate_covered.empty();
-    // If user specified a custom angle threshold, convert it to radians.
-    // Zero means automatic overhang detection.
-    const double threshold_rad = (object_config.support_threshold_angle.value > 0) ?
-        M_PI * double(object_config.support_threshold_angle.value + 1) / 180. : // +1 makes the threshold inclusive
-        0.;
     float        no_interface_offset = 0.f;
 
     if (layer_id == 0)
