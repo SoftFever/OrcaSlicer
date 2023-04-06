@@ -10047,9 +10047,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     if (plate_idx == PLATE_CURRENT_IDX) {
         p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
     }
-    else if (plate_idx == PLATE_ALL_IDX) {
-        p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
-    } else {
+    else {
         p->m_print_job_data.plate_idx = plate_idx;
     }
 
