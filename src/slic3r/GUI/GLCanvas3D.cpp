@@ -1983,7 +1983,7 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
     std::vector<std::array<float, 4>> colors = ::get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
@@ -5429,7 +5429,14 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     auto is_visible = [plate_idx, plate_build_volume](const GLVolume& v) {
         bool ret = v.printable;
         if (plate_idx >= 0) {
-            ret &= plate_build_volume.contains(v.transformed_convex_hull_bounding_box());
+            bool contained = false;
+            BoundingBoxf3 plate_bbox = plate_build_volume;
+            plate_bbox.min(2) = -1e10;
+            const BoundingBoxf3& volume_bbox = v.transformed_convex_hull_bounding_box();
+            if (plate_bbox.contains(volume_bbox) && (volume_bbox.max(2) > 0)) {
+                contained = true;
+            }
+            ret &= contained;
         }
         else {
             ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
@@ -5461,6 +5468,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             volumes_box.merge(vol->transformed_bounding_box());
         }
     }
+    volumes_box.min.z() = -Slic3r::BuildVolume::SceneEpsilon;
     double width = volumes_box.max.x() - volumes_box.min.x();
     double depth = volumes_box.max.y() - volumes_box.min.y();
     double height = volumes_box.max.z() - volumes_box.min.z();
@@ -5592,6 +5600,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             curr_color[3] = vol->color[3];
 
             shader->set_uniform("uniform_color", curr_color);
+            shader->set_uniform("volume_world_matrix", vol->world_matrix());
             //BBS set all volume to orange
             //shader->set_uniform("uniform_color", orange);
             /*if (plate_idx > 0) {

@@ -1765,11 +1765,11 @@ int CLI::run(int argc, char **argv)
 
     // All transforms have been dealt with. Now ensure that the objects are on bed.
     // (Unless the user said otherwise.)
-    //BBS: current only support models on bed
+    //BBS: current only support models on bed, 0407 sinking supported
     //if (m_config.opt_bool("ensure_on_bed"))
-        for (auto &model : m_models)
-            for (auto &o : model.objects)
-                o->ensure_on_bed();
+    //    for (auto &model : m_models)
+    //        for (auto &o : model.objects)
+    //            o->ensure_on_bed();
 
     // loop through action options
     bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
@@ -2092,7 +2092,7 @@ int CLI::run(int argc, char **argv)
                                     outfile = outfile_final;
                                 }*/
                                 // Run the post-processing scripts if defined.
-                                run_post_process_scripts(outfile, print->full_print_config());
+                                //run_post_process_scripts(outfile, print->full_print_config());
                                 BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
                                 part_plate->update_slice_result_valid_state(true);
 #if defined(__linux__) || defined(__LINUX__)
@@ -2359,7 +2359,7 @@ int CLI::run(int argc, char **argv)
                     }
 
                     ThumbnailsParams thumbnail_params;
-                    GLShaderProgram* shader = opengl_mgr.get_shader("gouraud_light");
+                    GLShaderProgram* shader = opengl_mgr.get_shader("thumbnail");
                     if (!shader) {
                         BOOST_LOG_TRIVIAL(error) << boost::format("can not get shader for rendering thumbnail");
                     }
