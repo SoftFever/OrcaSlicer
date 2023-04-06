@@ -1622,7 +1622,7 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
         
         m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
             if (obj) {
-                obj->command_clean_print_error(obj->subtask_id_);
+                obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
             }
         });
         

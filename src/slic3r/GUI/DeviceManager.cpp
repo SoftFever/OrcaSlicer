@@ -1459,13 +1459,14 @@ int MachineObject::command_pushing(std::string cmd)
     return -1;
 }
 
-int MachineObject::command_clean_print_error(std::string subtask_id)
+int MachineObject::command_clean_print_error(std::string subtask_id, int print_error)
 {
     BOOST_LOG_TRIVIAL(info) << "command_clean_print_error, id = " << subtask_id;
     json j;
     j["print"]["command"] = "clean_print_error";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["subtask_id"] = subtask_id;
+    j["print"]["print_error"] = print_error;
 
     return this->publish_json(j.dump());
 }
