@@ -1040,6 +1040,7 @@ void GUI_App::post_init()
             }
         }
     }
+
 //#if BBL_HAS_FIRST_PAGE
     bool slow_bootup = false;
     if (app_config->get("slow_bootup") == "true") {
@@ -2656,6 +2657,11 @@ bool GUI_App::on_init_inner()
             this->mainframe->register_win32_callbacks();
 #endif
             this->post_init();
+
+            if (!m_download_file_url.empty()) {
+                request_model_download(m_download_file_url);
+                m_download_file_url = "";
+            }
         }
     });
 
@@ -5543,7 +5549,13 @@ void GUI_App::MacOpenURL(const wxString& url)
         std::string download_file_url = url_decode(download_origin_url);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
         if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
-            request_model_download(download_file_url);
+
+            if (m_post_initialized) {
+                request_model_download(download_file_url);
+            }
+            else {
+                m_download_file_url = download_file_url;
+            }
         }
     }
 }
