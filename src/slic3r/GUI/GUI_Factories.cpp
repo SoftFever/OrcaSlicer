@@ -488,7 +488,7 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
               std::vector<boost::filesystem::path> input_files;
               std::string file_name = item;
               if (file_name == "Orca Cube")
-                file_name = "OrcaCube_v1.3mf";
+                file_name = "OrcaCube_v2.3mf";
               else if (file_name == "3DBenchy")
                 file_name = "3DBenchy.stl";
               else if (file_name == "Autodesk FDM Test")
