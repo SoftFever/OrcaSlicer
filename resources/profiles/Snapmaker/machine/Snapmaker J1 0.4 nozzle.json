@@ -11,7 +11,7 @@
       "3"
     ],
     "thumbnails": [
-      "400x400"
+     "400x400"
     ],
     "z_hop_types": [
       "Auto Lift"
@@ -61,10 +61,9 @@
         "25"
     ],
     "max_layer_height": [
-        "0.28"
+        "0.30"
     ],
     "scan_first_layer": "0",
     "nozzle_type": "hardened_steel",
     "auxiliary_fan": "0"
 }
-    

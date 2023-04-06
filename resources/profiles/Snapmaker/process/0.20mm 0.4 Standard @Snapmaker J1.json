@@ -5,9 +5,6 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_process_common",
-  "compatible_printers": [
-    "Snapmaker J1 0.4 nozzle"
-  ],
   "bottom_shell_layers": "4",
   "bridge_acceleration": "60%",
   "brim_type": "no_brim",
@@ -76,5 +73,8 @@
   "travel_jerk": "9",
   "travel_speed": "150",
   "tree_support_wall_count": "2",
-  "xy_hole_compensation": "0.08"
+  "xy_hole_compensation": "0.08",
+  "compatible_printers": [
+    "Snapmaker J1 0.4 nozzle"
+  ]
 }
