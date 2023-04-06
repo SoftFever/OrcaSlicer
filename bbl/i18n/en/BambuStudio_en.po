@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-04 14:45+0800\n"
+"POT-Creation-Date: 2023-04-06 08:26+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1898,14 +1898,14 @@ msgstr "Bed Temperature"
 msgid "Max volumetric speed"
 msgstr "Max volumetric speed"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Bed temperature"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -3959,7 +3959,7 @@ msgid "First Layer Inspection"
 msgstr "First Layer Inspection"
 
 msgid "Auto-recovery from step loss"
-msgstr "Auto-recovery from step loss"
+msgstr "Auto-recover from step loss"
 
 msgid "Global"
 msgstr "Global"
@@ -7119,6 +7119,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge on wipe tower"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Filament load time"
 
@@ -9048,104 +9051,6 @@ msgstr ""
 "density to improve the strength of the model?"
 
 #~ msgid ""
-#~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print "
-#~ "fastly"
-#~ msgstr ""
-#~ "The Arachne engine only works when overhang slowdown is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when printing "
-#~ "quickly."
-
-#~ msgid ""
-#~ "Disable overhang slowing down automatically? \n"
-#~ "Yes - Enable arachne and disable overhang slowing down\n"
-#~ "No  - Give up using arachne this time"
-#~ msgstr ""
-#~ "Disable overhang slowdown automatically? \n"
-#~ "Yes - Enable Arachne and disable overhang slowing down\n"
-#~ "No  - Don't use Arachne for this print"
-
-#~ msgid "Start"
-#~ msgstr "Start"
-
-#~ msgid "G-code"
-#~ msgstr "G-code"
-
-#~ msgid "Backup"
-#~ msgstr "Backup"
-
-#~ msgid "Backup interval"
-#~ msgstr "Backup interval"
-
-#, c-format, boost-format
-#~ msgid "The %s filament is too soft to be used with the AMS"
-#~ msgstr "The %s filament is too soft to be used with the AMS"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "It seems object %s has completely floating regions. Please re-orient the "
-#~ "object or enable support generation."
-#~ msgstr ""
-#~ "It seems object %s has completely floating regions. Please re-orient the "
-#~ "object or enable support generation."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "It seems object %s has large overhangs. Please enable support generation."
-#~ msgstr ""
-#~ "It seems object %s has large overhangs. Please enable support generation."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid ""
-#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
-#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
-#~ "traditional"
-#~ msgstr ""
-#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
-#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
-#~ "traditional"
-
-#~ msgid "Keep upper part"
-#~ msgstr "Keep upper part"
-
-#~ msgid "Keep lower part"
-#~ msgstr "Keep lower part"
-
-#~ msgid "AMS auto switch filament"
-#~ msgstr "AMS auto switch filament"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern."
-#~ msgstr ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern."
-
-#~ msgid ""
-#~ "The P1P printer does not support smooth timelapse, use traditional "
-#~ "timelapse instead."
-#~ msgstr ""
-#~ "The P1P printer does not support smooth timelapse, please use traditional "
-#~ "timelapse instead."
-
-#~ msgid "Support base"
-#~ msgstr "Support base"
-
-#~ msgid ""
-#~ "Support layer uses layer height independent with object layer. This is to "
-#~ "support customizing z-gap and save print time."
-#~ msgstr ""
-#~ "Support layer uses layer height independent with object layer. This is to "
-#~ "support customizing z-gap and save print time."
-
-#~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -9169,6 +9074,9 @@ msgstr ""
 
 #~ msgid "AMSMaterialsSetting"
 #~ msgstr "AMS Materials Setting"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "AMS auto switch filament"
 
 #~ msgid "AWS PRE host"
 #~ msgstr "AWS PRE host"
@@ -9197,6 +9105,15 @@ msgstr ""
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
 #~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "The Arachne engine only works when overhang slowdown is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when printing "
+#~ "quickly."
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
 #~ "fastly\n"
 #~ msgstr ""
 #~ "The Arachne engine only works when overhang slowdown is disabled.\n"
@@ -9220,6 +9137,12 @@ msgstr ""
 
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Avoid walls when traveling"
+
+#~ msgid "Backup"
+#~ msgstr "Backup"
+
+#~ msgid "Backup interval"
+#~ msgstr "Backup interval"
 
 #~ msgid ""
 #~ "Bed exclude area that can't used as printable area in X-Y plane. For "
@@ -9313,6 +9236,15 @@ msgstr ""
 
 #~ msgid "Device:"
 #~ msgstr "Device:"
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "Disable overhang slowdown automatically? \n"
+#~ "Yes - Enable Arachne and disable overhang slowing down\n"
+#~ "No  - Don't use Arachne for this print"
 
 #~ msgid "Display printable box"
 #~ msgstr "Display printable box"
@@ -9515,6 +9447,9 @@ msgstr ""
 #~ msgid "Fragment filter"
 #~ msgstr "Fragment filter"
 
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
 #~ msgid ""
 #~ "Green represents that AMS humidity is normal, orange and red represent "
 #~ "that humidity is too high.(Lower the better)"
@@ -9579,11 +9514,29 @@ msgstr ""
 #~ msgstr "Inner wall speed"
 
 #~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+
+#~ msgid ""
 #~ "It seems object %s needs support to print. Please enable support "
 #~ "generation."
 #~ msgstr ""
 #~ "It seems object %s needs support to print. Please enable support "
 #~ "generation."
+
+#~ msgid "Keep lower part"
+#~ msgstr "Keep lower part"
+
+#~ msgid "Keep upper part"
+#~ msgstr "Keep upper part"
 
 #~ msgid "Layer Time(log): "
 #~ msgstr "Layer Time(log): "
@@ -9833,6 +9786,18 @@ msgstr ""
 #~ "support is disabled, top shell layers is 0, and sparse infill density is "
 #~ "0\n"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+
+#~ msgid "Start"
+#~ msgstr "Start"
+
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 
@@ -9851,6 +9816,9 @@ msgstr ""
 #~ msgid "Suggestion: Actual Volume in range [%d, %d]"
 #~ msgstr "Suggestion: Actual Volume in range [%d, %d]"
 
+#~ msgid "Support base"
+#~ msgstr "Support base"
+
 #~ msgid ""
 #~ "Support layer uses layer height independent with object layer. This is to "
 #~ "support custom support gap,but may cause extra filament switches if "
@@ -9859,6 +9827,13 @@ msgstr ""
 #~ "The support layer uses layer height independent of object layers. This is "
 #~ "to support custom support gaps, but may cause extra filament switches if "
 #~ "support is specified as a different filament from the object."
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
 
 #~ msgid ""
 #~ "Switch to rectilinear pattern?\n"
@@ -9884,6 +9859,9 @@ msgstr ""
 #~ msgid "Sync material list from AMS"
 #~ msgstr "Sync material list from AMS"
 
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "The %s filament is too soft to be used with the AMS"
+
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:\n"
@@ -9903,6 +9881,13 @@ msgstr ""
 
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr "The configuration is not compatible and cannot be loaded!"
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "The P1P printer does not support smooth timelapse, please use traditional "
+#~ "timelapse instead."
 
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
@@ -10022,6 +10007,15 @@ msgstr ""
 #~ "feature, loop paths will be added to the sparse fill of the lower layers "
 #~ "for specific thickness, so that better anchors can be provided for "
 #~ "internal bridges. 0 means disable this feature"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
 
 #~ msgid ""
 #~ "X1 General Settings - Network Settings in the side bar of X1 main screen"

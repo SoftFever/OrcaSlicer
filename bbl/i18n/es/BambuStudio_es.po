@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-04 14:45+0800\n"
+"POT-Creation-Date: 2023-04-06 08:26+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -682,7 +682,7 @@ msgstr ""
 "corte!"
 
 msgid "Open Project"
-msgstr "Abrir proyecto"
+msgstr "Proyesto Abierto"
 
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
@@ -716,13 +716,13 @@ msgid "*"
 msgstr "*"
 
 msgid "The uploads are still ongoing"
-msgstr "El envío aún están en curso"
+msgstr "Las subidas aún están en curso"
 
 msgid "Stop them and continue anyway?"
-msgstr "¿Detenerlas y continuar de todos modos?"
+msgstr "¿Detenerlos y continuar de todos modos?"
 
 msgid "Ongoing uploads"
-msgstr "Envío en curso"
+msgstr "Cargas en curso"
 
 msgid "Select a G-code file:"
 msgstr "Seleccione un archivo de código G:"
@@ -879,13 +879,13 @@ msgid "Reload from disk"
 msgstr "Recargar desde el disco"
 
 msgid "Reload the selected parts from disk"
-msgstr "Recargar las partes seleccionadas desde disco"
+msgstr "Recargar las piezas seleccionadas desde el disco"
 
 msgid "Replace with STL"
-msgstr "Reemplazar con STL"
+msgstr "Sustituir por STL"
 
 msgid "Replace the selected part with new STL"
-msgstr "Reemplazar las partes seleccionadas con nuevo STL"
+msgstr "Sustituir la pieza seleccionada por un STL nuevo"
 
 msgid "Change filament"
 msgstr "Cambiar el filamento"
@@ -922,7 +922,7 @@ msgid "Flush into objects' support"
 msgstr "Depositar en el soporte de los objetos"
 
 msgid "Edit in Parameter Table"
-msgstr "Editar en tabla de parámetros"
+msgstr "Editar en la tabla de parámetros"
 
 msgid "Convert from inch"
 msgstr "Convertir desde pulgadas"
@@ -1049,7 +1049,7 @@ msgid "Center"
 msgstr "Centrar"
 
 msgid "Edit Process Settings"
-msgstr "Editar configuración del proceso"
+msgstr "Editar la configuración del proceso"
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
@@ -1369,10 +1369,10 @@ msgid "Open Preferences."
 msgstr "Abrir preferencias"
 
 msgid "Open next tip."
-msgstr "Abrir siguiente sugerencia."
+msgstr "Abrir el siguiente consejo"
 
 msgid "Open Documentation in web browser."
-msgstr "Abrir documentación en el navegador"
+msgstr "Abrir documentación en el navegador web"
 
 msgid "Pause:"
 msgstr ""
@@ -1399,7 +1399,7 @@ msgid "Jump to layer"
 msgstr "Saltar a la capa"
 
 msgid "Please enter the layer number"
-msgstr "Por favor, introduzca el número de capa"
+msgstr "Introduzca el número de capa."
 
 msgid "Add Pause"
 msgstr "Añadir pausa"
@@ -1411,7 +1411,7 @@ msgid "Add Custom Template"
 msgstr "Añadir plantilla personalizada"
 
 msgid "Filament "
-msgstr "Filamento"
+msgstr "FIlament"
 
 msgid "Delete Pause"
 msgstr ""
@@ -1432,7 +1432,7 @@ msgid "No printer"
 msgstr "Sin impresión"
 
 msgid "..."
-msgstr "..."
+msgstr ""
 
 msgid "?"
 msgstr "?"
@@ -1620,7 +1620,7 @@ msgid "Unknown Failure"
 msgstr "Error desconocido"
 
 msgid "Please check the printer network connection."
-msgstr "Por favor, comprueba la conexión de red de la impresora."
+msgstr "Compruebe la conexión de red de la impresora."
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Datos anormales del archivo de impresión. Por favor, procese de nuevo"
@@ -1673,39 +1673,39 @@ msgstr "Enviando la configuración de impresión"
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
-"Enviado correctamente. Se mostrará automáticamente en el dispositivo en %ss"
+"Enviado con éxito. Se saltará automáticamente a la página del dispositivo en "
+"%s s"
 
 msgid "An SD card needs to be inserted before printing via LAN."
-msgstr ""
-"Es necesario insertar una tarjeta SD antes de imprimir a través de red local."
+msgstr "Se debe insertar una tarjeta microSD antes de imprimir mediante LAN."
 
 msgid "Failed to send the print job. Please try again."
-msgstr "No se pudo enviar el trabajo de impresión. Inténtalo de nuevo."
+msgstr "No se pudo enviar la impresión. Vuelve a intentarlo."
 
 msgid "Send to Printer failed. Please try again."
-msgstr "El envio a la impresora falló. Inténtelo de nuevo."
+msgstr "No se pudo enviar a la impresora. Vuelve a intentarlo."
 
 msgid "No space left on Printer SD card"
 msgstr ""
 
 msgid "Sending gcode file over LAN"
-msgstr "Enviando archivo g-code a través de red local"
+msgstr "Envío de un archivo G-code a través de LAN"
 
 msgid "Sending gcode file through cloud service"
-msgstr "Enviando archivo a traves de servicio en la nube"
+msgstr "Envío de archivos G-code a través del servicio en la nube"
 
 msgid "Sending gcode file to sdcard"
-msgstr "Enviado archivo g-code a la tarjeta SD"
+msgstr "Envío de un archivo G-code a la tarjeta microSD"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
 msgstr "Se ha enviado correctamente. Cerrar la página actual en %s s"
 
 msgid "An SD card needs to be inserted before sending to printer."
-msgstr "Debe insertar una tarjeta microSD antes de enviar a la impresora."
+msgstr "Se debe insertar una tarjeta microSD antes de enviar a la impresora."
 
 msgid "Please log out and login to the printer again."
-msgstr "Cierre la sesión y vuelva a iniciar sesión en la impresora."
+msgstr "Cierre sesión y vuelva a iniciarla en la impresora."
 
 msgid "Failed uploading print file. Please enter ip address again."
 msgstr ""
@@ -1764,7 +1764,7 @@ msgid "Attention!"
 msgstr "¡Atención!"
 
 msgid "Downloading"
-msgstr "Descargando"
+msgstr ""
 
 msgid "Download failed"
 msgstr "Descarga fallida"
@@ -1773,19 +1773,19 @@ msgid "Cancelled"
 msgstr "Cancelado"
 
 msgid "Install successfully."
-msgstr "Instalación correcta"
+msgstr "Instalado correctamente"
 
 msgid "Installing"
-msgstr "Instalando"
+msgstr "Instalando…"
 
 msgid "Install failed"
-msgstr "Instalación fallida"
+msgstr "Error de instalación"
 
 msgid "Portions copyright"
 msgstr "Porciones del copyright"
 
 msgid "Copyright"
-msgstr "Derecho de autor"
+msgstr "Copyright"
 
 msgid "License"
 msgstr "Licencia"
@@ -1939,14 +1939,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\ u00b3"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -2002,13 +2002,13 @@ msgid "Enable AMS"
 msgstr "Habilitar AMS"
 
 msgid "Print with filaments in the AMS"
-msgstr "Imprimir con filamentos en el AMS"
+msgstr "Imprima con filamento en el AMS"
 
 msgid "Disable AMS"
-msgstr "Desactivar AMS"
+msgstr "Deshabilitar AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr "Imprimir con el filamento montado en la parte posterior del chasis"
+msgstr "Impresión con filamento en una bobina externa"
 
 msgid "Cabin humidity"
 msgstr "Humedad de cabina"
@@ -2047,7 +2047,7 @@ msgid ""
 msgstr "Configure qué ranura AMS debe utilizarse para la impresión."
 
 msgid "Filament used in this print job"
-msgstr "Filamento utilizado en este trabajo de impresión"
+msgstr "Filamento utilizado en esta impresión"
 
 msgid "AMS slot used for this filament"
 msgstr "Ranura AMS utilizada para este filamento"
@@ -2665,25 +2665,25 @@ msgid "Layer Time"
 msgstr "Tiempo de capa"
 
 msgid "Height: "
-msgstr "Altura: "
+msgstr "Altura:"
 
 msgid "Width: "
-msgstr "Anchura: "
+msgstr "Ancho:"
 
 msgid "Speed: "
-msgstr "Velocidad: "
+msgstr "Velocidad:"
 
 msgid "Flow: "
-msgstr "Flujo: "
+msgstr "Flujo:"
 
 msgid "Layer Time: "
-msgstr "Tiempo de capa: "
+msgstr "Tiempo de capa:"
 
 msgid "Fan Speed: "
-msgstr "Velocidad del ventilador: "
+msgstr "Velocidad del ventilador:"
 
 msgid "Temperature: "
-msgstr "Temperatura: "
+msgstr "Temperatura:"
 
 msgid "Loading G-codes"
 msgstr "Carga de códigos G"
@@ -2833,13 +2833,13 @@ msgid "Quality / Speed"
 msgstr "Calidad / Velocidad"
 
 msgid "Smooth"
-msgstr "Alisado"
+msgstr "Suavizar"
 
 msgid "Radius"
 msgstr "Radio"
 
 msgid "Keep min"
-msgstr "minutos restantes"
+msgstr "Mantener mínimo"
 
 msgid "Left mouse button:"
 msgstr "Botón izquierdo del ratón:"
@@ -3108,7 +3108,7 @@ msgid "Slice plate"
 msgstr "Laminar placa"
 
 msgid "Print plate"
-msgstr "Imprimir placa"
+msgstr "Placa de impresión"
 
 msgid "Slice all"
 msgstr "Laminar todo"
@@ -3150,7 +3150,7 @@ msgid "Check for Update"
 msgstr "Comprobar Actualicaciones"
 
 msgid "Open Network Test"
-msgstr "Realizar prueba de red"
+msgstr "Abrir prueba de red"
 
 #, c-format, boost-format
 msgid "&About %s"
@@ -3414,7 +3414,7 @@ msgid "No to All"
 msgstr "No a todo"
 
 msgid "Choose a directory"
-msgstr "Seleccionar directorio"
+msgstr "Elegir un directorio"
 
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
@@ -3551,13 +3551,13 @@ msgid "All Files"
 msgstr "Todos los archivos"
 
 msgid "Group files by year, recent first."
-msgstr "Agrupar ficheros por año, primero los más recientes"
+msgstr "Agrupe los archivos por año, primero los recientes."
 
 msgid "Group files by month, recent first."
-msgstr "Agrupar ficheros por mes, primero los más recientes"
+msgstr "Agrupe los archivos por mes, primero los recientes."
 
 msgid "Show all files, recent first."
-msgstr "Mostrar todos los fciheros, primero los más recientes"
+msgstr "Mostrar todos los archivos, primero los recientes."
 
 msgid "Timelapse"
 msgstr "Timelapse"
@@ -3572,13 +3572,13 @@ msgid "Switch to video files."
 msgstr "Cambia a archivos de vídeo."
 
 msgid "Delete selected files from printer."
-msgstr "Borrar archivos seleccionados de la impresora."
+msgstr "Elimine los archivos seleccionados de la impresora."
 
 msgid "Download"
 msgstr "Descargar"
 
 msgid "Download selected files from printer."
-msgstr "Descargar archivos seleccionados de la impresora."
+msgstr "Descargue los archivos seleccionados de la impresora."
 
 msgid "Select"
 msgstr "Seleccionar"
@@ -3590,7 +3590,7 @@ msgid "No printers."
 msgstr "No hay impresoras."
 
 msgid "Not supported by this model of printer!"
-msgstr "¡Modelo de impresora no soportado!"
+msgstr "¡No es compatible con este modelo de impresora!"
 
 msgid "Connecting..."
 msgstr "Conectando…"
@@ -3663,7 +3663,7 @@ msgid "Camera"
 msgstr "Cámara"
 
 msgid "SD Card"
-msgstr "Tarjeta SD"
+msgstr "Tarjeta MicroSD"
 
 msgid "Camera Setting"
 msgstr "Configuración de cámara"
@@ -3714,10 +3714,10 @@ msgid "Debug Info"
 msgstr "Información de Depuración"
 
 msgid "No SD Card"
-msgstr "Tarjeta SD no encontrada"
+msgstr "No hay tarjeta SD"
 
 msgid "SD Card Abnormal"
-msgstr "Tarjeta SD errónea"
+msgstr "Tarjeta microSD anormal"
 
 msgid "Printing List"
 msgstr "Imprimiendo Lista"
@@ -3726,7 +3726,7 @@ msgid "Cancel print"
 msgstr "Cancelar impresión"
 
 msgid "Are you sure you want to cancel this print?"
-msgstr "¿Está seguro de cancelar la impresión?"
+msgstr "¿Estás seguro de que quieres cancelar esta impresión?"
 
 #, c-format, boost-format
 msgid ""
@@ -3918,13 +3918,13 @@ msgid "ERROR"
 msgstr "¡Error!"
 
 msgid "CANCELED"
-msgstr "CANCELADO"
+msgstr "Cancelado"
 
 msgid "COMPLETED"
-msgstr "COMPLETADO"
+msgstr "Completado"
 
 msgid "Cancel upload"
-msgstr "Cancelar envío"
+msgstr "Cancelar la subida"
 
 msgid "Slice ok."
 msgstr "Rebanado correcto."
@@ -3939,13 +3939,13 @@ msgid "Warning:"
 msgstr "Advertencia:"
 
 msgid "Export successfully."
-msgstr "Exportado correctamente."
+msgstr "Exportación correcta"
 
 msgid " (Repair)"
 msgstr " (Reparación)"
 
 msgid " Click here to install it."
-msgstr "Click aquí para instalar."
+msgstr " Haga clic aquí para instalarlo."
 
 msgid "WARNING:"
 msgstr "AVISO:"
@@ -4095,7 +4095,7 @@ msgid "Remove last filament"
 msgstr "Retirar el último filamento"
 
 msgid "Synchronize filament list from AMS"
-msgstr "Sincronizar filamentos desde AMS"
+msgstr "Sincronizar la lista de filamentos de AMS"
 
 msgid "Set filaments to use"
 msgstr "Establecer filamentos a utilizar"
@@ -4191,15 +4191,15 @@ msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "El 3mf no es Bambu lab, solo se carga datos de geometría."
 
 msgid "Load 3mf"
-msgstr "Cargar 3mf"
+msgstr "cargar 3mf"
 
 msgid "The Config can not be loaded."
-msgstr "La configuración no puede ser cargada."
+msgstr "No se puede cargar la configuración"
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr ""
-"3mf generado con versión antigua de Bambu Studio, se cargan datos de "
-"geometría unicamente"
+"El 3mf fue generado por una versión antigua de Bambu Studio, solo se "
+"cargaran datos de geometría."
 
 #, c-format, boost-format
 msgid ""
@@ -4394,7 +4394,7 @@ msgid "Importing Model"
 msgstr "Importando modelo"
 
 msgid "prepare 3mf file..."
-msgstr "preparar archivo 3mf..."
+msgstr "preparando el archivo 3mf..."
 
 msgid "downloading project ..."
 msgstr "descargando proyecto..."
@@ -4818,10 +4818,10 @@ msgid "Project-inside presets"
 msgstr "Preajustes internos del proyecto"
 
 msgid "Add/Remove filaments"
-msgstr ""
+msgstr "Añadir/quitar filamento"
 
 msgid "Add/Remove materials"
-msgstr "Añadir/quitar materiales"
+msgstr "Añadir/eliminar materiales"
 
 msgid "Add/Remove printers"
 msgstr "Añadir/quitar impresoras"
@@ -7272,6 +7272,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
 
@@ -9244,107 +9247,6 @@ msgstr ""
 "dispersa más alta para mejorar la resistencia del modelo?"
 
 #~ msgid ""
-#~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print "
-#~ "fastly"
-#~ msgstr ""
-#~ "El motor Arachne solo funciona cuando la ralentización por voladizo está "
-#~ "desactivada.\n"
-#~ "Esto puede provocar una disminución en la calidad de los voladizos al "
-#~ "imprimir rápidamente."
-
-#~ msgid ""
-#~ "Disable overhang slowing down automatically? \n"
-#~ "Yes - Enable arachne and disable overhang slowing down\n"
-#~ "No  - Give up using arachne this time"
-#~ msgstr ""
-#~ "¿Desactivar automáticamente la ralentización del voladizo?\n"
-#~ "Sí - Activar Arachne y desactivar la ralentización del voladizo\n"
-#~ "No - No utilizar Arachne para esta impresión"
-
-#~ msgid "Start"
-#~ msgstr "Iniciar"
-
-#~ msgid "G-code"
-#~ msgstr "G-code"
-
-#~ msgid "Backup"
-#~ msgstr "Copia de seguridad"
-
-#~ msgid "Backup interval"
-#~ msgstr "Intervalo de copia de seguridad"
-
-#, c-format, boost-format
-#~ msgid "The %s filament is too soft to be used with the AMS"
-#~ msgstr "El filamento %s es demasiado blando para usarlo con el AMS"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "It seems object %s has completely floating regions. Please re-orient the "
-#~ "object or enable support generation."
-#~ msgstr ""
-#~ "Parece que el objeto %s tiene regiones completamente flotantes. Reoriente "
-#~ "el objeto o habilite la generación de soporte."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "It seems object %s has large overhangs. Please enable support generation."
-#~ msgstr ""
-#~ "Parece que el objeto %s tiene grandes voladizos. Habilite la generación "
-#~ "de soporte."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\ u00b3"
-
-#~ msgid ""
-#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
-#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
-#~ "traditional"
-#~ msgstr ""
-#~ "El modo espiral solo funciona cuando los bucles de pared son 1, el "
-#~ "soporte está desactivado, las capas superiores son 0, la densidad de "
-#~ "relleno disperso es 0 y el tipo de lapso de tiempo es tradicional"
-
-#~ msgid "Keep upper part"
-#~ msgstr "Mantener la parte superior"
-
-#~ msgid "Keep lower part"
-#~ msgstr "Mantener la parte inferior"
-
-#~ msgid "AMS auto switch filament"
-#~ msgstr "Cambio automático de filamento AMS"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern."
-#~ msgstr ""
-#~ "Al utilizar material de soporte para la interfaz de soporte, recomendamos "
-#~ "los siguientes ajustes:\n"
-#~ "Distancia z superior a 0, espaciado de interfaz 0, patrón concéntrico."
-
-#~ msgid ""
-#~ "The P1P printer does not support smooth timelapse, use traditional "
-#~ "timelapse instead."
-#~ msgstr ""
-#~ "La impresora P1P no admite timelapse fluido; en su lugar, utilice el "
-#~ "timelapse tradicional."
-
-#~ msgid "Support base"
-#~ msgstr "Base de soporte"
-
-#~ msgid ""
-#~ "Support layer uses layer height independent with object layer. This is to "
-#~ "support customizing z-gap and save print time."
-#~ msgstr ""
-#~ "La capa de soporte utiliza la altura de la capa independientemente de la "
-#~ "capa de objetos. Esto es para permitir la personalización de z-gap y "
-#~ "ahorrar tiempo de impresión."
-
-#~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -9369,6 +9271,9 @@ msgstr ""
 #~ msgid "AMSMaterialsSetting"
 #~ msgstr "Configuración de materiales AMS"
 
+#~ msgid "AMS auto switch filament"
+#~ msgstr "Cambio automático de filamento AMS"
+
 #~ msgid "AWS PRE host"
 #~ msgstr "Host de AWS PRE"
 
@@ -9391,6 +9296,16 @@ msgstr ""
 #~ "Un objeto está colocado sobre el límite de la placa.\n"
 #~ "Por favor, resuelva el problema moviéndolo totalmente dentro o fuera de "
 #~ "la placa."
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "El motor Arachne solo funciona cuando la ralentización por voladizo está "
+#~ "desactivada.\n"
+#~ "Esto puede provocar una disminución en la calidad de los voladizos al "
+#~ "imprimir rápidamente."
 
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
@@ -9419,6 +9334,12 @@ msgstr ""
 
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Evitar cruzar el muro en los desplazamientos"
+
+#~ msgid "Backup"
+#~ msgstr "Copia de seguridad"
+
+#~ msgid "Backup interval"
+#~ msgstr "Intervalo de copia de seguridad"
 
 #~ msgid ""
 #~ "Bed exclude area that can't used as printable area in X-Y plane. For "
@@ -9515,6 +9436,15 @@ msgstr ""
 
 #~ msgid "Device:"
 #~ msgstr "Dispositivo:"
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "¿Desactivar automáticamente la ralentización del voladizo?\n"
+#~ "Sí - Activar Arachne y desactivar la ralentización del voladizo\n"
+#~ "No - No utilizar Arachne para esta impresión"
 
 #~ msgid "Display printable box"
 #~ msgstr "Caja de visualización imprimible "
@@ -9722,6 +9652,9 @@ msgstr ""
 #~ msgid "Fragment filter"
 #~ msgstr "Filtro de Fragmentos"
 
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
 #~ msgid ""
 #~ "Green represents that AMS humidity is normal, orange and red represent "
 #~ "that humidity is too high.(Lower the better)"
@@ -9791,11 +9724,30 @@ msgstr ""
 #~ msgstr "Velocidad de la pared interior"
 
 #~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "Parece que el objeto %s tiene regiones completamente flotantes. Reoriente "
+#~ "el objeto o habilite la generación de soporte."
+
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "Parece que el objeto %s tiene grandes voladizos. Habilite la generación "
+#~ "de soporte."
+
+#~ msgid ""
 #~ "It seems object %s needs support to print. Please enable support "
 #~ "generation."
 #~ msgstr ""
 #~ "Parece que el objeto %s necesita soporte para imprimir. Por favor, active "
 #~ "la generación de soporte."
+
+#~ msgid "Keep lower part"
+#~ msgstr "Mantener la parte inferior"
+
+#~ msgid "Keep upper part"
+#~ msgstr "Mantener la parte superior"
 
 #~ msgid "Layer Time(log): "
 #~ msgstr "Tiempo de capa (registro): "
@@ -10053,6 +10005,18 @@ msgstr ""
 #~ "el soporte está desactivado, las capas superiores de la cáscara es 0 y la "
 #~ "densidad de relleno dispersa es 0\n"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "El modo espiral solo funciona cuando los bucles de pared son 1, el "
+#~ "soporte está desactivado, las capas superiores son 0, la densidad de "
+#~ "relleno disperso es 0 y el tipo de lapso de tiempo es tradicional"
+
+#~ msgid "Start"
+#~ msgstr "Iniciar"
+
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr ""
 #~ "Detener la impresión cuando se detecten hilos o un exceso de material de "
@@ -10075,6 +10039,9 @@ msgstr ""
 #~ msgid "Suggestion: Actual Volume in range [%d, %d]"
 #~ msgstr "Sugerencia: Volumen real dentro del rango [%d, %d]"
 
+#~ msgid "Support base"
+#~ msgstr "Base de soporte"
+
 #~ msgid ""
 #~ "Support layer uses layer height independent with object layer. This is to "
 #~ "support custom support gap,but may cause extra filament switches if "
@@ -10084,6 +10051,14 @@ msgstr ""
 #~ "capa del objeto. Esto es para soportar la brecha de soporte "
 #~ "personalizada, pero puede causar cambios de filamento adicionales si el "
 #~ "soporte se especifica como un extrusor diferente con el objeto"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr ""
+#~ "La capa de soporte utiliza la altura de la capa independientemente de la "
+#~ "capa de objetos. Esto es para permitir la personalización de z-gap y "
+#~ "ahorrar tiempo de impresión."
 
 #~ msgid ""
 #~ "Switch to rectilinear pattern?\n"
@@ -10111,6 +10086,9 @@ msgstr ""
 #~ msgid "Sync material list from AMS"
 #~ msgstr "Sincronizar la lista de materiales de AMS"
 
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "El filamento %s es demasiado blando para usarlo con el AMS"
+
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:\n"
@@ -10130,6 +10108,13 @@ msgstr ""
 
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr "La configuración no es compatible y no se puede cargar."
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "La impresora P1P no admite timelapse fluido; en su lugar, utilice el "
+#~ "timelapse tradicional."
 
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
@@ -10232,12 +10217,7 @@ msgstr ""
 #~ "\"Timelapse Wipe Tower\" \n"
 #~ "by right-click the empty position of build plate and choose \"Add "
 #~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
-#~ msgstr ""
-#~ "When recording timelapse without toolhead, it is recommended to add a "
-#~ "\"Timelapse Wipe Tower\" \n"
-#~ "by right-click the empty position of build plate and choose \"Add "
-#~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
-#~ "\n"
+#~ msgstr "\n"
 
 #~ msgid ""
 #~ "When sparse infill density is low, the internal solid infill or internal "
@@ -10254,6 +10234,15 @@ msgstr ""
 #~ "bucle al relleno disperso de las capas inferiores para espesores "
 #~ "específicos, de forma que se puedan proporcionar mejores anclajes para "
 #~ "los puentes internos. 0 significa desactivar esta función"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "Al utilizar material de soporte para la interfaz de soporte, recomendamos "
+#~ "los siguientes ajustes:\n"
+#~ "Distancia z superior a 0, espaciado de interfaz 0, patrón concéntrico."
 
 #~ msgid ""
 #~ "X1 General Settings - Network Settings in the side bar of X1 main screen"

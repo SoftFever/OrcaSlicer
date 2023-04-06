@@ -2,16 +2,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-04 14:45+0800\n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2023-04-06 08:26+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.2.2\n"
 
 msgid "Supports Painting"
 msgstr "サポートペイント"
@@ -1881,14 +1878,14 @@ msgstr "ベッド温度"
 msgid "Max volumetric speed"
 msgstr "最大体積速度"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "u2103"
 
 msgid "Bed temperature"
 msgstr "ベッド温度"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mmu00B3"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -6910,6 +6907,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "プライムタワー上最小フラッシュ量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "フィラメントロード時間"
 
@@ -8719,101 +8719,6 @@ msgstr ""
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
 
 #~ msgid ""
-#~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print "
-#~ "fastly"
-#~ msgstr ""
-#~ "Arachneを使用するには、オーハーハング減速を無効にする必要があります。従っ"
-#~ "てオーバーハングの造形品質が劣る可能性があります。"
-
-#~ msgid ""
-#~ "Disable overhang slowing down automatically? \n"
-#~ "Yes - Enable arachne and disable overhang slowing down\n"
-#~ "No  - Give up using arachne this time"
-#~ msgstr ""
-#~ "オーバーハング減速を無効にしますか？\n"
-#~ "はい - Arachneを有効し、オーバーハング減速を無効にする\n"
-#~ "いいえ - Arachneを無効にします"
-
-#~ msgid "Start"
-#~ msgstr "開始"
-
-#~ msgid "G-code"
-#~ msgstr "G-code"
-
-#~ msgid "Backup"
-#~ msgstr "バックアップ"
-
-#~ msgid "Backup interval"
-#~ msgstr "時間間隔"
-
-#, c-format, boost-format
-#~ msgid "The %s filament is too soft to be used with the AMS"
-#~ msgstr "%sは柔らかい為AMSに使用できません"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "It seems object %s has completely floating regions. Please re-orient the "
-#~ "object or enable support generation."
-#~ msgstr ""
-#~ "オブジェクト %s がプレートに接触していません。向きを調整するか、サポートを"
-#~ "有効にしてください。"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "It seems object %s has large overhangs. Please enable support generation."
-#~ msgstr ""
-#~ "オブジェクト %s に大きなオーバーハングがあります、サポートを有効にしてくだ"
-#~ "さい。"
-
-#~ msgid "\\u2103"
-#~ msgstr "u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mmu00B3"
-
-#~ msgid ""
-#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
-#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
-#~ "traditional"
-#~ msgstr ""
-#~ "スパイラルモードを使用するには、壁面層数を１、サポートを無効、トップ面層数"
-#~ "を０、充填密度を０にする必要があります"
-
-#~ msgid "Keep upper part"
-#~ msgstr "上の部分を残す"
-
-#~ msgid "Keep lower part"
-#~ msgstr "下の部分を残す"
-
-#~ msgid "AMS auto switch filament"
-#~ msgstr "AMSフィラメント自動切替え"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern."
-#~ msgstr ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern."
-
-#~ msgid ""
-#~ "The P1P printer does not support smooth timelapse, use traditional "
-#~ "timelapse instead."
-#~ msgstr ""
-#~ "P1Pプリンターはスムージタイムラプスをサポートしません、通常タイムラプスに"
-#~ "切替えます。"
-
-#~ msgid "Support base"
-#~ msgstr "サポート基材"
-
-#~ msgid ""
-#~ "Support layer uses layer height independent with object layer. This is to "
-#~ "support customizing z-gap and save print time."
-#~ msgstr "サポートの積層ピッチは独立で設定できます。"
-
-#~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -8834,6 +8739,9 @@ msgstr ""
 
 #~ msgid "AMSMaterialsSetting"
 #~ msgstr "AMS素材設定"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "AMSフィラメント自動切替え"
 
 #~ msgid "AWS PRE host"
 #~ msgstr "AWS PREホスト"
@@ -8860,6 +8768,14 @@ msgstr ""
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
 #~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly"
+#~ msgstr ""
+#~ "Arachneを使用するには、オーハーハング減速を無効にする必要があります。従っ"
+#~ "てオーバーハングの造形品質が劣る可能性があります。"
+
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
 #~ "fastly\n"
 #~ msgstr ""
 #~ "Arachneを使用するには、オーハーハング減速を無効にする必要があります。従っ"
@@ -8879,6 +8795,12 @@ msgstr ""
 
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "移動時に壁面を避ける"
+
+#~ msgid "Backup"
+#~ msgstr "バックアップ"
+
+#~ msgid "Backup interval"
+#~ msgstr "時間間隔"
 
 #~ msgid ""
 #~ "Bed exclude area that can't used as printable area in X-Y plane. For "
@@ -8967,6 +8889,15 @@ msgstr ""
 
 #~ msgid "Device:"
 #~ msgstr "デバイス"
+
+#~ msgid ""
+#~ "Disable overhang slowing down automatically? \n"
+#~ "Yes - Enable arachne and disable overhang slowing down\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "オーバーハング減速を無効にしますか？\n"
+#~ "はい - Arachneを有効し、オーバーハング減速を無効にする\n"
+#~ "いいえ - Arachneを無効にします"
 
 #~ msgid "Display printable box"
 #~ msgstr "造形可能な境界を表示"
@@ -9149,6 +9080,9 @@ msgstr ""
 #~ msgid "Fragment filter"
 #~ msgstr "断片フィルタ"
 
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
 #~ msgid ""
 #~ "Green represents that AMS humidity is normal, orange and red represent "
 #~ "that humidity is too high.(Lower the better)"
@@ -9209,11 +9143,30 @@ msgstr ""
 #~ msgstr "内壁速度"
 
 #~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "オブジェクト %s がプレートに接触していません。向きを調整するか、サポートを"
+#~ "有効にしてください。"
+
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "オブジェクト %s に大きなオーバーハングがあります、サポートを有効にしてくだ"
+#~ "さい。"
+
+#~ msgid ""
 #~ "It seems object %s needs support to print. Please enable support "
 #~ "generation."
 #~ msgstr ""
 #~ "オブジェクト %s の造形にはサポートが必要なようです。サポートを有効にしてく"
 #~ "ださい。"
+
+#~ msgid "Keep lower part"
+#~ msgstr "下の部分を残す"
+
+#~ msgid "Keep upper part"
+#~ msgstr "上の部分を残す"
 
 #~ msgid "Layer Time(log): "
 #~ msgstr "積層時間 (log)"
@@ -9449,6 +9402,17 @@ msgstr ""
 #~ "スパイラルモードを使用するには、壁面層数を１、サポートを無効、トップ面層数"
 #~ "を０、スパース インフィルの充填密度を０に変更する必要があります\n"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "スパイラルモードを使用するには、壁面層数を１、サポートを無効、トップ面層数"
+#~ "を０、充填密度を０にする必要があります"
+
+#~ msgid "Start"
+#~ msgstr "開始"
+
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "スパゲティや廃料口詰りを検出した場合、造形を停止します"
 
@@ -9465,6 +9429,9 @@ msgstr ""
 #~ msgid "Suggestion: Actual Volume in range [%d, %d]"
 #~ msgstr "推奨ボリューム範囲 [%d, %d]"
 
+#~ msgid "Support base"
+#~ msgstr "サポート基材"
+
 #~ msgid ""
 #~ "Support layer uses layer height independent with object layer. This is to "
 #~ "support custom support gap,but may cause extra filament switches if "
@@ -9472,6 +9439,11 @@ msgstr ""
 #~ msgstr ""
 #~ "サポートの積層ピッチを造形用積層ピッチと違う値を設定でき、カスタムサポート"
 #~ "ギャップを実現できますが、フィラメントの切替回数が増えます。"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr "サポートの積層ピッチは独立で設定できます。"
 
 #~ msgid ""
 #~ "Switch to rectilinear pattern?\n"
@@ -9494,6 +9466,9 @@ msgstr ""
 #~ msgid "Sync material list from AMS"
 #~ msgstr "AMSと素材を同期"
 
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "%sは柔らかい為AMSに使用できません"
+
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:\n"
@@ -9514,6 +9489,13 @@ msgstr ""
 
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr "構成データは互換性がない為ロードできませんでした"
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "P1Pプリンターはスムージタイムラプスをサポートしません、通常タイムラプスに"
+#~ "切替えます。"
 
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
@@ -9618,6 +9600,15 @@ msgstr ""
 #~ "インフィル充填密度が低い場合、ソリッドインフィルや内部ブリッジと繋げない可"
 #~ "能性があります。この機能を有効にする場合、指定された厚さでパスを追加されま"
 #~ "す。値が0の場合、この機能が無効になります。"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
 
 #~ msgid ""
 #~ "X1 General Settings - Network Settings in the side bar of X1 main screen"

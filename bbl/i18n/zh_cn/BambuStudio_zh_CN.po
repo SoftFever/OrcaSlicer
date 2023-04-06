@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-04 14:45+0800\n"
+"POT-Creation-Date: 2023-04-06 08:26+0800\n"
 "PO-Revision-Date: 2023-03-29 12:43+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1869,14 +1869,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -6835,6 +6835,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -8641,7 +8644,6 @@ msgstr ""
 #~ msgid "Start"
 #~ msgstr "首层"
 
-#, boost-format
 #~ msgid "Shortcut key %1%"
 #~ msgstr "快捷键 %1%"
 
@@ -8651,17 +8653,14 @@ msgstr ""
 #~ msgid "Backup interval"
 #~ msgstr "备份间隔时长"
 
-#, c-format, boost-format
 #~ msgid "The %s filament is too soft to be used with the AMS"
 #~ msgstr "%s耗材太软，无法与AMS一起使用"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "It seems object %s has completely floating regions. Please re-orient the "
 #~ "object or enable support generation."
 #~ msgstr "似乎对象%s有完全浮空的区域。请调整朝向或打开支撑生成。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "It seems object %s has large overhangs. Please enable support generation."
 #~ msgstr "似乎对象%s有很大面积的悬垂面。请打开支撑生成。"
