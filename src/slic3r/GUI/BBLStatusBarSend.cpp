@@ -33,6 +33,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_status_text->SetMaxSize(wxSize(m_self->FromDIP(300), m_self->FromDIP(46)));
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
+    m_prog->SetMinSize(wxSize(m_self->FromDIP(300),m_self->FromDIP(6)));
     m_prog->SetValue(0);
 
     StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
