@@ -157,7 +157,14 @@ void wxMediaCtrl2::Load(wxURI url)
 
 void wxMediaCtrl2::Play() { wxMediaCtrl::Play(); }
 
-void wxMediaCtrl2::Stop() { wxMediaCtrl::Stop(); }
+void wxMediaCtrl2::Stop()
+{
+#ifdef __WIN32__
+    wxMediaCtrl::Load(wxURI());
+#else
+    wxMediaCtrl::Stop();
+#endif
+}
 
 #ifdef __LINUX__
 extern int gst_bambu_last_error;
