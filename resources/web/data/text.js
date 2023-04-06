@@ -98,7 +98,7 @@ var LangText={
 			"t9":"Weiter",
 			"t10":"Druckerauswahl",
 			"t11":"Alle",
-			"t12":"Alles leeren",
+			"t12":"Keinen",
 			"t13":"mm Düse",
 			"t14":"Filamentauswahl",
 			"t15":"Drucker",
