@@ -1064,27 +1064,9 @@ private:
             if (!item.is_virt_object)
                 bb = sl::boundingBox(item.boundingBox(), bb);
 
-        // if move to center is infeasible, move to topright corner instead
-        auto alignment = config_.alignment;
-        if (!config_.m_excluded_regions.empty() && alignment== Config::Alignment::CENTER) {
-            Box bb2 = bb;
-            auto d = bbin.center() - bb2.center();
-            d.x() = std::max(d.x(), 0);
-            d.y() = std::max(d.y(), 0);
-            bb2.minCorner() += d;
-            bb2.maxCorner() += d;
-            for (auto& region : config_.m_excluded_regions) {
-                auto region_bb = region.boundingBox();
-                if (bb2.intersection(region_bb).area()>0) {
-                    alignment = Config::Alignment::TOP_RIGHT;
-                    break;
-                }
-            }
-        }
-
         Vertex ci, cb;
 
-        switch(alignment) {
+        switch(config_.alignment) {
         case Config::Alignment::CENTER: {
             ci = bb.center();
             cb = bbin.center();
@@ -1118,6 +1100,13 @@ private:
         // BBS make sure the item won't clash with excluded regions
         if(1)
         {
+            // do we have wipe tower after arranging?
+            std::set<int> extruders;
+            for (const Item& item : items_) {
+                if (!item.is_virt_object) { extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end()); }
+            }
+            bool need_wipe_tower = extruders.size() > 1;
+
             std::vector<RawShape> objs,excludes;
             for (const Item &item : items_) {
                 if (item.isFixed()) continue;
@@ -1127,7 +1116,10 @@ private:
             if (objs.size() != 0) {
                 for (const Item &item : config_.m_excluded_regions) { excludes.push_back(item.transformedShape()); }
                 for (const Item &item : items_) {
-                    if (item.isFixed()) { excludes.push_back(item.transformedShape()); }
+                    if (item.isFixed()) {
+                        if (!(item.is_wipe_tower && !need_wipe_tower))
+                            excludes.push_back(item.transformedShape());
+                    }
                 }
                 Box  binbb          = sl::boundingBox(bin_);
                 auto allowShifts    = calcnfp(objs_convex_hull, excludes, binbb, Lvl<MaxNfpLevel::value>());

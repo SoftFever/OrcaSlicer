@@ -1718,6 +1718,36 @@ bool GLCanvas3D::make_current_for_postinit() {
     return _set_current();
 }
 
+Points GLCanvas3D::estimate_wipe_tower_points(int plate_index) const
+{
+    PartPlateList &     ppl         = wxGetApp().plater()->get_partplate_list();
+    DynamicPrintConfig &proj_cfg    = wxGetApp().preset_bundle->project_config;
+    auto &              print       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    int                 plate_count = ppl.get_plate_count();
+    float               x           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->get_at(plate_index);
+    float               y           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->get_at(plate_index);
+    if (plate_index >= plate_count) { plate_index = 0; }
+    float w               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_tower_width"))->value;
+    float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
+    Vec3d         wipe_tower_size = ppl.get_plate(plate_index)->estimate_wipe_tower_size(w, v);
+
+    if (wipe_tower_size(1) == 0) {
+        // when depth is unavailable (no items on this plate), we have to estimate the depth using the extruder number of all plates
+        std::set<int> extruder_ids;
+        auto pl = ppl.get_plate_list();
+        for (const auto& p : pl) {
+            auto es = p->get_extruders();
+            extruder_ids.insert(es.begin(), es.end());
+        }
+        int extruder_size = extruder_ids.size();
+        wipe_tower_size(1) = extruder_size * print.wipe_tower_data(extruder_size).depth + 2 * print.wipe_tower_data().brim_width;
+    }
+    Vec3d plate_origin    = ppl.get_plate(plate_index)->get_origin();
+    Point wt_min_corner{scale_(x), scale_(y)};
+    Point wt_max_corner(scale_(x + wipe_tower_size(0)), scale_(y + wipe_tower_size(1)));
+    return {wt_min_corner, {wt_max_corner.x(), wt_min_corner.y()}, wt_max_corner, {wt_min_corner.x(),wt_max_corner.y()}};
+}
+
 void GLCanvas3D::render(bool only_init)
 {
     if (m_in_render) {

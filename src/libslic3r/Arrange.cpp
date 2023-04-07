@@ -545,11 +545,11 @@ public:
 
             auto binbb = sl::boundingBox(m_bin);
             // BBS: excluded region (virtual object but not wipe tower) should not affect final alignment
-            bool all_is_excluded_region = std::all_of(items.begin(), items.end(), [](Item &itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
-            if (!all_is_excluded_region)
-                cfg.alignment = PConfig::Alignment::DONT_ALIGN;
-            else
-                cfg.alignment = PConfig::Alignment::CENTER;
+            //bool all_is_excluded_region = std::all_of(items.begin(), items.end(), [](Item &itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
+            //if (!all_is_excluded_region)
+            //    cfg.alignment = PConfig::Alignment::DONT_ALIGN;
+            //else
+            //    cfg.alignment = PConfig::Alignment::CENTER;
 
             auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? binbb.minCorner() : binbb.center();
             // if we have wipe tower, items should be arranged around wipe tower

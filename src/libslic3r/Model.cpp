@@ -3360,18 +3360,20 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
         return;
     }
     ret.extrude_ids = volume->get_extruders();
-    if (ret.extrude_ids.empty()) //the default extruder
-        ret.extrude_ids.push_back(1);
-
     // get per-object support extruders
     auto op = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
     bool is_support_enabled = op && op->getBool();
     if (is_support_enabled) {
         auto op1 = object->get_config_value<ConfigOptionInt>(config_global, "support_filament");
         auto op2 = object->get_config_value<ConfigOptionInt>(config_global, "support_interface_filament");
-        if (op1) ret.extrude_ids.push_back(op1->getInt());
-        if (op2) ret.extrude_ids.push_back(op2->getInt());
+        int extruder_id;
+        // id==0 means follow previous material, so need not be recorded
+        if (op1 && (extruder_id = op1->getInt()) > 0) ret.extrude_ids.push_back(extruder_id);
+        if (op2 && (extruder_id = op2->getInt()) > 0) ret.extrude_ids.push_back(extruder_id);
     }
+
+    if (ret.extrude_ids.empty()) //the default extruder
+        ret.extrude_ids.push_back(1);
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const
