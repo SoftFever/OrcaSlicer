@@ -2837,7 +2837,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     // no ams
-    if (!obj_->has_ams()) {
+    if (!obj_->has_ams() || !ams_check->GetValue()) {
         if (!has_tips(obj_))
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
