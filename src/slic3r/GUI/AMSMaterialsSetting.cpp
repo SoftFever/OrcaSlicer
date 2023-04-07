@@ -1046,7 +1046,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
     auto m_title_ams = new wxStaticText(m_def_color_box, wxID_ANY, _L("AMS"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_ams->SetFont(::Label::Body_14);
-    m_title_ams->SetBackgroundColour(GetParent()->GetBackgroundColour());
+    m_title_ams->SetBackgroundColour(wxColour(238, 238, 238));
     m_sizer_ams->Add(m_title_ams, 0, wxALL, 5);
     auto ams_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     ams_line->SetBackgroundColour(wxColour(0xCECECE));
@@ -1075,6 +1075,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(col);
         cp->set_selected(false);
+        cp->SetBackgroundColour(wxColour(238, 238, 238));
         m_color_pickers.push_back(cp);
         fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
         cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
@@ -1090,7 +1091,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     wxBoxSizer* m_sizer_other = new wxBoxSizer(wxHORIZONTAL);
     auto m_title_other = new wxStaticText(m_def_color_box, wxID_ANY, _L("Other color"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_other->SetFont(::Label::Body_14);
-    m_title_other->SetBackgroundColour(GetParent()->GetBackgroundColour());
+    m_title_other->SetBackgroundColour(wxColour(238, 238, 238));
     m_sizer_other->Add(m_title_other, 0, wxALL, 5);
     auto other_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     other_line->SetMinSize(wxSize(-1, 1));
@@ -1141,6 +1142,7 @@ void ColorPickerPopup::set_ams_colours(std::vector<wxColour> ams)
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(col);
         cp->set_selected(false);
+        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238,238,238)));
         m_color_pickers.push_back(cp);
         m_ams_color_pickers.push_back(cp);
         m_ams_fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
