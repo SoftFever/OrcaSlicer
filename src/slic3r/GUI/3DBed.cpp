@@ -233,7 +233,11 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
 
     //BBS: add part plate logic, apply position to bed shape
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":current position {%1%,%2%}, new position {%3%, %4%}") % m_position.x() % m_position.y() % position.x() % position.y();
-    m_position = position;
+    BoundingBoxf bounding_box;
+    for (const Vec2d& p : printable_area) {
+        bounding_box.merge({ p(0), p(1)});
+    }
+    m_position = position - bounding_box.min;
     m_bed_shape = printable_area;
     if ((position(0) != 0) || (position(1) != 0)) {
         Pointfs new_bed_shape;
