@@ -3269,7 +3269,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //     });
 
      //show publish button
-    if (m_agent->is_user_login() && mainframe) {
+    if (m_agent && m_agent->is_user_login() && mainframe) {
         int identifier;
         int result = m_agent->get_user_info(&identifier);
         auto publish_identifier = identifier & 1;
