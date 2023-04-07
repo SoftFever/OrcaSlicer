@@ -1000,7 +1000,7 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
             %this->init_params->input_files.size() %this->init_params->input_gcode;
 
-        
+
 
         if (this->init_params->input_files.size() == 1 &&
             boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
@@ -1054,9 +1054,9 @@ void GUI_App::post_init()
         mainframe->select_tab(size_t(MainFrame::tp3DEditor));
         plater_->select_view_3D("3D");
         //BBS init the opengl resource here
-#ifdef __linux__
+//#ifdef __linux__
         if (plater_->canvas3D()->get_wxglcanvas()->IsShownOnScreen()&&plater_->canvas3D()->make_current_for_postinit()) {
-#endif
+//#endif
             Size canvas_size = plater_->canvas3D()->get_canvas_size();
             wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
@@ -1076,9 +1076,12 @@ void GUI_App::post_init()
                 plater_->canvas3D()->render(false);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
             }
-#ifdef __linux__
+//#ifdef __linux__
         }
-#endif
+        else {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Found glcontext not ready, postpone the init";
+        }
+//#endif
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
@@ -5701,7 +5704,7 @@ void GUI_App::open_mall_page_dialog()
     host_url = get_model_http_url(app_config->get_country_code());
 
     //model url
-    
+
     wxString language_code = this->current_language_code().BeforeFirst('_');
     model_url = language_code.ToStdString();
 
@@ -5715,7 +5718,7 @@ void GUI_App::open_mall_page_dialog()
             if(result == 0){
                 link_url = host_url + "api/sign-in/ticket?to=" + host_url + url_encode(model_url) + "&ticket=" + ticket;
             }
-        } 
+        }
     }
 
     if (result < 0) {
