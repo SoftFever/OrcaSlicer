@@ -3192,9 +3192,10 @@ void SelectMachineDialog::set_default()
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
-                m_mapping_popup.Position(pos, wxSize(0, 0));
+                m_mapping_popup.Move(pos);
 
                 if (obj_ && obj_->has_ams() && ams_check->GetValue()) {
+                    m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.update_ams_data(obj_->amsList);

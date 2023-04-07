@@ -130,7 +130,6 @@ class AmsMapingPopup : public PopupWindow
 {
 public:
     AmsMapingPopup(wxWindow *parent);
-    wxString format_text(wxString &m_msg);
     ~AmsMapingPopup(){};
 
     wxStaticText *           m_warning_text{nullptr}; 
@@ -144,7 +143,9 @@ public:
     std::string m_tag_material;
     wxBoxSizer *m_sizer_main{nullptr}; 
     wxBoxSizer *m_sizer_list{nullptr}; 
+    wxWindow   *m_parent_item{nullptr}; 
 
+    wxString     format_text(wxString &m_msg);
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
     void         update_ams_data(std::map<std::string, Ams *> amsList);
@@ -156,6 +157,7 @@ public:
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void         paintEvent(wxPaintEvent &evt);
+    void         set_parent_item(wxWindow* item) {m_parent_item = item;};
     std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 };
 

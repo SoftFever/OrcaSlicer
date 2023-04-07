@@ -273,6 +273,14 @@ void MaterialItem::doRender(wxDC &dc)
      SetSizer(m_sizer_main);
      Layout();
      Fit();
+
+     Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
+         if (e.IsShown() && m_parent_item) {
+             wxPoint pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
+             pos.y += m_parent_item->GetRect().height;
+             this->Move(pos);
+         }
+     });
  }
 
  wxString AmsMapingPopup::format_text(wxString &m_msg)
