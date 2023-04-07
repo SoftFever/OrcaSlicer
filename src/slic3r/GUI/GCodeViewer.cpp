@@ -176,7 +176,9 @@ void GCodeViewer::InstanceVBuffer::Ranges::reset()
 void GCodeViewer::InstanceVBuffer::reset()
 {
     s_ids.clear();
+    s_ids.shrink_to_fit();
     buffer.clear();
+    buffer.shrink_to_fit();
     render_ranges.reset();
 }
 
@@ -1222,6 +1224,7 @@ void GCodeViewer::reset()
 
     m_moves_count = 0;
     m_ssid_to_moveid_map.clear();
+    m_ssid_to_moveid_map.shrink_to_fit();
     for (TBuffer& buffer : m_buffers) {
         buffer.reset();
     }

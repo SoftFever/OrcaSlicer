@@ -59,9 +59,13 @@ namespace Slic3r {
                 time = 0.0f;
                 prepare_time = 0.0f;
                 custom_gcode_times.clear();
+                custom_gcode_times.shrink_to_fit();
                 moves_times.clear();
+                moves_times.shrink_to_fit();
                 roles_times.clear();
+                roles_times.shrink_to_fit();
                 layers_times.clear();
+                layers_times.shrink_to_fit();
             }
         };
 
@@ -81,6 +85,7 @@ namespace Slic3r {
                 m.reset();
             }
             volumes_per_color_change.clear();
+            volumes_per_color_change.shrink_to_fit();
             volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();

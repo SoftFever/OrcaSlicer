@@ -666,8 +666,11 @@ public:
             void reset() {
                 stop_mapping_file();
                 m_lines_ends.clear();
+                m_lines_ends.shrink_to_fit();
                 m_lines.clear();
+                m_lines.shrink_to_fit();
                 m_filename.clear();
+                m_filename.shrink_to_fit();
             }
 
             void toggle_visibility() { m_visible = !m_visible; }
