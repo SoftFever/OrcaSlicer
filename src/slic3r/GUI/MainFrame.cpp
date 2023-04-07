@@ -1974,7 +1974,7 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
 
 static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, std::function<bool(void)> can_change_view)
 {
-    const std::string& ctrl = GUI::shortkey_ctrl_prefix();
+    const wxString ctrl = _L("Ctrl+");
     // The camera control accelerators are captured by GLCanvas3D::on_char().
     append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\t" + ctrl + "0", _L("Default View"), [mainFrame](wxCommandEvent&) {
         mainFrame->select_view("plate");
@@ -2005,7 +2005,7 @@ void MainFrame::init_menubar_as_editor()
     m_menubar = new wxMenuBar();
 #endif
     
-    const std::string& ctrl = GUI::shortkey_ctrl_prefix();
+    const wxString ctrl = _L("Ctrl+");
 
     // File menu
     wxMenu* fileMenu = new wxMenu;

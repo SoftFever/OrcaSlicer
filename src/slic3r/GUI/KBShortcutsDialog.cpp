@@ -183,7 +183,12 @@ void KBShortcutsDialog::fill_shortcuts()
             // Slice plate
             { ctrl + "R", L("Slice plate")},
             // Send to Print
+#ifdef __APPLE__
+            { L("⌘+Shift+G"), L("Print plate")},
+#else
             { L("Ctrl+Shift+G"), L("Print plate")},
+#endif // __APPLE
+
             // Edit
             { ctrl + "X", L("Cut") },
             { ctrl + "C", L("Copy to clipboard") },
