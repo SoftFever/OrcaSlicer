@@ -367,7 +367,7 @@ void SendJob::process()
         }
 
         if (result == BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS) {
-            msg_text = _L("Failed uploading print file. Please enter ip address again.");
+            msg_text = timeout_to_upload_str;
         }
             
         update_status(curr_percent, msg_text);
