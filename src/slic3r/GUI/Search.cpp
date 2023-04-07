@@ -366,7 +366,11 @@ void OptionsSearcher::show_dialog(Preset::Type type, wxWindow *parent, TextInput
     if (parent == nullptr || input == nullptr) return;
     auto    search_dialog = new SearchDialog(this, type, parent, input, ssearch_btn);
     wxPoint pos = input->GetParent()->ClientToScreen(wxPoint(0, 0));
+#ifndef __WXGTK__
     pos.y += input->GetParent()->GetRect().height;
+#else
+    input->GetParent()->Hide();
+#endif
     search_dialog->SetPosition(pos);
     search_dialog->Popup();
 }
@@ -558,11 +562,18 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
 
     // search line
     //search_line = new wxTextCtrl(m_client_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+#ifdef __WXGTK__
+    search_line = new TextInput(m_client_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    search_line->SetBackgroundColour(wxColour(238, 238, 238));
+    search_line->SetForegroundColour(wxColour(43, 52, 54));
+    search_line->SetFont(GUI::wxGetApp().bold_font());
+#endif
 
     // default_string = _L("Enter a search term");
     search_line->Bind(wxEVT_TEXT, &SearchDialog::OnInputText, this);
     search_line->Bind(wxEVT_LEFT_UP, &SearchDialog::OnLeftUpInTextCtrl, this);
     search_line->Bind(wxEVT_KEY_DOWN, &SearchDialog::OnKeyDown, this);
+    search_line2 = search_line->GetTextCtrl();
 
     // scroll window
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em /2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
@@ -579,7 +590,10 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
     m_listPanel->Fit();
     m_scrolledWindow->SetScrollbars(1, 1, 0, m_listPanel->GetSize().GetHeight());
 
-    //m_sizer_body->Add(search_line, 0, wxEXPAND | wxTOP, em + em / 2);
+#ifdef __WXGTK__
+    m_sizer_body->Add(search_line, 0, wxEXPAND | wxALL, em / 2);
+    search_line = input;
+#endif
     m_sizer_body->Add(m_scrolledWindow, 0, wxEXPAND | wxALL, em);
 
     m_client_panel->SetSizer(m_sizer_body);
@@ -589,7 +603,7 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
 
     m_border_panel->SetSizer(m_sizer_main);
     m_border_panel->Layout();
-    m_sizer_border->Add(m_border_panel, 0, wxEXPAND | wxALL, 1);
+    m_sizer_border->Add(m_border_panel, 1, wxEXPAND | wxALL, 1);
 
     SetSizer(m_sizer_border);
     Layout();
@@ -619,11 +633,11 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 
     //const std::string &line = searcher->search_string();
     //search_line->SetValue(line.empty() ? default_string : from_u8(line));
-    search_line->GetTextCtrl()->SetValue(wxString(""));
+    search_line2->SetValue(wxString(""));
     //const std::string &line = searcher->search_string();
     //searcher->search(into_u8(line), true);
     PopupWindow::Popup();
-    search_line->SetFocus();
+    search_line2->SetFocus();
     update_list();
 }
 
@@ -671,8 +685,8 @@ void SearchDialog::ProcessSelection(wxDataViewItem selection)
 
 void SearchDialog::OnInputText(wxCommandEvent &)
 {
-    search_line->GetTextCtrl()->SetInsertionPointEnd();
-    wxString input_string = search_line->GetTextCtrl()->GetValue();
+    search_line2->SetInsertionPointEnd();
+    wxString input_string = search_line2->GetValue();
     if (input_string == default_string) input_string.Clear();
     searcher->search(into_u8(input_string), true, search_type);
     update_list();
@@ -680,7 +694,7 @@ void SearchDialog::OnInputText(wxCommandEvent &)
 
 void SearchDialog::OnLeftUpInTextCtrl(wxEvent &event)
 {
-    if (search_line->GetTextCtrl()->GetValue() == default_string) search_line->GetTextCtrl()->SetValue("");
+    if (search_line2->GetValue() == default_string) search_line2->SetValue("");
     event.Skip();
 }
 
@@ -726,7 +740,9 @@ void SearchDialog::OnSelect(wxDataViewEvent &event)
 
 void SearchDialog::update_list()
 {
+#ifndef __WXGTK__
     Freeze();
+#endif
     m_scrolledWindow->Destroy();
 
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
@@ -755,7 +771,9 @@ void SearchDialog::update_list()
     m_sizer_body->Add(m_scrolledWindow, 0, wxEXPAND | wxALL, em);
     m_sizer_body->Fit(m_client_panel);
     m_sizer_body->Layout();
+#ifndef __WXGTK__
     Thaw();
+#endif
 
     // Under OSX model->Clear invoke wxEVT_DATAVIEW_SELECTION_CHANGED, so
     // set prevent_list_events to true already here
