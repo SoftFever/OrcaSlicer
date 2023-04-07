@@ -2662,12 +2662,16 @@ namespace Skirt {
 
 } // namespace Skirt
 
-inline std::string get_instance_name(const PrintObject *object, const PrintInstance &inst) {
-    return (boost::format("%1%_id_%2%_copy_%3%") % object->model_object()->name % object->get_id() % inst.id).str();
+inline std::string get_instance_name(const PrintObject *object, size_t inst_id) {
+    auto obj_name = object->model_object()->name;
+    // replace space in obj_name with '-'
+    std::replace(obj_name.begin(), obj_name.end(), ' ', '_');
+
+    return (boost::format("%1%_id_%2%_copy_%3%") % obj_name % object->get_id() % inst_id).str();
 }
 
-inline std::string get_instance_name(const PrintObject *object, size_t inst_id) {
-    return (boost::format("%1%_id_%2%_copy_%3%") % object->model_object()->name % object->get_id() % inst_id).str();
+inline std::string get_instance_name(const PrintObject *object, const PrintInstance &inst) {
+    return get_instance_name(object, inst.id);
 }
 
 // In sequential mode, process_layer is called once per each object and its copy,
