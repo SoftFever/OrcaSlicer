@@ -3874,7 +3874,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // calculate extrusion length per distance unit
-    const auto _mm3_per_mm = path.mm3_per_mm * this->config().print_flow_ratio;
+    auto _mm3_per_mm = path.mm3_per_mm * this->config().print_flow_ratio;
+    if (path.role() == erTopSolidInfill)
+        _mm3_per_mm *= m_config.top_solid_infill_flow_ratio;
+    else if (path.role() == erBottomSurface)
+        _mm3_per_mm *= m_config.bottom_solid_infill_flow_ratio;
+
+
     double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
