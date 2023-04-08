@@ -1718,40 +1718,39 @@ bool PartPlate::contain_instance_totally(int obj_id, int instance_id) const
 //check whether instance is outside the plate or not
 bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* bounding_box)
 {
-    return m_plater->get_current_canvas3D()->check_volumes_outside_state();
-//	bool outside = true;
-//
-//	ModelObject* object = m_model->objects[obj_id];
-//	ModelInstance* instance = object->instances[instance_id];
-//
-//	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-//	Polygon hull = instance->convex_hull_2d();
-//	Vec3d up_point(m_origin.x() + m_width + Slic3r::BuildVolume::SceneEpsilon, m_origin.y() + m_depth + Slic3r::BuildVolume::SceneEpsilon, m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
-//	Vec3d low_point(m_origin.x() - Slic3r::BuildVolume::SceneEpsilon, m_origin.y() - Slic3r::BuildVolume::SceneEpsilon, m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
-//	BoundingBoxf3 plate_box(low_point, up_point);
-//
-//	if (plate_box.contains(instance_box))
-//	{
-//		if (m_exclude_bounding_box.size() > 0)
-//		{
-//			int index;
-//			for (index = 0; index < m_exclude_bounding_box.size(); index ++)
-//			{
-//				Polygon p = m_exclude_bounding_box[index].polygon(true);  // instance convex hull is scaled, so we need to scale here
-//				if (intersection({ p }, { hull }).empty() == false)
-//				//if (m_exclude_bounding_box[index].intersects(instance_box))
-//				{
-//					break;
-//				}
-//			}
-//			if (index >= m_exclude_bounding_box.size())
-//				outside = false;
-//		}
-//		else
-//			outside = false;
-//	}
-//
-//	return outside;
+	bool outside = true;
+
+	ModelObject* object = m_model->objects[obj_id];
+	ModelInstance* instance = object->instances[instance_id];
+
+	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
+	Polygon hull = instance->convex_hull_2d();
+	Vec3d up_point(m_origin.x() + m_width + Slic3r::BuildVolume::SceneEpsilon, m_origin.y() + m_depth + Slic3r::BuildVolume::SceneEpsilon, m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
+	Vec3d low_point(m_origin.x() - Slic3r::BuildVolume::SceneEpsilon, m_origin.y() - Slic3r::BuildVolume::SceneEpsilon, m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
+	BoundingBoxf3 plate_box(low_point, up_point);
+
+	if (plate_box.contains(instance_box))
+	{
+		if (m_exclude_bounding_box.size() > 0)
+		{
+			int index;
+			for (index = 0; index < m_exclude_bounding_box.size(); index ++)
+			{
+				Polygon p = m_exclude_bounding_box[index].polygon(true);  // instance convex hull is scaled, so we need to scale here
+				if (intersection({ p }, { hull }).empty() == false)
+				//if (m_exclude_bounding_box[index].intersects(instance_box))
+				{
+					break;
+				}
+			}
+			if (index >= m_exclude_bounding_box.size())
+				outside = false;
+		}
+		else
+			outside = false;
+	}
+
+	return outside;
 }
 
 //judge whether instance is intesected with plate or not
