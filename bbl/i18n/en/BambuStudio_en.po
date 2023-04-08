@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 19:20+0800\n"
+"POT-Creation-Date: 2023-04-08 15:59+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1670,9 +1670,6 @@ msgstr "A MicroSD card needs to be inserted before sending to printer."
 
 msgid "Please log out and login to the printer again."
 msgstr "Please log out and login to the printer again."
-
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr "Failed uploading print file. Please enter IP address again."
 
 msgid "Choose SLA archive:"
 msgstr ""
@@ -4886,9 +4883,6 @@ msgstr "Offline"
 msgid "(LAN)"
 msgstr ""
 
-msgid "Search"
-msgstr ""
-
 msgid "My Device"
 msgstr "My Device"
 
@@ -5693,6 +5687,9 @@ msgid "Objects list"
 msgstr "Objects list"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
+msgstr ""
+
+msgid "⌘+Shift+G"
 msgstr ""
 
 msgid "Ctrl+Shift+G"
@@ -6756,8 +6753,8 @@ msgid "Brim type"
 msgstr "Brim type"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "Outer brim only"
@@ -9043,6 +9040,9 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr "Failed uploading print file. Please enter IP address again."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

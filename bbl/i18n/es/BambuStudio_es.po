@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 19:20+0800\n"
+"POT-Creation-Date: 2023-04-08 15:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1706,10 +1706,6 @@ msgstr "Se debe insertar una tarjeta microSD antes de enviar a la impresora."
 
 msgid "Please log out and login to the printer again."
 msgstr "Cierre sesión y vuelva a iniciarla en la impresora."
-
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr ""
-"Error al cargar el archivo de impresión. Vuelva a introducir la dirección IP."
 
 msgid "Choose SLA archive:"
 msgstr ""
@@ -4975,9 +4971,6 @@ msgstr "Fuera de línea"
 msgid "(LAN)"
 msgstr ""
 
-msgid "Search"
-msgstr ""
-
 msgid "My Device"
 msgstr "Mi dispositivo"
 
@@ -5804,6 +5797,9 @@ msgid "Objects list"
 msgstr "Lista de objetos"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
+msgstr ""
+
+msgid "⌘+Shift+G"
 msgstr ""
 
 msgid "Ctrl+Shift+G"
@@ -6903,8 +6899,8 @@ msgid "Brim type"
 msgstr "Tipo de balsa"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "Outer brim only"
@@ -9239,6 +9235,11 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr ""
+#~ "Error al cargar el archivo de impresión. Vuelva a introducir la dirección "
+#~ "IP."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"

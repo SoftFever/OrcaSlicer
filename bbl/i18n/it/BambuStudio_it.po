@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 19:20+0800\n"
+"POT-Creation-Date: 2023-04-08 15:59+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1695,11 +1695,6 @@ msgstr ""
 
 msgid "Please log out and login to the printer again."
 msgstr "Fai un logout e rieffettua il login alla stampante."
-
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr ""
-"Caricamento del file di stampa non riuscito. Inserisci nuovamente "
-"l'indirizzo IP."
 
 msgid "Choose SLA archive:"
 msgstr ""
@@ -4949,9 +4944,6 @@ msgstr "Off-line"
 msgid "(LAN)"
 msgstr ""
 
-msgid "Search"
-msgstr ""
-
 msgid "My Device"
 msgstr "Mio dispositivo"
 
@@ -5776,6 +5768,9 @@ msgid "Objects list"
 msgstr "Elenco oggetti"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
+msgstr ""
+
+msgid "⌘+Shift+G"
 msgstr ""
 
 msgid "Ctrl+Shift+G"
@@ -6873,8 +6868,8 @@ msgid "Brim type"
 msgstr "Tipo di brim"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "Outer brim only"
@@ -9215,6 +9210,11 @@ msgstr ""
 "Migliorare la resistenza\n"
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
+
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr ""
+#~ "Caricamento del file di stampa non riuscito. Inserisci nuovamente "
+#~ "l'indirizzo IP."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

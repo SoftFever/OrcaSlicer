@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 19:20+0800\n"
+"POT-Creation-Date: 2023-04-08 15:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1711,11 +1711,6 @@ msgstr ""
 
 msgid "Please log out and login to the printer again."
 msgstr "Bitte loggen Sie sich aus und melden Sie sich erneut am Drucker an."
-
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr ""
-"Hochladen der Druckdatei fehlgeschlagen. Bitte geben Sie die IP-Adresse "
-"erneut ein."
 
 msgid "Choose SLA archive:"
 msgstr ""
@@ -4990,9 +4985,6 @@ msgstr "Offline"
 msgid "(LAN)"
 msgstr ""
 
-msgid "Search"
-msgstr ""
-
 msgid "My Device"
 msgstr "Mein Gerät"
 
@@ -5833,6 +5825,9 @@ msgid "Objects list"
 msgstr "Liste der Objekte"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
+msgstr ""
+
+msgid "⌘+Shift+G"
 msgstr ""
 
 msgid "Ctrl+Shift+G"
@@ -6930,8 +6925,8 @@ msgid "Brim type"
 msgstr "Randtyp"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "Outer brim only"
@@ -9274,6 +9269,11 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr ""
+#~ "Hochladen der Druckdatei fehlgeschlagen. Bitte geben Sie die IP-Adresse "
+#~ "erneut ein."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

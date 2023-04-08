@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 19:20+0800\n"
+"POT-Creation-Date: 2023-04-08 15:59+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1635,9 +1635,6 @@ msgid "An SD card needs to be inserted before sending to printer."
 msgstr ""
 
 msgid "Please log out and login to the printer again."
-msgstr ""
-
-msgid "Failed uploading print file. Please enter ip address again."
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4654,9 +4651,6 @@ msgstr ""
 msgid "(LAN)"
 msgstr ""
 
-msgid "Search"
-msgstr ""
-
 msgid "My Device"
 msgstr ""
 
@@ -5377,6 +5371,9 @@ msgid "Objects list"
 msgstr ""
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
+msgstr ""
+
+msgid "⌘+Shift+G"
 msgstr ""
 
 msgid "Ctrl+Shift+G"
@@ -6326,8 +6323,8 @@ msgid "Brim type"
 msgstr ""
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "Outer brim only"
