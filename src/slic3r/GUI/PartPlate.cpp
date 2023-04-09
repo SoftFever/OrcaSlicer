@@ -1724,15 +1724,17 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 	ModelInstance* instance = object->instances[instance_id];
 
 	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-	Polygon hull = instance->convex_hull_2d();
-	Vec3d up_point(m_origin.x() + m_width + Slic3r::BuildVolume::SceneEpsilon, m_origin.y() + m_depth + Slic3r::BuildVolume::SceneEpsilon, m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
-	Vec3d low_point(m_origin.x() - Slic3r::BuildVolume::SceneEpsilon, m_origin.y() - Slic3r::BuildVolume::SceneEpsilon, m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
+    Vec3d up_point = m_bounding_box.max + Vec3d(Slic3r::BuildVolume::SceneEpsilon, Slic3r::BuildVolume::SceneEpsilon,
+                                                m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
+    Vec3d low_point = m_bounding_box.min + Vec3d(-Slic3r::BuildVolume::SceneEpsilon, -Slic3r::BuildVolume::SceneEpsilon,
+                                                 m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
 	BoundingBoxf3 plate_box(low_point, up_point);
 
 	if (plate_box.contains(instance_box))
 	{
 		if (m_exclude_bounding_box.size() > 0)
 		{
+			Polygon hull = instance->convex_hull_2d();
 			int index;
 			for (index = 0; index < m_exclude_bounding_box.size(); index ++)
 			{
@@ -1769,8 +1771,12 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* b
 		ModelObject* object = m_model->objects[obj_id];
 		ModelInstance* instance = object->instances[instance_id];
 		BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-		Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
-		Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z() - 5.0f);
+        Vec3d up_point =
+            m_bounding_box.max + Vec3d(Slic3r::BuildVolume::SceneEpsilon, Slic3r::BuildVolume::SceneEpsilon,
+                                       m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
+        Vec3d low_point =
+            m_bounding_box.min + Vec3d(-Slic3r::BuildVolume::SceneEpsilon, -Slic3r::BuildVolume::SceneEpsilon,
+                                       m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
 		BoundingBoxf3 plate_box(low_point, up_point);
 
 		result = plate_box.intersects(instance_box);

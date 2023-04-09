@@ -338,7 +338,6 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     if (show_axes)
         render_axes();
-
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     m_model.set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
@@ -632,8 +631,8 @@ GeometryBuffer Bed3D::update_bed_triangles() const
 
     if (!m_build_volume.valid()) return new_triangles;
 
-    (*model_offset_ptr)(0) = m_build_volume.bounding_volume2d().min.x();
-    (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y();
+    (*model_offset_ptr)(0) = 0;//m_build_volume.bounding_volume2d().min.x();
+    (*model_offset_ptr)(1) = 0; // m_build_volume.bounding_volume2d().min.y();
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     std::vector<Vec2d> new_bed_shape;
