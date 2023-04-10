@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
-"PO-Revision-Date: 2023-03-29 12:43+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"PO-Revision-Date: 2023-04-10 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1866,14 +1866,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -4629,16 +4629,16 @@ msgid "Same as Global Bed Type"
 msgstr "跟随全局热床类型"
 
 msgid "Cool Plate"
-msgstr "低温打印热床"
+msgstr "低温打印板/PLA打印板"
 
 msgid "Engineering Plate"
-msgstr "工程材料热床"
+msgstr "工程材料打印板"
 
 msgid "High Temp Plate"
-msgstr "高温打印热床"
+msgstr "高温打印板"
 
 msgid "Textured PEI Plate"
-msgstr "纹理PEI热床"
+msgstr "纹理PEI打印板"
 
 msgid "By Layer"
 msgstr "逐层"
@@ -6828,6 +6828,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"

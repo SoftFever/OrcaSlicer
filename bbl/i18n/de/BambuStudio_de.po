@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1937,14 +1937,14 @@ msgstr "Druckbetttemperatur"
 msgid "Max volumetric speed"
 msgstr "Maximale Volumengeschwindigkeit"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Druckbetttemperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starten"
@@ -7289,6 +7289,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale Wischmenge im Wischturm"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Ladedauer des Filaments"
 
@@ -9270,33 +9273,6 @@ msgstr ""
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
 
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr ""
-#~ "Hochladen der Druckdatei fehlgeschlagen. Bitte geben Sie die IP-Adresse "
-#~ "erneut ein."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Schichten: N/A"
-
-#, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "Schichten: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Schichten: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr ""
-#~ "Die aktuellen AMS-Einstellungen unterstützen die Verwendung einer "
-#~ "externen Spule nicht."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9324,6 +9300,11 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "Filament im AMS automatisch wechseln"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "Die aktuellen AMS-Einstellungen unterstützen die Verwendung einer "
+#~ "externen Spule nicht."
 
 #~ msgid "AWS PRE host"
 #~ msgstr "AWS PRE-Host"
@@ -9608,6 +9589,11 @@ msgstr ""
 #~ "Bitte geben Sie die korrekte IP-Adresse des Druckers und den Zugangscode "
 #~ "ein."
 
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr ""
+#~ "Hochladen der Druckdatei fehlgeschlagen. Bitte geben Sie die IP-Adresse "
+#~ "erneut ein."
+
 #~ msgid "Filament 1"
 #~ msgstr "Filament 1"
 
@@ -9805,6 +9791,15 @@ msgstr ""
 
 #~ msgid "Layer Time (log)"
 #~ msgstr "Schichtdauer (Protokoll)"
+
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Schichten: %d/%d"
+
+#~ msgid "Layers: %s"
+#~ msgstr "Schichten: %s"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Schichten: N/A"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Schichten und Wände"

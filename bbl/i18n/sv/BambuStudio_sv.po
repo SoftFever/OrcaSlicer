@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1379,7 +1379,7 @@ msgid "Jump to Layer"
 msgstr "Hoppa till lager"
 
 msgid "Jump to layer"
-msgstr "Jump to layer"
+msgstr "Hoppa till lager"
 
 msgid "Please enter the layer number"
 msgstr "Ange lager numret."
@@ -1820,7 +1820,7 @@ msgstr ""
 "anges i motsvarande kod kommentarer."
 
 msgid "AMS Materials Setting"
-msgstr "AMS Materials Setting"
+msgstr "AMS Material Inställning"
 
 msgid "Confirm"
 msgstr "Acceptera"
@@ -1882,7 +1882,7 @@ msgid "Other color"
 msgstr ""
 
 msgid "Dynamic flow calibration"
-msgstr "Dynamic flow calibration"
+msgstr "Dynamisk flödeskalibrering"
 
 msgid ""
 "The nozzle temp and max volumetric speed will affect the calibration "
@@ -1908,14 +1908,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -1936,7 +1936,7 @@ msgid "Save"
 msgstr "Spara"
 
 msgid "Last Step"
-msgstr "Back"
+msgstr "Tillbaka"
 
 msgid "Example"
 msgstr "Exempel"
@@ -1977,7 +1977,7 @@ msgid "Disable AMS"
 msgstr "Inaktivera AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr "Print with filament on an external spool"
+msgstr "Skriv ut med filament på en extern spole"
 
 msgid "Cabin humidity"
 msgstr "Inkapslingens fuktighet"
@@ -2956,7 +2956,7 @@ msgid "Micro lidar calibration"
 msgstr "Micro Lidar Kalibrering"
 
 msgid "Bed leveling"
-msgstr "Bed leveling"
+msgstr "Justering av Byggplattan"
 
 msgid "Resonance frequency identification"
 msgstr "Identifiering av resonansfrekvenser"
@@ -4170,7 +4170,7 @@ msgid "Please correct them in the param tabs"
 msgstr ""
 
 msgid "The 3mf is not compatible, load geometry data only!"
-msgstr "The 3mf is not compatible, loading geometry data only!"
+msgstr "3mf ej kompatibel, laddar endast geometrin !"
 
 msgid "Incompatible 3mf"
 msgstr "Ej kompatibel 3mf"
@@ -5738,16 +5738,16 @@ msgid "Global shortcuts"
 msgstr "Övergripande genvägar"
 
 msgid "Rotate View"
-msgstr "Rotate View"
+msgstr "Rotera vy"
 
 msgid "Pan View"
-msgstr "Pan View"
+msgstr "Panoreringsvy"
 
 msgid "Mouse wheel"
 msgstr "Mus hjul"
 
 msgid "Zoom View"
-msgstr "Zoom View"
+msgstr "Zoomvy"
 
 msgid "Shift+A"
 msgstr ""
@@ -7123,6 +7123,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
 
@@ -7385,7 +7388,7 @@ msgstr ""
 "vilken typ av filament som kan skrivas ut"
 
 msgid "Undefine"
-msgstr "Undefined"
+msgstr "Oidentifierad"
 
 msgid "Hardened steel"
 msgstr "Härdat stål"
@@ -8164,8 +8167,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Rectilinear Interlaced"
 msgstr ""
@@ -9057,30 +9060,6 @@ msgstr ""
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
 
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr "Det gick inte att ladda upp utskriftsfilen. Ange IP-adress igen."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Lager: N/A"
-
-#, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "Lager: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Lager: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr ""
-#~ "Aktuell AMS-inställningar stöder inte användning av en extern spole."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9105,6 +9084,10 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "AMS automatisk växling av filament"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "Aktuell AMS-inställningar stöder inte användning av en extern spole."
 
 #~ msgid "AWS PRE host"
 #~ msgstr "AWS PRE värd"
@@ -9383,6 +9366,9 @@ msgstr ""
 #~ "Det gick inte att ansluta till skrivaren via LAN. Ange den rätta "
 #~ "skrivarens IP-adress och åtkomstkod."
 
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr "Det gick inte att ladda upp utskriftsfilen. Ange IP-adress igen."
+
 #~ msgid "Filament 1"
 #~ msgstr "Filament 1"
 
@@ -9574,6 +9560,15 @@ msgstr ""
 #~ msgid "Layer Time (log)"
 #~ msgstr "Lagertid (logg)"
 
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Lager: %d/%d"
+
+#~ msgid "Layers: %s"
+#~ msgstr "Lager: %s"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Lager: N/A"
+
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Lager och perimetrar"
 
@@ -9661,7 +9656,7 @@ msgstr ""
 #~ msgstr "Plattan %d: %s stöder inte filamentet %s (%s)."
 
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
-#~ msgstr "Plate %d: %s does not support filament %s (%s).\n"
+#~ msgstr "Plattan %d: %s stöder inte filamentet %s (%s).\n"
 
 #~ msgid "Please Fill Task Report."
 #~ msgstr "Vänligen fyll i uppgiftsrapporten."
@@ -9824,7 +9819,7 @@ msgstr ""
 #~ "timelapse typen är traditionell."
 
 #~ msgid "Start"
-#~ msgstr "Start"
+#~ msgstr "Starta"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr ""
@@ -9841,7 +9836,8 @@ msgstr ""
 #~ msgid ""
 #~ "Successfully sent. Will automatically jump to the device page in %s s"
 #~ msgstr ""
-#~ "Successfully sent. Will automatically jump to the device page in %s s"
+#~ "Framgångsrikt skickat. Kommer automatiskt att hoppa till enhetssidan om "
+#~ "%s s"
 
 #~ msgid "Suggestion: Actual Volume in range [%d, %d]"
 #~ msgstr "Förslag: Faktisk volym inom intervallet [%d, %d]."
@@ -10019,10 +10015,10 @@ msgstr ""
 #~ "by right-click the empty position of build plate and choose \"Add "
 #~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
 #~ msgstr ""
-#~ "When recording timelapse without toolhead, it is recommended to add a "
-#~ "\"Timelapse Wipe Tower\" \n"
-#~ "by right-click the empty position of build plate and choose \"Add "
-#~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
+#~ "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
+#~ "till ett \"Timelapse Wipe Tower\".\n"
+#~ "genom att högerklicka på den tomma positionen på byggplattan och välja "
+#~ "\"Lägg till Primitiv\"->\"Timelapse Wipe Tower\".\n"
 
 #~ msgid ""
 #~ "When sparse infill density is low, the internal solid infill or internal "
@@ -10082,7 +10078,7 @@ msgstr ""
 #~ msgstr " för tätt inpå den isolerade ytan, utskriften kolliderar.\n"
 
 #~ msgid " is too close to others, there may be collisions when printing.\n"
-#~ msgstr " is too close to others; there may be collisions when printing.\n"
+#~ msgstr " är för nära andra; det kan uppstå kollisioner vid utskrift.\n"
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr " för tätt inpå andra, utskriften kolliderar.\n"

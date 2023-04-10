@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1884,7 +1884,7 @@ msgid "Nozzle Diameter"
 msgstr "Nozzle Diameter"
 
 msgid "Bed Type"
-msgstr "Bed Type"
+msgstr "Plate Type"
 
 msgid "Nozzle temperature"
 msgstr "Nozzle temperature"
@@ -1895,14 +1895,14 @@ msgstr "Bed Temperature"
 msgid "Max volumetric speed"
 msgstr "Max volumetric speed"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Bed temperature"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -4011,7 +4011,7 @@ msgid "Connection"
 msgstr "Connection"
 
 msgid "Bed type"
-msgstr "Bed type"
+msgstr "Plate type"
 
 msgid "Flushing volumes"
 msgstr "Flushing volumes"
@@ -4742,10 +4742,10 @@ msgid "Print sequence"
 msgstr "Print sequence"
 
 msgid "Same as Global Bed Type"
-msgstr "Same as Global Bed Type"
+msgstr "Same as Global Plate Type"
 
 msgid "Cool Plate"
-msgstr "Cool Plate"
+msgstr "Cool Plate/PLA Plate"
 
 msgid "Engineering Plate"
 msgstr "Engineering Plate"
@@ -6627,7 +6627,7 @@ msgstr ""
 "the Textured PEI Plate."
 
 msgid "Bed types supported by the printer"
-msgstr "Bed types supported by the printer"
+msgstr "Plate types supported by the printer"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "This G-code is inserted at every layer change before lifting z."
@@ -7112,6 +7112,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge on wipe tower"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Filament load time"
@@ -9041,29 +9044,6 @@ msgstr ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr "Failed uploading print file. Please enter IP address again."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Layers: N/A"
-
-#, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "Layers: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Layers: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr "Current AMS settings do not support using an external spool."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9091,6 +9071,9 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "AMS auto switch filament"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr "Current AMS settings do not support using an external spool."
 
 #~ msgid "AWS PRE host"
 #~ msgstr "AWS PRE host"
@@ -9370,6 +9353,9 @@ msgstr ""
 #~ "Failed to connect to the printer through LAN. Please enter the correct "
 #~ "printer IP address and access code."
 
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr "Failed uploading print file. Please enter IP address again."
+
 #~ msgid "Filament 1"
 #~ msgstr "Filament 1"
 
@@ -9557,6 +9543,15 @@ msgstr ""
 
 #~ msgid "Layer Time (log)"
 #~ msgstr "Layer Time (log)"
+
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Layers: %d/%d"
+
+#~ msgid "Layers: %s"
+#~ msgstr "Layers: %s"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Layers: N/A"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Layers and Perimeters"
@@ -9756,7 +9751,7 @@ msgstr ""
 #~ msgstr "Save configuration as:"
 
 #~ msgid "Select Bed Type"
-#~ msgstr "Select Bed Type"
+#~ msgstr "Select Plate Type"
 
 #~ msgid "Sending"
 #~ msgstr "Sending"

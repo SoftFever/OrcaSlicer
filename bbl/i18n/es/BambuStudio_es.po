@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -682,7 +682,7 @@ msgstr ""
 "corte!"
 
 msgid "Open Project"
-msgstr "Proyesto Abierto"
+msgstr "Abrir proyecto"
 
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
@@ -716,13 +716,13 @@ msgid "*"
 msgstr "*"
 
 msgid "The uploads are still ongoing"
-msgstr "Las subidas aún están en curso"
+msgstr "El envío aún están en curso"
 
 msgid "Stop them and continue anyway?"
 msgstr "¿Detenerlos y continuar de todos modos?"
 
 msgid "Ongoing uploads"
-msgstr "Cargas en curso"
+msgstr "El envío todavía esta en curso"
 
 msgid "Select a G-code file:"
 msgstr "Seleccione un archivo de código G:"
@@ -879,13 +879,13 @@ msgid "Reload from disk"
 msgstr "Recargar desde el disco"
 
 msgid "Reload the selected parts from disk"
-msgstr "Recargar las piezas seleccionadas desde el disco"
+msgstr "Recargar las partes seleccionadas desde disco"
 
 msgid "Replace with STL"
-msgstr "Sustituir por STL"
+msgstr "Reemplazar con STL"
 
 msgid "Replace the selected part with new STL"
-msgstr "Sustituir la pieza seleccionada por un STL nuevo"
+msgstr "Reemplazar las partes seleccionadas con nuevo STL"
 
 msgid "Change filament"
 msgstr "Cambiar el filamento"
@@ -1049,7 +1049,7 @@ msgid "Center"
 msgstr "Centrar"
 
 msgid "Edit Process Settings"
-msgstr "Editar la configuración del proceso"
+msgstr "Editar en tabla de parámetros"
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
@@ -1369,10 +1369,10 @@ msgid "Open Preferences."
 msgstr "Abrir preferencias"
 
 msgid "Open next tip."
-msgstr "Abrir el siguiente consejo"
+msgstr "Abrir siguiente sugerencia"
 
 msgid "Open Documentation in web browser."
-msgstr "Abrir documentación en el navegador web"
+msgstr "Abrir documentación en el navegador"
 
 msgid "Pause:"
 msgstr ""
@@ -1399,7 +1399,7 @@ msgid "Jump to layer"
 msgstr "Saltar a la capa"
 
 msgid "Please enter the layer number"
-msgstr "Introduzca el número de capa."
+msgstr "Por favor, introduzca el número de capa."
 
 msgid "Add Pause"
 msgstr "Añadir pausa"
@@ -1497,7 +1497,7 @@ msgid "Pull back current filament"
 msgstr "Extraer el filamento actual"
 
 msgid "Push new filament into extruder"
-msgstr "Introducir el nuevo filamento en el extrusor"
+msgstr "Empuje el nuevo filamento en el extrusor"
 
 msgid "Purge old filament"
 msgstr "Purgar el filamento viejo"
@@ -1620,7 +1620,7 @@ msgid "Unknown Failure"
 msgstr "Error desconocido"
 
 msgid "Please check the printer network connection."
-msgstr "Compruebe la conexión de red de la impresora."
+msgstr "Por favor, comprueba la conexión de red de la impresora."
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Datos anormales del archivo de impresión. Por favor, procese de nuevo"
@@ -1673,8 +1673,7 @@ msgstr "Enviando la configuración de impresión"
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
-"Enviado con éxito. Se saltará automáticamente a la página del dispositivo en "
-"%s s"
+"Enviado correctamente. Se mostrará automáticamente en el dispositivo en %s S"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Se debe insertar una tarjeta microSD antes de imprimir mediante LAN."
@@ -1702,7 +1701,7 @@ msgid "Successfully sent. Close current page in %s s"
 msgstr "Se ha enviado correctamente. Cerrar la página actual en %s s"
 
 msgid "An SD card needs to be inserted before sending to printer."
-msgstr "Se debe insertar una tarjeta microSD antes de enviar a la impresora."
+msgstr "Debe insertar una tarjeta microSD antes de enviar a la impresora."
 
 msgid "Please log out and login to the printer again."
 msgstr "Cierre sesión y vuelva a iniciarla en la impresora."
@@ -1760,7 +1759,7 @@ msgid "Attention!"
 msgstr "¡Atención!"
 
 msgid "Downloading"
-msgstr ""
+msgstr "Descargando"
 
 msgid "Download failed"
 msgstr "Descarga fallida"
@@ -1781,7 +1780,7 @@ msgid "Portions copyright"
 msgstr "Porciones del copyright"
 
 msgid "Copyright"
-msgstr "Copyright"
+msgstr "Derecho de autor"
 
 msgid "License"
 msgstr "Licencia"
@@ -1935,14 +1934,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\ u00b3"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -2004,7 +2003,7 @@ msgid "Disable AMS"
 msgstr "Deshabilitar AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr "Impresión con filamento en una bobina externa"
+msgstr "Imprimir con el filamento montado en la parte posterior del chasis"
 
 msgid "Cabin humidity"
 msgstr "Humedad de cabina"
@@ -2043,7 +2042,7 @@ msgid ""
 msgstr "Configure qué ranura AMS debe utilizarse para la impresión."
 
 msgid "Filament used in this print job"
-msgstr "Filamento utilizado en esta impresión"
+msgstr "Filamento utilizado en este trabajo de impresión"
 
 msgid "AMS slot used for this filament"
 msgstr "Ranura AMS utilizada para este filamento"
@@ -2829,13 +2828,13 @@ msgid "Quality / Speed"
 msgstr "Calidad / Velocidad"
 
 msgid "Smooth"
-msgstr "Suavizar"
+msgstr "Alisado"
 
 msgid "Radius"
 msgstr "Radio"
 
 msgid "Keep min"
-msgstr "Mantener mínimo"
+msgstr "minutos restantes"
 
 msgid "Left mouse button:"
 msgstr "Botón izquierdo del ratón:"
@@ -3104,7 +3103,7 @@ msgid "Slice plate"
 msgstr "Laminar placa"
 
 msgid "Print plate"
-msgstr "Placa de impresión"
+msgstr "Imprimir placa"
 
 msgid "Slice all"
 msgstr "Laminar todo"
@@ -3410,7 +3409,7 @@ msgid "No to All"
 msgstr "No a todo"
 
 msgid "Choose a directory"
-msgstr "Elegir un directorio"
+msgstr "Seleccionar directorio"
 
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
@@ -3547,13 +3546,13 @@ msgid "All Files"
 msgstr "Todos los archivos"
 
 msgid "Group files by year, recent first."
-msgstr "Agrupe los archivos por año, primero los recientes."
+msgstr "Agrupar ficheros por año, primero los más recientes"
 
 msgid "Group files by month, recent first."
-msgstr "Agrupe los archivos por mes, primero los recientes."
+msgstr "Agrupar ficheros por mes, primero los más recientes."
 
 msgid "Show all files, recent first."
-msgstr "Mostrar todos los archivos, primero los recientes."
+msgstr "Mostrar todos los fciheros, primero los más recientes."
 
 msgid "Timelapse"
 msgstr "Timelapse"
@@ -3568,13 +3567,13 @@ msgid "Switch to video files."
 msgstr "Cambia a archivos de vídeo."
 
 msgid "Delete selected files from printer."
-msgstr "Elimine los archivos seleccionados de la impresora."
+msgstr "Delete selected files from printer."
 
 msgid "Download"
 msgstr "Descargar"
 
 msgid "Download selected files from printer."
-msgstr "Descargue los archivos seleccionados de la impresora."
+msgstr "Descargar archivos seleccionados de la impresora."
 
 msgid "Select"
 msgstr "Seleccionar"
@@ -3586,7 +3585,7 @@ msgid "No printers."
 msgstr "No hay impresoras."
 
 msgid "Not supported by this model of printer!"
-msgstr "¡No es compatible con este modelo de impresora!"
+msgstr "¡Modelo de impresora no soportado!"
 
 msgid "Connecting..."
 msgstr "Conectando…"
@@ -3659,7 +3658,7 @@ msgid "Camera"
 msgstr "Cámara"
 
 msgid "SD Card"
-msgstr "Tarjeta MicroSD"
+msgstr "Tarjeta SD"
 
 msgid "Camera Setting"
 msgstr "Configuración de cámara"
@@ -3710,10 +3709,10 @@ msgid "Debug Info"
 msgstr "Información de Depuración"
 
 msgid "No SD Card"
-msgstr "No hay tarjeta SD"
+msgstr "Tarjeta SD no encontrada"
 
 msgid "SD Card Abnormal"
-msgstr "Tarjeta microSD anormal"
+msgstr "Tarjeta SD errónea"
 
 msgid "Printing List"
 msgstr "Imprimiendo Lista"
@@ -3722,7 +3721,7 @@ msgid "Cancel print"
 msgstr "Cancelar impresión"
 
 msgid "Are you sure you want to cancel this print?"
-msgstr "¿Estás seguro de que quieres cancelar esta impresión?"
+msgstr "¿Está seguro de cancelar la impresión?"
 
 #, c-format, boost-format
 msgid ""
@@ -3911,13 +3910,13 @@ msgid "ERROR"
 msgstr "¡Error!"
 
 msgid "CANCELED"
-msgstr "Cancelado"
+msgstr "CANCELADO"
 
 msgid "COMPLETED"
-msgstr "Completado"
+msgstr "COMPLETADO"
 
 msgid "Cancel upload"
-msgstr "Cancelar la subida"
+msgstr "Cancelar envío"
 
 msgid "Slice ok."
 msgstr "Rebanado correcto."
@@ -3932,7 +3931,7 @@ msgid "Warning:"
 msgstr "Advertencia:"
 
 msgid "Export successfully."
-msgstr "Exportación correcta"
+msgstr "Exportado correctamente"
 
 msgid " (Repair)"
 msgstr " (Reparación)"
@@ -4088,7 +4087,7 @@ msgid "Remove last filament"
 msgstr "Retirar el último filamento"
 
 msgid "Synchronize filament list from AMS"
-msgstr "Sincronizar la lista de filamentos de AMS"
+msgstr "Sincronizar filamentos desde AMS"
 
 msgid "Set filaments to use"
 msgstr "Establecer filamentos a utilizar"
@@ -4184,15 +4183,15 @@ msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "El 3mf no es Bambu lab, solo se carga datos de geometría."
 
 msgid "Load 3mf"
-msgstr "cargar 3mf"
+msgstr "Cargar 3mf"
 
 msgid "The Config can not be loaded."
-msgstr "No se puede cargar la configuración"
+msgstr "La configuración no puede ser cargada."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr ""
-"El 3mf fue generado por una versión antigua de Bambu Studio, solo se "
-"cargaran datos de geometría."
+"3mf generado con versión antigua de Bambu Studio, se cargan datos de "
+"geometría unicamente."
 
 #, c-format, boost-format
 msgid ""
@@ -4394,7 +4393,7 @@ msgstr "descargando proyecto..."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
-msgstr "Proyecto descargado %d%%"
+msgstr "Proyecto %d%% descargado"
 
 msgid "The selected file"
 msgstr "El archivo seleccionado"
@@ -4814,7 +4813,7 @@ msgid "Add/Remove filaments"
 msgstr "Añadir/quitar filamento"
 
 msgid "Add/Remove materials"
-msgstr "Añadir/eliminar materiales"
+msgstr "Añadir/quitar materiales"
 
 msgid "Add/Remove printers"
 msgstr "Añadir/quitar impresoras"
@@ -7265,6 +7264,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
 
@@ -9236,32 +9238,6 @@ msgstr ""
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
 
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr ""
-#~ "Error al cargar el archivo de impresión. Vuelva a introducir la dirección "
-#~ "IP."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\ u00b3"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Capas: N/A"
-
-#, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "Capas: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Capas: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr ""
-#~ "La configuración actual de AMS no admite el uso de una bobina externa."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9289,6 +9265,10 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "Cambio automático de filamento AMS"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "La configuración actual de AMS no admite el uso de una bobina externa."
 
 #~ msgid "AWS PRE host"
 #~ msgstr "Host de AWS PRE"
@@ -9573,6 +9553,11 @@ msgstr ""
 #~ "No se pudo conectar a la impresora a través de LAN. Introduzca la "
 #~ "dirección IP de la impresora y el código de acceso correctos."
 
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr ""
+#~ "Error al cargar el archivo de impresión. Vuelva a introducir la dirección "
+#~ "IP."
+
 #~ msgid "Filament 1"
 #~ msgstr "Filamento 1"
 
@@ -9770,6 +9755,15 @@ msgstr ""
 
 #~ msgid "Layer Time (log)"
 #~ msgstr "Tiempo de capa (registro)"
+
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Capas: %d/%d"
+
+#~ msgid "Layers: %s"
+#~ msgstr "Capas: %s"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Capas: N/A"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Capas y perímetros"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1875,14 +1875,14 @@ msgstr "ベッド温度"
 msgid "Max volumetric speed"
 msgstr "最大体積速度"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "u2103"
 
 msgid "Bed temperature"
 msgstr "ベッド温度"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mmu00B3"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -6901,6 +6901,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "プライムタワー上最小フラッシュ量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "フィラメントロード時間"
 
@@ -8709,29 +8712,6 @@ msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
 
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr "造型ファイルをアップロードできませんでした、ご確認ください。"
-
-#~ msgid "\\u2103"
-#~ msgstr "u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mmu00B3"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "積層: N/A"
-
-#, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "積層: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "積層: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr "現在のAMS設定は、外部スプールホルダーを使用できません"
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -8756,6 +8736,9 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "AMSフィラメント自動切替え"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr "現在のAMS設定は、外部スプールホルダーを使用できません"
 
 #~ msgid "AWS PRE host"
 #~ msgstr "AWS PREホスト"
@@ -9015,6 +8998,9 @@ msgstr ""
 #~ "プリンターと接続できませんでした。IPアドレスとアクセスコードをご確認くださ"
 #~ "い。"
 
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr "造型ファイルをアップロードできませんでした、ご確認ください。"
+
 #~ msgid "Filament 1"
 #~ msgstr "フィラメント 1"
 
@@ -9187,6 +9173,15 @@ msgstr ""
 
 #~ msgid "Layer Time (log)"
 #~ msgstr "積層時間 (Log)"
+
+#~ msgid "Layers: %d/%d"
+#~ msgstr "積層: %d/%d"
+
+#~ msgid "Layers: %s"
+#~ msgstr "積層: %s"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "積層: N/A"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "積層と境界"

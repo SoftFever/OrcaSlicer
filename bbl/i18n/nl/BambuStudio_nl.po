@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1934,14 +1934,14 @@ msgstr "Bed Temperatuur"
 msgid "Max volumetric speed"
 msgstr "Maximale volumetrische snelheid"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Printbed temperatuur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -7275,6 +7275,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Filament laadt tijd"
 
@@ -9256,31 +9259,6 @@ msgstr ""
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
 
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr "Uploaden van printbestand is mislukt. Voer het IP-adres opnieuw in."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Lagen: N/A"
-
-#, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "Lagen: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Lagen: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr ""
-#~ "De huidige AMS-instellingen ondersteunen het gebruik van een externe "
-#~ "spoel niet."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9308,6 +9286,11 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "AMS automatische filament overschakelen"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "De huidige AMS-instellingen ondersteunen het gebruik van een externe "
+#~ "spoel niet."
 
 #~ msgid "AWS PRE host"
 #~ msgstr "AWS PRE host"
@@ -9590,6 +9573,9 @@ msgstr ""
 #~ "Kan geen verbinding maken met de printer via LAN. Voer het juiste IP-"
 #~ "adres en de juiste toegangscode van de printer in."
 
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr "Uploaden van printbestand is mislukt. Voer het IP-adres opnieuw in."
+
 #~ msgid "Filament 1"
 #~ msgstr "Filament 1"
 
@@ -9780,6 +9766,15 @@ msgstr ""
 
 #~ msgid "Layer Time (log)"
 #~ msgstr "Laagtijd (logboek)"
+
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Lagen: %d/%d"
+
+#~ msgid "Layers: %s"
+#~ msgstr "Lagen: %s"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Lagen: N/A"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Lagen en perimeters"

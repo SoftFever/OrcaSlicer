@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-08 15:59+0800\n"
+"POT-Creation-Date: 2023-04-10 17:16+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1675,8 +1675,7 @@ msgstr ""
 "Envoyé avec succès. Basculement automatique vers la page Appareil dans %ss"
 
 msgid "An SD card needs to be inserted before printing via LAN."
-msgstr ""
-"Une carte microSD doit être insérée avant d'imprimer via le réseau local."
+msgstr "Une carte SD doit être insérée avant d'imprimer via le réseau local."
 
 msgid "Failed to send the print job. Please try again."
 msgstr "L'envoi de la tâche d'impression a échoué. Veuillez réessayer."
@@ -1694,14 +1693,14 @@ msgid "Sending gcode file through cloud service"
 msgstr "Envoi du fichier G-code via le service cloud"
 
 msgid "Sending gcode file to sdcard"
-msgstr "Envoi du fichier G-code sur la carte MicroSD"
+msgstr "Envoi du fichier G-code sur la carte SD"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
 msgstr "Envoyé avec succès. Fermeture de la page actuelle dans %ss"
 
 msgid "An SD card needs to be inserted before sending to printer."
-msgstr "Une carte microSD doit être insérée avant l'envoi à l'imprimante."
+msgstr "Une carte SD doit être insérée avant l'envoi à l'imprimante."
 
 msgid "Please log out and login to the printer again."
 msgstr "Veuillez vous déconnecter et vous reconnecter à l'imprimante."
@@ -1935,14 +1934,14 @@ msgstr "Température du lit"
 msgid "Max volumetric speed"
 msgstr "Vitesse volumétrique maximale"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Température du plateau"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Démarrer"
@@ -2496,7 +2495,7 @@ msgid "Heatbed preheating"
 msgstr "Préchauffage du plateau chauffant"
 
 msgid "Sweeping XY mech mode"
-msgstr "Mode mécanique de balayage XY"
+msgstr "Mesure fréquence axes XY"
 
 msgid "Changing filament"
 msgstr "Changement de filament"
@@ -3651,7 +3650,7 @@ msgid "Camera"
 msgstr "Caméra"
 
 msgid "SD Card"
-msgstr "Carte MicroSD"
+msgstr "Carte SD"
 
 msgid "Camera Setting"
 msgstr "Réglage de la Caméra"
@@ -3702,10 +3701,10 @@ msgid "Debug Info"
 msgstr "Les informations de débogage"
 
 msgid "No SD Card"
-msgstr "Pas de carte MicroSD"
+msgstr "Pas de carte SD"
 
 msgid "SD Card Abnormal"
-msgstr "Carte MicroSD anormale"
+msgstr "Carte SD anormale"
 
 msgid "Printing List"
 msgstr "Liste d'impression"
@@ -3788,7 +3787,7 @@ msgid "Ludicrous"
 msgstr "Ridicule"
 
 msgid "Can't start this without SD card."
-msgstr "Impossible de démarrer sans carte microSD."
+msgstr "Impossible de démarrer sans carte SD."
 
 msgid "Failed to connect to the server"
 msgstr "Impossible de se connecter au serveur"
@@ -5092,10 +5091,10 @@ msgstr ""
 "filament => emplacement AMS."
 
 msgid "An SD card needs to be inserted before printing."
-msgstr "Une carte MicroSD doit être insérée avant l'impression."
+msgstr "Une carte SD doit être insérée avant l'impression."
 
 msgid "An SD card needs to be inserted to record timelapse."
-msgstr "Une carte MicroSD doit être insérée pour enregistrer un timelapse."
+msgstr "Une carte SD doit être insérée pour enregistrer un timelapse."
 
 msgid ""
 "Cannot send the print job to a printer whose firmware is required to get "
@@ -5150,7 +5149,7 @@ msgid "Modifying the device name"
 msgstr "Modification du nom de l'appareil"
 
 msgid "Send to Printer SD card"
-msgstr "Envoyer à la carte microSD de l'imprimante"
+msgstr "Envoyer à la carte SD de l'imprimante"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
@@ -5165,7 +5164,7 @@ msgstr ""
 "L'imprimante doit se trouver sur le même réseau local que Bambu Studio."
 
 msgid "The printer does not support sending to printer SD card."
-msgstr "L'imprimante ne prend pas en charge l'envoi vers la carte microSD."
+msgstr "L'imprimante ne prend pas en charge l'envoi vers la carte SD."
 
 msgid "Log in printer"
 msgstr "Connectez-vous à l'imprimante"
@@ -5530,7 +5529,7 @@ msgstr "Détaché"
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "Le préréglage suivant sera également supprimé."
-msgstr[1] ""
+msgstr[1] "Le préréglage suivants sera également supprimé."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -7283,6 +7282,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purge minimale sur la tour de nettoyage"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Temps de chargement du filament"
@@ -9277,33 +9279,6 @@ msgstr ""
 "Saviez-vous que vous pouvez définir un plus grand nombre de mur et une "
 "densité de remplissage plus élevée pour améliorer la résistance du modèle ?"
 
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr ""
-#~ "Impossible de téléverser le fichier d'impression. Entrez à nouveau "
-#~ "l'adresse IP."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Couches: N/A"
-
-#, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "Couches: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Couches: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr ""
-#~ "Les paramètres actuels de l'AMS ne prennent pas en charge l'utilisation "
-#~ "de bobine externe."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9331,6 +9306,11 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "Changement de filament automatique dans l'AMS"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "Les paramètres actuels de l'AMS ne prennent pas en charge l'utilisation "
+#~ "de bobine externe."
 
 #~ msgid "AWS PRE host"
 #~ msgstr "Hôte AWS PRE"
@@ -9617,6 +9597,11 @@ msgstr ""
 #~ "Impossible de se connecter à l'imprimante via le réseau local. Entrez "
 #~ "l'adresse IP et le code d'accès corrects de l'imprimante."
 
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr ""
+#~ "Impossible de téléverser le fichier d'impression. Entrez à nouveau "
+#~ "l'adresse IP."
+
 #~ msgid "Filament 1"
 #~ msgstr "Filament 1"
 
@@ -9816,6 +9801,15 @@ msgstr ""
 
 #~ msgid "Layer Time (log)"
 #~ msgstr "Temps de couche (journal)"
+
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Couches: %d/%d"
+
+#~ msgid "Layers: %s"
+#~ msgstr "Couches: %s"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Couches: N/A"
 
 #~ msgid "Layers and Perimeters"
 #~ msgstr "Couches et Périmètres"
