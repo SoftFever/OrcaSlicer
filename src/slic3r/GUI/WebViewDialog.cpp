@@ -441,6 +441,10 @@ void WebViewPanel::SendDesignStaffpick(NetworkAgent *agent)
                 RunScript(wxString::Format("window.postMessage(%s)", body2));
             });
         });
+    } else {
+        std::string body2 = "{\"total\":0, \"hits\":[]}";
+        body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+        RunScript(wxString::Format("window.postMessage(%s)", body2));
     }
 }
 
