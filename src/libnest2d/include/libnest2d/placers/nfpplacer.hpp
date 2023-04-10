@@ -608,6 +608,7 @@ private:
 
         Shapes nfps(stationarys.size());
         Item   slidingItem(sliding);
+        slidingItem.transformedShape();
         __parallel::enumerate(stationarys.begin(), stationarys.end(), [&nfps, sliding, &slidingItem](const RawShape &stationary, size_t n) {
             auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(stationary, sliding);
             correctNfpPosition(subnfp_r, stationary, slidingItem);
