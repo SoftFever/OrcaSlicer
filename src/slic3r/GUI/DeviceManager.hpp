@@ -632,6 +632,7 @@ public:
     std::string camera_resolution = "";
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
+    bool is_support_remote_tunnel{false};
 
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;

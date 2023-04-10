@@ -1394,6 +1394,7 @@ void MachineObject::parse_version_func()
             else {
                 local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
             }
+            is_support_remote_tunnel = true;
         }
     } else if (printer_type == "C11") {
         if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
@@ -1404,6 +1405,7 @@ void MachineObject::parse_version_func()
         is_cloud_print_only = true;
         if (ota_version != module_vers.end()) {
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
+            is_support_remote_tunnel  = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
         }
         if (esp32_version != module_vers.end()) {
             ams_support_auto_switch_filament_flag = esp32_version->second.sw_ver.compare("00.03.11.50") >= 0;
@@ -2256,7 +2258,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         func_name = "FUNC_MEDIA_FILE";
         break;
     case FUNC_REMOTE_TUNNEL:
-        func_name = "FUNC_REMOTE_TUNNEL";
+        parse_version_func();
+        if (!is_support_remote_tunnel)
+            return false;
         break;
     case FUNC_LOCAL_TUNNEL:
         func_name = "FUNC_LOCAL_TUNNEL";
