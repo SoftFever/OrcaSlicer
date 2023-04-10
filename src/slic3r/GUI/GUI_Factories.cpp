@@ -1197,11 +1197,11 @@ void MenuFactory::create_plate_menu()
 
     // delete current plate
 #ifdef __WINDOWS__
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\t" + _L("Del"), _L("Remove the selected plate"),
+    append_menu_item(menu, wxID_ANY, _L("Delete Plate"), _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #else
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Remove the selected plate"),
+    append_menu_item(menu, wxID_ANY, _L("Delete Plate"), _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #endif
