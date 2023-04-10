@@ -311,9 +311,12 @@ void ArrangeJob::prepare_wipe_tower()
         const GLCanvas3D* canvas3D=static_cast<const GLCanvas3D *>(m_plater->canvas3D());
         for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
             if (!plates_have_wipe_tower[bedid]) {
-                wipe_tower_ap.translation         = {0, 0};
-                wipe_tower_ap.poly.contour.points = canvas3D->estimate_wipe_tower_points(bedid);
-                wipe_tower_ap.bed_idx = bedid;
+                wipe_tower_ap.translation = {0, 0};
+                bool global               = true;
+                int  state                = m_plater->get_prepare_state();
+                if (state == Job::JobPrepareState::PREPARE_STATE_MENU) { global = false; }
+                wipe_tower_ap.poly.contour.points = canvas3D->estimate_wipe_tower_points(bedid, global);
+                wipe_tower_ap.bed_idx             = bedid;
                 m_unselected.emplace_back(wipe_tower_ap);
             }
         }
