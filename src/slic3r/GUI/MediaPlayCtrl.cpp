@@ -192,8 +192,8 @@ void MediaPlayCtrl::Play()
                 m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
-                        Stop();
-                        SetStatus(wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
+                        m_failed_code = 3;
+                        Stop(wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
                     } else {
                         m_last_state = MEDIASTATE_LOADING;
                         SetStatus(_L("Loading..."));
@@ -215,6 +215,7 @@ void MediaPlayCtrl::Play()
 
 void MediaPlayCtrl::Stop(wxString const &msg)
 {
+    bool failed = m_last_state != wxMEDIASTATE_PLAYING;
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
@@ -234,14 +235,15 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         SetStatus(msg, false);
     }
 
-    if (m_failed_code != 0) {
+    if (failed && m_failed_code != 0) {
         json j;
-        j["stage"] = std::to_string(m_last_state);
-        j["dev_id"] = m_machine;
-        j["dev_ip"] = m_lan_ip;
-        j["result"]    = "failed";
-        j["code"]      = m_failed_code;
-        NetworkAgent* agent = wxGetApp().getAgent();
+        j["stage"]          = std::to_string(m_last_state);
+        j["dev_id"]         = m_machine;
+        j["dev_ip"]         = m_lan_ip;
+        j["result"]         = "failed";
+        j["code"]           = m_failed_code;
+        j["msg"]            = into_u8(msg);
+        NetworkAgent *agent = wxGetApp().getAgent();
         if (agent)
             agent->track_event("start_liveview", j.dump());
     }
@@ -400,10 +402,9 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             m_tasks.push_back("<play>");
             m_cond.notify_all();
         } else if (event.GetId()) {
-            Stop();
             if (m_failed_code == 0)
                 m_failed_code = 2;
-            SetStatus(_L("Load failed [%d]!"));
+            Stop(_L("Load failed [%d]!"));
         }
     } else {
         m_last_state = state;
