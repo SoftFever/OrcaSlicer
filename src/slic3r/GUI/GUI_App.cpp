@@ -3808,6 +3808,12 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
+            else if (command_str.compare("common_openurl") == 0) {
+                boost::optional<std::string> path      = root.get_optional<std::string>("url");
+                if (path.has_value()) {
+                    wxLaunchDefaultBrowser(path.value());
+                }
+            }
         }
     }
     catch (...) {
