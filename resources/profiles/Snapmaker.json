@@ -11,6 +11,10 @@
         {
             "name": "Snapmaker A350",
             "sub_path": "machine/Snapmaker A350.json"
+        },
+        {
+            "name": "Snapmaker J1",
+            "sub_path": "machine/Snapmaker J1.json"
         }
     ],
     "process_list": [
@@ -21,6 +25,14 @@
         {
             "name": "0.20mm Standard @Snapmaker",
             "sub_path": "process/0.20mm Standard @Snapmaker.json"
+        },
+        {
+            "name": "0.20mm 0.4 Standard @Snapmaker J1",
+            "sub_path": "process/0.20mm 0.4 Standard @Snapmaker J1.json"
+        },
+        {
+            "name": "0.20mm 0.6 Standard @Snapmaker J1",
+            "sub_path": "process/0.20mm 0.6 Standard @Snapmaker J1.json"
         }
     ],
     "filament_list": [
@@ -99,6 +111,46 @@
         {
             "name": "Snapmaker Generic PA-CF",
             "sub_path": "filament/Snapmaker Generic PA-CF.json"
+        },
+        {
+            "name": "Snapmaker J1 PLA",
+            "sub_path": "filament/Snapmaker J1 PLA.json"
+        },
+        {
+            "name": "Snapmaker J1 PLA-CF",
+            "sub_path": "filament/Snapmaker J1 PLA-CF.json"
+        },
+        {
+            "name": "Snapmaker J1 PETG",
+            "sub_path": "filament/Snapmaker J1 PETG.json"
+        },
+        {
+            "name": "Snapmaker J1 ABS",
+            "sub_path": "filament/Snapmaker J1 ABS.json"
+        },
+        {
+            "name": "Snapmaker J1 TPU",
+            "sub_path": "filament/Snapmaker J1 TPU.json"
+        },
+        {
+            "name": "Snapmaker J1 ASA",
+            "sub_path": "filament/Snapmaker J1 ASA.json"
+        },
+        {
+            "name": "Snapmaker J1 PC",
+            "sub_path": "filament/Snapmaker J1 PC.json"
+        },
+        {
+            "name": "Snapmaker J1 PVA",
+            "sub_path": "filament/Snapmaker J1 PVA.json"
+        },
+        {
+            "name": "Snapmaker J1 PA",
+            "sub_path": "filament/Snapmaker J1 PA.json"
+        },
+        {
+            "name": "Snapmaker J1 PA-CF",
+            "sub_path": "filament/Snapmaker J1 PA-CF.json"
         }
     ],
     "machine_list": [
@@ -113,6 +165,14 @@
         {
             "name": "Snapmaker A350 0.4 nozzle",
             "sub_path": "machine/Snapmaker A350 0.4 nozzle.json"
+        },
+        {
+            "name": "Snapmaker J1 0.4 nozzle",
+            "sub_path": "machine/Snapmaker J1 0.4 nozzle.json"
+        },
+        {
+            "name": "Snapmaker J1 0.6 nozzle",
+            "sub_path": "machine/Snapmaker J1 0.6 nozzle.json"
         }
     ]
 }

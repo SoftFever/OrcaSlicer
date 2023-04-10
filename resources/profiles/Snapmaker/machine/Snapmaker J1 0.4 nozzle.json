@@ -1,0 +1,69 @@
+{
+    "type": "machine",
+    "setting_id": "GM010",
+    "name": "Snapmaker J1 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_machine_common",
+    "printer_model": "Snapmaker J1",
+    "default_print_profile": "0.20mm 0.4 Standard @Snapmaker J1",
+    "retraction_minimum_travel": [
+      "3"
+    ],
+    "thumbnails": [
+     "400x400"
+    ],
+    "z_hop_types": [
+      "Auto Lift"
+    ],
+    "z_lift_type": [
+      "SpiralLift"
+    ],
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "bed_exclude_area": [
+      "0x0"
+    ],
+    "printable_area": [
+      "0x0",
+      "324x0",
+      "324x200",
+      "0x200"
+    ],
+    "printable_height": "200",
+    "machine_start_gcode": ";***** Snapmaker J1\n;***** Update  : 20221222\n;***** Printer : [printer_preset]\n;***** Profile : [print_preset]\nM593  P1 X F35.7 \nM593  P1 Y F33.7 \nM355 S1 P16    ;------------OPTIONAL                ;dim led \nM83 ;absolute extrusion mode\nM140 S[first_layer_bed_temperature] ;Start Warming Bed\nT[initial_extruder] ;switch to initial extruder\n{if total_toolchanges < 1}; Preheat one extruder (just one used)\nM104 S160 ;preheat nozzle\n{else}; Preheat both extruders used\nM104 S160 T0 ;preheat T0\nM104 S160 T1 ;preheat T1\n{endif}\nG28 ; home all axes\nG90 ;absolute positioning\nG1 Z0.8 F1800\nM201 X5000 Y5000 Z500 E5000\nM205 V5\nM900 T0 K0.02\nM900 T1 K0.02\nM190 S[first_layer_bed_temperature]  ; C3 W2 Wait For Bed Temperature\n{if total_toolchanges < 1}; Heat one extruder\nM104 S[first_layer_temperature]\nM109 S[first_layer_temperature] ;Wait for Hotend Temperature\n{else}; Heat both extruders\nM104 T0 S{first_layer_temperature[0]}\nM104 T1 S{first_layer_temperature[1]}\nM109 T0 S{first_layer_temperature[0]} ;Wait for Hotend Temperature\nM109 T1 S{first_layer_temperature[1]} ;Wait for Hotend Temperature\n{endif}\n;\n{if 1==1}      ;-----------OPTIONAL                 ;led effect\n  M355 S1 P32\n  G4 S1\n  M355 S1 P48\n  G4 S1\n  M355 S1 P64\n  G4 S1\n  M355 S1 P96\n  G4 S1\n  M355 S1 P128\n  G4 S1\n  M355 S1 P255\n{endif}\n;\nG92 E0\n;\n{if total_toolchanges > 0 or initial_extruder == 0}; Purge line T0\nT0\nG92 E0\nG1 F1200 X5 Z0.5\nG1 F600 X100 E20\nG1 F600 Z2\nG92 E0\nG1 F1200 E-6\nG0 X-20 F12000 ; park T0\n{endif}\n{if total_toolchanges > 0 or initial_extruder == 1}; Purge line T1\nT1\nG92 E0\nG1 F1200 X295 Z0.5\nG1 F600 X200 E20\nG1 F600 Z2\nG92 E0\nG1 F1200 E-6\nG0 X350 F12000 ; park T1 (old 345)\n{endif}\n;End Start Gcode J1\n",
+    "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_num]\n",
+    "machine_end_gcode": ";End GCode J1 begin\nM140 S0 ;heated bed heater off \nG90 ;absolute positioning\nG92 E0\n;\nG1 E-6 F300 ;retract the filament a bit before lifting the nozzle, to release some of the pressure\n;\nM104 S0 T0 ;extruder heater off\nM104 S0 T1 ;extruder heater off\n;\nG1 Z200 F1500 ;move bed down\nG0 Y10 F3000 ;so the head is out of the way\nM84 ;steppers off\nM355 S1 P16    ;------------OPTIONAL                ;dim led \nM107\n;End of Gcode\n;\n; DON'T REMOVE these lines if you're using the smfix (https://github.com/macdylan/Snapmaker2Slic3rPostProcessor)\n; min_x = [first_layer_print_min_0]\n; min_y = [first_layer_print_min_1]\n; max_x = [first_layer_print_max_0]\n; max_y = [first_layer_print_max_1]\n; max_z = [max_layer_z]\n;",
+    "change_filament_gcode": ";Change Filament",
+    "machine_max_acceleration_e": [
+        "6000",
+        "5000"
+    ],
+    "machine_max_acceleration_extruding": [
+        "5000",
+        "2000"
+    ],
+    "machine_max_acceleration_retracting": [
+        "6000",
+        "5000"
+    ],
+    "machine_max_acceleration_x": [
+        "5000",
+        "2000"
+    ],
+    "machine_max_acceleration_y": [
+        "5000",
+        "2000"
+    ],
+    "machine_max_speed_e": [
+        "60",
+        "25"
+    ],
+    "max_layer_height": [
+        "0.30"
+    ],
+    "scan_first_layer": "0",
+    "nozzle_type": "hardened_steel",
+    "auxiliary_fan": "0"
+}
