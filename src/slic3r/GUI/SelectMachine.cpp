@@ -2785,15 +2785,24 @@ void SelectMachineDialog::update_show_status()
 
 
     // do ams mapping if no ams result
+    bool clean_ams_mapping = false;
     if (obj_->has_ams() && m_ams_mapping_result.empty()) {
         if (obj_->ams_support_use_ams) {
             if (ams_check->GetValue()) {
                 do_ams_mapping(obj_);
             } else {
-                m_ams_mapping_result.clear();
-                sync_ams_mapping_result(m_ams_mapping_result);
+                clean_ams_mapping = true;
             }
         }
+    }
+
+    if (!obj_->has_ams() || !ams_check->GetValue()) {
+        clean_ams_mapping = true;
+    }
+
+    if (clean_ams_mapping) {
+        m_ams_mapping_result.clear();
+        sync_ams_mapping_result(m_ams_mapping_result);
     }
 
     // reading done
