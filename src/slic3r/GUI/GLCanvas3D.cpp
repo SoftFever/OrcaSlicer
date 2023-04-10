@@ -116,7 +116,7 @@ RetinaHelper::~RetinaHelper() {}
 float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleFactor()); }
 #endif // __WXGTK3__
 
-// Fixed the collision between BuildVolume::Type::Convex and macro Convex defined inside /usr/include/X11/X.h that is included by WxWidgets 3.0.
+// Fixed the collision between BuildVolume_Type::Convex and macro Convex defined inside /usr/include/X11/X.h that is included by WxWidgets 3.0.
 #if defined(__linux__) && defined(Convex)
 #undef Convex
 #endif
@@ -6542,22 +6542,22 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
 
     if (const BuildVolume &build_volume = m_bed.build_volume(); build_volume.valid()) {
         switch (build_volume.type()) {
-        case BuildVolume::Type::Rectangle: {
+        case BuildVolume_Type::Rectangle: {
             const BoundingBox3Base<Vec3d> bed_bb = build_volume.bounding_volume().inflated(BuildVolume::SceneEpsilon);
             m_volumes.set_print_volume({ 0, // Rectangle
                 { float(bed_bb.min.x()), float(bed_bb.min.y()), float(bed_bb.max.x()), float(bed_bb.max.y()) },
                 { 0.0f, float(build_volume.printable_height()) } });
             break;
         }
-        case BuildVolume::Type::Circle: {
+        case BuildVolume_Type::Circle: {
             m_volumes.set_print_volume({ 1, // Circle
                 { unscaled<float>(build_volume.circle().center.x()), unscaled<float>(build_volume.circle().center.y()), unscaled<float>(build_volume.circle().radius + BuildVolume::SceneEpsilon), 0.0f },
                 { 0.0f, float(build_volume.printable_height() + BuildVolume::SceneEpsilon) } });
             break;
         }
         default:
-        case BuildVolume::Type::Convex:
-        case BuildVolume::Type::Custom: {
+        case BuildVolume_Type::Convex:
+        case BuildVolume_Type::Custom: {
             m_volumes.set_print_volume({ static_cast<int>(type),
                 { -FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX },
                 { -FLT_MAX, FLT_MAX } }

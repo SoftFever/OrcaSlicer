@@ -88,11 +88,11 @@ wxString BedShape::get_name(PageType type)
 BedShape::PageType BedShape::get_page_type()
 {
     switch (m_build_volume.type()) {
-    case BuildVolume::Type::Rectangle:
-    case BuildVolume::Type::Invalid:    return PageType::Rectangle;
-    case BuildVolume::Type::Circle:     return PageType::Circle;
-    case BuildVolume::Type::Convex:
-    case BuildVolume::Type::Custom:     return PageType::Custom;
+    case BuildVolume_Type::Rectangle:
+    case BuildVolume_Type::Invalid:    return PageType::Rectangle;
+    case BuildVolume_Type::Circle:     return PageType::Circle;
+    case BuildVolume_Type::Convex:
+    case BuildVolume_Type::Custom:     return PageType::Custom;
     }
     // make visual studio happy
     assert(false);
@@ -103,7 +103,7 @@ wxString BedShape::get_full_name_with_params()
 {
     wxString out = _L("Shape") + ": " + get_name(this->get_page_type());
     switch (m_build_volume.type()) {
-    case BuildVolume::Type::Circle:
+    case BuildVolume_Type::Circle:
         out += "\n" + _L(get_option_label(Parameter::Diameter)) + ": [" + double_to_string(2. * unscaled<double>(m_build_volume.circle().radius)) + "]";
         break;
     default:
@@ -118,7 +118,7 @@ wxString BedShape::get_full_name_with_params()
 void BedShape::apply_optgroup_values(ConfigOptionsGroupShp optgroup)
 {
     switch (m_build_volume.type()) {
-    case BuildVolume::Type::Circle:
+    case BuildVolume_Type::Circle:
         optgroup->set_value("diameter", double_to_string(2. * unscaled<double>(m_build_volume.circle().radius)));
         break;
     default:

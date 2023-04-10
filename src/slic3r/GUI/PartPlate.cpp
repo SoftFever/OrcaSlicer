@@ -437,7 +437,8 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffe
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + PARTPLATE_ICON_SIZE - offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)- PARTPLATE_ICON_GAP - PARTPLATE_TEXT_OFFSET_Y)});
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP + offset_x), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)- PARTPLATE_ICON_GAP - PARTPLATE_TEXT_OFFSET_Y) });
 #else //in the bottom
-	Vec2d& p = m_shape[1];
+	auto bed_ext = get_extents(m_shape);
+    Vec2d p = bed_ext[1];
 	float offset_x = one_number?PARTPLATE_TEXT_OFFSET_X1: PARTPLATE_TEXT_OFFSET_X2;
 
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_TEXT_OFFSET_Y) });
@@ -453,7 +454,11 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffe
 void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 {
 	ExPolygon poly;
-	Vec2d& p = m_shape[2];
+	auto bed_ext = get_extents(m_shape);
+    Vec2d p = bed_ext[2];
+    if (m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
+        p[1] -= std::max(
+            0.0, (bed_ext.size()(1) - 5 * PARTPLATE_ICON_SIZE - 4 * PARTPLATE_ICON_GAP_Y - PARTPLATE_ICON_GAP_TOP) / 2);
 
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE) });
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP - PARTPLATE_ICON_SIZE) });
@@ -468,7 +473,8 @@ void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer)
 {
 	ExPolygon poly;
-	Vec2d& p = m_shape[2];
+	auto bed_ext = get_extents(m_shape);
+    Vec2d p = bed_ext[2];
 
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y) - PARTPLATE_ICON_GAP_TOP) });
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - icon_count * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
@@ -1576,7 +1582,7 @@ void PartPlate::generate_plate_name_texture()
 	float offset_x = 1;
     w = int(factor * (m_name_texture.get_width() * 16) / m_name_texture.get_height());
     h = int(factor * 16);
-    Vec2d p = m_shape[3] + Vec2d(0, h*0.6);
+    Vec2d p = bed_ext[3] + Vec2d(0, h*0.6);
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y)});

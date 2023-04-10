@@ -24,7 +24,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
 
     if (printable_area.size() >= 4 && std::abs((m_area - double(m_bbox.size().x()) * double(m_bbox.size().y()))) < sqr(SCALED_EPSILON)) {
         // Square print bed, use the bounding box for collision detection.
-        m_type = Type::Rectangle;
+        m_type = BuildVolume_Type::Rectangle;
         m_circle.center = 0.5 * (m_bbox.min.cast<double>() + m_bbox.max.cast<double>());
         m_circle.radius = 0.5 * m_bbox.size().cast<double>().norm();
     } else if (printable_area.size() > 3) {
@@ -52,16 +52,16 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
             prev = p;
         }
         if (is_circle) {
-            m_type = Type::Circle;
+            m_type = BuildVolume_Type::Circle;
             m_circle.center = scaled<double>(m_circle.center);
             m_circle.radius = scaled<double>(m_circle.radius);
         }
     }
 
-    if (printable_area.size() >= 3 && m_type == Type::Invalid) {
+    if (printable_area.size() >= 3 && m_type == BuildVolume_Type::Invalid) {
         // Circle check is not used for Convex / Custom shapes, fill it with something reasonable.
         m_circle = Geometry::smallest_enclosing_circle_welzl(m_convex_hull.points);
-        m_type   = (m_convex_hull.area() - m_area) < sqr(SCALED_EPSILON) ? Type::Convex : Type::Custom;
+        m_type   = (m_convex_hull.area() - m_area) < sqr(SCALED_EPSILON) ? BuildVolume_Type::Convex : BuildVolume_Type::Custom;
         // Initialize the top / bottom decomposition for inside convex polygon check. Do it with two different epsilons applied.
         auto convex_decomposition = [](const Polygon &in, double epsilon) {
             Polygon src = expand(in, float(epsilon)).front();
@@ -272,7 +272,7 @@ BuildVolume::ObjectState object_state_templ(const indexed_triangle_set &its, con
 BuildVolume::ObjectState BuildVolume::object_state(const indexed_triangle_set& its, const Transform3f& trafo, bool may_be_below_bed, bool ignore_bottom) const
 {
     switch (m_type) {
-    case Type::Rectangle:
+    case BuildVolume_Type::Rectangle:
     {
         BoundingBox3Base<Vec3d> build_volume = this->bounding_volume().inflated(SceneEpsilon);
         if (m_max_print_height == 0.0)
@@ -285,20 +285,20 @@ BuildVolume::ObjectState BuildVolume::object_state(const indexed_triangle_set& i
         //FIXME This test does NOT correctly interprets intersection of a non-convex object with a rectangular build volume.
         return object_state_templ(its, trafo, may_be_below_bed, [build_volumef](const Vec3f &pt) { return build_volumef.contains(pt); });
     }
-    case Type::Circle:
+    case BuildVolume_Type::Circle:
     {
         Geometry::Circlef circle { unscaled<float>(m_circle.center), unscaled<float>(m_circle.radius + SceneEpsilon) };
         return m_max_print_height == 0.0 ? 
             object_state_templ(its, trafo, may_be_below_bed, [circle](const Vec3f &pt) { return circle.contains(to_2d(pt)); }) :
             object_state_templ(its, trafo, may_be_below_bed, [circle, z = m_max_print_height + SceneEpsilon](const Vec3f &pt) { return pt.z() < z && circle.contains(to_2d(pt)); });
     }
-    case Type::Convex:
+    case BuildVolume_Type::Convex:
     //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
-    case Type::Custom:
+    case BuildVolume_Type::Custom:
         return m_max_print_height == 0.0 ? 
             object_state_templ(its, trafo, may_be_below_bed, [this](const Vec3f &pt) { return Geometry::inside_convex_polygon(m_top_bottom_convex_hull_decomposition_scene, to_2d(pt).cast<double>()); }) :
             object_state_templ(its, trafo, may_be_below_bed, [this, z = m_max_print_height + SceneEpsilon](const Vec3f &pt) { return pt.z() < z && Geometry::inside_convex_polygon(m_top_bottom_convex_hull_decomposition_scene, to_2d(pt).cast<double>()); });
-    case Type::Invalid:
+    case BuildVolume_Type::Invalid:
     default:
         return ObjectState::Inside;
     }
@@ -306,7 +306,7 @@ BuildVolume::ObjectState BuildVolume::object_state(const indexed_triangle_set& i
 
 BuildVolume::ObjectState BuildVolume::volume_state_bbox(const BoundingBoxf3& volume_bbox, bool ignore_bottom) const
 {
-    assert(m_type == Type::Rectangle);
+    assert(m_type == BuildVolume_Type::Rectangle);
     BoundingBox3Base<Vec3d> build_volume = this->bounding_volume().inflated(SceneEpsilon);
     if (m_max_print_height == 0.0)
         build_volume.max.z() = std::numeric_limits<double>::max();
@@ -325,7 +325,7 @@ bool BuildVolume::all_paths_inside(const GCodeProcessorResult& paths, const Boun
     static constexpr const double epsilon = BedEpsilon;
 
     switch (m_type) {
-    case Type::Rectangle:
+    case BuildVolume_Type::Rectangle:
     {
         BoundingBox3Base<Vec3d> build_volume = this->bounding_volume().inflated(epsilon);
         if (m_max_print_height == 0.0)
@@ -334,7 +334,7 @@ bool BuildVolume::all_paths_inside(const GCodeProcessorResult& paths, const Boun
             build_volume.min.z() = -std::numeric_limits<double>::max();
         return build_volume.contains(paths_bbox);
     }
-    case Type::Circle:
+    case BuildVolume_Type::Circle:
     {
         const Vec2f c = unscaled<float>(m_circle.center);
         const float r = unscaled<double>(m_circle.radius) + epsilon;
@@ -345,9 +345,9 @@ bool BuildVolume::all_paths_inside(const GCodeProcessorResult& paths, const Boun
             std::all_of(paths.moves.begin(), paths.moves.end(), [move_valid, c, r2, z = m_max_print_height + epsilon](const GCodeProcessorResult::MoveVertex& move)
                 { return ! move_valid(move) || ((to_2d(move.position) - c).squaredNorm() <= r2 && move.position.z() <= z); });
     }
-    case Type::Convex:
+    case BuildVolume_Type::Convex:
     //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
-    case Type::Custom:
+    case BuildVolume_Type::Custom:
         return m_max_print_height == 0.0 ?
             std::all_of(paths.moves.begin(), paths.moves.end(), [move_valid, this](const GCodeProcessorResult::MoveVertex &move) 
                 { return ! move_valid(move) || Geometry::inside_convex_polygon(m_top_bottom_convex_hull_decomposition_bed, to_2d(move.position).cast<double>()); }) :
@@ -375,7 +375,7 @@ bool BuildVolume::all_paths_inside_vertices_and_normals_interleaved(const std::v
     assert(paths.size() % 6 == 0);
     static constexpr const double epsilon = BedEpsilon;
     switch (m_type) {
-    case Type::Rectangle:
+    case BuildVolume_Type::Rectangle:
     {
         BoundingBox3Base<Vec3d> build_volume = this->bounding_volume().inflated(epsilon);
         if (m_max_print_height == 0.0)
@@ -384,7 +384,7 @@ bool BuildVolume::all_paths_inside_vertices_and_normals_interleaved(const std::v
             build_volume.min.z() = -std::numeric_limits<double>::max();
         return build_volume.contains(paths_bbox.min().cast<double>()) && build_volume.contains(paths_bbox.max().cast<double>());
     }
-    case Type::Circle:
+    case BuildVolume_Type::Circle:
     {
         const Vec2f c = unscaled<float>(m_circle.center);
         const float r = unscaled<double>(m_circle.radius) + float(epsilon);
@@ -393,9 +393,9 @@ bool BuildVolume::all_paths_inside_vertices_and_normals_interleaved(const std::v
             all_inside_vertices_normals_interleaved(paths, [c, r2](Vec3f p) { return (to_2d(p) - c).squaredNorm() <= r2; }) :
             all_inside_vertices_normals_interleaved(paths, [c, r2, z = m_max_print_height + epsilon](Vec3f p) { return (to_2d(p) - c).squaredNorm() <= r2 && p.z() <= z; });
     }
-    case Type::Convex:
+    case BuildVolume_Type::Convex:
         //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
-    case Type::Custom:
+    case BuildVolume_Type::Custom:
         return m_max_print_height == 0.0 ?
             all_inside_vertices_normals_interleaved(paths, [this](Vec3f p) { return Geometry::inside_convex_polygon(m_top_bottom_convex_hull_decomposition_bed, to_2d(p).cast<double>()); }) :
             all_inside_vertices_normals_interleaved(paths, [this, z = m_max_print_height + epsilon](Vec3f p) { return Geometry::inside_convex_polygon(m_top_bottom_convex_hull_decomposition_bed, to_2d(p).cast<double>()) && p.z() <= z; });
@@ -404,15 +404,15 @@ bool BuildVolume::all_paths_inside_vertices_and_normals_interleaved(const std::v
     }
 }
 
-std::string_view BuildVolume::type_name(Type type)
+std::string_view BuildVolume::type_name(BuildVolume_Type type)
 {
     using namespace std::literals;
     switch (type) {
-    case Type::Invalid:   return "Invalid"sv;
-    case Type::Rectangle: return "Rectangle"sv;
-    case Type::Circle:    return "Circle"sv;
-    case Type::Convex:    return "Convex"sv;
-    case Type::Custom:    return "Custom"sv;
+    case BuildVolume_Type::Invalid:   return "Invalid"sv;
+    case BuildVolume_Type::Rectangle: return "Rectangle"sv;
+    case BuildVolume_Type::Circle:    return "Circle"sv;
+    case BuildVolume_Type::Convex:    return "Convex"sv;
+    case BuildVolume_Type::Custom:    return "Custom"sv;
     }
     // make visual studio happy
     assert(false);

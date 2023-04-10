@@ -12,24 +12,23 @@
 namespace Slic3r {
 
 struct GCodeProcessorResult;
-
+enum class BuildVolume_Type : unsigned char {
+  // Not set yet or undefined.
+  Invalid,
+  // Rectangular print bed. Most common, cheap to work with.
+  Rectangle,
+  // Circular print bed. Common on detals, cheap to work with.
+  Circle,
+  // Convex print bed. Complex to process.
+  Convex,
+  // Some non convex shape.
+  Custom
+};
 // For collision detection of objects and G-code (extrusion paths) against the build volume.
 class BuildVolume
 {
 public:
-    enum class Type : unsigned char
-    {
-        // Not set yet or undefined.
-        Invalid,
-        // Rectangular print bed. Most common, cheap to work with.
-        Rectangle,
-        // Circular print bed. Common on detals, cheap to work with.
-        Circle,
-        // Convex print bed. Complex to process.
-        Convex,
-        // Some non convex shape.
-        Custom
-    };
+
 
     // Initialized to empty, all zeros, Invalid.
     BuildVolume() {}
@@ -41,11 +40,11 @@ public:
     double                      printable_height()  const { return m_max_print_height; }
     
     // Derived data
-    Type                        type()              const { return m_type; }
+    BuildVolume_Type                        type()              const { return m_type; }
     // Format the type for console output.
-    static std::string_view     type_name(Type type);
+    static std::string_view     type_name(BuildVolume_Type type);
     std::string_view            type_name()         const { return type_name(m_type); }
-    bool                        valid()             const { return m_type != Type::Invalid; }
+    bool                        valid()             const { return m_type != BuildVolume_Type::Invalid; }
     // Same as printable_area(), but scaled coordinates.
     const Polygon&              polygon()           const { return m_polygon; }
     // Bounding box of polygon(), scaled.
@@ -101,7 +100,7 @@ private:
     double              m_max_print_height { 0.f };
 
     // Derived values.
-    Type                m_type { Type::Invalid };
+    BuildVolume_Type                m_type { BuildVolume_Type::Invalid };
     // Geometry of the print bed, scaled copy of m_bed_shape.
     Polygon             m_polygon;
     // Scaled snug bounding box around m_polygon.

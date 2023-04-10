@@ -6862,8 +6862,8 @@ bool Plater::priv::has_assemble_view() const
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
 bool Plater::priv::can_scale_to_print_volume() const
 {
-    const BuildVolume::Type type = this->bed.build_volume().type();
-    return !view3D->get_canvas3d()->get_selection().is_empty() && (type == BuildVolume::Type::Rectangle || type == BuildVolume::Type::Circle);
+    const BuildVolume_Type type = this->bed.build_volume().type();
+    return !view3D->get_canvas3d()->get_selection().is_empty() && (type == BuildVolume_Type::Rectangle || type == BuildVolume_Type::Circle);
 }
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
@@ -8369,6 +8369,7 @@ void Plater::calib_VFA(const Calib_Params& params)
 
     p->background_process.fff_print()->set_calib_params(params);
 }
+BuildVolume_Type Plater::get_build_volume_type() const { return p->bed.get_build_volume_type(); }
 void Plater::import_sl1_archive()
 {
     if (!p->m_ui_jobs.is_any_running())

@@ -1414,14 +1414,14 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 state = BuildVolume::ObjectState::Below;
             else {
                 switch (plate_build_volume.type()) {
-                case BuildVolume::Type::Rectangle:
+                case BuildVolume_Type::Rectangle:
                 //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
                     state = plate_build_volume.volume_state_bbox(bb);
                     break;
-                case BuildVolume::Type::Circle:
-                case BuildVolume::Type::Convex:
+                case BuildVolume_Type::Circle:
+                case BuildVolume_Type::Convex:
                 //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
-                case BuildVolume::Type::Custom:
+                case BuildVolume_Type::Custom:
                     state = plate_build_volume.object_state(volume_convex_mesh(*volume).its, volume->world_matrix().cast<float>(), volume_sinking(*volume));
                     break;
                 default:

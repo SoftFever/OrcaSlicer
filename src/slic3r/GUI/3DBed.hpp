@@ -131,6 +131,9 @@ public:
     // Was the model generated procedurally?
     bool is_custom() const { return m_type == Type::Custom; }
 
+    // get the bed shape type
+    BuildVolume_Type get_build_volume_type() const { return m_build_volume.type(); }
+
     // Bounding box around the print bed, axes and model, for rendering.
     const BoundingBoxf3& extended_bounding_box() const { return m_extended_bounding_box; }
 

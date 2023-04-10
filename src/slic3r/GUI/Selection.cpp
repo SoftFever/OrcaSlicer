@@ -1234,8 +1234,8 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
 
     switch (volume.type())
     {
-    case BuildVolume::Type::Rectangle: { fit_rectangle(volume); break; }
-    case BuildVolume::Type::Circle:    { fit_circle(volume); break; }
+    case BuildVolume_Type::Rectangle: { fit_rectangle(volume); break; }
+    case BuildVolume_Type::Circle:    { fit_circle(volume); break; }
     default: { break; }
     }
 }

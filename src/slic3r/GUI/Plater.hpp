@@ -38,6 +38,7 @@ class Button;
 namespace Slic3r {
 
 class BuildVolume;
+enum class BuildVolume_Type : unsigned char;
 class Model;
 class ModelObject;
 enum class ModelObjectCutAttribute : int;
@@ -235,6 +236,8 @@ public:
     void calib_temp(const Calib_Params& params);
     void calib_max_vol_speed(const Calib_Params& params);
     void calib_VFA(const Calib_Params& params);
+
+    BuildVolume_Type get_build_volume_type() const;
 
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }

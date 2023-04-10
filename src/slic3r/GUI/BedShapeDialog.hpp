@@ -35,7 +35,7 @@ struct BedShape
 
     BedShape(const ConfigOptionPoints& points);
 
-    bool            is_custom() { return m_build_volume.type() == BuildVolume::Type::Convex || m_build_volume.type() == BuildVolume::Type::Custom; }
+    bool            is_custom() { return m_build_volume.type() == BuildVolume_Type::Convex || m_build_volume.type() == BuildVolume_Type::Custom; }
 
     static void     append_option_line(ConfigOptionsGroupShp optgroup, Parameter param);
     static wxString get_name(PageType type);
