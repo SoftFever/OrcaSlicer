@@ -8,6 +8,12 @@
   "filament_max_volumetric_speed": [
     "16"
   ],
+  "fan_max_speed": [
+    "60"
+  ],
+  "fan_min_speed": [
+    "20"
+  ],
   "compatible_printers": [
     "Bambu Lab X1 Carbon 0.6 nozzle",
     "Bambu Lab X1 0.6 nozzle",
