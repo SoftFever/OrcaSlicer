@@ -15,9 +15,12 @@ wxFont Label::sysFont(int size, bool bold)
     wxFont font{size, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL, false, face};
     font.SetFaceName(face);
     if (!font.IsOk()) {
-        font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-        if (bold) font.MakeBold();
-        font.SetPointSize(size);
+      BOOST_LOG_TRIVIAL(warning) << boost::format("Cann't find HarmonyOS Sans SC font");
+      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+      BOOST_LOG_TRIVIAL(warning) << boost::format("Use system font instead: %1%") % font.GetFaceName();
+      if (bold)
+        font.MakeBold();
+      font.SetPointSize(size);
     }
     return font;
 }
@@ -44,7 +47,7 @@ wxFont Label::Body_9;
 
 void Label::initSysFont()
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(_WIN32)
     const std::string& resource_path = Slic3r::resources_dir();
     wxString font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Bold.ttf");
     bool result = wxFont::AddPrivateFont(font_path);
