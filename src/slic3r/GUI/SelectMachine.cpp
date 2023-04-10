@@ -1084,8 +1084,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
 
-    auto m_sizer_material_area = new wxBoxSizer(wxHORIZONTAL);
-
+    wxBoxSizer* m_sizer_material_area = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* m_sizer_material_tips = new wxBoxSizer(wxHORIZONTAL);
 
 
@@ -1116,6 +1115,27 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_material_area->Add(m_sizer_material_tips, 0, wxALIGN_CENTER|wxLEFT, FromDIP(8));
     m_sizer_material_area->Add(m_sizer_material, 0, wxLEFT, FromDIP(15));
+
+    auto m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
+    auto m_ams_backup_tip = new Label(this, _L("Ams filament backup"));
+    m_ams_backup_tip->SetFont(::Label::Head_12);
+    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
+    m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
+    auto img_ams_backup = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_ams_backup->SetBackgroundColour(*wxWHITE);
+
+    m_sizer_backup->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_backup->Add(img_ams_backup, 0, wxALL, FromDIP(3));
+    m_sizer_backup->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
+
+    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
+    img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
+
+    m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+    img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); on_rename_enter(); });
+    img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); });
 
     m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_ams_msg->SetFont(::Label::Body_13);
@@ -1202,28 +1222,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
 
-    auto m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
-    auto m_ams_backup_tip = new Label(m_panel_prepare, _L("Ams filament backup"));
-    m_ams_backup_tip->SetFont(::Label::Head_12);
-    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
-    m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
-    auto img_ams_backup = new wxStaticBitmap(m_panel_prepare, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    img_ams_backup->SetBackgroundColour(*wxWHITE);
-
-    m_sizer_backup->Add(0, 0, 1, wxEXPAND, 0);
-    m_sizer_backup->Add(img_ams_backup, 0, wxALL, FromDIP(3));
-    m_sizer_backup->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
-
-    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
-    img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
-
-    m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-    img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); on_rename_enter(); });
-    img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup();});
-
-
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(btn_bg_enable);
     m_button_ensure->SetBorderColor(btn_bg_enable);
@@ -1233,7 +1231,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetCornerRadius(FromDIP(12));
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok_btn, this);
 
-    m_sizer_pcont->Add(m_sizer_backup, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
 
@@ -1320,6 +1317,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
     m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_sizer_backup, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
