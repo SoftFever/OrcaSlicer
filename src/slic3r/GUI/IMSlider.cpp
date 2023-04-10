@@ -708,35 +708,39 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
     }
 }
 
-void IMSlider::show_tooltip(const TickCode& tick){
+void IMSlider::show_tooltip(const std::string tooltip) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 6 * m_scale, 3 * m_scale });
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, { 3 * m_scale });
     ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
     ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
     ImGui::BeginTooltip();
+    ImGui::TextUnformatted(tooltip.c_str());
+    ImGui::EndTooltip();
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(2);
+}
+
+void IMSlider::show_tooltip(const TickCode& tick){
     switch (tick.type)
     {
     case CustomGCode::ColorChange:
         break;
     case CustomGCode::PausePrint:
-        ImGui::TextUnformatted((_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"").c_str());
+        show_tooltip(_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
         break;
     case CustomGCode::ToolChange:
-        ImGui::TextUnformatted(_u8L("Change Filament").c_str());
+        show_tooltip(_u8L("Change Filament"));
         break;
     case CustomGCode::Template:
-        ImGui::TextUnformatted((_u8L("Custom Template:") + " \"" + gcode(Template) + "\"").c_str());
+        show_tooltip(_u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
         break;
     case CustomGCode::Custom:
-        ImGui::TextUnformatted((_u8L("Custom G-code:") + " \"" + tick.extra + "\"").c_str());
+        show_tooltip(_u8L("Custom G-code:") + " \"" + tick.extra + "\"");
         break;
     default:
         break;
     }
-    ImGui::EndTooltip();
-    ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(2);
 }
 
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
@@ -1224,18 +1228,26 @@ void IMSlider::render_add_menu()
         ImGui::OpenPopup("slider_add_menu_popup");
     if (ImGui::BeginPopup("slider_add_menu_popup")) {
         bool menu_item_enable = m_draw_mode != dmSequentialFffPrint;
+        bool hovered = false;
         {
-            if (menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
+            if (menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                 add_code_as_tick(PausePrint);
             }
-            if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
+            if (hovered) { show_tooltip(_u8L("Insert a pause command at the beginning of this layer.")); }
+
+            
+            if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                 m_show_custom_gcode_window = true;
             }
+            if (hovered) { show_tooltip(_u8L("Insert custom G-code at the beginning of this layer.")); }
+
             if (!gcode(Template).empty()) {
-                if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
+                if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                     add_code_as_tick(Template);
                 }
             }
+            if (hovered) { show_tooltip(_u8L("Insert template custom G-code at the beginning of this layer.")); }
+
             if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
                 m_show_go_to_layer_dialog = true;
             }
@@ -1250,11 +1262,13 @@ void IMSlider::render_add_menu()
                 for (int i = 0; i < extruder_num; i++) {
                     std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
                     ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                    if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
+                    if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr, false, true, &hovered)) add_code_as_tick(ToolChange, i + 1);
+                    if (hovered) { show_tooltip(_u8L("Change filament at the beginning of this layer.")); }
                 }
                 end_menu();
             }
         }
+
         ImGui::EndPopup();
     }
 }

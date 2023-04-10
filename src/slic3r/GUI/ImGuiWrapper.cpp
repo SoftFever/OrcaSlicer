@@ -1119,7 +1119,7 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
 // To do that we push a ColorMarkerHovered symbol at the very beginning of the label
 // This symbol will be used to a color selection for the highlighted letters.
 // see imgui_draw.cpp, void ImFont::RenderText()
-static bool selectable(const char* label, bool selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0))
+static bool selectable(const char* label, bool selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0), bool* out_hovered = nullptr)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
@@ -1265,10 +1265,11 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     if (flags & ImGuiSelectableFlags_Disabled) ImGui::PopStyleColor();
     if (hovered || selected) ImGui::PopStyleColor();
 
+    if (out_hovered) *out_hovered = hovered;
+
     // Automatically close popups
     if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.CurrentItemFlags & ImGuiItemFlags_SelectableDontClosePopup))
         ImGui::CloseCurrentPopup();
-
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
     return pressed;
 }
@@ -1437,7 +1438,7 @@ void end_menu()
     ImGui::EndMenu(); 
 }
 
-bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size /* = ImVec2(0, 0)*/, ImU32 icon_color /* = 0*/, bool selected /* = false*/, bool enabled /* = true*/)
+bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size /* = ImVec2(0, 0)*/, ImU32 icon_color /* = 0*/, bool selected /* = false*/, bool enabled /* = true*/, bool* hovered/* = nullptr*/)
 {
     ImGuiWindow *window = ImGui::GetCurrentWindow();
     if (window->SkipItems) return false;
@@ -1470,7 +1471,7 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
         float shortcut_w = shortcut ? ImGui::CalcTextSize(shortcut, NULL).x : 0.0f;
         float min_w      = window->DC.MenuColumns.DeclColumns(label_size.x, shortcut_w, IM_FLOOR(g.FontSize * 1.20f)); // Feedback for next frame
         float extra_w    = std::max(0.0f, ImGui::GetContentRegionAvail().x - min_w);
-        pressed          = selectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(min_w, 0.0f));
+        pressed          = selectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(min_w, 0.0f), hovered);
 
         if (icon_size.x != 0 && icon_size.y != 0) {
             float selectable_pos_y = pos.y + -0.5f * style.ItemSpacing.y;

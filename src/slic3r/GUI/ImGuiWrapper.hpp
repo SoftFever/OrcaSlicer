@@ -39,7 +39,7 @@ bool button_with_pos(ImTextureID   user_texture_id,
                      const ImVec2 &margin        = ImVec2(0, 0));
 bool begin_menu(const char *label, bool enabled = true);
 void end_menu();
-bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size = ImVec2(0, 0), ImU32 icon_color = 0, bool selected = false, bool enabled = true);
+bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size = ImVec2(0, 0), ImU32 icon_color = 0, bool selected = false, bool enabled = true, bool* hovered = nullptr);
 
 
 class ImGuiWrapper

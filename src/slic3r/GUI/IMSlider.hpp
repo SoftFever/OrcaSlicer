@@ -147,6 +147,7 @@ protected:
     void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
     void draw_ticks(const ImRect& slideable_region);
     void show_tooltip(const TickCode& tick); //menu
+    void show_tooltip(const std::string tooltip); //menu
     bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
         std::string& higher_label, std::string& lower_label,
         int v_min, int v_max, const ImVec2& size,
