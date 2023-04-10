@@ -6,7 +6,7 @@ var LangText={
         "t4": "Disagree",
         "t5": "Agree",
         "t6": "We kindly request your help to improve<br/> everyone's printing",
-        "t7": "Allow sending anonymous data",
+        "t7": "Join our Customer Experience Improvement Program",
         "t8": "Back",
         "t9": "Next",
         "t10": "Printer Selection",
