@@ -2621,7 +2621,7 @@ void StatusPanel::on_ams_load_curr()
                 con_load_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {*/
                         int old_temp = -1;
                         int new_temp = -1;
-                        AmsTray* curr_tray = obj->get_curr_tray();
+                        AmsTray* curr_tray = &obj->vt_tray;
 
                         if (!curr_tray) return;
 

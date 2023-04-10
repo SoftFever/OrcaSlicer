@@ -471,11 +471,11 @@ void AMSextruder::doRender(wxDC& dc)
     }
 
     if (m_has_vams) {
-        dc.DrawRoundedRectangle(-size.x / 2, FromDIP(8), size.x, size.y, 4);
+        dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
 
         if (m_vams_loading) {
             dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));
-            dc.DrawRoundedRectangle(-size.x / 2, FromDIP(8), size.x, size.y, 4);
+            dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
         }
 
         if (m_ams_loading && !m_none_ams_mode) {
@@ -564,7 +564,7 @@ void AMSVirtualRoad::doRender(wxDC& dc)
 
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
-    dc.DrawRoundedRectangle(size.x / 2, -FromDIP(9), size.x, FromDIP(18), 4);
+    dc.DrawRoundedRectangle(size.x / 2, -size.y / 1.1 + FromDIP(1), size.x, size.y, 4);
 }
 
 
@@ -2416,6 +2416,8 @@ void AMSControl::msw_rescale()
     m_button_ams_setting->SetBitmap(m_button_ams_setting_normal.bmp());
 
     m_extruder->msw_rescale();
+    m_vams_extra_road->msw_rescale();
+
     m_button_extrusion_cali->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -2860,9 +2862,15 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, wxColour col)
     }
 
     if (is_vams && on_off) {
+        m_extruder->OnAmsLoading(false, col);
         m_vams_extra_road->OnVamsLoading(true, col);
         m_extruder->OnVamsLoading(true, col);
         m_vams_road->OnVamsLoading(true, col);
+    }
+    else {
+        m_vams_extra_road->OnVamsLoading(false, col);
+        m_extruder->OnVamsLoading(false, col);
+        m_vams_road->OnVamsLoading(false, col);
     }
 }
 
@@ -2879,15 +2887,16 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         }
     }
 
-    if (notfound) return;
-    if (cans == nullptr) return;
 
-    if (!ams_id.empty() && (ams_id != m_last_ams_id || m_last_tray_id != canid)) {
+    if (ams_id != m_last_ams_id || m_last_tray_id != canid) {
         SetAmsStep(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         m_vams_extra_road->OnVamsLoading(false);
         m_extruder->OnVamsLoading(false);
         m_vams_road->OnVamsLoading(false);
     }
+
+    if (notfound) return;
+    if (cans == nullptr) return;
 
 
     m_last_ams_id = ams_id;
