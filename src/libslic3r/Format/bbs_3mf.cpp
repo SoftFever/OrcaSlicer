@@ -5974,6 +5974,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     mz_zip_archive archive;
                     mz_zip_zero_struct(&archive);
                     mz_zip_writer_init_heap(&archive, 0, 1024 * 1024);
+                    CNumericLocalesSetter locales_setter;
                     _add_model_file_to_archive(object_paths[i], archive, model, objects_data2, nullptr, project);
                     iter->second = objects_data2.begin()->second;
                     void *ppBuf; size_t pSize;
