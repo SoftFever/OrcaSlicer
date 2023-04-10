@@ -238,7 +238,9 @@ public:
     void doRender(wxDC& dc);
     void msw_rescale();
     void has_ams(bool hams) {m_has_vams = hams; Refresh();};
+    void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
 
+    bool            m_none_ams_mode{false};
     bool            m_has_vams{false};
     bool            m_vams_loading{false};
     bool            m_ams_loading{false};
@@ -292,9 +294,11 @@ public:
     void         OnSelected();
     void         UnSelected();
     bool         is_selected() {return m_selected;};
-    virtual bool Enable(bool enable = true);
     void         post_event(wxCommandEvent &&event);
     void         show_kn_value(bool show) { m_show_kn = show; };
+    void         support_cali(bool sup) { m_support_cali = sup; Refresh(); };
+    virtual bool Enable(bool enable = true);
+
 
 protected:
     wxStaticBitmap *m_edit_bitmp       = {nullptr};
@@ -308,6 +312,7 @@ protected:
     bool            m_selected        = {false};
     bool            m_hover           = {false};
     bool            m_show_kn         = {false};
+    bool            m_support_cali    = {false};
 
     double   m_radius = {4};
     wxColour m_border_color;
@@ -615,7 +620,7 @@ public:
     void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load = false);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
-    void update_vams_kn_value(AmsTray tray);
+    void update_vams_kn_value(AmsTray tray, MachineObject* obj);
 
     void reset_vams();
     void post_event(wxEvent&& event);

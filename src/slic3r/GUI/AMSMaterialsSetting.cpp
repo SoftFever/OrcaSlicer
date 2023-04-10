@@ -268,9 +268,9 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
     // title
-    auto ratio_text = new wxStaticText(parent, wxID_ANY, _L("Factors of dynamic flow cali"));
-    ratio_text->SetForegroundColour(wxColour(50, 58, 61));
-    ratio_text->SetFont(Label::Head_14);
+    m_ratio_text = new wxStaticText(parent, wxID_ANY, _L("Factors of dynamic flow cali"));
+    m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
+    m_ratio_text->SetFont(Label::Head_14);
 
     auto kn_val_sizer = new wxFlexGridSizer(0, 2, 0, 0);
     kn_val_sizer->SetFlexibleDirection(wxBOTH);
@@ -304,7 +304,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_input_n_val->Hide();
 
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    sizer->Add(ratio_text, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
+    sizer->Add(m_ratio_text, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(kn_val_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
@@ -715,6 +715,19 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
+
+        if (obj && obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+            m_ratio_text->Show();
+            m_k_param->Show();
+            m_input_k_val->Show();
+        }
+        else {
+            m_ratio_text->Hide();
+            m_k_param->Hide();
+            m_input_k_val->Hide();
+        }
+        Layout();
+        Fit();
     }
     return DPIDialog::Show(show); 
 }

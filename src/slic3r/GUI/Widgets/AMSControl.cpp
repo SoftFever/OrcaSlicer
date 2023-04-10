@@ -465,7 +465,10 @@ void AMSextruder::doRender(wxDC& dc)
     wxSize size = GetSize();
     dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-    dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
+
+    if (!m_none_ams_mode) {
+        dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
+    }
 
     if (m_has_vams) {
         dc.DrawRoundedRectangle(-size.x / 2, FromDIP(8), size.x, size.y, 4);
@@ -475,7 +478,7 @@ void AMSextruder::doRender(wxDC& dc)
             dc.DrawRoundedRectangle(-size.x / 2, FromDIP(8), size.x, size.y, 4);
         }
 
-        if (m_ams_loading) {
+        if (m_ams_loading && !m_none_ams_mode) {
             dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
         }
@@ -708,6 +711,7 @@ void AMSLib::render(wxDC &dc)
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
+
         if (m_info.material_name.empty() &&  m_info.material_state != AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
             auto tsize = dc.GetMultiLineTextExtent("?");
             auto pot = wxPoint(0, 0);
@@ -748,7 +752,7 @@ void AMSLib::render(wxDC &dc)
 
             } else {
                 auto pot = wxPoint(0, 0);
-                if (m_show_kn) {
+                if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
                     pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9));
                 } else {
                     pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
@@ -758,18 +762,8 @@ void AMSLib::render(wxDC &dc)
         }
 
         //draw k&n
-        if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
+        if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
             if (m_show_kn){
-                wxString str_k = wxString::Format("K %1.3f", m_info.k);
-                wxString str_n = wxString::Format("N %1.3f", m_info.n);
-                dc.SetFont(::Label::Body_11);
-                auto tsize = dc.GetMultiLineTextExtent(str_k);
-                auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
-                dc.DrawText(str_k, pot_k);
-            }
-        }
-        else if(m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL){
-            if (m_show_kn) {
                 wxString str_k = wxString::Format("K %1.3f", m_info.k);
                 wxString str_n = wxString::Format("N %1.3f", m_info.n);
                 dc.SetFont(::Label::Body_11);
@@ -2331,7 +2325,7 @@ void AMSControl::EnterNoneAMSMode(bool support_vt_load)
     m_panel_top->Hide();
     m_simplebook_amsitems->SetSelection(1);
     m_simplebook_ams->SetSelection(1);
-    m_extruder->Hide();
+    m_extruder->no_ams_mode(true);
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
     m_button_retry->Hide();
@@ -2356,7 +2350,7 @@ void AMSControl::ExitNoneAMSMode()
     m_panel_top->Show();
     m_simplebook_ams->SetSelection(0);
     m_simplebook_amsitems->SetSelection(0);
-    m_extruder->Show();
+    m_extruder->no_ams_mode(false);
     m_button_ams_setting->Show();
     m_button_guide->Show();
     m_button_retry->Show();
@@ -2568,8 +2562,9 @@ void AMSControl::show_vams_kn_value(bool show)
     m_vams_lib->show_kn_value(show);
 }
 
-void AMSControl::update_vams_kn_value(AmsTray tray)
+void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 {
+    m_vams_lib->m_obj = obj;
     m_vams_info.k = tray.k;
     m_vams_info.n = tray.n;
     m_vams_lib->m_info.k = tray.k;

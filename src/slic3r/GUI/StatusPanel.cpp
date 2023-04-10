@@ -1907,6 +1907,8 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
+    bool is_none_ams_mode = false;
+
     if (!obj
         || !obj->is_connected()
         || obj->amsList.empty()
@@ -1924,20 +1926,24 @@ void StatusPanel::update_ams(MachineObject *obj)
         bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
 
         if (is_support_virtual_tray) {
-            m_ams_control->update_vams_kn_value(obj->vt_tray);
+            m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
         }
         show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
-        return;
+        is_none_ams_mode = true;
+        //return;
     }
 
     bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
     bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
 
     if (is_support_virtual_tray) {
-        m_ams_control->update_vams_kn_value(obj->vt_tray);
+        m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
     }
 
-    show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
+    if (!is_none_ams_mode) {
+         show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
+    }
+   
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
@@ -2616,6 +2622,9 @@ void StatusPanel::on_ams_load_curr()
                         int old_temp = -1;
                         int new_temp = -1;
                         AmsTray* curr_tray = obj->get_curr_tray();
+
+                        if (!curr_tray) return;
+
                         try {
                             if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
                                 old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
