@@ -186,9 +186,9 @@ bool AmsTray::is_unset_third_filament()
 std::string AmsTray::get_display_filament_type()
 {
     if (type == "PLA-S")
-        return "Support W";
+        return "Sup.PLA";
     else if (type == "PA-S")
-        return "Support G";
+        return "Sup.PA";
     else
         return type;
     return type;
@@ -196,7 +196,11 @@ std::string AmsTray::get_display_filament_type()
 
 std::string AmsTray::get_filament_type()
 {
-    if (type == "Support W") {
+    if (type == "Sup.PLA") {
+        return "PLA-S";
+    } else if (type == "Sup.PA") {
+        return "PA-S";
+    } else if (type == "Support W") {
         return "PLA-S";
     } else if (type == "Support G") {
         return "PA-S";

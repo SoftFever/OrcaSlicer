@@ -4264,24 +4264,34 @@ std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filamen
         if (is_support) {
             if (filament_id) {
                 if (filament_id->get_at(id) == "GFS00") {
-                    displayed_filament_type = "Support W";
+                    displayed_filament_type = "Sup.PLA";
                     return "PLA-S";
                 }
                 else if (filament_id->get_at(id) == "GFS01") {
-                    displayed_filament_type = "Support G";
+                    displayed_filament_type = "Sup.PA";
                     return "PA-S";
                 }
                 else {
-                    displayed_filament_type = filament_type->get_at(id);
-                    return filament_type->get_at(id);
+                    if (filament_type->get_at(id) == "PLA") {
+                        displayed_filament_type = "Sup.PLA";
+                        return "PLA-S";
+                    }
+                    else if (filament_type->get_at(id) == "PA") {
+                        displayed_filament_type = "Sup.PA";
+                        return "PA-S";
+                    }
+                    else {
+                        displayed_filament_type = filament_type->get_at(id);
+                        return filament_type->get_at(id);
+                    }
                 }
             }
             else {
                 if (filament_type->get_at(id) == "PLA") {
-                    displayed_filament_type = "Support W";
+                    displayed_filament_type = "Sup.PLA";
                     return "PLA-S";
                 } else if (filament_type->get_at(id) == "PA") {
-                    displayed_filament_type = "Support G";
+                    displayed_filament_type = "Sup.PA";
                     return "PA-S";
                 } else {
                     displayed_filament_type = filament_type->get_at(id);
