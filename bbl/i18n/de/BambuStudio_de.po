@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 17:50+0800\n"
+"POT-Creation-Date: 2023-04-11 20:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -525,7 +525,7 @@ msgid "Horizontal text"
 msgstr ""
 
 msgid "Ctrl+"
-msgstr ""
+msgstr "Strg+"
 
 msgid "Notice"
 msgstr "Hinweis"
@@ -829,7 +829,7 @@ msgid "Show"
 msgstr "Anzeigen"
 
 msgid "Del"
-msgstr ""
+msgstr "Entf"
 
 msgid "Delete the selected object"
 msgstr "Ausgewähltes Objekt löschen"
@@ -3247,7 +3247,7 @@ msgid "Save Project as"
 msgstr "Projekt speichern als"
 
 msgid "Shift+"
-msgstr ""
+msgstr "Umschalt+"
 
 msgid "Save current project as"
 msgstr "Aktuelles Projekt speichern als"
@@ -5840,7 +5840,7 @@ msgid "⌘+Shift+G"
 msgstr ""
 
 msgid "Ctrl+Shift+G"
-msgstr ""
+msgstr "Strg+Umschalt+G"
 
 msgid "Copy to clipboard"
 msgstr "In Zwischenablage kopieren"
@@ -5870,10 +5870,10 @@ msgid "Zoom View"
 msgstr "Ansicht zoomen"
 
 msgid "Shift+A"
-msgstr ""
+msgstr "Umschalt+A"
 
 msgid "Shift+R"
-msgstr ""
+msgstr "Umschalt+R"
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
@@ -5886,7 +5886,7 @@ msgstr ""
 "ausgerichtet."
 
 msgid "Shift+Tab"
-msgstr ""
+msgstr "Umschalt+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Seitenleiste zu-/aufklappen"
@@ -5919,7 +5919,7 @@ msgid "Ctrl+Left mouse button"
 msgstr "Strg + Linke Maustaste"
 
 msgid "Shift+Left mouse button"
-msgstr "Umschalttaste + Linke Maustaste"
+msgstr "Umschalt+Linke Maustaste"
 
 msgid "Select objects by rectangle"
 msgstr "Objekte per Rechteck auswählen"
@@ -5949,7 +5949,7 @@ msgid "Move selection 10 mm in positive X direction"
 msgstr "Auswahl 10 mm in positiver X-Richtung verschieben"
 
 msgid "Shift+Any arrow"
-msgstr "Umschalttaste + beliebige Pfeiltaste"
+msgstr "Umschalt+beliebige Pfeiltaste"
 
 msgid "Movement step set to 1 mm"
 msgstr "Bewegungsschritt auf 1 mm eingestellt"
@@ -6074,7 +6074,7 @@ msgid "Move slider 5x faster"
 msgstr "Schieberegler 5x schneller bewegen"
 
 msgid "Shift+Mouse wheel"
-msgstr "Umschalttaste + Mausrad"
+msgstr "Umschalt+Mausrad"
 
 msgid "Release Note"
 msgstr "Hinweis zur Veröffentlichung"
