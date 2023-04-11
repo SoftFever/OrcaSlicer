@@ -61,6 +61,7 @@
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/Http.hpp"
+#include "../Utils/UndoRedo.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
@@ -1030,11 +1031,14 @@ void GUI_App::post_init()
             else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
+                Plater::TakeSnapshot      snapshot(this->plater(), "Load Project", UndoRedo::SnapshotType::ProjectSeparator);
                 const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
                 if (!res.empty()) {
                     if (this->init_params->input_files.size() == 1) {
                         // Update application titlebar when opening a project file
                         const std::string& filename = this->init_params->input_files.front();
+                        this->plater()->up_to_date(true, false);
+                        this->plater()->up_to_date(true, true);
                         //BBS: remove amf logic as project
                         if (boost::algorithm::iends_with(filename, ".3mf"))
                             this->plater()->set_project_filename(from_u8(filename));
