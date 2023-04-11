@@ -4346,15 +4346,18 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 	int ret = 0;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
+	// SoftFever: assign plater info first
+    for (auto partplate : m_plate_list) {
+        partplate->m_plater = this->m_plater;
+        partplate->m_partplate_list = this;
+        partplate->m_model = this->m_model;
+        partplate->printer_technology = this->printer_technology;
+    }
 	update_plate_cols();
 	set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		bool need_reset_print = false;
-		m_plate_list[i]->m_plater = this->m_plater;
-		m_plate_list[i]->m_partplate_list = this;
-		m_plate_list[i]->m_model = this->m_model;
-		m_plate_list[i]->printer_technology = this->printer_technology;
 		//check the previous sliced result
 		if (m_plate_list[i]->m_slice_result_valid) {
 			if ((i >= previous_sliced_result.size()) || !previous_sliced_result[i])
