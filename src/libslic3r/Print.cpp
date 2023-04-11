@@ -1679,15 +1679,18 @@ void Print::process(bool use_cache)
     {
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();
-        auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects);
+        std::optional<const FakeWipeTower *> wipe_tower_opt = {};
+        if (this->has_wipe_tower()) {
+            m_fake_wipe_tower.set_pos({m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index)});
+            wipe_tower_opt = std::make_optional<const FakeWipeTower *>(&m_fake_wipe_tower);
+        }
+        auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects, wipe_tower_opt);
         auto            endTime     = Clock::now();
         volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
         BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs.";
 
         if (conflictRes.has_value()) {
-            m_conflict_result.set(conflictRes.value()._obj1, conflictRes.value()._obj2);
-            auto         objName1 = conflictRes.value()._obj1->m_model_object->name;
-            auto         objName2 = conflictRes.value()._obj2->m_model_object->name;
+            m_conflict_result.set(conflictRes.value().first, conflictRes.value().second);
         } else {
             m_conflict_result.reset();
         }
@@ -1723,7 +1726,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
     //BBS
     if (m_conflict_result.conflicted) {
-        result->conflict_result.set(m_conflict_result.obj1->m_model_object->name, m_conflict_result.obj2->m_model_object->name);
+        result->conflict_result.set(m_conflict_result.obj1, m_conflict_result.obj2);
     } else {
         result->conflict_result.reset();
     }
@@ -2152,8 +2155,11 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
         wipe_tower.tool_change((unsigned int)(-1)));
 
-    m_wipe_tower_data.used_filament = wipe_tower.get_used_filament();
+    m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
     m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
+    const Vec3d origin                      = this->get_plate_origin();
+    m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position(), wipe_tower.width(), wipe_tower.get_height(), wipe_tower.get_layer_height(), m_wipe_tower_data.depth,
+                                              m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())});
 }
 
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters

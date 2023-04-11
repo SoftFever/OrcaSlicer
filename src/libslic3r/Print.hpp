@@ -510,6 +510,58 @@ private:
     static bool infill_only_where_needed;
 };
 
+struct FakeWipeTower
+{
+    // generate fake extrusion
+    Vec2f pos;
+    float width;
+    float height;
+    float layer_height;
+    float depth;
+    float brim_width;
+    Vec2d plate_origin;
+
+    void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
+    {
+        pos          = p;
+        width        = w;
+        height       = h;
+        layer_height = lh;
+        depth        = d;
+        brim_width   = bd;
+        plate_origin = o;
+    }
+
+    void set_pos(Vec2f p) { pos = p; }
+
+    std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower() const
+    {
+        float h         = height;
+        float lh        = layer_height;
+        int   d         = scale_(depth);
+        int   w         = scale_(width);
+        int   bd        = scale_(brim_width);
+        Point minCorner = {scale_(pos.x()), scale_(pos.y())};
+        Point maxCorner = {minCorner.x() + w, minCorner.y() + d};
+
+        std::vector<ExtrusionPaths> paths;
+        for (float hh = 0.f; hh < h; hh += lh) {
+            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, lh);
+            path.polyline = {minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner};
+            paths.push_back({path});
+
+            if (hh == 0.f) { // add brim
+                ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, lh);
+                Point         wtbminCorner = {minCorner - Point{bd, bd}};
+                Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
+                fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};
+                paths.back().push_back(fakeBrim);
+            }
+        }
+        return paths;
+    }
+};
+
 struct WipeTowerData
 {
     // Following section will be consumed by the GCodeGenerator.
@@ -779,12 +831,12 @@ private:
     struct ConflictResult
     {
         bool conflicted;
-        PrintObject *obj1;
-        PrintObject *obj2;
+        std::string obj1;
+        std::string obj2;
         //TODO
         //the actual loaction
 
-        void set(PrintObject *o1, PrintObject *o2)
+        void set(const std::string& o1, const std::string& o2)
         {
             conflicted = true;
             obj1  = o1;
@@ -793,10 +845,11 @@ private:
         void reset()
         {
             conflicted = false;
-            obj1  = nullptr;
-            obj2  = nullptr;
+            obj1.clear();
+            obj2.clear();
         }
     }m_conflict_result;
+    FakeWipeTower m_fake_wipe_tower;
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;

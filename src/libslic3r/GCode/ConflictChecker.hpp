@@ -14,11 +14,11 @@ namespace Slic3r {
 
 struct LineWithID
 {
-    Line         _line;
-    PrintObject *_objPtr;
-    int          _role;
+    Line _line;
+    int  _id;
+    int  _role;
 
-    LineWithID(const Line &line, PrintObject *objPtr, int role) : _line(line), _objPtr(objPtr), _role(role) {}
+    LineWithID(const Line &line, int id, int role) : _line(line), _id(id), _role(role) {}
 };
 
 using LineWithIDs = std::vector<LineWithID>;
@@ -30,11 +30,11 @@ private:
     unsigned _curPileIdx = 0;
 
     std::vector<ExtrusionPaths> _piles;
-    PrintObject *               _objPtr;
+    int                         _id;
     Point                       _offset;
 
 public:
-    LinesBucket(std::vector<ExtrusionPaths> &&paths, PrintObject *objPtr, Point offset) : _piles(paths), _objPtr(objPtr), _offset(offset) {}
+    LinesBucket(std::vector<ExtrusionPaths> &&paths, int id, Point offset) : _piles(paths), _id(id), _offset(offset) {}
     LinesBucket(LinesBucket &&) = default;
 
     bool valid() const { return _curPileIdx < _piles.size(); }
@@ -52,9 +52,9 @@ public:
         for (const ExtrusionPath &path : _piles[_curPileIdx]) {
             if (path.is_force_no_extrusion() == false) {
                 Polyline check_polyline = path.polyline;
-                if (path.role() != ExtrusionRole::erBrim) { check_polyline.translate(_offset); }
+                check_polyline.translate(_offset);
                 Lines tmpLines = check_polyline.lines();
-                for (const Line &line : tmpLines) { lines.emplace_back(line, _objPtr, path.role()); }
+                for (const Line &line : tmpLines) { lines.emplace_back(line, _id, path.role()); }
             }
         }
         return lines;
@@ -75,11 +75,18 @@ class LinesBucketQueue
 private:
     std::vector<LinesBucket>                                                           _buckets;
     std::priority_queue<LinesBucket *, std::vector<LinesBucket *>, LinesBucketPtrComp> _pq;
+    std::vector<const void *>                                                          _objsPtrToId;
 
 public:
-    void emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, PrintObject *objPtr, Point offset);
-    bool valid() const { return _pq.empty() == false; }
-
+    void        emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, const void *objPtr, Point offset);
+    bool        valid() const { return _pq.empty() == false; }
+    const void *idToObjsPtr(int id)
+    {
+        if (id >= 0 && id < _objsPtrToId.size()) {
+            return _objsPtrToId[id];
+        } else
+            return nullptr;
+    }
     void        removeLowests();
     LineWithIDs getCurLines() const;
 };
@@ -94,21 +101,21 @@ std::pair<std::vector<ExtrusionPaths>, std::vector<ExtrusionPaths>> getAllLayers
 
 struct ConflictResult
 {
-    PrintObject *_obj1;
-    PrintObject *_obj2;
-    ConflictResult(PrintObject *obj1, PrintObject *obj2) : _obj1(obj1), _obj2(obj2) {}
+    int _obj1;
+    int _obj2;
+    ConflictResult(int obj1, int obj2) : _obj1(obj1), _obj2(obj2) {}
     ConflictResult() = default;
 };
 
-static_assert(std::is_trivial<ConflictResult>::value, "atomic value requires to be trival.");
-
 using ConflictRet = std::optional<ConflictResult>;
+
+using ConflictObjName = std::optional<std::pair<std::string, std::string>>;
 
 struct ConflictChecker
 {
-    static ConflictRet find_inter_of_lines_in_diff_objs(PrintObjectPtrs objs);
-    static ConflictRet find_inter_of_lines(const LineWithIDs &lines);
-    static ConflictRet line_intersect(const LineWithID &l1, const LineWithID &l2);
+    static ConflictObjName find_inter_of_lines_in_diff_objs(PrintObjectPtrs objs, std::optional<const FakeWipeTower *> wtdptr);
+    static ConflictRet     find_inter_of_lines(const LineWithIDs &lines);
+    static ConflictRet     line_intersect(const LineWithID &l1, const LineWithID &l2);
 };
 
 } // namespace Slic3r

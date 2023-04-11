@@ -89,10 +89,11 @@ inline Grids line_rasterization(const Line &line, int64_t xdist = RasteXDistance
 }
 } // namespace RasterizationImpl
 
-void LinesBucketQueue::emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, PrintObject *objPtr, Point offset)
+void LinesBucketQueue::emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, const void *objPtr, Point offset)
 {
     auto oldSize = _buckets.capacity();
-    _buckets.emplace_back(std::move(paths), objPtr, offset);
+    _buckets.emplace_back(std::move(paths), _objsPtrToId.size(), offset);
+    _objsPtrToId.push_back(objPtr);
     _pq.push(&_buckets.back());
     auto newSize = _buckets.capacity();
     if (oldSize != newSize) { // pointers change
@@ -199,10 +200,15 @@ ConflictRet ConflictChecker::find_inter_of_lines(const LineWithIDs &lines)
     return {};
 }
 
-ConflictRet ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectPtrs objs) // find the first intersection point of lines in different objects
+ConflictObjName ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectPtrs                      objs,
+                                                                  std::optional<const FakeWipeTower *> wtdptr) // find the first intersection point of lines in different objects
 {
     if (objs.size() <= 1) { return {}; }
     LinesBucketQueue conflictQueue;
+    if (wtdptr.has_value()) { // wipe tower at 0 by default
+        auto wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
+        conflictQueue.emplace_back_bucket(std::move(wtpaths), wtdptr.value(), {wtdptr.value()->plate_origin.x(),wtdptr.value()->plate_origin.y()});
+    }
     for (PrintObject *obj : objs) {
         auto layers = getAllLayersExtrusionPathsFromObject(obj);
         conflictQueue.emplace_back_bucket(std::move(layers.first), obj, obj->instances().front().shift);
@@ -219,7 +225,7 @@ ConflictRet ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectPtrs ob
     bool                                   find = false;
     tbb::concurrent_vector<ConflictResult> conflict;
 
-    tbb::parallel_for(tbb::blocked_range<size_t>( 0, layersLines.size()), [&](tbb::blocked_range<size_t> range) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, layersLines.size()), [&](tbb::blocked_range<size_t> range) {
         for (size_t i = range.begin(); i < range.end(); i++) {
             auto interRes = find_inter_of_lines(layersLines[i]);
             if (interRes.has_value()) {
@@ -231,21 +237,33 @@ ConflictRet ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectPtrs ob
     });
 
     if (find) {
-        return {conflict[0]};
+        const void *ptr1 = conflictQueue.idToObjsPtr(conflict[0]._obj1);
+        const void *ptr2 = conflictQueue.idToObjsPtr(conflict[0]._obj2);
+        if (wtdptr.has_value()) {
+            const FakeWipeTower *wtdp = wtdptr.value();
+            if (ptr1 == wtdp || ptr2 == wtdp) {
+                if (ptr2 == wtdp) { std::swap(ptr1, ptr2); }
+                const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
+                return {std::make_pair("WipeTower", obj2->model_object()->name)};
+            }
+        }
+        const PrintObject *obj1 = reinterpret_cast<const PrintObject *>(ptr1);
+        const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
+        return {std::make_pair(obj1->model_object()->name, obj2->model_object()->name)};
     } else
         return {};
 }
 
 ConflictRet ConflictChecker::line_intersect(const LineWithID &l1, const LineWithID &l2)
 {
-    if (l1._objPtr == l2._objPtr) { return {}; } // return true if lines are from same object
+    if (l1._id == l2._id) { return {}; } // return true if lines are from same object
     Point inter;
     bool  intersect = l1._line.intersection(l2._line, &inter);
     if (intersect) {
         auto dist1 = std::min(unscale(Point(l1._line.a - inter)).norm(), unscale(Point(l1._line.b - inter)).norm());
         auto dist2 = std::min(unscale(Point(l2._line.a - inter)).norm(), unscale(Point(l2._line.b - inter)).norm());
         auto dist  = std::min(dist1, dist2);
-        if (dist > 0.01) { return std::make_optional<ConflictResult>(l1._objPtr, l2._objPtr); } // the two lines intersects if dist>0.01mm
+        if (dist > 0.01) { return std::make_optional<ConflictResult>(l1._id, l2._id); } // the two lines intersects if dist>0.01mm
     }
     return {};
 }
