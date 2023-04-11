@@ -758,7 +758,6 @@ Sidebar::Sidebar(Plater *parent)
                 (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 
-                wxGetApp().app_config->set("flush_multiplier", std::to_string(dlg.get_flush_multiplier()));
                 wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
                 wxGetApp().plater()->update_project_dirty_from_presets();

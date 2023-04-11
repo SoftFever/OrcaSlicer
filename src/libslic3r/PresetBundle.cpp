@@ -1322,6 +1322,11 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         auto flush_volumes_vector = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
         project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values = std::vector<double>(flush_volumes_vector.begin(), flush_volumes_vector.end());
     }
+    if (config.has("app", "flush_multiplier")) {
+        std::string str_flush_multiplier = config.get("app", "flush_multiplier");
+        if (!str_flush_multiplier.empty())
+            project_config.option<ConfigOptionFloat>("flush_multiplier")->set(new ConfigOptionFloat(std::stof(str_flush_multiplier)));
+    }
 
     // Update visibility of presets based on their compatibility with the active printer.
     // Always try to select a compatible print and filament preset to the current printer preset,
@@ -1396,6 +1401,9 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "flush_volumes_vector", flush_volumes_vector);
 
     config.set("presets", PRESET_PRINTER_NAME, printers.get_selected_preset_name());
+
+    auto flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
+    config.set("flush_multiplier", std::to_string(flush_multi_opt ? flush_multi_opt->getFloat() : 1.0f));
     // BBS
     //config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     //config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
