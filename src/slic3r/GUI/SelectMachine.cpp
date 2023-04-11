@@ -3207,7 +3207,11 @@ void SelectMachineDialog::set_default()
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Move(pos);
 
-                if (obj_ && obj_->has_ams() && ams_check->GetValue()) {
+                if (obj_ && 
+                    obj_->has_ams() && 
+                    ams_check->GetValue() &&
+                    obj_->dev_id == m_printer_last_select) 
+                {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
