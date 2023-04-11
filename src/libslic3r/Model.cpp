@@ -2726,7 +2726,7 @@ bool ModelVolume::is_splittable() const
 void ModelVolume::apply_tolerance()
 {
     assert(cut_info.is_connector);
-    if (cut_info.is_processed)
+    if (!cut_info.is_processed)
         return;
 
     Vec3d sf = get_scaling_factor();
