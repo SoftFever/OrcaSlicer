@@ -2079,7 +2079,7 @@ void ImGuiWrapper::init_font(bool compress)
     cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, m_font_cjk ? ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() : ranges.Data);
     if (default_font == nullptr) {
         default_font = io.Fonts->AddFontDefault();
         if (default_font == nullptr) {
