@@ -1245,8 +1245,8 @@ void IMSlider::render_add_menu()
                 if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                     add_code_as_tick(Template);
                 }
+                if (hovered) { show_tooltip(_u8L("Insert template custom G-code at the beginning of this layer.")); }
             }
-            if (hovered) { show_tooltip(_u8L("Insert template custom G-code at the beginning of this layer.")); }
 
             if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
                 m_show_go_to_layer_dialog = true;
