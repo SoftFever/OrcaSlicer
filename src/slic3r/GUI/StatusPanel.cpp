@@ -1935,6 +1935,9 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
     bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+    bool is_support_filament_backup = obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP);
+
+    m_ams_control->show_filament_backup(is_support_filament_backup);
 
     if (is_support_virtual_tray) {
         m_ams_control->update_vams_kn_value(obj->vt_tray, obj);

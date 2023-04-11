@@ -93,6 +93,7 @@ enum PrinterFunction {
     FUNC_EXTRUSION_CALI,
     FUNC_VIRTUAL_TYAY,
     FUNC_PRINT_ALL,
+    FUNC_FILAMENT_BACKUP,
     FUNC_MAX
 };
 

@@ -621,6 +621,7 @@ public:
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray, MachineObject* obj);
+    void show_filament_backup(bool show);
 
     void reset_vams();
     void post_event(wxEvent&& event);

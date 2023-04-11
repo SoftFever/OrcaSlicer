@@ -1116,6 +1116,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_material_area->Add(m_sizer_material_tips, 0, wxALIGN_CENTER|wxLEFT, FromDIP(8));
     m_sizer_material_area->Add(m_sizer_material, 0, wxLEFT, FromDIP(15));
 
+#ifdef FILAMENT_BACKUP
     auto m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
     auto m_ams_backup_tip = new Label(this, _L("Ams filament backup"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
@@ -1136,6 +1137,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); on_rename_enter(); });
     img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); });
+#endif
 
     m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_ams_msg->SetFont(::Label::Body_13);
@@ -1317,7 +1319,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
     m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+
+#ifdef FILAMENT_BACKUP
     m_sizer_main->Add(m_sizer_backup, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+#endif
+
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));

@@ -2286,6 +2286,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_VIRTUAL_TYAY:
         func_name = "FUNC_VIRTUAL_TYAY";
         break;
+    case FUNC_FILAMENT_BACKUP:
+        func_name = "FUNC_FILAMENT_BACKUP";
+        break;
     default:
         return true;
     }
