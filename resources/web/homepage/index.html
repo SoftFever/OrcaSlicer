@@ -5,17 +5,12 @@
 <meta http-equiv="Cache-Control" content="max-age=7200" />
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />	
 <title>homepage</title>
-<link rel="stylesheet" type="text/css" href="./css/home.css" />
-<link rel="stylesheet" type="text/css" href="./css/dark.css" />	
-
-<script type="text/javascript" src="../include/jquery-2.1.1.min.js"></script>
-<script type="text/javascript" src="../include/json2.js"></script>	
-<script type="text/javascript" src="../include/globalapi.js"></script>	
-
-<link rel="stylesheet" type="text/css" href="../include/swiper/swiper-bundle.min.css" />
-<script type="text/javascript" src="../include/swiper/swiper-bundle.min.js"></script>
-<script type="text/javascript" src="../data/text.js"></script>		
-	
+<link rel="stylesheet" type="text/css" href="css/home.css" />
+<link rel="stylesheet" type="text/css" href="css/dark.css" />	
+<script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="../data/text.js"></script>	
+<script type="text/javascript" src="js/json2.js"></script>
+<script type="text/javascript" src="js/globalapi.js"></script>
 <script type="text/javascript" src="js/home.js"></script>
 </head>
 <body class="ZScrol" onLoad="OnInit()">
@@ -79,59 +74,9 @@
 		</div>		
 	</div>
 	
-	<div id="DebugText"></div>
-	
-	<div id="HotModelArea">
-		<div id="HotModelBlock">
-			<img class="TitleSmallIcon" src="./img/t1.svg" />
-		    <div id="HotModelTitle" class="Content-Title trans TextS1" tid="t107">Staff pick</div>
-		</div>
-		<div id="HotModel_Swiper" class="swiper">
-			<div  id="HotModelList" class="swiper-wrapper">
-<!--				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>
-				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki2.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>
-				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki3.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>
-				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki2.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>
-				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>	
-				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki3.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>
-				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki2.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>
-				<div class="HotModelPiece swiper-slide">
-					<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="img/wiki.png" /></div>
-					<div  class="HotModel_NameText TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>	-->			
-			</div>
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
-			<div class="swiper-scrollbar"></div>
-		</div>
-	</div>	
-	
-	
-	
+	<div id="DebugText"></div>	
 	<div id="RecentFileArea">
-		<div id="HotModelBlock">
-			<img class="TitleSmallIcon" src="./img/t2.svg" />
+		<div id="RecentTitleBlock">
 		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="t35">recent open</div>
 			<div id="RecentClearAllBtn" class="trans TextS1" tid="t12" onClick="OnDeleteAllRecentFiles()">Clear all</div>
 		</div>

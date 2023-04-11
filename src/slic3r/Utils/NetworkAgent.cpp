@@ -92,12 +92,10 @@ func_get_slice_info                 NetworkAgent::get_slice_info_ptr = nullptr;
 func_query_bind_status              NetworkAgent::query_bind_status_ptr = nullptr;
 func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = nullptr;
 func_get_camera_url                 NetworkAgent::get_camera_url_ptr = nullptr;
-func_get_design_staffpick           NetworkAgent::get_design_staffpick_ptr = nullptr;
 func_start_pubilsh                  NetworkAgent::start_publish_ptr = nullptr;
 func_get_profile_3mf                NetworkAgent::get_profile_3mf_ptr = nullptr;
 func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
 func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = nullptr;
-func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr = nullptr;
 func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
 func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
 func_track_event                    NetworkAgent::track_event_ptr = nullptr;
@@ -240,13 +238,11 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_slice_info_ptr                =  reinterpret_cast<func_get_slice_info>(get_network_function("bambu_network_get_slice_info"));
     query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
-    get_camera_url_ptr                = reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
-    get_design_staffpick_ptr          = reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
+    get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
     get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
-    get_model_mall_detail_url_ptr     =  reinterpret_cast<func_get_model_mall_detail_url>(get_network_function("bambu_network_get_model_mall_detail_url"));
     get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
     track_enable_ptr                  =  reinterpret_cast<func_track_enable>(get_network_function("bambu_network_track_enable"));
     track_event_ptr                   =  reinterpret_cast<func_track_event>(get_network_function("bambu_network_track_event"));
@@ -343,12 +339,10 @@ int NetworkAgent::unload_network_module()
     query_bind_status_ptr             =  nullptr;
     modify_printer_name_ptr           =  nullptr;
     get_camera_url_ptr                =  nullptr;
-    get_design_staffpick_ptr          = nullptr;
     start_publish_ptr                 =  nullptr;
     get_profile_3mf_ptr               =  nullptr;
     get_model_publish_url_ptr         =  nullptr;
     get_model_mall_home_url_ptr       =  nullptr;
-    get_model_mall_detail_url_ptr       =  nullptr;
     get_my_profile_ptr                =  nullptr;
     track_enable_ptr                  =  nullptr;
     track_event_ptr                   =  nullptr;
@@ -1094,17 +1088,6 @@ int NetworkAgent::get_camera_url(std::string dev_id, std::function<void(std::str
     return ret;
 }
 
-int NetworkAgent::get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback)
-{
-    int ret = 0;
-    if (network_agent && get_design_staffpick_ptr) {
-        ret = get_design_staffpick_ptr(network_agent, offset, limit, callback);
-        if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
-    }
-    return ret;
-}
-
 int NetworkAgent::start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string *out)
 {
     int ret = 0;
@@ -1142,17 +1125,6 @@ int NetworkAgent::get_model_mall_home_url(std::string* url)
     int ret = 0;
     if (network_agent && get_model_publish_url_ptr) {
         ret = get_model_mall_home_url_ptr(network_agent, url);
-        if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
-    }
-    return ret;
-}
-
-int NetworkAgent::get_model_mall_detail_url(std::string* url, std::string id)
-{
-    int ret = 0;
-    if (network_agent && get_model_publish_url_ptr) {
-        ret = get_model_mall_detail_url_ptr(network_agent, url, id);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }

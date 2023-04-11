@@ -27,9 +27,6 @@
 
 
 namespace Slic3r {
-
-class NetworkAgent;
-
 namespace GUI {
 
 
@@ -94,7 +91,6 @@ public:
 
 public:
     void SendRecentList(wxString const &sequence_id);
-    void SendDesignStaffpick(NetworkAgent *agent);
     void SendLoginInfo();
     void ShowNetpluginTip();
 

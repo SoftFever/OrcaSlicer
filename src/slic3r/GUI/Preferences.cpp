@@ -604,11 +604,6 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         app_config->set_bool(param, checkbox->GetValue());
         app_config->save();
 
-        if (param == "staff_pick_switch") {
-            bool pbool = app_config->get("staff_pick_switch") == "true";
-            wxGetApp().switch_staff_pick(pbool);
-        }
-
          // backup
         if (param == "backup_switch") {
             bool pbool = app_config->get("backup_switch") == "true" ? true : false;
@@ -941,11 +936,6 @@ wxWindow* PreferencesDialog::create_general_page()
                                                          _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
 #endif // _WIN32
 
-    auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
-    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
-
-
     auto title_project = create_item_title(_L("Project"), page, "");
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
@@ -986,9 +976,6 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
-    sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
-
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));

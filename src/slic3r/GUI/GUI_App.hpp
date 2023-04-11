@@ -439,7 +439,6 @@ public:
     void            stop_sync_user_preset();
     void            start_http_server();
     void            stop_http_server();
-    void            switch_staff_pick(bool on);
 
     void            on_show_check_privacy_dlg(int online_login = 0);
     void            show_check_privacy_dlg(wxCommandEvent& evt);
