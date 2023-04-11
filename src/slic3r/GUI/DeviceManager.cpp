@@ -3888,7 +3888,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
         std::string printer_signal  = j["dev_signal"].get<std::string>();
         std::string connect_type    = j["connect_type"].get<std::string>();
         std::string bind_state      = j["bind_state"].get<std::string>();
-        std::string sec_link        = j["sec_link"].get<std::string>();
+        std::string sec_link = "";
+        if (j.contains("sec_link")) {
+            sec_link = j["sec_link"].get<std::string>();
+        }
 
         MachineObject* obj;
 
