@@ -301,21 +301,18 @@ void ArrangeJob::prepare_wipe_tower()
             }
 
         // if wipe tower is not init yet (no wipe tower in any plate before arrangement)
-        if (wipe_tower_ap.poly.empty()) {
-            auto &print                       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-            wipe_tower_ap.poly.contour.points = print.first_layer_wipe_tower_corners(false);
+        //if (wipe_tower_ap.poly.empty()) {
+        //    auto &print                       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+        //    wipe_tower_ap.poly.contour.points = print.first_layer_wipe_tower_corners(false);
             wipe_tower_ap.name                = "WipeTower";
             wipe_tower_ap.is_virt_object      = true;
             wipe_tower_ap.is_wipe_tower       = true;
-        }
+        //}
         const GLCanvas3D* canvas3D=static_cast<const GLCanvas3D *>(m_plater->canvas3D());
         for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
             if (!plates_have_wipe_tower[bedid]) {
                 wipe_tower_ap.translation = {0, 0};
-                bool global               = true;
-                int  state                = m_plater->get_prepare_state();
-                if (state == Job::JobPrepareState::PREPARE_STATE_MENU) { global = false; }
-                wipe_tower_ap.poly.contour.points = canvas3D->estimate_wipe_tower_points(bedid, global);
+                wipe_tower_ap.poly.contour.points = canvas3D->estimate_wipe_tower_points(bedid, !only_on_partplate);
                 wipe_tower_ap.bed_idx             = bedid;
                 m_unselected.emplace_back(wipe_tower_ap);
             }

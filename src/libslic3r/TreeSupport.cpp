@@ -625,32 +625,11 @@ static bool is_inside_ex(const ExPolygons &polygons, const Point &pt)
     return false;
 }
 
-Point projection_onto_ex(const ExPolygons& polygons, Point from)
-{
-    profiler.tic();
-    Point projected_pt;
-    double min_dist = std::numeric_limits<double>::max();
-
-    for (auto poly : polygons) {
-        for (int i = 0; i < poly.num_contours(); i++) {
-            Point p = from.projection_onto(poly.contour_or_hole(i));
-            double dist = (from - p).cast<double>().squaredNorm();
-            if (dist < min_dist) {
-                projected_pt = p;
-                min_dist = dist;
-            }
-        }
-    }
-
-    profiler.stage_add(STAGE_projection_onto_ex, true);
-    return projected_pt;
-}
-
 static bool move_out_expolys(const ExPolygons& polygons, Point& from, double distance, double max_move_distance)
 {
     Point from0 = from;
     ExPolygons polys_dilated = union_ex(offset_ex(polygons, scale_(distance)));
-    Point pt = projection_onto_ex(polys_dilated, from);// find_closest_ex(from, polys_dilated);
+    Point pt = projection_onto(polys_dilated, from);// find_closest_ex(from, polys_dilated);
     Point outward_dir = pt - from;
     Point pt_max = from + normal(outward_dir, scale_(max_move_distance));
     double dist2 = vsize2_with_unscale(outward_dir);
@@ -2790,7 +2769,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 if (group_index > 0 && is_inside_ex(m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr), node.position))
                 {
                     const coordf_t branch_radius_node = calc_branch_radius(branch_radius, node.dist_mm_to_top, diameter_angle_scale_factor);
-                    Point to_outside = projection_onto_ex(m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr), node.position);
+                    Point to_outside = projection_onto(m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr), node.position);
                     double dist2_to_outside = vsize2_with_unscale(node.position - to_outside);
                     if (dist2_to_outside >= branch_radius_node * branch_radius_node) //Too far inside.
                     {
@@ -2871,7 +2850,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 #endif
                 auto avoid_layer = m_ts_data->get_avoidance(branch_radius_node, layer_nr_next);
 
-                Point  to_outside         = projection_onto_ex(avoid_layer, node.position);
+                Point  to_outside         = projection_onto(avoid_layer, node.position);
                 Point  direction_to_outer = to_outside - node.position;
                 double dist2_to_outer     = vsize2_with_unscale(direction_to_outer);
                 // don't move if

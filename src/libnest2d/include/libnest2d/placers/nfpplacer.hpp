@@ -1099,42 +1099,43 @@ private:
         auto d = cb - ci;       
 
         // BBS make sure the item won't clash with excluded regions
-        if(1)
-        {
-            // do we have wipe tower after arranging?
-            std::set<int> extruders;
-            for (const Item& item : items_) {
-                if (!item.is_virt_object) { extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end()); }
-            }
-            bool need_wipe_tower = extruders.size() > 1;
+        // do we have wipe tower after arranging?
+        std::set<int> extruders;
+        for (const Item& item : items_) {
+            if (!item.is_virt_object) { extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end()); }
+        }
+        bool need_wipe_tower = extruders.size() > 1;
 
-            std::vector<RawShape> objs,excludes;
-            for (const Item &item : items_) {
-                if (item.isFixed()) continue;
-                objs.push_back(item.transformedShape());
-            }
+        std::vector<RawShape> objs,excludes;
+        for (const Item &item : items_) {
+            if (item.isFixed()) continue;
+            objs.push_back(item.transformedShape());
+        }
+        if (objs.empty())
+            return;
+        { // find a best position inside NFP of fixed items (excluded regions), so the center of pile is cloest to bed center
             RawShape objs_convex_hull = sl::convexHull(objs);
-            if (objs.size() != 0) {
-                for (const Item &item : config_.m_excluded_regions) { excludes.push_back(item.transformedShape()); }
-                for (const Item &item : items_) {
-                    if (item.isFixed()) {
-                        if (!(item.is_wipe_tower && !need_wipe_tower))
-                            excludes.push_back(item.transformedShape());
-                    }
+            for (const Item &item : config_.m_excluded_regions) { excludes.push_back(item.transformedShape()); }
+            for (const Item &item : items_) {
+                if (item.isFixed()) {
+                    if (!(item.is_wipe_tower && !need_wipe_tower))
+                        excludes.push_back(item.transformedShape());
                 }
-                Box  binbb          = sl::boundingBox(bin_);
-                auto allowShifts    = calcnfp(objs_convex_hull, excludes, binbb, Lvl<MaxNfpLevel::value>());
-                int  maxAllowShiftX = 0;
-                int  maxAllowShiftY = 0;
-                for (const auto &shiftShape : allowShifts) {
-                    auto shiftBox  = sl::boundingBox(shiftShape); // assume that the exclude region is box so that the nfp is box.
-                    maxAllowShiftX = shiftBox.width();
-                    maxAllowShiftY = shiftBox.height();
-                }
-                int finalShiftX = std::min(std::abs(maxAllowShiftX), std::abs(d.x()));
-                int finalShiftY = std::min(std::abs(maxAllowShiftY), std::abs(d.y()));
-                d.x()           = d.x() > 0 ? finalShiftX : -finalShiftX;
-                d.y()           = d.y() > 0 ? finalShiftY : -finalShiftY;
+            }
+
+            auto   nfps = calcnfp(objs_convex_hull, excludes, bbin, Lvl<MaxNfpLevel::value>());
+            if (nfps.empty()) {
+                return;
+            }
+            Item   objs_convex_hull_item(objs_convex_hull);
+            Vertex objs_convex_hull_ref = objs_convex_hull_item.referenceVertex();
+            Vertex diff                 = objs_convex_hull_ref - sl::boundingBox(objs_convex_hull).center();
+            Vertex ref_aligned = cb + diff;  // reference point when pile center aligned with bed center
+            bool ref_aligned_is_ok = std::any_of(nfps.begin(), nfps.end(), [&ref_aligned](auto& nfp) {return sl::isInside(ref_aligned, nfp); });
+            if (!ref_aligned_is_ok) {
+                // ref_aligned is not good, then find a nearest point on nfp boundary
+                Vertex ref_projected = projection_onto(nfps, ref_aligned);
+                d +=  (ref_projected - ref_aligned);
             }
         }
         for(Item& item : items_)

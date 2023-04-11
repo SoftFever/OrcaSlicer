@@ -453,6 +453,8 @@ bool expolygons_match(const ExPolygon &l, const ExPolygon &r);
 
 bool overlaps(const ExPolygons& expolys1, const ExPolygons& expolys2);
 
+Point projection_onto(const ExPolygons& expolys, const Point& pt);
+
 BoundingBox get_extents(const ExPolygon &expolygon);
 BoundingBox get_extents(const ExPolygons &expolygons);
 BoundingBox get_extents_rotated(const ExPolygon &poly, double angle);
