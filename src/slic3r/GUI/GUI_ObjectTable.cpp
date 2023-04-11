@@ -2937,11 +2937,11 @@ void ObjectTablePanel::load_data()
                 m_object_grid->SetCellRenderer(row, col, new GridCellIconRenderer());
                 m_object_grid->SetReadOnly(row, col);
             }
-            else if (grid_col->b_for_object && (grid_row->row_type == ObjectGridTable::row_volume)) {
-                m_object_grid->SetReadOnly(row, col);
-                m_object_grid->SetCellEditor(row, col, new wxGridCellAutoWrapStringEditor());
-                m_object_grid->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());
-            }
+            //else if (grid_col->b_for_object && (grid_row->row_type == ObjectGridTable::row_volume)) {
+            //    /*m_object_grid->SetReadOnly(row, col);
+            //    m_object_grid->SetCellEditor(row, col, new wxGridCellAutoWrapStringEditor());
+            //    m_object_grid->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());*/
+            //}
             else {
                 if (!grid_col->b_editable)
                     m_object_grid->SetReadOnly(row, col);
