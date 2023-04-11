@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 14:18+0800\n"
+"POT-Creation-Date: 2023-04-11 17:50+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1952,14 +1952,14 @@ msgstr "Druckbetttemperatur"
 msgid "Max volumetric speed"
 msgstr "Maximale Volumengeschwindigkeit"
 
-msgid "\\u2103"
-msgstr "\\u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Druckbetttemperatur"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Starten"
@@ -4685,12 +4685,6 @@ msgstr ""
 "Wenn aktiviert, wird BambuStudio als Standardanwendung zum Öffnen von .step-"
 "Dateien festgelegt"
 
-msgid "Online Models"
-msgstr ""
-
-msgid "Show online staff-picked models on the home page"
-msgstr ""
-
 msgid "Maximum recent projects"
 msgstr ""
 
@@ -7304,9 +7298,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale Wischmenge im Wischturm"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "Ladedauer des Filaments"
 
@@ -9287,6 +9278,12 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "Print a tower to prime material in nozzle after switching to a new "

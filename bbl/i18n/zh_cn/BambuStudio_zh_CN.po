@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 14:18+0800\n"
+"POT-Creation-Date: 2023-04-11 17:50+0800\n"
 "PO-Revision-Date: 2023-04-10 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1881,14 +1881,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -3557,7 +3557,7 @@ msgid "0"
 msgstr ""
 
 msgid "Layer: N/A"
-msgstr ""
+msgstr "层： N/A"
 
 msgid "Clear"
 msgstr "清除"
@@ -3632,11 +3632,11 @@ msgstr "前面还有%s个任务在云端切片队列中"
 
 #, c-format, boost-format
 msgid "Layer: %s"
-msgstr ""
+msgstr "层： %s"
 
 #, c-format, boost-format
 msgid "Layer: %d/%d"
-msgstr ""
+msgstr "层： %d/%d"
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr "请在进料前把喷嘴升温到170℃"
@@ -4470,12 +4470,6 @@ msgstr "使用Bambu Studio打开.step/.stp文件"
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
-
-msgid "Online Models"
-msgstr "在线模型"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "在主页上显示工作人员挑选的在线模型"
 
 msgid "Maximum recent projects"
 msgstr "近期项目的最大数量"
@@ -6844,9 +6838,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -8630,6 +8621,12 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Online Models"
+#~ msgstr "在线模型"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "在主页上显示工作人员挑选的在线模型"
 
 #~ msgid "Failed uploading print file. Please enter ip address again."
 #~ msgstr "上传打印文件失败，请重新输入IP地址。"

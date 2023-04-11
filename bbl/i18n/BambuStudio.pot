@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-11 14:18+0800\n"
+"POT-Creation-Date: 2023-04-11 17:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1860,13 +1860,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm\\u00B3"
+msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -4356,12 +4356,6 @@ msgstr ""
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
 
-msgid "Online Models"
-msgstr ""
-
-msgid "Show online staff-picked models on the home page"
-msgstr ""
-
 msgid "Maximum recent projects"
 msgstr ""
 
@@ -6645,9 +6639,6 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"
