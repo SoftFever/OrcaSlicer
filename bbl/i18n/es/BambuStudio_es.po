@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"POT-Creation-Date: 2023-04-11 14:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1036,6 +1036,9 @@ msgstr "Rotación automática"
 msgid "auto rotate current plate"
 msgstr "Auto rotación de la placa actual"
 
+msgid "Delete Plate"
+msgstr ""
+
 msgid "Remove the selected plate"
 msgstr "Retirar la placa seleccionada"
 
@@ -1404,14 +1407,26 @@ msgstr "Por favor, introduzca el número de capa."
 msgid "Add Pause"
 msgstr "Añadir pausa"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "Agregar código G personalizado"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "Añadir plantilla personalizada"
 
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
+
 msgid "Filament "
 msgstr "FIlament"
+
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
 msgid "Delete Pause"
 msgstr ""
@@ -8529,10 +8544,10 @@ msgstr ""
 "trayectoria al retraerse"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"Imprimir una torre para cebar el material en la boquilla después de cambiar "
-"a un nuevo material."
 
 msgid "Purging volumes"
 msgstr "Volúmenes de purga"
@@ -9237,6 +9252,13 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "Imprimir una torre para cebar el material en la boquilla después de "
+#~ "cambiar a un nuevo material."
 
 #~ msgid ""
 #~ "\n"

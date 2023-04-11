@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"POT-Creation-Date: 2023-04-11 14:18+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1022,6 +1022,9 @@ msgstr "Auto Rotera"
 msgid "auto rotate current plate"
 msgstr "auto rotera plattan"
 
+msgid "Delete Plate"
+msgstr ""
+
 msgid "Remove the selected plate"
 msgstr "Radera den valda plattan"
 
@@ -1387,14 +1390,26 @@ msgstr "Ange lager numret."
 msgid "Add Pause"
 msgstr "Lägg till paus"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "Lägg till anpassad G-kod"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "Lägg till anpassad mall"
 
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
+
 msgid "Filament "
 msgstr "Filament "
+
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
 msgid "Delete Pause"
 msgstr ""
@@ -8358,10 +8373,10 @@ msgstr ""
 "medan den retrakterar"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"Detta alternativ gör det möjligt att skriva ut ett torn för att pressa ut "
-"(prime) material i nozzeln efter byte till ett nytt material."
 
 msgid "Purging volumes"
 msgstr "Rensnings volym"
@@ -9059,6 +9074,13 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "Detta alternativ gör det möjligt att skriva ut ett torn för att pressa ut "
+#~ "(prime) material i nozzeln efter byte till ett nytt material."
 
 #~ msgid ""
 #~ "\n"

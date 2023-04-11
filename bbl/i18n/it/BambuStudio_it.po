@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"POT-Creation-Date: 2023-04-11 14:18+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1026,6 +1026,9 @@ msgstr "Rotazione automatica"
 msgid "auto rotate current plate"
 msgstr "Rotazione automatica piatto corrente"
 
+msgid "Delete Plate"
+msgstr ""
+
 msgid "Remove the selected plate"
 msgstr "Rimuovi il piatto selezionato"
 
@@ -1397,14 +1400,26 @@ msgstr "Inserisci numero del layer"
 msgid "Add Pause"
 msgstr "Aggiungi pausa"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "Aggiungi G-code personalizzato"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "Aggiungi template personalizzato"
 
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
+
 msgid "Filament "
 msgstr "Filamento"
+
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
 msgid "Delete Pause"
 msgstr ""
@@ -8501,10 +8516,10 @@ msgstr ""
 "mentre si ritrae."
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"Consente di stampare una Prime Tower per pulire il materiale nel nozzle dopo "
-"il passaggio a un nuovo materiale."
 
 msgid "Purging volumes"
 msgstr "Volumi di spurgo"
@@ -9213,6 +9228,13 @@ msgstr ""
 "Migliorare la resistenza\n"
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "Consente di stampare una Prime Tower per pulire il materiale nel nozzle "
+#~ "dopo il passaggio a un nuovo materiale."
 
 #~ msgid ""
 #~ "\n"

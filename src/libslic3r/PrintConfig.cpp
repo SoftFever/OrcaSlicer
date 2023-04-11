@@ -2899,7 +2899,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_prime_tower", coBool);
     def->label = L("Enable");
-    def->tooltip = L("Print a tower to prime material in nozzle after switching to a new material.");
+    def->tooltip = L("The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, "
+                    "in order to avoid appearance defects when printing objects.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 

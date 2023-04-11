@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"POT-Creation-Date: 2023-04-11 14:18+0800\n"
 "PO-Revision-Date: 2023-04-10 17:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1017,6 +1017,9 @@ msgstr "自动朝向"
 msgid "auto rotate current plate"
 msgstr "在当前盘执行自动朝向"
 
+msgid "Delete Plate"
+msgstr "删除盘"
+
 msgid "Remove the selected plate"
 msgstr "删除所选盘"
 
@@ -1367,14 +1370,26 @@ msgstr "请输入层数"
 msgid "Add Pause"
 msgstr "添加暂停打印"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr "在该层的起始位置插入暂停。"
+
 msgid "Add Custom G-code"
 msgstr "添加自定义G-code"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr "在该层的起始位置插入自定义G-code。"
 
 msgid "Add Custom Template"
 msgstr "添加自定义模板"
 
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr "在该层的起始位置插入模板自定义G-code。"
+
 msgid "Filament "
 msgstr "耗材丝"
+
+msgid "Change filament at the beginning of this layer."
+msgstr "在该层的起始位置更换耗材丝。"
 
 msgid "Delete Pause"
 msgstr "删除暂停"
@@ -1855,7 +1870,7 @@ msgid "Nozzle Diameter"
 msgstr "喷嘴直径"
 
 msgid "Bed Type"
-msgstr "热床类型"
+msgstr "构建板类型"
 
 msgid "Nozzle temperature"
 msgstr "喷嘴温度"
@@ -3924,7 +3939,7 @@ msgid "Connection"
 msgstr "连接"
 
 msgid "Bed type"
-msgstr "热床类型"
+msgstr "构建板类型"
 
 msgid "Flushing volumes"
 msgstr "冲刷体积"
@@ -4626,7 +4641,7 @@ msgid "Print sequence"
 msgstr "打印顺序"
 
 msgid "Same as Global Bed Type"
-msgstr "跟随全局热床类型"
+msgstr "跟随全局构建板类型"
 
 msgid "Cool Plate"
 msgstr "低温打印板/PLA打印板"
@@ -6386,7 +6401,7 @@ msgid ""
 msgstr "首层热床温度。0值表示这个耗材丝不支持纹理PEI热床"
 
 msgid "Bed types supported by the printer"
-msgstr "打印机所支持的热床类型"
+msgstr "打印机所支持的构建板类型"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
@@ -7955,8 +7970,12 @@ msgid ""
 msgstr "表示回抽时擦拭的移动距离。"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
-msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
+msgstr ""
+"擦拭塔可以用来清理喷嘴上的残留料和让喷嘴内部的腔压达到稳定状态，以避免打印物"
+"体时出现外观瑕疵。"
 
 msgid "Purging volumes"
 msgstr "冲刷体积"

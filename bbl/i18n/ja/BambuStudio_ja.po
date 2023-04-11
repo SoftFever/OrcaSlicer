@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"POT-Creation-Date: 2023-04-11 14:18+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1013,6 +1013,9 @@ msgstr "自動回転"
 msgid "auto rotate current plate"
 msgstr "現在のプレートを自動回転させる"
 
+msgid "Delete Plate"
+msgstr ""
+
 msgid "Remove the selected plate"
 msgstr "選択したプレートを削除"
 
@@ -1364,14 +1367,26 @@ msgstr "層の番号をご入力ください"
 msgid "Add Pause"
 msgstr "一時停止を追加"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "カスタムG-codeを追加"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "カスタムテンプレートを追加"
 
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
+
 msgid "Filament "
 msgstr "フィラメント"
+
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
 msgid "Delete Pause"
 msgstr ""
@@ -8056,10 +8071,10 @@ msgid ""
 msgstr "リトラクション時にノズルが最後のパスに沿って移動する距離です。"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"フィラメントを入れ替えるために、ノズルに残るフィラメントをフラッシュする特定"
-"の造形物です。"
 
 msgid "Purging volumes"
 msgstr "フラッシュ体積"
@@ -8711,6 +8726,13 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "フィラメントを入れ替えるために、ノズルに残るフィラメントをフラッシュする特"
+#~ "定の造形物です。"
 
 #~ msgid ""
 #~ "\n"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"POT-Creation-Date: 2023-04-11 14:18+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1020,6 +1020,9 @@ msgstr "Auto Rotate"
 msgid "auto rotate current plate"
 msgstr "Auto rotate current plate"
 
+msgid "Delete Plate"
+msgstr ""
+
 msgid "Remove the selected plate"
 msgstr "Remove the selected plate"
 
@@ -1378,14 +1381,26 @@ msgstr "Please enter the layer number."
 msgid "Add Pause"
 msgstr "Add Pause"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "Add Custom G-code"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "Add Custom Template"
 
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
+
 msgid "Filament "
 msgstr "Filament "
+
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
 msgid "Delete Pause"
 msgstr ""
@@ -8344,10 +8359,10 @@ msgstr ""
 "retracting."
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"This option enables printing a tower to prime material in the nozzle after "
-"switching to a new material."
 
 msgid "Purging volumes"
 msgstr "Purging volumes"
@@ -9043,6 +9058,13 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "This option enables printing a tower to prime material in the nozzle "
+#~ "after switching to a new material."
 
 #~ msgid ""
 #~ "\n"

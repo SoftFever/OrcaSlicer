@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 17:16+0800\n"
+"POT-Creation-Date: 2023-04-11 14:18+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1028,6 +1028,9 @@ msgstr "Automatisch roteren"
 msgid "auto rotate current plate"
 msgstr "Huidig printbed automatisch roteren"
 
+msgid "Delete Plate"
+msgstr ""
+
 msgid "Remove the selected plate"
 msgstr "Verwijder het huidige printbed"
 
@@ -1403,14 +1406,26 @@ msgstr "Voer het laagnummer in."
 msgid "Add Pause"
 msgstr "Pauze toevoegen"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "Aangepaste G-code toevoegen"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "Aangepaste sjabloon toevoegen"
 
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
+
 msgid "Filament "
 msgstr "Filament"
+
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
 msgid "Delete Pause"
 msgstr ""
@@ -8548,10 +8563,10 @@ msgstr ""
 "het terugtrekken (rectracting)."
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"Deze optie maakt het mogelijk om een toren te printen om materiaal in de "
-"nozzle te primen na het overschakelen naar een nieuw materiaal."
 
 msgid "Purging volumes"
 msgstr "Volumes opschonen"
@@ -9258,6 +9273,13 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "Deze optie maakt het mogelijk om een toren te printen om materiaal in de "
+#~ "nozzle te primen na het overschakelen naar een nieuw materiaal."
 
 #~ msgid ""
 #~ "\n"
