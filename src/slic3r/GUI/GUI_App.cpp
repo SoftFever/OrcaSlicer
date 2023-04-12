@@ -3962,15 +3962,15 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         wxQueueEvent(this, evt);
     });
 
-    if (app_config->get("sync_user_preset") == "true") {
+
+
+    if (online_login)
+        GUI::wxGetApp().mainframe->show_sync_dialog();
+    else if (app_config->get("sync_user_preset") == "true") {
         enable_user_preset_folder(true);
     } else {
         enable_user_preset_folder(false);
     }
-
-    if (online_login)
-        GUI::wxGetApp().mainframe->show_sync_dialog();
-
     //show publish button
     if (m_agent->is_user_login() && mainframe) {
         int identifier;

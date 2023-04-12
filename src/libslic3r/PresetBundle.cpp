@@ -866,7 +866,7 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     std::string printer_selected_preset_name = printers.get_selected_preset().name;
     bool need_reset_printer_preset = false;
     for (auto it = printers.begin(); it != printers.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
+        if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":printers erase %1%, type %2%， user_id %3%") % it->name % Preset::get_type_string(it->type) % it->user_id;
             if (it->name == printer_selected_preset_name)
                 need_reset_printer_preset = true;
