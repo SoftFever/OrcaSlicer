@@ -688,6 +688,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
         (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
     is_slim                                  = is_tree_slim(support_type, support_style);
+    is_strong = is_tree(support_type) && support_style == smsTreeStrong;
     MAX_BRANCH_RADIUS                        = 10.0;
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
@@ -2824,13 +2825,13 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 
                         if (is_line_cut_by_contour(node.position, neighbour)) continue;
 
-                        if (/*is_slim*/1)
+                        if (!is_strong)
                             sum_direction += direction * (1 / dist2_to_neighbor);
                         else
                             sum_direction += direction;                        
                     }
 
-                    if (/*is_slim*/1)
+                    if (!is_strong)
                         move_to_neighbor_center = sum_direction;
                     else {
                         if (vsize2_with_unscale(sum_direction) <= max_move_distance2) {
@@ -2872,7 +2873,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 }
                 // move to the averaged direction of neighbor center and contour edge if they are roughly same direction
                 Point movement;
-                if (/*is_slim*/1)
+                if (!is_strong)
                     movement = move_to_neighbor_center*2 + (dist2_to_outer > EPSILON ? direction_to_outer * (1 / dist2_to_outer) : Point(0, 0));
                 else {
                     if (movement.dot(move_to_neighbor_center) >= 0.2 || move_to_neighbor_center == Point(0, 0))
