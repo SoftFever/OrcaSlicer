@@ -1892,8 +1892,8 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
 
 int MachineObject::command_unload_filament()
 {
-    if (printer_type == "BL-P001"
-        || printer_type == "BL-P002") {
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")
+        && !this->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
         // fixed gcode file
         json j;
         j["print"]["command"] = "gcode_file";
@@ -1901,7 +1901,10 @@ int MachineObject::command_unload_filament()
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         return this->publish_json(j.dump());
     }
-    else if (printer_type == "C11") {
+    else if (printer_type == "C11"
+        || ((printer_type == "BL-P001" || printer_type == "BL-P002")
+        && this->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY))
+        ) {
         std::string gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
         if (gcode.empty()) {
             return -1;
