@@ -8888,7 +8888,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::GCodeConflict: {
         std::string objName1 = m_gcode_viewer.m_conflict_result.obj1Name;
         std::string objName2 = m_gcode_viewer.m_conflict_result.obj2Name;
-        text                 = (boost::format(L("Conflicts of gcode paths have been found. Please separate the conflicted objects farther (%s <-> %s).")) % objName1 % objName2).str();
+        text  = (boost::format(_u8L("Conflicts of gcode paths have been found. Please separate the conflicted objects farther (%s <-> %s).")) % objName1 % objName2).str();
         error                = ErrorType::SLICING_ERROR;
         break;
     }
