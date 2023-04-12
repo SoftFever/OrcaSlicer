@@ -3,6 +3,9 @@
     "name": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
+    "filament_is_support": [
+        "0"
+    ],
     "required_nozzle_HRC": [
         "3"
     ],
