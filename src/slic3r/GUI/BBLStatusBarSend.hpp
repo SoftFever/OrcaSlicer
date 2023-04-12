@@ -30,7 +30,7 @@ class BBLStatusBarSend : public ProgressIndicator
 {
     wxPanel *     m_self; // we cheat! It should be the base class but: perl!
     wxGauge *     m_prog;
-    wxHyperlinkCtrl * m_hyperlink;
+    Label *       m_hyperlink;
     Button *      m_cancelbutton;
     wxStaticText *m_status_text;
     wxStaticText *m_stext_percent;
@@ -51,7 +51,7 @@ public:
     int         get_range() const override;
     void        set_range(int = 100) override;
     void        clear_percent() override;
-    void        show_networking_test() override;
+    void        show_networking_test(wxString msg) override;
     void        show_progress(bool);
     void        start_busy(int = 100);
     void        stop_busy();

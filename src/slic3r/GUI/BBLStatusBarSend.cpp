@@ -40,6 +40,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
 
     m_cancelbutton = new Button(m_self, _L("Cancel"));
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
+    m_cancelbutton->SetMaxSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
     m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
     m_cancelbutton->SetBorderColor(btn_bd_white);
     m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
@@ -55,7 +56,8 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_stext_percent->SetFont(::Label::Body_13);
     m_stext_percent->Wrap(-1);
 
-    m_hyperlink = new wxHyperlinkCtrl(m_self, wxID_ANY, _L("Check the status of current system services"), wxT("https://status.bambulab.com/"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink = new Label(m_self, _L("Check the status of current system services"));
+    m_hyperlink->SetForegroundColour(0x00AE42);
     m_hyperlink->SetFont(::Label::Body_12);
     m_hyperlink->Hide();
     m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
@@ -65,7 +67,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_sizer_bottom->Add(m_cancelbutton, 0, wxALIGN_CENTER, 0);
 
 
-    m_sizer_body->Add(m_status_text, 0, 0, 0);
+    m_sizer_body->Add(m_status_text, 0, wxALL, 0);
     m_sizer_body->Add(0, 0, 0, wxTOP, 1);
     m_sizer_body->Add(m_sizer_bottom, 1, wxEXPAND, 0);
 
@@ -124,12 +126,8 @@ void BBLStatusBarSend::clear_percent()
     m_cancelbutton->Hide();
 }
 
-void BBLStatusBarSend::show_networking_test()
+void BBLStatusBarSend::show_networking_test(wxString msg)
 {
-    m_prog->Hide();
-    m_stext_percent->Hide();
-    m_hyperlink->Show();
-
     std::string url;
     std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
 
@@ -153,7 +151,26 @@ void BBLStatusBarSend::show_networking_test()
         url = "https://status.bambu-lab.com";
     }
 
-    m_hyperlink->SetURL(url);
+    
+    m_hyperlink->Bind(wxEVT_LEFT_DOWN, [this, url](auto& e) {
+        wxLaunchDefaultBrowser(url);
+    });
+
+    m_hyperlink->Bind(wxEVT_ENTER_WINDOW, [this, url](auto& e) {
+        m_hyperlink->SetCursor(wxCURSOR_HAND);
+    });
+
+    m_hyperlink->Bind(wxEVT_LEAVE_WINDOW, [this, url](auto& e) {
+        m_hyperlink->SetCursor(wxCURSOR_ARROW);
+    });
+    
+    set_status_text(msg);
+    m_prog->Hide();
+    m_stext_percent->Hide();
+    m_hyperlink->Show();
+    m_cancelbutton->Show();
+    m_self->Layout();
+    m_sizer->Layout();
 }
 
 void BBLStatusBarSend::show_progress(bool show)

@@ -401,7 +401,6 @@ void PrintJob::process()
             msg_text = timeout_to_upload_str;
         } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
             msg_text = _L("Failed to send the print job. Please try again."); 
-            this->show_networking_test();
         } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
             msg_text = _L("Failed to send the print job. Please try again.");
         } else {
@@ -411,7 +410,15 @@ void PrintJob::process()
             curr_percent = 0;
             msg_text += wxString::Format("[%d][%s]", result, error_text);
         }
-        update_status(curr_percent, msg_text);
+        
+        
+        if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
+            this->show_networking_test(msg_text);
+        }
+        else {
+            update_status(curr_percent, msg_text);
+        }
+
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";

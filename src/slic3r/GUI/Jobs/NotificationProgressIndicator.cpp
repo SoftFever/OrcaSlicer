@@ -10,7 +10,7 @@ void NotificationProgressIndicator::clear_percent()
 
 }
 
-void NotificationProgressIndicator::show_networking_test()
+void NotificationProgressIndicator::show_networking_test(wxString msg)
 {
 
 }
