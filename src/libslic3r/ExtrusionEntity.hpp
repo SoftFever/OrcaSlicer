@@ -92,6 +92,8 @@ public:
     virtual bool is_collection() const { return false; }
     virtual bool is_loop() const { return false; }
     virtual bool can_reverse() const { return true; }
+    virtual bool can_sort() const { return true; }//BBS: only used in ExtrusionEntityCollection
+    virtual void set_reverse() {}
     virtual ExtrusionEntity* clone() const = 0;
     // Create a new object, initialize it with this object using the move semantics.
     virtual ExtrusionEntity* clone_move() = 0;
@@ -142,12 +144,53 @@ public:
     ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), m_role(role), m_no_extrusion(false) {}
     ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height, bool no_extrusion = false) : mm3_per_mm(mm3_per_mm), width(width), height(height), m_role(role), m_no_extrusion(no_extrusion) {}
     ExtrusionPath(int overhang_degree, int curve_degree, ExtrusionRole role, double mm3_per_mm, float width, float height) : overhang_degree(overhang_degree), curve_degree(curve_degree), mm3_per_mm(mm3_per_mm), width(width), height(height), m_role(role) {}
-    ExtrusionPath(const ExtrusionPath& rhs) : polyline(rhs.polyline), overhang_degree(rhs.overhang_degree), curve_degree(rhs.curve_degree), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), m_role(rhs.m_role), m_no_extrusion(rhs.m_no_extrusion) {}
-    ExtrusionPath(ExtrusionPath&& rhs) : polyline(std::move(rhs.polyline)), overhang_degree(rhs.overhang_degree), curve_degree(rhs.curve_degree), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), m_role(rhs.m_role), m_no_extrusion(rhs.m_no_extrusion) {}
-    ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs) : polyline(polyline), overhang_degree(rhs.overhang_degree), curve_degree(rhs.curve_degree), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), m_role(rhs.m_role), m_no_extrusion(rhs.m_no_extrusion) {}
-    ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs) : polyline(std::move(polyline)), overhang_degree(rhs.overhang_degree), curve_degree(rhs.curve_degree), mm3_per_mm(rhs.mm3_per_mm), width(rhs.width), height(rhs.height), m_role(rhs.m_role), m_no_extrusion(rhs.m_no_extrusion) {}
+    ExtrusionPath(const ExtrusionPath &rhs)
+        : polyline(rhs.polyline)
+        , overhang_degree(rhs.overhang_degree)
+        , curve_degree(rhs.curve_degree)
+        , mm3_per_mm(rhs.mm3_per_mm)
+        , width(rhs.width)
+        , height(rhs.height)
+        , m_can_reverse(rhs.m_can_reverse)
+        , m_role(rhs.m_role)
+        , m_no_extrusion(rhs.m_no_extrusion)
+    {}
+    ExtrusionPath(ExtrusionPath &&rhs)
+        : polyline(std::move(rhs.polyline))
+        , overhang_degree(rhs.overhang_degree)
+        , curve_degree(rhs.curve_degree)
+        , mm3_per_mm(rhs.mm3_per_mm)
+        , width(rhs.width)
+        , height(rhs.height)
+        , m_can_reverse(rhs.m_can_reverse)
+        , m_role(rhs.m_role)
+        , m_no_extrusion(rhs.m_no_extrusion)
+    {}
+    ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs)
+        : polyline(polyline)
+        , overhang_degree(rhs.overhang_degree)
+        , curve_degree(rhs.curve_degree)
+        , mm3_per_mm(rhs.mm3_per_mm)
+        , width(rhs.width)
+        , height(rhs.height)
+        , m_can_reverse(rhs.m_can_reverse)
+        , m_role(rhs.m_role)
+        , m_no_extrusion(rhs.m_no_extrusion)
+    {}
+    ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs)
+        : polyline(std::move(polyline))
+        , overhang_degree(rhs.overhang_degree)
+        , curve_degree(rhs.curve_degree)
+        , mm3_per_mm(rhs.mm3_per_mm)
+        , width(rhs.width)
+        , height(rhs.height)
+        , m_can_reverse(rhs.m_can_reverse)
+        , m_role(rhs.m_role)
+        , m_no_extrusion(rhs.m_no_extrusion)
+    {}
 
     ExtrusionPath& operator=(const ExtrusionPath& rhs) {
+        m_can_reverse = rhs.m_can_reverse;
         m_role = rhs.m_role;
         m_no_extrusion = rhs.m_no_extrusion;
         this->mm3_per_mm = rhs.mm3_per_mm;
@@ -159,6 +202,7 @@ public:
         return *this;
     }
     ExtrusionPath& operator=(ExtrusionPath&& rhs) {
+        m_can_reverse = rhs.m_can_reverse;
         m_role = rhs.m_role;
         m_no_extrusion = rhs.m_no_extrusion;
         this->mm3_per_mm = rhs.mm3_per_mm;
@@ -229,10 +273,12 @@ public:
     bool is_force_no_extrusion() const { return m_no_extrusion; }
     void set_force_no_extrusion(bool no_extrusion) { m_no_extrusion = no_extrusion; }
     void set_extrusion_role(ExtrusionRole extrusion_role) { m_role = extrusion_role; }
+    void set_reverse() override { m_can_reverse = false; }
+    bool can_reverse() const override { return m_can_reverse; }
 
 private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
-
+    bool m_can_reverse = true;
     ExtrusionRole m_role;
     //BBS
     bool m_no_extrusion = false;
@@ -247,16 +293,27 @@ public:
     ExtrusionPaths paths;
 
     ExtrusionMultiPath() {}
-    ExtrusionMultiPath(const ExtrusionMultiPath &rhs) : paths(rhs.paths) {}
-    ExtrusionMultiPath(ExtrusionMultiPath &&rhs) : paths(std::move(rhs.paths)) {}
+    ExtrusionMultiPath(const ExtrusionMultiPath &rhs) : paths(rhs.paths), m_can_reverse(rhs.m_can_reverse) {}
+    ExtrusionMultiPath(ExtrusionMultiPath &&rhs) : paths(std::move(rhs.paths)), m_can_reverse(rhs.m_can_reverse) {}
     ExtrusionMultiPath(const ExtrusionPaths &paths) : paths(paths) {}
-    ExtrusionMultiPath(const ExtrusionPath &path) { this->paths.push_back(path); }
+    ExtrusionMultiPath(const ExtrusionPath &path) {this->paths.push_back(path); m_can_reverse = path.can_reverse(); }
 
-    ExtrusionMultiPath& operator=(const ExtrusionMultiPath &rhs) { this->paths = rhs.paths; return *this; }
-    ExtrusionMultiPath& operator=(ExtrusionMultiPath &&rhs) { this->paths = std::move(rhs.paths); return *this; }
+    ExtrusionMultiPath &operator=(const ExtrusionMultiPath &rhs)
+    {
+        this->paths   = rhs.paths;
+        m_can_reverse = rhs.m_can_reverse;
+        return *this;
+    }
+    ExtrusionMultiPath &operator=(ExtrusionMultiPath &&rhs)
+    {
+        this->paths   = std::move(rhs.paths);
+        m_can_reverse = rhs.m_can_reverse;
+        return *this;
+    }
 
     bool is_loop() const override { return false; }
-    bool can_reverse() const override { return true; }
+    bool can_reverse() const override { return m_can_reverse; }
+    void set_reverse() override { m_can_reverse = false; }
 	ExtrusionEntity* clone() const override { return new ExtrusionMultiPath(*this); }
     // Create a new object, initialize it with this object using the move semantics.
 	ExtrusionEntity* clone_move() override { return new ExtrusionMultiPath(std::move(*this)); }
@@ -289,6 +346,9 @@ public:
             append(dst, p.polyline.points);
     }
     double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
+
+private:
+    bool m_can_reverse = true;
 };
 
 // Single continuous extrusion loop, possibly with varying extrusion thickness, extrusion height or bridging / non bridging.

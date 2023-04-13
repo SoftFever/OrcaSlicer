@@ -4436,9 +4436,9 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 
     // First we append the entities, there are eec->entities.size() of them:
     size_t old_size = perimeters_or_infills->size();
-    size_t new_size = old_size + (eec->can_reverse() ? eec->entities.size() : 1);
+    size_t new_size = old_size + (eec->can_sort() ? eec->entities.size() : 1);
     perimeters_or_infills->reserve(new_size);
-    if (eec->can_reverse()) {
+    if (eec->can_sort()) {
         for (auto* ee : eec->entities)
             perimeters_or_infills->emplace_back(ee);
     } else

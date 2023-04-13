@@ -77,6 +77,7 @@ struct FillParams
     //BBS: only used for new top surface pattern
     float           no_extrusion_overlap{ 0.0 };
     bool            dont_sort{ false }; // do not sort the lines, just simply connect them
+    bool            can_reverse{true};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

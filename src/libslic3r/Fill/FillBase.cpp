@@ -187,6 +187,7 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         out.push_back(eec = new ExtrusionEntityCollection());
         // Only concentric fills are not sorted.
         eec->no_sort = this->no_sort();
+        size_t idx   = eec->entities.size();
         if (params.use_arachne) {
             Flow new_flow = params.flow.with_spacing(float(this->spacing));
             variable_width(thick_polylines, params.extrusion_role, new_flow, eec->entities);
@@ -197,6 +198,10 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                 eec->entities, std::move(polylines),
                 params.extrusion_role,
                 flow_mm3_per_mm, float(flow_width), params.flow.height());
+        }
+        if (!params.can_reverse) {
+            for (size_t i = idx; i < eec->entities.size(); i++)
+                eec->entities[i]->set_reverse();
         }
     }
 }
