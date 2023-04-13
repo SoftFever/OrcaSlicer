@@ -2074,13 +2074,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
 
     std::vector<wxString> confirm_text;
-    confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:") + "\n");
+    confirm_text.push_back(_L("Please check the following:") + "\n\n");
 
 #if 1
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type)
-        confirm_text.push_back(_L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.") + "\n");
+        confirm_text.push_back(_L("The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.") + "\n");
 #else
     bool is_same_printer_type = true;
 #endif
@@ -2169,14 +2169,19 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             confirm_dlg.on_hide();
             this->on_ok();
         });
+
+        confirm_text.push_back(_L("Please click the confirm button if you still want to proceed with printing.") + "\n");
         wxString info_msg = wxEmptyString;
 
         for (auto i = 0; i < confirm_text.size(); i++) {
             if (i == 0) {
                 info_msg += confirm_text[i];
             }
+            else if (i == confirm_text.size() - 1) {
+                info_msg += confirm_text[i];
+            }
             else {
-                info_msg += wxString::Format("%d:%s\n",i, confirm_text[i]);
+                info_msg += wxString::Format("%d. %s\n",i, confirm_text[i]);
             }
 
         }
