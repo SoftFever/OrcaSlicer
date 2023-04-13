@@ -27,6 +27,9 @@
 
 // #define SUPPORT_TREE_DEBUG_TO_SVG
 
+#if SUPPORT_TREE_DEBUG_TO_SVG
+#include "nlohmann/json.hpp"
+#endif
 namespace Slic3r
 {
 #define unscale_(val) ((val) * SCALING_FACTOR)
@@ -2983,64 +2986,94 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 
 void TreeSupport::smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes)
 {
-    std::map<Node *, bool> is_processed;
     for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
         std::vector<Node *> &curr_layer_nodes = contact_nodes[layer_nr];
         if (curr_layer_nodes.empty()) continue;
         for (Node *node : curr_layer_nodes) {
-            is_processed.emplace(node, false);
+            node->is_processed = false;
             if (layer_nr == 0) node->is_merged = true;  // nodes on plate are also merged nodes
         }
     }
 
-    for (int layer_nr = contact_nodes.size()-1; layer_nr >=0 ; layer_nr--) {
+    for (int layer_nr = 0; layer_nr< contact_nodes.size(); layer_nr++) {
         std::vector<Node *> &curr_layer_nodes = contact_nodes[layer_nr];
         if (curr_layer_nodes.empty()) continue;
         for (Node *node : curr_layer_nodes) {
-            if (!is_processed[node]) { 
+            if (!node->is_processed) {
                 std::vector<Point> pts;
                 std::vector<Node *>   branch;
                 Node *              p_node = node;
-                // add head for second path from the merged node if there are multiple ones
-                if (!node->is_merged && node->parent) {
-                    pts.push_back(p_node->parent->position);
-                    branch.push_back(p_node->parent);
+                // add a fixed head
+                if (node->child) {
+                    pts.push_back(p_node->child->position);
+                    branch.push_back(p_node->child);
                 }
                 do {
                     pts.push_back(p_node->position);
-                    //is_processed[p_node] = true;
                     branch.push_back(p_node);
-                    p_node = p_node->child;
-                } while (p_node && !p_node->is_merged && !is_processed[p_node]);
-                // TODO is it necessary to add tail also?
-                if (p_node && p_node->is_merged) {
-                    pts.push_back(p_node->position);
-                    branch.push_back(p_node);
-                }
+                    p_node = p_node->parent;
+                } while (p_node && !p_node->is_processed);
                 if (pts.size() < 3) continue;
 
                 std::vector<Point> pts1 = pts;
                 // TODO here we assume layer height gap is constant. If not true, need to consider height jump
-                // TODO it seems the smooth iterations can't be larger than 1, otherwise some nodes will fly away
-                for (size_t k = 0; k < 50; k++) {
+                const int iterations = 100;
+                for (size_t k = 0; k < iterations; k++) {
                     for (size_t i = 1; i < pts.size() - 1; i++) {
                         size_t   i2 = i >= 2 ? i - 2 : 0;
                         size_t   i3 = i < pts.size() - 2 ? i + 2 : pts.size() - 1;
                         Point pt  = (pts[i2] + pts[i - 1] + pts[i] + pts[i + 1] + pts[i3]) / 5;
                         pts1[i] = pt;
+                        if (k == iterations - 1) {
+                            branch[i]->position = pt;
+                            branch[i]->movement = (pts[i + 1] - pts[i - 1]) / 2;
+                            branch[i]->is_processed = true;
+                        }
                     }
-                    std::swap(pts, pts1);
-                }
-                for (size_t i = 1; i < pts.size() - 1; i++) {
-                    if (!is_processed[branch[i]]) {
-                        branch[i]->position = pts[i]; 
-                        branch[i]->movement     = branch[i]->parent ? (branch[i]->position - branch[i]->parent->position) : Point(0, 0);
-                        is_processed[branch[i]] = true;
-                    }
+                    if (k < iterations - 1)
+                        std::swap(pts, pts1);
                 }
             }
         }
     }
+#if SUPPORT_TREE_DEBUG_TO_SVG
+    // save tree structure for viewing in python
+    struct TreeNode {
+        Vec3f pos;
+        std::vector<int> children;  // index of children in the storing vector
+        TreeNode(Point pt, float z) {
+            pos = { float(unscale_(pt.x())),float(unscale_(pt.y())),z };
+        }
+    };
+    std::vector<TreeNode> tree_nodes;
+    std::map<Node*, int> ptr2idx;
+    std::map<int, Node*> idx2ptr;
+    for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
+        std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
+        for (Node* node : curr_layer_nodes) {
+            ptr2idx.emplace(node, tree_nodes.size());
+            idx2ptr.emplace(tree_nodes.size(), node);
+            tree_nodes.emplace_back(node->position, node->print_z);
+        }
+    }
+    for (size_t i = 0; i < tree_nodes.size(); i++) {
+        TreeNode& tree_node = tree_nodes[i];
+        Node* p_node = idx2ptr[i];
+        if (p_node->child)
+            tree_node.children.push_back(ptr2idx[p_node->child]);
+    }
+    nlohmann::json jj;
+    for (size_t i = 0; i < tree_nodes.size(); i++) {
+        nlohmann::json j;
+        j["pos"] = tree_nodes[i].pos;
+        j["children"] = tree_nodes[i].children;
+        jj.push_back(j);
+    }
+    
+    std::ofstream ofs("tree_nodes.json");
+    ofs << jj.dump();
+    ofs.close();
+#endif
 }
 
 void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_nodes)
