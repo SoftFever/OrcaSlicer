@@ -178,6 +178,7 @@ public:
     int track_event(std::string evt_key, std::string content);
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
+    bool get_track_enable() { return enable_track; }
 private:
     bool enable_track = false;
     void*                   network_agent { nullptr };

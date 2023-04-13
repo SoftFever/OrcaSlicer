@@ -293,11 +293,15 @@ private:
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
     HttpServer       m_http_server;
+
+    boost::thread    m_check_network_thread;
 public:
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
+
+    std::map<std::string, bool> test_url_state;
 
     //BBS: remove GCodeViewer as seperate APP logic
     explicit GUI_App();
@@ -420,6 +424,9 @@ public:
     void            on_set_selected_machine(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
+    void            start_check_network_state();
+    bool            check_network_state();
+    void            start_test_url(std::string url);
     void            enable_user_preset_folder(bool enable);
 
     // BBS
