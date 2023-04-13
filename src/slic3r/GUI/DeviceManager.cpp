@@ -2291,6 +2291,8 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         func_name = "FUNC_PRINT_ALL";
         break;
     case FUNC_VIRTUAL_TYAY:
+        if (!ams_support_virtual_tray)
+            return false;
         func_name = "FUNC_VIRTUAL_TYAY";
         break;
     case FUNC_FILAMENT_BACKUP:
