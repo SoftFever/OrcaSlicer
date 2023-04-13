@@ -4616,13 +4616,13 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     return gcode;
 }
 
-inline std::string polygon_to_string(const Polygon &polygon) {
+inline std::string polygon_to_string(const Polygon &polygon, const Vec3d& offset) {
     std::ostringstream gcode;
     gcode << "[";
     for (const Point &p : polygon.points) {
-        gcode << "[" << unscaled(p.x()) << "," << unscaled(p.y()) << "],";
+        gcode << "[" << unscaled(p.x()) - offset.x() << "," << unscaled(p.y()) - offset.y() << "],";
     }
-    gcode << "[" << unscaled(polygon.points.front().x()) << "," << unscaled(polygon.points.front().y()) << "]";
+    gcode << "[" << unscaled(polygon.points.front().x()) - offset.x() << "," << unscaled(polygon.points.front().y()) - offset.y() << "]";
     gcode << "]";
     return gcode.str();
 }
@@ -4638,9 +4638,10 @@ std::string GCode::set_object_info(Print* print) {
             inst.id = inst_id++;
             if (this->config().exclude_object && print->config().gcode_flavor.value == gcfKlipper) {
                 auto bbox = inst.get_bounding_box();
+                auto center = bbox.center() - print->get_plate_origin();
                 gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << get_instance_name(object, inst)
-                      << " CENTER=" << bbox.center().x() << "," << bbox.center().y()
-                      << " POLYGON=" << polygon_to_string(inst.get_convex_hull_2d()) << "\n";
+                      << " CENTER=" << center.x() << "," << center.y()
+                      << " POLYGON=" << polygon_to_string(inst.get_convex_hull_2d(),  print->get_plate_origin()) << "\n";
             }
         }
     }
