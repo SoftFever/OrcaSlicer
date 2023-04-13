@@ -569,7 +569,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
         if (ams_filament_id.empty() || nozzle_temp_min.empty() || nozzle_temp_max.empty() || m_filament_type.empty()) {
             BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
-            MessageDialog msg_dlg(nullptr, _L("You need to select the material type and color firet."), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L("You need to select the material type and color first."), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
         }
