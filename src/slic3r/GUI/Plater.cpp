@@ -465,7 +465,7 @@ static struct DynamicFilamentList : DynamicList
             wxString str;
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
-            str << (i + 1) << " - " << type;
+            str << type;
             items.push_back({str, icons[i]});
         }
         DynamicList::update();
