@@ -215,7 +215,8 @@ void MediaPlayCtrl::Play()
 
 void MediaPlayCtrl::Stop(wxString const &msg)
 {
-    bool failed = m_last_state != wxMEDIASTATE_PLAYING;
+    bool init_failed = m_last_state != wxMEDIASTATE_PLAYING;
+
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
@@ -233,9 +234,11 @@ void MediaPlayCtrl::Stop(wxString const &msg)
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
+    } else {
+        m_failed_code = 0;
     }
 
-    if (failed && m_failed_code != 0) {
+    if (init_failed && m_failed_code != 0 && m_last_failed_code != m_failed_code) {
         json j;
         j["stage"]          = std::to_string(m_last_state);
         j["dev_id"]         = m_machine;
@@ -247,6 +250,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         if (agent)
             agent->track_event("start_liveview", j.dump());
     }
+    m_last_failed_code = m_failed_code;
 
     ++m_failed_retry;
     if (m_failed_code != 0 && !m_tutk_support && (m_failed_retry > 1 || m_user_triggered)) {
@@ -254,6 +258,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_user_triggered = true;
+            m_last_failed_code = 0;
             m_next_retry   = wxDateTime::Now();
             return;
         }
@@ -271,6 +276,7 @@ void MediaPlayCtrl::TogglePlay()
     } else {
         m_failed_retry = 0;
         m_user_triggered = true;
+        m_last_failed_code = 0;
         m_next_retry   = wxDateTime::Now();
         Play();
     }
