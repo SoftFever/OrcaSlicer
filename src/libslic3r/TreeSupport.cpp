@@ -2719,6 +2719,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     next_node->is_merged     = true;
                     contact_nodes[layer_nr_next].push_back(next_node);
 
+                    // make sure the trees are all connected
+                    if (node.parent) node.parent->child = next_node;
+                    if (neighbour->parent) neighbour->parent->child = next_node;
+
                     // Make sure the next pass doesn't drop down either of these (since that already happened).
                     node.merged_neighbours.push_front(neighbour);
                     to_delete.insert(neighbour);
@@ -3018,7 +3022,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes)
                 std::vector<Point> pts1 = pts;
                 // TODO here we assume layer height gap is constant. If not true, need to consider height jump
                 // TODO it seems the smooth iterations can't be larger than 1, otherwise some nodes will fly away
-                for (size_t k = 0; k < 1; k++) {
+                for (size_t k = 0; k < 50; k++) {
                     for (size_t i = 1; i < pts.size() - 1; i++) {
                         size_t   i2 = i >= 2 ? i - 2 : 0;
                         size_t   i3 = i < pts.size() - 2 ? i + 2 : pts.size() - 1;
@@ -3029,8 +3033,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes)
                 }
                 for (size_t i = 1; i < pts.size() - 1; i++) {
                     if (!is_processed[branch[i]]) {
-                        // do not move if the new position is too far away
-                        if (vsize2_with_unscale(branch[i]->position - pts[i]) < SQ(m_support_params.support_extrusion_width * 2)) { branch[i]->position = pts[i]; }
+                        branch[i]->position = pts[i]; 
                         branch[i]->movement     = branch[i]->parent ? (branch[i]->position - branch[i]->parent->position) : Point(0, 0);
                         is_processed[branch[i]] = true;
                     }
