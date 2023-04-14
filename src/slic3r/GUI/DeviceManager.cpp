@@ -4110,7 +4110,8 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
         if (last_selected->second->connection_type() == "lan") {
             if (last_selected->second->is_connecting() && !need_disconnect)
                 return false;
-            m_agent->disconnect_printer();
+
+            if (!need_disconnect) {m_agent->disconnect_printer();}
         }
     }
 
@@ -4124,7 +4125,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
             } else {
                 // lan mode printer reconnect printer
                 if (m_agent) {
-                    m_agent->disconnect_printer();
+                    if (!need_disconnect) {m_agent->disconnect_printer();}
                     it->second->reset();
                     it->second->connect();
                     it->second->set_lan_mode_connection_state(true);

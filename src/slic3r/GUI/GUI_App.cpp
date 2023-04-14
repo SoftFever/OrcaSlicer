@@ -1876,7 +1876,7 @@ void GUI_App::init_networking_callbacks()
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
                                 obj->set_user_access_code("");
-                                m_device_manager->set_selected_machine("");
+                                m_device_manager->set_selected_machine("", true);
                                 wxString text;
                                 if (msg == "5") {
                                     text = wxString::Format(_L("Incorrect password"));
@@ -1887,7 +1887,7 @@ void GUI_App::init_networking_callbacks()
                                 }
                                 event.SetInt(0);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
-                                m_device_manager->set_selected_machine("");
+                                m_device_manager->set_selected_machine("", true);
                                 event.SetInt(0);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
