@@ -241,7 +241,7 @@ void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3
 
 bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
                                       Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane,
-                                      size_t* facet_idx) const
+                                      size_t* facet_idx, bool sinking_limit) const
 {
     Vec3d point;
     Vec3d direction;
@@ -258,8 +258,8 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     // Also, remove anything below the bed (sinking objects).
     for (i=0; i<hits.size(); ++i) {
         Vec3d transformed_hit = trafo * hits[i].position();
-        if (transformed_hit.z() >= SINKING_Z_THRESHOLD &&
-            (! clipping_plane || ! clipping_plane->is_point_clipped(transformed_hit)))
+        if (transformed_hit.z() >= sinking_limit ? SINKING_Z_THRESHOLD : -std::numeric_limits<double>::max() &&
+            (!clipping_plane || !clipping_plane->is_point_clipped(transformed_hit)))
             break;
     }
 

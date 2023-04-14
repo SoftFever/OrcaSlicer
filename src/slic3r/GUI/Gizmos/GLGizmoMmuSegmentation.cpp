@@ -212,7 +212,14 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 
         ++mesh_id;
 
-        const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
+        Transform3d trafo_matrix;
+        if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
+            trafo_matrix.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mo->instances[selection.get_instance_idx()]->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
+        }
+        else {
+            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix()* mv->get_matrix();
+        }
 
         bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
         if (is_left_handed)

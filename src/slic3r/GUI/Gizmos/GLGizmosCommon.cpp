@@ -145,6 +145,11 @@ void InstancesHider::on_update()
     const ModelObject* mo = get_pool()->selection_info()->model_object();
     int active_inst = get_pool()->selection_info()->get_active_instance();
     GLCanvas3D* canvas = get_pool()->get_canvas();
+    double z_min;
+    if (canvas->get_canvas_type() == GLCanvas3D::CanvasAssembleView)
+        z_min = std::numeric_limits<double>::max();
+    else
+        z_min = -SINKING_Z_THRESHOLD;
 
     if (mo && active_inst != -1) {
         canvas->toggle_model_objects_visibility(false);
@@ -152,7 +157,7 @@ void InstancesHider::on_update()
         canvas->toggle_sla_auxiliaries_visibility(m_show_supports, mo, active_inst);
         canvas->set_use_clipping_planes(true);
         // Some objects may be sinking, do not show whatever is below the bed.
-        canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
+        canvas->set_clipping_plane(0, ClippingPlane(Vec3d::UnitZ(), z_min));
         canvas->set_clipping_plane(1, ClippingPlane(-Vec3d::UnitZ(), std::numeric_limits<double>::max()));
 
 
@@ -164,7 +169,7 @@ void InstancesHider::on_update()
             m_clippers.clear();
             for (const TriangleMesh* mesh : meshes) {
                 m_clippers.emplace_back(new MeshClipper);
-                m_clippers.back()->set_plane(ClippingPlane(-Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
+                m_clippers.back()->set_plane(ClippingPlane(-Vec3d::UnitZ(), z_min));
                 m_clippers.back()->set_mesh(*mesh);
             }
             m_old_meshes = meshes;
@@ -404,18 +409,30 @@ void ObjectClipper::render_cut() const
         return;
     const SelectionInfo* sel_info = get_pool()->selection_info();
     const ModelObject* mo = sel_info->model_object();
-    Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
+    Geometry::Transformation inst_trafo;
+    bool is_assem_cnv = get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
+    inst_trafo = is_assem_cnv ?
+        mo->instances[sel_info->get_active_instance()]->get_assemble_transformation() :
+        mo->instances[sel_info->get_active_instance()]->get_transformation();
+    auto offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
 
     size_t clipper_id = 0;
     for (const ModelVolume* mv : mo->volumes) {
         Geometry::Transformation vol_trafo  = mv->get_transformation();
         Geometry::Transformation trafo = inst_trafo * vol_trafo;
-        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
-
+        if (is_assem_cnv) {
+            trafo.set_offset(trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0) + vol_trafo.get_offset() * (GLVolume::explosion_ratio - 1.0));
+        }
+        else {
+            trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
+        }
         auto& clipper = m_clippers[clipper_id];
         clipper->set_plane(*m_clp);
         clipper->set_transformation(trafo);
-        clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
+        if (is_assem_cnv)
+            clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), std::numeric_limits<double>::max()));
+        else
+            clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
         glsafe(::glPushMatrix());
         // BBS
         glsafe(::glColor3f(0.25f, 0.25f, 0.25f));
@@ -438,14 +455,27 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
     //    camera_dir(2) = 0;
 
     Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : /*-camera_dir;*/ -wxGetApp().plater()->get_camera().get_dir_forward();
-    const Vec3d& center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
+    Vec3d center;
+
+    if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        const SelectionInfo* sel_info = get_pool()->selection_info();
+        auto trafo = mo->instances[sel_info->get_active_instance()]->get_assemble_transformation();
+        auto offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
+        center = trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
+    }
+    else {
+        center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
+    }
+
     float dist = normal.dot(center);
 
     if (pos < 0.)
         pos = m_clp_ratio;
 
     m_clp_ratio = pos;
-    m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2*m_active_inst_bb_radius)));
+
+    m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2 * m_active_inst_bb_radius)));
+
     get_pool()->get_canvas()->set_as_dirty();
 }
 

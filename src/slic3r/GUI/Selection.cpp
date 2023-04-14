@@ -2712,8 +2712,13 @@ void Selection::paste_objects_from_clipboard()
             displacement      = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_offset(2)};
         }
 
-        for (ModelInstance* inst : dst_object->instances)
+        for (ModelInstance* inst : dst_object->instances) {
             inst->set_offset(displacement);
+
+            //BBS init asssmble transformation
+            Geometry::Transformation t = inst->get_transformation();
+            inst->set_assemble_transformation(t);
+        }
 
         object_idxs.push_back(m_model->objects.size() - 1);
 #ifdef _DEBUG

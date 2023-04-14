@@ -1288,6 +1288,15 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
             m_gizmos.set_icon_dirty();
         }
     }
+    if (m_canvas_type == CanvasAssembleView) {
+        m_gizmos.on_change_color_mode(is_dark);
+        if (reinit) {
+            // reset svg
+            m_gizmos.switch_gizmos_icon_filename();
+            // set dirty to re-generate icon texture
+            m_gizmos.set_icon_dirty();
+        }
+    }
 }
 
 void GLCanvas3D::set_as_dirty()
@@ -2369,9 +2378,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     deleted_wipe_towers.emplace_back(volume, volume_id);
                 delete volume;
             }
-
-            // BBS
-            m_explosion_ratio = 1.0;
         }
         else {
             // This GLVolume will be reused.
@@ -3045,7 +3051,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_Y:
 #endif /* __APPLE__ */
-            if (m_canvas_type == CanvasView3D) {
+            if (m_canvas_type == CanvasView3D || m_canvas_type == CanvasAssembleView) {
                 post_event(SimpleEvent(EVT_GLCANVAS_REDO));
             }
         break;
@@ -3056,7 +3062,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_Z:
 #endif /* __APPLE__ */
             // only support redu/undo in CanvasView3D
-            if (m_canvas_type == CanvasView3D) {
+            if (m_canvas_type == CanvasView3D || m_canvas_type == CanvasAssembleView) {
                 post_event(SimpleEvent(EVT_GLCANVAS_UNDO));
             }
         break;
@@ -6229,7 +6235,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     item.tooltip = _utf8(L("Assembly View"));
     item.sprite_id = 1;
     item.left.toggable = false;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); };
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states(); };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = true;
     item.visibility_callback = [this]()->bool { return true; };
@@ -6742,7 +6748,10 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     else {
         m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
     }
-    m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
+    if (m_canvas_type == CanvasAssembleView)
+        m_volumes.set_show_sinking_contours(false);
+    else
+        m_volumes.set_show_sinking_contours(!m_gizmos.is_hiding_instances());
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
@@ -7233,9 +7242,6 @@ void GLCanvas3D::_render_gizmos_overlay()
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
-    if (m_canvas_type == CanvasAssembleView)
-        return;
-
     m_gizmos.render_overlay();
 
     if (m_gizmo_highlighter.m_render_arrow)
@@ -7648,6 +7654,8 @@ void GLCanvas3D::_render_return_toolbar() const
     if (ImGui::ImageTextButton(real_size,_utf8(L("return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
+        const_cast<GLGizmosManager*>(&m_gizmos)->reset_all_states();
+        wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
@@ -7849,6 +7857,7 @@ void GLCanvas3D::_render_paint_toolbar() const
         ImGui::BBLRenderArrow(draw_list, right_arrow_button.GetCenter() - ImVec2(draw_list->_Data->FontSize, draw_list->_Data->FontSize) * 0.5f, arrow_color, ImGuiDir_Right, 2.0f);
     }
 
+    m_paint_toolbar_width = (ImGui::GetWindowWidth() + 50.0f * em_unit * f_scale);
     imgui.end();
     ImGui::PopStyleVar(3);
     ImGui::PopStyleColor();
@@ -7859,6 +7868,10 @@ void GLCanvas3D::_render_assemble_control() const
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         GLVolume::explosion_ratio = m_explosion_ratio = 1.0;
+        return;
+    }
+    if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation) {
+        m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(0.0, true);
         return;
     }
 

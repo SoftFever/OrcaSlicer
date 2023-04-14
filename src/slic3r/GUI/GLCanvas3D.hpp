@@ -520,6 +520,7 @@ private:
     mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
+    mutable float m_paint_toolbar_width;
 
     //BBS: add canvas type for assemble view usage
     ECanvasType m_canvas_type;
@@ -713,6 +714,7 @@ public:
     bool init();
     void post_event(wxEvent &&event);
 
+    void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
     void set_as_dirty();
@@ -819,6 +821,7 @@ public:
     float get_main_toolbar_width() { return m_main_toolbar.get_width();}
     float get_assemble_view_toolbar_width() { return m_assemble_view_toolbar.get_width(); }
     float get_assemble_view_toolbar_height() { return m_assemble_view_toolbar.get_height(); }
+    float get_assembly_paint_toolbar_width() { return m_paint_toolbar_width; }
     float get_separator_toolbar_width() { return m_separator_toolbar.get_width(); }
     float get_separator_toolbar_height() { return m_separator_toolbar.get_height(); }
     float get_collapse_toolbar_width();

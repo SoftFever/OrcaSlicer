@@ -2481,6 +2481,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         assemble_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
         assemble_canvas->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
         assemble_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
+        assemble_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
+        assemble_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
     }
 
     if (wxGetApp().is_editor()) {
@@ -4158,6 +4160,7 @@ void Plater::priv::reset(bool apply_presets_change)
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
+    assemble_view->get_canvas3d()->reset_explosion_ratio();
     update();
 
     //BBS
@@ -7263,18 +7266,19 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
             tower.rotation = proj_cfg.opt_float("wipe_tower_rotation_angle");
         }
     }
-    const GLGizmosManager& gizmos = view3D->get_canvas3d()->get_gizmos_manager();
+    const GLGizmosManager& gizmos = get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_gizmos_manager() : view3D->get_canvas3d()->get_gizmos_manager();
 
     if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator)
         this->undo_redo_stack().clear();
-    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), partplate_list, snapshot_data);
+    this->undo_redo_stack().take_snapshot(snapshot_name, model, get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_selection() : view3D->get_canvas3d()->get_selection(), gizmos, partplate_list, snapshot_data);
     if (snapshot_type == UndoRedo::SnapshotType::LeavingGizmoWithAction) {
         // Filter all but the last UndoRedo::SnapshotType::GizmoAction in a row between the last UndoRedo::SnapshotType::EnteringGizmo and UndoRedo::SnapshotType::LeavingGizmoWithAction.
         // The remaining snapshot will be renamed to a more generic name,
         // depending on what gizmo is being left.
-        assert(gizmos.get_current() != nullptr);
-        std::string new_name = gizmos.get_current()->get_action_snapshot_name();
-        this->undo_redo_stack().reduce_noisy_snapshots(new_name);
+        if (gizmos.get_current() != nullptr) {
+            std::string new_name = gizmos.get_current()->get_action_snapshot_name();
+            this->undo_redo_stack().reduce_noisy_snapshots(new_name);
+        }
     } else if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator) {
         // Reset the "dirty project" flag.
         m_undo_redo_stack_main.mark_current_as_saved();
@@ -7296,6 +7300,13 @@ void Plater::priv::undo()
     // BBS: undo-redo until modify record
     while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
     if (it_current == snapshots.begin()) return;
+    if (get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        if (it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::GizmoAction &&
+            it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::EnteringGizmo &&
+            it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::LeavingGizmoNoAction &&
+            it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::LeavingGizmoWithAction)
+            return;
+    }
     this->undo_redo_to(it_current);
 }
 
@@ -7398,8 +7409,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     const UndoRedo::Snapshot snapshot_copy = *it_snapshot;
     // Do the jump in time.
     if (it_snapshot->timestamp < this->undo_redo_stack().active_snapshot_time() ?
-        this->undo_redo_stack().undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), this->partplate_list, top_snapshot_data, it_snapshot->timestamp) :
-        this->undo_redo_stack().redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), this->partplate_list, it_snapshot->timestamp)) {
+        this->undo_redo_stack().undo(model, get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_selection() : this->view3D->get_canvas3d()->get_selection(), get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_gizmos_manager() : this->view3D->get_canvas3d()->get_gizmos_manager(), this->partplate_list, top_snapshot_data, it_snapshot->timestamp) :
+        this->undo_redo_stack().redo(model, get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_gizmos_manager() : this->view3D->get_canvas3d()->get_gizmos_manager(), this->partplate_list, it_snapshot->timestamp)) {
         if (printer_technology_changed) {
             // Switch to the other printer technology. Switch to the last printer active for that particular technology.
             AppConfig *app_config = wxGetApp().app_config;
@@ -7476,7 +7487,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
 {
-    this->view3D->get_canvas3d()->get_selection().clear();
+    get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_selection().clear() : this->view3D->get_canvas3d()->get_selection().clear();
     // Update volumes from the deserializd model, always stop / update the background processing (for both the SLA and FFF technologies).
     this->update((unsigned int)UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE | (unsigned int)UpdateParams::POSTPONE_VALIDATION_ERROR_MESSAGE);
     // Release old snapshots if the memory allocated is excessive. This may remove the top most snapshot if jumping to the very first snapshot.
@@ -7485,8 +7496,12 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
     // triangle meshes may have gotten released from the scene or the background processing, therefore now being calculated into the Undo / Redo stack size.
         this->undo_redo_stack().release_least_recently_used();
     //YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
-    this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack().selection_deserialized().mode), this->undo_redo_stack().selection_deserialized().volumes_and_instances);
-    this->view3D->get_canvas3d()->get_gizmos_manager().update_after_undo_redo(snapshot);
+        get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? 
+            assemble_view->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack().selection_deserialized().mode), this->undo_redo_stack().selection_deserialized().volumes_and_instances) :
+            this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack().selection_deserialized().mode), this->undo_redo_stack().selection_deserialized().volumes_and_instances);
+    get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? 
+        assemble_view->get_canvas3d()->get_gizmos_manager().update_after_undo_redo(snapshot) :
+        this->view3D->get_canvas3d()->get_gizmos_manager().update_after_undo_redo(snapshot);
 
     wxGetApp().obj_list()->update_after_undo_redo();
 

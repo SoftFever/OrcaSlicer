@@ -1194,13 +1194,15 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
             }
         }
         else if (col_num == colColorPaint) {
-            ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
-            if (node->HasColorPainting()) {
-                GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-                if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
-                    gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
-                else
-                    gizmos_mgr.reset_all_states();
+            if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() != GLCanvas3D::CanvasAssembleView) {
+                ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+                if (node->HasColorPainting()) {
+                    GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+                    if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
+                        gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+                    else
+                        gizmos_mgr.reset_all_states();
+                }
             }
         }
         else if (col_num == colSinking) {
@@ -2775,6 +2777,9 @@ void ObjectList::merge(bool to_multipart_object)
         new_object->center_around_origin();
         new_object->translate_instances(-new_object->origin_translation);
         new_object->origin_translation = Vec3d::Zero();
+        //BBS init asssmble transformation
+        Geometry::Transformation t = new_object->instances[0]->get_transformation();
+        new_object->instances[0]->set_assemble_transformation(t);
         //BBS: notify it before remove
         notify_instance_updated(m_objects->size() - 1);
 
@@ -4457,12 +4462,12 @@ void ObjectList::update_selections()
 
 void ObjectList::update_selections_on_canvas()
 {
-    Selection& selection = wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
+    Selection& selection = wxGetApp().plater()->get_current_canvas3D()->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
         selection.remove_all();
-        wxGetApp().plater()->get_view3D_canvas3D()->update_gizmos_on_off_state();
+        wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
         return;
     }
 
@@ -4566,7 +4571,7 @@ void ObjectList::update_selections_on_canvas()
         selection.add_volumes(mode, volume_idxs, single_selection);
     }
 
-    wxGetApp().plater()->get_view3D_canvas3D()->update_gizmos_on_off_state();
+    wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
     wxGetApp().plater()->canvas3D()->render();
 }
 
