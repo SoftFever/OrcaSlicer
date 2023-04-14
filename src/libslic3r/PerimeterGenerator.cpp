@@ -1195,7 +1195,8 @@ void PerimeterGenerator::process_arachne()
 
         bool is_outer_wall_first =
             this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-            this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+            this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
+            this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
         if (is_outer_wall_first) {
             start_perimeter = 0;
             end_perimeter = int(perimeters.size());
@@ -1323,16 +1324,12 @@ void PerimeterGenerator::process_arachne()
         }
 
         
-        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill)
-            if (ordered_extrusions.size() > 1) {
-                int last_outer = 0;
-                int outer      = 0;
-                for (; outer < ordered_extrusions.size(); ++outer)
-                    if (ordered_extrusions[outer].extrusion->inset_idx == 0 && outer - last_outer > 1) {
-                        std::swap(ordered_extrusions[outer], ordered_extrusions[outer - 1]);
-                        last_outer = outer;
-                    }
+        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill){
+            if (ordered_extrusions.size() > 2) {
+                    std::swap(ordered_extrusions[0], ordered_extrusions[2]);
+                    std::swap(ordered_extrusions[1], ordered_extrusions[2]);
             }
+        }
 
         
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions); !extrusion_coll.empty())
