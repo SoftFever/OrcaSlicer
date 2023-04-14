@@ -1095,6 +1095,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
 
     //BBS
     m_conflict_result = gcode_result.conflict_result;
+    if (m_conflict_result) { m_conflict_result.value().layer = m_layers.get_l_at(m_conflict_result.value()._height); }
 
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();

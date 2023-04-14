@@ -93,31 +93,25 @@ namespace Slic3r {
         }
     };
 
+    struct ConflictResult
+    {
+        std::string        _objName1;
+        std::string        _objName2;
+        double             _height;
+        const void *_obj1; // nullptr means wipe tower
+        const void *_obj2;
+        int                layer = -1;
+        ConflictResult(const std::string &objName1, const std::string &objName2, double height, const void *obj1, const void *obj2)
+            : _objName1(objName1), _objName2(objName2), _height(height), _obj1(obj1), _obj2(obj2)
+        {}
+        ConflictResult() = default;
+    };
+
+    using ConflictResultOpt = std::optional<ConflictResult>;
+
     struct GCodeProcessorResult
     {
-        //BBS
-        struct ConflictResult
-        {
-            bool conflicted;
-            std::string obj1Name;
-            std::string obj2Name;
-
-            void set(const std::string &o1, const std::string &o2)
-            {
-                conflicted = true;
-                obj1Name  = o1;
-                obj2Name  = o2;
-            }
-
-            void reset() {
-                conflicted = false;
-                obj1Name.clear();
-                obj2Name.clear();
-            }
-
-            ConflictResult()                       = default;
-            ConflictResult(const ConflictResult &) = default;
-        }conflict_result;
+        ConflictResultOpt conflict_result;
 
         struct SettingsIds
         {

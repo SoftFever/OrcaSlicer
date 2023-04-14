@@ -490,6 +490,11 @@ class GCodeViewer
         std::vector<Endpoints>& get_endpoints() { return m_endpoints; }
         double get_z_at(unsigned int id) const { return (id < m_zs.size()) ? m_zs[id] : 0.0; }
         Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
+        int                           get_l_at(double z) const
+        {
+            auto iter = std::upper_bound(m_zs.begin(), m_zs.end(), z);
+            return std::distance(m_zs.begin(), iter);
+        }
 
         bool operator != (const Layers& other) const {
             if (m_zs != other.m_zs)
@@ -728,7 +733,7 @@ public:
     };
 
     //BBS
-    GCodeProcessorResult::ConflictResult m_conflict_result;
+    ConflictResultOpt m_conflict_result;
 
 private:
     std::vector<int> m_plater_extruder;

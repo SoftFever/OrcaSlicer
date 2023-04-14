@@ -775,14 +775,15 @@ public:
     std::string get_conflict_string() const
     {
         std::string result;
-        if (m_conflict_result.conflicted) {
-            result = "Found gcode path conflicts between object " + m_conflict_result.obj1 + " and " + m_conflict_result.obj2;
+        if (m_conflict_result) {
+            result = "Found gcode path conflicts between object " + m_conflict_result.value()._objName1 + " and " + m_conflict_result.value()._objName2;
         }
 
         return result;
     }
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
+    ConflictResultOpt            get_conflict_result() const { return m_conflict_result; }
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
     std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
@@ -837,28 +838,8 @@ private:
     //BBS: modified_count
     int     m_modified_count {0};
     //BBS
-    struct ConflictResult
-    {
-        bool conflicted;
-        std::string obj1;
-        std::string obj2;
-        //TODO
-        //the actual loaction
-
-        void set(const std::string& o1, const std::string& o2)
-        {
-            conflicted = true;
-            obj1  = o1;
-            obj2  = o2;
-        }
-        void reset()
-        {
-            conflicted = false;
-            obj1.clear();
-            obj2.clear();
-        }
-    }m_conflict_result;
-    FakeWipeTower m_fake_wipe_tower;
+    ConflictResultOpt m_conflict_result;
+    FakeWipeTower     m_fake_wipe_tower;
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;

@@ -8846,7 +8846,7 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
                 if (warning == EWarning::ToolpathOutside)
                     show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
                 else if (warning==EWarning::GCodeConflict)
-                    show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.conflicted;
+                    show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
         }
     }
 
@@ -8886,9 +8886,14 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     ErrorType error = ErrorType::PLATER_WARNING;
     switch (warning) {
     case EWarning::GCodeConflict: {
-        std::string objName1 = m_gcode_viewer.m_conflict_result.obj1Name;
-        std::string objName2 = m_gcode_viewer.m_conflict_result.obj2Name;
-        text  = (boost::format(_u8L("Conflicts of gcode paths have been found. Please separate the conflicted objects farther (%s <-> %s).")) % objName1 % objName2).str();
+        if (!m_gcode_viewer.m_conflict_result) { break; }
+        std::string objName1 = m_gcode_viewer.m_conflict_result.value()._objName1;
+        std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
+        double      height   = m_gcode_viewer.m_conflict_result.value()._height;
+        int         layer    = m_gcode_viewer.m_conflict_result.value().layer;
+        text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
+                height % objName1 % objName2)
+                   .str();
         error                = ErrorType::SLICING_ERROR;
         break;
     }
@@ -8907,6 +8912,26 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     if (!wxGetApp().plater())
         return;
     auto& notification_manager = *wxGetApp().plater()->get_notification_manager();
+
+    if (warning == EWarning::GCodeConflict && m_gcode_viewer.m_conflict_result) {
+        const PrintObject *obj2  = reinterpret_cast<const PrintObject *>(m_gcode_viewer.m_conflict_result.value()._obj2);
+        auto               mo        = obj2->model_object();
+        ObjectID           id        = mo->id();
+        auto               action_fn = [id](wxEvtHandler *) {
+            auto &objects = wxGetApp().model().objects;
+            auto  iter    = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
+            if (iter != objects.end()) {
+                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+                wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            }
+            return false;
+        };
+        auto hypertext = _u8L("Jump to");
+        hypertext += std::string(" [") + mo->name + "]";
+        notification_manager.push_notification(NotificationType::PlaterError, NotificationManager::NotificationLevel::ErrorNotificationLevel, _u8L("ERROR:") + "\n" + text,
+                                               hypertext, action_fn);
+        return;
+    }
     switch (error)
     {
     case PLATER_WARNING:

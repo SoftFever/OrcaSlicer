@@ -75,19 +75,20 @@ class LinesBucketQueue
 private:
     std::vector<LinesBucket>                                                           _buckets;
     std::priority_queue<LinesBucket *, std::vector<LinesBucket *>, LinesBucketPtrComp> _pq;
-    std::vector<const void *>                                                          _objsPtrToId;
+    std::map<int, const void *>                                                        _idToObjsPtr;
+    std::map<const void *, int>                                                        _objsPtrToId;
 
 public:
     void        emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, const void *objPtr, Point offset);
     bool        valid() const { return _pq.empty() == false; }
     const void *idToObjsPtr(int id)
     {
-        if (id >= 0 && id < _objsPtrToId.size()) {
-            return _objsPtrToId[id];
-        } else
+        if (_idToObjsPtr.find(id) != _idToObjsPtr.end())
+            return _idToObjsPtr[id];
+        else
             return nullptr;
     }
-    void        removeLowests();
+    double      removeLowests();
     LineWithIDs getCurLines() const;
 };
 
@@ -99,23 +100,24 @@ ExtrusionPaths getExtrusionPathsFromSupportLayer(SupportLayer *supportLayer);
 
 std::pair<std::vector<ExtrusionPaths>, std::vector<ExtrusionPaths>> getAllLayersExtrusionPathsFromObject(PrintObject *obj);
 
-struct ConflictResult
+struct ConflictComputeResult
 {
     int _obj1;
     int _obj2;
-    ConflictResult(int obj1, int obj2) : _obj1(obj1), _obj2(obj2) {}
-    ConflictResult() = default;
+
+    ConflictComputeResult(int o1, int o2) : _obj1(o1), _obj2(o2) {}
+    ConflictComputeResult() = default;
 };
 
-using ConflictRet = std::optional<ConflictResult>;
+using ConflictComputeOpt = std::optional<ConflictComputeResult>;
 
 using ConflictObjName = std::optional<std::pair<std::string, std::string>>;
 
 struct ConflictChecker
 {
-    static ConflictObjName find_inter_of_lines_in_diff_objs(PrintObjectPtrs objs, std::optional<const FakeWipeTower *> wtdptr);
-    static ConflictRet     find_inter_of_lines(const LineWithIDs &lines);
-    static ConflictRet     line_intersect(const LineWithID &l1, const LineWithID &l2);
+    static ConflictResultOpt  find_inter_of_lines_in_diff_objs(PrintObjectPtrs objs, std::optional<const FakeWipeTower *> wtdptr);
+    static ConflictComputeOpt find_inter_of_lines(const LineWithIDs &lines);
+    static ConflictComputeOpt line_intersect(const LineWithID &l1, const LineWithID &l2);
 };
 
 } // namespace Slic3r

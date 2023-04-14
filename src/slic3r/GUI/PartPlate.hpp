@@ -381,7 +381,7 @@ public:
     {
         bool result = m_slice_result_valid;
         if (result)
-            result = m_gcode_result ? (!m_gcode_result->toolpath_outside && !m_gcode_result->conflict_result.conflicted) : false;
+            result = m_gcode_result ? (!m_gcode_result->toolpath_outside && !m_gcode_result->conflict_result.has_value()) : false;
         return result;
     }
 

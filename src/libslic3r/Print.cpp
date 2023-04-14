@@ -1689,11 +1689,9 @@ void Print::process(bool use_cache)
         volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
         BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs.";
 
+        m_conflict_result = conflictRes;
         if (conflictRes.has_value()) {
-            m_conflict_result.set(conflictRes.value().first, conflictRes.value().second);
-            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value().first %conflictRes.value().second;
-        } else {
-            m_conflict_result.reset();
+            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value()._objName1 %conflictRes.value()._objName2;
         }
     }
 
@@ -1726,11 +1724,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     gcode.set_gcode_offset(origin(0), origin(1));
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
     //BBS
-    if (m_conflict_result.conflicted) {
-        result->conflict_result.set(m_conflict_result.obj1, m_conflict_result.obj2);
-    } else {
-        result->conflict_result.reset();
-    }
+    result->conflict_result = m_conflict_result;
     return path.c_str();
 }
 
