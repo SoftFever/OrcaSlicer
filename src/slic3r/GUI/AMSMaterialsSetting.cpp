@@ -728,6 +728,7 @@ bool AMSMaterialsSetting::Show(bool show)
         }
         Layout();
         Fit();
+        wxGetApp().UpdateDarkUI(this);
     }
     return DPIDialog::Show(show); 
 }
@@ -870,6 +871,11 @@ void AMSMaterialsSetting::post_select_event() {
     wxPostEvent(m_comboBox_filament, event);
 }
 
+void AMSMaterialsSetting::msw_rescale()
+{
+    m_clr_picker->msw_rescale();
+}
+
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
     m_filament_type = "";
@@ -938,6 +944,12 @@ ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*=
 }
 
 ColorPicker::~ColorPicker(){}
+
+void ColorPicker::msw_rescale()
+{
+    m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
+    Refresh();
+}
 
 void ColorPicker::set_color(wxColour col)
 {
@@ -1088,7 +1100,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(col);
         cp->set_selected(false);
-        cp->SetBackgroundColour(wxColour(238, 238, 238));
+        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238,238,238)));
         m_color_pickers.push_back(cp);
         fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
         cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {

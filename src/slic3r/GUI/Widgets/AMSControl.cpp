@@ -887,9 +887,7 @@ void AMSLib::doRender(wxDC &dc)
     int top = height - curr_height;
 
     if (curr_height >= FromDIP(6)) {
-#ifdef __APPLE__
-         dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
-#else
+
         //gradient
         if (m_info.material_cols.size() > 1) {
             int left = FromDIP(4);
@@ -898,22 +896,22 @@ void AMSLib::doRender(wxDC &dc)
 
             for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
 
-                if ( (left + gwidth) > (size.x - FromDIP(8)) ) {
+                if ((left + gwidth) > (size.x - FromDIP(8))) {
                     gwidth = (size.x - FromDIP(4)) - left;
                 }
 
                 auto rect = wxRect(left, height - curr_height + FromDIP(4), gwidth, curr_height);
-                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i+1], wxEAST);
+                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
                 left += gwidth;
             }
         }
         else {
+#ifdef __APPLE__
+            dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
+#else
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
-        }
-        
 #endif
-
-       
+        } 
     }
 
     if (top > 2) {

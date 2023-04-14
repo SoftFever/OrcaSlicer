@@ -40,6 +40,7 @@ public:
     ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~ColorPicker();
 
+    void msw_rescale();
     void set_color(wxColour col);
     void set_colors(std::vector<wxColour>  cols);
     void set_selected(bool sel) {m_selected = sel;Refresh();};
@@ -93,7 +94,7 @@ public:
                wxString k = wxEmptyString, wxString n = wxEmptyString);
 
     void post_select_event();
-
+    void msw_rescale();
     void set_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
 
