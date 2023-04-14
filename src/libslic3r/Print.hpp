@@ -772,6 +772,15 @@ public:
     bool is_support_used() const {return m_support_used;}
     bool is_BBL_Printer() const { return m_isBBLPrinter;}
     void set_BBL_Printer(const bool isBBL) { m_isBBLPrinter = isBBL;}
+    std::string get_conflict_string() const
+    {
+        std::string result;
+        if (m_conflict_result.conflicted) {
+            result = "Found gcode path conflicts between object " + m_conflict_result.obj1 + " and " + m_conflict_result.obj2;
+        }
+
+        return result;
+    }
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
 

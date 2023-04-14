@@ -2065,6 +2065,11 @@ int CLI::run(int argc, char **argv)
                                     print->process();
                                 }
                                 if (printer_technology == ptFFF) {
+                                    std::string conflict_result = dynamic_cast<Print *>(print)->get_conflict_string();
+                                    if (!conflict_result.empty()) {
+                                       BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": found slicing result conflict!"<< std::endl;
+                                       flush_and_exit(CLI_GCODE_PATH_CONFLICTS);
+                                    }
                                     // The outfile is processed by a PlaceholderParser.
                                     //outfile = part_plate->get_tmp_gcode_path();
                                     if (outfile_dir.empty()) {

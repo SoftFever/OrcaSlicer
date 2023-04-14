@@ -1691,6 +1691,7 @@ void Print::process(bool use_cache)
 
         if (conflictRes.has_value()) {
             m_conflict_result.set(conflictRes.value().first, conflictRes.value().second);
+            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value().first %conflictRes.value().second;
         } else {
             m_conflict_result.reset();
         }

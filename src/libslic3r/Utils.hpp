@@ -50,7 +50,8 @@
 #define CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT    -59
 #define CLI_NO_SUITABLE_OBJECTS_AFTER_SKIP  -60
 
-#define CLI_SLICING_ERROR           -100
+#define CLI_SLICING_ERROR                  -100
+#define CLI_GCODE_PATH_CONFLICTS           -101
 
 
 namespace boost { namespace filesystem { class directory_entry; }}
