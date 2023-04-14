@@ -27,7 +27,7 @@
 
 // #define SUPPORT_TREE_DEBUG_TO_SVG
 
-#if SUPPORT_TREE_DEBUG_TO_SVG
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
 #include "nlohmann/json.hpp"
 #endif
 namespace Slic3r
@@ -3036,7 +3036,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes)
             }
         }
     }
-#if SUPPORT_TREE_DEBUG_TO_SVG
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
     // save tree structure for viewing in python
     struct TreeNode {
         Vec3f pos;

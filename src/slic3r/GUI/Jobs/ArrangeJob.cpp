@@ -511,7 +511,7 @@ void ArrangeJob::process()
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
     if (params.is_seq_print)
-        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
+        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
 
     if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
