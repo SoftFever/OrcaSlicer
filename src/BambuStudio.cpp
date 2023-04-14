@@ -413,7 +413,7 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false;
+    bool translate_old = false, regenerate_thumbnails = false;
     int current_width, current_depth, current_height;
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
@@ -577,10 +577,14 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
                     }
 
-                    Semver old_version(1, 5, 9);
+                    Semver old_version(1, 5, 9), old_version2(1, 5, 9);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
+                    }
+                    if ((file_version < old_version2) && !config.empty()) {
+                        regenerate_thumbnails = true;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to regenerate_thumbnails for all")%file_version.to_string();
                     }
 
                     if (normative_check) {
@@ -2202,8 +2206,8 @@ int CLI::run(int argc, char **argv)
         }
 #endif
 
-        bool need_regenerate_thumbnail = oriented_or_arranged;
-        bool need_regenerate_top_thumbnail = oriented_or_arranged;
+        bool need_regenerate_thumbnail = oriented_or_arranged || regenerate_thumbnails;
+        bool need_regenerate_top_thumbnail = oriented_or_arranged || regenerate_thumbnails;
         bool need_create_thumbnail_group = false,  need_create_top_group = false;
 
         // get type and color for platedata
@@ -2223,7 +2227,7 @@ int CLI::run(int argc, char **argv)
             }
 
             if (!plate_data->plate_thumbnail.is_valid()) {
-                if (!oriented_or_arranged && plate_data_src.size() > i)
+                if (!oriented_or_arranged && !regenerate_thumbnails && plate_data_src.size() > i)
                     plate_data->thumbnail_file = plate_data_src[i]->thumbnail_file;
                 BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s thumbnail data is invalid, check the file %2% exist or not")%(i+1) %plate_data->thumbnail_file;
                 if (plate_data->thumbnail_file.empty() || (!boost::filesystem::exists(plate_data->thumbnail_file))) {
@@ -2238,13 +2242,16 @@ int CLI::run(int argc, char **argv)
                 }
             }
             else {
+                if (regenerate_thumbnails)
+                    plate_data->plate_thumbnail.reset();
+
                 if (!skip_this_plate) {
                     need_create_thumbnail_group = true;
                 }
             }
 
             if (plate_data->top_file.empty() || plate_data->pick_file.empty()) {
-                if (plate_data_src.size() > i) {
+                if (!regenerate_thumbnails && (plate_data_src.size() > i)) {
                     plate_data->top_file = plate_data_src[i]->top_file;
                     plate_data->pick_file = plate_data_src[i]->pick_file;
                 }
