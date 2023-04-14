@@ -71,7 +71,7 @@ public:
 // for debug
 void export_regions_to_svg(const Point &point, const Polygons &polylines)
 {
-    std::string path = "D:/svg_profiles/text_poly.svg";
+    std::string path = "/svg_profiles/text_poly.svg";
     //BoundingBox bbox = get_extents(polylines);
     SVG svg(path.c_str());
     svg.draw(polylines, "green");

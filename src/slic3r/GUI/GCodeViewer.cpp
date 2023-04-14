@@ -1320,7 +1320,7 @@ static void debug_calibration_output_thumbnail(const ThumbnailData& thumbnail_da
         }
     }
 
-    image.SaveFile("D:/calibrate.png", wxBITMAP_TYPE_PNG);
+    image.SaveFile("calibrate.png", wxBITMAP_TYPE_PNG);
 }
 #endif
 
