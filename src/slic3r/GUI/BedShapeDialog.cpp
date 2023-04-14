@@ -169,12 +169,12 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 const std::string BedShapePanel::NONE = "None";
 const std::string BedShapePanel::EMPTY_STRING = "";
 
-void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
+void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std::string& custom_texture, const std::string& custom_model)
 {
     wxGetApp().UpdateDarkUI(this);
     m_shape = default_pt.values;
-    m_custom_texture = custom_texture.value.empty() ? NONE : custom_texture.value;
-    m_custom_model = custom_model.value.empty() ? NONE : custom_model.value;
+    m_custom_texture = custom_texture.empty() ? NONE : custom_texture;
+    m_custom_model = custom_model.empty() ? NONE : custom_model;
 
     auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Shape"));
     sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());

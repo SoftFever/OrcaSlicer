@@ -63,7 +63,7 @@ class BedShapePanel : public wxPanel
 public:
     BedShapePanel(wxWindow* parent) : wxPanel(parent, wxID_ANY), m_custom_texture(NONE), m_custom_model(NONE) {}
 
-    void build_panel(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model);
+    void build_panel(const ConfigOptionPoints& default_pt, const std::string& custom_texture, const std::string& custom_model);
 
     // Returns the resulting bed shape polygon. This value will be stored to the ini file.
     const std::vector<Vec2d>& get_shape() const { return m_shape; }

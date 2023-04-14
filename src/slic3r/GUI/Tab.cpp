@@ -4860,20 +4860,30 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
             BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"), {}, {});
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
+                *m_config->option<ConfigOptionString>("bed_custom_texture"),
+                *m_config->option<ConfigOptionString>("bed_custom_model"));
             if (dlg.ShowModal() == wxID_OK) {
                 const std::vector<Vec2d>& shape = dlg.get_shape();
+                const std::string& custom_texture = dlg.get_custom_texture();
+                const std::string& custom_model = dlg.get_custom_model();
                 if (!shape.empty())
                 {
                     load_key_value("printable_area", shape);
+                    load_key_value("bed_custom_texture", custom_texture);
+                    load_key_value("bed_custom_model", custom_model);
                     update_changed_ui();
                 }
+            on_presets_changed();
+
             }
         }));
 
     {
         Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
         const Search::GroupAndCategory& gc = searcher.get_group_and_category("printable_area");
+        searcher.add_key("bed_custom_texture", m_type, gc.group, gc.category);
+        searcher.add_key("bed_custom_model", m_type, gc.group, gc.category);
     }
 
     return sizer;

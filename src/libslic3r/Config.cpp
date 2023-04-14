@@ -1308,7 +1308,7 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
     {
         const ConfigOption* opt = this->option(opt_key);
         if ( opt->is_scalar() ) {
-            if (opt->type() == coString)
+            if (opt->type() == coString && (opt_key != "bed_custom_texture" && opt_key != "bed_custom_model"))
                 //keep \n, \r, \t
                 j[opt_key] = (dynamic_cast<const ConfigOptionString *>(opt))->value;
             else
