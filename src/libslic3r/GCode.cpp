@@ -1730,7 +1730,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         auto pts = std::make_unique<ConfigOptionPoints>();
         pts->values.reserve(print.first_layer_convex_hull().size());
         for (const Point& pt : print.first_layer_convex_hull().points)
-            pts->values.emplace_back(unscale(pt) - Vec2d(print.get_plate_origin().x(), print.get_plate_origin().y()));
+            pts->values.emplace_back(print.translate_to_print_space(pt));
         BoundingBoxf bbox(pts->values);
         m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
         m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
@@ -4616,32 +4616,34 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     return gcode;
 }
 
-inline std::string polygon_to_string(const Polygon &polygon, const Vec3d& offset) {
+inline std::string polygon_to_string(const Polygon &polygon, Print *print) {
     std::ostringstream gcode;
     gcode << "[";
     for (const Point &p : polygon.points) {
-        gcode << "[" << unscaled(p.x()) - offset.x() << "," << unscaled(p.y()) - offset.y() << "],";
+        const auto v = print->translate_to_print_space(p);
+        gcode << "[" << v.x() << "," << v.y() << "],";
     }
-    gcode << "[" << unscaled(polygon.points.front().x()) - offset.x() << "," << unscaled(polygon.points.front().y()) - offset.y() << "]";
+    const auto first_v = print->translate_to_print_space(polygon.points.front());
+    gcode << "[" << first_v.x() << "," << first_v.y() << "]";
     gcode << "]";
     return gcode.str();
 }
-    // this function iterator PrintObject and assign a seqential id to each object.
+// this function iterator PrintObject and assign a seqential id to each object.
 // this id is used to generate unique object id for each object.
-std::string GCode::set_object_info(Print* print) {
+std::string GCode::set_object_info(Print *print) {
     std::ostringstream gcode;
     size_t object_id = 0;
-    for (PrintObject* object : print->objects()) {
+    for (PrintObject *object : print->objects()) {
         object->set_id(object_id++);
         size_t inst_id = 0;
         for (PrintInstance &inst : object->instances()) {
             inst.id = inst_id++;
             if (this->config().exclude_object && print->config().gcode_flavor.value == gcfKlipper) {
                 auto bbox = inst.get_bounding_box();
-                auto center = bbox.center() - print->get_plate_origin();
-                gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << get_instance_name(object, inst)
-                      << " CENTER=" << center.x() << "," << center.y()
-                      << " POLYGON=" << polygon_to_string(inst.get_convex_hull_2d(),  print->get_plate_origin()) << "\n";
+                auto center = print->translate_to_print_space(Vec2d(bbox.center().x(), bbox.center().y()));
+                gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << get_instance_name(object, inst) << " CENTER=" << center.x()
+                      << "," << center.y() << " POLYGON=" << polygon_to_string(inst.get_convex_hull_2d(), print)
+                      << "\n";
             }
         }
     }

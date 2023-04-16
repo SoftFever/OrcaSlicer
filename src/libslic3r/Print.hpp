@@ -750,6 +750,9 @@ public:
     const CalibMode calib_mode() const { return m_calib_params.mode; }
     void set_calib_params(const Calib_Params& params);
     const Calib_Params& calib_params() const { return m_calib_params; }
+    Vec2d translate_to_print_space(const Vec2d &point) const;
+    // scaled point
+    Vec2d translate_to_print_space(const Point &point) const;
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
