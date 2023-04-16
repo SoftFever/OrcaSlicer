@@ -630,9 +630,9 @@ GeometryBuffer Bed3D::update_bed_triangles() const
     BoundingBoxf3 build_volume;
 
     if (!m_build_volume.valid()) return new_triangles;
-
-    (*model_offset_ptr)(0) = 0;//m_build_volume.bounding_volume2d().min.x();
-    (*model_offset_ptr)(1) = 0; // m_build_volume.bounding_volume2d().min.y();
+    auto bed_ext = get_extents(m_bed_shape);
+    (*model_offset_ptr)(0) = m_build_volume.bounding_volume2d().min.x() - bed_ext.min.x();
+    (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y() - bed_ext.min.y();
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     std::vector<Vec2d> new_bed_shape;
