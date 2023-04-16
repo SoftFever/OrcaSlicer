@@ -310,6 +310,10 @@ void AppConfig::set_defaults()
 //     }
 // #endif
 
+    if (get("presets", "filament_colors").empty()) {
+        set_str("presets", "filament_colors", "#F2754E");
+    }
+
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");
