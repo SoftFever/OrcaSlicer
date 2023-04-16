@@ -1579,7 +1579,7 @@ void PartPlate::generate_plate_name_texture()
 	float offset_x = 1;
     w = int(factor * (m_name_texture.get_width() * 16) / m_name_texture.get_height());
     h = int(factor * 16);
-    Vec2d p = bed_ext[3] + Vec2d(0, h * m_name_texture.m_original_height / m_name_texture.get_height());
+    Vec2d p = bed_ext[3] + Vec2d(0, 1 + h * m_name_texture.m_original_height / m_name_texture.get_height());
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y) });
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y)});
