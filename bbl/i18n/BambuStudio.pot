@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-14 17:28+0800\n"
+"POT-Creation-Date: 2023-04-16 12:36+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2772,8 +2772,8 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Conflicts of gcode paths have been found. Please separate the conflicted "
-"objects farther (%s <-> %s)."
+"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
 msgid "An object is layed over the boundary of plate."
@@ -2789,6 +2789,12 @@ msgid ""
 "An object is laid over the boundary of plate or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
+msgstr ""
+
+msgid "Jump to"
+msgstr ""
+
+msgid "ERROR:"
 msgstr ""
 
 msgid "Calibration"
@@ -3694,9 +3700,6 @@ msgid "Cancel upload"
 msgstr ""
 
 msgid "Slice ok."
-msgstr ""
-
-msgid "Jump to"
 msgstr ""
 
 msgid "Error:"
@@ -4901,8 +4904,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
