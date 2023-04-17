@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-16 12:36+0800\n"
+"POT-Creation-Date: 2023-04-17 10:55+0800\n"
 "PO-Revision-Date: 2023-04-16 12:40+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5044,8 +5044,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8372,6 +8372,21 @@ msgstr "支撑：正在生成多边形"
 
 msgid "Support: generate toolpath"
 msgstr "支撑：正在生成走线路径"
+
+msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
+
+msgid "Loading of a model file failed."
+msgstr "加载模型文件失败。"
+
+msgid "The supplied file couldn't be read because it's empty"
+msgstr "无法读取提供的文件，因为该文件为空。"
+
+msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
+msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
+
+msgid "Canceled"
+msgstr "已取消"
 
 #, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
@@ -12401,8 +12416,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
