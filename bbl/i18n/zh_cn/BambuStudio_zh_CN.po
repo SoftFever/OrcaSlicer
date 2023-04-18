@@ -5787,7 +5787,7 @@ msgstr "网络插件升级"
 
 msgid ""
 "Click OK to update the Network plug-in when Bambu Studio launches next time."
-msgstr "点击OK将在Bambu Studio下次启动之后自动升级网络插件"
+msgstr "点击\"确定\"，将在Bambu Studio下次启动之后自动升级网络插件"
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
