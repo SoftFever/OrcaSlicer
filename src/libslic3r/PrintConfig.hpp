@@ -696,6 +696,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                wall_distribution_count))
     ((ConfigOptionPercent,            min_feature_size))
     ((ConfigOptionPercent,            min_bead_width))
+    ((ConfigOptionBool,               only_one_wall_top))
+    ((ConfigOptionBool,               only_one_wall_first_layer))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -752,9 +754,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, overhang_1_4_speed))
     ((ConfigOptionFloat, overhang_2_4_speed))
     ((ConfigOptionFloat, overhang_3_4_speed))
-    ((ConfigOptionFloat, overhang_4_4_speed))
-    ((ConfigOptionBool, only_one_wall_top))
-)
+    ((ConfigOptionFloat, overhang_4_4_speed)))
 
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,

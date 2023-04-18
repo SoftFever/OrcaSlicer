@@ -1870,6 +1870,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_flow");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("only_one_wall_top");
+        optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");

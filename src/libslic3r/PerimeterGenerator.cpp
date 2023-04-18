@@ -838,8 +838,8 @@ void PerimeterGenerator::process_classic()
     for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
-        //BBS: set the topmost layer to be one wall
-        if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
+        //BBS: set the topmost and bottom most layer to be one wall
+        if (loop_number > 0 && ((this->object_config->only_one_wall_top && this->upper_slices == nullptr) || (this->object_config->only_one_wall_first_layer && layer_id == 0)))
             loop_number = 0;
 
         ExPolygons last        = union_ex(surface.expolygon.simplify_p(surface_simplify_resolution));
@@ -986,7 +986,7 @@ void PerimeterGenerator::process_classic()
 
                 //BBS: refer to superslicer
                 //store surface for top infill if only_one_wall_top
-                if (i == 0 && i!=loop_number && config->only_one_wall_top && this->upper_slices != NULL) {
+                if (i == 0 && i != loop_number && this->object_config->only_one_wall_top && this->upper_slices != NULL) {
                     //split the polygons with top/not_top
                     //get the offset from solid surface anchor
                     coord_t offset_top_surface = scale_(1.5 * (config->wall_loops.value == 0 ? 0. : unscaled(double(ext_perimeter_width + perimeter_spacing * int(int(config->wall_loops.value) - int(1))))));
@@ -1283,6 +1283,9 @@ void PerimeterGenerator::process_arachne()
     for (const Surface& surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+        if (loop_number > 0 && this->object_config->only_one_wall_first_layer && layer_id == 0)
+            loop_number = 0;
+
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         Polygons   last_p = to_polygons(last);
 
