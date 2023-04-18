@@ -2658,6 +2658,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     //BBS:exclude the assmble view
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        _set_warning_notification_if_needed(EWarning::GCodeConflict);
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
@@ -8838,8 +8839,10 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
 {
     _set_current();
     bool show = false;
-    if (!m_volumes.empty())
+    if (!m_volumes.empty()) {
         show = _is_any_volume_outside();
+        show &= m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
+    }
     else {
         if (wxGetApp().is_editor()) {
             if (current_printer_technology() != ptSLA)
@@ -8884,17 +8887,23 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     };
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
+    const ModelObject* conflictObj=nullptr;
     switch (warning) {
     case EWarning::GCodeConflict: {
+        static std::string prevConflictText;
+        text  = prevConflictText;
+        error = ErrorType::SLICING_ERROR;
         if (!m_gcode_viewer.m_conflict_result) { break; }
         std::string objName1 = m_gcode_viewer.m_conflict_result.value()._objName1;
         std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
         double      height   = m_gcode_viewer.m_conflict_result.value()._height;
         int         layer    = m_gcode_viewer.m_conflict_result.value().layer;
-        text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
-                height % objName1 % objName2)
+        text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s).")) % (layer + 1) %
+                objName1 % objName2)
                    .str();
-        error                = ErrorType::SLICING_ERROR;
+        prevConflictText        = text;
+        const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(m_gcode_viewer.m_conflict_result.value()._obj2);
+        conflictObj             = obj2->model_object();
         break;
     }
     case EWarning::ObjectOutside:      text = _u8L("An object is layed over the boundary of plate."); break;
@@ -8913,25 +8922,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         return;
     auto& notification_manager = *wxGetApp().plater()->get_notification_manager();
 
-    if (warning == EWarning::GCodeConflict && m_gcode_viewer.m_conflict_result) {
-        const PrintObject *obj2  = reinterpret_cast<const PrintObject *>(m_gcode_viewer.m_conflict_result.value()._obj2);
-        auto               mo        = obj2->model_object();
-        ObjectID           id        = mo->id();
-        auto               action_fn = [id](wxEvtHandler *) {
-            auto &objects = wxGetApp().model().objects;
-            auto  iter    = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
-            if (iter != objects.end()) {
-                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-                wxGetApp().obj_list()->select_items({{*iter, nullptr}});
-            }
-            return false;
-        };
-        auto hypertext = _u8L("Jump to");
-        hypertext += std::string(" [") + mo->name + "]";
-        notification_manager.push_notification(NotificationType::PlaterError, NotificationManager::NotificationLevel::ErrorNotificationLevel, _u8L("ERROR:") + "\n" + text,
-                                               hypertext, action_fn);
-        return;
-    }
     switch (error)
     {
     case PLATER_WARNING:
@@ -8948,7 +8938,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_ERROR:
         if (state)
-            notification_manager.push_slicing_error_notification(text, nullptr);
+            notification_manager.push_slicing_error_notification(text, conflictObj);
         else
             notification_manager.close_slicing_error_notification(text);
         break;
