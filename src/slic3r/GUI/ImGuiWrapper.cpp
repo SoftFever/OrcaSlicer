@@ -2067,6 +2067,7 @@ void ImGuiWrapper::init_font(bool compress)
     ImVector<ImWchar> basic_ranges;
     ImFontAtlas::GlyphRangesBuilder builder;
     builder.AddRanges(m_glyph_ranges);
+    builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
 #ifdef __APPLE__
     if (m_font_cjk)
         // Apple keyboard shortcuts are only contained in the CJK fonts.
