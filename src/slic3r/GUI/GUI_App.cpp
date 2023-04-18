@@ -1383,10 +1383,10 @@ std::string GUI_App::get_model_http_url(std::string country_code)
 {
     std::string url;
     if (country_code == "US") {
-        url = "https://makerhub.bambu-lab.com/";
+        url = "https://makerworld.com/";
     }
     else if (country_code == "CN") {
-        url = "https://makerhub.bambu-lab.com/zh/";
+        url = "https://makerworld.com/";
     }
     else if (country_code == "ENV_CN_DEV") {
         url = "https://makerhub-dev.bambu-lab.com/";
@@ -3279,21 +3279,6 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //         config_wizard_startup(true);
 //     });
 
-     //show publish button
-    if (m_agent && m_agent->is_user_login() && mainframe) {
-        int identifier;
-        int result = m_agent->get_user_info(&identifier);
-        auto publish_identifier = identifier & 1;
-
-#ifdef __WINDOWS__
-        if (result == 0 && publish_identifier >= 0) {
-            mainframe->m_topbar->show_publish_button(publish_identifier == 0 ? false : true);
-        }
-#else
-        mainframe->show_publish_button(publish_identifier == 0 ? false : true);
-#endif
-    }
-
     m_is_recreating_gui = false;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
@@ -3621,12 +3606,6 @@ void GUI_App::request_user_logout()
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({}, {});
         GUI::wxGetApp().stop_sync_user_preset();
-
-#ifdef __WINDOWS__
-        wxGetApp().mainframe->topbar()->show_publish_button(false);
-#else
-        wxGetApp().mainframe->show_publish_button(false);
-#endif
     }
 }
 
@@ -3970,20 +3949,6 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         enable_user_preset_folder(true);
     } else {
         enable_user_preset_folder(false);
-    }
-    //show publish button
-    if (m_agent->is_user_login() && mainframe) {
-        int identifier;
-        int result = m_agent->get_user_info(&identifier);
-        auto publish_identifier = identifier & 1;
-
-#ifdef __WINDOWS__
-        if (result == 0 && publish_identifier >= 0) {
-            mainframe->m_topbar->show_publish_button(publish_identifier == 0 ? false : true);
-        }
-#else
-        mainframe->show_publish_button(publish_identifier == 0 ? false : true);
-#endif
     }
 }
 
@@ -5729,6 +5694,7 @@ void GUI_App::open_publish_page_dialog()
     wxString language_code = this->current_language_code().BeforeFirst('_');
     model_url += (language_code.ToStdString() + "/my/models/publish");
 
+#if 0
     if (getAgent() && mainframe) {
 
         //login already
@@ -5741,6 +5707,7 @@ void GUI_App::open_publish_page_dialog()
             }
         }
     }
+#endif
 
     if (result < 0) {
         link_url = host_url + model_url;

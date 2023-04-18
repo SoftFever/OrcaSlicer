@@ -2573,18 +2573,6 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
 }
 
-void MainFrame::show_publish_button(bool show)
-{
-    if (!m_menubar) return;
-
-    if (show){
-        m_menubar->Insert(4, publishMenu, wxString::Format("&%s", _L("3D Models")));
-    }
-    else {
-        m_menubar->Remove(4);
-    }
-}
-
 void MainFrame::set_max_recent_count(int max)
 {
     max = max < 0 ? 0 : max > 10000 ? 10000 : max;
