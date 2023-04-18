@@ -1205,9 +1205,9 @@ void IMSlider::render_menu() {
         m_ticks.ticks.end();
     std::string custom_code;
     if (tick_it != m_ticks.ticks.end()) {
-        render_edit_menu(*tick_it);
         if (tick_it->type == CustomGCode::Custom)
             custom_code = tick_it->extra;
+        render_edit_menu(*tick_it);
     }
     else {
         render_add_menu();
