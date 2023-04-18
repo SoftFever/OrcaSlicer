@@ -8,6 +8,8 @@ set -x
 docker run \
   `# Use the hosts networking.  Printer wifi and also dbus communication` \
   --net=host \
+  `# Some X installs will not have permissions to talk to sockets for shared memory` \
+  --ipc host \
   `# Run as your workstations username to keep permissions the same` \
   -u $USER \
   `# Bind mount your home directory into the container for loading/saving files` \
