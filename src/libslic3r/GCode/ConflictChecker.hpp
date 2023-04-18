@@ -14,55 +14,91 @@ namespace Slic3r {
 
 struct LineWithID
 {
-    Line _line;
-    int  _id;
+    Line          _line;
+    const void *  _id;
     ExtrusionRole _role;
 
-    LineWithID(const Line &line, int id, ExtrusionRole role) : _line(line), _id(id), _role(role) {}
+    LineWithID(const Line &line, const void* id, ExtrusionRole role) : _line(line), _id(id), _role(role) {}
 };
 
 using LineWithIDs = std::vector<LineWithID>;
 
+struct ExtrusionLayer
+{
+    ExtrusionPaths paths;
+    const Layer *  layer;
+    float          bottom_z;
+    float          height;
+};
+
+enum class ExtrusionLayersType { INFILL, PERIMETERS, SUPPORT, WIPE_TOWER };
+
+struct ExtrusionLayers : public std::vector<ExtrusionLayer>
+{
+    ExtrusionLayersType type;
+};
+
+struct ObjectExtrusions
+{
+    ExtrusionLayers perimeters;
+    ExtrusionLayers support;
+
+    ObjectExtrusions()
+    {
+        perimeters.type = ExtrusionLayersType::PERIMETERS;
+        support.type    = ExtrusionLayersType::SUPPORT;
+    }
+};
+
 class LinesBucket
 {
-private:
-    double   _curHeight  = 0.0;
+public:
+    float    _curBottomZ = 0.0;
     unsigned _curPileIdx = 0;
 
-    std::vector<ExtrusionPaths> _piles;
-    int                         _id;
-    Point                       _offset;
+    ExtrusionLayers _piles;
+    const void*     _id;
+    Point           _offset;
 
 public:
-    LinesBucket(std::vector<ExtrusionPaths> &&paths, int id, Point offset) : _piles(paths), _id(id), _offset(offset) {}
+    LinesBucket(ExtrusionLayers &&paths, const void* id, Point offset) : _piles(paths), _id(id), _offset(offset) {}
     LinesBucket(LinesBucket &&) = default;
 
+    std::pair<int, int> curRange() const
+    {
+        auto begin = std::lower_bound(_piles.begin(), _piles.end(), _piles[_curPileIdx], [](const ExtrusionLayer &l, const ExtrusionLayer &r) { return l.bottom_z < r.bottom_z; });
+        auto end = std::upper_bound(_piles.begin(), _piles.end(), _piles[_curPileIdx], [](const ExtrusionLayer &l, const ExtrusionLayer &r) { return l.bottom_z < r.bottom_z; });
+        return std::make_pair<int, int>(std::distance(_piles.begin(), begin), std::distance(_piles.begin(), end));
+    }
     bool valid() const { return _curPileIdx < _piles.size(); }
     void raise()
     {
-        if (valid()) {
-            if (_piles[_curPileIdx].empty() == false) { _curHeight += _piles[_curPileIdx].front().height; }
-            _curPileIdx++;
-        }
+        if (!valid()) { return; }
+        auto [b, e] = curRange();
+        _curPileIdx += (e - b);
+        _curBottomZ = _curPileIdx == _piles.size() ? _piles.back().bottom_z : _piles[_curPileIdx].bottom_z;
     }
-    double      curHeight() const { return _curHeight; }
+    float curBottomZ() const { return _curBottomZ; }
     LineWithIDs curLines() const
     {
+        auto [b, e] = curRange();
         LineWithIDs lines;
-        for (const ExtrusionPath &path : _piles[_curPileIdx]) {
-            if (path.is_force_no_extrusion() == false) {
-                Polyline check_polyline = path.polyline;
-                check_polyline.translate(_offset);
-                Lines tmpLines = check_polyline.lines();
-                for (const Line &line : tmpLines) { lines.emplace_back(line, _id, path.role()); }
+        for (int i = b; i < e; ++i) {
+            for (const ExtrusionPath &path : _piles[i].paths) {
+                if (path.is_force_no_extrusion() == false) {
+                    Polyline check_polyline = path.polyline;
+                    check_polyline.translate(_offset);
+                    Lines tmpLines = check_polyline.lines();
+                    for (const Line &line : tmpLines) { lines.emplace_back(line, _id, path.role()); }
+                }
             }
         }
         return lines;
     }
 
-    friend bool operator>(const LinesBucket &left, const LinesBucket &right) { return left._curHeight > right._curHeight; }
-    friend bool operator<(const LinesBucket &left, const LinesBucket &right) { return left._curHeight < right._curHeight; }
-    friend bool operator==(const LinesBucket &left, const LinesBucket &right) { return left._curHeight == right._curHeight; }
+    friend bool operator>(const LinesBucket &left, const LinesBucket &right) { return left._curBottomZ > right._curBottomZ; }
+    friend bool operator<(const LinesBucket &left, const LinesBucket &right) { return left._curBottomZ < right._curBottomZ; }
+    friend bool operator==(const LinesBucket &left, const LinesBucket &right) { return left._curBottomZ == right._curBottomZ; }
 };
 
 struct LinesBucketPtrComp
@@ -72,40 +108,31 @@ struct LinesBucketPtrComp
 
 class LinesBucketQueue
 {
-private:
+public:
     std::vector<LinesBucket>                                                           _buckets;
     std::priority_queue<LinesBucket *, std::vector<LinesBucket *>, LinesBucketPtrComp> _pq;
-    std::map<int, const void *>                                                        _idToObjsPtr;
-    std::map<const void *, int>                                                        _objsPtrToId;
 
 public:
-    void        emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, const void *objPtr, Point offset);
+    void        emplace_back_bucket(ExtrusionLayers &&els, const void *objPtr, Point offset);
     bool        valid() const { return _pq.empty() == false; }
-    const void *idToObjsPtr(int id)
-    {
-        if (_idToObjsPtr.find(id) != _idToObjsPtr.end())
-            return _idToObjsPtr[id];
-        else
-            return nullptr;
-    }
-    double      removeLowests();
+    float       getCurrBottomZ();
     LineWithIDs getCurLines() const;
 };
 
 void getExtrusionPathsFromEntity(const ExtrusionEntityCollection *entity, ExtrusionPaths &paths);
 
-ExtrusionPaths getExtrusionPathsFromLayer(LayerRegionPtrs layerRegionPtrs);
+ExtrusionLayers getExtrusionPathsFromLayer(const LayerRegionPtrs layerRegionPtrs);
 
-ExtrusionPaths getExtrusionPathsFromSupportLayer(SupportLayer *supportLayer);
+ExtrusionLayer getExtrusionPathsFromSupportLayer(SupportLayer *supportLayer);
 
-std::pair<std::vector<ExtrusionPaths>, std::vector<ExtrusionPaths>> getAllLayersExtrusionPathsFromObject(PrintObject *obj);
+ObjectExtrusions getAllLayersExtrusionPathsFromObject(PrintObject *obj);
 
 struct ConflictComputeResult
 {
-    int _obj1;
-    int _obj2;
+    const void* _obj1;
+    const void* _obj2;
 
-    ConflictComputeResult(int o1, int o2) : _obj1(o1), _obj2(o2) {}
+    ConflictComputeResult(const void* o1, const void* o2) : _obj1(o1), _obj2(o2) {}
     ConflictComputeResult() = default;
 };
 
