@@ -1335,6 +1335,51 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	return plate_extruders;
 }
 
+std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gcode) const
+{
+	std::vector<int> plate_extruders;
+	// if gcode.3mf file
+	if (m_model->objects.empty()) {
+		for (int i = 0; i < slice_filaments_info.size(); i++) {
+			plate_extruders.push_back(slice_filaments_info[i].id + 1);
+		}
+		return plate_extruders;
+	}
+
+	// if 3mf file
+	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
+	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
+		if (!contain_instance_totally(obj_idx, 0))
+			continue;
+
+		ModelObject* mo = m_model->objects[obj_idx];
+		for (ModelVolume* mv : mo->volumes) {
+			std::vector<int> volume_extruders = mv->get_extruders();
+			plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
+		}
+	}
+
+	if (conside_custom_gcode) {
+		//BBS
+		int nums_extruders = 0;
+		if (const ConfigOptionStrings* color_option = dynamic_cast<const ConfigOptionStrings*>(wxGetApp().preset_bundle->project_config.option("filament_colour"))) {
+			nums_extruders = color_option->values.size();
+			if (m_model->plates_custom_gcodes.find(m_plate_index) != m_model->plates_custom_gcodes.end()) {
+				for (auto item : m_model->plates_custom_gcodes.at(m_plate_index).gcodes) {
+					if (item.type == CustomGCode::Type::ToolChange && item.extruder <= nums_extruders)
+						plate_extruders.push_back(item.extruder);
+				}
+			}
+		}
+	}
+
+	std::sort(plate_extruders.begin(), plate_extruders.end());
+	auto it_end = std::unique(plate_extruders.begin(), plate_extruders.end());
+	plate_extruders.resize(std::distance(plate_extruders.begin(), it_end));
+	return plate_extruders;
+}
+
 std::vector<int> PartPlate::get_used_extruders()
 {
 	std::vector<int> used_extruders;

@@ -477,7 +477,7 @@ void Preview::update_layers_slider_mode()
     // BBS
     if (wxGetApp().filaments_cnt() > 1) {
         //const ModelObjectPtrs& objects = wxGetApp().plater()->model().objects;
-        auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders();
+        auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders_without_support();
         for (auto extruder : plate_extruders) {
             if (extruder != plate_extruders[0])
                 can_change_color = false;
@@ -486,23 +486,23 @@ void Preview::update_layers_slider_mode()
         if (!plate_extruders.empty()) {
             //const int extruder = objects[0]->config.has("extruder") ? objects[0]->config.option("extruder")->getInt() : 0;
             only_extruder = plate_extruders[0];
-        //    auto is_one_extruder_printed_model = [objects, extruder]() {
-        //        for (ModelObject *object : objects) {
-        //            if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) /*return false*/;
+            //    auto is_one_extruder_printed_model = [objects, extruder]() {
+            //        for (ModelObject *object : objects) {
+            //            if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) /*return false*/;
 
-        //            for (ModelVolume *volume : object->volumes)
-        //                if ((volume->config.has("extruder") && volume->config.option("extruder")->getInt() != extruder) || !volume->mmu_segmentation_facets.empty()) return false;
+            //            for (ModelVolume *volume : object->volumes)
+            //                if ((volume->config.has("extruder") && volume->config.option("extruder")->getInt() != extruder) || !volume->mmu_segmentation_facets.empty()) return false;
 
-        //            for (const auto &range : object->layer_config_ranges)
-        //                if (range.second.has("extruder") && range.second.option("extruder")->getInt() != extruder) return false;
-        //        }
-        //        return true;
-        //    };
+            //            for (const auto &range : object->layer_config_ranges)
+            //                if (range.second.has("extruder") && range.second.option("extruder")->getInt() != extruder) return false;
+            //        }
+            //        return true;
+            //    };
 
-        //    if (is_one_extruder_printed_model())
-        //        only_extruder = extruder;
-        //    else
-        //        one_extruder_printed_model = false;
+            //    if (is_one_extruder_printed_model())
+            //        only_extruder = extruder;
+            //    else
+            //        one_extruder_printed_model = false;
         }
     }
 
