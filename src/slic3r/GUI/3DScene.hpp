@@ -604,7 +604,8 @@ private:
     struct Slope
     {
         // toggle for slope rendering
-        bool active{ false };
+        bool active{ false };//local active
+        bool isGlobalActive{false};
         float normal_z;
     };
 
@@ -656,9 +657,14 @@ public:
     GLVolume* new_toolpath_volume(const std::array<float, 4>& rgba, size_t reserve_vbo_floats = 0);
     GLVolume* new_nontoolpath_volume(const std::array<float, 4>& rgba, size_t reserve_vbo_floats = 0);
 
+    int get_selection_support_threshold_angle(bool&) const;
     // Render the volumes by OpenGL.
     //BBS: add outline drawing logic
-    void render(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>(), bool with_outline = true) const;
+    void render(ERenderType                           type,
+                bool                                  disable_cullface,
+                const Transform3d &                   view_matrix,
+                std::function<bool(const GLVolume &)> filter_func  = std::function<bool(const GLVolume &)>(),
+                bool with_outline = true) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
@@ -678,8 +684,10 @@ public:
     void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
     void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
 
+    bool is_slope_GlobalActive() const { return m_slope.isGlobalActive; }
     bool is_slope_active() const { return m_slope.active; }
     void set_slope_active(bool active) { m_slope.active = active; }
+    void set_slope_GlobalActive(bool active) { m_slope.isGlobalActive = active; }
 
     float get_slope_normal_z() const { return m_slope.normal_z; }
     void set_slope_normal_z(float normal_z) { m_slope.normal_z = normal_z; }

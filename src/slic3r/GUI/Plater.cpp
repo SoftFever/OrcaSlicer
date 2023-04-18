@@ -1877,6 +1877,12 @@ struct Plater::priv
     bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
 
+    bool is_view3D_overhang_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_overhang_shown(); }
+    void show_view3D_overhang(bool show)
+    {
+        if (current_panel == view3D) view3D->get_canvas3d()->show_overhang(show);
+    }
+
     bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
     void collapse_sidebar(bool collapse);
 
@@ -8883,6 +8889,9 @@ bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
 
 bool Plater::are_view3D_labels_shown() const { return p->are_view3D_labels_shown(); }
 void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
+
+bool Plater::is_view3D_overhang_shown() const { return p->is_view3D_overhang_shown(); }
+void Plater::show_view3D_overhang(bool show)  {  p->show_view3D_overhang(show); }
 
 bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed(); }
 void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }

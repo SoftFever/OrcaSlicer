@@ -275,6 +275,9 @@ public:
     bool are_view3D_labels_shown() const;
     void show_view3D_labels(bool show);
 
+    bool is_view3D_overhang_shown() const;
+    void show_view3D_overhang(bool show);
+    
     bool is_sidebar_collapsed() const;
     void collapse_sidebar(bool show);
 

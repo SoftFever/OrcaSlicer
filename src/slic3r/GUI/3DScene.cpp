@@ -1236,8 +1236,17 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     return list;
 }
 
+int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_support) const
+{
+    const DynamicPrintConfig& glb_cfg        = GUI::wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    enable_support =  glb_cfg.opt_bool("enable_support");
+    int support_threshold_angle =  glb_cfg.opt_int("support_threshold_angle");
+    return  support_threshold_angle ;
+}
+
 //BBS: add outline drawing logic
-void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func, bool with_outline) const
+void GLVolumeCollection::render(
+    GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d &view_matrix, std::function<bool(const GLVolume &)> filter_func, bool with_outline) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -1305,10 +1314,16 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
             //use -1 ad a invalid type
             shader->set_uniform("print_volume.type", -1);
         }
+        
+        bool  enable_support;
+        int   support_threshold_angle = get_selection_support_threshold_angle(enable_support);
+    
+        float normal_z  = -::cos(Geometry::deg2rad((float) support_threshold_angle));
+  
         shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
-        shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+        shader->set_uniform("slope.actived", enable_support && m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
-        shader->set_uniform("slope.normal_z", m_slope.normal_z);
+        shader->set_uniform("slope.normal_z", normal_z);
 
 #if ENABLE_ENVIRONMENT_MAP
         unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();

@@ -412,6 +412,7 @@ class GLCanvas3D
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
+  
     class Tooltip
     {
         std::string m_text;
@@ -439,6 +440,8 @@ class GLCanvas3D
         bool is_enabled() const { return m_enabled; }
         void use(bool use) { m_volumes.set_slope_active(m_enabled ? use : false); }
         bool is_used() const { return m_volumes.is_slope_active(); }
+        void globalUse(bool use) { m_volumes.set_slope_GlobalActive(m_enabled ? use : false); }
+        bool is_GlobalUsed() const { return m_volumes.is_slope_GlobalActive(); }
         void set_normal_angle(float angle_in_deg) const {
             m_volumes.set_slope_normal_z(-::cos(Geometry::deg2rad(90.0f - angle_in_deg)));
         }
@@ -591,6 +594,7 @@ private:
     Labels m_labels;
     Tooltip m_tooltip;
     bool m_tooltip_enabled{ true };
+
     Slope m_slope;
 
     OrientSettings m_orient_settings_fff, m_orient_settings_sla;
@@ -994,6 +998,9 @@ public:
     bool are_labels_shown() const { return m_labels.is_shown(); }
     void show_labels(bool show) { m_labels.show(show); }
 
+    bool is_overhang_shown() const { return m_slope.is_GlobalUsed(); }
+    void show_overhang(bool show) { m_slope.globalUse(show); }
+    
     bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
