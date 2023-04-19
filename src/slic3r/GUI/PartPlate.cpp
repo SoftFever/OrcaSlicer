@@ -377,10 +377,10 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	Lines contour_lines = to_lines(poly);
 	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
-	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
+	if (!m_gridlines.set_from_lines(gridlines, -0.06f))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 
-	if (!m_gridlines_bolder.set_from_lines(gridlines_bolder, GROUND_Z))
+	if (!m_gridlines_bolder.set_from_lines(gridlines_bolder, -0.06f))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
