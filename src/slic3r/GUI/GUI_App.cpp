@@ -3685,6 +3685,24 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
+            else if (command_str.compare("modelmall_model_advise_get") == 0) {
+                if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
+                    if (mainframe->m_webview) {
+                        mainframe->m_webview->SendDesignStaffpick(m_agent);
+                    }
+                }
+            }
+            else if (command_str.compare("modelmall_model_open") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree data_node = root.get_child("data");
+                    boost::optional<std::string> id = data_node.get_optional<std::string>("id");
+                    if (id.has_value() && m_agent) {
+                        std::string url;
+                        if (m_agent->get_model_mall_detail_url(&url, id.value()) == 0)
+                            wxLaunchDefaultBrowser(url);
+                    }
+                }
+            }
             else if (command_str.compare("homepage_open_recentfile") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
@@ -3771,6 +3789,12 @@ std::string GUI_App::handle_web_request(std::string cmd)
 
                         this->request_open_project(Fullpath);
                     }
+                }
+            }
+            else if (command_str.compare("common_openurl") == 0) {
+                boost::optional<std::string> path      = root.get_optional<std::string>("url");
+                if (path.has_value()) {
+                    wxLaunchDefaultBrowser(path.value());
                 }
             }
         }
@@ -4521,6 +4545,11 @@ void GUI_App::start_http_server()
 void GUI_App::stop_http_server()
 {
     m_http_server.stop();
+}
+
+void GUI_App::switch_staff_pick(bool on)
+{
+    mainframe->m_webview->SendDesignStaffpick(on ? m_agent : nullptr);
 }
 
 bool GUI_App::switch_language()

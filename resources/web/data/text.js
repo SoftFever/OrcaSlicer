@@ -97,7 +97,8 @@ var LangText={
 		"t103":"Other",
 		"t104":"Profile name",
 		"t105":"Profile Author",
-		"t106":"Profile description"
+		"t106":"Profile description",
+		"t107":"Staff Pick"
     },
     "zh_CN": {
         "t1": "欢迎使用Bambu Studio",
@@ -197,7 +198,8 @@ var LangText={
 		"t103":"其他",
 		"t104":"配置名称",
 		"t105":"配置作者",
-		"t106":"配置介绍",		
+		"t106":"配置介绍",
+		"t107":"人工精选",
         "wk1": "快速入门指南",
         "wk2": "本文介绍了Bambu Studio的最基本用法。它指导用户配置软件，创建项目，并逐步完成第一个打印任务。",
         "wk3": "基于项目的工作流",
@@ -313,7 +315,8 @@ var LangText={
 		"t103":"その他",
 		"t104":"構成名",
 		"t105":"構成著者",
-		"t106":"構成の概要",			
+		"t106":"構成の概要",
+		"t107":"スタッフが選ぶ"
     }
 };
 

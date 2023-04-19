@@ -12,6 +12,9 @@ function OnInit()
 
 	SendMsg_GetLoginInfo();
 	SendMsg_GetRecentFile();
+	SendMsg_GetStaffPick();
+	
+	//InitStaffPick();
 }
 
 //------最佳打开文件的右键菜单功能----------
@@ -117,6 +120,10 @@ function HandleStudio( pVal )
 		{
 			$("#NoPluginTip").hide();
 		}
+	}
+	else if( strCmd=="modelmall_model_advise_get")
+	{
+		ShowStaffPick( pVal['hits'] );
 	}
 }
 
@@ -396,6 +403,90 @@ function OpenWikiUrl( strUrl )
 	tSend['data']['url']=strUrl;
 	
 	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+//--------------Staff Pick-------
+var StaffPickSwiper=null;
+function InitStaffPick()
+{
+	if( StaffPickSwiper!=null )
+	{
+		StaffPickSwiper.destroy(true,true);
+		StaffPickSwiper=null;
+	}	
+	
+	StaffPickSwiper = new Swiper('#HotModel_Swiper.swiper', {
+            slidesPerView : 'auto',
+		    spaceBetween: 16,
+			navigation: {
+				nextEl: '.swiper-button-next',
+				prevEl: '.swiper-button-prev',
+			},
+//			autoplay: {
+//				delay: 3000,
+//				stopOnLastSlide: false,
+//				disableOnInteraction: true,
+//				disableOnInteraction: false
+//			},
+//			pagination: {
+//				el: '.swiper-pagination',
+//			},
+		    scrollbar: {
+                el: '.swiper-scrollbar',
+				draggable: true
+            }
+			});
+}
+
+function SendMsg_GetStaffPick()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="modelmall_model_advise_get";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+function ShowStaffPick( ModelList )
+{
+	let PickTotal=ModelList.length;
+	if(PickTotal==0)
+	{
+		$('#HotModelList').html('');
+		$('#HotModelArea').hide();
+		
+		return;
+	}
+	
+	let strPickHtml='';
+	for(let a=0;a<PickTotal;a++)
+	{
+		let OnePickModel=ModelList[a];
+		
+		let ModelID=OnePickModel['design']['id'];
+		let ModelName=OnePickModel['design']['title'];
+		let ModelCover=OnePickModel['design']['cover'];
+		
+		strPickHtml+='<div class="HotModelPiece swiper-slide"  onClick="OpenOneStaffPickModel('+ModelID+')" >'+
+				'	<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="'+ModelCover+'" /></div>'+
+				'	<div  class="HotModel_NameText">'+ModelName+'</div>'+
+				'</div>';
+	}
+	
+	$('#HotModelList').html(strPickHtml);
+	InitStaffPick();
+	$('#HotModelArea').show();
+}
+
+function OpenOneStaffPickModel( ModelID )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="modelmall_model_open";
+	tSend['data']={};
+	tSend['data']['id']=ModelID;
+	
+	SendWXMessage( JSON.stringify(tSend) );		
 }
 
 

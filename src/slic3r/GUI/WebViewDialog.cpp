@@ -427,6 +427,23 @@ void WebViewPanel::SendRecentList(wxString const &sequence_id)
     RunScript(wxString::Format("window.postMessage(%s)", oss.str()));
 }
 
+void WebViewPanel::SendDesignStaffpick(NetworkAgent *agent)
+{
+    if (agent) {
+        agent->get_design_staffpick(0, 60, [this](std::string body) {
+            if (body.empty() || body.front() != '{') {
+                BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
+                return;
+            }
+            CallAfter([this, body] {
+                auto body2 = body;
+                body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+                RunScript(wxString::Format("window.postMessage(%s)", body2));
+            });
+        });
+    }
+}
+
 void WebViewPanel::SendLoginInfo()
 {
     if (wxGetApp().getAgent()) {

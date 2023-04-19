@@ -244,6 +244,13 @@ body
 	height: 100%;
 }
 
+.TitleSmallIcon
+{
+	width:30px;
+	height: 30px;
+	margin-right: 10px;
+}
+
 #MenuArea
 {
 	height: 140px;
@@ -302,6 +309,22 @@ body
 	height: 420px;
 }
 
+#HotModelBlock
+{
+	display:flex;
+	align-items: center;
+	padding: 6px 2px;
+	border-bottom-width: 0px;
+	border-bottom-style: solid;	
+}
+
+.HotModel_PrevImg
+{
+	width: 200px;
+	height: 148px;
+}
+
+
 #RecentFileArea
 {
 	margin-top: 10px;
@@ -314,7 +337,7 @@ body
 {
 	display:flex;
 	align-items: center;
-	padding: 6px;
+	padding: 6px 2px;
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 }
@@ -627,28 +650,53 @@ body
 	font-size: 14px;
 }
 
-/*------Christmas cabin---*/
-#ChristmasArea
+/*--Staff Pick--*/
+#HotModelArea
 {
-	margin-top: 10px;
-	display: flex;
-	flex-direction: column;
+	display: none;
 }
 
-#ChristmasTitleBlock
+#HotModel_Swiper
 {
+	background-color: #EEEEEE;
+	padding: 20px 16px 20px 16px;
+}
+
+.HotModelPiece
+{
+	width: 200px!important;
 	display:flex;
-	align-items: center;
-	padding: 6px;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
+	flex-direction: column;
+	cursor: pointer;
 }
 
-#CabinList
+.HotModel_PrevBlock
 {
-	display: flex;
-	flex-wrap: wrap;
-	align-content: flex-start;
-	overflow-y: auto;
+	border:2px solid #656568;
+	height: 148px;
+}
+
+.HotModel_PrevImg
+{
+	width: 100%;
+}
+
+.HotModel_NameText
+{
+	height: 28px;
+	line-height: 28px;
+	padding: 0px 8px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	background-color: #cecece;
+}
+
+
+.swiper-scrollbar
+{
+	height: 10px!important;
+}
+
 
 }
