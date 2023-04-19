@@ -2701,6 +2701,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         return;
     }
 
+    //reset print status
+    show_status(PrintDialogStatus::PrintStatusInit);
+
     reset_ams_material();
 
     update_show_status();
