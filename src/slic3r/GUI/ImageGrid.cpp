@@ -172,7 +172,7 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
                     }
 #ifdef __WXMSW__
                     auto wfile = boost::filesystem::path(file.path).wstring();
-                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", wfile.c_str(), L"", SW_HIDE};
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, NULL, wfile.c_str(), L"", SW_HIDE};
                     ::ShellExecuteEx(&info);
 #else
                     wxShell("open " + file.path);
