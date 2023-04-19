@@ -1398,7 +1398,7 @@ std::string GUI_App::get_model_http_url(std::string country_code)
         url = "https://makerhub-pre.bambu-lab.com/";
     }
     else {
-        url = "https://makerhub.bambu-lab.com/";
+        url = "https://makerworld.com/";
     }
 
     return url;
