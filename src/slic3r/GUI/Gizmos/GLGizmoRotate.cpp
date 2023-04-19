@@ -83,7 +83,7 @@ bool GLGizmoRotate::on_init()
 void GLGizmoRotate::on_start_dragging()
 {
     const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    m_center = box.center();
+    m_center = m_custom_center == Vec3d::Zero() ? box.center() : m_custom_center;
     m_radius = Offset + box.radius();
     m_snap_coarse_in_radius = m_radius / 3.0f;
     m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
@@ -135,7 +135,7 @@ void GLGizmoRotate::on_render()
     const BoundingBoxf3& box = selection.get_bounding_box();
 
     if (m_hover_id != 0 && !m_grabbers[0].dragging) {
-        m_center = box.center();
+        m_center = m_custom_center == Vec3d::Zero() ? box.center() : m_custom_center;
         m_radius = Offset + box.radius();
         m_snap_coarse_in_radius = m_radius / 3.0f;
         m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;

@@ -627,6 +627,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Text)
         return dynamic_cast<GLGizmoText*>(m_gizmos[Text].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else if (m_current == Cut)
+        return dynamic_cast<GLGizmoAdvancedCut *>(m_gizmos[Cut].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else
         return false;
 }
@@ -872,7 +874,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         m_tooltip.clear();
 
         if (evt.LeftDown() && (!control_down || grabber_contains_mouse())) {
-            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Text)
+            if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports ||
+                m_current == Seam || m_current == MmuSegmentation || m_current == Text || m_current == Cut)
                 && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown()))
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
@@ -902,7 +905,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             // event was taken care of by the SlaSupports gizmo
             processed = true;
         }
-        else if (evt.RightDown() && !control_down && selected_object_idx != -1 && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation)
+        else if (evt.RightDown() && !control_down && selected_object_idx != -1
+            && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut)
             && gizmo_event(SLAGizmoEventType::RightDown, mouse_pos)) {
             // event was taken care of by the FdmSupports / Seam / MMUPainting gizmo
             processed = true;
@@ -911,7 +915,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation))
             // don't allow dragging objects with the Sla gizmo on
             processed = true;
-        else if (evt.Dragging() && !control_down && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam  || m_current == MmuSegmentation)
+        else if (evt.Dragging() && !control_down 
+            && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam  || m_current == MmuSegmentation || m_current == Cut)
             && gizmo_event(SLAGizmoEventType::Dragging, mouse_pos, evt.ShiftDown(), evt.AltDown())) {
             // the gizmo got the event and took some action, no need to do anything more here
             m_parent.set_as_dirty();
@@ -924,10 +929,12 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             else if (evt.RightIsDown())
                 gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), true);
         }
-        else if (evt.LeftUp() && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) && !m_parent.is_mouse_dragging()) {
+        else if (evt.LeftUp()
+            && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut)
+            && !m_parent.is_mouse_dragging()
+            && gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down)) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
-            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
             processed = true;
         }
         else if (evt.LeftUp() && m_current == Flatten && m_gizmos[m_current]->get_hover_id() != -1) {
@@ -937,8 +944,9 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             //wxGetApp().obj_manipul()->set_dirty();
             processed = true;
         }
-        else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) && !m_parent.is_mouse_dragging()) {
-            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
+        else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut)
+            && !m_parent.is_mouse_dragging()
+            && gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down)) {
             processed = true;
         }
         else if (evt.LeftUp()) {
@@ -1017,8 +1025,6 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
             break;
         }
         //skip some keys when gizmo
-        case 'r':
-        case 'R':
         case 'A':
         case 'a':
         {
@@ -1088,9 +1094,9 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         // BBS: Skip all keys when in gizmo. This is necessary for 3D text tool.
         default:
         {
-            if (is_running() && m_current == EType::Text) {
-                processed = true;
-            }
+            //if (is_running() && m_current == EType::Text) {
+            //    processed = true;
+            //}
             break;
         }
         }
@@ -1112,6 +1118,13 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
     const int keyCode = evt.GetKeyCode();
     bool processed = false;
+
+    // todo: zhimin Each gizmo should handle key event in it own on_key() function
+    if (m_current == Cut) {
+        if (GLGizmoAdvancedCut *gizmo_cut = dynamic_cast<GLGizmoAdvancedCut *>(get_current())) {
+            return gizmo_cut->on_key(evt);
+        }
+    }
 
     if (evt.GetEventType() == wxEVT_KEY_UP)
     {
@@ -1479,6 +1492,11 @@ float GLGizmosManager::get_scaled_total_width() const
 GLGizmoBase* GLGizmosManager::get_current() const
 {
     return ((m_current == Undefined) || m_gizmos.empty()) ? nullptr : m_gizmos[m_current].get();
+}
+
+GLGizmoBase* GLGizmosManager::get_gizmo(GLGizmosManager::EType type) const
+{
+    return ((type == Undefined) || m_gizmos.empty()) ? nullptr : m_gizmos[type].get();
 }
 
 GLGizmosManager::EType GLGizmosManager::get_gizmo_from_name(const std::string& gizmo_name) const

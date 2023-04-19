@@ -67,6 +67,8 @@ static std::string gcode(Type type)
     switch (type) {
     //BBS
     case Template:    return config.opt_string("template_custom_gcode");
+    case PausePrint:  return config.opt_string("machine_pause_gcode");
+
     default:          return "";
     }
 
@@ -150,6 +152,7 @@ bool IMSlider::init_texture()
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_dark.svg", 28, 28, m_one_layer_off_dark_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover_dark.svg", 28, 28, m_one_layer_off_hover_dark_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/im_gcode_pause.svg", 14, 14, m_pause_icon_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/im_gcode_custom.svg", 14, 14, m_custom_icon_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/im_slider_delete.svg", 14, 14, m_delete_icon_id);
     }
 
@@ -224,6 +227,8 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         return;
     }
 
+    static bool last_spiral_vase_status = false;
+
     const bool was_empty = m_ticks.empty();
 
     m_ticks.ticks.clear();
@@ -239,6 +244,30 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
         m_ticks.erase_all_ticks_with_code(ToolChange);
+        post_ticks_changed_event();
+    }
+
+    if (last_spiral_vase_status != m_is_spiral_vase) {
+        last_spiral_vase_status = m_is_spiral_vase;
+        if (!m_ticks.empty()) {
+            m_ticks.ticks.clear();
+            post_ticks_changed_event();
+        }
+    }
+
+    //auto has_tick_execpt = [this](CustomGCode::Type type) {
+    //    for (const TickCode& tick : m_ticks.ticks)
+    //        if (tick.type != type) return true;
+
+    //    return false;
+    //};
+    if ((!m_ticks.empty() /*&& has_tick_execpt(PausePrint)*/) && m_draw_mode == dmSequentialFffPrint) {
+        for (auto it{ m_ticks.ticks.begin() }, end{ m_ticks.ticks.end() }; it != end;) {
+            if (true/*it->type != PausePrint*/)
+                it = m_ticks.ticks.erase(it);
+            else
+                ++it;
+        }
         post_ticks_changed_event();
     }
 
@@ -282,6 +311,7 @@ void IMSlider::SetDrawMode(bool is_sequential_print)
 {
     m_draw_mode = is_sequential_print   ? dmSequentialFffPrint  : 
                                           dmRegular; 
+    m_can_change_color = m_can_change_color && !(m_draw_mode == dmSequentialFffPrint);
 }
 
 void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder, bool can_change_color)
@@ -292,18 +322,12 @@ void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, 
 
     UseDefaultColors(m_mode == SingleExtruder);
 
-    auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    auto curr_print_seq = curr_plate->get_real_print_seq();
-
-    if (curr_print_seq == PrintSequence::ByObject)
-        m_is_wipe_tower = false;
-    else 
-        m_is_wipe_tower = m_mode != SingleExtruder;
+    m_is_wipe_tower = m_mode != SingleExtruder;
 
     auto config = wxGetApp().preset_bundle->full_config();
     m_is_spiral_vase = config.option<ConfigOptionBool>("spiral_mode")->value;
 
-    m_can_change_color = can_change_color;
+    m_can_change_color = can_change_color && !m_is_spiral_vase;
 
     // close opened menu window after reslice
     m_show_menu = false;
@@ -374,6 +398,11 @@ void IMSlider::add_code_as_tick(Type type, int selected_extruder)
         return;
 
     post_ticks_changed_event(type);
+}
+
+void IMSlider::delete_tick(const TickCode& tick) {
+    m_ticks.ticks.erase(tick);
+    post_ticks_changed_event(tick.type);
 }
 
 bool IMSlider::check_ticks_changed_event(Type type)
@@ -623,12 +652,16 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
         if (ImGui::IsMouseHoveringRect(tick_hover_box.Min, tick_hover_box.Max))
         {
             // render left tick box
-            ImGui::RenderFrame(tick_hover_box.Min, { slideable_region.Min.x, tick_hover_box.Max.y }, tick_hover_box_clr, false);
+            ImRect left_hover_box = ImRect(tick_hover_box.Min, { slideable_region.Min.x, tick_hover_box.Max.y });
+            ImGui::RenderFrame(left_hover_box.Min, left_hover_box.Max, tick_hover_box_clr, false);
             // render right tick box
-            ImGui::RenderFrame({ slideable_region.Max.x, tick_hover_box.Min.y }, tick_hover_box.Max, tick_hover_box_clr, false);
+            ImRect right_hover_box = ImRect({ slideable_region.Max.x, tick_hover_box.Min.y }, tick_hover_box.Max);
+            ImGui::RenderFrame(right_hover_box.Min, right_hover_box.Max, tick_hover_box_clr, false);
+
+            show_tooltip(*tick_it);
             if (context.IO.MouseClicked[0]) {
-                m_tick_value   = tick_it->tick;
-                m_tick_rect    = ImVec4(tick_hover_box.Min.x, tick_hover_box.Min.y, tick_hover_box.Max.x, tick_hover_box.Max.y);
+                m_tick_value = tick_it->tick;
+                m_tick_rect = ImVec4(tick_hover_box.Min.x, tick_hover_box.Min.y, tick_hover_box.Max.x, tick_hover_box.Max.y);
             }
         }
         ++tick_it;
@@ -651,6 +684,11 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
             ImVec2      icon_pos     = ImVec2(slideable_region.GetCenter().x + icon_offset.x, tick_pos - icon_offset.y);
             button_with_pos(pause_icon_id, icon_size, icon_pos);
         }
+        if (tick_it->type == Custom || tick_it->type == Template) {
+            ImTextureID custom_icon_id = m_custom_icon_id;
+            ImVec2      icon_pos = ImVec2(slideable_region.GetCenter().x + icon_offset.x, tick_pos - icon_offset.y);
+            button_with_pos(custom_icon_id, icon_size, icon_pos);
+        }
         ++tick_it;
     }
 
@@ -664,13 +702,45 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
         if (ImGui::IsMouseHoveringRect(icon_pos, icon_pos + icon_size)) {
             if (context.IO.MouseClicked[0]) {
                 // delete tick
-                Type type = tick_it->type;
-                m_ticks.ticks.erase(tick_it);
-                post_ticks_changed_event(type);
+                delete_tick(*tick_it);
             }
         }
     }
+}
 
+void IMSlider::show_tooltip(const std::string tooltip) {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 6 * m_scale, 3 * m_scale });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, { 3 * m_scale });
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+    ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+    ImGui::BeginTooltip();
+    ImGui::TextUnformatted(tooltip.c_str());
+    ImGui::EndTooltip();
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(2);
+}
+
+void IMSlider::show_tooltip(const TickCode& tick){
+    switch (tick.type)
+    {
+    case CustomGCode::ColorChange:
+        break;
+    case CustomGCode::PausePrint:
+        show_tooltip(_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
+        break;
+    case CustomGCode::ToolChange:
+        show_tooltip(_u8L("Change Filament"));
+        break;
+    case CustomGCode::Template:
+        show_tooltip(_u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
+        break;
+    case CustomGCode::Custom:
+        show_tooltip(_u8L("Custom G-code:") + " \"" + tick.extra + "\"");
+        break;
+    default:
+        break;
+    }
 }
 
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
@@ -790,12 +860,10 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
             context.IO.MouseClicked[0])
             m_show_menu = false;
 
-        if (!m_ticks.empty()) {
-            // draw ticks
-            draw_ticks(h_selected ? higher_slideable_region : lower_slideable_region);
-            // draw colored band
-            draw_colored_band(groove, h_selected ? higher_slideable_region : lower_slideable_region);
-        }
+        // draw ticks
+        draw_ticks(h_selected ? higher_slideable_region : lower_slideable_region);
+        // draw colored band
+        draw_colored_band(groove, h_selected ? higher_slideable_region : lower_slideable_region);
 
         if (!m_ticks.has_tick_with_code(ToolChange)) {
             // draw scroll line
@@ -862,12 +930,10 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         
         ImVec2 bar_center = higher_handle.GetCenter();
 
-        if (!m_ticks.empty()) {
-            // draw ticks
-            draw_ticks(one_slideable_region);
-            // draw colored band
-            draw_colored_band(groove, one_slideable_region);
-        }
+        // draw ticks
+        draw_ticks(one_slideable_region);
+        // draw colored band
+        draw_colored_band(groove, one_slideable_region);
 
         // draw handle
         window->DrawList->AddLine(ImVec2(mid_x - 0.5 * bar_width, handle_center.y), ImVec2(mid_x + 0.5 * bar_width, handle_center.y), handle_clr, 2 * line_width);
@@ -963,7 +1029,7 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     return result;
 }
 
-void IMSlider::render_input_custom_gcode()
+void IMSlider::render_input_custom_gcode(std::string custom_gcode)
 {
     if (m_show_custom_gcode_window)
         ImGui::OpenPopup((_u8L("Custom G-code")).c_str());
@@ -995,9 +1061,13 @@ void IMSlider::render_input_custom_gcode()
         if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
             wxGetApp().plater()->get_current_canvas3D()->force_set_focus();
             ImGui::SetKeyboardFocusHere(0);
+            strcpy(m_custom_gcode, custom_gcode.c_str());
         }
         const int text_height = 6;
-        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
+
+        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height), ImGuiInputTextFlags_CallbackAlways, [](ImGuiInputTextCallbackData* data) { 
+            return data->CursorPos = data->BufTextLen;
+            });
 
         ImGui::NewLine();
         ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
@@ -1046,7 +1116,7 @@ void IMSlider::do_go_to_layer(size_t layer_number) {
 void IMSlider::render_go_to_layer_dialog()
 {
     if (m_show_go_to_layer_dialog)
-        ImGui::OpenPopup((_u8L("Jump to layer")).c_str());
+        ImGui::OpenPopup((_u8L("Jump to Layer")).c_str());
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
@@ -1123,37 +1193,61 @@ void IMSlider::render_go_to_layer_dialog()
     imgui.pop_menu_style();
 }
 
-void IMSlider::render_menu()
-{
-    ImGuiWrapper::push_menu_style(m_scale);
-    int extruder_num = m_extruder_colors.size();
+void IMSlider::render_menu() {
+    if (!m_menu_enable)
+        return;
 
-    if (m_show_menu) {
-        ImGui::OpenPopup("slider_menu_popup");
+    ImGuiWrapper::push_menu_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildRounding, 4.0f * m_scale);
+
+    auto tick_it = GetSelection() == ssHigher ? m_ticks.ticks.find(TickCode{ GetHigherValue() }) :
+        GetSelection() == ssLower ? m_ticks.ticks.find(TickCode{ GetLowerValue() }) :
+        m_ticks.ticks.end();
+    std::string custom_code;
+    if (tick_it != m_ticks.ticks.end()) {
+        render_edit_menu(*tick_it);
+        if (tick_it->type == CustomGCode::Custom)
+            custom_code = tick_it->extra;
+    }
+    else {
+        render_add_menu();
     }
 
-    ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildRounding, 4.0f * m_scale);
-    if (ImGui::BeginPopup("slider_menu_popup")) {
+    ImGui::PopStyleVar(1);
+    ImGuiWrapper::pop_menu_style();
+
+    render_input_custom_gcode(custom_code);
+    render_go_to_layer_dialog();
+}
+
+void IMSlider::render_add_menu()
+{
+    int extruder_num = m_extruder_colors.size();
+
+    if (m_show_menu)
+        ImGui::OpenPopup("slider_add_menu_popup");
+    if (ImGui::BeginPopup("slider_add_menu_popup")) {
         bool menu_item_enable = m_draw_mode != dmSequentialFffPrint;
-        //if ((m_selection == ssLower && GetLowerValueD() == m_zero_layer_height) || (m_selection == ssHigher && GetHigherValueD() == m_zero_layer_height))
-        //{
-        //    if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
-        //        m_show_go_to_layer_dialog = true;
-        //    }
-        //}
-        //else
+        bool hovered = false;
         {
-            if (menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
+            if (menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                 add_code_as_tick(PausePrint);
             }
-            if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
+            if (hovered) { show_tooltip(_u8L("Insert a pause command at the beginning of this layer.")); }
+
+            
+            if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                 m_show_custom_gcode_window = true;
             }
+            if (hovered) { show_tooltip(_u8L("Insert custom G-code at the beginning of this layer.")); }
+
             if (!gcode(Template).empty()) {
-                if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
+                if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
                     add_code_as_tick(Template);
                 }
+                if (hovered) { show_tooltip(_u8L("Insert template custom G-code at the beginning of this layer.")); }
             }
+
             if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
                 m_show_go_to_layer_dialog = true;
             }
@@ -1161,26 +1255,78 @@ void IMSlider::render_menu()
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            if (!m_can_change_color || m_draw_mode == dmSequentialFffPrint || m_is_spiral_vase) {
+            if (!m_can_change_color) {
                 begin_menu(_u8L("Change Filament").c_str(), false);
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
                 for (int i = 0; i < extruder_num; i++) {
                     std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
                     ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                    if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
+                    if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr, false, true, &hovered)) add_code_as_tick(ToolChange, i + 1);
+                    if (hovered) { show_tooltip(_u8L("Change filament at the beginning of this layer.")); }
                 }
                 end_menu();
             }
         }
+
         ImGui::EndPopup();
     }
-    ImGui::PopStyleVar(1);
+}
 
-    ImGuiWrapper::pop_menu_style();
-
-    render_input_custom_gcode();
-    render_go_to_layer_dialog();
+void IMSlider::render_edit_menu(const TickCode& tick)
+{
+    if (m_show_menu)
+        ImGui::OpenPopup("slider_edit_menu_popup");
+    if (ImGui::BeginPopup("slider_edit_menu_popup")) {
+        switch (tick.type)
+        {
+        case CustomGCode::PausePrint:
+            if (menu_item_with_icon(_u8L("Delete Pause").c_str(), "")) {
+                delete_tick(tick);
+            }
+            break;
+        case CustomGCode::Template:
+            if (!gcode(Template).empty()) {
+                if (menu_item_with_icon(_u8L("Delete Custom Template").c_str(), "")) {
+                    delete_tick(tick);
+                }
+            }
+            break;
+        case CustomGCode::Custom:
+            if (menu_item_with_icon(_u8L("Edit Custom G-code").c_str(), "")) {
+                m_show_custom_gcode_window = true;
+            }
+            if (menu_item_with_icon(_u8L("Delete Custom G-code").c_str(), "")) {
+                delete_tick(tick);
+            }
+            break;
+        case CustomGCode::ToolChange: {
+            int extruder_num = m_extruder_colors.size();
+            if (extruder_num > 1) {
+                if (!m_can_change_color) {
+                    begin_menu(_u8L("Change Filament").c_str(), false);
+                }
+                else if (begin_menu(_u8L("Change Filament").c_str())) {
+                    for (int i = 0; i < extruder_num; i++) {
+                        std::array<float, 4> rgba = decode_color_to_float_array(m_extruder_colors[i]);
+                        ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                        if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
+                    }
+                    end_menu();
+                }
+                if (menu_item_with_icon(_u8L("Delete Filament Change").c_str(), "")) {
+                    delete_tick(tick);
+                }
+            }
+            break;
+        }
+        case CustomGCode::ColorChange:
+        case CustomGCode::Unknown:
+        default:
+            break;
+        }
+        ImGui::EndPopup();
+    }
 }
 
 void IMSlider::on_change_color_mode(bool is_dark) {
@@ -1314,16 +1460,8 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
         if (label_type == ltHeightWithLayer) {
             char   buffer[64];
             size_t layer_number;
-            if (m_values[GetMinValueD()] == m_zero_layer_height) {
-                layer_number = m_is_wipe_tower ? get_layer_number(value, label_type): (m_values.empty() ? value : value);
-                m_values[value] == m_zero_layer_height ?
-                    ::sprintf(buffer, "%5s\n%5s", _u8L("Start").c_str(), _u8L("G-code").c_str()) :
-                    ::sprintf(buffer, "%5s\n%5s", std::to_string(layer_number).c_str(), layer_height);
-            }
-            else {
-                layer_number = m_is_wipe_tower ? get_layer_number(value, label_type) + 1 : (m_values.empty() ? value : value + 1);
-                ::sprintf(buffer, "%5s\n%5s", std::to_string(layer_number).c_str(), layer_height);
-            }
+            layer_number = m_draw_mode == dmSequentialFffPrint ? (m_values.empty() ? value : value + 1) : m_is_wipe_tower ? get_layer_number(value, label_type) + 1 : (m_values.empty() ? value : value + 1);
+            ::sprintf(buffer, "%5s\n%5s", std::to_string(layer_number).c_str(), layer_height);
             return std::string(buffer);
         }
     }

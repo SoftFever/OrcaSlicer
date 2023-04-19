@@ -76,6 +76,8 @@ protected:
 
     void render(wxDC &dc);
 
+    void renderContent(wxDC &dc, wxPoint const &pt, int index, bool hit);
+
     void renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect, size_t hit, int states);
 
     void renderText(wxDC &dc, wxString const & text, wxRect const & rect, int states);

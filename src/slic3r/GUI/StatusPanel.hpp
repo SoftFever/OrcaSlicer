@@ -253,7 +253,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_vt_load = true);
+    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_extrustion_cali = true, bool support_vt_load = true);
 };
 
 
@@ -277,6 +277,7 @@ protected:
     SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
+
     FanControlPopup* m_fan_control_popup{nullptr};
 
     ExtrusionCalibration *m_extrusion_cali_dlg{nullptr};
@@ -289,6 +290,7 @@ protected:
     int          m_last_timelapse = -1;
     int          m_last_extrusion = -1;
     int          m_last_vcamera   = -1;
+    bool         m_is_load_with_temp = false;
 
     wxWebRequest web_request;
     bool bed_temp_input    = false;
@@ -312,7 +314,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(wxString msg, std::string print_error_str = "");
+    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "");
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -340,7 +342,8 @@ protected:
     void on_ams_load(SimpleEvent &event);
     void on_ams_load_curr();
     void on_ams_unload(SimpleEvent &event);
-    void on_ams_setting_click(SimpleEvent &event);
+    void on_ams_filament_backup(SimpleEvent& event);
+    void on_ams_setting_click(SimpleEvent& event);
     void on_filament_edit(wxCommandEvent &event);
     void on_ext_spool_edit(wxCommandEvent &event);
     void on_filament_extrusion_cali(wxCommandEvent &event);

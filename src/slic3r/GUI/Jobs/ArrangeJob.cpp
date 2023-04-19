@@ -241,9 +241,15 @@ void ArrangeJob::prepare_all() {
 }
 
 // 准备料塔。逻辑如下：
-// 1. 如果料塔被禁用，或是逐件打印，则不需要料塔
-// 2. 以下两种情况需要料塔：1）某对象是多色对象；2）打开了支撑，且支撑体与接触面使用的是不同材料
-// 3. 如果允许不同材料落在相同盘，则以下情况也需要料塔：1）所有选定对象中使用了多种热床温度相同的材料（比如颜色不同的PLA）
+// 1. 以下几种情况不需要料塔：
+//    1）料塔被禁用，
+//    2）逐件打印，
+//    3）不允许不同材料落在相同盘，且没有多色对象
+// 2. 以下情况需要料塔：
+//    1）某对象是多色对象；
+//    2）打开了支撑，且支撑体与接触面使用的是不同材料
+//    3）允许不同材料落在相同盘，且所有选定对象中使用了多种热床温度相同的材料
+//     （所有对象都是单色的，但不同对象的材料不同，例如：对象A使用红色PLA，对象B使用白色PLA）
 void ArrangeJob::prepare_wipe_tower()
 {
     bool need_wipe_tower = false;
@@ -257,7 +263,7 @@ void ArrangeJob::prepare_wipe_tower()
     // need wipe tower if some object has multiple extruders (has paint-on colors or support material)
     for (const auto &item : m_selected) {
         std::set<int> obj_extruders;
-        for (int id : item.extrude_ids) obj_extruders.insert(id);
+        obj_extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end());
         if (obj_extruders.size() > 1) {
             need_wipe_tower = true;
             BOOST_LOG_TRIVIAL(info) << "arrange: need wipe tower because object " << item.name << " has multiple extruders (has paint-on colors)";
@@ -266,6 +272,7 @@ void ArrangeJob::prepare_wipe_tower()
     }
      
     // if multile extruders have same bed temp, we need wipe tower
+    // 允许不同材料落在相同盘，且所有选定对象中使用了多种热床温度相同的材料
      if (params.allow_multi_materials_on_same_plate) {
         std::map<int, std::set<int>> bedTemp2extruderIds;
         for (const auto &item : m_selected)
@@ -294,17 +301,19 @@ void ArrangeJob::prepare_wipe_tower()
             }
 
         // if wipe tower is not init yet (no wipe tower in any plate before arrangement)
-        if (wipe_tower_ap.poly.empty()) {
-            auto &print                       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-            wipe_tower_ap.poly.contour.points = print.first_layer_wipe_tower_corners(false);
+        //if (wipe_tower_ap.poly.empty()) {
+        //    auto &print                       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+        //    wipe_tower_ap.poly.contour.points = print.first_layer_wipe_tower_corners(false);
             wipe_tower_ap.name                = "WipeTower";
             wipe_tower_ap.is_virt_object      = true;
             wipe_tower_ap.is_wipe_tower       = true;
-        }
-
+        //}
+        const GLCanvas3D* canvas3D=static_cast<const GLCanvas3D *>(m_plater->canvas3D());
         for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
             if (!plates_have_wipe_tower[bedid]) {
-                wipe_tower_ap.bed_idx = bedid;
+                wipe_tower_ap.translation = {0, 0};
+                wipe_tower_ap.poly.contour.points = canvas3D->estimate_wipe_tower_points(bedid, !only_on_partplate);
+                wipe_tower_ap.bed_idx             = bedid;
                 m_unselected.emplace_back(wipe_tower_ap);
             }
         }
@@ -502,7 +511,7 @@ void ArrangeJob::process()
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
     if (params.is_seq_print)
-        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
+        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
 
     if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
@@ -750,6 +759,7 @@ void ArrangeJob::finalize() {
     m_plater->update();
 
     Job::finalize();
+    m_plater->m_arrange_running.store(false);
 }
 
 std::optional<arrangement::ArrangePolygon>

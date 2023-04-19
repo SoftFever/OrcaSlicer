@@ -20,6 +20,7 @@
 #include "ParamsPanel.hpp"
 #include "Monitor.hpp"
 #include "Auxiliary.hpp"
+#include "Project.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
@@ -156,6 +157,8 @@ class MainFrame : public DPIFrame
         size_t FindFileInHistory(const wxString &file);
 
         void LoadThumbnails();
+
+        void SetMaxFiles(int max);
     private:
         std::deque<std::string> m_thumbnails;
         bool m_load_called = false;
@@ -245,6 +248,7 @@ public:
 
     void        update_title();
     void        show_publish_button(bool show);
+    void        set_max_recent_count(int max);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
@@ -344,7 +348,10 @@ public:
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
     MonitorPanel*         m_monitor{ nullptr };
-    AuxiliaryPanel*       m_auxiliary{ nullptr };
+
+    //AuxiliaryPanel*       m_auxiliary{ nullptr };
+    ProjectPanel*         m_project{ nullptr };
+
     WebViewPanel*         m_webview { nullptr };
     PrinterWebView*       m_printer_view{nullptr};
     wxLogWindow*          m_log_window { nullptr };

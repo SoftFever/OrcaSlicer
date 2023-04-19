@@ -60,6 +60,7 @@ using namespace nlohmann;
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
 
@@ -230,24 +231,26 @@ typedef struct _cli_callback_mgr {
             lck.unlock();
             return;
         }
+        int old_total_progress = m_total_progress;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": percent="<<percent<< ", warning_step=" << warning_step << ", plate_index = "<< m_plate_index<<", plate_count="<< m_plate_count<<", message="<<message;
-	if (warning_step == -1) {
+        if (warning_step == -1) {
             m_progress = percent;
-            if ((m_plate_index >= 1)&&(m_plate_index <= m_plate_count)) {
-                if (m_plate_count <= 1)
-                    m_total_progress = 0.9*m_progress;
-                else {
-                    m_total_progress = ((float)(m_plate_index - 1)*90)/m_plate_count + ((float)m_progress*0.9)/m_plate_count;
-                }
+            if ((m_plate_count <= 1) && (m_plate_index >= 1))
+                m_total_progress = 3 + 0.9*m_progress;
+            else if ((m_plate_count > 1) && (m_plate_index >= 1)) {
+                m_total_progress = 3 + ((float)(m_plate_index - 1)*90)/m_plate_count + ((float)m_progress*0.9)/m_plate_count;
             }
             else
                 m_total_progress = m_progress;
-	}
+        }
+        if (m_total_progress < old_total_progress)
+            m_total_progress = old_total_progress;
         m_message = message;
         m_warning_step = warning_step;
         m_data_ready = true;
         lck.unlock();
         m_condition.notify_one();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": m_total_progress="<<m_total_progress;
         return;
     }
 
@@ -311,11 +314,17 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
     g_cli_callback_mgr.stop();\
     boost::nowide::cout.flush();\
     boost::nowide::cerr.flush();\
+    for (Model &model : m_models) {\
+       model.remove_backup_path_if_exist();\
+    }\
     return(ret);}
 #else
 #define flush_and_exit(ret)     { boost::nowide::cout << __FUNCTION__ << " found error, exit" << std::endl;\
     boost::nowide::cout.flush();\
     boost::nowide::cerr.flush();\
+    for (Model &model : m_models) {\
+       model.remove_backup_path_if_exist();\
+    }\
     return(ret);}
 #endif
 
@@ -365,17 +374,19 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 5;
+    int debug_argc = 7;
     char *debug_argv[] = {
         "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\orca-slicer.exe",
         "--slice",
         "9",
         //"--load-settings",
         //"machine.json;process.json",
-        //"--load-filaments",
-        //"filament.json",
+        "--load-slicedata",
+        "cached_data",
         "--export-3mf=output.3mf",
-        "test_outside.3mf"
+        "--slice",
+        "0",
+        "Cube.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -403,13 +414,15 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false;
+    bool translate_old = false, regenerate_thumbnails = false;
     int current_width, current_depth, current_height;
-    const std::vector<std::string>              &load_configs		      = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
+    const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
-    const std::vector<std::string>              &load_filaments		      = m_config.option<ConfigOptionStrings>("load_filaments", true)->values;
+    const std::vector<std::string>              &load_filaments           = m_config.option<ConfigOptionStrings>("load_filaments", true)->values;
+    const std::vector<int>                      &skip_objects             = m_config.option<ConfigOptionInts>("skip_objects", true)->values;
+    bool   need_skip      = (skip_objects.size() > 0)?true:false;
 
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
@@ -480,7 +493,7 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data_src;
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -488,22 +501,40 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
+    std::string pipe_name;
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
     ConfigOptionInt* slice_option = m_config.option<ConfigOptionInt>("slice");
     if (slice_option)
         plate_to_slice = slice_option->value;
+
+    ConfigOptionBool* normative_check_option = m_config.option<ConfigOptionBool>("normative_check");
+    if (normative_check_option)
+        normative_check = normative_check_option->value;
+
     ConfigOptionBool* uptodate_option = m_config.option<ConfigOptionBool>("uptodate");
     if (uptodate_option)
         up_config_to_date = uptodate_option->value;
+
+    ConfigOptionString* pipe_option = m_config.option<ConfigOptionString>("pipe");
+    if (pipe_option) {
+        pipe_name = pipe_option->value;
+        if (!pipe_name.empty()) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("Will use pipe %1%")%pipe_name;
+#if defined(__linux__) || defined(__LINUX__)
+            g_cli_callback_mgr.start(pipe_name);
+#endif
+        }
+    }
+
     /*for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
             BOOST_LOG_TRIVIAL(info) << "found a gcode file:" << file << ", will start as gcode viewer\n";
             break;
         }*/
-    BOOST_LOG_TRIVIAL(info) << "plate_to_slice="<< plate_to_slice << std::endl;
+    BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice=%1%, normative_check=%2%")%plate_to_slice %normative_check;
     //if (!start_as_gcodeviewer) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
@@ -547,10 +578,25 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
                     }
 
-                    Semver old_version(1, 5, 9);
+                    Semver old_version(1, 5, 9), old_version2(1, 5, 9);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
+                    }
+                    if ((file_version < old_version2) && !config.empty()) {
+                        regenerate_thumbnails = true;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to regenerate_thumbnails for all")%file_version.to_string();
+                    }
+
+                    if (normative_check) {
+                        ConfigOptionStrings* postprocess_scripts = config.option<ConfigOptionStrings>("post_process");
+                        if (postprocess_scripts) {
+                            std::vector<std::string> postprocess_values = postprocess_scripts->values;
+                            if (postprocess_values.size() > 0) {
+                                BOOST_LOG_TRIVIAL(error) << boost::format("normative_check: postprocess not supported, array size %1%")%postprocess_values.size();
+                                flush_and_exit(CLI_POSTPROCESS_NOT_SUPPORTED);
+                            }
+                        }
                     }
 
                     /*for (ModelObject *model_object : model.objects)
@@ -1022,7 +1068,7 @@ int CLI::run(int argc, char **argv)
                 boost::nowide::cerr << __FUNCTION__<<": can not found option " <<opt_key<<"from config." <<std::endl;
                 return CLI_CONFIG_FILE_ERROR;
             }
-            if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "model_id" || opt_key == "dev_model_name")
+            if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "model_id" || opt_key == "inherits" ||opt_key == "dev_model_name")
                 continue;
             else {
                 ConfigOption *dest_opt = full_config.option(opt_key, true);
@@ -1202,6 +1248,8 @@ int CLI::run(int argc, char **argv)
                 }
                 else
                 {
+                    if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "model_id" || opt_key == "dev_model_name" || opt_key == "filament_settings_id")
+                        continue;
                     ConfigOption *opt = m_print_config.option(opt_key, true);
                     if (opt == nullptr) {
                         // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
@@ -1211,11 +1259,7 @@ int CLI::run(int argc, char **argv)
                     }
                     ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
                     const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
-                    if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "model_id" || opt_key == "dev_model_name" || opt_key == "filament_settings_id")
-                        continue;
-                    else {
-                        opt_vec_dst->set_at(opt_vec_src, filament_index-1, 0);
-                    }
+                    opt_vec_dst->set_at(opt_vec_src, filament_index-1, 0);
                 }
             }
         }
@@ -1331,6 +1375,7 @@ int CLI::run(int argc, char **argv)
             partplate_list.reset_size(current_width, current_depth, current_height, true, true);
         }
     }
+
     /*for (ModelObject *model_object : m_models[0].objects)
         for (ModelInstance *model_instance : model_object->instances)
         {
@@ -1345,6 +1390,13 @@ int CLI::run(int argc, char **argv)
     arrange_cfg.min_obj_distance = scaled(min_object_distance(m_print_config));
 
     BOOST_LOG_TRIVIAL(info) << "will start transforms, commands count " << m_transforms.size() << "\n";
+#if defined(__linux__) || defined(__LINUX__)
+    if (g_cli_callback_mgr.is_started()) {
+        PrintBase::SlicingStatus slicing_status{1, "Loading files finished"};
+        cli_status_callback(slicing_status);
+    }
+#endif
+
     for (auto const &opt_key : m_transforms) {
         BOOST_LOG_TRIVIAL(info) << "process transform " << opt_key << "\n";
         if (opt_key == "merge") {
@@ -1718,17 +1770,19 @@ int CLI::run(int argc, char **argv)
 
     // All transforms have been dealt with. Now ensure that the objects are on bed.
     // (Unless the user said otherwise.)
-    //BBS: current only support models on bed
+    //BBS: current only support models on bed, 0407 sinking supported
     //if (m_config.opt_bool("ensure_on_bed"))
-        for (auto &model : m_models)
-            for (auto &o : model.objects)
-                o->ensure_on_bed();
+    //    for (auto &model : m_models)
+    //        for (auto &o : model.objects)
+    //            o->ensure_on_bed();
 
     // loop through action options
     bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
+    bool no_check = false;
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir;
     std::string outfile_dir = m_config.opt_string("outputdir");
     std::vector<ThumbnailData*> calibration_thumbnails;
+    int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0;
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
             this->print_help();
@@ -1737,10 +1791,7 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "help_sla") {
             this->print_help(true, ptSLA);
         } else if (opt_key == "pipe") {
-#if defined(__linux__) || defined(__LINUX__)
-            std::string pipe_name = m_config.option<ConfigOptionString>("pipe")->value;
-            g_cli_callback_mgr.start(pipe_name);
-#endif
+            //already processed before
         } else if (opt_key == "load_slicedata") {
             load_slicedata = true;
             load_slice_data_dir = m_config.opt_string(opt_key);
@@ -1761,6 +1812,10 @@ int CLI::run(int argc, char **argv)
             }
         } else if (opt_key == "uptodate") {
             //already processed before
+        } else if (opt_key == "mtcpp") {
+            max_triangle_count_per_plate = m_config.option<ConfigOptionInt>("mtcpp")->value;
+        } else if (opt_key == "mstpp") {
+            max_slicing_time_per_plate = m_config.option<ConfigOptionInt>("mstpp")->value;
         } else if (opt_key == "export_stl") {
             for (auto &model : m_models)
                 model.add_default_instances();
@@ -1777,7 +1832,11 @@ int CLI::run(int argc, char **argv)
         } */else if (opt_key == "export_3mf") {
             export_to_3mf = true;
             export_3mf_file = m_config.opt_string(opt_key);
+        }else if(opt_key=="no_check"){
+            no_check = m_config.opt_bool(opt_key);
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
+        } else if (opt_key == "normative_check") {
+            //already processed before
         } else if (opt_key == "export_slicedata") {
             export_slicedata = true;
             export_slice_data_dir = m_config.opt_string(opt_key);
@@ -1788,6 +1847,21 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "slice") {
             //BBS: slice 0 means all plates, i means plate i;
             plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
+            bool pre_check = (plate_to_slice == 0)?true:false;
+            if (partplate_list.get_plate_count() == 1)
+                pre_check = false;
+            bool finished = false;
+
+            //skip model object
+            std::map<int, bool> skip_maps;
+            if (need_skip) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("need to skip objects, size %1%:")%skip_objects.size();
+                for (int index = 0; index < skip_objects.size(); index++)
+                {
+                    skip_maps[skip_objects[index]] = false;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("object %1%, id %2%")%index %skip_objects[index];
+                }
+            }
             /*if (opt_key == "export_gcode" && printer_technology == ptSLA) {
                 boost::nowide::cerr << "error: cannot export G-code for an FFF configuration" << std::endl;
                 flush_and_exit(1);
@@ -1796,6 +1870,12 @@ int CLI::run(int argc, char **argv)
                 flush_and_exit(1);
             }*/
             BOOST_LOG_TRIVIAL(info) << "Need to slice for plate "<<plate_to_slice <<", total plate count "<<partplate_list.get_plate_count()<<" partplates!" << std::endl;
+#if defined(__linux__) || defined(__LINUX__)
+            if (g_cli_callback_mgr.is_started()) {
+                PrintBase::SlicingStatus slicing_status{3, "Prepare slicing"};
+                cli_status_callback(slicing_status);
+            }
+#endif
             // Make a copy of the model if the current action is not the last action, as the model may be
             // modified by the centering and such.
             Model model_copy;
@@ -1810,201 +1890,266 @@ int CLI::run(int argc, char **argv)
                 // and all instances will be rearranged (unless --dont-arrange is supplied).
                 std::string outfile;
                 Print       fff_print;
-                /*SLAPrint    sla_print;
-                SL1Archive  sla_archive(sla_print.printer_config());
-                sla_print.set_printer(&sla_archive);
-                sla_print.set_status_callback(
-                            [](const PrintBase::SlicingStatus& s)
-                {
-                    if(s.percent >= 0) // FIXME: is this sufficient?
-                        printf("%3d%s %s\n", s.percent, "% =>", s.text.c_str());
-                });*/
 
-                //BBS: slice every partplate one by one
-                PrintBase  *print=NULL;
-                Slic3r::GUI::GCodeResult *gcode_result = NULL;
-                int print_index;
-                for (int index = 0; index < partplate_list.get_plate_count(); index ++)
+                while(!finished)
                 {
-                    if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
-                        BOOST_LOG_TRIVIAL(info) << "Skip plate " << index+1 << std::endl;
-                        continue;
-                    }
-                    //get the current partplate
-                    Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
-                    part_plate->get_print(&print, &gcode_result, &print_index);
-                    /*if (outfile_config.empty())
+                    //BBS: slice every partplate one by one
+                    PrintBase  *print=NULL;
+                    Slic3r::GUI::GCodeResult *gcode_result = NULL;
+                    int print_index;
+                    for (int index = 0; index < partplate_list.get_plate_count(); index ++)
                     {
-                        outfile = "plate_" + std::to_string(index + 1) + ".gcode";
-                    }
-                    else
-                    {
-                        outfile = "plate_" + std::to_string(index + 1) + "_" + outfile_config + ".gcode";
-                    }*/
+                        if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
+                            BOOST_LOG_TRIVIAL(info) << "Skip plate " << index+1 << std::endl;
+                            continue;
+                        }
+                        BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: pre_check %2%, start")%(index+1)%pre_check;
+                        long long start_time = 0, end_time = 0;
+                        start_time = (long long)Slic3r::Utils::get_current_time_utc();
+                        //get the current partplate
+                        Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
+                        part_plate->get_print(&print, &gcode_result, &print_index);
+                        /*if (outfile_config.empty())
+                        {
+                            outfile = "plate_" + std::to_string(index + 1) + ".gcode";
+                        }
+                        else
+                        {
+                            outfile = "plate_" + std::to_string(index + 1) + "_" + outfile_config + ".gcode";
+                        }*/
 
-                    //update plate's bounding box to model
+                        //update plate's bounding box to model
 #if 0
-                    BoundingBoxf3   print_volume = part_plate->get_bounding_box(false);
-                    print_volume.max(2) = z;
-                    print_volume.min(2) = -1e10;
-                    model.update_print_volume_state(print_volume);
-                    BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
-                        % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) << std::endl;
+                        BoundingBoxf3   print_volume = part_plate->get_bounding_box(false);
+                        print_volume.max(2) = z;
+                        print_volume.min(2) = -1e10;
+                        model.update_print_volume_state(print_volume);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
+                            % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) << std::endl;
 #else
-                    BuildVolume build_volume(part_plate->get_shape(), print_height);
-                    model.update_print_volume_state(build_volume);
-                    unsigned int count = model.update_print_volume_state(build_volume);
+                        BuildVolume build_volume(part_plate->get_shape(), print_height);
+                        //model.update_print_volume_state(build_volume);
+                        unsigned int count = model.update_print_volume_state(build_volume);
 
-                    if (count == 0) {
-                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume before apply." << std::endl;
-                        flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
-                    }
-                    else {
-                        for (ModelObject* model_object : model.objects)
-                            for (ModelInstance *i : model_object->instances)
-                                if (i->print_volume_state == ModelInstancePVS_Partly_Outside)
+                        if (count == 0) {
+                            BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume before apply." << std::endl;
+                            flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
+                        }
+                        else if ((plate_to_slice != 0) || pre_check) {
+                            long long triangle_count = 0;
+                            int printable_instances = 0;
+                            int skipped_count = 0;
+                            for (ModelObject* model_object : model.objects)
+                                for (ModelInstance *i : model_object->instances)
                                 {
-                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Found Object " << model_object->name <<" partly inside, can not be sliced." << std::endl;
-                                    flush_and_exit(CLI_OBJECTS_PARTLY_INSIDE);
-                                }
-                    }
-                    // BBS: TODO
-                    //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
-                    //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
-#endif
+                                    if (skip_maps.find(i->loaded_id) != skip_maps.end()) {
+                                        skip_maps[i->loaded_id] = true;
+                                        i->printable = false;
+                                        if (i->print_volume_state == ModelInstancePVS_Inside) {
+                                            skipped_count++;
+                                            BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: skip object %2%.")%(index+1)%i->loaded_id;
+                                            //need to regenerate the thumbnail
+                                            if (plate_data_src.size() > index) {
+                                                if (!plate_data_src[index]->thumbnail_file.empty()) {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.")%(index+1)%plate_data_src[index]->thumbnail_file;
+                                                    plate_data_src[index]->thumbnail_file.clear();
+                                                }
+                                                if (!plate_data_src[index]->top_file.empty()) {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.")%(index+1)%plate_data_src[index]->top_file;
+                                                    plate_data_src[index]->top_file.clear();
+                                                }
+                                                if (!plate_data_src[index]->pick_file.empty()) {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded pick_thumbnail %2%.")%(index+1)%plate_data_src[index]->pick_file;
+                                                    plate_data_src[index]->pick_file.clear();
+                                                }
+                                            }
+                                        }
+                                        continue;
+                                    }
 
-                    //PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
-                    /*if (! m_config.opt_bool("dont_arrange")) {
-                        if (user_center_specified) {
-                            Vec2d c = m_config.option<ConfigOptionPoint>("center")->value;
-                            arrange_objects(model, InfiniteBed{scaled(c)}, arrange_cfg);
-                        } else
-                            arrange_objects(model, bed, arrange_cfg);
-                    }*/
-                    /*if (printer_technology == ptFFF) {
-                        for (auto* mo : model.objects)
-                            (dynamic_cast<Print*>(print))->auto_assign_extruders(mo);
-                    } else {
-                        // The default for "filename_format" is good for FDM: "[input_filename_base].gcode"
-                        // Replace it with a reasonable SLA default.
-                        std::string &format = m_print_config.opt_string("filename_format", true);
-                        if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("filename_format")->default_value.get())->value)
-                            format = "[input_filename_base].SL1";
-                    }*/
-                    DynamicPrintConfig new_print_config = m_print_config;
-                    new_print_config.apply(*part_plate->config());
-                    new_print_config.apply(m_extra_config, true);
-                    print->apply(model, new_print_config);
-                    StringObjectException warning;
-                    auto err = print->validate(&warning);
-                    if (!err.string.empty()) {
-                        BOOST_LOG_TRIVIAL(info) << "got error when validate: "<< err.string << std::endl;
-                        boost::nowide::cerr << err.string << std::endl;
-                        //BBS: continue for other plates
-                        //continue;
-                        flush_and_exit(CLI_VALIDATE_ERROR);
-                    }
-                    else if (!warning.string.empty())
-                        BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
+                                    if (i->print_volume_state == ModelInstancePVS_Partly_Outside)
+                                    {
+                                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Found Object " << model_object->name <<" partly inside, can not be sliced." << std::endl;
+                                        flush_and_exit(CLI_OBJECTS_PARTLY_INSIDE);
+                                    }
+                                    else if ((max_triangle_count_per_plate != 0) && (i->print_volume_state == ModelInstancePVS_Inside))
+                                    {
+                                        for (const ModelVolume* vol : model_object->volumes)
+                                        {
+                                            if (vol->is_model_part()) {
+                                                size_t volume_triangle_count = vol->mesh().facets_count();
+                                                triangle_count += volume_triangle_count;
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
+                                                if (triangle_count > max_triangle_count_per_plate)
+                                                {
+                                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": triangle count " << triangle_count <<" exceeds the limit:" << max_triangle_count_per_plate;
+                                                    flush_and_exit(CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT);
+                                                }
+                                            }
+                                        }
+                                    }
 
-                    if (print->empty()) {
-                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume after apply." << std::endl;
-                        flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
-                    }
-                    else
-                        try {
-                            std::string outfile_final;
-                            BOOST_LOG_TRIVIAL(info) << "start Print::process for partplate "<<index+1 << std::endl;
-#if defined(__linux__) || defined(__LINUX__)
-                            BOOST_LOG_TRIVIAL(info) << "cli callback mgr started:  "<<g_cli_callback_mgr.m_started << std::endl;
-                            if (g_cli_callback_mgr.is_started()) {
-                                BOOST_LOG_TRIVIAL(info) << "set print's callback to cli_status_callback.";
-                                print->set_status_callback(cli_status_callback);
-                                g_cli_callback_mgr.set_plate_info(index+1, (plate_to_slice== 0)?partplate_list.get_plate_count():1);
-                                if (!warning.string.empty()) {
-                                    PrintBase::SlicingStatus slicing_status{2, warning.string, 0, 0};
-                                    cli_status_callback(slicing_status);
+                                    if (i->print_volume_state == ModelInstancePVS_Inside)
+                                        printable_instances++;
                                 }
+
+                            if (printable_instances == 0) {
+                                BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, after skipping "<<skipped_count<<" objects."<< std::endl;
+                                flush_and_exit(CLI_NO_SUITABLE_OBJECTS_AFTER_SKIP);
                             }
+                        }
+                        // BBS: TODO
+                        //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
+                        //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
 #endif
-                            if (load_slicedata) {
-                                std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
-                                int ret = print->load_cached_data(plate_dir);
-                                if (ret) {
-                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
-                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
+                        DynamicPrintConfig new_print_config = m_print_config;
+                        new_print_config.apply(*part_plate->config());
+                        new_print_config.apply(m_extra_config, true);
+                        print->apply(model, new_print_config);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
+                        print->set_no_check_flag(no_check);//BBS
+                        StringObjectException warning;
+                        auto err = print->validate(&warning);
+                        if (!err.string.empty()) {
+                            BOOST_LOG_TRIVIAL(info) << "got error when validate: "<< err.string << std::endl;
+                            boost::nowide::cerr << err.string << std::endl;
+                            //BBS: continue for other plates
+                            //continue;
+                            flush_and_exit(CLI_VALIDATE_ERROR);
+                        }
+                        else if (!warning.string.empty())
+                            BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
+
+                        if (print->empty()) {
+                            BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume after apply." << std::endl;
+                            flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
+                        }
+                        else {
+                            if (pre_check) //continue to next plate directly
+                                continue;
+                            try {
+                                std::string outfile_final;
+                                BOOST_LOG_TRIVIAL(info) << "start Print::process for partplate "<<index+1 << std::endl;
+#if defined(__linux__) || defined(__LINUX__)
+                                BOOST_LOG_TRIVIAL(info) << "cli callback mgr started:  "<<g_cli_callback_mgr.m_started << std::endl;
+                                if (g_cli_callback_mgr.is_started()) {
+                                    BOOST_LOG_TRIVIAL(info) << "set print's callback to cli_status_callback.";
+                                    print->set_status_callback(cli_status_callback);
+                                    g_cli_callback_mgr.set_plate_info(index+1, (plate_to_slice== 0)?partplate_list.get_plate_count():1);
+                                    if (!warning.string.empty()) {
+                                        PrintBase::SlicingStatus slicing_status{4, warning.string, 0, 0};
+                                        cli_status_callback(slicing_status);
+                                    }
+                                    else {
+                                        PrintBase::SlicingStatus slicing_status{4, "Slicing begins"};
+                                        cli_status_callback(slicing_status);
+                                    }
+                                }
+#endif
+                                if (load_slicedata) {
+                                    std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
+                                    int ret = print->load_cached_data(plate_dir);
+                                    if (ret) {
+                                        BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
+                                        BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
+                                        print->process();
+                                    }
+                                    else {
+                                        BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
+#if defined(__linux__) || defined(__LINUX__)
+                                        if (g_cli_callback_mgr.is_started()) {
+                                            PrintBase::SlicingStatus slicing_status{69, "Cache data loaded"};
+                                            cli_status_callback(slicing_status);
+                                        }
+#endif
+                                        print->process(true);
+                                        BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
+                                    }
+                                }
+                                else {
                                     print->process();
                                 }
-                                else {
-                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
-                                    print->process(true);
-                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
-                                }
-                            }
-                            else {
-                                print->process();
-                            }
-                            if (printer_technology == ptFFF) {
-                                // The outfile is processed by a PlaceholderParser.
-                                //outfile = part_plate->get_tmp_gcode_path();
-                                if (outfile_dir.empty()) {
-                                    outfile = part_plate->get_tmp_gcode_path();
-                                }
-                                else {
-                                    outfile = outfile_dir + "/plate_" + std::to_string(index + 1) + ".gcode";
-                                    part_plate->set_tmp_gcode_path(outfile);
-                                }
-                                BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
-                                //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
-                                //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-                            }/* else {
-                                outfile = sla_print.output_filepath(outfile);
-                                // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
-                                outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
-                                sla_archive.export_print(outfile_final, sla_print);
-                            }*/
-                            /*if (outfile != outfile_final) {
-                                if (Slic3r::rename_file(outfile, outfile_final)) {
-                                    boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
-                                    flush_and_exit(1);
-                                }
-                                outfile = outfile_final;
-                            }*/
-                            // Run the post-processing scripts if defined.
-                            run_post_process_scripts(outfile, print->full_print_config());
-                            BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
-                            part_plate->update_slice_result_valid_state(true);
+                                if (printer_technology == ptFFF) {
+                                    std::string conflict_result = dynamic_cast<Print *>(print)->get_conflict_string();
+                                    if (!conflict_result.empty()) {
+                                       BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": found slicing result conflict!"<< std::endl;
+                                       flush_and_exit(CLI_GCODE_PATH_CONFLICTS);
+                                    }
+                                    // The outfile is processed by a PlaceholderParser.
+                                    //outfile = part_plate->get_tmp_gcode_path();
+                                    if (outfile_dir.empty()) {
+                                        outfile = part_plate->get_tmp_gcode_path();
+                                    }
+                                    else {
+                                        outfile = outfile_dir + "/plate_" + std::to_string(index + 1) + ".gcode";
+                                        part_plate->set_tmp_gcode_path(outfile);
+                                    }
+                                    BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
+                                    outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
+                                    //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
+                                    //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+                                }/* else {
+                                    outfile = sla_print.output_filepath(outfile);
+                                    // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
+                                    outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
+                                    sla_archive.export_print(outfile_final, sla_print);
+                                }*/
+                                /*if (outfile != outfile_final) {
+                                    if (Slic3r::rename_file(outfile, outfile_final)) {
+                                        boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
+                                        flush_and_exit(1);
+                                    }
+                                    outfile = outfile_final;
+                                }*/
+                                // Run the post-processing scripts if defined.
+                                //run_post_process_scripts(outfile, print->full_print_config());
+                                BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
+                                part_plate->update_slice_result_valid_state(true);
 #if defined(__linux__) || defined(__LINUX__)
-                            if (g_cli_callback_mgr.is_started()) {
-                                PrintBase::SlicingStatus slicing_status{100, "Slicing finished"};
-                                cli_status_callback(slicing_status);
-                            }
-#endif
-                            if (export_slicedata) {
-                                BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ":will export Slicing data to " << export_slice_data_dir;
-                                std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
-                                bool with_space = (get_logging_level() >= 4)?true:false;
-                                int ret = print->export_cached_data(plate_dir, with_space);
-                                if (ret) {
-                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
-                                    export_slicedata_error = true;
-                                    if (fs::exists(plate_dir))
-                                        fs::remove_all(plate_dir);
+                                if (g_cli_callback_mgr.is_started()) {
+                                    PrintBase::SlicingStatus slicing_status{100, "Slicing finished"};
+                                    cli_status_callback(slicing_status);
                                 }
+#endif
+                                if (export_slicedata) {
+                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ":will export Slicing data to " << export_slice_data_dir;
+                                    std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
+                                    bool with_space = (get_logging_level() >= 4)?true:false;
+                                    int ret = print->export_cached_data(plate_dir, with_space);
+                                    if (ret) {
+                                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
+                                        export_slicedata_error = true;
+                                        if (fs::exists(plate_dir))
+                                            fs::remove_all(plate_dir);
+                                    }
+                                }
+                                if (max_slicing_time_per_plate != 0) {
+                                    end_time = (long long)Slic3r::Utils::get_current_time_utc();
+                                    long long time_cost = end_time - start_time;
+                                    if (time_cost > max_slicing_time_per_plate) {
+                                        BOOST_LOG_TRIVIAL(error) << boost::format("plate %1%'s slice time %2% exceeds the limit %3%, return error.")
+                                            %(index+1) %time_cost %max_slicing_time_per_plate;
+                                        flush_and_exit(CLI_SLICING_TIME_EXCEEDS_LIMIT);
+                                    }
+                                }
+                            } catch (const std::exception &ex) {
+                                BOOST_LOG_TRIVIAL(error) << "found slicing or export error for partplate "<<index+1 << std::endl;
+                                boost::nowide::cerr << ex.what() << std::endl;
+                                //continue;
+                                flush_and_exit(CLI_SLICING_ERROR);
                             }
-                        } catch (const std::exception &ex) {
-                            BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index+1 << std::endl;
-                            boost::nowide::cerr << ex.what() << std::endl;
-                            //continue;
-                            flush_and_exit(CLI_SLICING_ERROR);
                         }
+                    }
+                    if (pre_check)
+                        pre_check = false;
+                    else
+                        finished = true;
                 }//end for partplate
 
 #if defined(__linux__) || defined(__LINUX__)
                 if (g_cli_callback_mgr.is_started()) {
                     int plate_count = (plate_to_slice== 0)?partplate_list.get_plate_count():1;
-                    g_cli_callback_mgr.set_plate_info(plate_count+1, plate_count);
+                    g_cli_callback_mgr.set_plate_info(0, plate_count);
                 }
 #endif
 /*
@@ -2046,8 +2191,7 @@ int CLI::run(int argc, char **argv)
 
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
-        Slic3r::GUI::OpenGLManager opengl_mgr;
-        std::vector<ThumbnailData *> thumbnails;
+        std::vector<ThumbnailData *> thumbnails, top_thumbnails, pick_thumbnails;
         std::vector<PlateBBoxData*> plate_bboxes;
         PlateDataPtrs plate_data_list;
         partplate_list.store_to_3mf_structure(plate_data_list);
@@ -2058,12 +2202,15 @@ int CLI::run(int argc, char **argv)
 
 #if defined(__linux__) || defined(__LINUX__)
         if (g_cli_callback_mgr.is_started()) {
-            PrintBase::SlicingStatus slicing_status{91, "Generate thumbnails"};
+            PrintBase::SlicingStatus slicing_status{94, "Generate thumbnails"};
             cli_status_callback(slicing_status);
         }
 #endif
 
-        bool need_regenerate_thumbnail = oriented_or_arranged;
+        bool need_regenerate_thumbnail = oriented_or_arranged || regenerate_thumbnails;
+        bool need_regenerate_top_thumbnail = oriented_or_arranged || regenerate_thumbnails;
+        bool need_create_thumbnail_group = false,  need_create_top_group = false;
+
         // get type and color for platedata
         auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
         const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
@@ -2071,27 +2218,59 @@ int CLI::run(int argc, char **argv)
 
         for (int i = 0; i < plate_data_list.size(); i++) {
             PlateData *plate_data = plate_data_list[i];
+            bool skip_this_plate = ((plate_to_slice != 0) && (plate_to_slice != (i + 1)))?true:false;
+
             for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
-                it->type  = filament_types?filament_types->get_at(it->id):"PLA";
-                it->color = filament_color?filament_color->get_at(it->id):"#FFFFFF";
                 //it->filament_id = filament_id?filament_id->get_at(it->id):"unknown";
+                std::string display_filament_type;
+                it->type  = m_print_config.get_filament_type(display_filament_type, it->id);
+                it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
             }
 
             if (!plate_data->plate_thumbnail.is_valid()) {
-                if (!oriented_or_arranged && plate_data_src.size() > i)
+                if (!oriented_or_arranged && !regenerate_thumbnails && plate_data_src.size() > i)
                     plate_data->thumbnail_file = plate_data_src[i]->thumbnail_file;
                 BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s thumbnail data is invalid, check the file %2% exist or not")%(i+1) %plate_data->thumbnail_file;
                 if (plate_data->thumbnail_file.empty() || (!boost::filesystem::exists(plate_data->thumbnail_file))) {
                     BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s thumbnail file also not there, need to regenerate")%(i+1);
-                    need_regenerate_thumbnail = true;
+                    if (!skip_this_plate) {
+                        need_regenerate_thumbnail = true;
+                        need_create_thumbnail_group = true;
+                    }
                 }
                 else {
                     BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s thumbnail file exists, no need to regenerate")%(i+1);
                 }
             }
+            else {
+                if (regenerate_thumbnails)
+                    plate_data->plate_thumbnail.reset();
+
+                if (!skip_this_plate) {
+                    need_create_thumbnail_group = true;
+                }
+            }
+
+            if (plate_data->top_file.empty() || plate_data->pick_file.empty()) {
+                if (!regenerate_thumbnails && (plate_data_src.size() > i)) {
+                    plate_data->top_file = plate_data_src[i]->top_file;
+                    plate_data->pick_file = plate_data_src[i]->pick_file;
+                }
+                if (plate_data->top_file.empty()|| plate_data->pick_file.empty()
+                    || (!boost::filesystem::exists(plate_data->top_file)) || (!boost::filesystem::exists(plate_data->pick_file))) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s top_file %2% also not there, need to regenerate")%(i+1)%plate_data->top_file;
+                    if (!skip_this_plate) {
+                        need_regenerate_top_thumbnail = true;
+                        need_create_top_group = true;
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s top_thumbnail file exists, no need to regenerate")%(i+1);
+                }
+            }
         }
 
-        if (need_regenerate_thumbnail) {
+        if (need_regenerate_thumbnail || need_regenerate_top_thumbnail) {
             std::vector<std::string> colors;
             if (filament_color) {
                 colors= filament_color->vserialize();
@@ -2147,89 +2326,201 @@ int CLI::run(int argc, char **argv)
                 else
                     glfwMakeContextCurrent(window);
             }
-            bool opengl_valid = opengl_mgr.init_gl();
-            if (!opengl_valid) {
-                BOOST_LOG_TRIVIAL(error) << "init opengl failed! skip thumbnail generating" << std::endl;
-            }
-            else {
-                BOOST_LOG_TRIVIAL(info) << "glewInit Sucess." << std::endl;
-                GLVolumeCollection glvolume_collection;
-                Model &model = m_models[0];
-                int extruder_id = 1;
-                for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model.objects.size(); ++ obj_idx) {
-                    const ModelObject &model_object = *model.objects[obj_idx];
-                    const ConfigOption* option = model_object.config.option("extruder");
-                    if (option)
-                        extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
-                    for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
-                        const ModelVolume &model_volume = *model_object.volumes[volume_idx];
-                        option = model_volume.config.option("extruder");
-                        if (option) extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
-                        //if (!model_volume.is_model_part())
-                        //    continue;
-                        for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
-                            const ModelInstance &model_instance = *model_object.instances[instance_idx];
-                            glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true);
-                            //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
-                            std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00";
 
-                            unsigned char  rgb_color[3] = {};
-                            Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-                            glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f);
-
-                            std::array<float, 4> new_color;
-                            new_color[0] = float(rgb_color[0]) / 255.f;
-                            new_color[1] = float(rgb_color[1]) / 255.f;
-                            new_color[2] = float(rgb_color[2]) / 255.f;
-                            new_color[3] = 1.f;
-                            glvolume_collection.volumes.back()->set_color(new_color);
-                        }
-                    }
-                }
-
-                ThumbnailsParams thumbnail_params;
-                GLShaderProgram* shader = opengl_mgr.get_shader("gouraud_light");
-                if (!shader) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("can not get shader for rendering thumbnail");
+            //opengl manager related logic
+            {
+                Slic3r::GUI::OpenGLManager opengl_mgr;
+                bool opengl_valid = opengl_mgr.init_gl();
+                if (!opengl_valid) {
+                    BOOST_LOG_TRIVIAL(error) << "init opengl failed! skip thumbnail generating" << std::endl;
                 }
                 else {
-                    for (int i = 0; i < partplate_list.get_plate_count(); i++) {
-                        Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
-                        PlateData *plate_data = plate_data_list[i];
-                        if (plate_data->plate_thumbnail.is_valid()) {
-                            thumbnails.push_back(&plate_data->plate_thumbnail);
-                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has a valid thumbnail, width %2%, height %3%， directly using it")%(i+1) %plate_data->plate_thumbnail.width %plate_data->plate_thumbnail.height;
-                            continue;
-                        }
-                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail, need to regenerate")%(i+1);
-                        ThumbnailData *        thumbnail_data   = new ThumbnailData();
-                        unsigned int thumbnail_width = 256, thumbnail_height = 256;
-                        const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
+                    BOOST_LOG_TRIVIAL(info) << "glewInit Sucess." << std::endl;
+                    GLVolumeCollection glvolume_collection;
+                    Model &model = m_models[0];
+                    int extruder_id = 1;
+                    for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model.objects.size(); ++ obj_idx) {
+                        const ModelObject &model_object = *model.objects[obj_idx];
+                        const ConfigOption* option = model_object.config.option("extruder");
+                        if (option)
+                            extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                        for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
+                            const ModelVolume &model_volume = *model_object.volumes[volume_idx];
+                            option = model_volume.config.option("extruder");
+                            if (option) extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                            //if (!model_volume.is_model_part())
+                            //    continue;
+                            for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
+                                const ModelInstance &model_instance = *model_object.instances[instance_idx];
+                                glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
+                                //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
+                                std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00";
 
-                        switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
-                        {
-                        case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
-                                {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
-                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
-                                       thumbnail_width, thumbnail_height, thumbnail_params,
-                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
-                                    break;
-                                }
-                        case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
-                                {
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
-                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
-                                       thumbnail_width, thumbnail_height, thumbnail_params,
-                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
-                                    break;
-                                }
-                        default:
-                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
-                                break;
+                                unsigned char  rgb_color[3] = {};
+                                Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+                                glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f);
+
+                                std::array<float, 4> new_color;
+                                new_color[0] = float(rgb_color[0]) / 255.f;
+                                new_color[1] = float(rgb_color[1]) / 255.f;
+                                new_color[2] = float(rgb_color[2]) / 255.f;
+                                new_color[3] = 1.f;
+                                glvolume_collection.volumes.back()->set_color(new_color);
+                                glvolume_collection.volumes.back()->printable = model_instance.printable;
+                            }
                         }
-                        thumbnails.push_back(thumbnail_data);
-                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail,finished rendering")%(i+1);
+                    }
+
+                    ThumbnailsParams thumbnail_params;
+                    GLShaderProgram* shader = opengl_mgr.get_shader("thumbnail");
+                    if (!shader) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("can not get shader for rendering thumbnail");
+                    }
+                    else {
+                        for (int i = 0; i < partplate_list.get_plate_count(); i++) {
+                            Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
+                            PlateData *plate_data = plate_data_list[i];
+                            if (plate_data->plate_thumbnail.is_valid()) {
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, reset plate %2%'s thumbnail.")%__LINE__%(i+1);
+                                    plate_data->plate_thumbnail.reset();
+                                }
+                                else
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has a valid thumbnail, width %2%, height %3%， directly using it")%(i+1) %plate_data->plate_thumbnail.width %plate_data->plate_thumbnail.height;
+                            }
+                            else if (!plate_data->thumbnail_file.empty() && (boost::filesystem::exists(plate_data->thumbnail_file)))
+                            {
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s thumbnail file path to empty.")%__LINE__%(i+1);
+                                    plate_data->thumbnail_file.clear();
+                                }
+                                else
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has a valid thumbnail %2% extracted from 3mf, directly using it")%(i+1) %plate_data->thumbnail_file;
+                            }
+                            else {
+                                ThumbnailData* thumbnail_data = &plate_data->plate_thumbnail;
+
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
+                                }
+                                else {
+                                    unsigned int thumbnail_width = 512, thumbnail_height = 512;
+                                    const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
+
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail, need to regenerate")%(i+1);
+                                    switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                                    {
+                                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                                break;
+                                            }
+                                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                                break;
+                                            }
+                                    default:
+                                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                                            break;
+                                    }
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail,finished rendering")%(i+1);
+                                }
+                            }
+                            if (need_create_thumbnail_group) {
+                                thumbnails.push_back(&plate_data->plate_thumbnail);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
+                            }
+
+                            //top thumbnails
+                            /*if (part_plate->top_thumbnail_data.is_valid() && part_plate->pick_thumbnail_data.is_valid()) {
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, reset plate %2%'s top/pick thumbnail.")%__LINE__%(i+1);
+                                    part_plate->top_thumbnail_data.reset();
+                                    part_plate->pick_thumbnail_data.reset();
+                                    plate_data->top_file.clear();
+                                    plate_data->pick_file.clear();
+                                }
+                                else {
+                                    plate_data->top_file = "valid_top";
+                                    plate_data->pick_file = "valid_pick";
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has a valid top/pick thumbnail data, directly using it")%(i+1);
+                                }
+                            }
+                            else*/
+                            if ((!plate_data->top_file.empty() && (boost::filesystem::exists(plate_data->top_file)))
+                                &&(!plate_data->pick_file.empty() && (boost::filesystem::exists(plate_data->pick_file))))
+                            {
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s top/pick thumbnail file path to empty.")%__LINE__%(i+1);
+                                    plate_data->top_file.clear();
+                                    plate_data->pick_file.clear();
+                                }
+                                else
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has valid top/pick thumbnail extracted from 3mf, directly using it")%(i+1);
+                            }
+                            else{
+                                ThumbnailData* top_thumbnail = &part_plate->top_thumbnail_data;
+                                ThumbnailData* picking_thumbnail = &part_plate->pick_thumbnail_data;
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
+                                    part_plate->top_thumbnail_data.reset();
+                                    part_plate->pick_thumbnail_data.reset();
+                                    plate_data->top_file.clear();
+                                    plate_data->pick_file.clear();
+                                }
+                                else {
+                                    unsigned int thumbnail_width = 512, thumbnail_height = 512;
+                                    const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top/pick thumbnail missed, need to regenerate")%(i+1);
+
+                                    switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                                    {
+                                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*top_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*picking_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
+                                                break;
+                                            }
+                                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*top_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*picking_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
+                                                break;
+                                            }
+                                    default:
+                                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                                            break;
+                                    }
+                                    plate_data->top_file = "valid_top";
+                                    plate_data->pick_file = "valid_pick";
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top_thumbnail,finished rendering")%(i+1);
+                                }
+                            }
+
+                            if (need_create_top_group) {
+                                top_thumbnails.push_back(&part_plate->top_thumbnail_data);
+                                pick_thumbnails.push_back(&part_plate->pick_thumbnail_data);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for top and pick into group")%(i+1);
+                            }
+                        }
                     }
                 }
             }
@@ -2237,17 +2528,42 @@ int CLI::run(int argc, char **argv)
             glfwTerminate();
         }
         else {
+            BOOST_LOG_TRIVIAL(info) << boost::format("use previous thumbnails, no need to regenerate");
             for (int i = 0; i < partplate_list.get_plate_count(); i++) {
                 PlateData *plate_data = plate_data_list[i];
-                if (plate_data->plate_thumbnail.is_valid()) {
+                bool skip_this_plate = ((plate_to_slice != 0) && (plate_to_slice != (i + 1)))?true:false;
+                Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
+
+                if (skip_this_plate) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s all the thumbnails skipped, reset here")%(i+1);
+                    plate_data->plate_thumbnail.reset();
+                    plate_data->thumbnail_file.clear();
+                    part_plate->top_thumbnail_data.reset();
+                    part_plate->pick_thumbnail_data.reset();
+                    plate_data->top_file.clear();
+                    plate_data->pick_file.clear();
+                }
+
+                if (need_create_thumbnail_group) {
                     thumbnails.push_back(&plate_data->plate_thumbnail);
-                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has a valid thumbnail data, width %2%, height %3%， directly using it")%(i+1) %plate_data->plate_thumbnail.width %plate_data->plate_thumbnail.height;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
+                }
+
+                if (need_create_top_group) {
+                    top_thumbnails.push_back(&part_plate->top_thumbnail_data);
+                    pick_thumbnails.push_back(&part_plate->pick_thumbnail_data);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for top and pick into group")%(i+1);
                 }
             }
         }
 
         //generate first layer bboxes
         for (int i = 0; i < partplate_list.get_plate_count(); i++) {
+            if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: generate bbox, Skip plate %2%.")%__LINE__%(i+1);
+                plate_bboxes.push_back(new PlateBBoxData());
+                continue;
+            }
             Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
             //render calibration thumbnail
             if (!part_plate->get_slice_result() || !part_plate->is_slice_result_valid()) {
@@ -2289,9 +2605,36 @@ int CLI::run(int argc, char **argv)
             PlateBBoxData* plate_bbox = new PlateBBoxData();
             std::vector<BBoxData>& id_bboxes = plate_bbox->bbox_objs;
             BoundingBoxf bbox_all;
-            auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-            if ( seq_print && (seq_print->value == PrintSequence::ByObject))
+            PrintSequence curr_plate_seq = part_plate->get_print_seq();
+            if (curr_plate_seq == PrintSequence::ByDefault) {
+                auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from global")%(i+1);
+                    plate_bbox->is_seq_print = true;
+                }
+            }
+            else if (curr_plate_seq == PrintSequence::ByObject) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%(i+1);
                 plate_bbox->is_seq_print = true;
+            }
+            plate_bbox->first_extruder = print->get_tool_ordering().first_extruder();
+            //bed type;
+            BedType plate_bed_type = part_plate->get_bed_type();
+            if (plate_bed_type == btDefault) {
+                auto cur_bed_type  = m_print_config.option<ConfigOptionEnum<BedType>>("curr_bed_type");
+                if (cur_bed_type) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% bed type: %2%, set from global")%(i+1) %cur_bed_type->serialize();
+                    plate_bbox->bed_type = bed_type_to_gcode_string(cur_bed_type->value);
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% bed type: %2%, set from plate self")%(i+1) %plate_bed_type;
+                plate_bbox->bed_type       = bed_type_to_gcode_string(plate_bed_type);
+            }
+            // get nozzle diameter
+            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloats>("nozzle_diameter");
+            if (opt_nozzle_diameters != nullptr)
+                plate_bbox->nozzle_diameter = float(opt_nozzle_diameters->get_at(plate_bbox->first_extruder));
 
             auto objects = print->objects();
             auto orig = part_plate->get_origin();
@@ -2328,26 +2671,37 @@ int CLI::run(int argc, char **argv)
                 }
             }
             plate_bbox->bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
+
+            PlateData *plate_data = plate_data_list[i];
+            for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
+                plate_bbox->filament_ids.push_back(it->id);
+                plate_bbox->filament_colors.push_back(it->color);
+            }
             plate_bboxes.push_back(plate_bbox);
         }
 
 
 #if defined(__linux__) || defined(__LINUX__)
         if (g_cli_callback_mgr.is_started()) {
-            PrintBase::SlicingStatus slicing_status{95, "Exporting 3mf"};
+            PrintBase::SlicingStatus slicing_status{97, "Exporting 3mf"};
             cli_status_callback(slicing_status);
         }
 #endif
 
         BOOST_LOG_TRIVIAL(info) << "will export 3mf to " << export_3mf_file << std::endl;
-        if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, calibration_thumbnails, plate_bboxes, &m_print_config))
+        if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, top_thumbnails, pick_thumbnails,
+                                calibration_thumbnails, plate_bboxes, &m_print_config))
         {
             release_PlateData_list(plate_data_list);
             flush_and_exit(CLI_EXPORT_3MF_ERROR);
         }
         release_PlateData_list(plate_data_list);
         for (unsigned int i = 0; i < thumbnails.size(); i++)
-            delete thumbnails[i];
+            thumbnails[i]->reset();
+        for (unsigned int i = 0; i < top_thumbnails.size(); i++)
+            top_thumbnails[i]->reset();
+        for (unsigned int i = 0; i < pick_thumbnails.size(); i++)
+            pick_thumbnails[i]->reset();
 
         for (unsigned int i = 0; i < calibration_thumbnails.size(); i++)
             delete calibration_thumbnails[i];
@@ -2370,6 +2724,9 @@ int CLI::run(int argc, char **argv)
     g_cli_callback_mgr.stop();
 #endif
 
+    for (Model &model : m_models) {
+	model.remove_backup_path_if_exist();
+    }
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
     boost::nowide::cout.flush();
@@ -2523,7 +2880,8 @@ bool CLI::export_models(IO::ExportFormat format)
 
 //BBS: add export_project function
 bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data,
-    std::vector<Preset*>& project_presets, std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config)
+    std::vector<Preset*>& project_presets, std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& top_thumbnails, std::vector<ThumbnailData*>& pick_thumbnails,
+    std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config)
 {
     //const std::string path = this->output_filepath(*model, IO::TMF);
     bool success = false;
@@ -2535,9 +2893,11 @@ bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partpla
     store_params.project_presets = project_presets;
     store_params.config = (DynamicPrintConfig*)config;
     store_params.thumbnail_data = thumbnails;
+    store_params.top_thumbnail_data = top_thumbnails;
+    store_params.pick_thumbnail_data = pick_thumbnails;
     store_params.calibration_thumbnail_data = calibration_thumbnails;
     store_params.id_bboxes = plate_bboxes;
-    store_params.strategy = SaveStrategy::Silence|SaveStrategy::WithGcode|SaveStrategy::SplitModel;
+    store_params.strategy = SaveStrategy::Silence|SaveStrategy::WithGcode|SaveStrategy::SplitModel|SaveStrategy::UseLoadedId;
 
     success = Slic3r::store_bbs_3mf(store_params);
 

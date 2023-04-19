@@ -27,6 +27,10 @@
 //BBS: add json support
 #include "nlohmann/json.hpp"
 
+#include "GCode/ConflictChecker.hpp"
+
+#include <codecvt>
+
 using namespace nlohmann;
 
 // Mark string for localization and translate.
@@ -227,7 +231,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);
         } else if (opt_key == "filament_soluble"
-                || opt_key == "filament_is_support") {
+                || opt_key == "filament_is_support"
+                || opt_key == "independent_support_layer_height") {
             steps.emplace_back(psWipeTower);
             // Soluble support interface / non-soluble base interface produces non-soluble interface layers below soluble interface layers.
             // Thus switching between soluble / non-soluble interface layer material may require recalculation of supports.
@@ -366,10 +371,11 @@ std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
 
     if (conside_custom_gcode) {
         //BBS
+        int num_extruders = m_config.filament_colour.size();
         for (auto plate_data : m_model.plates_custom_gcodes) {
             for (auto item : plate_data.second.gcodes) {
-                if (item.type == CustomGCode::Type::ToolChange)
-                    extruders.push_back((unsigned int)item.extruder);
+                if (item.type == CustomGCode::Type::ToolChange && item.extruder <= num_extruders)
+                    extruders.push_back((unsigned int)(item.extruder - 1));
             }
         }
     }
@@ -488,14 +494,17 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             // Now we check that no instance of convex_hull intersects any of the previously checked object instances.
             for (const PrintInstance &instance : print_object->instances()) {
                 Polygon convex_hull_no_offset = convex_hull0, convex_hull;
-                convex_hull = offset(convex_hull_no_offset,
+                auto tmp = offset(convex_hull_no_offset,
                         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
                         float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
-                        jtRound, scale_(0.1)).front();
-                // instance.shift is a position of a centered object, while model object may not be centered.
-                // Convert the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
-                convex_hull.translate(instance.shift - print_object->center_offset());
+                        jtRound, scale_(0.1));
+                if (!tmp.empty()) { // tmp may be empty due to clipper's bug, see STUDIO-2452
+                    convex_hull = tmp.front();
+                    // instance.shift is a position of a centered object, while model object may not be centered.
+                    // Convert the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
+                    convex_hull.translate(instance.shift - print_object->center_offset());
+                }
                 convex_hull_no_offset.translate(instance.shift - print_object->center_offset());
                 //juedge the exclude area
                 if (!intersection(exclude_polys, convex_hull_no_offset).empty()) {
@@ -1136,6 +1145,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (layer_height > min_nozzle_diameter)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
 
+            for (auto range : object->m_model_object->layer_config_ranges) {
+                double range_layer_height = range.second.opt_float("layer_height");
+                if (range_layer_height > object->m_slicing_params.max_layer_height ||
+                    range_layer_height < object->m_slicing_params.min_layer_height)
+                    return  { L("Layer height cannot exceed nozzle diameter"), nullptr, "layer_height" };
+            }
+
             // Validate extrusion widths.
             std::string err_msg;
             if (!validate_extrusion_width(object->config(), "line_width", layer_height, err_msg))
@@ -1475,13 +1491,19 @@ void Print::process(bool use_cache)
         for (int index = 0; index < object_count; index++)
         {
             PrintObject *obj =  m_objects[index];
+            bool found_shared = false;
             if (need_slicing_objects.find(obj) == need_slicing_objects.end()) {
                 for (PrintObject *slicing_obj : need_slicing_objects)
                 {
                     if (is_print_object_the_same(obj, slicing_obj)) {
                         obj->set_shared_object(slicing_obj);
+                        found_shared = true;
                         break;
                     }
+                }
+                if (!found_shared) {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Also can not find the shared object, identify_id %1%")%obj->model_object()->instances[0]->loaded_id;
+                    throw Slic3r::SlicingError("Can not find the cached data.");
                 }
             }
         }
@@ -1685,6 +1707,27 @@ void Print::process(bool use_cache)
         }
     }
 
+    // BBS
+    if(!m_no_check)
+    {
+        using Clock                 = std::chrono::high_resolution_clock;
+        auto            startTime   = Clock::now();
+        std::optional<const FakeWipeTower *> wipe_tower_opt = {};
+        if (this->has_wipe_tower()) {
+            m_fake_wipe_tower.set_pos({m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index)});
+            wipe_tower_opt = std::make_optional<const FakeWipeTower *>(&m_fake_wipe_tower);
+        }
+        auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects, wipe_tower_opt);
+        auto            endTime     = Clock::now();
+        volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
+        BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs.";
+
+        m_conflict_result = conflictRes;
+        if (conflictRes.has_value()) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value()._objName1 %conflictRes.value()._objName2;
+        }
+    }
+
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
 
@@ -1713,6 +1756,8 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     const Vec3d origin = this->get_plate_origin();
     gcode.set_gcode_offset(origin(0), origin(1));
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
+    //BBS
+    result->conflict_result = m_conflict_result;
     return path.c_str();
 }
 
@@ -2147,8 +2192,11 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
         wipe_tower.tool_change((unsigned int)(-1)));
 
-    m_wipe_tower_data.used_filament = wipe_tower.get_used_filament();
+    m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
     m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
+    const Vec3d origin                      = this->get_plate_origin();
+    m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position(), wipe_tower.width(), wipe_tower.get_height(), wipe_tower.get_layer_height(), m_wipe_tower_data.depth,
+                                              m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())});
 }
 
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters
@@ -2251,14 +2299,18 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_EXPOLYGON              "expolygon"
 #define JSON_ARC_FITTING            "arc_fitting"
 #define JSON_OBJECT_NAME            "name"
-#define JSON_ARRANGE_ORDER          "arrange_order"
+#define JSON_IDENTIFY_ID          "identify_id"
 
 
 #define JSON_LAYERS                  "layers"
 #define JSON_SUPPORT_LAYERS                  "support_layers"
 #define JSON_TREE_SUPPORT_LAYERS                  "tree_support_layers"
 #define JSON_LAYER_REGIONS                  "layer_regions"
+#define JSON_FIRSTLAYER_GROUPS                  "first_layer_groups"
 
+#define JSON_FIRSTLAYER_GROUP_ID                  "group_id"
+#define JSON_FIRSTLAYER_GROUP_VOLUME_IDS          "volume_ids"
+#define JSON_FIRSTLAYER_GROUP_SLICES               "slices"
 
 #define JSON_LAYER_PRINT_Z            "print_z"
 #define JSON_LAYER_SLICE_Z            "slice_z"
@@ -2582,6 +2634,24 @@ static void to_json(json& j, const LayerRegion& layer_region) {
     j.push_back({JSON_LAYER_REGION_FILLS, std::move(fills_json)});
 
     return;
+}
+
+static void to_json(json& j, const groupedVolumeSlices& first_layer_group) {
+    json volumes_json = json::array(), slices_json = json::array();
+    j[JSON_FIRSTLAYER_GROUP_ID] = first_layer_group.groupId;
+
+    for (const ObjectID& obj_id : first_layer_group.volume_ids)
+    {
+        volumes_json.push_back(obj_id.id);
+    }
+    j[JSON_FIRSTLAYER_GROUP_VOLUME_IDS] = std::move(volumes_json);
+
+    for (const ExPolygon& slice_expolygon : first_layer_group.slices) {
+        json slice_expolygon_json = slice_expolygon;
+
+        slices_json.push_back(std::move(slice_expolygon_json));
+    }
+    j[JSON_FIRSTLAYER_GROUP_SLICES] = std::move(slices_json);
 }
 
 //load apis from json
@@ -2909,7 +2979,7 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
         ExPolygon polygon;
 
         polygon = support_layer_json[JSON_SUPPORT_LAYER_ISLANDS][islands_index];
-        support_layer.support_islands.expolygons.push_back(std::move(polygon));
+        support_layer.support_islands.push_back(std::move(polygon));
     }
 
     //support_fills
@@ -2928,6 +2998,29 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
     }
 
     return;
+}
+
+static void from_json(const json& j, groupedVolumeSlices& firstlayer_group)
+{
+    firstlayer_group.groupId               =   j[JSON_FIRSTLAYER_GROUP_ID];
+
+    int volume_count = j[JSON_FIRSTLAYER_GROUP_VOLUME_IDS].size();
+    for (int volume_index = 0; volume_index < volume_count; volume_index++)
+    {
+        ObjectID obj_id;
+
+        obj_id.id = j[JSON_FIRSTLAYER_GROUP_VOLUME_IDS][volume_index];
+        firstlayer_group.volume_ids.push_back(std::move(obj_id));
+    }
+
+    int slices_count = j[JSON_FIRSTLAYER_GROUP_SLICES].size();
+    for (int slice_index = 0; slice_index < slices_count; slice_index++)
+    {
+        ExPolygon polygon;
+
+        polygon = j[JSON_FIRSTLAYER_GROUP_SLICES][slice_index];
+        firstlayer_group.slices.push_back(std::move(polygon));
+    }
 }
 
 int Print::export_cached_data(const std::string& directory, bool with_space)
@@ -2987,18 +3080,19 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
             BOOST_LOG_TRIVIAL(info) << boost::format("shared object %1%, skip directly")%model_obj->name;
             continue;
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%")%model_obj->name;
 
         const PrintInstance &print_instance = obj->instances()[0];
         const ModelInstance *model_instance = print_instance.model_instance;
-        int arrange_order = model_instance->arrange_order;
-        std::string file_name = directory +"/obj_"+std::to_string(arrange_order)+".json";
+        size_t identify_id = (model_instance->loaded_id > 0)?model_instance->loaded_id: model_instance->id().id;
+        std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name;
 
         try {
-            json root_json, layers_json = json::array(), support_layers_json = json::array();
+            json root_json, layers_json = json::array(), support_layers_json = json::array(), first_layer_groups = json::array();
 
             root_json[JSON_OBJECT_NAME] = model_obj->name;
-            root_json[JSON_ARRANGE_ORDER] = arrange_order;
+            root_json[JSON_IDENTIFY_ID] = identify_id;
 
             //export the layers
             std::vector<json> layers_json_vector(obj->layer_count());
@@ -3043,7 +3137,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                         support_layer_json[JSON_SUPPORT_LAYER_TYPE] = support_layer->support_type;
 
                         //support_islands
-                        for (const ExPolygon& support_island : support_layer->support_islands.expolygons) {
+                        for (const ExPolygon& support_island : support_layer->support_islands) {
                             json support_island_json = support_island;
                             support_islands_json.push_back(std::move(support_island_json));
                         }
@@ -3104,6 +3198,35 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
             } // for each layer*/
             root_json[JSON_SUPPORT_LAYERS] = std::move(support_layers_json);
 
+            const std::vector<groupedVolumeSlices> &first_layer_obj_groups =  obj->firstLayerObjGroups();
+            for (size_t s_group_index = 0; s_group_index < first_layer_obj_groups.size(); ++ s_group_index) {
+                groupedVolumeSlices group = first_layer_obj_groups[s_group_index];
+
+                //convert the id
+                for (ObjectID& obj_id : group.volume_ids)
+                {
+                    const ModelVolume* currentModelVolumePtr = nullptr;
+                    //BBS: support shared object logic
+                    const PrintObject* shared_object = obj->get_shared_object();
+                    if (!shared_object)
+                        shared_object = obj;
+                    const ModelVolumePtrs& volumes_ptr = shared_object->model_object()->volumes;
+                    size_t volume_count = volumes_ptr.size();
+                    for (size_t index = 0; index < volume_count; index ++) {
+                        currentModelVolumePtr = volumes_ptr[index];
+                        if (currentModelVolumePtr->id() == obj_id) {
+                            obj_id.id = index;
+                            break;
+                        }
+                    }
+                }
+
+                json first_layer_group_json;
+
+                first_layer_group_json = group;
+                first_layer_groups.push_back(std::move(first_layer_group_json));
+            }
+            root_json[JSON_FIRSTLAYER_GROUPS] = std::move(first_layer_groups);
 
             filename_vector.push_back(file_name);
             json_vector.push_back(std::move(root_json));
@@ -3183,12 +3306,14 @@ int Print::load_cached_data(const std::string& directory)
         obj->clear_layers();
         obj->clear_support_layers();
 
-        int arrange_order = model_instance->arrange_order;
-        if (arrange_order <= 0) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1% has invalid arrange_order %2%, can not load cached_data")%model_obj->name %arrange_order;
-            continue;
+        int identify_id = model_instance->loaded_id;
+        if (identify_id <= 0) {
+            //for old 3mf
+            identify_id = model_instance->id().id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1%'s loaded_id is 0, need to use the instance_id %2%")%model_obj->name %identify_id;
+            //continue;
         }
-        std::string file_name = directory +"/obj_"+std::to_string(arrange_order)+".json";
+        std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
 
         if (!fs::exists(file_name)) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name;
@@ -3232,13 +3357,15 @@ int Print::load_cached_data(const std::string& directory)
             //ifs >> root_json;
 
             std::string name = root_json.at(JSON_OBJECT_NAME);
-            int order = root_json.at(JSON_ARRANGE_ORDER);
-            int layer_count = 0, support_layer_count = 0;
+            int identify_id = root_json.at(JSON_IDENTIFY_ID);
+            int layer_count = 0, support_layer_count = 0, firstlayer_group_count = 0;
 
             layer_count = root_json[JSON_LAYERS].size();
             support_layer_count = root_json[JSON_SUPPORT_LAYERS].size();
+            firstlayer_group_count = root_json[JSON_FIRSTLAYER_GROUPS].size();
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, arrange_order %2%, layer_count %3%, support_layer_count %4%")%name %order %layer_count %support_layer_count;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, identify_id %2%, layer_count %3%, support_layer_count %4%, firstlayer_group_count %5%")
+                %name %identify_id %layer_count %support_layer_count %firstlayer_group_count;
 
             Layer* previous_layer = NULL;
             //create layer and layer regions
@@ -3318,6 +3445,31 @@ int Print::load_cached_data(const std::string& directory)
                     }
                 }
             );
+
+            //load first group volumes
+            std::vector<groupedVolumeSlices>& firstlayer_objgroups = obj->firstLayerObjGroupsMod();
+            for (int index = 0; index < firstlayer_group_count; index++)
+            {
+                json& firstlayer_group_json = root_json[JSON_FIRSTLAYER_GROUPS][index];
+                groupedVolumeSlices firstlayer_group = firstlayer_group_json;
+                //convert the id
+                for (ObjectID& obj_id : firstlayer_group.volume_ids)
+                {
+                    ModelVolume* currentModelVolumePtr = nullptr;
+                    ModelVolumePtrs& volumes_ptr = obj->model_object()->volumes;
+                    size_t volume_count = volumes_ptr.size();
+                    if (obj_id.id < volume_count) {
+                        currentModelVolumePtr = volumes_ptr[obj_id.id];
+                        obj_id = currentModelVolumePtr->id();
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": can not find volume_id %1% from object file %2% in firstlayer groups, volume_count %3%!")
+                            %obj_id.id %object_filenames[obj_index].first %volume_count;
+                        return CLI_IMPORT_CACHE_LOAD_FAILED;
+                    }
+                }
+                firstlayer_objgroups.push_back(std::move(firstlayer_group));
+            }
 
             count ++;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": load object %1% from %2% successfully.")%count%object_filenames[obj_index].first;

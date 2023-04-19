@@ -178,7 +178,9 @@ void GCodeViewer::InstanceVBuffer::Ranges::reset()
 void GCodeViewer::InstanceVBuffer::reset()
 {
     s_ids.clear();
+    s_ids.shrink_to_fit();
     buffer.clear();
+    buffer.shrink_to_fit();
     render_ranges.reset();
 }
 
@@ -510,14 +512,14 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     imgui.pop_toolbar_style();
 }
 
-void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)
+void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends)
 {
     assert(! m_file.is_open());
     if (m_file.is_open())
         return;
 
     m_filename   = filename;
-    m_lines_ends = std::move(lines_ends);
+    m_lines_ends = lines_ends;
 
     m_selected_line_id = 0;
     m_last_lines_size = 0;
@@ -627,7 +629,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
     imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.6f);
+    ImGui::SetNextWindowBgAlpha(0.8f);
     imgui.begin(std::string("G-code"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
     // center the text in the window by pushing down the first line
@@ -909,6 +911,7 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 void GCodeViewer::on_change_color_mode(bool is_dark) {
     m_is_dark = is_dark;
     m_sequential_view.marker.on_change_color_mode(m_is_dark);
+    m_sequential_view.gcode_window.on_change_color_mode(m_is_dark);
 }
 
 void GCodeViewer::set_scale(float scale)
@@ -1098,8 +1101,19 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     }
 
     m_fold = false;
+
+    bool only_gcode_3mf = false;
+    PartPlate* current_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    bool current_has_print_instances = current_plate->has_printable_instances();
+    if (current_plate->is_slice_result_valid() && wxGetApp().model().objects.empty() && !current_has_print_instances)
+        only_gcode_3mf = true;
+    m_layers_slider->set_menu_enable(!(only_gcode || only_gcode_3mf));
     m_layers_slider->set_as_dirty();
     m_moves_slider->set_as_dirty();
+
+    //BBS
+    m_conflict_result = gcode_result.conflict_result;
+    if (m_conflict_result) { m_conflict_result.value().layer = m_layers.get_l_at(m_conflict_result.value()._height); }
 
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
@@ -1230,6 +1244,7 @@ void GCodeViewer::reset()
 
     m_moves_count = 0;
     m_ssid_to_moveid_map.clear();
+    m_ssid_to_moveid_map.shrink_to_fit();
     for (TBuffer& buffer : m_buffers) {
         buffer.reset();
     }
@@ -1800,7 +1815,10 @@ void GCodeViewer::update_layers_slider_mode()
 void GCodeViewer::update_marker_curr_move() {
     if ((int)m_last_result_id != -1) {
         auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this](auto move) {
-            return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
+                if (m_sequential_view.current.last < m_sequential_view.gcode_ids.size() && m_sequential_view.current.last >= 0) {
+                    return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
+                }
+                return false;
             });
         if (it != m_gcode_result->moves.end())
             m_sequential_view.marker.update_curr_move(*it);
@@ -3183,19 +3201,8 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     }
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
-        // BBS
-        // adds wipe tower's volume
-        std::vector<int> print_extruders;
-        for (auto print_obj : print.objects()) {
-            ModelObject* mo = print_obj->model_object();
-            for (ModelVolume* mv : mo->volumes) {
-                std::vector<int> volume_extruders = mv->get_extruders();
-                print_extruders.insert(print_extruders.end(), volume_extruders.begin(), volume_extruders.end());
-            }
-        }
-        std::sort(print_extruders.begin(), print_extruders.end());
-        auto it_end = std::unique(print_extruders.begin(), print_extruders.end());
-        print_extruders.resize(std::distance(print_extruders.begin(), it_end));
+        // BBS: adds wipe tower's volume
+        std::vector<unsigned int> print_extruders = print.extruders(true);
         int extruders_count = print_extruders.size();
 
         const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
@@ -4363,7 +4370,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
-    ImGui::SetNextWindowBgAlpha(0.6f);
+    ImGui::SetNextWindowBgAlpha(0.8f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
     ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });

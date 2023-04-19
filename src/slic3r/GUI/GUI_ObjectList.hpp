@@ -225,6 +225,7 @@ public:
     // BBS
     void                set_color_paint_hidden(const bool hide) const;
     void                set_support_paint_hidden(const bool hide) const;
+    void                set_sinking_hidden(const bool hide) const;
 
     // update extruder in current config
     void                update_filament_in_config(const wxDataViewItem& item);
@@ -285,12 +286,13 @@ public:
     // BBS
     void                switch_to_object_process();
     int                 load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp);
-    void                del_object(const int obj_idx, bool refresh_immediately = true);
+    bool                del_object(const int obj_idx, bool refresh_immediately = true);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config(const wxDataViewItem& parent_item);
     void                del_instances_from_object(const int obj_idx);
     void                del_layer_from_object(const int obj_idx, const t_layer_height_range& layer_range);
     void                del_layers_from_object(const int obj_idx);
+    bool                del_from_cut_object(bool is_connector, bool is_model_part = false, bool is_negative_volume = false);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                del_info_item(const int obj_idx, InfoItemType type);
     void                split();
@@ -309,6 +311,12 @@ public:
     bool                can_merge_to_multipart_object() const;
     bool                can_merge_to_single_object() const;
 
+    bool                has_selected_cut_object() const;
+    void                invalidate_cut_info_for_selection();
+    void                invalidate_cut_info_for_object(int obj_idx);
+    void                delete_all_connectors_for_selection();
+    void                delete_all_connectors_for_object(int obj_idx);
+
     wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
     int                 get_selected_obj_idx() const;
     ModelConfig&        get_item_config(const wxDataViewItem& item) const;
@@ -318,6 +326,9 @@ public:
 
     // Add object to the list
     void add_object_to_list(size_t obj_idx, bool call_selection_changed = true, bool notify_partplate = true);
+    // Add object's volumes to the list
+    // Return selected items, if add_to_selection is defined
+    wxDataViewItemArray add_volumes_to_object_in_list(size_t obj_idx, std::function<bool(const ModelVolume *)> add_to_selection = nullptr);
     // Delete object from the list
     void delete_object_from_list();
     void delete_object_from_list(const size_t obj_idx);
@@ -325,6 +336,7 @@ public:
     void delete_instance_from_list(const size_t obj_idx, const size_t inst_idx);
     void delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx);
     void delete_from_model_and_list(const std::vector<ItemForDelete>& items_for_delete);
+    void update_lock_icons_for_model();
     // Delete all objects from the list
     void delete_all_objects_from_list();
     // Increase instances count
@@ -367,6 +379,8 @@ public:
     void init();
     bool multiple_selection() const ;
     bool is_selected(const ItemType type) const;
+    bool is_connectors_item_selected() const;
+    bool is_connectors_item_selected(const wxDataViewItemArray &sels) const;
     int  get_selected_layers_range_idx() const;
     void set_selected_layers_range_idx(const int range_idx) { m_selected_layers_range_idx = range_idx; }
     void set_selection_mode(SELECTION_MODE mode) { m_selection_mode = mode; }
@@ -384,6 +398,9 @@ public:
     bool check_last_selection(wxString& msg_str);
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
+    // correct selection in respect to the cut_id if any exists
+    void fix_cut_selection();
+    bool fix_cut_selection(wxDataViewItemArray &sels);
 
     ModelVolume* get_selected_model_volume();
     void change_part_type();

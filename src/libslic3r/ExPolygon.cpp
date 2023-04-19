@@ -12,32 +12,18 @@
 
 namespace Slic3r {
 
-ExPolygon::operator Points() const
-{
-    Points points;
-    Polygons pp = *this;
-    for (Polygons::const_iterator poly = pp.begin(); poly != pp.end(); ++poly) {
-        for (Points::const_iterator point = poly->points.begin(); point != poly->points.end(); ++point)
-            points.push_back(*point);
-    }
-    return points;
-}
-
-ExPolygon::operator Polygons() const
-{
-    return to_polygons(*this);
-}
-
-ExPolygon::operator Polylines() const
-{
-    return to_polylines(*this);
-}
-
 void ExPolygon::scale(double factor)
 {
     contour.scale(factor);
     for (Polygon &hole : holes)
         hole.scale(factor);
+}
+
+void ExPolygon::scale(double factor_x, double factor_y)
+{
+    contour.scale(factor_x, factor_y);
+    for (Polygon &hole : holes)
+        hole.scale(factor_x, factor_y);
 }
 
 void ExPolygon::translate(const Point &p)
@@ -118,34 +104,53 @@ bool ExPolygon::contains(const Polylines &polylines) const
     return pl_out.empty();
 }
 
-bool ExPolygon::contains(const Point &point) const
+bool ExPolygon::contains(const Point &point, bool border_result /* = true */) const
 {
-    if (! this->contour.contains(point))
+    if (! Slic3r::contains(contour, point, border_result))
+        // Outside the outer contour, not on the contour boundary.
         return false;
     for (const Polygon &hole : this->holes)
-        if (hole.contains(point))
+        if (Slic3r::contains(hole, point, ! border_result))
+            // Inside a hole, not on the hole boundary.
             return false;
     return true;
 }
 
-// inclusive version of contains() that also checks whether point is on boundaries
-bool ExPolygon::contains_b(const Point &point) const
+bool ExPolygon::on_boundary(const Point &point, double eps) const
 {
-    return this->contains(point) || this->has_boundary_point(point);
+    if (this->contour.on_boundary(point, eps))
+        return true;
+    for (const Polygon &hole : this->holes)
+        if (hole.on_boundary(point, eps))
+            return true;
+    return false;
 }
 
-bool
-ExPolygon::has_boundary_point(const Point &point) const
+// Projection of a point onto the polygon.
+Point ExPolygon::point_projection(const Point &point) const
 {
-    if (this->contour.has_boundary_point(point)) return true;
-    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h) {
-        if (h->has_boundary_point(point)) return true;
+    if (this->holes.empty()) {
+        return this->contour.point_projection(point);
+    } else {
+        double dist_min2 = std::numeric_limits<double>::max();
+        Point  closest_pt_min;
+        for (size_t i = 0; i < this->num_contours(); ++ i) {
+            Point closest_pt = this->contour_or_hole(i).point_projection(point);
+            double d2 = (closest_pt - point).cast<double>().squaredNorm();
+            if (d2 < dist_min2) {
+                dist_min2      = d2;
+                closest_pt_min = closest_pt;
+            }
+        }
+        return closest_pt_min;
     }
-    return false;
 }
 
 bool ExPolygon::overlaps(const ExPolygon &other) const
 {
+    if (this->empty() || other.empty())
+        return false;
+
     #if 0
     BoundingBox bbox = get_extents(other);
     bbox.merge(get_extents(*this));
@@ -155,61 +160,92 @@ bool ExPolygon::overlaps(const ExPolygon &other) const
     svg.draw_outline(*this);
     svg.draw_outline(other, "blue");
     #endif
-    Polylines pl_out = intersection_pl((Polylines)other, *this);
+
+    Polylines pl_out = intersection_pl(to_polylines(other), *this);
+
     #if 0
     svg.draw(pl_out, "red");
     #endif
-    if (! pl_out.empty())
-        return true; 
-    //FIXME ExPolygon::overlaps() shall be commutative, it is not!
-    return ! other.contour.points.empty() && this->contains_b(other.contour.points.front());
+
+    // See unit test SCENARIO("Clipper diff with polyline", "[Clipper]")
+    // for in which case the intersection_pl produces any intersection.
+    return ! pl_out.empty() ||
+           // If *this is completely inside other, then pl_out is empty, but the expolygons overlap. Test for that situation.
+           other.contains(this->contour.points.front());
 }
 
-void ExPolygon::simplify_p(double tolerance, Polygons* polygons, SimplifyMethod method) const
+bool overlaps(const ExPolygons& expolys1, const ExPolygons& expolys2)
 {
-    Polygons pp = this->simplify_p(tolerance, method);
+    for (const ExPolygon& expoly1 : expolys1) {
+        for (const ExPolygon& expoly2 : expolys2) {
+            if (expoly1.overlaps(expoly2))
+                return true;
+        }
+    }
+    return false;
+}
+
+Point projection_onto(const ExPolygons& polygons, const Point& from)
+{
+    Point projected_pt;
+    double min_dist = std::numeric_limits<double>::max();
+
+    for (const auto& poly : polygons) {
+        for (int i = 0; i < poly.num_contours(); i++) {
+            Point p = from.projection_onto(poly.contour_or_hole(i));
+            double dist = (from - p).cast<double>().squaredNorm();
+            if (dist < min_dist) {
+                projected_pt = p;
+                min_dist = dist;
+            }
+        }
+    }
+
+    return projected_pt;
+}
+
+void ExPolygon::simplify_p(double tolerance, Polygons* polygons) const
+{
+    Polygons pp = this->simplify_p(tolerance);
     polygons->insert(polygons->end(), pp.begin(), pp.end());
 }
 
-Polygons ExPolygon::simplify_p(double tolerance, SimplifyMethod method) const
+Polygons ExPolygon::simplify_p(double tolerance) const
 {
     Polygons pp;
     pp.reserve(this->holes.size() + 1);
-    std::map<int, std::function<Points(const Points&, const double)>> method_list = { {SimplifyMethodDP, MultiPoint::_douglas_peucker}, {SimplifyMethodVisvalingam, MultiPoint::visivalingam},{SimplifyMethodConcave, MultiPoint::concave_hull_2d} };
     // contour
     {
         Polygon p = this->contour;
         p.points.push_back(p.points.front());
-        p.points = method_list[method](p.points, tolerance);
+        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
         p.points.pop_back();
         pp.emplace_back(std::move(p));
     }
     // holes
     for (Polygon p : this->holes) {
         p.points.push_back(p.points.front());
-        p.points = method_list[method](p.points, tolerance);
+        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
         p.points.pop_back();
         pp.emplace_back(std::move(p));
     }
     return simplify_polygons(pp);
 }
 
-ExPolygons ExPolygon::simplify(double tolerance, SimplifyMethod method) const
+ExPolygons ExPolygon::simplify(double tolerance) const
 {
-    return union_ex(this->simplify_p(tolerance, method));
+    return union_ex(this->simplify_p(tolerance));
 }
 
-void ExPolygon::simplify(double tolerance, ExPolygons* expolygons, SimplifyMethod method) const
+void ExPolygon::simplify(double tolerance, ExPolygons* expolygons) const
 {
-    append(*expolygons, this->simplify(tolerance, method));
+    append(*expolygons, this->simplify(tolerance));
 }
 
-void
-ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polylines) const
+void ExPolygon::medial_axis(double min_width, double max_width, ThickPolylines* polylines) const
 {
     // init helper object
-    Slic3r::Geometry::MedialAxis ma(max_width, min_width, this);
-    ma.lines = this->lines();
+    Slic3r::Geometry::MedialAxis ma(min_width, max_width, *this);
     
     // compute the Voronoi diagram and extract medial axis polylines
     ThickPolylines pp;
@@ -240,7 +276,7 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
            call, so we keep the inner point until we perform the second intersection() as well */
         Point new_front = polyline.points.front();
         Point new_back  = polyline.points.back();
-        if (polyline.endpoints.first && !this->has_boundary_point(new_front)) {
+        if (polyline.endpoints.first && !this->on_boundary(new_front, SCALED_EPSILON)) {
             Vec2d p1 = polyline.points.front().cast<double>();
             Vec2d p2 = polyline.points[1].cast<double>();
             // prevent the line from touching on the other side, otherwise intersection() might return that solution
@@ -250,7 +286,7 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
             p1 -= (p2 - p1).normalized() * max_width;
             this->contour.intersection(Line(p1.cast<coord_t>(), p2.cast<coord_t>()), &new_front);
         }
-        if (polyline.endpoints.second && !this->has_boundary_point(new_back)) {
+        if (polyline.endpoints.second && !this->on_boundary(new_back, SCALED_EPSILON)) {
             Vec2d p1 = (polyline.points.end() - 2)->cast<double>();
             Vec2d p2 = polyline.points.back().cast<double>();
             // prevent the line from touching on the other side, otherwise intersection() might return that solution
@@ -312,16 +348,17 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
             }
         }
     }
-
+    
     polylines->insert(polylines->end(), pp.begin(), pp.end());
 }
 
-void
-ExPolygon::medial_axis(double max_width, double min_width, Polylines* polylines) const
+void ExPolygon::medial_axis(double min_width, double max_width, Polylines* polylines) const
 {
     ThickPolylines tp;
-    this->medial_axis(max_width, min_width, &tp);
-    polylines->insert(polylines->end(), tp.begin(), tp.end());
+    this->medial_axis(min_width, max_width, &tp);
+    polylines->reserve(polylines->size() + tp.size());
+    for (auto &pl : tp)
+        polylines->emplace_back(pl.points);
 }
 
 Lines ExPolygon::lines() const
@@ -332,6 +369,18 @@ Lines ExPolygon::lines() const
         lines.insert(lines.end(), hole_lines.begin(), hole_lines.end());
     }
     return lines;
+}
+
+// Do expolygons match? If they match, they must have the same topology,
+// however their contours may be rotated.
+bool expolygons_match(const ExPolygon &l, const ExPolygon &r)
+{
+    if (l.holes.size() != r.holes.size() || ! polygons_match(l.contour, r.contour))
+        return false;
+    for (size_t hole_idx = 0; hole_idx < l.holes.size(); ++ hole_idx)
+        if (! polygons_match(l.holes[hole_idx], r.holes[hole_idx]))
+            return false;
+    return true;
 }
 
 BoundingBox get_extents(const ExPolygon &expolygon)

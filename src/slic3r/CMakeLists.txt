@@ -82,6 +82,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AuxiliaryDialog.hpp
     GUI/Auxiliary.cpp
     GUI/Auxiliary.hpp
+    GUI/Project.cpp
+    GUI/Project.hpp
     GUI/BackgroundSlicingProcess.cpp
     GUI/BackgroundSlicingProcess.hpp
     GUI/BitmapCache.cpp
@@ -195,6 +197,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Factories.hpp
     GUI/GUI_ObjectList.cpp
     GUI/GUI_ObjectList.hpp
+    GUI/GUI_ObjectLayers.cpp
+    GUI/GUI_ObjectLayers.hpp
     GUI/GUI_AuxiliaryList.cpp
     GUI/GUI_AuxiliaryList.hpp
     GUI/GUI_ObjectSettings.cpp
@@ -267,6 +271,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
+	GUI/CameraUtils.cpp
+    GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
     GUI/WipeTowerDialog.cpp

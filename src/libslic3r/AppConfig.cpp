@@ -170,6 +170,9 @@ void AppConfig::set_defaults()
         set_bool("reverse_mouse_wheel_zoom", false);
 #endif
 
+    if (get("zoom_to_mouse").empty())
+        set_bool("zoom_to_mouse", false);
+
 //#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set_bool("show_hints", true);
@@ -287,9 +290,17 @@ void AppConfig::set_defaults()
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }
+    
+    if (get("max_recent_count").empty()) {
+        set("max_recent_count", "18");
+    }
 
-    if (get("backup_switch").empty()) {
-        set_bool("backup_switch", false);
+    if (get("sync_system_preset").empty()) {
+        set_bool("sync_system_preset", true);
+    }
+
+    if (get("backup_switch").empty() || get("version") < "01.06.00.00") {
+        set_bool("backup_switch", true);
     }
 
     if (get("backup_interval").empty()) {
@@ -312,6 +323,16 @@ void AppConfig::set_defaults()
 
     if (get("presets", "filament_colors").empty()) {
         set_str("presets", "filament_colors", "#F2754E");
+    }
+
+    if (get("print", "bed_leveling").empty()) {
+        set_str("print", "bed_leveling", "1");
+    }
+    if (get("print", "flow_cali").empty()) {
+        set_str("print", "flow_cali", "1");
+    }
+    if (get("print", "timelapse").empty()) {
+        set_str("print", "timelapse", "1");
     }
 
     // Remove legacy window positions/sizes

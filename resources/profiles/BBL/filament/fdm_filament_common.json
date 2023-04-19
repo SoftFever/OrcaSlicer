@@ -3,6 +3,9 @@
     "name": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
+    "filament_is_support": [
+        "0"
+    ],
     "required_nozzle_HRC": [
         "3"
     ],
@@ -113,9 +116,6 @@
     ],
     "filament_wipe_distance": [
         "nil"
-    ],
-    "bed_type": [
-        "Cool Plate"
     ],
     "nozzle_temperature_initial_layer": [
         "200"

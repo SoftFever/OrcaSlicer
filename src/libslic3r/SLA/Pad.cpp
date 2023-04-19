@@ -204,7 +204,7 @@ public:
     void add(const ExPolygon &ep)
     {
         m_polys.emplace_back(ep);
-        m_index.insert(BoundingBox{ep}, unsigned(m_index.size()));
+        m_index.insert(get_extents(ep), unsigned(m_index.size()));
     }
 
     // Check an arbitrary polygon for intersection with the indexed polygons

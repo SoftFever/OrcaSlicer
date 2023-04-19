@@ -41,6 +41,16 @@
 #endif
 
 namespace Slic3r {
+const float epson = 1e-3;
+bool is_equal(float lh, float rh)
+{
+    return abs(lh - rh) <= epson;
+}
+
+bool is_less(float lh, float rh)
+{
+    return lh + epson < rh; 
+}
 
 class IntersectionReference
 {
@@ -2007,11 +2017,12 @@ static void triangulate_slice(
         map_vertex_to_index.emplace_back(to_2d(its.vertices[i]), i);
     std::sort(map_vertex_to_index.begin(), map_vertex_to_index.end(), 
         [](const std::pair<Vec2f, int> &l, const std::pair<Vec2f, int> &r) { 
-            return l.first.x() < r.first.x() || 
-                   (l.first.x() == r.first.x() && (l.first.y() < r.first.y() || 
-                                                   (l.first.y() == r.first.y() && l.second < r.second))); });
+            return is_less(l.first.x(), r.first.x()) || 
+                   (is_equal(l.first.x(), r.first.x()) && (is_less(l.first.y(), r.first.y()) || 
+                                                          (is_equal(l.first.y(), r.first.y()) && l.second < r.second))); });
 
     // 2) Discover duplicate points on the slice. Remap duplicate vertices to a vertex with a lowest index.
+    //    Remove denegerate triangles, if they happen to be created by merging duplicate vertices.
     {
         std::vector<int> map_duplicate_vertex(int(its.vertices.size()) - num_original_vertices, -1);
         int i = 0;
@@ -2024,7 +2035,7 @@ static void triangulate_slice(
                 // map to itself
                 map_duplicate_vertex[iidx - num_original_vertices] = iidx;
             int j = i;
-            for (++ j; j < int(map_vertex_to_index.size()) && ipos.x() == map_vertex_to_index[j].first.x() && ipos.y() == map_vertex_to_index[j].first.y(); ++ j) {
+            for (++ j; j < int(map_vertex_to_index.size()) && is_equal(ipos.x(), map_vertex_to_index[j].first.x()) && is_equal(ipos.y(), map_vertex_to_index[j].first.y()); ++ j) {
                 const int jidx = map_vertex_to_index[j].second;
                 assert(jidx >= num_original_vertices);
                 if (jidx >= num_original_vertices)
@@ -2034,10 +2045,20 @@ static void triangulate_slice(
             i = j;
         }
         map_vertex_to_index.erase(map_vertex_to_index.begin() + k, map_vertex_to_index.end());
-        for (stl_triangle_vertex_indices &f : its.indices)
-            for (i = 0; i < 3; ++ i)
-                if (f(i) >= num_original_vertices)
-                    f(i) = map_duplicate_vertex[f(i) - num_original_vertices];
+        for (i = 0; i < int(its.indices.size());) {
+            stl_triangle_vertex_indices &f = its.indices[i];
+            // Remap the newly added face vertices.
+            for (k = 0; k < 3; ++ k)
+                if (f(k) >= num_original_vertices)
+                    f(k) = map_duplicate_vertex[f(k) - num_original_vertices];
+            if (f(0) == f(1) || f(0) == f(2) || f(1) == f(2)) {
+                // Remove degenerate face.
+                f = its.indices.back();
+                its.indices.pop_back();
+            } else
+                // Keep the face.
+                ++ i;
+        }
     }
 
     if (triangulate) {
@@ -2048,9 +2069,11 @@ static void triangulate_slice(
             for (size_t j = 0; j < 3; ++ j) {
                 Vec3f v = triangles[i ++].cast<float>();
                 auto it = lower_bound_by_predicate(map_vertex_to_index.begin(), map_vertex_to_index.end(), 
-                    [&v](const std::pair<Vec2f, int> &l) { return l.first.x() < v.x() || (l.first.x() == v.x() && l.first.y() < v.y()); });
+                    [&v](const std::pair<Vec2f, int> &l) {
+                        return is_less(l.first.x(), v.x()) || (is_equal(l.first.x(), v.x()) && is_less(l.first.y(), v.y()));
+                    });
                 int   idx = -1;
-                if (it != map_vertex_to_index.end() && it->first.x() == v.x() && it->first.y() == v.y())
+                if (it != map_vertex_to_index.end() && is_equal(it->first.x(), v.x()) && is_equal(it->first.y(), v.y()))
                     idx = it->second;
                 else {
                     // Try to find the vertex in the list of newly added vertices. Those vertices are not matched on the cut and they shall be rare.

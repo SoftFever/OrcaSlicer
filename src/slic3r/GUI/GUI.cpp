@@ -84,7 +84,7 @@ const std::string& shortkey_ctrl_prefix()
 #ifdef __APPLE__
 		"⌘+"
 #else
-		"Ctrl+"
+		_u8L("Ctrl+")
 #endif
 		;
 	return str;
@@ -221,8 +221,10 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 
 void show_error(wxWindow* parent, const wxString& message, bool monospaced_font)
 {
-	ErrorDialog msg(parent, message, monospaced_font);
-	msg.ShowModal();
+    wxGetApp().CallAfter([=] {
+        ErrorDialog msg(parent, message, monospaced_font);
+        msg.ShowModal();
+    });
 }
 
 void show_error(wxWindow* parent, const char* message, bool monospaced_font)

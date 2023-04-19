@@ -6,6 +6,17 @@
 
 namespace Slic3r {
 
+double Polygon::length() const
+{
+    double l = 0;
+    if (this->points.size() > 1) {
+        l = (this->points.back() - this->points.front()).cast<double>().norm();
+        for (size_t i = 1; i < this->points.size(); ++ i)
+            l += (this->points[i] - this->points[i - 1]).cast<double>().norm();
+    }
+    return l;
+}
+
 Lines Polygon::lines() const
 {
     return to_lines(*this);
@@ -88,36 +99,11 @@ void Polygon::douglas_peucker(double tolerance)
     this->points = std::move(p);
 }
 
-// Does an unoriented polygon contain a point?
-// Tested by counting intersections along a horizontal line.
-bool Polygon::contains(const Point &point) const
-{
-    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-    bool result = false;
-    Points::const_iterator i = this->points.begin();
-    Points::const_iterator j = this->points.end() - 1;
-    for (; i != this->points.end(); j = i++) {
-        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point(1) well.
-        // Does the ray with y == point(1) intersect this line segment?
-#if 1
-        if ( (((*i)(1) > point(1)) != ((*j)(1) > point(1)))
-            && ((double)point(0) < (double)((*j)(0) - (*i)(0)) * (double)(point(1) - (*i)(1)) / (double)((*j)(1) - (*i)(1)) + (double)(*i)(0)) )
-            result = !result;
-#else
-        if (((*i)(1) > point(1)) != ((*j)(1) > point(1))) {
-            // Orientation predicated relative to i-th point.
-            double orient = (double)(point(0) - (*i)(0)) * (double)((*j)(1) - (*i)(1)) - (double)(point(1) - (*i)(1)) * (double)((*j)(0) - (*i)(0));
-            if (((*i)(1) > (*j)(1)) ? (orient > 0.) : (orient < 0.))
-                result = !result;
-        }
-#endif
-    }
-    return result;
-}
-
-// this only works on CCW polygons as CW will be ripped out by Clipper's simplify_polygons()
 Polygons Polygon::simplify(double tolerance) const
 {
+    // Works on CCW polygons only, CW contour will be reoriented to CCW by Clipper's simplify_polygons()!
+    assert(this->is_counter_clockwise());
+
     // repeat first point at the end in order to apply Douglas-Peucker
     // on the whole polygon
     Points points = this->points;
@@ -128,13 +114,6 @@ Polygons Polygon::simplify(double tolerance) const
     Polygons pp;
     pp.push_back(p);
     return simplify_polygons(pp);
-}
-
-void Polygon::simplify(double tolerance, Polygons &polygons) const
-{
-    Polygons pp = this->simplify(tolerance);
-    polygons.reserve(polygons.size() + pp.size());
-    polygons.insert(polygons.end(), pp.begin(), pp.end());
 }
 
 // Only call this on convex polygons or it will return invalid results
@@ -171,50 +150,125 @@ Point Polygon::centroid() const
     return Point(Vec2d(c / (3. * area_sum)));
 }
 
-// find all concave vertices (i.e. having an internal angle greater than the supplied angle)
-// (external = right side, thus we consider ccw orientation)
-Points Polygon::concave_points(double angle) const
+bool Polygon::intersection(const Line &line, Point *intersection) const
 {
-    Points points;
-    angle = 2. * PI - angle + EPSILON;
-    
-    // check whether first point forms a concave angle
-    if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) <= angle)
-        points.push_back(this->points.front());
-    
-    // check whether points 1..(n-1) form concave angles
-    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++ p)
-        if (p->ccw_angle(*(p-1), *(p+1)) <= angle)
-        	points.push_back(*p);
-    
-    // check whether last point forms a concave angle
-    if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) <= angle)
-        points.push_back(this->points.back());
-    
-    return points;
+    if (this->points.size() < 2)
+        return false;
+    if (Line(this->points.front(), this->points.back()).intersection(line, intersection))
+        return true;
+    for (size_t i = 1; i < this->points.size(); ++ i)
+        if (Line(this->points[i - 1], this->points[i]).intersection(line, intersection))
+            return true;
+    return false;
 }
 
-// find all convex vertices (i.e. having an internal angle smaller than the supplied angle)
-// (external = right side, thus we consider ccw orientation)
-Points Polygon::convex_points(double angle) const
+bool Polygon::first_intersection(const Line& line, Point* intersection) const
 {
-    Points points;
-    angle = 2*PI - angle - EPSILON;
-    
-    // check whether first point forms a convex angle
-    if (this->points.front().ccw_angle(this->points.back(), *(this->points.begin()+1)) >= angle)
-        points.push_back(this->points.front());
-    
-    // check whether points 1..(n-1) form convex angles
-    for (Points::const_iterator p = this->points.begin()+1; p != this->points.end()-1; ++p) {
-        if (p->ccw_angle(*(p-1), *(p+1)) >= angle) points.push_back(*p);
+    if (this->points.size() < 2)
+        return false;
+
+    bool   found = false;
+    double dmin  = 0.;
+    Line l(this->points.back(), this->points.front());
+    for (size_t i = 0; i < this->points.size(); ++ i) {
+        l.b = this->points[i];
+        Point ip;
+        if (l.intersection(line, &ip)) {
+            if (! found) {
+                found = true;
+                dmin = (line.a - ip).cast<double>().squaredNorm();
+                *intersection = ip;
+            } else {
+                double d = (line.a - ip).cast<double>().squaredNorm();
+                if (d < dmin) {
+                    dmin = d;
+                    *intersection = ip;
+                }
+            }
+        }
+        l.a = l.b;
+    }
+    return found;
+}
+
+bool Polygon::intersections(const Line &line, Points *intersections) const
+{
+    if (this->points.size() < 2)
+        return false;
+
+    size_t intersections_size = intersections->size();
+    Line l(this->points.back(), this->points.front());
+    for (size_t i = 0; i < this->points.size(); ++ i) {
+        l.b = this->points[i];
+        Point intersection;
+        if (l.intersection(line, &intersection))
+            intersections->emplace_back(std::move(intersection));
+        l.a = l.b;
+    }
+    return intersections->size() > intersections_size;
+}
+bool Polygon::overlaps(const Polygons& other) const
+{
+    if (this->empty() || other.empty())
+        return false;
+    Polylines pl_out = intersection_pl(to_polylines(other), *this);
+
+    // See unit test SCENARIO("Clipper diff with polyline", "[Clipper]")
+    // for in which case the intersection_pl produces any intersection.
+    return !pl_out.empty() ||
+        // If *this is completely inside other, then pl_out is empty, but the expolygons overlap. Test for that situation.
+        std::any_of(other.begin(), other.end(), [this](auto& poly) {return poly.contains(this->points.front()); });
+}
+// Filter points from poly to the output with the help of FilterFn.
+// filter function receives two vectors:
+// v1: this_point - previous_point
+// v2: next_point - this_point
+// and returns true if the point is to be copied to the output.
+template<typename FilterFn>
+Points filter_points_by_vectors(const Points &poly, FilterFn filter)
+{
+    // Last point is the first point visited.
+    Point p1 = poly.back();
+    // Previous vector to p1.
+    Vec2d v1 = (p1 - *(poly.end() - 2)).cast<double>();
+
+    Points out;
+    for (Point p2 : poly) {
+        // p2 is next point to the currently visited point p1.
+        Vec2d v2 = (p2 - p1).cast<double>();
+        if (filter(v1, v2))
+            out.emplace_back(p2);
+        v1 = v2;
+        p1 = p2;
     }
     
-    // check whether last point forms a convex angle
-    if (this->points.back().ccw_angle(*(this->points.end()-2), this->points.front()) >= angle)
-        points.push_back(this->points.back());
-    
-    return points;
+    return out;
+}
+
+template<typename ConvexConcaveFilterFn>
+Points filter_convex_concave_points_by_angle_threshold(const Points &poly, double angle_threshold, ConvexConcaveFilterFn convex_concave_filter)
+{
+    assert(angle_threshold >= 0.);
+    if (angle_threshold < EPSILON) {
+        double cos_angle  = cos(angle_threshold);
+        return filter_points_by_vectors(poly, [convex_concave_filter, cos_angle](const Vec2d &v1, const Vec2d &v2){
+            return convex_concave_filter(v1, v2) && v1.normalized().dot(v2.normalized()) < cos_angle;
+        });
+    } else {
+        return filter_points_by_vectors(poly, [convex_concave_filter](const Vec2d &v1, const Vec2d &v2){
+            return convex_concave_filter(v1, v2);
+        });
+    }
+}
+
+Points Polygon::convex_points(double angle_threshold) const
+{
+    return filter_convex_concave_points_by_angle_threshold(this->points, angle_threshold, [](const Vec2d &v1, const Vec2d &v2){ return cross2(v1, v2) > 0.; });
+}
+
+Points Polygon::concave_points(double angle_threshold) const
+{
+    return filter_convex_concave_points_by_angle_threshold(this->points, angle_threshold, [](const Vec2d &v1, const Vec2d &v2){ return cross2(v1, v2) < 0.; });
 }
 
 // Projection of a point onto the polygon.
@@ -540,4 +594,74 @@ void remove_collinear(Polygons &polys)
 		remove_collinear(poly);
 }
 
+Polygons polygons_simplify(const Polygons &source_polygons, double tolerance)
+{
+    Polygons out;
+    out.reserve(source_polygons.size());
+    for (const Polygon &source_polygon : source_polygons) {
+        // Run Douglas / Peucker simplification algorithm on an open polyline (by repeating the first point at the end of the polyline),
+        Points simplified = MultiPoint::_douglas_peucker(to_polyline(source_polygon).points, tolerance);
+        // then remove the last (repeated) point.
+        simplified.pop_back();
+        // Simplify the decimated contour by ClipperLib.
+        bool ccw = ClipperLib::Area(simplified) > 0.;
+        for (Points &path : ClipperLib::SimplifyPolygons(ClipperUtils::SinglePathProvider(simplified), ClipperLib::pftNonZero)) {
+            if (! ccw)
+                // ClipperLib likely reoriented negative area contours to become positive. Reverse holes back to CW.
+                std::reverse(path.begin(), path.end());
+            out.emplace_back(std::move(path));
+        }
+    }
+    return out;
+}
+
+// Do polygons match? If they match, they must have the same topology,
+// however their contours may be rotated.
+bool polygons_match(const Polygon &l, const Polygon &r)
+{
+    if (l.size() != r.size())
+        return false;
+    auto it_l = std::find(l.points.begin(), l.points.end(), r.points.front());
+    if (it_l == l.points.end())
+        return false;
+    auto it_r = r.points.begin();
+    for (; it_l != l.points.end(); ++ it_l, ++ it_r)
+        if (*it_l != *it_r)
+            return false;
+    it_l = l.points.begin();
+    for (; it_r != r.points.end(); ++ it_l, ++ it_r)
+        if (*it_l != *it_r)
+            return false;
+    return true;
+}
+
+bool overlaps(const Polygons& polys1, const Polygons& polys2)
+{
+    for (const Polygon& poly1 : polys1) {
+        if (poly1.overlaps(polys2))
+            return true;
+    }
+    return false;
+}
+
+bool contains(const Polygon &polygon, const Point &p, bool border_result)
+{
+    if (const int poly_count_inside = ClipperLib::PointInPolygon(p, polygon.points); 
+        poly_count_inside == -1)
+        return border_result;
+    else
+        return (poly_count_inside % 2) == 1;
+}
+
+bool contains(const Polygons &polygons, const Point &p, bool border_result)
+{
+    int poly_count_inside = 0;
+    for (const Polygon &poly : polygons) {
+        const int is_inside_this_poly = ClipperLib::PointInPolygon(p, poly.points);
+        if (is_inside_this_poly == -1)
+            return border_result;
+        poly_count_inside += is_inside_this_poly;
+    }
+    return (poly_count_inside % 2) == 1;
+}
 }

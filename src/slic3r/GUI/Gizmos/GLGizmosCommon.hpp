@@ -266,6 +266,10 @@ public:
     ClippingPlane* get_clipping_plane() const { return m_clp.get(); }
     void render_cut() const;
 
+    void set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos);
+
+    bool is_projection_inside_cut(const Vec3d &point_in) const;
+    bool has_valid_contour() const;
 
 protected:
     void on_update() override;

@@ -881,8 +881,79 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
 
     std::string cached_version;
     get_cached_plugins_version(cached_version);
-    if (!cached_version.empty())
-        plugin_version = cached_version;
+    if (!cached_version.empty()) {
+        bool need_delete_cache = false;
+        Semver current_semver = curr_version;
+        Semver cached_semver = cached_version;
+
+        int curent_patch_cc = current_semver.patch()/100;
+        int cached_patch_cc = cached_semver.patch()/100;
+        int curent_patch_dd = current_semver.patch()%100;
+        int cached_patch_dd = cached_semver.patch()%100;
+        if ((cached_semver.maj() != current_semver.maj())
+            || (cached_semver.min() != current_semver.min())
+            || (curent_patch_cc != cached_patch_cc))
+        {
+            need_delete_cache = true;
+            BOOST_LOG_TRIVIAL(info) << boost::format("cached plugins version %1% not match with current %2%")%cached_version%curr_version;
+        }
+        else if (cached_patch_dd <= curent_patch_dd) {
+            need_delete_cache = true;
+            BOOST_LOG_TRIVIAL(info) << boost::format("cached plugins version %1% not newer than current %2%")%cached_version%curr_version;
+        }
+        else {
+            plugin_version = cached_version;
+        }
+
+        if (need_delete_cache) {
+            std::string data_dir_str = data_dir();
+            boost::filesystem::path data_dir_path(data_dir_str);
+            auto cache_folder = data_dir_path / "ota";
+
+#if defined(_MSC_VER) || defined(_WIN32)
+            auto network_library = cache_folder / "bambu_networking.dll";
+            auto player_library = cache_folder / "BambuSource.dll";
+#elif defined(__WXMAC__)
+            auto network_library = cache_folder / "libbambu_networking.dylib";
+            auto player_library = cache_folder / "libBambuSource.dylib";
+#else
+            auto network_library = cache_folder / "libbambu_networking.so";
+            auto player_library = cache_folder / "libBambuSource.so";
+#endif
+            auto changelog_file = cache_folder / "network_plugins.json";
+
+            if (boost::filesystem::exists(network_library))
+            {
+
+                BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the file "<<network_library.string();
+                try {
+                    fs::remove(network_library);
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins file " << network_library.string();
+                }
+            }
+            if (boost::filesystem::exists(player_library))
+            {
+
+                BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the file "<<player_library.string();
+                try {
+                    fs::remove(player_library);
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins file " << player_library.string();
+                }
+            }
+            if (boost::filesystem::exists(changelog_file))
+            {
+
+                BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the file "<<changelog_file.string();
+                try {
+                    fs::remove(changelog_file);
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins file " << changelog_file.string();
+                }
+            }
+        }
+    }
 
     try {
         std::map<std::string, Resource> resources
@@ -1173,7 +1244,7 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
 	// Copy the whole vendors data for use in the background thread
 	// Unfortunatelly as of C++11, it needs to be copied again
 	// into the closure (but perhaps the compiler can elide this).
-	VendorMap vendors = preset_bundle->vendors;
+    VendorMap vendors = preset_bundle ? preset_bundle->vendors : VendorMap{};
 
 	p->thread = std::thread([this, vendors, http_url, language, plugin_version]() {
 		this->p->prune_tmps();
@@ -1182,7 +1253,8 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
 		this->p->sync_version();
 		if (p->cancel)
 			return;
-		this->p->sync_config(http_url, std::move(vendors));
+        if (!vendors.empty())
+		    this->p->sync_config(http_url, std::move(vendors));
 		if (p->cancel)
 			return;
 		this->p->sync_plugins(http_url, plugin_version);

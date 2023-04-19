@@ -61,7 +61,7 @@ struct MsgDialog : DPIDialog
 	MsgDialog &operator=(const MsgDialog &) = delete;
 	virtual ~MsgDialog();
 
-	void show_dsa_button();
+	void show_dsa_button(wxString const & title = {});
 	bool get_checkbox_state();
 	virtual void on_dpi_changed(const wxRect& suggested_rect);
 	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);

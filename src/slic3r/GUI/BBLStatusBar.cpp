@@ -128,6 +128,11 @@ void BBLStatusBar::clear_percent()
 
 }
 
+void BBLStatusBar::show_networking_test(wxString msg)
+{
+
+}
+
 void BBLStatusBar::show_progress(bool show)
 {
     if (show) {

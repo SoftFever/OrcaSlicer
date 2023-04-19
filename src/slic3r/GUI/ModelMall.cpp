@@ -127,32 +127,8 @@ namespace GUI {
             json     j = json::parse(strInput);
 
             wxString strCmd = j["command"];
-
-            if (strCmd == "request_model_download") {
-
-                std::string model_id = "";
-                if (j["data"].contains("download_url"))
-                    model_id = j["data"]["model_id"].get<std::string>();
-
-                std::string profile_id = "";
-                if (j["data"].contains("profile_id"))
-                    profile_id = j["data"]["profile_id"].get<std::string>();
-
-                std::string download_url = "";
-                if (j["data"].contains("download_url"))
-                    download_url = j["data"]["download_url"].get<std::string>();
-
-                std::string filename = "";
-                if (j["data"].contains("filename"))
-                    filename = j["data"]["filename"].get<std::string>();
-
-                if (download_url.empty()) return;
-
-                wxGetApp().set_download_model_url(download_url);
-                wxGetApp().set_download_model_name(filename);
-                wxGetApp().plater()->request_model_download();
-            }
-            else if(strCmd == "request_close_publish_window") {
+            
+            if(strCmd == "request_close_publish_window") {
                 this->Hide();
             }
           

@@ -230,7 +230,7 @@ private:
 };
 
 #define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
-#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(350), FromDIP(70))
+#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(360), FromDIP(70))
 
 
 enum PrintDialogStatus {
@@ -365,7 +365,8 @@ public:
 
     void check_focus(wxWindow* window);
     void check_fcous_state(wxWindow* window);
-    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
+    void popup_filament_backup();
+    wxWindow* create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     wxWindow* create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
     void      update_select_layout(MachineObject *obj);
     void      prepare_mode();
@@ -381,8 +382,8 @@ public:
     PrintDialogStatus  get_status() { return m_print_status; }
 
     bool      is_same_printer_model();
-
-    bool Show(bool show);
+    void      sys_color_changed();
+    bool      Show(bool show);
 
     /* model */
     wxObjectDataPtr<MachineListModel> machine_model;
@@ -431,7 +432,7 @@ protected:
     void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);
     void                     set_default();
-    void                     on_timer(wxTimerEvent &event);
+    void                     on_timer(wxTimerEvent& event);
     void                     on_selection_changed(wxCommandEvent &event);
     void                     Enable_Refresh_Button(bool en);
     void                     Enable_Send_Button(bool en);

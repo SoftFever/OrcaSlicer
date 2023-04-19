@@ -394,7 +394,7 @@ void FanControl::command_control_fan()
 {
     if (m_current_speed < 0 || m_current_speed > 10) { return; }
     int speed = floor(m_current_speed * float(25.5));
-    if (m_update_already) {
+    if (m_update_already && m_obj) {
         m_obj->command_control_fan_val(m_type, speed);
         post_event(wxCommandEvent(EVT_FAN_CHANGED));
     }

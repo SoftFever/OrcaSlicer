@@ -311,6 +311,15 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 // would get merged into a single one while they need different directions
                 // also, supply the original expolygon instead of the grown one, because in case
                 // of very thin (but still working) anchors, the grown expolygon would go beyond them
+                double custom_angle = Geometry::deg2rad(this->region().config().bridge_angle.value);
+                if (custom_angle > 0.0) {
+                    bridges[idx_last].bridge_angle = custom_angle;
+                } else {
+                    auto [bridging_dir, unsupported_dist] = detect_bridging_direction(to_polygons(initial), to_polygons(lower_layer->lslices));
+                    bridges[idx_last].bridge_angle = PI + std::atan2(bridging_dir.y(), bridging_dir.x());
+                }
+
+                /*
                 BridgeDetector bd(initial, lower_layer->lslices, this->bridging_flow(frInfill, object_config.thick_bridges).scaled_width());
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer %zu:\n", this->layer()->id());
@@ -330,6 +339,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 					// using a bridging flow, therefore it makes sense to respect the custom bridging direction.
 					bridges[idx_last].bridge_angle = custom_angle;
 				}
+                */
                 // without safety offset, artifacts are generated (GH #2494)
                 surfaces_append(bottom, union_safety_offset_ex(grown), bridges[idx_last]);
             }

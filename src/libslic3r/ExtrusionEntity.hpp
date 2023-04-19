@@ -11,7 +11,8 @@
 
 namespace Slic3r {
 
-class ExPolygonCollection;
+class ExPolygon;
+using ExPolygons = std::vector<ExPolygon>;
 class ExtrusionEntityCollection;
 class Extruder;
 
@@ -187,12 +188,12 @@ public:
     size_t size() const { return this->polyline.size(); }
     bool empty() const { return this->polyline.empty(); }
     bool is_closed() const { return ! this->empty() && this->polyline.points.front() == this->polyline.points.back(); }
-    // Produce a list of extrusion paths into retval by clipping this path by ExPolygonCollection.
+    // Produce a list of extrusion paths into retval by clipping this path by ExPolygons.
     // Currently not used.
-    void intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
-    // Produce a list of extrusion paths into retval by removing parts of this path by ExPolygonCollection.
+    void intersect_expolygons(const ExPolygons &collection, ExtrusionEntityCollection* retval) const;
+    // Produce a list of extrusion paths into retval by removing parts of this path by ExPolygons.
     // Currently not used.
-    void subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
+    void subtract_expolygons(const ExPolygons &collection, ExtrusionEntityCollection* retval) const;
     void clip_end(double distance);
     void simplify(double tolerance);
     double length() const override;

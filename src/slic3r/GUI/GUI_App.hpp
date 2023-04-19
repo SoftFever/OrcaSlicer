@@ -66,6 +66,7 @@ class MainFrame;
 class Sidebar;
 class ObjectSettings;
 class ObjectList;
+class ObjectLayers;
 class Plater;
 class ParamsPanel;
 class NotificationManager;
@@ -227,6 +228,8 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
+//import model from mall 
+    std::string     m_download_file_url;
    
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
@@ -408,7 +411,7 @@ private:
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
     void            handle_script_message(std::string msg);
-    void            request_model_download(std::string url, std::string filename);
+    void            request_model_download(std::string url);
     void            download_project(std::string project_id);
     void            request_project_download(std::string project_id);
     void            request_open_project(std::string project_id);
@@ -449,6 +452,7 @@ private:
     void            on_check_privacy_update(wxCommandEvent &evt);
     bool            check_privacy_update();
     void            check_privacy_version(int online_login = 0);
+    void            check_track_enable();
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
@@ -460,6 +464,7 @@ private:
 
     Tab*            get_tab(Preset::Type type);
     Tab*            get_model_tab(bool part = false);
+    Tab*            get_layer_tab();
     ConfigOptionMode get_mode();
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
@@ -501,11 +506,13 @@ private:
     void            OSXStoreOpenFiles(const wxArrayString &files);
     // wxWidgets override to get an event on open files.
     void            MacOpenFiles(const wxArrayString &fileNames) override;
+    void            MacOpenURL(const wxString& url) override;
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
+    ObjectLayers*        obj_layers();
     Plater*              plater();
     const Plater*        plater() const;
     ParamsPanel*         params_panel();
@@ -516,7 +523,6 @@ private:
 
     std::string         m_mall_model_download_url;
     std::string         m_mall_model_download_name;
-    ModelMallDialog*    m_mall_home_dialog{ nullptr };
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
 
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
@@ -531,6 +537,10 @@ private:
     void            run_script(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
+
+    char            from_hex(char ch);
+    std::string     url_encode(std::string value);
+    std::string     url_decode(std::string value);
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };
@@ -593,6 +603,7 @@ private:
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     std::string     get_http_url(std::string country_code);
+    std::string     get_model_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();
     void            cancel_networking_install();

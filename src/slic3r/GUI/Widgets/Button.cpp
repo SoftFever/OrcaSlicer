@@ -36,15 +36,15 @@ Button::Button()
         std::make_pair(*wxBLACK, (int) StateColor::Normal));
 }
 
-Button::Button(wxWindow* parent, wxString text, wxString icon, long style, int iconSize)
+Button::Button(wxWindow* parent, wxString text, wxString icon, long style, int iconSize, wxWindowID btn_id)
     : Button()
 {
-    Create(parent, text, icon, style, iconSize);
+    Create(parent, text, icon, style, iconSize, btn_id);
 }
 
-bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, int iconSize)
+bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, int iconSize, wxWindowID btn_id)
 {
-    StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
+    StaticBox::Create(parent, btn_id, wxDefaultPosition, wxDefaultSize, style);
     state_handler.attach({&text_color});
     state_handler.update_binds();
     //BBS set default font
@@ -63,6 +63,14 @@ void Button::SetLabel(const wxString& label)
     wxWindow::SetLabel(label);
     messureSize();
     Refresh();
+}
+
+bool Button::SetFont(const wxFont& font)
+{
+    wxWindow::SetFont(font);
+    messureSize();
+    Refresh();
+    return true;
 }
 
 void Button::SetIcon(const wxString& icon)
@@ -166,7 +174,7 @@ void Button::render(wxDC& dc)
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     // calc content size
     wxSize szIcon;
-    wxSize szContent = textSize;
+    wxSize szContent = textSize.GetSize();
 
     ScalableBitmap icon;
     if (m_selected || ((states & (int)StateColor::State::Hovered) != 0))
@@ -205,11 +213,18 @@ void Button::render(wxDC& dc)
     }
     auto text = GetLabel();
     if (!text.IsEmpty()) {
-        if (pt.x + textSize.x > size.x)
+        if (pt.x + textSize.width > size.x)
             text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
-        pt.y += (rcContent.height - textSize.y) / 2;
-        dc.SetFont(GetFont());
+        pt.y += (rcContent.height - textSize.height) / 2;
         dc.SetTextForeground(text_color.colorForStates(states));
+#if 0
+        dc.SetBrush(*wxLIGHT_GREY);
+        dc.SetPen(wxPen(*wxLIGHT_GREY));
+        dc.DrawRectangle(pt, textSize.GetSize());
+#endif
+#ifdef __WXOSX__
+        pt.y -= textSize.x / 2;
+#endif
         dc.DrawText(text, pt);
     }
 }
@@ -217,12 +232,8 @@ void Button::render(wxDC& dc)
 void Button::messureSize()
 {
     wxClientDC dc(this);
-    textSize = dc.GetTextExtent(GetLabel());
-    if (minSize.GetWidth() > 0) {
-        wxWindow::SetMinSize(minSize);
-        return;
-    }
-    wxSize szContent = textSize;
+    dc.GetTextExtent(GetLabel(), &textSize.width, &textSize.height, &textSize.x, &textSize.y);
+    wxSize szContent = textSize.GetSize();
     if (this->active_icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             //BBS norrow size between text and icon
@@ -236,7 +247,11 @@ void Button::messureSize()
     wxSize size = szContent + paddingSize * 2;
     if (minSize.GetHeight() > 0)
         size.SetHeight(minSize.GetHeight());
-    wxWindow::SetMinSize(size);
+
+    if (minSize.GetWidth() > size.GetWidth())
+        wxWindow::SetMinSize(minSize);
+    else
+        wxWindow::SetMinSize(size);
 }
 
 void Button::mouseDown(wxMouseEvent& event)

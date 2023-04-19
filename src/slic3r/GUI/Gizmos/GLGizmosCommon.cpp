@@ -449,7 +449,26 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
     get_pool()->get_canvas()->set_as_dirty();
 }
 
+void ObjectClipper::set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos)
+{
+    m_clp.reset(new ClippingPlane(cpl_normal, cpl_offset));
+    m_clp_ratio = pos;
+    get_pool()->get_canvas()->set_as_dirty();
+}
 
+bool ObjectClipper::is_projection_inside_cut(const Vec3d &point) const
+{
+    return m_clp_ratio != 0. && std::any_of(m_clippers.begin(), m_clippers.end(), [point](const auto &cl) {
+        return cl->is_projection_inside_cut(point);
+    });
+}
+
+bool ObjectClipper::has_valid_contour() const
+{
+    return m_clp_ratio != 0. && std::any_of(m_clippers.begin(), m_clippers.end(), [](const auto &cl) {
+        return cl->has_valid_contour();
+    });
+}
 
 void SupportsClipper::on_update()
 {

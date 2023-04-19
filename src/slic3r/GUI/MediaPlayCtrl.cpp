@@ -27,9 +27,6 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 {
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
-#if wxUSE_GSTREAMER_PLAYER
-    m_media_ctrl->Bind(wxEVT_MEDIA_LOADED, &MediaPlayCtrl::onStateChanged, this);
-#endif
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
@@ -195,8 +192,8 @@ void MediaPlayCtrl::Play()
                 m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
-                        Stop();
-                        SetStatus(wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
+                        m_failed_code = 3;
+                        Stop(wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
                     } else {
                         m_last_state = MEDIASTATE_LOADING;
                         SetStatus(_L("Loading..."));
@@ -218,6 +215,8 @@ void MediaPlayCtrl::Play()
 
 void MediaPlayCtrl::Stop(wxString const &msg)
 {
+    bool init_failed = m_last_state != wxMEDIASTATE_PLAYING;
+
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
@@ -235,13 +234,31 @@ void MediaPlayCtrl::Stop(wxString const &msg)
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
+    } else {
+        m_failed_code = 0;
     }
+
+    if (init_failed && m_failed_code != 0 && m_last_failed_code != m_failed_code) {
+        json j;
+        j["stage"]          = std::to_string(m_last_state);
+        j["dev_id"]         = m_machine;
+        j["dev_ip"]         = m_lan_ip;
+        j["result"]         = "failed";
+        j["code"]           = m_failed_code;
+        j["msg"]            = into_u8(msg);
+        NetworkAgent *agent = wxGetApp().getAgent();
+        if (agent)
+            agent->track_event("start_liveview", j.dump());
+    }
+    m_last_failed_code = m_failed_code;
+
     ++m_failed_retry;
     if (m_failed_code != 0 && !m_tutk_support && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_user_triggered = true;
+            m_last_failed_code = 0;
             m_next_retry   = wxDateTime::Now();
             return;
         }
@@ -259,6 +276,7 @@ void MediaPlayCtrl::TogglePlay()
     } else {
         m_failed_retry = 0;
         m_user_triggered = true;
+        m_last_failed_code = 0;
         m_next_retry   = wxDateTime::Now();
         Play();
     }
@@ -301,7 +319,7 @@ void MediaPlayCtrl::ToggleStream()
                     { return std::make_shared<UpgradeNetworkJob2>(pri); }
                     void                               on_finish() override
                     {
-                        wxGetApp().CallAfter([ctrl = this->ctrl] { ctrl->ToggleStream(); });
+                        ctrl->CallAfter([ctrl = this->ctrl] { ctrl->ToggleStream(); });
                         EndModal(wxID_CLOSE);
                     }
                 };
@@ -365,23 +383,34 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         Stop();
         return;
     }
-    if (last_state == MEDIASTATE_LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED || event.GetEventType() == wxEVT_MEDIA_LOADED)) {
+    if (last_state == MEDIASTATE_LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED)) {
         wxSize size = m_media_ctrl->GetVideoSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000 || (event.GetEventType() == wxEVT_MEDIA_LOADED)) {
+        if (size.GetWidth() > 1000) {
             m_last_state = state;
             SetStatus(_L("Playing..."), false);
+
+            // track event
+            json j;
+            j["stage"] =  std::to_string(m_last_state);
+            j["dev_id"] = m_machine;
+            j["dev_ip"] = m_lan_ip;
+            j["result"] = "success";
+            j["code"] = 0;
+            NetworkAgent* agent = wxGetApp().getAgent();
+            if (agent)
+                agent->track_event("start_liveview", j.dump());
+
             m_failed_retry = 0;
             m_failed_code  = 0;
             boost::unique_lock lock(m_mutex);
             m_tasks.push_back("<play>");
             m_cond.notify_all();
         } else if (event.GetId()) {
-            Stop();
             if (m_failed_code == 0)
                 m_failed_code = 2;
-            SetStatus(_L("Load failed [%d]!"));
+            Stop(_L("Load failed [%d]!"));
         }
     } else {
         m_last_state = state;
@@ -563,7 +592,7 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     if (maxHeight != GetMaxHeight()) {
         // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
         SetMaxSize({-1, maxHeight});
-        Slic3r::GUI::wxGetApp().CallAfter([this] {
+        CallAfter([this] {
             if (auto p = GetParent()) {
                 p->Layout();
                 p->Refresh();

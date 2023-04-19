@@ -287,7 +287,7 @@ void OptionsGroup::activate_line(Line& line)
 		const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_window_field(field))
-			h_sizer->Add(field->getWindow(), 1, wxEXPAND | wxLEFT, titleWidth * wxGetApp().em_unit());
+			h_sizer->Add(field->getWindow(), 1, wxEXPAND | wxLEFT, option.opt.multiline ? 0 : titleWidth * wxGetApp().em_unit());
 		if (is_sizer_field(field))
 			h_sizer->Add(field->getSizer(), 1, wxEXPAND | wxLEFT, titleWidth * wxGetApp().em_unit());
 		return;

@@ -31,6 +31,9 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 #ifdef __LINUX__
     /* Register only after we have created the wxMediaCtrl, since only then are we guaranteed to have fired up Gstreamer's plugin registry. */
     gstbambusrc_register();
+    Bind(wxEVT_MEDIA_LOADED, [this](auto & e) {
+        m_loaded = true;
+    });
 #endif
 }
 
@@ -40,7 +43,7 @@ void wxMediaCtrl2::Load(wxURI url)
 {
 #ifdef __WIN32__
     if (m_imp == nullptr) {
-        Slic3r::GUI::wxGetApp().CallAfter([] {
+        CallAfter([] {
             auto res = wxMessageBox(_L("Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"), _L("Error"), wxOK | wxCANCEL);
             if (res == wxOK) {
                 wxString url = IsWindows10OrGreater() 
@@ -70,7 +73,7 @@ void wxMediaCtrl2::Load(wxURI url)
             boost::filesystem::path data_dir_path(data_dir_str);
             auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
             if (boost::filesystem::exists(dll_path)) {
-                Slic3r::GUI::wxGetApp().CallAfter(
+                CallAfter(
                     [dll_path] {
                     int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO);
                     if (res == wxYES) {
@@ -80,7 +83,7 @@ void wxMediaCtrl2::Load(wxURI url)
                     }
                 });
             } else {
-                Slic3r::GUI::wxGetApp().CallAfter([] {
+                CallAfter([] {
                     wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"), wxOK);
                 });
             }
@@ -129,8 +132,8 @@ void wxMediaCtrl2::Load(wxURI url)
     }
     
     if (!hasplugins) {
-        Slic3r::GUI::wxGetApp().CallAfter([] {
-            wxMessageBox(_L("Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Orca Slicer?)"), _L("Error"), wxOK);
+        CallAfter([] {
+            wxMessageBox(_L("Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"), _L("Error"), wxOK);
         });
         m_error = 101;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
@@ -139,14 +142,43 @@ void wxMediaCtrl2::Load(wxURI url)
         wxPostEvent(this, event);
         return;
     }
+    wxLog::EnableLogging(false);
 #endif
     m_error = 0;
+    m_loaded = false;
     wxMediaCtrl::Load(url);
+
+#ifdef __WXGTK3__
+        wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
+        event.SetId(GetId());
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+#endif
 }
 
 void wxMediaCtrl2::Play() { wxMediaCtrl::Play(); }
 
-void wxMediaCtrl2::Stop() { wxMediaCtrl::Stop(); }
+void wxMediaCtrl2::Stop()
+{
+#ifdef __WIN32__
+    wxMediaCtrl::Load(wxURI());
+#else
+    wxMediaCtrl::Stop();
+#endif
+}
+
+#ifdef __LINUX__
+extern int gst_bambu_last_error;
+#endif
+
+int wxMediaCtrl2::GetLastError() const
+{
+#ifdef __LINUX__
+    return gst_bambu_last_error;
+#else
+    return m_error;
+#endif
+}
 
 wxSize wxMediaCtrl2::GetVideoSize() const
 {
@@ -154,7 +186,7 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     // Gstreamer doesn't give us a VideoSize until we're playing, which
     // confuses the MediaPlayCtrl into claiming that it is stuck
     // "Loading...".  Fake it out for now.
-    return wxSize(1280, 720);
+    return m_loaded ? wxSize(1280, 720) : wxSize{};
 #else
     return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
 #endif

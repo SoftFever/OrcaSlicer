@@ -216,6 +216,7 @@ wxWindow* BitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRec
                                              position, labelRect.GetSize(), wxTE_PROCESS_ENTER);
     text_editor->SetInsertionPointEnd();
     text_editor->SelectAll();
+    text_editor->SetBackgroundColour(parent->GetBackgroundColour());
 
     return text_editor;
 }

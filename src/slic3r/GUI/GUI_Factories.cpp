@@ -18,6 +18,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
+#include "ParamsPanel.hpp"
 
 namespace Slic3r
 {
@@ -200,7 +201,7 @@ std::map<std::string, std::vector<SimpleSettingData>> SettingsFactory::get_all_v
 }
 
 
-SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* config, bool is_object_settings)
+SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* config, bool is_object_settings, bool is_layer_settings/* = false*/)
 {
     auto opt_keys = config->keys();
     if (opt_keys.empty())
@@ -208,6 +209,8 @@ SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* co
 
     // update options list according to print technology
     auto full_current_opts = get_options(!is_object_settings);
+    if (is_layer_settings)
+        full_current_opts.push_back("layer_height");
     for (int i = opt_keys.size() - 1; i >= 0; --i)
         if (find(full_current_opts.begin(), full_current_opts.end(), opt_keys[i]) == full_current_opts.end())
             opt_keys.erase(opt_keys.begin() + i);
@@ -448,7 +451,7 @@ void MenuFactory::append_menu_item_set_visible(wxMenu* menu)
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
 #ifdef __WINDOWS__
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Delete the selected object"),
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\t" + _L("Del"), _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #else
@@ -534,6 +537,15 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
         append_submenu(menu, sub_menu, wxID_ANY, _(item.first), "", item.second,
             []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
     }
+
+    append_menu_item_layers_editing(menu);
+}
+
+wxMenuItem* MenuFactory::append_menu_item_layers_editing(wxMenu* menu)
+{
+    return append_menu_item(menu, wxID_ANY, _L("Height range Modifier"), "",
+        [](wxCommandEvent&) { obj_list()->layers_editing(); wxGetApp().params_panel()->switch_to_object(); }, "", menu,
+        []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
 }
 
 wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
@@ -577,7 +589,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
 
     if (printer_technology() == ptFFF ||
         (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
-        menu->SetFirstSeparator();
+        ;// menu->SetFirstSeparator();
 
     // detect itemm for adding of the setting
     ObjectList* object_list = obj_list();
@@ -601,7 +613,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
     // BBS remvoe freq setting popupmenu
     // create_freq_settings_popupmenu(menu, is_object_settings, item);
 
-    menu->SetSecondSeparator();
+    //menu->SetSecondSeparator();
 
     // Add full settings list
     auto  menu_item = new wxMenuItem(menu, wxID_ANY, menu_name);
@@ -942,6 +954,20 @@ void MenuFactory::append_menu_items_mirror(wxMenu* menu)
         []() { return plater()->can_mirror(); }, m_parent);
 }
 
+void MenuFactory::append_menu_item_invalidate_cut_info(wxMenu *menu)
+{
+    const wxString menu_name = _L("Invalidate cut info");
+
+    auto menu_item_id = menu->FindItem(menu_name);
+    if (menu_item_id != wxNOT_FOUND)
+        // Delete old menu item if selected object isn't cut
+        menu->Destroy(menu_item_id);
+
+    if (obj_list()->has_selected_cut_object())
+        append_menu_item(menu, wxID_ANY, menu_name, "", [](wxCommandEvent &) { obj_list()->invalidate_cut_info_for_selection(); },
+            "", menu, []() { return true; }, m_parent);
+}
+
 MenuFactory::MenuFactory()
 {
     for (int i = 0; i < mtCount; i++) {
@@ -1199,11 +1225,11 @@ void MenuFactory::create_plate_menu()
 
     // delete current plate
 #ifdef __WINDOWS__
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
+    append_menu_item(menu, wxID_ANY, _L("Delete Plate"), _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #else
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Remove the selected plate"),
+    append_menu_item(menu, wxID_ANY, _L("Delete Plate"), _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #endif
@@ -1263,6 +1289,7 @@ wxMenu* MenuFactory::object_menu()
     append_menu_item_change_filament(&m_object_menu);
     append_menu_items_convert_unit(&m_object_menu);
     append_menu_items_flush_options(&m_object_menu);
+    append_menu_item_invalidate_cut_info(&m_object_menu);
     return &m_object_menu;
 }
 

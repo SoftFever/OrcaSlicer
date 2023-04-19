@@ -40,6 +40,7 @@ enum class FuzzySkinType {
     None,
     External,
     All,
+    AllWalls,
 };
 
 enum PrintHostType {
@@ -104,7 +105,7 @@ enum SupportMaterialStyle {
 };
 
 enum SupportMaterialInterfacePattern {
-    smipAuto, smipRectilinear, smipConcentric,
+    smipAuto, smipRectilinear, smipConcentric, smipRectilinearInterlaced, smipGrid
 };
 
 // BBS
@@ -117,7 +118,7 @@ inline bool is_tree(SupportType stype)
 };
 inline bool is_tree_slim(SupportType type, SupportMaterialStyle style)
 {
-    return is_tree(type) && (style==smsDefault || style==smsTreeSlim);
+    return is_tree(type) && style==smsTreeSlim;
 };
 inline bool is_auto(SupportType stype)
 {
@@ -715,52 +716,46 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_angle))
     ((ConfigOptionFloat,                bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
-    ((ConfigOptionPercent,              bridge_density))
     ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
-    ((ConfigOptionFloat,                top_solid_infill_flow_ratio))
-    ((ConfigOptionFloat,                bottom_solid_infill_flow_ratio))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionFloat,                outer_wall_line_width))
     ((ConfigOptionFloat,                outer_wall_speed))
-    ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
-    ((ConfigOptionFloat,                small_perimeter_threshold))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
-    ((ConfigOptionFloat,                 filter_out_gap_fill))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloat,                sparse_infill_line_width))
     ((ConfigOptionPercent,              infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
     //BBS
-    ((ConfigOptionBool,                 infill_combination))
+    ((ConfigOptionBool, infill_combination))
     // Ironing options
-    ((ConfigOptionEnum<IroningType>,    ironing_type))
-    ((ConfigOptionPercent,              ironing_flow))
-    ((ConfigOptionFloat,                ironing_spacing))
-    ((ConfigOptionFloat,                ironing_speed))
+    ((ConfigOptionEnum<IroningType>, ironing_type))
+    ((ConfigOptionPercent, ironing_flow))
+    ((ConfigOptionFloat, ironing_spacing))
+    ((ConfigOptionFloat, ironing_speed))
     // Detect bridging perimeters
-    ((ConfigOptionBool,                 detect_overhang_wall))
-    ((ConfigOptionInt,                  wall_filament))
-    ((ConfigOptionFloat,                inner_wall_line_width))
-    ((ConfigOptionFloat,                inner_wall_speed))
+    ((ConfigOptionBool, detect_overhang_wall))
+    ((ConfigOptionInt, wall_filament))
+    ((ConfigOptionFloat, inner_wall_line_width))
+    ((ConfigOptionFloat, inner_wall_speed))
     // Total number of perimeters.
-    ((ConfigOptionInt,                  wall_loops))
-    ((ConfigOptionFloat,                minimum_sparse_infill_area))
-    ((ConfigOptionInt,                  solid_infill_filament))
-    ((ConfigOptionFloat,                internal_solid_infill_line_width))
-    ((ConfigOptionFloat,                internal_solid_infill_speed))
+    ((ConfigOptionInt, wall_loops))
+    ((ConfigOptionFloat, minimum_sparse_infill_area))
+    ((ConfigOptionInt, solid_infill_filament))
+    ((ConfigOptionFloat, internal_solid_infill_line_width))
+    ((ConfigOptionFloat, internal_solid_infill_speed))
     // Detect thin walls.
-    ((ConfigOptionBool,                 detect_thin_wall))
-    ((ConfigOptionFloat,                top_surface_line_width))
-    ((ConfigOptionInt,                  top_shell_layers))
-    ((ConfigOptionFloat,                top_shell_thickness))
-    ((ConfigOptionFloat,                top_surface_speed))
+    ((ConfigOptionBool, detect_thin_wall))
+    ((ConfigOptionFloat, top_surface_line_width))
+    ((ConfigOptionInt, top_shell_layers))
+    ((ConfigOptionFloat, top_shell_thickness))
+    ((ConfigOptionFloat, top_surface_speed))
     //BBS
     ((ConfigOptionBool,                 enable_overhang_speed))
     ((ConfigOptionFloat,                overhang_1_4_speed))
@@ -768,8 +763,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                overhang_3_4_speed))
     ((ConfigOptionFloat,                overhang_4_4_speed))
     ((ConfigOptionBool,                 only_one_wall_top))
-    ((ConfigOptionBool,                 only_one_wall_first_layer))
+
     //SoftFever
+    ((ConfigOptionBool,                 only_one_wall_first_layer))
     ((ConfigOptionFloat,                print_flow_ratio))
     ((ConfigOptionFloatOrPercent,       seam_gap))
     ((ConfigOptionBool,                 role_based_wipe_speed))
@@ -778,6 +774,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<WallInfillOrder>, wall_infill_order))
     ((ConfigOptionBool,                 precise_outer_wall))
     ((ConfigOptionBool,                 overhang_speed_classic))
+    ((ConfigOptionPercent,              bridge_density))
+    ((ConfigOptionFloat,                 filter_out_gap_fill))
+    ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
+    ((ConfigOptionFloat,                small_perimeter_threshold))
+    ((ConfigOptionFloat,                top_solid_infill_flow_ratio))
+    ((ConfigOptionFloat,                bottom_solid_infill_flow_ratio))
 
 
 

@@ -34,7 +34,9 @@
 
 #ifdef __WXMSW__
 #include "wx/uiaction.h"
+#include <wx/renderer.h>
 #endif /* __WXMSW__ */
+#include "Gizmos/GLGizmoScale.hpp"
 
 namespace Slic3r
 {
@@ -73,6 +75,17 @@ static void take_snapshot(const std::string& snapshot_name)
         plater->take_snapshot(snapshot_name);
 }
 
+class wxRenderer : public wxDelegateRendererNative
+{
+public:
+    wxRenderer() : wxDelegateRendererNative(wxRendererNative::Get()) {}
+    virtual void DrawItemSelectionRect(wxWindow *win,
+                                       wxDC& dc,
+                                       const wxRect& rect,
+                                       int flags = 0) wxOVERRIDE
+        { GetGeneric().DrawItemSelectionRect(win, dc, rect, flags); }
+};
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
@@ -80,6 +93,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     SetFont(Label::sysFont(13));
 #ifdef __WXMSW__
     GenericGetHeader()->SetFont(Label::sysFont(13));
+    static auto render = new wxRenderer;
+    wxRendererNative::Set(render);
 #endif
 
     // create control
@@ -155,6 +170,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         ObjectDataViewModelNode* sel_node = (ObjectDataViewModelNode*)event.GetItem().GetID();
         if (sel_node && (sel_node->GetType() & ItemType::itPlate)) {
             wxGetApp().plater()->select_plate(sel_node->GetPlateIdx());
+            wxGetApp().plater()->deselect_all();
         }
         else {
             selection_changed();
@@ -264,7 +280,8 @@ ObjectList::ObjectList(wxWindow* parent) :
         this->CallAfter([this]() { ensure_current_item_visible(); });
 #endif
         e.Skip();
-	}));
+    }));
+    
 }
 
 ObjectList::~ObjectList()
@@ -326,10 +343,11 @@ void ObjectList::create_objects_ctrl()
     const int em = wxGetApp().em_unit();
 
     m_columns_width.resize(colCount);
-    m_columns_width[colName] = 25;
+    m_columns_width[colName] = 22;
     m_columns_width[colPrint] = 3;
     m_columns_width[colFilament] = 5;
     m_columns_width[colSupportPaint] = 3;
+    m_columns_width[colSinking] = 3;
     m_columns_width[colColorPaint] = 3;
     m_columns_width[colEditing] = 3;
 
@@ -368,6 +386,8 @@ void ObjectList::create_objects_ctrl()
     AppendBitmapColumn(" ", colSupportPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
     AppendBitmapColumn(" ", colColorPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
+        wxALIGN_CENTER_HORIZONTAL, 0);
+    AppendBitmapColumn(" ", colSinking, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSinking] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column ItemEditing of the view control:
@@ -552,6 +572,10 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     else if (col->GetModelColumn() == (unsigned int)colColorPaint) {
         if (node->HasColorPainting())
             tooltip = _(L("Click the icon to edit color painting of the object"));
+    }
+    else if (col->GetModelColumn() == (unsigned int)colSinking) {
+        if (node->HasSinking())
+            tooltip = _(L("Click the icon to shift this object to the bed"));
     }
     else if (col->GetModelColumn() == (unsigned int)colName && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
     {
@@ -809,6 +833,12 @@ void ObjectList::set_support_paint_hidden(const bool hide) const
     update_name_column_width();
 }
 
+void GUI::ObjectList::set_sinking_hidden(const bool hide) const
+{
+    GetColumn(colSinking)->SetHidden(hide);
+    update_name_column_width();
+}
+
 void ObjectList::update_filament_in_config(const wxDataViewItem& item)
 {
     if (m_prevent_update_filament_in_config)
@@ -898,6 +928,8 @@ void ObjectList::selection_changed()
 
     fix_multiselection_conflicts();
 
+    fix_cut_selection();
+
     // update object selection on Plater
     if (!m_prevent_canvas_selection_update)
         update_selections_on_canvas();
@@ -914,15 +946,13 @@ void ObjectList::selection_changed()
         const ItemType type = m_objects_model->GetItemType(item);
         // to correct visual hints for layers editing on the Scene
         if (type & (itLayer|itLayerRoot)) {
-            //BBS remove obj_layers
-            // wxGetApp().obj_layers()->reset_selection();
+            wxGetApp().obj_layers()->reset_selection();
 
             if (type & itLayerRoot)
                 wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
             else {
-                //BBS remove obj_layers
-                //wxGetApp().obj_layers()->set_selectable_range(m_objects_model->GetLayerRangeByItem(item));
-                //wxGetApp().obj_layers()->update_scene_from_editor_selection();
+                wxGetApp().obj_layers()->set_selectable_range(m_objects_model->GetLayerRangeByItem(item));
+                wxGetApp().obj_layers()->update_scene_from_editor_selection();
             }
         }
     }
@@ -1172,13 +1202,27 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                     gizmos_mgr.reset_all_states();
             }
         }
+        else if (col_num == colSinking) {
+            Plater *    plater = wxGetApp().plater();
+            GLCanvas3D *cnv    = plater->canvas3D();
+            Plater::TakeSnapshot(plater, "Shift objects to bed");
+            int obj_idx, vol_idx;
+            get_selected_item_indexes(obj_idx, vol_idx, item);
+            (*m_objects)[obj_idx]->ensure_on_bed();
+            cnv->reload_scene(true, true);
+            update_info_items(obj_idx);
+            notify_instance_updated(obj_idx);
+        }
         else if (col_num == colEditing) {
             //show_context_menu(evt_context_menu);
             int obj_idx, vol_idx;
 
             get_selected_item_indexes(obj_idx, vol_idx, item);
             //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
-            dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
+            if (m_objects_model->GetItemType(item) & itLayer)
+                dynamic_cast<TabPrintLayer*>(wxGetApp().get_layer_tab())->reset_model_config();
+            else
+                dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
         }
         else if (col_num == colName)
         {
@@ -1215,12 +1259,11 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
         if (item)
         {
             const ItemType type = m_objects_model->GetItemType(item);
-            if (!(type & (itPlate | itObject | itVolume | itLayer | itInstance)))
+            if (!(type & (itPlate | itObject | itVolume | itInstance)))
                 return;
 
             menu =  type & itPlate                                              ? plater->plate_menu() :
                     type & itInstance                                           ? plater->instance_menu() :
-                    type & itLayer                                              ? plater->layer_menu() :
                     type & itVolume                                             ? plater->part_menu() :
                     printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
         }
@@ -2224,9 +2267,9 @@ int ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, c
 }
 
 //BBS
-void ObjectList::del_object(const int obj_idx, bool refresh_immediately)
+bool ObjectList::del_object(const int obj_idx, bool refresh_immediately)
 {
-    wxGetApp().plater()->delete_object_from_model(obj_idx, refresh_immediately);
+    return wxGetApp().plater()->delete_object_from_model(obj_idx, refresh_immediately);
 }
 
 // Delete subobject
@@ -2243,6 +2286,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
 
     wxDataViewItem parent = m_objects_model->GetParent(item);
 
+    InfoItemType item_info_type = m_objects_model->GetInfoItemType(item);
     if (type & itSettings)
         del_settings_from_config(parent);
     else if (type & itInstanceRoot && obj_idx != -1)
@@ -2252,7 +2296,7 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     else if (type & itLayer && obj_idx != -1)
         del_layer_from_object(obj_idx, m_objects_model->GetLayerRangeByItem(item));
     else if (type & itInfo && obj_idx != -1)
-        del_info_item(obj_idx, m_objects_model->GetInfoItemType(item));
+        del_info_item(obj_idx, item_info_type);
     else if (idx == -1)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
@@ -2264,8 +2308,11 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
         m_objects_model->UpdateWarningIcon(parent, icon_name);
     }
 
-    m_objects_model->Delete(item);
-    update_info_items(obj_idx);
+    if (!(type & itInfo) || item_info_type != InfoItemType::CutConnectors) {
+        // Connectors Item is already updated/deleted inside the del_info_item()
+        m_objects_model->Delete(item);
+        update_info_items(obj_idx);
+    }
 }
 
 void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
@@ -2287,6 +2334,13 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         Plater::TakeSnapshot(plater, "Remove color painting");
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->mmu_segmentation_facets.reset();
+        break;
+
+    case InfoItemType::CutConnectors:
+        if (!del_from_cut_object(true)) {
+            // there is no need to post EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS if nothing was changed
+            return;
+        }
         break;
 
     // BBS: remove Sinking
@@ -2359,6 +2413,38 @@ void ObjectList::del_layers_from_object(const int obj_idx)
     changed_object(obj_idx);
 }
 
+bool ObjectList::del_from_cut_object(bool is_cut_connector, bool is_model_part/* = false*/, bool is_negative_volume/* = false*/)
+{
+    const long buttons_style = is_cut_connector   ? (wxYES | wxNO | wxCANCEL) : (wxYES | wxCANCEL);
+
+    const wxString title     = is_cut_connector   ? _L("Delete connector from object which is a part of cut") :
+                               is_model_part      ? _L("Delete solid part from object which is a part of cut") :
+                               is_negative_volume ? _L("Delete negative volume from object which is a part of cut") : "";
+                             
+    const wxString msg_end   = is_cut_connector   ? ("\n" + _L("To save cut correspondence you can delete all connectors from all related objects.")) : "";
+
+    InfoDialog dialog(wxGetApp().plater(), title,
+                      (_L("This action will break a cut correspondence.\n"
+                         "After that model consistency can't be guaranteed .\n"
+                         "\n"
+                         "To manipulate with solid parts or negative volumes you have to invalidate cut infornation first.") + msg_end ),
+                      false, buttons_style | wxCANCEL_DEFAULT | wxICON_WARNING);
+
+    dialog.SetButtonLabel(wxID_YES, _L("Invalidate cut info"));
+    if (is_cut_connector)
+        dialog.SetButtonLabel(wxID_NO, _L("Delete all connectors"));
+
+    const int answer = dialog.ShowModal();
+    if (answer == wxID_CANCEL)
+        return false;
+
+    if (answer == wxID_YES)
+        invalidate_cut_info_for_selection();
+    else if (answer == wxID_NO)
+        delete_all_connectors_for_selection();
+    return true;
+}
+
 bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, const int type)
 {
     assert(idx >= 0);
@@ -2381,6 +2467,11 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
                 ++solid_cnt;
         if (volume->is_model_part() && solid_cnt == 1) {
             Slic3r::GUI::show_error(nullptr, _L("Deleting the last solid part is not allowed."));
+            return false;
+        }
+        if (object->is_cut() && (volume->is_model_part() || volume->is_negative_volume())) {
+            del_from_cut_object(volume->is_cut_connector(), volume->is_model_part(), volume->is_negative_volume());
+            // in any case return false to break the deletion
             return false;
         }
 
@@ -2774,8 +2865,7 @@ void ObjectList::layers_editing()
         return;
 
     // to correct visual hints for layers editing on the Scene, reset previous selection
-    //BBS remove obj_layers
-    //wxGetApp().obj_layers()->reset_selection();
+    wxGetApp().obj_layers()->reset_selection();
     wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
 
     // select LayerRoor item and expand
@@ -2887,6 +2977,9 @@ bool ObjectList::can_split_instances()
 
 bool ObjectList::can_merge_to_multipart_object() const
 {
+    if (has_selected_cut_object())
+        return false;
+
     if (printer_technology() == ptSLA)
         return false;
 
@@ -2914,6 +3007,97 @@ bool ObjectList::can_merge_to_single_object() const
     return (*m_objects)[obj_idx]->volumes.size() > 1;
 }
 
+bool ObjectList::has_selected_cut_object() const
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.IsEmpty())
+        return false;
+
+    for (wxDataViewItem item : sels) {
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+        if (obj_idx >= 0 && object(obj_idx)->is_cut())
+            return true;
+    }
+
+    return false;
+}
+
+void ObjectList::invalidate_cut_info_for_selection()
+{
+    const wxDataViewItem item = GetSelection();
+    if (item) {
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+        if (obj_idx >= 0)
+            invalidate_cut_info_for_object(size_t(obj_idx));
+    }
+}
+
+void ObjectList::invalidate_cut_info_for_object(int obj_idx)
+{
+    ModelObject *init_obj = object(obj_idx);
+    if (!init_obj->is_cut()) return;
+
+    take_snapshot("Invalidate cut info");
+
+    const CutObjectBase cut_id = init_obj->cut_id;
+    // invalidate cut for related objects (which have the same cut_id)
+    for (size_t idx = 0; idx < m_objects->size(); idx++)
+        if (ModelObject *obj = object(int(idx)); obj->cut_id.is_equal(cut_id)) {
+            obj->invalidate_cut();
+            update_info_items(idx);
+            add_volumes_to_object_in_list(idx);
+        }
+
+    update_lock_icons_for_model();
+}
+
+void ObjectList::delete_all_connectors_for_selection()
+{
+    const wxDataViewItem item = GetSelection();
+    if (item) {
+        const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+        if (obj_idx >= 0)
+            delete_all_connectors_for_object(size_t(obj_idx));
+    }
+}
+
+void ObjectList::delete_all_connectors_for_object(int obj_idx)
+{
+    ModelObject *init_obj = object(obj_idx);
+    if (!init_obj->is_cut())
+        return;
+
+    take_snapshot("Delete all connectors");
+
+    auto has_solid_mesh = [](ModelObject* obj) {
+        for (const ModelVolume *volume : obj->volumes)
+            if (volume->is_model_part()) return true;
+        return false;
+    };
+
+    const CutObjectBase cut_id = init_obj->cut_id;
+    // Delete all connectors for related objects (which have the same cut_id)
+    Model &model = wxGetApp().plater()->model();
+    for (int idx = int(m_objects->size()) - 1; idx >= 0; idx--)
+        if (ModelObject *obj = object(idx); obj->cut_id.is_equal(cut_id)) {
+            obj->delete_connectors();
+
+            if (obj->volumes.empty() || !has_solid_mesh(obj)) {
+                model.delete_object(idx);
+                m_objects_model->Delete(m_objects_model->GetItemById(idx));
+                continue;
+            }
+
+            update_info_items(idx);
+            add_volumes_to_object_in_list(idx);
+            changed_object(int(idx));
+        }
+
+    update_lock_icons_for_model();
+}
+
+
 // NO_PARAMETERS function call means that changed object index will be determine from Selection()
 void ObjectList::changed_object(const int obj_idx/* = -1*/) const
 {
@@ -2932,15 +3116,77 @@ void ObjectList::part_selection_changed()
     bool update_and_show_settings = false;
     bool update_and_show_layers = false;
 
+    bool enable_manipulation{true};
+    bool disable_ss_manipulation{false};
+    bool disable_ununiform_scale{false};
+
     const auto item = GetSelection();
-    // BBS
-    if (item && (m_objects_model->GetItemType(item) & itPlate)) {
+    if (item && m_objects_model->GetItemType(item) == itInfo && m_objects_model->GetInfoItemType(item) == InfoItemType::CutConnectors) {
+        og_name = _L("Cut Connectors information");
+
+        update_and_show_manipulations = true;
+        enable_manipulation           = false;
+        disable_ununiform_scale       = true;
+    }
+    else if (item && (m_objects_model->GetItemType(item) & itPlate)) {
+        // BBS
         // TODO: og for plate
     }
     else if ( multiple_selection() || (item && m_objects_model->GetItemType(item) == itInstanceRoot )) {
         const Selection& selection = scene_selection();
-        // don't show manipulation panel for case of all Object's parts selection
-        update_and_show_manipulations = !selection.is_single_full_instance();
+
+        if (selection.is_single_full_object()) {
+            og_name                       = _L("Object manipulation");
+            update_and_show_manipulations = true;
+
+            obj_idx                 = selection.get_object_idx();
+            ModelObject *object     = (*m_objects)[obj_idx];
+            m_config                = &object->config;
+            disable_ss_manipulation = object->is_cut();
+        }
+        else {
+            og_name = _L("Group manipulation");
+
+            // don't show manipulation panel for case of all Object's parts selection
+            update_and_show_manipulations = !selection.is_single_full_instance();
+
+            if (int obj_idx = selection.get_object_idx(); obj_idx >= 0) {
+                if (selection.is_any_volume() || selection.is_any_modifier())
+                    enable_manipulation = !(*m_objects)[obj_idx]->is_cut();
+                else // if (item && m_objects_model->GetItemType(item) == itInstanceRoot)
+                    disable_ss_manipulation = (*m_objects)[obj_idx]->is_cut();
+            }
+            else {
+                wxDataViewItemArray sels;
+                GetSelections(sels);
+                if (selection.is_single_full_object() || selection.is_multiple_full_instance()) {
+                    int obj_idx             = m_objects_model->GetObjectIdByItem(sels.front());
+                    disable_ss_manipulation = (*m_objects)[obj_idx]->is_cut();
+                } else if (selection.is_mixed() || selection.is_multiple_full_object()) {
+                    std::map<CutObjectBase, std::set<int>> cut_objects;
+
+                    // find cut objects
+                    for (auto item : sels) {
+                        int                obj_idx = m_objects_model->GetObjectIdByItem(item);
+                        const ModelObject *obj     = object(obj_idx);
+                        if (obj->is_cut()) {
+                            if (cut_objects.find(obj->cut_id) == cut_objects.end())
+                                cut_objects[obj->cut_id] = std::set<int>{obj_idx};
+                            else
+                                cut_objects.at(obj->cut_id).insert(obj_idx);
+                        }
+                    }
+
+                    // check if selected cut objects are "full selected"
+                    for (auto cut_object : cut_objects)
+                        if (cut_object.first.check_sum() != cut_object.second.size()) {
+                            disable_ss_manipulation = true;
+                            break;
+                        }
+                    disable_ununiform_scale = !cut_objects.empty();
+                }
+            }
+        }
 
         // BBS: multi config editing
         update_and_show_settings = true;
@@ -2982,36 +3228,53 @@ void ObjectList::part_selection_changed()
                     // BBS: select object to edit config
                     m_config = &(*m_objects)[obj_idx]->config;
                     update_and_show_settings = true;
+                    disable_ss_manipulation  = (*m_objects)[obj_idx]->is_cut();
                 }
             }
             else {
                 if (type & itSettings) {
                     if (parent_type & itObject) {
+                        og_name  = _L("Object Settings to modify");
                         m_config = &(*m_objects)[obj_idx]->config;
                     }
                     else if (parent_type & itVolume) {
+                        og_name   = _L("Part Settings to modify");
                         volume_id = m_objects_model->GetVolumeIdByItem(parent);
                         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     }
                     else if (parent_type & itLayer) {
+                        og_name  = _L("Layer range Settings to modify");
                         m_config = &get_item_config(parent);
                     }
                     update_and_show_settings = true;
                 }
                 else if (type & itVolume) {
+                    og_name = _L("Part manipulation");
                     volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_settings = true;
+
+                    const ModelVolume *volume = (*m_objects)[obj_idx]->volumes[volume_id];
+                    enable_manipulation       = !((*m_objects)[obj_idx]->is_cut() && (volume->is_cut_connector() || volume->is_model_part()));
                 }
                 else if (type & itInstance) {
+                    og_name = _L("Instance manipulation");
                     update_and_show_manipulations = true;
 
                     // fill m_config by object's values
                     m_config = &(*m_objects)[obj_idx]->config;
+                    disable_ss_manipulation = (*m_objects)[obj_idx]->is_cut();
                 }
-                // BBS: remove height range logics
+                else if (type & (itLayerRoot | itLayer)) {
+                    og_name = type & itLayerRoot ? _L("Height ranges") : _L("Settings for height range");
+                    update_and_show_layers = true;
+                    update_and_show_settings = true;
+
+                    if (type & itLayer)
+                        m_config = &get_item_config(item);
+                }
             }
         }
     }
@@ -3028,6 +3291,11 @@ void ObjectList::part_selection_changed()
             //wxGetApp().obj_manipul()->update_item_name(m_objects_model->GetName(item));
             //wxGetApp().obj_manipul()->update_warning_icon_state(get_mesh_errors_info(obj_idx, volume_id));
         }
+
+        GLGizmosManager &gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
+
+        if (GLGizmoScale3D *scale = dynamic_cast<GLGizmoScale3D *>(gizmos_mgr.get_gizmo(GLGizmosManager::Scale)))
+            scale->enable_ununiversal_scale(!disable_ununiform_scale);
     }
 
 #if !NEW_OBJECT_SETTING
@@ -3038,8 +3306,7 @@ void ObjectList::part_selection_changed()
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;
     else if (update_and_show_layers) {
-        //BBS remove obj layers
-        //wxGetApp().obj_layers()->get_og()->set_name(" ");
+        ;//wxGetApp().obj_layers()->get_og()->set_name(" " + og_name + " ");
     }
 
     update_min_height();
@@ -3051,8 +3318,7 @@ void ObjectList::part_selection_changed()
     // BBS
     //wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
-    //BBS
-    //wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
+    wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
     wxGetApp().plater()->show_object_info();
 
     panel.Layout();
@@ -3068,13 +3334,33 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
         return ret;
 
     const bool is_object_settings = m_objects_model->GetItemType(parent_item) == itObject;
+    const bool is_volume_settings = m_objects_model->GetItemType(parent_item) == itVolume;
+    const bool is_layer_settings = m_objects_model->GetItemType(parent_item) == itLayer;
     if (!is_object_settings) {
         ModelVolumeType volume_type = m_objects_model->GetVolumeType(parent_item);
         if (volume_type == ModelVolumeType::NEGATIVE_VOLUME || volume_type == ModelVolumeType::SUPPORT_BLOCKER || volume_type == ModelVolumeType::SUPPORT_ENFORCER)
             return ret;
     }
 
-    SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(config, is_object_settings);
+    SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(config, is_object_settings, is_layer_settings);
+    if (is_layer_settings) {
+        auto tab_object = dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab());
+        auto object_cfg = tab_object->get_config();
+        if (config->opt_float("layer_height") == object_cfg->opt_float("layer_height")) {
+            SettingsFactory::Bundle new_cat_options;
+            for (auto cat_opt : cat_options) {
+                std::vector<string> temp;
+                for (auto value : cat_opt.second) {
+                    if (value != "layer_height")
+                        temp.push_back(value);
+                }
+                if (!temp.empty())
+                    new_cat_options[cat_opt.first] = temp;
+            }
+            cat_options = new_cat_options;
+        }
+    }
+
     if (cat_options.empty()) {
 #if NEW_OBJECT_SETTING
         ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
@@ -3122,6 +3408,33 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     wxDataViewItem item_obj = m_objects_model->GetItemById(obj_idx);
     assert(item_obj.IsOk());
 
+    // Cut connectors
+    {
+        wxDataViewItem item = m_objects_model->GetInfoItemByType(item_obj, InfoItemType::CutConnectors);
+        bool shows = item.IsOk();
+        bool should_show = model_object->is_cut() && model_object->has_connectors() && model_object->volumes.size() > 1;
+
+        if (!shows && should_show) {
+            m_objects_model->AddInfoChild(item_obj, InfoItemType::CutConnectors);
+            Expand(item_obj);
+            if (added_object)
+                wxGetApp().notification_manager()->push_updated_item_info_notification(InfoItemType::CutConnectors);
+        } else if (shows && !should_show) {
+            if (!selections) Unselect(item);
+            m_objects_model->Delete(item);
+            if (selections) {
+                if (selections->Index(item) != wxNOT_FOUND) {
+                    // If info item was deleted from the list,
+                    // it's need to be deleted from selection array, if it was there
+                    selections->Remove(item);
+                    // Select item_obj, if info_item doesn't exist for item anymore, but was selected
+                    if (selections->Index(item_obj) == wxNOT_FOUND) selections->Add(item_obj);
+                }
+            } else
+                Select(item_obj);
+        }
+    }
+
     {
         bool shows = m_objects_model->IsSupportPainted(item_obj);
         bool should_show = printer_technology() == ptFFF
@@ -3149,6 +3462,18 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
         }
         else if (!shows && should_show) {
             m_objects_model->SetColorPaintState(true, item_obj);
+        }
+    }
+
+    {
+        bool shows = m_objects_model->IsSinked(item_obj);
+        bool should_show = printer_technology() == ptFFF
+            && wxGetApp().plater()->canvas3D()->is_object_sinking(obj_idx);
+        if (shows && !should_show) {
+            m_objects_model->SetSinkState(false, item_obj);
+        }
+        else if (!shows && should_show) {
+            m_objects_model->SetSinkState(true, item_obj);
         }
     }
 
@@ -3195,6 +3520,26 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
             this->set_color_paint_hidden(false);
         }
     }
+
+    {
+        bool shows = this->GetColumn(colSinking)->IsShown();
+        bool should_show = false;
+        for (int i = 0; i < m_objects->size(); ++i) {
+            if (wxGetApp().plater()->canvas3D()->is_object_sinking(i)) {
+                should_show = true;
+                break;
+            }
+            if (should_show)
+                break;
+        }
+
+        if (shows && !should_show) {
+            this->set_sinking_hidden(true);
+        }
+        else if (!shows && should_show) {
+            this->set_sinking_hidden(false);
+        }
+    }
 }
 
 
@@ -3213,24 +3558,12 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed,
     //const wxString& item_name = from_u8(item_name_str);
     const wxString& item_name = from_u8(model_object->name);
     std::string warning_bitmap = get_warning_icon_name(model_object->mesh().stats());
-    const auto item = m_objects_model->AddObject(model_object, warning_bitmap);
+    const auto item = m_objects_model->AddObject(model_object, warning_bitmap, model_object->is_cut());
     Expand(m_objects_model->GetParent(item));
 
     update_info_items(obj_idx, nullptr, call_selection_changed);
 
-    // add volumes to the object
-    if (model_object->volumes.size() > 1) {
-        for (const ModelVolume* volume : model_object->volumes) {
-            const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(item,
-                from_u8(volume->name),
-                volume->type(),
-                get_warning_icon_name(volume->mesh().stats()),
-                volume->config.has("extruder") ? volume->config.extruder() : 0,
-                false);
-            add_settings_item(vol_item, &volume->config.get());
-        }
-        Expand(item);
-    }
+    add_volumes_to_object_in_list(obj_idx);
 
     // add instances to the object, if it has those
     if (model_object->instances.size()>1)
@@ -3262,6 +3595,68 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed,
         selection_changed();
     }
 #endif //__WXMSW__
+}
+
+static bool can_add_volumes_to_object(const ModelObject *object)
+{
+    bool can = object->volumes.size() > 1;
+
+    if (can && object->is_cut()) {
+        int no_connectors_cnt = 0;
+        for (const ModelVolume *v : object->volumes)
+            if (!v->is_cut_connector()) {
+                if (!v->is_model_part())
+                    return true;
+                no_connectors_cnt++;
+            }
+        can = no_connectors_cnt > 1;
+    }
+
+    return can;
+}
+
+wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, std::function<bool(const ModelVolume *)> add_to_selection /* = nullptr*/)
+{
+    const bool is_prevent_list_events = m_prevent_list_events;
+    m_prevent_list_events             = true;
+
+    wxDataViewItem object_item = m_objects_model->GetItemById(int(obj_idx));
+    m_objects_model->DeleteVolumeChildren(object_item);
+
+    wxDataViewItemArray items;
+
+    const ModelObject *object = (*m_objects)[obj_idx];
+    // add volumes to the object
+    if (can_add_volumes_to_object(object)) {
+        if (object->volumes.size() > 1) {
+            wxString obj_item_name = from_u8(object->name);
+            if (m_objects_model->GetName(object_item) != obj_item_name)
+                m_objects_model->SetName(obj_item_name, object_item);
+        }
+
+        int volume_idx{-1};
+        for (const ModelVolume *volume : object->volumes) {
+            ++volume_idx;
+            if (object->is_cut() && volume->is_cut_connector())
+                continue;
+
+            const wxDataViewItem &vol_item = m_objects_model->AddVolumeChild(
+                object_item,
+                from_u8(volume->name),
+                volume->type(),
+                get_warning_icon_name(volume->mesh().stats()),
+                volume->config.has("extruder") ? volume->config.extruder() : 0,
+                false);
+            add_settings_item(vol_item, &volume->config.get());
+
+            if (add_to_selection && add_to_selection(volume))
+                items.Add(vol_item);
+        }
+        Expand(object_item);
+    }
+
+    m_prevent_list_events = is_prevent_list_events;
+    return items;
 }
 
 void ObjectList::delete_object_from_list()
@@ -3298,8 +3693,12 @@ void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_i
     take_snapshot("Delete selected");
 
     if (type&itObject) {
-        del_object(obj_idx);
-        delete_object_from_list(obj_idx);
+        bool was_cut = object(obj_idx)->is_cut();
+        if (del_object(obj_idx)) {
+            delete_object_from_list(obj_idx);
+            if (was_cut)
+                update_lock_icons_for_model();
+        }
     }
     else {
         del_subobject_from_object(obj_idx, sub_obj_idx, type);
@@ -3326,12 +3725,16 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             // refresh after del_object
             need_update = true;
             bool refresh_immediately = false;
-            del_object(item->obj_idx, refresh_immediately);
+            bool was_cut = object(item->obj_idx)->is_cut();
+            if (!del_object(item->obj_idx, refresh_immediately))
+                return;
             m_objects_model->Delete(m_objects_model->GetItemById(item->obj_idx));
+            if (was_cut)
+                update_lock_icons_for_model();
         }
         else {
             if (!del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type))
-                continue;
+                return; //continue;
             if (item->type&itVolume) {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
                 // BBS
@@ -3367,6 +3770,14 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
 
     m_prevent_list_events = true;
     part_selection_changed();
+}
+
+void ObjectList::update_lock_icons_for_model()
+{
+    // update the icon for cut object
+    for (size_t obj_idx = 0; obj_idx < (*m_objects).size(); ++obj_idx)
+        if (!(*m_objects)[obj_idx]->is_cut())
+            m_objects_model->UpdateCutObjectIcon(m_objects_model->GetItemById(int(obj_idx)), false);
 }
 
 void ObjectList::delete_all_objects_from_list()
@@ -3784,6 +4195,25 @@ bool ObjectList::is_selected(const ItemType type) const
     return false;
 }
 
+bool ObjectList::is_connectors_item_selected() const
+{
+    const wxDataViewItem &item = GetSelection();
+    if (item)
+        return m_objects_model->GetItemType(item) == itInfo && m_objects_model->GetInfoItemType(item) == InfoItemType::CutConnectors;
+
+    return false;
+}
+
+bool ObjectList::is_connectors_item_selected(const wxDataViewItemArray &sels) const
+{
+    for (auto item : sels)
+        if (m_objects_model->GetItemType(item) == itInfo && m_objects_model->GetInfoItemType(item) == InfoItemType::CutConnectors)
+            return true;
+
+    return false;
+}
+
+
 int ObjectList::get_selected_layers_range_idx() const
 {
     const wxDataViewItem& item = GetSelection();
@@ -3919,11 +4349,18 @@ void ObjectList::update_selections()
         else {
         for (auto idx : selection.get_volume_idxs()) {
             const auto gl_vol = selection.get_volume(idx);
-			if (gl_vol->volume_idx() >= 0)
+            if (gl_vol->volume_idx() >= 0) {
                 // Only add GLVolumes with non-negative volume_ids. GLVolumes with negative volume ids
                 // are not associated with ModelVolumes, but they are temporarily generated by the backend
                 // (for example, SLA supports or SLA pad).
-                sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
+                int obj_idx = gl_vol->object_idx();
+                int vol_idx = gl_vol->volume_idx();
+                assert(obj_idx >= 0 && vol_idx >= 0);
+                if (object(obj_idx)->volumes[vol_idx]->is_cut_connector())
+                    sels.Add(m_objects_model->GetInfoItemByType(m_objects_model->GetItemById(obj_idx), InfoItemType::CutConnectors));
+                else
+                    sels.Add(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx));
+            }
         }
         m_selection_mode = smVolume; }
     }
@@ -3974,10 +4411,33 @@ void ObjectList::update_selections()
     if (sels.size() == 0 || m_selection_mode & smSettings)
         m_selection_mode = smUndef;
 
-    select_items(sels);
+    if (fix_cut_selection(sels) || is_connectors_item_selected(sels)) {
+        m_prevent_list_events = true;
 
-    // Scroll selected Item in the middle of an object list
-    ensure_current_item_visible();
+        // If some part is selected, unselect all items except of selected parts of the current object
+        UnselectAll();
+        SetSelections(sels);
+
+        m_prevent_list_events = false;
+
+        // update object selection on Plater
+        if (!m_prevent_canvas_selection_update)
+            update_selections_on_canvas();
+
+        // to update the toolbar and info sizer
+        if (!GetSelection() || m_objects_model->GetItemType(GetSelection()) == itObject || is_connectors_item_selected()) {
+            auto event = SimpleEvent(EVT_OBJ_LIST_OBJECT_SELECT);
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+        }
+        part_selection_changed();
+    }
+    else {
+        select_items(sels);
+
+        // Scroll selected Item in the middle of an object list
+        ensure_current_item_visible();
+    }
 }
 
 void ObjectList::update_selections_on_canvas()
@@ -4011,16 +4471,27 @@ void ObjectList::update_selections_on_canvas()
             volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
         }
         else if (type == itInfo) {
-            // When selecting an info item, select one instance of the
-            // respective object - a gizmo may want to be opened.
-            int inst_idx = selection.get_instance_idx();
-            int scene_obj_idx = selection.get_object_idx();
-            mode = Selection::Instance;
-            // select first instance, unless an instance of the object is already selected
-            if (scene_obj_idx == -1 || inst_idx == -1 || scene_obj_idx != obj_idx)
-                inst_idx = 0;
-            std::vector<unsigned int> idxs = selection.get_volume_idxs_from_instance(obj_idx, inst_idx);
-            volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
+            if (m_objects_model->GetInfoItemType(item) == InfoItemType::CutConnectors) {
+                mode = Selection::Volume;
+
+                // When selecting CutConnectors info item, select all object volumes, which are marked as a connector
+                const ModelObject *obj = object(obj_idx);
+                for (unsigned int vol_idx = 0; vol_idx < obj->volumes.size(); vol_idx++)
+                    if (obj->volumes[vol_idx]->is_cut_connector()) {
+                        std::vector<unsigned int> idxs = selection.get_volume_idxs_from_volume(obj_idx, std::max(instance_idx, 0), vol_idx);
+                        volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
+                    }
+            } else {
+                // When selecting an info item, select one instance of the
+                // respective object - a gizmo may want to be opened.
+                int inst_idx      = selection.get_instance_idx();
+                int scene_obj_idx = selection.get_object_idx();
+                mode              = Selection::Instance;
+                // select first instance, unless an instance of the object is already selected
+                if (scene_obj_idx == -1 || inst_idx == -1 || scene_obj_idx != obj_idx) inst_idx = 0;
+                std::vector<unsigned int> idxs = selection.get_volume_idxs_from_instance(obj_idx, inst_idx);
+                volume_idxs.insert(volume_idxs.end(), idxs.begin(), idxs.end());
+            }
         }
         else
         {
@@ -4036,6 +4507,9 @@ void ObjectList::update_selections_on_canvas()
 
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
+        if (m_objects_model->GetInfoItemType(item) == InfoItemType::CutConnectors)
+            selection.remove_all();
+
         if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer))
             add_to_selection(m_objects_model->GetParent(item), selection, instance_idx, mode);
         else
@@ -4360,6 +4834,51 @@ void ObjectList::fix_multiselection_conflicts()
         m_last_selected_item = wxDataViewItem(nullptr);
 
     m_prevent_list_events = false;
+}
+
+void ObjectList::fix_cut_selection()
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (fix_cut_selection(sels)) {
+        m_prevent_list_events = true;
+
+        // If some part is selected, unselect all items except of selected parts of the current object
+        UnselectAll();
+        SetSelections(sels);
+
+        m_prevent_list_events = false;
+    }
+}
+
+bool ObjectList::fix_cut_selection(wxDataViewItemArray &sels)
+{
+    if (wxGetApp().plater()->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Scale) {
+        for (const auto &item : sels) {
+            if (m_objects_model->GetItemType(item) & (itInstance | itObject) ||
+                (m_objects_model->GetItemType(item) & itSettings && m_objects_model->GetItemType(m_objects_model->GetParent(item)) & itObject)) {
+                bool is_instance_selection = m_objects_model->GetItemType(item) & itInstance;
+
+                int object_idx = m_objects_model->GetObjectIdByItem(item);
+                int inst_idx   = is_instance_selection ? m_objects_model->GetInstanceIdByItem(item) : 0;
+
+                if (auto obj = object(object_idx); obj->is_cut()) {
+                    sels.Clear();
+
+                    auto cut_id = obj->cut_id;
+
+                    int objects_cnt = int((*m_objects).size());
+                    for (int obj_idx = 0; obj_idx < objects_cnt; ++obj_idx) {
+                        auto object = (*m_objects)[obj_idx];
+                        if (object->is_cut() && object->cut_id.has_same_id(cut_id))
+                            sels.Add(is_instance_selection ? m_objects_model->GetItemByInstanceId(obj_idx, inst_idx) : m_objects_model->GetItemById(obj_idx));
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 ModelVolume* ObjectList::get_selected_model_volume()
@@ -4690,17 +5209,20 @@ void ObjectList::fix_through_netfabb()
                     obj_idxs.erase(obj_idxs.begin()+i);
 #endif // FIX_THROUGH_NETFABB_ALWAYS
         for (int obj_idx : obj_idxs)
-            model_names.push_back(object(obj_idx)->name);
+            if (object(obj_idx))
+                model_names.push_back(object(obj_idx)->name);
     }
     else {
         ModelObject* obj = object(obj_idxs.front());
+        if (obj) {
 #if !FIX_THROUGH_NETFABB_ALWAYS
-        for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
-            if (obj->get_repaired_errors_count(vol_idxs[i]) == 0)
-                vol_idxs.erase(vol_idxs.begin() + i);
+            for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
+                if (obj->get_repaired_errors_count(vol_idxs[i]) == 0)
+                    vol_idxs.erase(vol_idxs.begin() + i);
 #endif // FIX_THROUGH_NETFABB_ALWAYS
-        for (int vol_idx : vol_idxs)
-            model_names.push_back(obj->volumes[vol_idx]->name);
+            for (int vol_idx : vol_idxs)
+                model_names.push_back(obj->volumes[vol_idx]->name);
+        }
     }
 
     auto plater = wxGetApp().plater();
@@ -4711,6 +5233,9 @@ void ObjectList::fix_through_netfabb()
                                           std::vector<std::string>& succes_models,
                                           std::vector<std::pair<std::string, std::string>>& failed_models)
     {
+        if (!object(obj_idx))
+            return false;
+
         const std::string& model_name = model_names[model_idx];
         wxString msg = _L("Repairing model object");
         if (model_names.size() == 1)
@@ -4838,6 +5363,7 @@ void ObjectList::msw_rescale()
     // BBS
     GetColumn(colSupportPaint)->SetWidth(3 * em);
     GetColumn(colColorPaint)->SetWidth(3 * em);
+    GetColumn(colSinking)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
     // rescale/update existing items with bitmaps
@@ -4900,6 +5426,17 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
         }
         return;
     }
+    else if (col == colSinking) {
+        Plater *    plater = wxGetApp().plater();
+        GLCanvas3D *cnv    = plater->canvas3D();
+        Plater::TakeSnapshot(plater, "Shift objects to bed");
+        int obj_idx, vol_idx;
+        get_selected_item_indexes(obj_idx, vol_idx, item);
+        (*m_objects)[obj_idx]->ensure_on_bed();
+        cnv->reload_scene(true, true);
+        update_info_items(obj_idx);
+        notify_instance_updated(obj_idx);
+    }
     else if (col == colEditing) {
         //show_context_menu(evt_context_menu);
         int obj_idx, vol_idx;
@@ -4918,6 +5455,9 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
         if (col == colName) // TODO: for colName editing, disable shortcuts
             SetAcceleratorTable(wxNullAcceleratorTable);
     }
+#ifdef __WXOSX__
+    SetCustomRendererPtr(dynamic_cast<wxDataViewCustomRenderer*>(renderer));
+#endif
 #endif //__WXMSW__
 }
 

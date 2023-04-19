@@ -160,7 +160,8 @@ bool BridgeDetector::detect_angle(double bridge_direction_override)
     // if any other direction is within extrusion width of coverage, prefer it if shorter
     // TODO: There are two options here - within width of the angle with most coverage, or within width of the currently perferred?
     size_t i_best = 0;
-    for (size_t i = 1; i < candidates.size() && abs(candidates[i_best].archored_percent - candidates[i].archored_percent) < EPSILON; ++ i)
+//    for (size_t i = 1; i < candidates.size() && abs(candidates[i_best].archored_percent - candidates[i].archored_percent) < EPSILON; ++ i)
+    for (size_t i = 1; i < candidates.size() && candidates[i_best].coverage - candidates[i].coverage < this->spacing; ++ i)
         if (candidates[i].max_length < candidates[i_best].max_length)
             i_best = i;
 

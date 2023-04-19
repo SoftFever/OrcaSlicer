@@ -52,6 +52,7 @@ struct groupedVolumeSlices
 enum SupportNecessaryType {
     NoNeedSupp=0,
     SharpTail,
+    Cantilever,
     LargeOverhang,
 };
 
@@ -80,7 +81,8 @@ enum PrintStep {
     // should be refreshed.
     psSlicingFinished = psSkirtBrim,
     psGCodeExport,
-    psCount,
+    psConflictCheck,
+    psCount
 };
 
 enum PrintObjectStep {
@@ -528,6 +530,58 @@ private:
     static bool infill_only_where_needed;
 };
 
+struct FakeWipeTower
+{
+    // generate fake extrusion
+    Vec2f pos;
+    float width;
+    float height;
+    float layer_height;
+    float depth;
+    float brim_width;
+    Vec2d plate_origin;
+
+    void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
+    {
+        pos          = p;
+        width        = w;
+        height       = h;
+        layer_height = lh;
+        depth        = d;
+        brim_width   = bd;
+        plate_origin = o;
+    }
+
+    void set_pos(Vec2f p) { pos = p; }
+
+    std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower() const
+    {
+        float h         = height;
+        float lh        = layer_height;
+        int   d         = scale_(depth);
+        int   w         = scale_(width);
+        int   bd        = scale_(brim_width);
+        Point minCorner = {scale_(pos.x()), scale_(pos.y())};
+        Point maxCorner = {minCorner.x() + w, minCorner.y() + d};
+
+        std::vector<ExtrusionPaths> paths;
+        for (float hh = 0.f; hh < h; hh += lh) {
+            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, lh);
+            path.polyline = {minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner};
+            paths.push_back({path});
+
+            if (hh == 0.f) { // add brim
+                ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, lh);
+                Point         wtbminCorner = {minCorner - Point{bd, bd}};
+                Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
+                fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};
+                paths.back().push_back(fakeBrim);
+            }
+        }
+        return paths;
+    }
+};
+
 struct WipeTowerData
 {
     // Following section will be consumed by the GCodeGenerator.
@@ -736,9 +790,19 @@ public:
     int get_modified_count() const {return m_modified_count;}
     //BBS: add status for whether support used
     bool is_support_used() const {return m_support_used;}
+    std::string get_conflict_string() const
+    {
+        std::string result;
+        if (m_conflict_result) {
+            result = "Found gcode path conflicts between object " + m_conflict_result.value()._objName1 + " and " + m_conflict_result.value()._objName2;
+        }
+
+        return result;
+    }
 
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
+    ConflictResultOpt            get_conflict_result() const { return m_conflict_result; }
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
     std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
@@ -804,6 +868,9 @@ private:
     Vec3d   m_origin;
     //BBS: modified_count
     int     m_modified_count {0};
+    //BBS
+    ConflictResultOpt m_conflict_result;
+    FakeWipeTower     m_fake_wipe_tower;
     
     //SoftFever: calibration
     Calib_Params m_calib_params;
