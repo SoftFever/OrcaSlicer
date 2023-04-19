@@ -130,4 +130,5 @@ src/libslic3r/PrintObject.cpp
 src/libslic3r/PrintObjectSlice.cpp
 src/libslic3r/PlaceholderParser.cpp
 src/libslic3r/TreeSupport.cpp
+src/libslic3r/Model.cpp
 
