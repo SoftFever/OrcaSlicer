@@ -1143,21 +1143,6 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(16));
     m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Layout();
-
-    auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
-    auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
-    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
-        m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-        m_button_ok->SetBackgroundColor(btn_bg_green);
-    }
-    else {
-        m_button_ok->Enable(false);
-        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-    }
    
     m_sizer_main->Add(m_sizer_main_left, 0, wxLEFT, FromDIP(18));
     m_sizer_main->Add(m_sizer_main_right, 0, wxLEFT|wxEXPAND, FromDIP(4));
@@ -1215,6 +1200,22 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
          m_img_help1->Show();
          m_img_help2->Hide();
     }
+
+    auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
+    auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
+        m_button_ok->Enable(true);
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+        m_button_ok->SetBackgroundColor(btn_bg_green);
+    }
+    else {
+        m_button_ok->Enable(false);
+        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    }
+
     Layout();
     Fit();
 }
