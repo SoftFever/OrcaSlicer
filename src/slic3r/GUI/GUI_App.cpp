@@ -5723,7 +5723,6 @@ void GUI_App::open_publish_page_dialog()
     wxString language_code = this->current_language_code().BeforeFirst('_');
     model_url += (language_code.ToStdString() + "/my/models/publish");
 
-#if 0
     if (getAgent() && mainframe) {
 
         //login already
@@ -5736,7 +5735,6 @@ void GUI_App::open_publish_page_dialog()
             }
         }
     }
-#endif
 
     if (result < 0) {
         link_url = host_url + model_url;
