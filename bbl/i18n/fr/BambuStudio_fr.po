@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 10:55+0800\n"
+"POT-Creation-Date: 2023-04-19 15:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2969,8 +2969,8 @@ msgstr "Taille:"
 
 #, c-format, boost-format
 msgid ""
-"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
-"separate the conflicted objects farther (%s <-> %s)."
+"Conflicts of gcode paths have been found at layer %d. Please separate the "
+"conflicted objects farther (%s <-> %s)."
 msgstr ""
 
 msgid "An object is layed over the boundary of plate."
@@ -2991,12 +2991,6 @@ msgstr ""
 "hauteur.\n"
 "Veuillez résoudre le problème en le déplaçant totalement sur ou hors du "
 "plateau, et en confirmant que la hauteur entre dans le volume d'impression."
-
-msgid "Jump to"
-msgstr "Sauter à"
-
-msgid "ERROR:"
-msgstr ""
 
 msgid "Calibration"
 msgstr "Calibration"
@@ -3933,6 +3927,9 @@ msgstr "Annuler le téléversement"
 msgid "Slice ok."
 msgstr "Tranchage terminé"
 
+msgid "Jump to"
+msgstr "Sauter à"
+
 msgid "Error:"
 msgstr "Erreur:"
 
@@ -4665,6 +4662,12 @@ msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
 "Si activé, définit BambuStudio comme application par défaut pour ouvrir les "
 "fichiers .step"
+
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr ""
@@ -9008,6 +9011,22 @@ msgstr "Support : Correction des trous dans la couche %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support : propagation des branches à la couche %d"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+
+msgid "Loading of a model file failed."
+msgstr ""
+
+msgid "The supplied file couldn't be read because it's empty"
+msgstr ""
+
+msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
+msgstr ""
+
+msgid "Canceled"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""

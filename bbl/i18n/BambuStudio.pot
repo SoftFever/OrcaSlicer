@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 10:55+0800\n"
+"POT-Creation-Date: 2023-04-19 15:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2772,8 +2772,8 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
-"separate the conflicted objects farther (%s <-> %s)."
+"Conflicts of gcode paths have been found at layer %d. Please separate the "
+"conflicted objects farther (%s <-> %s)."
 msgstr ""
 
 msgid "An object is layed over the boundary of plate."
@@ -2789,12 +2789,6 @@ msgid ""
 "An object is laid over the boundary of plate or exceeds the height limit.\n"
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
-msgstr ""
-
-msgid "Jump to"
-msgstr ""
-
-msgid "ERROR:"
 msgstr ""
 
 msgid "Calibration"
@@ -3702,6 +3696,9 @@ msgstr ""
 msgid "Slice ok."
 msgstr ""
 
+msgid "Jump to"
+msgstr ""
+
 msgid "Error:"
 msgstr ""
 
@@ -4357,6 +4354,12 @@ msgid "Associate .step/.stp files to BambuStudio"
 msgstr ""
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
+msgstr ""
+
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -8090,6 +8093,22 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Support: propagate branches at layer %d"
+msgstr ""
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+
+msgid "Loading of a model file failed."
+msgstr ""
+
+msgid "The supplied file couldn't be read because it's empty"
+msgstr ""
+
+msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
+msgstr ""
+
+msgid "Canceled"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]

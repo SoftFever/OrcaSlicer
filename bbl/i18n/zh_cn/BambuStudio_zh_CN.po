@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 10:55+0800\n"
+"POT-Creation-Date: 2023-04-19 15:18+0800\n"
 "PO-Revision-Date: 2023-04-16 12:40+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2856,10 +2856,9 @@ msgstr "尺寸："
 
 #, c-format, boost-format
 msgid ""
-"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
-"separate the conflicted objects farther (%s <-> %s)."
-msgstr ""
-"发现gcode路径在层%d，高为%.2lf mm处的冲突。请将有冲突的对象分离得更远(%s <-> "
+"Conflicts of gcode paths have been found at layer %d. Please separate the "
+"conflicted objects farther (%s <-> %s)."
+msgstr "发现gcode路径在层%d处的冲突。请将有冲突的对象分离得更远(%s <-> "
 "%s)。"
 
 msgid "An object is layed over the boundary of plate."
@@ -2878,12 +2877,6 @@ msgid ""
 msgstr ""
 "对象被放置在打印板的边界上或超过高度限制。\n"
 "请通过将其完全移动到打印板内或打印板外，并确认高度在构建空间以内来解决问题。"
-
-msgid "Jump to"
-msgstr "跳转到"
-
-msgid "ERROR:"
-msgstr "错误："
 
 msgid "Calibration"
 msgstr "校准"
@@ -3801,6 +3794,9 @@ msgstr "取消上传"
 msgid "Slice ok."
 msgstr "切片完成."
 
+msgid "Jump to"
+msgstr "跳转到"
+
 msgid "Error:"
 msgstr "错误："
 
@@ -4475,6 +4471,12 @@ msgstr "使用Bambu Studio打开.step/.stp文件"
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
+
+msgid "Online Models"
+msgstr "在线模型"
+
+msgid "Show online staff-picked models on the home page"
+msgstr "在主页上显示工作人员挑选的在线模型"
 
 msgid "Maximum recent projects"
 msgstr "近期项目的最大数量"
@@ -8373,7 +8375,20 @@ msgstr "支撑：正在生成多边形"
 msgid "Support: generate toolpath"
 msgstr "支撑：正在生成走线路径"
 
-msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+#, c-format, boost-format
+msgid "Support: generate polygons at layer %d"
+msgstr "支撑：正在生成层%d的多边形"
+
+#, c-format, boost-format
+msgid "Support: fix holes at layer %d"
+msgstr "支撑：正在修补层%d的空洞"
+
+#, c-format, boost-format
+msgid "Support: propagate branches at layer %d"
+msgstr "支撑：正在生长层%d的树枝"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
 
 msgid "Loading of a model file failed."
@@ -8387,18 +8402,6 @@ msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .am
 
 msgid "Canceled"
 msgstr "已取消"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "支撑：正在生成层%d的多边形"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "支撑：正在修补层%d的空洞"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "支撑：正在生长层%d的树枝"
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -8647,6 +8650,17 @@ msgstr ""
 
 #, c-format, boost-format
 #~ msgid ""
+#~ "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. "
+#~ "Please separate the conflicted objects farther (%s <-> %s)."
+#~ msgstr ""
+#~ "发现gcode路径在层%d，高为%.2lf mm处的冲突。请将有冲突的对象分离得更远(%s "
+#~ "<-> %s)。"
+
+#~ msgid "ERROR:"
+#~ msgstr "错误："
+
+#, c-format, boost-format
+#~ msgid ""
 #~ "Conflicts of gcode paths have been found. Please separate the conflicted "
 #~ "objects farther (%s <-> %s)."
 #~ msgstr "发现gcode路径的冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
@@ -8663,12 +8677,6 @@ msgstr ""
 #~ msgstr ""
 #~ "生成该G-code的打印机类型与当前选中的打印机类型不同。建议选择相同的打印机类"
 #~ "型后重新切片。"
-
-#~ msgid "Online Models"
-#~ msgstr "在线模型"
-
-#~ msgid "Show online staff-picked models on the home page"
-#~ msgstr "在主页上显示工作人员挑选的在线模型"
 
 #~ msgid "Failed uploading print file. Please enter ip address again."
 #~ msgstr "上传打印文件失败，请重新输入IP地址。"
