@@ -1948,10 +1948,6 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
             }
 
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
-
-            if (!wxGetApp().check_login())
-                return;
-
             wxGetApp().open_publish_page_dialog();
         });
 
@@ -1963,10 +1959,6 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
 }
 
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
-
-            if (!wxGetApp().check_login())
-                return;
-
             wxGetApp().open_mall_page_dialog();
         });
 #endif

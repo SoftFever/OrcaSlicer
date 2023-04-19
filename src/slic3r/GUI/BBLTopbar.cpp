@@ -379,9 +379,6 @@ void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
     //no more check
     //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
 
-    if (!wxGetApp().check_login())
-        return;
-
 #ifdef ENABLE_PUBLISHING
     wxGetApp().plater()->show_publish_dialog();
 #endif
