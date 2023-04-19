@@ -436,7 +436,7 @@ void WebViewPanel::SendDesignStaffpick(NetworkAgent *agent)
                 return;
             }
             CallAfter([this, body] {
-                auto body2 = body;
+                auto body2 = from_u8(body);
                 body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
                 RunScript(wxString::Format("window.postMessage(%s)", body2));
             });

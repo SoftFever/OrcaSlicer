@@ -6,7 +6,6 @@ function OnInit()
 	//-----Test-----
 	//Set_RecentFile_MouseRightBtn_Event();
 	
-	
 	//-----Official-----
     TranslatePage();
 
@@ -25,7 +24,7 @@ var MousePosY=0;
 
 function Set_RecentFile_MouseRightBtn_Event()
 {
-	$("#FileList .FileItem").mousedown(
+	$(".FileItem").mousedown(
 		function(e)
 		{			
 			//FilePath
@@ -83,7 +82,6 @@ function Set_RecentFile_MouseRightBtn_Event()
 function HandleStudio( pVal )
 {
 	let strCmd = pVal['command'];
-	//alert(strCmd);
 	
 	if(strCmd=='get_recent_projects')
 	{
@@ -123,6 +121,7 @@ function HandleStudio( pVal )
 	}
 	else if( strCmd=="modelmall_model_advise_get")
 	{
+		//alert('hot');
 		ShowStaffPick( pVal['hits'] );
 	}
 }
@@ -422,6 +421,8 @@ function InitStaffPick()
 				nextEl: '.swiper-button-next',
 				prevEl: '.swiper-button-prev',
 			},
+		    slidesPerView : 'auto',
+		    slidesPerGroup : 3
 //			autoplay: {
 //				delay: 3000,
 //				stopOnLastSlide: false,
@@ -431,10 +432,10 @@ function InitStaffPick()
 //			pagination: {
 //				el: '.swiper-pagination',
 //			},
-		    scrollbar: {
-                el: '.swiper-scrollbar',
-				draggable: true
-            }
+//		    scrollbar: {
+//                el: '.swiper-scrollbar',
+//				draggable: true
+//            }
 			});
 }
 
@@ -444,7 +445,9 @@ function SendMsg_GetStaffPick()
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="modelmall_model_advise_get";
 	
-	SendWXMessage( JSON.stringify(tSend) );		
+	SendWXMessage( JSON.stringify(tSend) );
+	
+	setTimeout("SendMsg_GetStaffPick()",3600*1000*1);
 }
 
 function ShowStaffPick( ModelList )
@@ -467,9 +470,13 @@ function ShowStaffPick( ModelList )
 		let ModelName=OnePickModel['design']['title'];
 		let ModelCover=OnePickModel['design']['cover'];
 		
+		let DesignerName=OnePickModel['design']['designCreator']['name'];
+		let DesignerAvatar=OnePickModel['design']['designCreator']['avatar'];
+		
 		strPickHtml+='<div class="HotModelPiece swiper-slide"  onClick="OpenOneStaffPickModel('+ModelID+')" >'+
+			    '<div class="HotModel_Designer_Info"><img src="'+DesignerAvatar+'" /><span class="TextS2">'+DesignerName+'</span></div>'+
 				'	<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="'+ModelCover+'" /></div>'+
-				'	<div  class="HotModel_NameText">'+ModelName+'</div>'+
+				'	<div  class="HotModel_NameText TextS1">'+ModelName+'</div>'+
 				'</div>';
 	}
 	
@@ -480,6 +487,7 @@ function ShowStaffPick( ModelList )
 
 function OpenOneStaffPickModel( ModelID )
 {
+	//alert(ModelID);
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="modelmall_model_open";
@@ -492,4 +500,3 @@ function OpenOneStaffPickModel( ModelID )
 
 //---------------Global-----------------
 window.postMessage = HandleStudio;
-
