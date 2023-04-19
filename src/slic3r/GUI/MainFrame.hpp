@@ -246,6 +246,8 @@ public:
     void        update_title();
     void        set_max_recent_count(int max);
 
+    void        show_publish_button(bool show);
+
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
     void        init_tabpanel();

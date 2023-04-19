@@ -254,7 +254,7 @@ void BBLTopbar::Init(wxFrame* parent)
     m_publish_item = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
     m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
-    this->EnableTool(m_publish_item->GetId(), true);
+    this->EnableTool(m_publish_item->GetId(), false);
     this->AddSpacer(FromDIP(4));
 
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
@@ -322,6 +322,12 @@ void BBLTopbar::OnOpenProject(wxAuiToolBarEvent& event)
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->load_project();
+}
+
+void BBLTopbar::show_publish_button(bool show)
+{
+    this->EnableTool(m_publish_item->GetId(), show);
+    Refresh();
 }
 
 void BBLTopbar::OnSaveProject(wxAuiToolBarEvent& event)

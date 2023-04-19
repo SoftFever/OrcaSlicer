@@ -846,6 +846,23 @@ void MainFrame::update_title()
     return;
 }
 
+void MainFrame::show_publish_button(bool show)
+{
+    if (!m_menubar) return;
+
+    wxMenu* menu = m_menubar->GetMenu(3);
+    auto title = menu->GetTitle();
+
+    if (show) {
+        if (title != wxString::Format("&%s", _L("3D Models"))) {
+             m_menubar->Insert(3, publishMenu, wxString::Format("&%s", _L("3D Models")));
+        }
+    }
+    else {
+        m_menubar->Remove(3);
+    }
+}
+
 void MainFrame::update_title_colour_after_set_title()
 {
 #ifdef __APPLE__

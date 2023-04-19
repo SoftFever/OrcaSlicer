@@ -2673,6 +2673,9 @@ bool GUI_App::on_init_inner()
                 request_model_download(m_download_file_url);
                 m_download_file_url = "";
             }
+
+            update_publish_status();
+            
         }
     });
 
@@ -2908,6 +2911,24 @@ void GUI_App::update_label_colours_from_appconfig()
         auto str = app_config->get("label_clr_modified");
         if (str != "")
             m_color_label_modified = wxColour(str);
+    }
+}
+
+void GUI_App::update_publish_status()
+{
+    if (app_config->get_country_code() == "CN") {
+#ifdef __WINDOWS__
+        mainframe->m_topbar->show_publish_button(false);
+#else
+        mainframe->show_publish_button(false);
+#endif
+    }
+    else {
+#ifdef __WINDOWS__
+        mainframe->m_topbar->show_publish_button(true);
+#else
+        mainframe->show_publish_button(true);
+#endif
     }
 }
 
@@ -3278,6 +3299,9 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //         // Run the config wizard, don't offer the "reset user profile" checkbox.
 //         config_wizard_startup(true);
 //     });
+
+
+    update_publish_status();
 
     m_is_recreating_gui = false;
 

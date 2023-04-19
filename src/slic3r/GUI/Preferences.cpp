@@ -280,6 +280,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             config->set("region", region.ToStdString());
         }
 
+        wxGetApp().update_publish_status();
         e.Skip();
     });
 
