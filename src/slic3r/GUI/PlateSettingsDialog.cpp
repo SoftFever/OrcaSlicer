@@ -43,6 +43,13 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     top_sizer->Add(m_print_seq_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT |wxALL, FromDIP(5));
     top_sizer->Add(m_print_seq_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT |wxALL, FromDIP(5));
 
+    auto plate_name_txt = new wxStaticText(this, wxID_ANY, _L("Plate name"));
+    plate_name_txt->SetFont(Label::Body_14);
+    m_ti_plate_name = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, wxSize(FromDIP(240), -1), wxTE_PROCESS_ENTER);
+    top_sizer->Add(plate_name_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_ti_plate_name, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    m_ti_plate_name->GetTextCtrl()->SetMaxLength(14);
+
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
@@ -154,5 +161,12 @@ void PlateSettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
     m_button_ok->Rescale();
     m_button_cancel->Rescale();
 }
+
+wxString PlateSettingsDialog::get_plate_name() const {  return m_ti_plate_name->GetTextCtrl()->GetValue(); 
+}
+
+void PlateSettingsDialog::set_plate_name(const wxString &name) { 
+    m_ti_plate_name->GetTextCtrl()->SetValue(name); }
+
 
 }} // namespace Slic3r::GUI

@@ -513,6 +513,9 @@ public:
     bool get_no_check_flag() const { return m_no_check; }
     void set_no_check_flag(bool no_check) { m_no_check = no_check; }
 
+    std::string get_plate_name() const { return m_plate_name; }
+    void set_plate_name(const std::string &name) { m_plate_name = name; }
+
 protected:
 	friend class PrintObjectBase;
     friend class BackgroundSlicingProcess;
@@ -548,6 +551,8 @@ protected:
     int m_plate_index{ 0 };
     bool m_no_check = false;
 
+    // current plate name
+    std::string m_plate_name;
     // Callback to be evoked regularly to update state of the UI thread.
     status_callback_type                    m_status_callback;
 

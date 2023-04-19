@@ -70,6 +70,17 @@ public:
         return ! (this->max(0) < other.min(0) || this->min(0) > other.max(0) ||
                   this->max(1) < other.min(1) || this->min(1) > other.max(1));
     }
+    PointClass operator[](size_t idx) const
+    {
+        switch (idx) {
+        case 0: return min; break;
+        case 1: return PointClass(max(0), min(1)); break;
+        case 2: return max; break;
+        case 3: return PointClass(min(0), max(1)); break;
+        default: return PointClass(); break;
+        }
+        return PointClass();
+    }
     bool operator==(const BoundingBoxBase<PointClass> &rhs) { return this->min == rhs.min && this->max == rhs.max; }
     bool operator!=(const BoundingBoxBase<PointClass> &rhs) { return ! (*this == rhs); }
     friend std::ostream &operator<<(std::ostream &os, const BoundingBoxBase &bbox)

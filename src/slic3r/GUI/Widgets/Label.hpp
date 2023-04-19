@@ -25,6 +25,8 @@ private:
     wxColour color;
 
 public:
+    static wxFont Head_48;
+    static wxFont Head_32;
 	static wxFont Head_24;
 	static wxFont Head_20;
 	static wxFont Head_18;

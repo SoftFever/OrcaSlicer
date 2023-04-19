@@ -148,6 +148,13 @@ private:
     // BBS
     DynamicPrintConfig m_config;
 
+    // part plate name
+    std::string          m_name;
+    bool                 m_name_change = false;
+    GeometryBuffer       m_plate_name_icon;
+    mutable unsigned int m_plate_name_vbo_id{0};
+    GLTexture            m_name_texture;
+
     void init();
     bool valid_instance(int obj_id, int instance_id);
     void generate_print_polygon(ExPolygon &print_polygon);
@@ -159,6 +166,7 @@ private:
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
     void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
+    void calc_vertex_for_plate_name(GLTexture& texture, GeometryBuffer &buffer);
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
@@ -175,7 +183,8 @@ private:
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
     void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
-    void render_icons(bool bottom, int hover_id = -1) const;
+    void render_plate_name_texture(int position_id, int tex_coords_id);
+    void render_icons(bool bottom, bool only_body = false, int hover_id = -1);
     void render_only_numbers(bool bottom) const;
     void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
     void on_render_for_picking() const;
@@ -241,9 +250,16 @@ public:
 
     //set the plate's index
     void set_index(int index);
-
-    //get the plate's index
+    // get the plate's index
     int get_index() { return m_plate_index; }
+
+    // get the plate's name
+    std::string get_plate_name() const { return m_name; }
+    bool        generate_plate_name_texture();
+    // set the plate's name
+    void set_plate_name(const std::string &name);
+
+   
 
     //get the print's object, result and index
     void get_print(PrintBase **print, GCodeResult **result, int *index);
@@ -624,6 +640,7 @@ public:
 
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
+    const PartPlate *get_curr_plate() const { return m_plate_list[m_current_plate]; }
 
     std::vector<PartPlate*>& get_plate_list() { return m_plate_list; };
 

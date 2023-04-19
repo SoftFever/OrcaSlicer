@@ -2131,7 +2131,7 @@ struct Plater::priv
     // returns the path to project file with the given extension (none if extension == wxEmptyString)
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
-    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false, bool export_all = false) const;
+    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false, bool export_all = false) ;
     void set_project_filename(const wxString& filename);
 
     //BBS store bbs project name
@@ -4656,7 +4656,7 @@ unsigned int Plater::priv::update_restart_background_process(bool force_update_s
 }
 
 void Plater::priv::update_fff_scene()
-{
+{   
     if (this->preview != nullptr)
         this->preview->reload_print();
     // In case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
@@ -6569,9 +6569,16 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
     }
 }
 
-wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) const
+wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) 
 {
-    std::string plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+    std::string plate_index_str = "";
+
+    auto        plate_name      = partplate_list.get_curr_plate()->get_plate_name();
+    if (!plate_name.empty())
+        plate_index_str = (boost::format("_%1%") % plate_name).str();
+    else if (partplate_list.get_plate_count() > 1)
+        plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+
     if (!m_project_folder.empty()) {
         if (!only_filename) {
             if (export_all) {
@@ -11253,6 +11260,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             else
                 dlg.sync_print_seq(0);
 
+            dlg.set_plate_name(curr_plate->get_plate_name());
+
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
                 BedType old_bed_type = curr_plate->get_bed_type();
@@ -11277,6 +11286,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 update();
                 });
             dlg.ShowModal();
+
+            curr_plate->set_plate_name(dlg.get_plate_name().ToStdString());
 
             this->schedule_background_process();
         }

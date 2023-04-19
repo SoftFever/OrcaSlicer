@@ -483,7 +483,7 @@ bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wx
         return false;
     }
 
-    wxString msg = _(text_str);
+    wxString msg = text_str;
     wxMemoryDC memDC;
 
     memDC.SetFont(font);
