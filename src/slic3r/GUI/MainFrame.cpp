@@ -2548,8 +2548,8 @@ void MainFrame::init_menubar_as_editor()
         m_menubar->Append(editMenu, wxString::Format("&%s", _L("Edit")));
     if (viewMenu)
         m_menubar->Append(viewMenu, wxString::Format("&%s", _L("View")));
-    /*if (publishMenu)
-        m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));*/
+    if (publishMenu)
+        m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
