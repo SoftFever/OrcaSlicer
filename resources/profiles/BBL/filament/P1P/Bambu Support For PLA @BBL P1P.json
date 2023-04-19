@@ -1,0 +1,31 @@
+{
+    "type": "filament",
+    "setting_id": "GFSS02_12",
+    "name": "Bambu Support For PLA @BBL P1P",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu Support For PLA @base",
+    "hot_plate_temp" : [
+      "65"
+    ],
+    "hot_plate_temp_initial_layer" : [
+      "65"
+    ],
+    "textured_plate_temp" : [
+      "65"
+    ],
+    "textured_plate_temp_initial_layer" : [
+      "65"
+    ],
+    "fan_min_speed": [
+      "50"
+    ],
+    "fan_cooling_layer_time": [
+      "80"
+    ],
+    "compatible_printers": [
+      "Bambu Lab P1P 0.4 nozzle",
+      "Bambu Lab P1P 0.6 nozzle",
+      "Bambu Lab P1P 0.8 nozzle"
+  ]
+}
