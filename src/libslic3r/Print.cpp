@@ -172,6 +172,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
+            || opt_key == "resolution"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
@@ -220,7 +221,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "initial_layer_line_width"
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
-            || opt_key == "resolution"
+            //|| opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting"
             || opt_key == "wall_infill_order") {
