@@ -977,18 +977,24 @@ static void generic_exception_handle()
 //#endif
 }
 
-std::vector<std::string> GUI_App::split_str(const std::string& src, const std::string& separator)
+std::vector<std::string> GUI_App::split_str(std::string src, std::string separator)
 {
-    size_t pos;
-    size_t start_pos = 0;
-    vector<string> result_str;
-    while ((pos = src.find(separator, start_pos)) != string::npos)
+    std::string::size_type pos;
+    std::vector<std::string> result;
+    src += separator;
+    int size = src.size();
+
+    for (int i = 0; i < size; i++)
     {
-        result_str.emplace_back(src.substr(start_pos, pos - start_pos));
-        start_pos = pos + separator.size();
+        pos = src.find(separator, i);
+        if (pos < size)
+        {
+            std::string s = src.substr(i, pos - i);
+            result.push_back(s);
+            i = pos + separator.size() - 1;
+        }
     }
-    result_str.emplace_back(src.substr(start_pos, src.size() - pos - separator.size()));
-    return result_str;
+    return result;
 }
 
 void GUI_App::post_init()
@@ -996,7 +1002,6 @@ void GUI_App::post_init()
     assert(initialized());
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
-
 
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
@@ -1009,16 +1014,22 @@ void GUI_App::post_init()
             boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
 
             std::string download_params_url = url_decode(this->init_params->input_files.front());
-            auto input_str_arr = split_str(download_params_url, "bambustudio://open?file=");
+            auto input_str_arr = split_str(download_params_url, "file=");
 
             std::string download_url;
             for (auto input_str : input_str_arr) {
-                if (!input_str.empty()) download_url = input_str;
+                if ( boost::starts_with(input_str, "http://") ||  boost::starts_with(input_str, "https://")) {
+                    download_url = input_str;
+                }
+ 
             }
-  
-            if (!download_url.empty() && ( boost::starts_with(download_url, "http://") ||  boost::starts_with(download_url, "https://")) ) {
+
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("download_url %1%") % download_url;
+
+           if (!download_url.empty()) {
                 request_model_download(download_url);
-            }
+           }
+ 
         }
         else {
             switch_to_3d = true;
