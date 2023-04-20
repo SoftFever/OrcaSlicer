@@ -16,6 +16,9 @@
         "8"
     ],
     "compatible_printers": [
-      "Qidi Tech X-Max 0.4 nozzle"
+      "Qidi Tech X-Max 0.4 nozzle",
+  	  "Qidi Tech X-CF Pro 0.4 nozzle",
+  	  "Qidi Tech X-Plus3 0.4 nozzle",
+  	  "Qidi Tech X-Max3 0.4 nozzle"
     ]
 }

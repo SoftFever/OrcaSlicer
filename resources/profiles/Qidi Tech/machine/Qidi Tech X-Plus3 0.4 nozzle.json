@@ -1,0 +1,29 @@
+{
+  "type": "machine",
+  "setting_id": "xxx",
+  "name": "Qidi Tech X-Plus3 0.4 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_machine_common",
+  "printer_model": "Qidi Tech X-Plus3",
+  "default_print_profile": "0.20mm Standard @QTXPlus3",
+  "nozzle_diameter": [
+      "0.4"
+  ],
+  "bed_exclude_area": [
+    "0x0"
+  ],
+  "printable_area": [
+	"0x0",
+	"300x0",
+	"300x250",
+	"0x250"
+  ],
+  "printable_height": "300",
+  "machine_start_gcode": "",
+  "machine_end_gcode": "",
+  "layer_change_gcode": "",
+  "scan_first_layer": "0",
+  "nozzle_type": "hardened_steel",
+  "auxiliary_fan": "0"
+}
