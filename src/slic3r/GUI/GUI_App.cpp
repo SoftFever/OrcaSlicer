@@ -977,7 +977,7 @@ static void generic_exception_handle()
 //#endif
 }
 
-static std::vector<std::string> split_str(const std::string& src, const std::string& separator)
+std::vector<std::string> GUI_App::split_str(const std::string& src, const std::string& separator)
 {
     size_t pos;
     size_t start_pos = 0;
@@ -997,6 +997,7 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
+
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
@@ -1004,21 +1005,19 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
             %this->init_params->input_files.size() %this->init_params->input_gcode;
 
-
-
         if (this->init_params->input_files.size() == 1 &&
             boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
-            auto input_str_arr = split_str(this->init_params->input_files.front(), "bambustudio://open/?file=");
 
-            std::string download_origin_url;
-            for (auto input_str:input_str_arr) {
-                if (!input_str.empty()) download_origin_url = input_str;
+            std::string download_params_url = url_decode(this->init_params->input_files.front());
+            auto input_str_arr = split_str(download_params_url, "bambustudio://open?file=");
+
+            std::string download_url;
+            for (auto input_str : input_str_arr) {
+                if (!input_str.empty()) download_url = input_str;
             }
-
-            std::string download_file_url = url_decode(download_origin_url);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
-            if (!download_file_url.empty() && ( boost::starts_with(download_file_url, "http://") ||  boost::starts_with(download_file_url, "https://")) ) {
-                request_model_download(download_origin_url);
+  
+            if (!download_url.empty() && ( boost::starts_with(download_url, "http://") ||  boost::starts_with(download_url, "https://")) ) {
+                request_model_download(download_url);
             }
         }
         else {

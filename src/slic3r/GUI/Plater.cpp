@@ -7776,14 +7776,31 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(const std::string& download_info)
 {
+    std::string download_origin_url = wxGetApp().url_decode(download_info);
+
     std::string download_url;
     std::string filename;
 
-    std::string download_origin_url = wxGetApp().url_decode(download_info);
-    fs::path download_path = fs::path(download_origin_url);
-    download_url = download_origin_url;
-    filename = download_path.filename().string();
+    try
+    {
+        std::vector<std::string> origin_array = wxGetApp().split_str(download_origin_url, "&name=");
+        if (origin_array.size() >= 2) {
 
+            download_url = origin_array[0];
+            filename = origin_array[1];
+
+        }
+        else if (!download_origin_url.empty()) {
+
+            fs::path download_path = fs::path(download_origin_url);
+            download_url = download_origin_url;
+            filename = download_path.filename().string();
+        }
+    }
+    catch (const std::exception& error)
+    {
+        //wxString sError = error.what();
+    }
 
     bool download_ok = false;
     /* save to a file */

@@ -314,6 +314,7 @@ public:
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
 
+    std::vector<std::string> split_str(const std::string& src, const std::string& separator);
     // To be called after the GUI is fully built up.
     // Process command line parameters cached in this->init_params,
     // load configs, STLs etc.
