@@ -60,7 +60,7 @@ input
 
 .MItem
 {
-	width: 220px;
+	min-width: 220px;
 	height: 32px;
 }
 
