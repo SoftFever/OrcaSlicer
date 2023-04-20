@@ -41,7 +41,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.06.00.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.06.01.01"
 
 
 //iot preset type strings
