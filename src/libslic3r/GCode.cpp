@@ -2488,8 +2488,8 @@ namespace ProcessLayer
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Pause_Print) + "\n";
                     //! FIXME_in_fw show message during print pause
-                    //if (!pause_print_msg.empty())
-                    //    gcode += "M117 " + pause_print_msg + "\n";
+                    if (!pause_print_msg.empty())
+                        gcode += "M117 " + pause_print_msg + "\n";
                     gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id) + "\n";
                 }
                 else {

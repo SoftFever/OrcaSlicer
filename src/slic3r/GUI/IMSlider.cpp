@@ -331,6 +331,7 @@ void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, 
 
     // close opened menu window after reslice
     m_show_menu = false;
+    m_show_pause_print_window = false;
     m_show_custom_gcode_window = false;
     m_show_go_to_layer_dialog = false;
 }
@@ -356,6 +357,20 @@ void IMSlider::post_ticks_changed_event(Type type)
 {
     m_tick_change_event_type = type;
     m_is_need_post_tick_changed_event = true;
+}
+
+void IMSlider::add_pause_print(std::string pause_print_msg) {
+    if (m_selection == ssUndef) return;
+    const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+
+    const auto it = m_ticks.ticks.find(TickCode{ tick });
+
+    if (it != m_ticks.ticks.end()) {
+        m_ticks.ticks.erase(it);
+    }
+    m_ticks.ticks.emplace(TickCode{ tick, PausePrint, std::max<int>(1, m_only_extruder), "", pause_print_msg });
+
+    post_ticks_changed_event(PausePrint);
 }
 
 void IMSlider::add_custom_gcode(std::string custom_gcode)
@@ -437,7 +452,7 @@ bool IMSlider::check_ticks_changed_event(Type type)
 // switch on/off one layer mode
 bool IMSlider::switch_one_layer_mode()
 {
-    if (m_show_custom_gcode_window)
+    if (m_show_custom_gcode_window || m_show_pause_print_window)
         return false;
 
     m_is_one_layer = !m_is_one_layer;
@@ -1029,6 +1044,85 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     return result;
 }
 
+void IMSlider::render_add_pause_msg_dialog(std::string pause_print_msg) {
+    if (m_show_pause_print_window)
+        ImGui::OpenPopup((_u8L("Pause Print")).c_str());
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    static bool set_focus = true;
+
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    imgui.push_menu_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 10) * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * m_scale);
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, m_is_dark ? ImVec4(54 / 255.0f, 54 / 255.0f, 60 / 255.0f, 1.00f) : ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));
+    ImGui::GetCurrentContext()->DimBgRatio = 1.0f;
+    int windows_flag =
+        ImGuiWindowFlags_NoCollapse
+        | ImGuiWindowFlags_AlwaysAutoResize
+        | ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoScrollbar
+        | ImGuiWindowFlags_NoScrollWithMouse;
+    if (ImGui::BeginPopupModal((_u8L("Pause Print")).c_str(), NULL, windows_flag))
+    {
+        const std::string text = "Please enter the brief message displayed on the printer screen when printer is paused:";
+        imgui.text(_u8L(text));
+        if (ImGui::IsMouseClicked(0)) {
+            set_focus = false;
+        }
+        if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+            wxGetApp().plater()->get_current_canvas3D()->force_set_focus();
+            ImGui::SetKeyboardFocusHere(0);
+            strncpy(m_pause_print_msg, pause_print_msg.c_str(), sizeof(m_pause_print_msg));
+        }
+
+        ImGui::PushItemWidth(ImGui::CalcTextSize(_u8L(text).c_str()).x);
+        ImGui::InputText("##text_pause_message", m_pause_print_msg, sizeof(m_pause_print_msg), ImGuiInputTextFlags_AutoSelectAll);
+
+        float button_width = ImGui::CalcTextSize(_u8L("OK").c_str()).x + ImGui::CalcTextSize(_u8L("Cancel").c_str()).x + style.FramePadding.x * 4;
+        ImGui::NewLine();
+        ImGui::SameLine(ImGui::GetWindowWidth() - button_width - style.WindowPadding.x - style.ItemSpacing.x);
+        imgui.push_confirm_button_style();
+
+        bool disable_button = false;
+        if (strlen(m_pause_print_msg) == 0)
+            disable_button = true;
+        if (disable_button) {
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            imgui.push_button_disable_style();
+        }
+        if (imgui.bbl_button(_L("OK") + "##id_pause") || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
+            add_pause_print(m_pause_print_msg);
+            m_show_pause_print_window = false;
+            ImGui::CloseCurrentPopup();
+            set_focus = true;
+        }
+        if (disable_button) {
+            ImGui::PopItemFlag();
+            imgui.pop_button_disable_style();
+        }
+        imgui.pop_confirm_button_style();
+
+        ImGui::SameLine();
+        imgui.push_cancel_button_style();
+        if (imgui.bbl_button(_L("Cancel") + "##id_pause") || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            m_show_pause_print_window = false;
+            ImGui::CloseCurrentPopup();
+            set_focus = true;
+        }
+        imgui.pop_cancel_button_style();
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar(4);
+    ImGui::PopStyleColor();
+    imgui.pop_menu_style();
+}
+
 void IMSlider::render_input_custom_gcode(std::string custom_gcode)
 {
     if (m_show_custom_gcode_window)
@@ -1061,13 +1155,11 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
         if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
             wxGetApp().plater()->get_current_canvas3D()->force_set_focus();
             ImGui::SetKeyboardFocusHere(0);
-            strcpy(m_custom_gcode, custom_gcode.c_str());
+            strncpy(m_custom_gcode, custom_gcode.c_str(), sizeof(m_pause_print_msg));
         }
         const int text_height = 6;
 
-        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height), ImGuiInputTextFlags_CallbackAlways, [](ImGuiInputTextCallbackData* data) { 
-            return data->CursorPos = data->BufTextLen;
-            });
+        ImGui::InputTextMultiline("##text_custom_gcode", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height), ImGuiInputTextFlags_AutoSelectAll);
 
         ImGui::NewLine();
         ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
@@ -1080,7 +1172,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
             imgui.push_button_disable_style();
         }
-        if (imgui.bbl_button(_L("OK"))) {
+        if (imgui.bbl_button(_L("OK") + "##id_custom")) {
             add_custom_gcode(m_custom_gcode);
             m_show_custom_gcode_window = false;
             ImGui::CloseCurrentPopup();
@@ -1094,7 +1186,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
 
         ImGui::SameLine();
         imgui.push_cancel_button_style();
-        if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+        if (imgui.bbl_button(_L("Cancel") + "##id_custom") || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
             m_show_custom_gcode_window = false;
             ImGui::CloseCurrentPopup();
             set_focus = true;
@@ -1165,7 +1257,7 @@ void IMSlider::render_go_to_layer_dialog()
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
             imgui.push_button_disable_style();
         }
-        if (imgui.bbl_button(_L("OK")) || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
+        if (imgui.bbl_button(_L("OK") + "##id_jump") || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
             do_go_to_layer(atoi(m_layer_number) - 1);
             m_show_go_to_layer_dialog = false;
             ImGui::CloseCurrentPopup();
@@ -1179,7 +1271,7 @@ void IMSlider::render_go_to_layer_dialog()
 
         ImGui::SameLine();
         imgui.push_cancel_button_style();
-        if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+        if (imgui.bbl_button(_L("Cancel") + "##id_jump") || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
             m_show_go_to_layer_dialog = false;
             ImGui::CloseCurrentPopup();
             set_focus = true;
@@ -1204,9 +1296,12 @@ void IMSlider::render_menu() {
         GetSelection() == ssLower ? m_ticks.ticks.find(TickCode{ GetLowerValue() }) :
         m_ticks.ticks.end();
     std::string custom_code;
+    std::string pause_print_msg;
     if (tick_it != m_ticks.ticks.end()) {
         if (tick_it->type == CustomGCode::Custom)
             custom_code = tick_it->extra;
+        if (tick_it->type == CustomGCode::PausePrint)
+            pause_print_msg = tick_it->extra;
         render_edit_menu(*tick_it);
     }
     else {
@@ -1217,6 +1312,7 @@ void IMSlider::render_menu() {
     ImGuiWrapper::pop_menu_style();
 
     render_input_custom_gcode(custom_code);
+    render_add_pause_msg_dialog(pause_print_msg);
     render_go_to_layer_dialog();
 }
 
@@ -1231,7 +1327,7 @@ void IMSlider::render_add_menu()
         bool hovered = false;
         {
             if (menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable, &hovered)) {
-                add_code_as_tick(PausePrint);
+                m_show_pause_print_window = true;
             }
             if (hovered) { show_tooltip(_u8L("Insert a pause command at the beginning of this layer.")); }
 
@@ -1281,7 +1377,10 @@ void IMSlider::render_edit_menu(const TickCode& tick)
         switch (tick.type)
         {
         case CustomGCode::PausePrint:
-            if (menu_item_with_icon(_u8L("Delete Pause").c_str(), "")) {
+            if (menu_item_with_icon(_u8L("Edit Pause Print Message").c_str(), "")) {
+                m_show_pause_print_window = true;
+            }
+            if (menu_item_with_icon(_u8L("Delete Pause Print").c_str(), "")) {
                 delete_tick(tick);
             }
             break;

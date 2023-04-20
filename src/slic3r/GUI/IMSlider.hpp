@@ -4,9 +4,6 @@
 #include "TickCode.hpp"
 #include <imgui/imgui.h>
 
-#include <set>
-
-class wxMenu;
 struct IMGUI_API ImRect;
 
 namespace Slic3r {
@@ -131,6 +128,7 @@ public:
     void set_menu_enable(bool enable = true) { m_menu_enable = enable; }
 
 protected:
+    void add_pause_print(std::string pause_print_msg);
     void add_custom_gcode(std::string custom_gcode);
     void add_code_as_tick(Type type, int selected_extruder = -1);
     void delete_tick(const TickCode& tick);
@@ -140,6 +138,7 @@ protected:
     bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, const ImVec2& size, float scale = 1.0);
     void render_go_to_layer_dialog(); //menu
     void render_input_custom_gcode(std::string custom_gcode = ""); //menu
+    void render_add_pause_msg_dialog(std::string pause_print_msg = ""); //menu
     void render_menu();
     void render_add_menu(); //menu
     void render_edit_menu(const TickCode& tick); //menu
@@ -184,6 +183,7 @@ private:
     bool m_menu_enable        = true; //menu
     bool m_show_menu          = false; //menu
     bool m_show_custom_gcode_window = false; //menu
+    bool m_show_pause_print_window = false; //menu
     bool m_show_go_to_layer_dialog = false; //menu
     bool m_force_mode_apply   = true;
     bool m_is_wipe_tower      = false; // This flag indicates that there is multiple extruder print with wipe tower
@@ -228,6 +228,7 @@ private:
     std::vector<double> m_alternate_values;
 
     char m_custom_gcode[1024] = { 0 }; //menu
+    char m_pause_print_msg[256] = { 0 }; //menu
     char m_layer_number[64] = { 0 }; //menu
 };
 

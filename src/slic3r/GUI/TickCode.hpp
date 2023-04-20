@@ -23,7 +23,6 @@ struct TickCode
 
 class TickCodeInfo
 {
-    std::string pause_print_msg;
     bool        m_suppress_plus = false;
     bool        m_suppress_minus = false;
     bool        m_use_default_colors = false;
@@ -38,7 +37,6 @@ public:
     Mode                mode = Undef;
 
     bool empty() const { return ticks.empty(); }
-    void set_pause_print_msg(const std::string& message) { pause_print_msg = message; }
 
     bool add_tick(const int tick, Type type, int extruder, double print_z);
     bool edit_tick(std::set<TickCode>::iterator it, double print_z);
