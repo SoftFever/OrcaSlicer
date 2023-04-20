@@ -7,6 +7,18 @@
         {
             "name": "Qidi Tech X-Max",
             "sub_path": "machine/Qidi Tech X-Max.json"
+        },
+        {
+            "name": "Qidi Tech X-CF Pro",
+            "sub_path": "machine/Qidi Tech X-CF Pro.json"
+        },
+        {
+            "name": "Qidi Tech X-Plus3",
+            "sub_path": "machine/Qidi Tech X-Plus3.json"
+        },
+        {
+            "name": "Qidi Tech X-Max3",
+            "sub_path": "machine/Qidi Tech X-Max3.json"
         }
     ],
     "process_list": [
@@ -15,8 +27,20 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "0.20mm Standard @QTMax",
-            "sub_path": "process/0.20mm Standard @QTMax.json"
+            "name": "0.20mm Standard @QTXMax",
+            "sub_path": "process/0.20mm Standard @QTXMax.json"
+        },
+        {
+            "name": "0.20mm Standard @QTXCFPro",
+            "sub_path": "process/0.20mm Standard @QTXCFPro.json"
+        },
+        {
+            "name": "0.20mm Standard @QTXPlus3",
+            "sub_path": "process/0.20mm Standard @QTXPlus3.json"
+        },
+        {
+            "name": "0.20mm Standard @QTXMax3",
+            "sub_path": "process/0.20mm Standard @QTXMax3.json"
         }
     ],
     "filament_list": [
@@ -49,6 +73,18 @@
         {
             "name": "Qidi Tech X-Max 0.4 nozzle",
             "sub_path": "machine/Qidi Tech X-Max 0.4 nozzle.json"
+        },
+        {
+            "name": "Qidi Tech X-CF Pro 0.4 nozzle",
+            "sub_path": "machine/Qidi Tech X-CF Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Qidi Tech X-Plus3 0.4 nozzle",
+            "sub_path": "machine/Qidi Tech X-Plus3 0.4 nozzle.json"
+        },
+        {
+            "name": "Qidi Tech X-Max3 0.4 nozzle",
+            "sub_path": "machine/Qidi Tech X-Max3 0.4 nozzle.json"
         }
     ]
 }
