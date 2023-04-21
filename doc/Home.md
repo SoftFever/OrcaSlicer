@@ -1,1 +1,1 @@
-## [Calibration](https://github.com/SoftFever/BambuStudio-SoftFever/wiki/Calibration)
+## [Calibration](wiki/Calibration)
