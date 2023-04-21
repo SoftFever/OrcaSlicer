@@ -3734,17 +3734,15 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             const double max_ratio = std::max(ratio(0), ratio(1));
             if (max_ratio > 10000) {
                 MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
-                                  wxICON_QUESTION | wxYES_NO);
+                                  wxICON_QUESTION | wxYES);
                 int           answer = dlg.ShowModal();
-                if (answer == wxID_YES) {
-                    // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
-                    // so scale down the mesh
-                    object->scale_mesh_after_creation(1. / max_ratio);
-                    object->origin_translation = Vec3d::Zero();
-                    object->center_around_origin();
-                    scaled_down = true;
-                    break;
-                }
+                // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
+                // so scale down the mesh
+                object->scale_mesh_after_creation(1. / max_ratio);
+                object->origin_translation = Vec3d::Zero();
+                object->center_around_origin();
+                scaled_down = true;
+                break;
             }
             else if (max_ratio > 10) {
                 MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
