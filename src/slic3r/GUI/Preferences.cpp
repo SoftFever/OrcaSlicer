@@ -172,7 +172,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 MessageDialog msg_wingow(nullptr, _L("Switching the language requires application restart.\n") + "\n" + _L("Do you want to continue?"),
-                                         L("Language selection"), wxICON_QUESTION | wxOK | wxCANCEL);
+                                         _L("Language selection"), wxICON_QUESTION | wxOK | wxCANCEL);
                 if (msg_wingow.ShowModal() == wxID_CANCEL) {
                     combobox->SetSelection(m_current_language_selected);
                     return;
