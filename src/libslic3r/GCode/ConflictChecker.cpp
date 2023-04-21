@@ -207,7 +207,7 @@ ConflictComputeOpt ConflictChecker::find_inter_of_lines(const LineWithIDs &lines
 ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectPtrs                      objs,
                                                                   std::optional<const FakeWipeTower *> wtdptr) // find the first intersection point of lines in different objects
 {
-    if (objs.size() <= 1) { return {}; }
+    if (objs.size() <= 1 && !wtdptr) { return {}; }
     LinesBucketQueue conflictQueue;
     if (wtdptr.has_value()) { // wipe tower at 0 by default
         auto wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
