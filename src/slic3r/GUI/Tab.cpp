@@ -1852,6 +1852,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type");
+        optgroup->append_single_option_line("ironing_pattern");
         optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("ironing_flow");
         optgroup->append_single_option_line("ironing_spacing");

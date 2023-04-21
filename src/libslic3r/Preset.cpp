@@ -710,8 +710,8 @@ static std::vector<std::string> s_Preset_print_options {
     "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
     "seam_position", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction", "bridge_angle",
-    "minimum_sparse_infill_area", "reduce_infill_retraction",
-    "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
+    "minimum_sparse_infill_area", "reduce_infill_retraction", "ironing_pattern", "ironing_type",
+    "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_travel_detour_distance",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
 #ifdef HAS_PRESSURE_EQUALIZER
