@@ -33,4 +33,3 @@ then build it using command
 or building it under the Visual Studio 2019  
 (set the OrcaSlicer_app_gui as start project)  
 ![image](https://user-images.githubusercontent.com/106916061/179185940-06135b47-f2a4-415a-9be4-666680fa0f9a.png)
-

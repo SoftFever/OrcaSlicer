@@ -10,8 +10,8 @@ on:
 
 env:
   USER_TOKEN: ${{ secrets.WIKI_ACTION_TOKEN }} # This is the repository secret
-  USER_NAME: stupid-deploy-bot # Enter the username of your (bot) account
-  USER_EMAIL: 76802126+stupid-deploy-bot@users.noreply.github.com # Enter the e-mail of your (bot) account
+  USER_NAME: 'stupid-deploy-bot' # Enter the username of your (bot) account
+  USER_EMAIL: '76802126+stupid-deploy-bot@users.noreply.github.com' # Enter the e-mail of your (bot) account
   OWNER: ${{ github.event.repository.owner.name }} # This is the repository owner
   REPOSITORY_NAME: ${{ github.event.repository.name }} # This is the repository name
 
@@ -34,12 +34,12 @@ jobs:
           git config user.name $USER_NAME
           git config user.email $USER_EMAIL
           git pull https://$USER_TOKEN@github.com/$OWNER/$REPOSITORY_NAME.wiki.git
-      # 4. Synchronize differences between `docs` & `tmp_wiki`
+      # 4. Synchronize differences between `doc` & `tmp_wiki`
       # 5. Push new Wiki content
       - name: Push content to wiki
         run: |
-          rsync -av --delete docs/ tmp_wiki/ --exclude .git
+          rsync -av --delete doc/ tmp_wiki/ --exclude .git
           cd tmp_wiki
           git add .
-          git commit -m "Update Wiki content" 
+          git commit -m "Updated Wiki content" 
           git push -f --set-upstream https://$USER_TOKEN@github.com/$OWNER/$REPOSITORY_NAME.wiki.git master
