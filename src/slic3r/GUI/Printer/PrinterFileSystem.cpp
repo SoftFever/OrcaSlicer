@@ -46,7 +46,7 @@ PrinterFileSystem::PrinterFileSystem()
     for (int i = 0; i < 100; ++i) {
         auto name = wxString::Format(L"img-%03d.jpg", i + 1);
         wxImage im(L"D:\\work\\pic\\" + name);
-        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, i > 3 ? im : default_thumbnail, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40 - 1});
+        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i > 3 ? im : default_thumbnail, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40 - 1});
         time.Add(wxDateSpan::Days(-1));
     }
     m_file_list[0].thumbnail = default_thumbnail;
@@ -99,10 +99,11 @@ void PrinterFileSystem::ListAllFiles()
     SendRequest<FileList>(LIST_INFO, req, [this](json const& resp, FileList & list, auto) {
         json files = resp["file_lists"];
         for (auto& f : files) {
-            std::string name = f["name"];
-            time_t time = f.value("time", 0);
+            std::string     name = f["name"];
+            std::string     path = f.value("path", "");
+            time_t          time = f.value("time", 0);
             boost::uint64_t size = f["size"];
-            File ff = {name, time, size, default_thumbnail};
+            File            ff   = {name, path, time, size, default_thumbnail};
             list.push_back(ff);
         }
         return 0;
@@ -120,7 +121,7 @@ void PrinterFileSystem::ListAllFiles()
                 if (!iter1->thumbnail.IsOk())
                     iter1->flags &= ~FF_THUMNAIL;
                 iter1->progress = iter2->progress;
-                iter1->path = iter2->path;
+                iter1->local_path = iter2->local_path;
                 ++iter1; ++iter2;
             } else if (*iter1 < *iter2) {
                 ++iter1;
@@ -174,7 +175,7 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
             if ((file.flags & FF_DOWNLOAD) != 0 && file.progress >= 0) continue;
             file.flags |= FF_DOWNLOAD;
             file.progress = -1;
-            file.path = (boost::filesystem::path(path) / file.name).string();
+            file.local_path = (boost::filesystem::path(path) / file.name).string();
             ++n;
         }
         if (n == 0) return;
@@ -186,7 +187,7 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
             return;
         file.flags |= FF_DOWNLOAD;
         file.progress = -1;
-        file.path = (boost::filesystem::path(path) / file.name).string();
+        file.local_path = (boost::filesystem::path(path) / file.name).string();
     }
     if ((m_task_flags & FF_DOWNLOAD) == 0)
         DownloadNextFile();
@@ -202,7 +203,7 @@ void PrinterFileSystem::DownloadCheckFiles(std::string const &path)
         if (boost::filesystem::file_size(path2, ec) == file.size) {
             file.flags |= FF_DOWNLOAD;
             file.progress = 100;
-            file.path     = path2.string();
+            file.local_path = path2.string();
         }
     }
 }
@@ -212,11 +213,11 @@ bool PrinterFileSystem::DownloadCheckFile(size_t index)
     if (index >= m_file_list.size()) return false;
     auto &file = m_file_list[index];
     if ((file.flags & FF_DOWNLOAD) == 0) return false;
-    if (!boost::filesystem::exists(file.path)) {
+    if (!boost::filesystem::exists(file.local_path)) {
         file.flags &= ~FF_DOWNLOAD;
         file.progress = 0;
-        file.path.clear();
-        SendChangedEvent(EVT_DOWNLOAD, index, file.path);
+        file.local_path.clear();
+        SendChangedEvent(EVT_DOWNLOAD, index, file.local_path);
         return false;
     }
     return true;
@@ -243,7 +244,7 @@ size_t PrinterFileSystem::GetCount() const
 
 size_t PrinterFileSystem::GetIndexAtTime(boost::uint32_t time)
 {
-    auto iter = std::upper_bound(m_file_list.begin(), m_file_list.end(), File{"", time});
+    auto   iter = std::upper_bound(m_file_list.begin(), m_file_list.end(), File{"", "", time});
     size_t n = std::distance(m_file_list.begin(), iter) - 1;
     if (m_group_mode == G_NONE) {
         return n;
@@ -440,27 +441,37 @@ void PrinterFileSystem::DeleteFilesContinue()
 {
     std::vector<size_t> indexes;
     std::vector<std::string> names;
+    std::vector<std::string> paths;
     for (size_t i = 0; i < m_file_list.size(); ++i)
         if ((m_file_list[i].flags & FF_DELETED) && !m_file_list[i].name.empty()) {
             indexes.push_back(i);
-            names.push_back(m_file_list[i].name);
-            if (names.size() >= 64)
+            auto &file = m_file_list[i];
+            if (file.path.empty())
+                names.push_back(file.name);
+            else
+                paths.push_back(file.path);
+            if (names.size() >= 64 || paths.size() >= 64)
                 break;
         }
     m_task_flags &= ~FF_DELETED;
-    if (names.empty())
+    if (names.empty() && paths.empty())
         return;
     json req;
     json arr;
-    for (auto &name : names) arr.push_back(name);
-    req["delete"] = arr;
+    if (paths.empty()) {
+        for (auto &name : names) arr.push_back(name);
+        req["delete"] = arr;
+    } else {
+        for (auto &path : paths) arr.push_back(path);
+        req["paths"] = arr;
+    }
     m_task_flags |= FF_DELETED;
     SendRequest<Void>(
         FILE_DEL, req, nullptr,
-        [indexes, names, this](int, Void const &) {
+        [indexes, names = paths.empty() ? names : paths, bypath = !paths.empty(), this](int, Void const &) {
             // TODO:
             for (size_t i = indexes.size() - 1; i != size_t(-1); --i)
-                FileRemoved(indexes[i], names[i]);
+                FileRemoved(indexes[i], names[i], bypath);
             SendChangedEvent(EVT_FILE_CHANGED, indexes.size());
             DeleteFilesContinue();
         });
@@ -479,7 +490,10 @@ void PrinterFileSystem::DownloadNextFile()
     if (index >= m_file_list.size())
         return;
     json req;
-    req["file"] = m_file_list[index].name;
+    if (m_file_list[index].path.empty())
+        req["file"] = m_file_list[index].name;
+    else
+        req["path"] = m_file_list[index].path;
     m_file_list[index].progress = 0;
     SendChangedEvent(EVT_DOWNLOAD, index, m_file_list[index].name);
     struct Download
@@ -487,13 +501,15 @@ void PrinterFileSystem::DownloadNextFile()
         size_t                      index;
         std::string                 name;
         std::string                 path;
+        std::string                 local_path;
         boost::filesystem::ofstream ofs;
         boost::uuids::detail::md5   boost_md5;
     };
     std::shared_ptr<Download> download(new Download);
     download->index = index;
-    download->name  = m_file_list[index].name;
-    download->path  = m_file_list[index].path;
+    download->name       = m_file_list[index].name;
+    download->path       = m_file_list[index].path;
+    download->local_path = m_file_list[index].local_path;
     m_task_flags |= FF_DOWNLOAD;
     m_download_seq = SendRequest<Progress>(
         FILE_DOWNLOAD, req,
@@ -503,7 +519,7 @@ void PrinterFileSystem::DownloadNextFile()
             prog.size   = resp["offset"];
             prog.total  = resp["total"];
             if (prog.size == 0) {
-                download->ofs.open(download->path, std::ios::binary);
+                download->ofs.open(download->local_path, std::ios::binary);
                 if (!download->ofs) return FILE_OPEN_ERR;
             }
             // receive data
@@ -528,13 +544,13 @@ void PrinterFileSystem::DownloadNextFile()
             }
             if (result != 0) {
                 boost::system::error_code ec;
-                boost::filesystem::remove(download->path, ec);
+                boost::filesystem::remove(download->local_path, ec);
             }
             return result;
         },
         [this, download](int result, Progress const &data) {
-            if (download->index != size_t(-1))
-                download->index = FindFile(download->index, download->name);
+            if (download->index != size_t(-1)) 
+                download->index = FindFile(download->index, download->path.empty() ? download->name : download->path, !download->path.empty());
             if (download->index != size_t(-1)) {
                 int progress = data.size * 100 / data.total;
                 auto & file = m_file_list[download->index];
@@ -542,7 +558,7 @@ void PrinterFileSystem::DownloadNextFile()
                     file.flags &= ~FF_DOWNLOAD;
                 else if (file.progress != progress) {
                     file.progress = progress;
-                    SendChangedEvent(EVT_DOWNLOAD, download->index, file.path, result);
+                    SendChangedEvent(EVT_DOWNLOAD, download->index, file.local_path, result);
                 }
             }
             if (result != CONTINUE) DownloadNextFile();
@@ -557,20 +573,29 @@ void PrinterFileSystem::UpdateFocusThumbnail()
     size_t start = m_lock_start;
     size_t end   = std::min(m_lock_end, GetCount());
     std::vector<std::string> names;
+    std::vector<std::string> paths;
     for (; start < end; ++start) {
         auto &file = GetFile(start);
         if ((file.flags & FF_THUMNAIL) == 0) {
-            names.push_back(file.name);
-            if (names.size() >= 5)
+            if (file.path.empty())
+                names.push_back(file.name);
+            else
+                paths.push_back(file.path + "#thumbnail");
+            if (names.size() >= 5 || paths.size() >= 5)
                 break;
         }
     }
-    if (names.empty())
+    if (names.empty() && paths.empty())
         return;
     json req;
     json arr;
-    for (auto &name : names) arr.push_back(name);
-    req["files"] = arr;
+    if (paths.empty()) {
+        for (auto &name : names) arr.push_back(name);
+        req["files"] = arr;
+    } else {
+        for (auto &path : paths) arr.push_back(path);
+        req["paths"] = arr;
+    }
     m_task_flags |= FF_THUMNAIL;
     SendRequest<Thumbnail>(
         THUMBNAIL, req,
@@ -578,9 +603,11 @@ void PrinterFileSystem::UpdateFocusThumbnail()
             // in work thread, continue recv
             // receive data
             wxString            mimetype  = resp.value("mimetype", "image/jpeg");
-            std::string         thumbnail = resp["thumbnail"];
+            std::string         thumbnail = resp.value("thumbnail", "");
+            std::string         path      = resp.value("path", "");
             boost::uint32_t     size      = resp["size"];
-            thumb.name = thumbnail;
+            thumb.name                    = thumbnail;
+            thumb.path                    = path;
             if (size > 0) {
                 wxMemoryInputStream mis(data, size);
                 thumb.thumbnail = wxImage(mis, mimetype);
@@ -590,7 +617,10 @@ void PrinterFileSystem::UpdateFocusThumbnail()
         [this](int result, Thumbnail const &thumb) {
             auto n = thumb.name.find_last_of('.');
             auto name = n == std::string::npos ? thumb.name : thumb.name.substr(0, n);
-            auto iter = std::find_if(m_file_list.begin(), m_file_list.end(), [&name](auto &f) { return boost::algorithm::starts_with(f.name, name); });
+            n = thumb.path.find_last_of('#');
+            auto path = n == std::string::npos ? thumb.path : thumb.path.substr(0, n);
+            auto iter = path.empty() ? std::find_if(m_file_list.begin(), m_file_list.end(), [&name](auto &f) { return boost::algorithm::starts_with(f.name, name); }) :
+                                       std::find_if(m_file_list.begin(), m_file_list.end(), [&path](auto &f) { return f.path == path; });
             if (iter != m_file_list.end()) {
                 iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
                 if (thumb.thumbnail.IsOk()) {
@@ -604,19 +634,20 @@ void PrinterFileSystem::UpdateFocusThumbnail()
         });
 }
 
-size_t PrinterFileSystem::FindFile(size_t index, std::string const &name)
+size_t PrinterFileSystem::FindFile(size_t index, std::string const &name, bool by_path)
 {
-    if (index >= m_file_list.size() || m_file_list[index].name != name) {
-        auto iter = std::find_if(m_file_list.begin(), m_file_list.end(), [name](File &f) { return f.name == name; });
+    if (index >= m_file_list.size() || (by_path ? m_file_list[index].path : m_file_list[index].name) != name) {
+        auto iter = std::find_if(m_file_list.begin(), m_file_list.end(), 
+                [name, by_path](File &f) { return (by_path ? f.path : f.name) == name; });
         if (iter == m_file_list.end()) return -1;
         index = std::distance(m_file_list.begin(), iter);
     }
     return index;
 }
 
-void PrinterFileSystem::FileRemoved(size_t index, std::string const &name)
+void PrinterFileSystem::FileRemoved(size_t index, std::string const &name, bool by_path)
 {
-    index = FindFile(index, name);
+    index = FindFile(index, name, by_path);
     if (index == size_t(-1))
         return;
     auto removeFromGroup = [](std::vector<size_t> &group, size_t index, int total) {
@@ -778,6 +809,8 @@ void PrinterFileSystem::RecvMessageThread()
         l.lock();
         if (n == 0) {
             HandleResponse(l, sample);
+        } else if (n == Bambu_stream_end) {
+            Reconnect(l, 3);
         } else if (n == Bambu_would_block) {
             m_cond.timed_wait(l, boost::posix_time::milliseconds(m_messages.empty() && m_callbacks.empty() ? 1000 : 20));
         } else {

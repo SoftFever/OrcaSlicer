@@ -91,12 +91,13 @@ public:
     struct File
     {
         std::string name;
+        std::string path;
         time_t time = 0;
         boost::uint64_t size = 0;
         wxBitmap    thumbnail;
         int         flags = 0;
         int         progress = -1; // -1: waiting
-        std::string path;
+        std::string local_path;
 
         bool IsSelect() const { return flags & FF_SELECT; }
         bool IsDownload() const { return flags & FF_DOWNLOAD; }
@@ -111,6 +112,7 @@ public:
     struct Thumbnail
     {
         std::string name;
+        std::string path;
         wxBitmap    thumbnail;
     };
 
@@ -180,9 +182,9 @@ private:
 
     void UpdateFocusThumbnail();
 
-    void FileRemoved(size_t index, std::string const &name);
+    void FileRemoved(size_t index, std::string const &name, bool by_path);
 
-    size_t FindFile(size_t index, std::string const &name);
+    size_t FindFile(size_t index, std::string const &name, bool by_path);
 
     void SendChangedEvent(wxEventType type, size_t index = (size_t)-1, std::string const &str = {}, long extra = 0);
 

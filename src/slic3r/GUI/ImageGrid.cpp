@@ -171,11 +171,11 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
                         return;
                     }
 #ifdef __WXMSW__
-                    auto wfile = boost::filesystem::path(file.path).wstring();
+                    auto             wfile = boost::filesystem::path(file.local_path).wstring();
                     SHELLEXECUTEINFO info{sizeof(info), 0, NULL, NULL, wfile.c_str(), L"", SW_HIDE};
                     ::ShellExecuteEx(&info);
 #else
-                    wxShell("open " + file.path);
+                    wxShell("open " + file.local_path);
 #endif
                 } else {
                     m_file_sys->DownloadCancel(index);
@@ -197,9 +197,9 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
                         return;
                     }
 #ifdef __WIN32__
-                    wxExecute(L"explorer.exe /select," + from_u8(file.path));
+                    wxExecute(L"explorer.exe /select," + from_u8(file.local_path));
 #elif __APPLE__
-                    openFolderForFile(from_u8(file.path));
+                    openFolderForFile(from_u8(file.local_path));
 #else
 #endif
                 }
