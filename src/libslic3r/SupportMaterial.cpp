@@ -1790,13 +1790,21 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                 // For the same reason, the non-bridging support area may be smaller than the bridging support area!
                 slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
                 // Offset the contact polygons outside.
-
-                // BBS: already trim the support in trim_support_layers_by_object()
 #if 0
+                for (size_t i = 0; i < NUM_MARGIN_STEPS; ++ i) {
+                    diff_polygons = diff(
+                        offset(
+                            diff_polygons,
+                            scaled<float>(SUPPORT_MATERIAL_MARGIN / NUM_MARGIN_STEPS),
+                            ClipperLib::jtRound,
+                            // round mitter limit
+                            scale_(0.05)),
+                        slices_margin.polygons);
+                }
+#else
                 diff_polygons = diff(diff_polygons, slices_margin.polygons);
 #endif
             }
-
             polygons_append(contact_polygons, diff_polygons);
         } // for each layer.region
 
