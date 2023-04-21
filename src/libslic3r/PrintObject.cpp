@@ -727,14 +727,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_top_z_distance"
             || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"
-            || opt_key == "xy_contour_compensation"
-            //BBS: [Arthur] the following params affect bottomBridge surface type detection
-            || opt_key == "support_type"
-            || opt_key == "bridge_no_support"
-            || opt_key == "max_bridge_length"
-            || opt_key == "support_interface_top_layers"
-            || opt_key == "support_critical_regions_only"
-            ) {
+            || opt_key == "xy_contour_compensation") {
             steps.emplace_back(posSlice);
         } else if (opt_key == "enable_support") {
             steps.emplace_back(posSupportMaterial);
