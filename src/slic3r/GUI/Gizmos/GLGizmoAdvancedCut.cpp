@@ -1728,11 +1728,13 @@ bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vecto
 
 bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in)
 {
+    // -------- [ ] -------- [ ]
+    // slider_with + item_in_gap + first_input_width + item_out_gap + slider_with + item_in_gap + second_input_width
     double slider_with          = 0.24 * m_editing_window_width; // m_control_width * 0.35;
     double item_in_gap          = 0.01 * m_editing_window_width;
-    double item_out_gap         = 0.02 * m_editing_window_width;
-    double first_input_width    = 0.33 * m_editing_window_width;
-    double second_input_width   = 0.15 * m_editing_window_width;
+    double item_out_gap         = 0.01 * m_editing_window_width;
+    double first_input_width    = 0.29  * m_editing_window_width;
+    double second_input_width   = 0.29  * m_editing_window_width;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
@@ -1770,18 +1772,21 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(slider_with);
 
-    float       old_tolerance, tolerance = old_tolerance = tolerance_in * 100.f;
-    std::string format_t      = tolerance_in < 0.f ? " " : "%.f %%";
+    float tolerance = tolerance_in;
+    if (m_imperial_units)
+        tolerance *= float(units_mm_to_in);
+    float old_tolerance = tolerance;
+    //std::string format_t      = tolerance_in < 0.f ? " " : "%.f %%";
     float       min_tolerance = tolerance_in < 0.f ? UndefMinVal : 0.f;
 
-    m_imgui->bbl_slider_float_style(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, 20.f, format_t.c_str(), 1.f, true, _L("Tolerance"));
+    m_imgui->bbl_slider_float_style(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, 2.f, format.c_str(), 1.f, true, _L("Tolerance"));
     
     left_width += (slider_with + item_in_gap);
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(second_input_width);
-    ImGui::BBLDragFloat(("##tolerance_input_" + label).c_str(), &tolerance, 0.05f, min_tolerance, 20.f, format_t.c_str());
+    ImGui::BBLDragFloat(("##tolerance_input_" + label).c_str(), &tolerance, 0.05f, min_tolerance, 2.f, format.c_str());
     
-    tolerance_in = tolerance * 0.01f;
+    tolerance_in = tolerance * float(m_imperial_units ? units_in_to_mm : 1.0);
 
     return !is_approx(old_val, value) || !is_approx(old_tolerance, tolerance);
 }

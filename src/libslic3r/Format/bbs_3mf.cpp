@@ -734,6 +734,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 int   volume_id;
                 int   type;
+                float radius;
+                float height;
                 float r_tolerance;
                 float h_tolerance;
             };
@@ -1938,7 +1940,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 for (auto connector : cut_object_info->second.connectors) {
                     assert(0 <= connector.volume_id && connector.volume_id <= int(model_object->volumes.size()));
                     model_object->volumes[connector.volume_id]->cut_info =
-                        ModelVolume::CutInfo(CutConnectorType(connector.type), connector.r_tolerance, connector.h_tolerance, true);
+                        ModelVolume::CutInfo(CutConnectorType(connector.type), connector.radius, connector.height, connector.r_tolerance, connector.h_tolerance, true);
                 }
             }
         }
@@ -2341,6 +2343,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             if (cut_connector.first != "connector") continue;
                             pt::ptree                connector_tree = cut_connector.second;
                             CutObjectInfo::Connector connector      = {connector_tree.get<int>("<xmlattr>.volume_id"), connector_tree.get<int>("<xmlattr>.type"),
+                                                                  connector_tree.get<float>("<xmlattr>.radius", 0.f), connector_tree.get<float>("<xmlattr>.height", 0.f),   
                                                                   connector_tree.get<float>("<xmlattr>.r_tolerance"), connector_tree.get<float>("<xmlattr>.h_tolerance")};
                             connectors.emplace_back(connector);
                         }
@@ -7124,6 +7127,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     pt::ptree &connectors_tree = obj_tree.add("connectors.connector", "");
                     connectors_tree.put("<xmlattr>.volume_id", volume_idx);
                     connectors_tree.put("<xmlattr>.type", int(volume->cut_info.connector_type));
+                    connectors_tree.put("<xmlattr>.radius", volume->cut_info.radius);
+                    connectors_tree.put("<xmlattr>.height", volume->cut_info.height);
                     connectors_tree.put("<xmlattr>.r_tolerance", volume->cut_info.radius_tolerance);
                     connectors_tree.put("<xmlattr>.h_tolerance", volume->cut_info.height_tolerance);
                 }

@@ -1694,7 +1694,7 @@ void ModelObject::apply_cut_connectors(const std::string &name)
         // Transform the new modifier to be aligned inside the instance
         new_volume->set_transformation(translate_transform * connector.rotation_m * scale_transform);
 
-        new_volume->cut_info = {connector.attribs.type, connector.radius_tolerance, connector.height_tolerance};
+        new_volume->cut_info = {connector.attribs.type, connector.radius, connector.height, connector.radius_tolerance, connector.height_tolerance};
         new_volume->name     = name + "-" + std::to_string(++connector_id);
     }
     cut_id.increase_connectors_cnt(cut_connectors.size());
@@ -2736,11 +2736,23 @@ void ModelVolume::apply_tolerance()
 
     Vec3d sf = get_scaling_factor();
     // make a "hole" wider
-    sf[X] *= 1. + double(cut_info.radius_tolerance);
-    sf[Y] *= 1. + double(cut_info.radius_tolerance);
+    double size_scale = 1.f;
+    if (abs(cut_info.radius - 0) < EPSILON) // For compatibility with old files
+        size_scale = 1.f + double(cut_info.radius_tolerance);
+    else
+        size_scale = (double(cut_info.radius) + double(cut_info.radius_tolerance)) / double(cut_info.radius);
+
+    sf[X] *= size_scale;
+    sf[Y] *= size_scale;
 
     // make a "hole" dipper
-    sf[Z] *= 1. + double(cut_info.height_tolerance);
+    double height_scale = 1.f;
+    if (abs(cut_info.height - 0) < EPSILON)  // For compatibility with old files
+        height_scale = 1.f + double(cut_info.height_tolerance);
+    else
+        height_scale = (double(cut_info.height) + double(cut_info.height_tolerance)) / double(cut_info.height);
+
+    sf[Z] *= height_scale;
 
     set_scaling_factor(sf);
 }
