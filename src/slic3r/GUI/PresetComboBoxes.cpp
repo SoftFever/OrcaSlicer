@@ -736,6 +736,9 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                 else
                     switch_to_tab();
             });
+#ifdef __linux__
+        edit_btn->Hide();
+#endif //__linux__
     }
 }
 
