@@ -20,8 +20,8 @@ jobs:
     name: Publish docs to Wiki
     runs-on: ubuntu-latest
     steps:  
-      - uses: actions/checkout@v3
       - name: Checkout repository
+        uses: actions/checkout@v3
 
       # 1. Create folder named `tmp_wiki`
       # 2. Initialize Git
