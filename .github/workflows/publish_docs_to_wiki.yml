@@ -6,7 +6,7 @@ on:
     paths:
       - doc/** # This includes all sub folders
     branches:
-      - main # This can be changed to any branch of your preference
+      - PublishDocsToWiki # This can be changed to any branch of your preference
 
 env:
   USER_TOKEN: ${{ secrets.WIKI_ACTION_TOKEN }} # This is the repository secret
