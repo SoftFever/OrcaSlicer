@@ -1,6 +1,6 @@
 name: Publish docs to Wiki
 
-# Trigger this action only if there are changes pushed to the docs/** directory under the main branch
+# Trigger this action only if there are changes pushed to the doc/** directory under the main branch
 on:
   push:
     paths:
@@ -11,7 +11,7 @@ on:
 env:
   USER_TOKEN: ${{ secrets.WIKI_ACTION_TOKEN }} # This is the repository secret
   USER_NAME: 'stupid-deploy-bot' # Enter the username of your (bot) account
-  USER_EMAIL: '76802126+stupid-deploy-bot@users.noreply.github.com' # Enter the e-mail of your (bot) account
+  USER_EMAIL: 'stupid-deploy-bot@users.noreply.github.com' # Enter the e-mail of your (bot) account
   OWNER: ${{ github.event.repository.owner.name }} # This is the repository owner
   REPOSITORY_NAME: ${{ github.event.repository.name }} # This is the repository name
 
@@ -23,23 +23,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 1. Create folder named `tmp_wiki`
-      # 2. Initialize Git
-      # 3. Pull old Wiki content
+      # 1. Clone the current wiki master branch to a folder named `tmp_wiki`
       - name: Pull content from wiki
         run: |
-          mkdir tmp_wiki
-          cd tmp_wiki
-          git init
-          git config user.name $USER_NAME
-          git config user.email $USER_EMAIL
-          git pull https://$USER_TOKEN@github.com/$OWNER/$REPOSITORY_NAME.wiki.git
+          git config --global user.name "$USER_NAME"
+          git config --global user.email "$USER_EMAIL"
+          git clone https://"$USER_TOKEN"@github.com/"$OWNER"/"$REPOSITORY_NAME".wiki.git tmp_wiki
       # 4. Synchronize differences between `doc` & `tmp_wiki`
       # 5. Push new Wiki content
-      - name: Push content to wiki
+      - name: Push main repo content to wiki
         run: |
           rsync -av --delete doc/ tmp_wiki/ --exclude .git
           cd tmp_wiki
           git add .
           git commit -m "Updated Wiki content" 
-          git push -f --set-upstream https://$USER_TOKEN@github.com/$OWNER/$REPOSITORY_NAME.wiki.git master
+          git push origin master
