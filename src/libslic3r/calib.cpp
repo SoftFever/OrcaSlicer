@@ -9,16 +9,30 @@ namespace Slic3r {
 
     calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6), m_draw_numbers(true) {}
 
-    std::string calib_pressure_advance::generate_test(double start_pa/*= 0*/, double step_pa /*= 0.002*/, int count/*= 10*/) {
-        auto bed_sizes = mp_gcodegen->config().printable_area.values;
-        auto w = bed_sizes[2].x() - bed_sizes[0].x();
-        auto h = bed_sizes[2].y() - bed_sizes[0].y();
-        count = std::min(count, int((h - 10) / m_space_y));
+    std::string calib_pressure_advance::generate_test(double start_pa /*= 0*/, double step_pa /*= 0.002*/,
+                                                      int count /*= 10*/) {
+      BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
+      bool is_delta = false;
+      if (mp_gcodegen->config().printable_area.values.size() > 4) {
+        is_delta = true;
+        bed_ext.scale(1.0f / 1.41421f);
+      }
 
-        auto startx = (w - 100) / 2;
-        auto starty = (h - count * m_space_y) / 2;
-        m_length_long = 40 + std::min(w - 120.0, 30.0);
-        return print_pa_lines(startx, starty, start_pa, step_pa, count);
+      auto bed_sizes = mp_gcodegen->config().printable_area.values;
+      const auto &w = bed_ext.size().x();
+      const auto &h = bed_ext.size().y();
+      count = std::min(count, int((h - 10) / m_space_y));
+
+      m_length_long = 40 + std::min(w - 120.0, 0.0);
+
+      auto startx = (w - m_length_short * 2 - m_length_long - 20) / 2;
+      auto starty = (h - count * m_space_y) / 2;
+      if (is_delta) {
+        startx = -startx;
+        starty = -(count * m_space_y) / 2;
+      }
+
+      return print_pa_lines(startx, starty, start_pa, step_pa, count);
     }
 
     std::string calib_pressure_advance::move_to(Vec2d pt) {
@@ -45,7 +59,7 @@ namespace Slic3r {
         double y_pos = start_y;
 
         // prime line
-        auto prime_x = std::max(start_x - 5, 0.5);
+        auto prime_x = start_x - 2;
         gcode << move_to(Vec2d(prime_x, y_pos + (num - 4) * m_space_y));
         gcode << writer.set_speed(slow);
         gcode << writer.extrude_to_xy(Vec2d(prime_x, y_pos + 3 * m_space_y), e_calib * m_space_y * num * 1.1);
