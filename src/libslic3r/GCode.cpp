@@ -2812,15 +2812,12 @@ GCode::LayerResult GCode::process_layer(
 
     //BBS
     if (first_layer) {
-        //BBS: set first layer global acceleration
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            double acceleration = m_config.initial_layer_acceleration.value;
-            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
-            double jerk = m_config.initial_layer_jerk.value;
-            gcode += m_writer.set_jerk_xy(jerk);
+            gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
 
     }
@@ -2841,16 +2838,14 @@ GCode::LayerResult GCode::process_layer(
           gcode += this->unretract();
         }
       }
-        //BBS:  reset acceleration at sencond layer
-        if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            double acceleration = m_config.default_acceleration.value;
-            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
-        }
+      // BBS:  reset acceleration at sencond layer
+      if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
+        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+      }
 
-        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
-            double jerk = m_config.default_jerk.value;
-            gcode += m_writer.set_jerk_xy(jerk);
-        }
+      if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+        gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
+      }
 
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // nozzle_temperature_initial_layer vs. temperature settings.
@@ -3605,7 +3600,8 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if (m_config.default_acceleration.value > 0)
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
         if(m_config.default_jerk.value > 0)
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
         }
@@ -3636,7 +3632,8 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()){
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if (m_config.default_acceleration.value > 0)
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
         if(m_config.default_jerk.value > 0)
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
@@ -4205,28 +4202,19 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // SoftFever
     if (this->on_first_layer()) {
-        if (m_config.default_acceleration.value > 0) {
-            auto accel = (unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5);
-            if (accel > 0)
-                gcode += m_writer.set_acceleration(accel);
+        if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
-        if (m_config.default_jerk.value > 0) {
-            auto jerk = m_config.initial_layer_jerk.value;
-            if (jerk > 0)
-                gcode += m_writer.set_jerk_xy(jerk);
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+            gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
-    }
-    else
-    {
-        if(m_config.default_jerk.value > 0)
-        {
-            auto jerk = m_config.travel_jerk.value;
-            auto accel = (unsigned int)floor(m_config.travel_acceleration.value + 0.5);
-            if(jerk > 0)
-                gcode += m_writer.set_jerk_xy(jerk);
-            
-            if(accel > 0)
-                gcode += m_writer.set_acceleration(accel);
+    } else {
+        if (m_config.default_acceleration.value > 0 && m_config.travel_acceleration.value > 0) {
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.travel_acceleration.value + 0.5));
+        }
+
+        if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0) {
+            gcode += m_writer.set_jerk_xy(m_config.travel_jerk.value);
         }
     }
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
