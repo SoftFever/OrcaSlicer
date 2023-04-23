@@ -21,13 +21,13 @@
 #include "Monitor.hpp"
 #include "Auxiliary.hpp"
 #include "Project.hpp"
+#include "CalibrationPanel.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
 
 // BBS
 #include "BBLTopbar.hpp"
-
 
 #define ENABEL_PRINT_ALL 0
 
@@ -220,7 +220,8 @@ public:
         tpPreview = 2,
         tpMonitor = 3,
         tpProject = 4,
-        toDebugTool = 5,
+        tpCalibration = 5,
+        toDebugTool = 6,
     };
 
     //BBS: add slice&&print status update logic
@@ -338,7 +339,12 @@ public:
 
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
     ProjectPanel*         m_project{ nullptr };
+<<<<<<< HEAD   (88f268 FIX: wipe tower is not generated with different filament lay)
 
+=======
+    CalibrationPanel*     m_calibration{ nullptr };
+    DebugToolDialog*      m_debug_tool_dlg{ nullptr };
+>>>>>>> CHANGE (cbac2c NEW: add calibration)
     WebViewPanel*         m_webview { nullptr };
     wxLogWindow*          m_log_window { nullptr };
     // BBS

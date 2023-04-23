@@ -253,6 +253,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     return invalidated;
 }
 
+void Print::set_calib_params(const Calib_Params &params)
+{
+    m_calib_params      = params;
+}
+
 bool Print::invalidate_step(PrintStep step)
 {
 	bool invalidated = Inherited::invalidate_step(step);

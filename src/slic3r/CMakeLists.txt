@@ -388,6 +388,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/ReleaseNote.cpp
     GUI/SingleChoiceDialog.hpp
     GUI/SingleChoiceDialog.cpp
+    GUI/CalibrationPanel.hpp
+    GUI/CalibrationPanel.cpp
+    GUI/CalibrationWizard.hpp
+    GUI/CalibrationWizard.cpp
+    GUI/CalibrationWizardPage.cpp
+    GUI/CalibrationWizardPage.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
@@ -423,6 +429,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/PrintHost.cpp
     Utils/NetworkAgent.cpp
     Utils/NetworkAgent.hpp
+    Utils/CalibUtils.cpp
+    Utils/CalibUtils.hpp
 )
 
 if (WIN32)

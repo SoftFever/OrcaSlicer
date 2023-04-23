@@ -458,6 +458,10 @@ void MonitorPanel::update_all()
     if (m_hms_panel->IsShown()) {
         m_hms_panel->update(obj);
     }
+
+    auto cali_panel = static_cast<CalibrationPanel*>(wxGetApp().mainframe->m_calibration);
+    if(cali_panel)
+        cali_panel->update_obj(obj);
 #if !BBL_RELEASE_TO_PUBLIC
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);

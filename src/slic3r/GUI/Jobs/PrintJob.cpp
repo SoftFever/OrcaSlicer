@@ -37,7 +37,8 @@ PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::
 
 void PrintJob::prepare()
 {
-    m_plater->get_print_job_data(&job_data);
+    if (job_data.is_from_plater)
+        m_plater->get_print_job_data(&job_data);
     if (&job_data) {
         std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
         auto check_access_code_path = temp_file.c_str();
@@ -130,29 +131,32 @@ void PrintJob::process()
     unsigned int http_code;
     std::string http_body;
 
-    int total_plate_num = m_plater->get_partplate_list().get_plate_count();
+    int total_plate_num = plate_data.plate_count;
+    if (!plate_data.is_valid) {
+        total_plate_num =  m_plater->get_partplate_list().get_plate_count();
+        PartPlate *plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
+        if (plate == nullptr) {
+            plate = m_plater->get_partplate_list().get_curr_plate();
+            if (plate == nullptr) return;
+        }
 
-    PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
-    if (plate == nullptr) {
-        plate = m_plater->get_partplate_list().get_curr_plate();
-        if (plate == nullptr)
-        return;
-    }
+        /* check gcode is valid */
+        if (!plate->is_valid_gcode_file() && m_print_type == "from_normal") {
+            update_status(curr_percent, check_gcode_failed_str);
+            return;
+        }
 
-    /* check gcode is valid */
-    if (!plate->is_valid_gcode_file() && m_print_type == "from_normal") {
-        update_status(curr_percent, check_gcode_failed_str);
-        return;
-    }
-
-    if (was_canceled()) {
-        update_status(curr_percent, printjob_cancel_str);
-        return;
+        if (was_canceled()) {
+            update_status(curr_percent, printjob_cancel_str);
+            return;
+        }
     }
 
     // task name
     std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
     int curr_plate_idx = 0;
+    if (plate_data.is_valid)
+        curr_plate_idx = plate_data.cur_plate_index;
     if (job_data.plate_idx >= 0)
         curr_plate_idx = job_data.plate_idx + 1;
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
@@ -164,7 +168,7 @@ void PrintJob::process()
 
     PartPlate* curr_plate = m_plater->get_partplate_list().get_curr_plate();
     if (curr_plate) {
-        this->task_bed_type = bed_type_to_gcode_string(curr_plate->get_bed_type(true));
+        this->task_bed_type = bed_type_to_gcode_string(plate_data.is_valid ? plate_data.bed_type : curr_plate->get_bed_type(true));
     }
 
     BBL::PrintParams params;

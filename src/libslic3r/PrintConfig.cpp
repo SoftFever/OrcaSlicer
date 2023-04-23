@@ -1119,6 +1119,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 1. });
 
+    def          = this->add("print_flow_ratio", coFloat);
+    def->label   = L("Object flow ratio");
+    def->tooltip = L("The flow ratio set by object, the meaning is the same as flow ratio.");
+    def->mode    = comDevelop;
+    def->max     = 2;
+    def->min     = 0.01;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def = this->add("line_width", coFloat);
     def->label = L("Default");
     def->category = L("Quality");

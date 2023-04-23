@@ -1021,6 +1021,20 @@ void MainFrame::init_tabpanel()
     m_project->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
 
+<<<<<<< HEAD   (88f268 FIX: wipe tower is not generated with different filament lay)
+=======
+    m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_calibration->SetBackgroundColour(*wxWHITE);
+    m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_debug_tool_dlg->SetBackgroundColour(*wxWHITE);
+    m_debug_tool_dlg->Hide();
+    m_tabpanel->AddPage(m_debug_tool_dlg, _L("Debug"), "debugtool", "debugtool");
+#endif
+
+>>>>>>> CHANGE (cbac2c NEW: add calibration)
     if (m_plater) {
         // load initial config
         auto full_config = wxGetApp().preset_bundle->full_config();

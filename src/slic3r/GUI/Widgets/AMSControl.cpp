@@ -181,7 +181,7 @@ void AMSrefresh::on_timer(wxTimerEvent &event)
 
 void AMSrefresh::PlayLoading()
 {
-    if (m_play_loading)  return;
+    if (m_play_loading | m_disable_mode)  return;
     m_play_loading = true;
     //m_rotation_angle = 0;
     m_playing_timer->Start(AMS_REFRESH_PLAY_LOADING_TIMER);
@@ -190,7 +190,7 @@ void AMSrefresh::PlayLoading()
 
 void AMSrefresh::StopLoading()
 {
-    if (!m_play_loading) return;
+    if (!m_play_loading | m_disable_mode) return;
     m_playing_timer->Stop();
     m_play_loading = false;
     Refresh();
@@ -214,6 +214,8 @@ void AMSrefresh::OnClick(wxMouseEvent &evt) {
 
 void AMSrefresh::post_event(wxCommandEvent &&event)
 {
+    if (m_disable_mode)
+        return;
     event.SetString(m_info.can_id);
     event.SetEventObject(m_parent);
     wxPostEvent(m_parent, event);
@@ -230,22 +232,25 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
 
     auto pot = wxPoint((size.x - m_bitmap_selected.GetBmpSize().x) / 2, (size.y - m_bitmap_selected.GetBmpSize().y) / 2);
 
-    if (!m_play_loading) {
-        dc.DrawBitmap(m_selected ? m_bitmap_selected.bmp() : m_bitmap_normal.bmp(), pot);
-    } else {
-        /* m_bitmap_rotation    = ScalableBitmap(this, "ams_refresh_normal", 30);
-         auto           image = m_bitmap_rotation.bmp().ConvertToImage();
-         wxPoint        offset;
-         auto           loading_img = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
-         ScalableBitmap loading_bitmap;
-         loading_bitmap.bmp() = wxBitmap(loading_img);
-         dc.DrawBitmap(loading_bitmap.bmp(), offset.x , offset.y);*/
-        m_rotation_angle++;
-        if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
-            m_rotation_angle = 0;
+    if (!m_disable_mode) {
+        if (!m_play_loading) {
+            dc.DrawBitmap(m_selected ? m_bitmap_selected.bmp() : m_bitmap_normal.bmp(), pot);
         }
-        if (m_rfid_bitmap_list.size() <= 0)return;
-        dc.DrawBitmap(m_rfid_bitmap_list[m_rotation_angle].bmp(), pot);
+        else {
+            /* m_bitmap_rotation    = ScalableBitmap(this, "ams_refresh_normal", 30);
+             auto           image = m_bitmap_rotation.bmp().ConvertToImage();
+             wxPoint        offset;
+             auto           loading_img = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
+             ScalableBitmap loading_bitmap;
+             loading_bitmap.bmp() = wxBitmap(loading_img);
+             dc.DrawBitmap(loading_bitmap.bmp(), offset.x , offset.y);*/
+            m_rotation_angle++;
+            if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
+                m_rotation_angle = 0;
+            }
+            if (m_rfid_bitmap_list.size() <= 0)return;
+            dc.DrawBitmap(m_rfid_bitmap_list[m_rotation_angle].bmp(), pot);
+        }
     }
 
     dc.SetPen(wxPen(colour));
@@ -964,14 +969,15 @@ void AMSLib::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(FromDIP(3), FromDIP(3), size.x - FromDIP(6), size.y - FromDIP(6), m_radius);
 #endif
     
-    
-    // edit icon
-    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
-    {
-        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL)
-            dc.DrawBitmap(temp_bitmap_third.bmp(), (size.x - temp_bitmap_third.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_third.GetBmpSize().y));
-        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND)
-            dc.DrawBitmap(temp_bitmap_brand.bmp(), (size.x - temp_bitmap_brand.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_brand.GetBmpSize().y));
+    if (!m_disable_mode) {
+        // edit icon
+        if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
+        {
+            if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL)
+                dc.DrawBitmap(temp_bitmap_third.bmp(), (size.x - temp_bitmap_third.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_third.GetBmpSize().y));
+            if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND)
+                dc.DrawBitmap(temp_bitmap_brand.bmp(), (size.x - temp_bitmap_brand.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_brand.GetBmpSize().y));
+        }
     }
 }
 
@@ -2416,6 +2422,31 @@ void AMSControl::ExitNoneAMSMode()
     m_is_none_ams_mode = false;
 }
 
+void AMSControl::EnterSimpleMode() 
+{
+    // hide AmsLib edit button
+    // hide AmsRefresh bmp
+    for (auto ams_cans_window : m_ams_cans_list) {
+        ams_cans_window->set_disable_mode(true);
+    }
+    m_vams_lib->set_disable_mode(true);
+
+    // hide buttons
+    m_button_ams_setting->Hide();
+    m_button_extruder_feed->Hide();
+    m_button_extruder_back->Hide();
+    m_button_extrusion_cali->Hide();
+    m_button_guide->Hide();
+    m_button_retry->Hide();
+
+    // hide tips
+    ShowFilamentTip(false);
+
+    m_amswin->Layout();
+    m_amswin->Fit();
+    Layout();
+}
+
 void AMSControl::EnterCalibrationMode(bool read_to_calibration)
 {
     SetSelection(1);
@@ -2580,7 +2611,7 @@ void AMSControl::Reset()
     m_current_senect    = "";
 }
 
-void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load)
+void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load, bool simple_mode)
 {
     show_vams(support_virtual_tray);
     m_sizer_ams_tips->Show(support_virtual_tray);
@@ -2592,6 +2623,8 @@ void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool supp
     }
 
     show?ExitNoneAMSMode() : EnterNoneAMSMode(support_vt_load);
+    if (simple_mode)
+        EnterSimpleMode();
 }
 
 void AMSControl::show_vams(bool show)

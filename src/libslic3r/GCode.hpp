@@ -413,6 +413,7 @@ private:
        methods. */
     Vec2d                               m_origin;
     FullPrintConfig                     m_config;
+    DynamicConfig                       m_calib_config;
     // scaled G-code resolution
     double                              m_scaled_resolution;
     GCodeWriter                         m_writer;

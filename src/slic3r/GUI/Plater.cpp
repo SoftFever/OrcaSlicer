@@ -158,6 +158,7 @@ wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEND_CALIBRATION_FINISHED,       wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEND_FINISHED,                   wxCommandEvent);
 wxDEFINE_EVENT(EVT_PUBLISH_FINISHED,                wxCommandEvent);
 //BBS: repair model
@@ -1903,7 +1904,11 @@ struct Plater::priv
     bool init_collapse_toolbar();
 
     // BBS
-    void hide_select_machine_dlg() { m_select_machine_dlg->EndModal(wxID_OK); }
+    void hide_select_machine_dlg()
+    {
+        if (m_select_machine_dlg)
+            m_select_machine_dlg->EndModal(wxID_OK);
+    }
     void hide_send_to_printer_dlg() { m_send_to_sdcard_dlg->EndModal(wxID_OK); }
 
     void update_preview_bottom_toolbar();
@@ -2513,6 +2518,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
         q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent &evt) { q->print_job_finished(evt); });
+        q->Bind(EVT_SEND_CALIBRATION_FINISHED, [q](wxCommandEvent &evt) { q->send_calibration_job_finished(evt); });
         q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent &evt) { q->send_job_finished(evt); });
         q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent &evt) { q->publish_job_finished(evt);});
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
@@ -6744,6 +6750,11 @@ void Plater::get_print_job_data(PrintPrepareData* data)
     }
 }
 
+int Plater::get_send_calibration_finished_event()
+{
+    return EVT_SEND_CALIBRATION_FINISHED;
+}
+
 int Plater::get_print_finished_event()
 {
     return EVT_PRINT_FINISHED;
@@ -8074,7 +8085,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
         return;
 
     std::vector<fs::path> paths;
-    for (const auto &file : input_files)
+    for (const auto& file : input_files)
         paths.emplace_back(into_path(file));
 
     std::string snapshot_label;
@@ -10281,6 +10292,23 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
 }
 
 //BBS
+void Plater::send_calibration_job_finished(wxCommandEvent & evt)
+{
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    dev->set_selected_machine(evt.GetString().ToStdString());
+
+    p->hide_select_machine_dlg();
+    p->main_frame->request_select_tab(MainFrame::TabPosition::tpCalibration);
+    //jump to monitor and select device status panel
+    auto curr_calibration = p->main_frame->m_calibration;
+    if (curr_calibration) {
+        // todo select current tab
+        auto calibration_wizard = static_cast<CalibrationWizard*>(curr_calibration->get_tabpanel()->GetPage(curr_calibration->get_tabpanel()->GetSelection()));
+        calibration_wizard->show_page(calibration_wizard->get_curr_page()->get_next_page());
+    }
+}
+
 void Plater::print_job_finished(wxCommandEvent &evt)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();

@@ -13,6 +13,7 @@ namespace GUI {
 class PrintPrepareData
 {
 public:
+    bool            is_from_plater = true;
     int             plate_idx;
     fs::path        _3mf_path;
     fs::path        _3mf_config_path;
@@ -22,15 +23,27 @@ public:
     }
 };
 
+class PlateListData
+{
+public:
+    bool is_valid = false;
+    int plate_count = 0;
+    int cur_plate_index = 0;
+    BedType bed_type = BedType::btDefault;
+};
+
 class PrintJob : public PlaterJob
 {
     std::function<void()> m_success_fun{nullptr};
-    PrintPrepareData    job_data;
     std::string         m_dev_id;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
     std::function<void()> m_enter_ip_address_fun_fail{ nullptr };
     std::function<void()> m_enter_ip_address_fun_success{ nullptr };
+
+public:
+    PrintPrepareData job_data;
+    PlateListData    plate_data;
 
 protected:
     void prepare() override;

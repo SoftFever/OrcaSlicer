@@ -37,6 +37,7 @@ set(lisbslic3r_sources
     Brim.hpp
     BuildVolume.cpp
     BuildVolume.hpp
+    Calib.hpp
     Circle.cpp
     Circle.hpp
     clipper.cpp
