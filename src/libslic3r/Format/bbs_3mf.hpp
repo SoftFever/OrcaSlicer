@@ -222,6 +222,10 @@ extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSub
 
 extern std::string bbs_3mf_get_thumbnail(const char * path);
 
+extern bool load_gcode_3mf_from_stream(std::istream & data, DynamicPrintConfig* config, Model* model, PlateDataPtrs* plate_data_list, 
+       Semver* file_version);
+
+
 //BBS: add plate data list related logic
 // add backup logic
 // Save the given model and the config data contained in the given Print into a 3mf file.

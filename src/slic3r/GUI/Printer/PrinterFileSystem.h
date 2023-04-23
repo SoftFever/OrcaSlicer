@@ -28,7 +28,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
 
     enum {
         LIST_INFO       = 0x0001,
-        THUMBNAIL       = 0x0002,
+        SUB_FILE       = 0x0002,
         FILE_DEL        = 0x0003,
         FILE_DOWNLOAD   = 0X0004,
         NOTIFY_FIRST    = 0x0100, 
@@ -61,6 +61,8 @@ public:
     enum FileType {
         F_TIMELAPSE,
         F_VIDEO,
+        F_MODEL,
+        F_INVALID_TYPE,
     };
 
     enum GroupMode {
@@ -69,13 +71,13 @@ public:
         G_YEAR,
     };
 
-    void SetFileType(FileType type);
+    void SetFileType(FileType type, std::string const & storage = {});
 
     void SetGroupMode(GroupMode mode);
 
     size_t EnterSubGroup(size_t index);
 
-    GroupMode GetFileType() const { return m_group_mode; }
+    FileType GetFileType() const { return m_file_type; }
 
     GroupMode GetGroupMode() const { return m_group_mode; }
 
@@ -94,13 +96,15 @@ public:
         std::string path;
         time_t time = 0;
         boost::uint64_t size = 0;
-        wxBitmap    thumbnail;
         int         flags = 0;
+        wxBitmap    thumbnail;
         int         progress = -1; // -1: waiting
         std::string local_path;
+        std::map<std::string, std::string> metadata;
 
         bool IsSelect() const { return flags & FF_SELECT; }
         bool IsDownload() const { return flags & FF_DOWNLOAD; }
+        std::string Metadata(std::string const & key, std::string const & dflt) const;
 
         friend bool operator<(File const & l, File const & r) { return l.time > r.time; }
     };
@@ -108,13 +112,6 @@ public:
     struct Void {};
 
     typedef std::vector<File> FileList;
-
-    struct Thumbnail
-    {
-        std::string name;
-        std::string path;
-        wxBitmap    thumbnail;
-    };
 
     struct Progress
     {
@@ -133,6 +130,8 @@ public:
     bool DownloadCheckFile(size_t index);
 
     void DownloadCancel(size_t index);
+
+    void FetchModel(size_t index, std::function<void(std::string const &)> callback);
 
     size_t GetCount() const;
 
@@ -181,6 +180,12 @@ private:
     void DownloadNextFile();
 
     void UpdateFocusThumbnail();
+
+    static bool ParseThumbnail(File &file);
+
+    static bool ParseThumbnail(File &file, std::istream &is);
+
+    void UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>> files, int type);
 
     void FileRemoved(size_t index, std::string const &name, bool by_path);
 
@@ -266,10 +271,11 @@ private:
     void PostCallback(std::function<void(void)> const & callback);
 
 protected:
-    FileType m_file_type = F_TIMELAPSE;
+    FileType m_file_type = F_INVALID_TYPE;
+    std::string m_file_storage;
     GroupMode m_group_mode = G_NONE;
     FileList m_file_list;
-    FileList m_file_list2;
+    std::map<std::pair<FileType, std::string>, FileList> m_file_list_cache;
     std::vector<size_t> m_group_year;
     std::vector<size_t> m_group_month;
     std::vector<int> m_group_flags;

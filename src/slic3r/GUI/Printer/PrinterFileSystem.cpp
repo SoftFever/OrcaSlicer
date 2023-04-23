@@ -1,11 +1,14 @@
 #include "PrinterFileSystem.h"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/Model.hpp"
 
 #include "../../Utils/NetworkAgent.hpp"
 #include "../BitmapCache.hpp"
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
+#include <boost/regex.hpp>
 
 #include "nlohmann/json.hpp"
 
@@ -43,14 +46,25 @@ PrinterFileSystem::PrinterFileSystem()
     m_session.owner = this;
 #ifdef PRINTER_FILE_SYSTEM_TEST
     auto time = wxDateTime::Now();
+    wxString path = "D:\\work\\pic\\";
+    for (int i = 0; i < 10; ++i) {
+        auto name = wxString::Format(L"gcode-%02d.3mf", i + 1);
+        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i < 5 ? FF_DOWNLOAD : 0, default_thumbnail, i * 34 - 35});
+        std::ifstream ifs((path + name).ToUTF8().data(), std::ios::binary);
+        if (ifs)
+            ParseThumbnail(m_file_list.back(), ifs);
+        time.Add(wxDateSpan::Days(-1));
+    }
+    m_file_list.swap(m_file_list_cache[{F_MODEL, ""}]);
+    time = wxDateTime::Now();
     for (int i = 0; i < 100; ++i) {
         auto name = wxString::Format(L"img-%03d.jpg", i + 1);
-        wxImage im(L"D:\\work\\pic\\" + name);
-        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i > 3 ? im : default_thumbnail, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40 - 1});
+        wxImage im(path + name);
+        m_file_list.push_back({name.ToUTF8().data(), "", time.GetTicks(), 26937, i < 20 ? FF_DOWNLOAD : 0, i > 3 ? im : default_thumbnail, i * 10 - 40 - 1});
         time.Add(wxDateSpan::Days(-1));
     }
     m_file_list[0].thumbnail = default_thumbnail;
-    BuildGroups();
+    m_file_list.swap(m_file_list_cache[{F_TIMELAPSE, ""}]);
 #endif
 }
 
@@ -59,14 +73,20 @@ PrinterFileSystem::~PrinterFileSystem()
     m_recv_thread.detach();
 }
 
-void PrinterFileSystem::SetFileType(FileType type)
+void PrinterFileSystem::SetFileType(FileType type, std::string const &storage)
 {
-    if (this->m_file_type == type)
+    if (m_file_type == type && m_file_storage == storage)
         return;
-    this->m_file_type = type;
-    m_file_list.swap(m_file_list2);
+    assert(m_file_list_cache[std::make_pair(m_file_type, m_file_storage)].empty());
+    m_file_list.swap(m_file_list_cache[{m_file_type, m_file_storage}]);
+    std::swap(m_file_type, type);
+    m_file_storage = storage;
+    m_file_list.swap(m_file_list_cache[{m_file_type, m_file_storage}]);
     m_lock_start = m_lock_end = 0;
+    BuildGroups();
     SendChangedEvent(EVT_FILE_CHANGED);
+    if (type == F_INVALID_TYPE)
+        return;
     m_status = Status::ListSyncing;
     SendChangedEvent(EVT_STATUS_CHANGED, m_status);
     ListAllFiles();
@@ -94,7 +114,10 @@ size_t PrinterFileSystem::EnterSubGroup(size_t index)
 void PrinterFileSystem::ListAllFiles()
 {
     json req;
-    req["type"] = m_file_type == F_VIDEO ? "video" : "timelapse";
+    char const * types[] {"timelapse","video", "model" };
+    req["type"] = types[m_file_type];
+    if (!m_file_storage.empty())
+        req["storage"] = m_file_storage;
     req["notify"] = "DETAIL";
     SendRequest<FileList>(LIST_INFO, req, [this](json const& resp, FileList & list, auto) {
         json files = resp["file_lists"];
@@ -103,7 +126,7 @@ void PrinterFileSystem::ListAllFiles()
             std::string     path = f.value("path", "");
             time_t          time = f.value("time", 0);
             boost::uint64_t size = f["size"];
-            File            ff   = {name, path, time, size, default_thumbnail};
+            File            ff   = {name, path, time, size, 0, default_thumbnail};
             list.push_back(ff);
         }
         return 0;
@@ -235,11 +258,49 @@ void PrinterFileSystem::DownloadCancel(size_t index)
         file.flags &= ~FF_DOWNLOAD;
 }
 
+void PrinterFileSystem::FetchModel(size_t index, std::function<void(std::string const &)> callback)
+{
+    json req;
+    json arr;
+    if (index == (size_t) -1) return;
+    if (index >= m_file_list.size()) return;
+    auto &file = m_file_list[index];
+    arr.push_back(file.path + "#_rel/.rels");
+    arr.push_back(file.path + "#3D/3dmodel.model");
+    arr.push_back(file.path + "#Metadata/slice_info.config");
+    arr.push_back(file.path + "#Metadata/project_settings.config");
+    for (auto & meta : file.metadata) {
+        if (boost::algorithm::starts_with(meta.first, "plate_thumbnail_"))
+            arr.push_back(file.path + "#" + meta.second);
+    }
+    req["paths"] = arr;
+    SendRequest<File>(
+        SUB_FILE, req,
+        [](json const &resp, File &file, unsigned char const *data) -> int {
+            // in work thread, continue recv
+            // receive data
+            boost::uint32_t size      = resp["size"];
+            if (size > 0) {
+                file.local_path = std::string((char *) data, size);
+            }
+            return 0;
+        },
+        [callback](int, File const &file) {
+            callback(file.local_path);
+        });
+}
+
 size_t PrinterFileSystem::GetCount() const
 {
     if (m_group_mode == G_NONE)
         return m_file_list.size();
     return m_group_mode == G_YEAR ? m_group_year.size() : m_group_month.size();
+}
+
+std::string PrinterFileSystem::File::Metadata(std::string const &key, std::string const & dflt) const
+{
+    auto iter = metadata.find(key);
+    return iter == metadata.end() || iter->second.empty() ? dflt : iter->second;
 }
 
 size_t PrinterFileSystem::GetIndexAtTime(boost::uint32_t time)
@@ -513,7 +574,7 @@ void PrinterFileSystem::DownloadNextFile()
     m_task_flags |= FF_DOWNLOAD;
     m_download_seq = SendRequest<Progress>(
         FILE_DOWNLOAD, req,
-        [this, download](json const &resp, Progress &prog, unsigned char const *data) -> int {
+        [download](json const &resp, Progress &prog, unsigned char const *data) -> int {
             // in work thread, continue recv
             size_t size = resp["size"];
             prog.size   = resp["offset"];
@@ -572,65 +633,148 @@ void PrinterFileSystem::UpdateFocusThumbnail()
         return;
     size_t start = m_lock_start;
     size_t end   = std::min(m_lock_end, GetCount());
-    std::vector<std::string> names;
-    std::vector<std::string> paths;
+    std::vector<File> names;
+    std::vector<File> paths;
     for (; start < end; ++start) {
         auto &file = GetFile(start);
         if ((file.flags & FF_THUMNAIL) == 0) {
             if (file.path.empty())
-                names.push_back(file.name);
+                names.push_back({file.name, "", 0, 0, FF_THUMNAIL});
             else
-                paths.push_back(file.path + "#thumbnail");
+                paths.push_back({"", file.path});
             if (names.size() >= 5 || paths.size() >= 5)
                 break;
         }
     }
     if (names.empty() && paths.empty())
         return;
+    m_task_flags |= FF_THUMNAIL;
+    UpdateFocusThumbnail2(std::make_shared<std::vector<File>>(paths), paths.empty() ? 0 : m_file_type == F_MODEL ? 2 : 1);
+}
+
+bool PrinterFileSystem::ParseThumbnail(File &file)
+{
+    std::istringstream iss(file.local_path, std::ios::binary); 
+    return ParseThumbnail(file, iss);
+}
+
+static std::string durationString(long duration)
+{
+    static boost::regex rx("^0d(0h)?");
+    auto time = boost::format("%1%d%2%h%3%m") % (duration / 86400) % ((duration % 86400) / 3600) % ((duration % 3600) / 60);
+    return boost::regex_replace(time.str(), rx, "");
+}
+
+bool PrinterFileSystem::ParseThumbnail(File &file, std::istream &is)
+{
+    Slic3r::DynamicPrintConfig config;
+    Slic3r::Model              model;
+    Slic3r::PlateDataPtrs      plate_data_list;
+    Slic3r::Semver file_version;
+    if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version))
+        return false;
+    float time      = 0.f;
+    float weight    = 0.f;
+    for (auto &plate : plate_data_list) {
+        time += atof(plate->gcode_prediction.c_str());
+        weight += atof(plate->gcode_weight.c_str());
+        file.metadata.emplace("plate_thumbnail_" + std::to_string(plate->plate_index), plate->thumbnail_file);
+    }
+    file.metadata.emplace("Title", model.model_info->model_name);
+    file.metadata.emplace("Time", durationString(round(time)));
+    file.metadata.emplace("Weight", std::to_string(int(round(weight))));
+    auto thumbnail = model.model_info->metadata_items["Thumbnail"];
+    if (thumbnail.empty() && !plate_data_list.empty()) {
+        thumbnail = plate_data_list.front()->thumbnail_file;
+        if (thumbnail.empty()) {
+            thumbnail = plate_data_list.front()->gcode_file;
+            boost::algorithm::replace_all(thumbnail, ".gcode", ".png");
+        }
+    }
+    file.metadata.emplace("Thumbnail", thumbnail);
+    return true;
+}
+
+void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>> files, int type)
+{
     json req;
     json arr;
-    if (paths.empty()) {
-        for (auto &name : names) arr.push_back(name);
+    if (type == 0) {
+        for (auto &file : *files) arr.push_back(file.name);
         req["files"] = arr;
+        if (m_file_type == F_MODEL) {
+            for (auto &file : *files) arr.push_back(file.path);
+        }
+        for (auto &file : *files) arr.push_back(file.path);
     } else {
-        for (auto &path : paths) arr.push_back(path);
+        if (type == 1) {
+            for (auto &file : *files) arr.push_back(file.path + "#thumbnail");
+        } else if (type == 2) {
+            for (auto &file : *files) {
+                arr.push_back(file.path + "#_rel/.rels");
+                arr.push_back(file.path + "#3D/3dmodel.model");
+                arr.push_back(file.path + "#Metadata/slice_info.config");
+                arr.push_back(file.path + "#Metadata/project_settings.config");
+            }
+            req["zip"] = true;
+        } else {
+            for (auto &file : *files) arr.push_back(file.path + "#" + file.metadata["Thumbnail"]);
+        }
         req["paths"] = arr;
     }
-    m_task_flags |= FF_THUMNAIL;
-    SendRequest<Thumbnail>(
-        THUMBNAIL, req,
-        [this](json const &resp, Thumbnail &thumb, unsigned char const *data) -> int {
+    SendRequest<File>(
+        SUB_FILE, req, [type](json const &resp, File &file, unsigned char const *data) -> int {
             // in work thread, continue recv
             // receive data
-            wxString            mimetype  = resp.value("mimetype", "image/jpeg");
-            std::string         thumbnail = resp.value("thumbnail", "");
-            std::string         path      = resp.value("path", "");
-            boost::uint32_t     size      = resp["size"];
-            thumb.name                    = thumbnail;
-            thumb.path                    = path;
+            wxString        mimetype  = resp.value("mimetype", "image/jpeg");
+            std::string     thumbnail = resp.value("thumbnail", "");
+            std::string     path      = resp.value("path", "");
+            boost::uint32_t size      = resp["size"];
+            file.name                 = thumbnail;
+            file.path                 = path;
             if (size > 0) {
-                wxMemoryInputStream mis(data, size);
-                thumb.thumbnail = wxImage(mis, mimetype);
+                if (type != 2) {
+                    wxMemoryInputStream mis(data, size);
+                    file.thumbnail = wxImage(mis, mimetype);
+                } else {
+                    file.local_path = std::string((char *) data, size);
+                    ParseThumbnail(file);
+                }
             }
             return 0;
         },
-        [this](int result, Thumbnail const &thumb) {
-            auto n = thumb.name.find_last_of('.');
-            auto name = n == std::string::npos ? thumb.name : thumb.name.substr(0, n);
-            n = thumb.path.find_last_of('#');
-            auto path = n == std::string::npos ? thumb.path : thumb.path.substr(0, n);
+        [this, files, type](int result, File const &file) {
+            auto n    = file.name.find_last_of('.');
+            auto name = n == std::string::npos ? file.name : file.name.substr(0, n);
+            n         = file.path.find_last_of('#');
+            auto path = n == std::string::npos ? file.path : file.path.substr(0, n);
             auto iter = path.empty() ? std::find_if(m_file_list.begin(), m_file_list.end(), [&name](auto &f) { return boost::algorithm::starts_with(f.name, name); }) :
                                        std::find_if(m_file_list.begin(), m_file_list.end(), [&path](auto &f) { return f.path == path; });
             if (iter != m_file_list.end()) {
-                iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
-                if (thumb.thumbnail.IsOk()) {
-                    iter->thumbnail = thumb.thumbnail;
-                    int index = iter - m_file_list.begin();
-                    SendChangedEvent(EVT_THUMBNAIL, index, thumb.name);
+                if (type == 2) {
+                    if (!file.metadata.empty()) {
+                        iter->metadata = file.metadata;
+                        int index       = iter - m_file_list.begin();
+                        SendChangedEvent(EVT_THUMBNAIL, index, file.name);
+                        auto iter = std::find_if(files->begin(), files->end(), [&path](auto &f) { return f.path == path; });
+                        if (iter != files->end())
+                            iter->metadata = file.metadata;
+                    }
+                } else {
+                    iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
+                    if (file.thumbnail.IsOk()) {
+                        iter->thumbnail = file.thumbnail;
+                        int index       = iter - m_file_list.begin();
+                        SendChangedEvent(EVT_THUMBNAIL, index, file.name);
+                    }
                 }
             }
-            if (result == 0)
-                UpdateFocusThumbnail();
+            if (result == 0) {
+                if (type == 2)
+                    UpdateFocusThumbnail2(files, 3);
+                else 
+                    UpdateFocusThumbnail();
+            }
         });
 }
 

@@ -951,6 +951,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         std::string m_start_part_path;
         std::string m_thumbnail_path;
+        std::string m_thumbnail_middle;
+        std::string m_thumbnail_small;
         std::vector<std::string> m_sub_model_paths;
         std::vector<ObjectImporter*> m_object_importers;
 
@@ -975,6 +977,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config,
             ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn = nullptr, BBLProject *project = nullptr, int plate_id = 0);
         bool get_thumbnail(const std::string &filename, std::string &data);
+        bool load_gcode_3mf_from_stream(std::istream & data, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, Semver& file_version);
         unsigned int version() const { return m_version; }
 
     private:
@@ -1263,8 +1266,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // BBS: load relationships
         if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
             return false;
-        if (!m_thumbnail_path.empty()) {
-            return _extract_from_archive(archive, m_thumbnail_path, [&data](auto &archive, auto const &stat) -> bool {
+        if (m_thumbnail_small.empty()) m_thumbnail_small = m_thumbnail_path;
+        if (!m_thumbnail_small.empty()) {
+            return _extract_from_archive(archive, m_thumbnail_small, [&data](auto &archive, auto const &stat) -> bool {
                 data.resize(stat.m_uncomp_size);
                 return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, data.data(), data.size(), 0);
             });
@@ -1273,6 +1277,170 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             data.resize(stat.m_uncomp_size);
             return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, data.data(), data.size(), 0);
         });
+    }
+
+    static size_t mz_zip_read_istream(void *pOpaque, mz_uint64 file_ofs, void *pBuf, size_t n)
+    {
+        auto & is = *reinterpret_cast<std::istream*>(pOpaque);
+        is.seekg(file_ofs, std::istream::beg);
+        if (!is)
+            return 0;
+        is.read((char *)pBuf, n);
+        return is.gcount();
+    }
+
+    bool _BBS_3MF_Importer::load_gcode_3mf_from_stream(std::istream &data, Model &model, PlateDataPtrs &plate_data_list, DynamicPrintConfig &config, Semver &file_version)
+    {
+        mz_zip_archive archive;
+        mz_zip_zero_struct(&archive);
+        archive.m_pRead = mz_zip_read_istream;
+        archive.m_pIO_opaque = &data;
+
+        data.seekg(0, std::istream::end);
+        mz_uint64 size = data.tellg();
+        data.seekg(0, std::istream::beg);
+        if (!mz_zip_reader_init(&archive, size, 0))
+            return false;
+
+        struct close_lock
+        {
+            mz_zip_archive *archive;
+            void            close()
+            {
+                if (archive) {
+                    mz_zip_reader_end(archive);
+                    archive = nullptr;
+                }
+            }
+            ~close_lock() { close(); }
+        } lock{&archive};
+
+        // BBS: load relationships
+        if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
+            return false;
+        if (m_start_part_path.empty())
+            return false;
+
+        //extract model files
+        if (!_extract_from_archive(archive, m_start_part_path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
+                    return _extract_model_from_archive(archive, stat);
+            })) {
+            add_error("Archive does not contain a valid model");
+            return false;
+        }
+
+        m_model = &model;
+        if (!m_designer.empty()) {
+            m_model->design_info                 = std::make_shared<ModelDesignInfo>();
+            m_model->design_info->DesignerUserId = m_designer_user_id;
+            m_model->design_info->Designer       = m_designer;
+        }
+
+        m_model->profile_info                     = std::make_shared<ModelProfileInfo>();
+        m_model->profile_info->ProfileTile        = m_profile_title;
+        m_model->profile_info->ProfileCover       = m_profile_cover;
+        m_model->profile_info->ProfileDescription = m_Profile_description;
+        m_model->profile_info->ProfileUserId      = m_profile_user_id;
+        m_model->profile_info->ProfileUserName    = m_profile_user_name;
+
+        m_model->model_info = std::make_shared<ModelInfo>();
+        m_model->model_info->load(model_info);
+
+        if (m_thumbnail_middle.empty()) m_thumbnail_middle = m_thumbnail_path;
+        if (m_thumbnail_small.empty()) m_thumbnail_small = m_thumbnail_path;
+        m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_small);
+        m_model->model_info->metadata_items.emplace("Poster", m_thumbnail_middle);
+
+        //BBS: version check
+        bool dont_load_config = !m_load_config;
+        if (m_bambuslicer_generator_version) {
+            Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+            Semver file_version = *m_bambuslicer_generator_version;
+            if (file_version.maj() != app_version.maj())
+                dont_load_config = true;
+        }
+        else {
+            m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
+            dont_load_config = true;
+        }
+
+        // we then loop again the entries to read other files stored in the archive
+        mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
+        mz_zip_archive_file_stat stat;
+        for (mz_uint i = 0; i < num_entries; ++i) {
+            if (mz_zip_reader_file_stat(&archive, i, &stat)) {
+                std::string name(stat.m_filename);
+                std::replace(name.begin(), name.end(), '\\', '/');
+
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract %1%th file %2%, total=%3%\n")%(i+1)%name%num_entries;
+
+                if (!dont_load_config && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
+                    // extract slic3r print config file
+                    ConfigSubstitutionContext config_substitutions(ForwardCompatibilitySubstitutionRule::Disable);
+                    _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
+                }
+                else if (boost::algorithm::iequals(name, BBS_MODEL_CONFIG_FILE)) {
+                    // extract slic3r model config file
+                    if (!_extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element)) {
+                        add_error("Archive does not contain a valid model config");
+                        return false;
+                    }
+                }
+                else if (!dont_load_config && boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
+                    m_parsing_slice_info = true;
+                    //extract slice info from archive
+                    _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
+                    m_parsing_slice_info = false;
+                }
+            }
+        }
+
+        //BBS: load the plate info into plate_data_list
+        std::map<int, PlateData*>::iterator it = m_plater_data.begin();
+        plate_data_list.clear();
+        plate_data_list.reserve(m_plater_data.size());
+        for (unsigned int i = 0; i < m_plater_data.size(); i++)
+        {
+            PlateData* plate = new PlateData();
+            plate_data_list.push_back(plate);
+        }
+        while (it != m_plater_data.end())
+        {
+            if (it->first > m_plater_data.size())
+            {
+                add_error("invalid plate index");
+                return false;
+            }
+            plate_data_list[it->first-1]->locked = it->second->locked;
+            plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
+            plate_data_list[it->first-1]->obj_inst_map = it->second->obj_inst_map;
+            plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : m_backup_path + "/" + it->second->gcode_file;
+            plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
+            plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
+            plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
+            plate_data_list[it->first-1]->is_support_used = it->second->is_support_used;
+            plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
+            plate_data_list[it->first-1]->warnings = it->second->warnings;
+            plate_data_list[it->first-1]->thumbnail_file = it->second->thumbnail_file;
+            //plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
+            plate_data_list[it->first-1]->top_file = it->second->top_file;
+            plate_data_list[it->first-1]->pick_file = it->second->pick_file.empty();
+            plate_data_list[it->first-1]->pattern_bbox_file = it->second->pattern_bbox_file.empty();
+            plate_data_list[it->first-1]->config = it->second->config;
+
+            _extract_from_archive(archive, m_thumbnail_path, [&pixels = plate_data_list[it->first - 1]->plate_thumbnail.pixels](auto &archive, auto const &stat) -> bool {
+                pixels.resize(stat.m_uncomp_size);
+                return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, pixels.data(), pixels.size(), 0);
+            });
+
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate_data_list[it->first-1]->top_file %plate_data_list[it->first-1]->pick_file;
+            it++;
+        }
+
+        lock.close();
+
+        return true;
     }
 
     void _BBS_3MF_Importer::_destroy_xml_parser()
@@ -4002,6 +4170,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             else m_sub_model_paths.push_back(path);
         } else if (boost::starts_with(type, "http://schemas.openxmlformats.org/") && boost::ends_with(type, "thumbnail")) {
             m_thumbnail_path = path;
+        } else if (boost::starts_with(type, "http://schemas.bambulab.com/") && boost::ends_with(type, "cover-thumbnail-middle")) {
+            m_thumbnail_middle = path;
+        } else if (boost::starts_with(type, "http://schemas.bambulab.com/") && boost::ends_with(type, "cover-thumbnail-small")) {
+            m_thumbnail_small = path;
         }
         return true;
     }
@@ -7650,6 +7822,15 @@ std::string bbs_3mf_get_thumbnail(const char *path)
     bool res = importer.get_thumbnail(path, data);
     if (!res) importer.log_errors();
     return data;
+}
+
+bool load_gcode_3mf_from_stream(std::istream &data, DynamicPrintConfig *config, Model *model, PlateDataPtrs *plate_data_list, Semver *file_version)
+{
+    CNumericLocalesSetter locales_setter;
+    _BBS_3MF_Importer     importer;
+    bool res = importer.load_gcode_3mf_from_stream(data, *model, *plate_data_list, *config, *file_version);
+    importer.log_errors();
+    return res;
 }
 
 bool store_bbs_3mf(StoreParams& store_params)
