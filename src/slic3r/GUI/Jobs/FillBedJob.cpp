@@ -6,6 +6,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "libnest2d/common.hpp"
 
 #include <numeric>
 
@@ -134,14 +135,15 @@ void FillBedJob::prepare()
                     ap.bed_idx = arrangement::UNARRANGED;
 
                 m_unselected.emplace_back(ap);
-            }
-
+            }*/
     if (auto wt = get_wipe_tower_arrangepoly(*m_plater))
-        m_unselected.emplace_back(std::move(*wt));*/
+        m_unselected.emplace_back(std::move(*wt));
 
     double sc = scaled<double>(1.) * scaled(1.);
 
-    ExPolygon poly = m_selected.front().poly;
+    const GLCanvas3D::ArrangeSettings& settings = static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
+    auto polys = offset_ex(m_selected.front().poly, scaled(settings.distance) / 2);
+    ExPolygon poly = polys.empty() ? m_selected.front().poly : polys.front();
     double poly_area = poly.area() / sc;
     double unsel_area = std::accumulate(m_unselected.begin(),
                                         m_unselected.end(), 0.,
@@ -171,8 +173,10 @@ void FillBedJob::prepare()
         ap.itemid = -1;
         ap.setter = [this, mi](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
-            ModelInstance *inst = mo->add_instance(*mi);
-            inst->apply_arrange_result(p.translation.cast<double>(), p.rotation);
+            ModelObject* newObj = m_plater->model().add_object(*mo);
+            newObj->name = mo->name +" "+ std::to_string(p.itemid);
+            for (ModelInstance *newInst : newObj->instances) { newInst->apply_arrange_result(p.translation.cast<double>(), p.rotation); }
+            //m_plater->sidebar().obj_list()->paste_objects_into_list({m_plater->model().objects.size()-1});
         };
         m_selected.emplace_back(ap);
     }
@@ -199,6 +203,13 @@ void FillBedJob::process()
     arrangement::ArrangeParams params;
     params.allow_rotations  = settings.enable_rotation;
     params.min_obj_distance = scaled(settings.distance);
+    params.avoid_extrusion_cali_region = settings.avoid_extrusion_cali_region;
+    auto &partplate_list               = m_plater->get_partplate_list();
+    auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer")) 
+        partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
+
+    for (auto &ap : m_selected) { ap.inflation = params.min_obj_distance / 2; }
 
     bool do_stop = false;
     params.stopcondition = [this, &do_stop]() {
@@ -206,8 +217,8 @@ void FillBedJob::process()
     };
 
     params.progressind = [this](unsigned st,std::string str="") {
-        // if (st > 0)
-        //     update_status(int(m_status_range - st), _L("Filling bed " + str));
+         if (st > 0)
+             update_status(st, _L("Filling bed " + str));
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
@@ -217,9 +228,9 @@ void FillBedJob::process()
     arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 
     // finalize just here.
-    // update_status(m_status_range, was_canceled() ?
-    //                                   _(L("Bed filling canceled.")) :
-    //                                   _(L("Bed filling done.")));
+    update_status(m_status_range, was_canceled() ?
+                                       _(L("Bed filling canceled.")) :
+                                       _(L("Bed filling done.")));
 }
 
 void FillBedJob::finalize()
@@ -243,11 +254,14 @@ void FillBedJob::finalize()
         return s + int(ap.priority == 0 && ap.bed_idx == 0);
     });
 
+    int oldSize = m_plater->model().objects.size();
+
     if (added_cnt > 0) {
         //BBS: adjust the selected instances
         for (ArrangePolygon& ap : m_selected) {
             if (ap.bed_idx != 0) {
-                if (ap.itemid == -1)
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":skipped: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+                /*if (ap.itemid == -1)*/
                     continue;
                 ap.bed_idx = plate_list.get_plate_count();
             }
@@ -263,33 +277,24 @@ void FillBedJob::finalize()
 
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
         }
-        for (size_t inst_idx = 0; inst_idx < model_object->instances.size(); ++inst_idx)
-        {
-            plate_list.notify_instance_update(m_object_idx, inst_idx);
+
+        int   newSize = m_plater->model().objects.size();
+        auto obj_list = m_plater->sidebar().obj_list();
+        for (size_t i = oldSize; i < newSize; i++) {
+            obj_list->add_object_to_list(i, true, true, false);
         }
+
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": paste_objects_into_list";
 
         /*for (ArrangePolygon& ap : m_selected) {
             if (ap.bed_idx != arrangement::UNARRANGED && (ap.priority != 0 || ap.bed_idx == 0))
                 ap.apply();
         }*/
 
-        model_object->ensure_on_bed();
+        //model_object->ensure_on_bed();
+        //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": model_object->ensure_on_bed()";
 
         m_plater->update();
-
-        //BBS: add partplate related logic
-        int added_cnt = std::accumulate(m_selected.begin(), m_selected.end(), 0,
-            [cur_plate](int s, auto& ap) {
-                return s + int(ap.priority == 0 && ap.bed_idx == cur_plate);
-                //return s + int(ap.priority == 0 && ap.bed_idx == 0);
-            });
-
-        // FIXME: somebody explain why this is needed for increase_object_instances
-        if (inst_cnt == 1) added_cnt++;
-
-        if (added_cnt > 0)
-            m_plater->sidebar()
-                .obj_list()->increase_object_instances(m_object_idx, size_t(added_cnt));
     }
 
     Job::finalize();

@@ -325,7 +325,8 @@ public:
     void                part_selection_changed();
 
     // Add object to the list
-    void add_object_to_list(size_t obj_idx, bool call_selection_changed = true, bool notify_partplate = true);
+    // @param do_info_update: [Arthur] this function becomes slow as more functions are added, but I only need a fast version in FillBedJob, and I don't care about any info updates, so I pass a do_info_update param to skip all the uneccessary steps.
+    void add_object_to_list(size_t obj_idx, bool call_selection_changed = true, bool notify_partplate = true, bool do_info_update = true);
     // Add object's volumes to the list
     // Return selected items, if add_to_selection is defined
     wxDataViewItemArray add_volumes_to_object_in_list(size_t obj_idx, std::function<bool(const ModelVolume *)> add_to_selection = nullptr);

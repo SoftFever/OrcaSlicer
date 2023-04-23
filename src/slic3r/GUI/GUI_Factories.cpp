@@ -1013,6 +1013,7 @@ void MenuFactory::create_object_menu()
 
 void MenuFactory::create_bbl_object_menu()
 {
+    append_menu_item_fill_bed(&m_object_menu);
     // Object Clone
     append_menu_item_clone(&m_object_menu);
     // Object Repair
@@ -1620,6 +1621,12 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
     }, item->GetId());
 }
 
+void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
+{
+    append_menu_item(
+        menu, wxID_ANY, _L("Fill bed with copies") + dots, _L("Fill the remaining area of bed with copies of the selected object"),
+        [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
+}
 
 void MenuFactory::update_object_menu()
 {

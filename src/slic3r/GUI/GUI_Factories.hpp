@@ -150,7 +150,7 @@ private:
     void        append_menu_item_change_filament(wxMenu* menu);
     void        append_menu_item_set_printable(wxMenu* menu);
     void        append_menu_item_locked(wxMenu* menu);
-
+    void        append_menu_item_fill_bed(wxMenu *menu);
 };
 
 }}

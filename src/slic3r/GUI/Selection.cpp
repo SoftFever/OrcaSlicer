@@ -1961,7 +1961,9 @@ void Selection::update_type()
                 unsigned int sels_cntr = 0;
                 for (ObjectIdxsToInstanceIdxsMap::iterator it = m_cache.content.begin(); it != m_cache.content.end(); ++it)
                 {
-                    const ModelObject* model_object = m_model->objects[it->first];
+                    bool               is_wipe_tower   = it->first >= 1000;
+                    int                actual_obj_id   = is_wipe_tower ? it->first - 1000 : it->first;
+                    const ModelObject *model_object    = m_model->objects[actual_obj_id];
                     unsigned int volumes_count = (unsigned int)model_object->volumes.size();
                     unsigned int instances_count = (unsigned int)model_object->instances.size();
                     sels_cntr += volumes_count * instances_count;

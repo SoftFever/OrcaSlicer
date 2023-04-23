@@ -765,8 +765,8 @@ void ArrangeJob::finalize() {
 std::optional<arrangement::ArrangePolygon>
 get_wipe_tower_arrangepoly(const Plater &plater)
 {
-    // BBS FIXME: use actual plate_idx
-    if (auto wti = get_wipe_tower(plater, 0))
+    int id = plater.canvas3D()->fff_print()->get_plate_index();
+    if (auto wti = get_wipe_tower(plater, id))
         return get_wipetower_arrange_poly(&wti);
 
     return {};
@@ -775,12 +775,12 @@ get_wipe_tower_arrangepoly(const Plater &plater)
 //BBS: add sudoku-style stride
 double bed_stride_x(const Plater* plater) {
     double bedwidth = plater->build_volume().bounding_box().size().x();
-    return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
+    return (1. + LOGICAL_BED_GAP) * bedwidth;
 }
 
 double bed_stride_y(const Plater* plater) {
     double beddepth = plater->build_volume().bounding_box().size().y();
-    return scaled<double>((1. + LOGICAL_BED_GAP) * beddepth);
+    return (1. + LOGICAL_BED_GAP) * beddepth;
 }
 
 
