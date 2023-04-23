@@ -11344,11 +11344,18 @@ void Plater::show_object_info()
 {
     NotificationManager *notify_manager = get_notification_manager();
     const Selection& selection = get_selection();
+    int selCount = selection.get_volume_idxs().size();
     ModelObjectPtrs objects = model().objects;
     int obj_idx = selection.get_object_idx();
     std::string info_text;
 
-    if (objects.empty() || (obj_idx < 0) || (obj_idx >= objects.size()) ||
+    if (selCount > 1) {
+        notify_manager->bbl_close_objectsinfo_notification();
+        info_text += (boost::format(_utf8(L("Number of currently selected parts: %1%\n"))) % selCount).str();
+        notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D));
+        return;
+    }
+    else if (objects.empty() || (obj_idx < 0) || (obj_idx >= objects.size()) ||
         objects[obj_idx]->volumes.empty() ||// hack to avoid crash when deleting the last object on the bed
         (selection.is_single_full_object() && objects[obj_idx]->instances.size()> 1) ||
         !(selection.is_single_full_instance() || selection.is_single_volume()))
