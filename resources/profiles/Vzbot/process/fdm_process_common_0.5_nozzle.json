@@ -61,7 +61,7 @@
     "support_threshold_angle": "40",
     "support_object_xy_distance": "0.5",
     "detect_thin_wall": "0",
-    "top_surface_line_width": "0.55",
+    "top_surface_line_width": "0.52",
     "top_surface_speed": "30",
     "travel_speed": "400",
     "enable_prime_tower": "0",
