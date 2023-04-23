@@ -771,10 +771,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Thickness"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(list_width);
-    if(ImGui::InputFloat("###text_thickness", &m_thickness,0.0f, 0.0f, "%.2f"))
-        m_need_update_text = true;
+    float old_value = m_thickness;
+    ImGui::InputFloat("###text_thickness", &m_thickness, 0.0f, 0.0f, "%.2f");
     if (m_thickness < 0.1f)
         m_thickness = 0.1f;
+    if (old_value != m_thickness)
+        m_need_update_text = true;
 
     const float slider_icon_width = m_imgui->get_slider_icon_size().x;
     const float slider_width      = list_width - 1.5 * slider_icon_width - space_size;
@@ -806,10 +808,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Embeded\ndepth"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(list_width);
-    if (ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f"))
-        m_need_update_text = true;
+    old_value = m_embeded_depth;
+    ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f");
     if (m_embeded_depth < 0.f)
         m_embeded_depth = 0.f;
+    if (old_value != m_embeded_depth)
+        m_need_update_text = true;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Input text"));
@@ -1468,6 +1472,11 @@ void GLGizmoText::generate_text_volume(bool is_temp)
 
     TextInfo text_info = get_text_info();
     if (m_is_modify && m_need_update_text) {
+        if (m_object_idx == -1 || m_volume_idx == -1) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Text: selected object_idx = %1%, volume_idx = %2%") % m_object_idx % m_volume_idx;
+            return;
+        }
+
         plater->take_snapshot("Modify Text");
         const Selection &selection        = m_parent.get_selection();
         ModelObject *    model_object     = selection.get_model()->objects[m_object_idx];
