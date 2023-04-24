@@ -19,9 +19,7 @@
         "8"
     ],
 "compatible_printers": [
-
       "MyKlipper 0.4 nozzle",
-      "MyMarlin 0.4 nozzle",
-      "OrcaArena 0.4 nozzle"
+      "MyMarlin 0.4 nozzle"
     ]
 }

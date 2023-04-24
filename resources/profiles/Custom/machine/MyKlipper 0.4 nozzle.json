@@ -5,7 +5,7 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
-  "printer_model": "MyKlipper",
+  "printer_model": "Generaic Klipper Printer",
   "nozzle_diameter": [
     "0.4"
   ],

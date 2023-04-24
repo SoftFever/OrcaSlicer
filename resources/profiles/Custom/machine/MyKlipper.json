@@ -1,6 +1,6 @@
 {
     "type": "machine_model",
-    "name": "MyKlipper",
+    "name": "Generaic Klipper Printer",
     "model_id": "my_klipper_01",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",

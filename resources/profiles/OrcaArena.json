@@ -92,56 +92,8 @@
             "sub_path": "process/0.30mm Standard @Arena X1C 0.6 nozzle.json"
         },
         {
-            "name": "0.30mm Standard @Arena X1 0.6 nozzle",
-            "sub_path": "process/0.30mm Standard @Arena X1 0.6 nozzle.json"
-        },
-        {
             "name": "0.40mm Standard @Arena X1C 0.8 nozzle",
             "sub_path": "process/0.40mm Standard @Arena X1C 0.8 nozzle.json"
-        },
-        {
-            "name": "0.40mm Standard @Arena X1 0.8 nozzle",
-            "sub_path": "process/0.40mm Standard @Arena X1 0.8 nozzle.json"
-        },
-        {
-            "name":"0.10mm Standard @Arena P1P 0.2 nozzle",
-            "sub_path":"process/0.10mm Standard @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"0.20mm Standard @Arena P1P",
-            "sub_path":"process/0.20mm Standard @Arena P1P.json"
-        },
-        {
-            "name":"0.30mm Standard @Arena P1P 0.6 nozzle",
-            "sub_path":"process/0.30mm Standard @Arena P1P 0.6 nozzle.json"
-        },
-        {
-            "name":"0.08mm Extra Fine @Arena P1P",
-            "sub_path":"process/0.08mm Extra Fine @Arena P1P.json"
-        },
-        {
-            "name":"0.12mm Fine @Arena P1P",
-            "sub_path":"process/0.12mm Fine @Arena P1P.json"
-        },
-        {
-            "name":"0.16mm Optimal @Arena P1P",
-            "sub_path":"process/0.16mm Optimal @Arena P1P.json"
-        },
-        {
-            "name":"0.20mm Strength @Arena P1P",
-            "sub_path":"process/0.20mm Strength @Arena P1P.json"
-        },
-        {
-            "name":"0.24mm Draft @Arena P1P",
-            "sub_path":"process/0.24mm Draft @Arena P1P.json"
-        },
-        {
-            "name":"0.28mm Extra Draft @Arena P1P",
-            "sub_path":"process/0.28mm Extra Draft @Arena P1P.json"
-        },
-        {
-            "name":"0.40mm Standard @Arena P1P 0.8 nozzle",
-            "sub_path":"process/0.40mm Standard @Arena P1P 0.8 nozzle.json"
         },
         {
             "name": "fdm_process_bbl_0.06_nozzle_0.2",
@@ -442,20 +394,12 @@
             "sub_path": "filament/Generic PETG-CF @Arena X1C.json"
         },
         {
-            "name": "Generic PETG-CF @Arena P1P",
-            "sub_path": "filament/P1P/Generic PETG-CF @Arena P1P.json"
-        },
-        {
             "name": "Arena PETG-CF @base",
             "sub_path": "filament/Arena PETG-CF @base.json"
         },
         {
             "name": "Arena PETG-CF @Arena X1C",
             "sub_path": "filament/Arena PETG-CF @Arena X1C.json"
-        },
-        {
-            "name": "Arena PETG-CF @Arena P1P",
-            "sub_path": "filament/P1P/Arena PETG-CF @Arena P1P.json"
         },
         {
             "name": "Generic PVA @0.2 nozzle",
@@ -478,10 +422,6 @@
             "sub_path": "filament/Arena TPU 95A @Arena X1C.json"
         },
         {
-            "name": "Arena TPU 95A @Arena X1",
-            "sub_path": "filament/Arena TPU 95A @Arena X1.json"
-        },
-        {
             "name": "Arena PLA Matte @Arena X1C",
             "sub_path": "filament/Arena PLA Matte @Arena X1C.json"
         },
@@ -492,10 +432,6 @@
         {
             "name": "Arena PLA Matte @Arena X1C 0.8 nozzle",
             "sub_path": "filament/Arena PLA Matte @Arena X1C 0.8 nozzle.json"
-        },
-        {
-            "name": "Arena PLA Matte @Arena X1",
-            "sub_path": "filament/Arena PLA Matte @Arena X1.json"
         },
         {
             "name": "Arena PLA Basic @Arena X1C",
@@ -510,10 +446,6 @@
             "sub_path": "filament/Arena PLA Basic @Arena X1C 0.8 nozzle.json"
         },
         {
-            "name": "Arena PLA Basic @Arena X1",
-            "sub_path": "filament/Arena PLA Basic @Arena X1.json"
-        },
-        {
             "name": "Arena PLA Tough @Arena X1C",
             "sub_path": "filament/Arena PLA Tough @Arena X1C.json"
         },
@@ -522,28 +454,12 @@
             "sub_path": "filament/Arena PLA Tough @Arena X1C 0.2 nozzle.json"
         },
         {
-            "name": "Arena PLA Tough @Arena X1",
-            "sub_path": "filament/Arena PLA Tough @Arena X1.json"
-        },
-        {
-            "name": "Arena PLA Marble @Arena X1",
-            "sub_path": "filament/Arena PLA Marble @Arena X1.json"
-        },
-        {
             "name": "Arena PLA Marble @Arena X1C",
             "sub_path": "filament/Arena PLA Marble @Arena X1C.json"
         },
         {
-            "name": "Arena PLA Sparkle @Arena X1",
-            "sub_path": "filament/Arena PLA Sparkle @Arena X1.json"
-        },
-        {
             "name": "Arena PLA Sparkle @Arena X1C",
             "sub_path": "filament/Arena PLA Sparkle @Arena X1C.json"
-        },
-        {
-            "name": "Arena PLA Silk @Arena X1",
-            "sub_path": "filament/Arena PLA Silk @Arena X1.json"
         },
         {
             "name": "Arena PLA Silk @Arena X1C 0.2 nozzle",
@@ -552,14 +468,6 @@
         {
             "name": "Arena PLA Silk @Arena X1C",
             "sub_path": "filament/Arena PLA Silk @Arena X1C.json"
-        },
-        {
-            "name": "Arena PLA Silk @Arena P1P",
-            "sub_path": "filament/P1P/Arena PLA Silk @Arena P1P.json"
-        },
-        {
-            "name": "Arena PLA Silk @Arena P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/Arena PLA Silk @Arena P1P 0.2 nozzle.json"
         },
         {
             "name": "Arena PETG Basic @Arena X1C",
@@ -594,10 +502,6 @@
             "sub_path": "filament/Arena Support W @Arena X1C 0.2 nozzle.json"
         },
         {
-            "name": "Arena Support W @Arena X1",
-            "sub_path": "filament/Arena Support W @Arena X1.json"
-        },
-        {
             "name": "Arena Support G @Arena X1C",
             "sub_path": "filament/Arena Support G @Arena X1C.json"
         },
@@ -626,16 +530,8 @@
             "sub_path": "filament/PolyLite PLA @Arena X1C.json"
         },
         {
-            "name": "PolyLite PLA @Arena X1",
-            "sub_path": "filament/PolyLite PLA @Arena X1.json"
-        },
-        {
             "name": "PolyTerra PLA @Arena X1C",
             "sub_path": "filament/PolyTerra PLA @Arena X1C.json"
-        },
-        {
-            "name": "PolyTerra PLA @Arena X1",
-            "sub_path": "filament/PolyTerra PLA @Arena X1.json"
         },
         {
             "name": "PolyTerra PLA @Arena X1C 0.2 nozzle",
@@ -646,116 +542,12 @@
             "sub_path": "filament/PolyLite PLA @Arena X1C 0.2 nozzle.json"
         },
         {
-            "name":"Arena Support G @Arena P1P",
-            "sub_path":"filament/P1P/Arena Support G @Arena P1P.json"
-        },
-        {
-            "name": "Arena ABS @Arena P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/Arena ABS @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena PLA Matte @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/Arena PLA Matte @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena PLA Matte @Arena P1P",
-            "sub_path":"filament/P1P/Arena PLA Matte @Arena P1P.json"
-        },
-        {
-            "name":"Arena PLA Basic @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/Arena PLA Basic @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena PLA Basic @Arena P1P",
-            "sub_path":"filament/P1P/Arena PLA Basic @Arena P1P.json"
-        },
-        {
-            "name":"Arena PLA Tough @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/Arena PLA Tough @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena PLA Tough @Arena P1P",
-            "sub_path":"filament/P1P/Arena PLA Tough @Arena P1P.json"
-        },
-        {
-            "name":"Arena PLA Marble @Arena P1P",
-            "sub_path":"filament/P1P/Arena PLA Marble @Arena P1P.json"
-        },
-        {
-            "name":"Arena PLA Sparkle @Arena P1P",
-            "sub_path":"filament/P1P/Arena PLA Sparkle @Arena P1P.json"
-        },
-        {
-            "name": "Arena ABS @Arena P1P",
-            "sub_path": "filament/P1P/Arena ABS @Arena P1P.json"
-        },
-        {
-            "name": "Arena PC @Arena P1P",
-            "sub_path": "filament/P1P/Arena PC @Arena P1P.json"
-        },
-        {
-            "name": "Arena PC @Arena P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/Arena PC @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name": "Arena Support W @Arena P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/Arena Support W @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena TPU 95A @Arena P1P",
-            "sub_path":"filament/P1P/Arena TPU 95A @Arena P1P.json"
-        },
-        {
-            "name": "Arena Support W @Arena P1P",
-            "sub_path": "filament/P1P/Arena Support W @Arena P1P.json"
-        },
-        {
-            "name":"Generic PLA @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/Generic PLA @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Generic PLA @Arena P1P",
-            "sub_path":"filament/P1P/Generic PLA @Arena P1P.json"
-        },
-        {
-            "name":"Generic PLA Silk @Arena P1P",
-            "sub_path":"filament/P1P/Generic PLA Silk @Arena P1P.json"
-        },
-        {
-            "name": "Generic ABS @Arena P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/Generic ABS @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name": "Generic ABS @Arena P1P",
-            "sub_path": "filament/P1P/Generic ABS @Arena P1P.json"
-        },
-        {
-            "name": "Generic ASA @Arena P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/Generic ASA @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name": "Generic ASA @Arena P1P",
-            "sub_path": "filament/P1P/Generic ASA @Arena P1P.json"
-        },
-        {
-            "name": "Generic PC @Arena P1P 0.2 nozzle",
-            "sub_path": "filament/P1P/Generic PC @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name": "Generic PC @Arena P1P",
-            "sub_path": "filament/P1P/Generic PC @Arena P1P.json"
-        },
-        {
             "name":"Generic PETG @0.2 nozzle",
             "sub_path":"filament/Generic PETG @0.2 nozzle.json"
         },
         {
             "name":"Arena PLA Metal @Arena X1C 0.2 nozzle",
             "sub_path":"filament/Arena PLA Metal @Arena X1C 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena PLA Metal @Arena X1",
-            "sub_path":"filament/Arena PLA Metal @Arena X1.json"
         },
         {
             "name":"Arena PLA Metal @Arena X1C",
@@ -780,86 +572,6 @@
         {
             "name":"Arena PAHT-CF @Arena X1C",
             "sub_path":"filament/Arena PAHT-CF @Arena X1C.json"
-        },
-        {
-            "name": "Generic PETG @Arena P1P",
-            "sub_path": "filament/P1P/Generic PETG @Arena P1P.json"
-        },
-        {
-            "name":"Generic PVA @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/Generic PVA @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Generic PVA @Arena P1P",
-            "sub_path":"filament/P1P/Generic PVA @Arena P1P.json"
-        },
-        {
-            "name":"Generic TPU @Arena P1P",
-            "sub_path":"filament/P1P/Generic TPU @Arena P1P.json"
-        },
-        {
-            "name":"PolyLite PLA @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/PolyLite PLA @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"PolyLite PLA @Arena P1P",
-            "sub_path":"filament/P1P/PolyLite PLA @Arena P1P.json"
-        },
-        {
-            "name":"PolyTerra PLA @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/PolyTerra PLA @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"PolyTerra PLA @Arena P1P",
-            "sub_path":"filament/P1P/PolyTerra PLA @Arena P1P.json"
-        },
-        {
-            "name":"Arena PA-CF @Arena P1P",
-            "sub_path":"filament/P1P/Arena PA-CF @Arena P1P.json"
-        },
-        {
-            "name":"Generic PA-CF @Arena P1P",
-            "sub_path":"filament/P1P/Generic PA-CF @Arena P1P.json"
-        },
-        {
-            "name":"Generic PA @Arena P1P",
-            "sub_path":"filament/P1P/Generic PA @Arena P1P.json"
-        },
-        {
-            "name":"Generic PETG @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/Generic PETG @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena PAHT-CF @Arena P1P",
-            "sub_path":"filament/P1P/Arena PAHT-CF @Arena P1P.json"
-        },
-        {
-            "name":"Arena PLA Metal @Arena P1P 0.2 nozzle",
-            "sub_path":"filament/P1P/Arena PLA Metal @Arena P1P 0.2 nozzle.json"
-        },
-        {
-            "name":"Arena PLA Metal @Arena P1P",
-            "sub_path":"filament/P1P/Arena PLA Metal @Arena P1P.json"
-        },
-        {
-            "name":"Arena PLA-CF @Arena P1P",
-            "sub_path":"filament/P1P/Arena PLA-CF @Arena P1P.json"
-        },
-        {
-            "name":"Generic PLA-CF @Arena P1P",
-            "sub_path":"filament/P1P/Generic PLA-CF @Arena P1P.json"
-        },
-        {
-            "name":"Arena PLA-CF @Arena P1P 0.8 nozzle",
-            "sub_path":"filament/P1P/Arena PLA-CF @Arena P1P 0.8 nozzle.json"
-        },
-        {
-            "name": "Arena PET-CF @Arena X1C",
-            "sub_path": "filament/Arena PET-CF @Arena X1C.json"
-        },
-        {
-            "name": "Arena PET-CF @Arena P1P",
-            "sub_path": "filament/P1P/Arena PET-CF @Arena P1P.json"
         }
     ],
     "machine_list": [
