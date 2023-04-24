@@ -6,8 +6,8 @@
     "nozzle_diameter": "0.4;0.2;0.6;0.8",
     "machine_tech": "FFF",
     "family": "ARENA-3DP",
-    "bed_model": "bbl-3dp-X1.stl",
-    "bed_texture": "bbl-3dp-logo.svg",
-    "hotend_model": "bbl-3dp-hotend.stl",
+    "bed_model": "",
+    "bed_texture": "",
+    "hotend_model": "",
     "default_materials": "Generic PLA @Arena P1P;Generic PLA Silk @Arena P1P;Arena PLA Matte @Arena P1P;Arena PLA Basic @Arena P1P;Arena ABS @Arena P1P;Arena PC @Arena P1P;Arena Support W @Arena P1P;Arena TPU 95A @Arena P1P;PolyTerra PLA @Arena P1P;PolyLite PLA @Arena P1P;"
 }
