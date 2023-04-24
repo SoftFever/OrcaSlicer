@@ -725,7 +725,7 @@ static std::vector<std::string> s_Preset_print_options {
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
     // BBS
-    //"independent_support_layer_height",
+    "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
     "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence",
@@ -747,16 +747,16 @@ static std::vector<std::string> s_Preset_print_options {
      "initial_layer_infill_speed", "only_one_wall_top", 
      "timelapse_type", "internal_bridge_support_thickness",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
-     "wall_distribution_count", "min_feature_size", "min_bead_width",
+     "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process",
      // SoftFever
-     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "post_process", "travel_acceleration","inner_wall_acceleration",
+     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "travel_acceleration","inner_wall_acceleration",
      "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
      "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio","only_one_wall_first_layer", "print_flow_ratio", "seam_gap",
-    "role_based_wipe_speed", "wipe_speed", "accel_to_decel_enable", "accel_to_decel_factor", "wipe_on_loops",
-    "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
-    "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
-    "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
-    "initial_layer_travel_speed", "exclude_object"
+     "role_based_wipe_speed", "wipe_speed", "accel_to_decel_enable", "accel_to_decel_factor", "wipe_on_loops",
+     "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
+     "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
+     "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
+     "initial_layer_travel_speed", "exclude_object"
 
 };
 
@@ -3187,6 +3187,9 @@ namespace PresetUtils {
             if (!boost::filesystem::exists(boost::filesystem::path(out)))
                 out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->hotend_model;
         }
+        
+        if(out.empty())
+            out = Slic3r::resources_dir() + "/profiles/hotend.stl";
         return out;
     }
 } // namespace PresetUtils

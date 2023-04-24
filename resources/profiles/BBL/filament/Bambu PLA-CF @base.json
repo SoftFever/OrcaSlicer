@@ -8,6 +8,12 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "cool_plate_temp" : [
+        "45"
+    ],
+    "cool_plate_temp_initial_layer" : [
+        "45"
+    ],
     "filament_cost": [
         "34.99"
     ],

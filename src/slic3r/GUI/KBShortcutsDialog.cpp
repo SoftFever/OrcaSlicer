@@ -183,7 +183,12 @@ void KBShortcutsDialog::fill_shortcuts()
             // Slice plate
             { ctrl + "R", L("Slice plate")},
             // Send to Print
-            { ctrl + "Shift" + "G", L("Print plate")},
+#ifdef __APPLE__
+            { L("⌘+Shift+G"), L("Print plate")},
+#else
+            { L("Ctrl+Shift+G"), L("Print plate")},
+#endif // __APPLE
+
             // Edit
             { ctrl + "X", L("Cut") },
             { ctrl + "C", L("Copy to clipboard") },
@@ -196,7 +201,7 @@ void KBShortcutsDialog::fill_shortcuts()
             #ifdef __APPLE__
                 {"fn+⌫", L("Delete selected")},
             #else
-                {"Del", L("Delete selected")},
+                {L("Del"), L("Delete selected")},
             #endif
             // Help
             { "?", L("Show keyboard shortcuts list") }
@@ -208,12 +213,12 @@ void KBShortcutsDialog::fill_shortcuts()
             { L("Right mouse button"), L("Pan View") },
             { L("Mouse wheel"), L("Zoom View") },
             { "A", L("Arrange all objects") },
-            { "Shift+A", L("Arrange objects on selected plates") },
+            { L("Shift+A"), L("Arrange objects on selected plates") },
 
             //{ "R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project.") },
-            {"Shift+R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
+            {L("Shift+R"), L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
 
-            {"Shift+Tab", L("Collapse/Expand the sidebar")},
+            {L("Shift+Tab"), L("Collapse/Expand the sidebar")},
             #ifdef __APPLE__
                 {L("⌘+Any arrow"), L("Movement in camera space")},
                 {L("⌥+Left mouse button"), L("Select a part")},
@@ -230,7 +235,7 @@ void KBShortcutsDialog::fill_shortcuts()
             {L("Arrow Left"), L("Move selection 10 mm in negative X direction")},
             {L("Arrow Right"), L("Move selection 10 mm in positive X direction")},
             {L("Shift+Any arrow"), L("Movement step set to 1 mm")},
-            {"Esc", L("Deselect all")},
+            {L("Esc"), L("Deselect all")},
             {"1-9", L("keyboard 1-9: set filament for object/part")},
             {ctrl + "0", L("Camera view - Default")},
             {ctrl + "1", L("Camera view - Top")},
@@ -257,8 +262,8 @@ void KBShortcutsDialog::fill_shortcuts()
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
 
         Shortcuts gizmos_shortcuts = {
-            {"Esc", L("Deselect all")},
-            {"Shift+", L("Move: press to snap by 1mm") },
+            {L("Esc"), L("Deselect all")},
+            {L("Shift+"), L("Move: press to snap by 1mm")},
             #ifdef __APPLE__
                 {L("⌘+Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
                 {L("⌥+Mouse wheel"), L("Support/Color Painting: adjust section position")},
@@ -271,8 +276,8 @@ void KBShortcutsDialog::fill_shortcuts()
 
         Shortcuts object_list_shortcuts = {
             {"1-9", L("Set extruder number for the objects and parts") },
-            {"Del", L("Delete objects, parts, modifiers  ")},
-            {"Esc", L("Deselect all")},
+            {L("Del"), L("Delete objects, parts, modifiers  ")},
+            {L("Esc"), L("Deselect all")},
             {ctrl + "C", L("Copy to clipboard")},
             {ctrl + "V", L("Paste from clipboard")},
             {ctrl + "X", L("Cut")},

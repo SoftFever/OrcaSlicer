@@ -1,6 +1,6 @@
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
-#include "ExPolygonCollection.hpp"
+#include "ExPolygon.hpp"
 #include "ClipperUtils.hpp"
 #include "Extruder.hpp"
 #include "Flow.hpp"
@@ -12,14 +12,14 @@
 
 namespace Slic3r {
     
-void ExtrusionPath::intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
+void ExtrusionPath::intersect_expolygons(const ExPolygons &collection, ExtrusionEntityCollection* retval) const
 {
-    this->_inflate_collection(intersection_pl(Polylines{ polyline }, collection.expolygons), retval);
+    this->_inflate_collection(intersection_pl(Polylines{ polyline }, collection), retval);
 }
 
-void ExtrusionPath::subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const
+void ExtrusionPath::subtract_expolygons(const ExPolygons &collection, ExtrusionEntityCollection* retval) const
 {
-    this->_inflate_collection(diff_pl(Polylines{ this->polyline }, collection.expolygons), retval);
+    this->_inflate_collection(diff_pl(Polylines{ this->polyline }, collection), retval);
 }
 
 void ExtrusionPath::clip_end(double distance)

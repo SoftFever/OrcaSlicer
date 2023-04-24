@@ -613,8 +613,14 @@ std::vector<float> WipingPanel::read_matrix_values() {
     for (unsigned int i=0;i<m_number_of_extruders;++i) {
         for (unsigned int j=0;j<m_number_of_extruders;++j) {
             double val = 0.;
-            edit_boxes[j][i]->GetValue().ToDouble(&val);
-            output.push_back((float)val / get_flush_multiplier());
+            float  flush_multipler = get_flush_multiplier();
+            if (flush_multipler == 0) {
+                output.push_back(0.);
+            }
+            else {
+                edit_boxes[j][i]->GetValue().ToDouble(&val);
+                output.push_back((float) val / get_flush_multiplier());
+            }
         }
     }
     return output;

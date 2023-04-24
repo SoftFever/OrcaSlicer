@@ -33,6 +33,8 @@
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
 #define VIRTUAL_TRAY_ID         254
+#define START_SEQ_ID            20000
+#define END_SEQ_ID              30000
 
 inline int correct_filament_temperature(int filament_temp)
 {
@@ -89,7 +91,9 @@ enum PrinterFunction {
     FUNC_AUTO_SWITCH_FILAMENT,
     FUNC_CHAMBER_FAN,
     FUNC_EXTRUSION_CALI,
+    FUNC_VIRTUAL_TYAY,
     FUNC_PRINT_ALL,
+    FUNC_FILAMENT_BACKUP,
     FUNC_MAX
 };
 
@@ -191,6 +195,7 @@ public:
     std::string     type;
     std::string     sub_brands;
     std::string     color;
+    std::vector<std::string> cols;
     std::string     weight;
     std::string     diameter;
     std::string     temp;
@@ -389,7 +394,7 @@ public:
     };
 
     /* static members and functions */
-    static inline int m_sequence_id = 20000;
+    static inline int m_sequence_id = START_SEQ_ID;
     static std::string parse_printer_type(std::string type_str);
     static std::string get_preset_printer_model_name(std::string printer_type);
     static std::string get_preset_printer_thumbnail_img(std::string printer_type);
@@ -430,9 +435,12 @@ public:
     std::string get_printer_thumbnail_img_str();
     std::string product_name;       // set by iot service, get /user/print
 
+    std::vector<int> filam_bak;
+
     std::string bind_user_name;
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */
+    std::string bind_sec_link;
     bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;
@@ -605,7 +613,8 @@ public:
     void parse_status(int flag);
 
     /* printing status */
-    std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
+    std::string print_status;      /* enum string: FINISH, SLICING, RUNNING, PAUSE, INIT, FAILED */
+    int queue_number = 0;
     std::string iot_print_status;  /* iot */
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag = 100;
@@ -682,10 +691,12 @@ public:
     ~MachineObject();
 
     void parse_version_func();
+    bool is_studio_cmd(int seq);
     /* command commands */
     int command_get_version(bool with_retry = true);
     int command_request_push_all();
     int command_pushing(std::string cmd);
+    int command_clean_print_error(std::string task_id, int print_error);
 
     /* command upgrade */
     int command_upgrade_confirm();
@@ -816,7 +827,7 @@ public:
     void erase_user_machine(std::string dev_id);
     void clean_user_info();
 
-    bool set_selected_machine(std::string dev_id);
+    bool set_selected_machine(std::string dev_id,  bool need_disconnect = false);
     MachineObject* get_selected_machine();
 
     /* return machine has access code and user machine if login*/

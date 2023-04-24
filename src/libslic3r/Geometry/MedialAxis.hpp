@@ -4,30 +4,43 @@
 #include "Voronoi.hpp"
 #include "../ExPolygon.hpp"
 
-namespace Slic3r { namespace Geometry {
+namespace Slic3r::Geometry {
 
 class MedialAxis {
 public:
-    Lines lines;
-    const ExPolygon* expolygon;
-    double max_width;
-    double min_width;
-    MedialAxis(double _max_width, double _min_width, const ExPolygon* _expolygon = NULL)
-        : expolygon(_expolygon), max_width(_max_width), min_width(_min_width) {};
+    MedialAxis(double min_width, double max_width, const ExPolygon &expolygon);
     void build(ThickPolylines* polylines);
     void build(Polylines* polylines);
     
 private:
+    // Input
+    const ExPolygon     &m_expolygon;
+    Lines                m_lines;
+    // for filtering of the skeleton edges
+    double               m_min_width;
+    double               m_max_width;
+
+    // Voronoi Diagram.
     using VD = VoronoiDiagram;
-    VD vd;
-    std::set<const VD::edge_type*> edges, valid_edges;
-    std::map<const VD::edge_type*, std::pair<coordf_t,coordf_t> > thickness;
+    VD                   m_vd;
+
+    // Annotations of the VD skeleton edges.
+    struct EdgeData {
+        bool    active      { false };
+        double  width_start { 0 };
+        double  width_end   { 0 };
+    };
+    // Returns a reference to EdgeData and a "reversed" boolean.
+    std::pair<EdgeData&, bool> edge_data(const VD::edge_type &edge) {
+        size_t edge_id = &edge - &m_vd.edges().front();
+        return { m_edge_data[edge_id / 2], (edge_id & 1) != 0 };
+    }
+    std::vector<EdgeData> m_edge_data;
+
     void process_edge_neighbors(const VD::edge_type* edge, ThickPolyline* polyline);
     bool validate_edge(const VD::edge_type* edge);
-    const Line& retrieve_segment(const VD::cell_type* cell) const;
-    const Point& retrieve_endpoint(const VD::cell_type* cell) const;
 };
 
-} } // namespace Slicer::Geometry
+} // namespace Slicer::Geometry
 
 #endif // slic3r_Geometry_MedialAxis_hpp_

@@ -94,6 +94,9 @@ public:
     // be set in world coords.
     void render_cut();
 
+    bool is_projection_inside_cut(const Vec3d &point) const;
+    bool has_valid_contour() const;
+
 private:
     void recalculate_triangles();
 
@@ -105,6 +108,18 @@ private:
     std::vector<Vec2f> m_triangles2d;
     GLIndexedVertexArray m_vertex_array;
     bool m_triangles_valid = false;
+
+    struct CutIsland
+    {
+        ExPolygon   expoly;
+        BoundingBox expoly_bb;
+    };
+    struct ClipResult
+    {
+        std::vector<CutIsland> cut_islands;
+        Transform3d            trafo; // this rotates the cut into world coords
+    };
+    std::optional<ClipResult> m_result;  // the cut plane
 };
 
 
@@ -120,6 +135,9 @@ public:
         , m_normals(its_face_normals(mesh.its))
     {
     }
+
+    static void line_from_mouse_pos_static(const Vec2d &mouse_pos, const Transform3d &trafo,
+        const Camera &camera, Vec3d &point, Vec3d &direction);
 
     void line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
                              Vec3d& point, Vec3d& direction) const;

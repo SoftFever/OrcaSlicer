@@ -34,6 +34,7 @@ private:
     Axis m_axis;
     double m_angle;
 
+    mutable Vec3d m_custom_center{Vec3d::Zero()};
     mutable Vec3d m_center;
     mutable float m_radius;
 
@@ -51,6 +52,8 @@ public:
     void set_angle(double angle);
 
     std::string get_tooltip() const override;
+
+    void set_center(const Vec3d &point) { m_custom_center = point; }
 
 protected:
     bool on_init() override;
@@ -99,6 +102,13 @@ public:
         if (tooltip.empty())
             tooltip = m_gizmos[Z].get_tooltip();
         return tooltip;
+    }
+
+    void set_center(const Vec3d &point)
+    {
+        m_gizmos[X].set_center(point);
+        m_gizmos[Y].set_center(point);
+        m_gizmos[Z].set_center(point);
     }
 
 protected:

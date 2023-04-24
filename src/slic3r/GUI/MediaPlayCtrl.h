@@ -86,6 +86,7 @@ private:
     bool m_user_triggered = false;
     int m_failed_retry = 0;
     int m_failed_code = 0;
+    int m_last_failed_code = 0;
     wxDateTime m_next_retry;
 
     ::Button *m_button_play;

@@ -763,7 +763,6 @@ void BackgroundSlicingProcess::finalize_gcode()
 	// collide with the G-code viewer memory mapping of the unprocessed G-code. G-code viewer maps unprocessed G-code, because m_gcode_result
 	// is calculated for the unprocessed G-code and it references lines in the memory mapped G-code file by line numbers.
 	// export_path may be changed by the post-processing script as well if the post processing script decides so, see GH #6042.
-	//BBS: don't support running post process scripts
 	bool post_processed = run_post_process_scripts(output_path, true, "File", export_path, m_fff_print->full_print_config());
 	auto remove_post_processed_temp_file = [post_processed, &output_path]() {
 		if (post_processed)

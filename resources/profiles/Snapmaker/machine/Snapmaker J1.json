@@ -7,6 +7,6 @@
     "family": "Snapmaker",
     "bed_model": "",
     "bed_texture": "j1_texture.svg",
-    "hotend_model": "hotend.stl",
+    "hotend_model": "",
     "default_materials": "Snapmaker J1 ABS;Snapmaker J1 PLA;Snapmaker J1 PLA-CF;Snapmaker J1 PETG;Snapmaker J1 TPU;Snapmaker J1 ASA;Snapmaker J1 PC;Snapmaker J1 PVA;Snapmaker J1 PA;Snapmaker J1 PA-CF"
 }

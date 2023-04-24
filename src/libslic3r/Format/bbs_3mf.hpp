@@ -16,7 +16,9 @@ struct ThumbnailData;
 
 #define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
 #define THUMBNAIL_FILE_FORMAT           "Metadata/plate_%1%.png"
-#define PATTERN_FILE_FORMAT             "Metadata/plate_%1%_pattern_layer_0.png"
+#define TOP_FILE_FORMAT                 "Metadata/top_%1%.png"
+#define PICK_FILE_FORMAT                "Metadata/pick_%1%.png"
+//#define PATTERN_FILE_FORMAT             "Metadata/plate_%1%_pattern_layer_0.png"
 #define PATTERN_CONFIG_FILE_FORMAT      "Metadata/plate_%1%.json"
 #define EMBEDDED_PRINT_FILE_FORMAT      "Metadata/process_settings_%1%.config"
 #define EMBEDDED_FILAMENT_FILE_FORMAT      "Metadata/filament_settings_%1%.config"
@@ -65,8 +67,10 @@ struct PlateData
     std::string     gcode_file_md5;
     std::string     thumbnail_file;
     ThumbnailData   plate_thumbnail;
-    ThumbnailData   pattern_thumbnail;
-    std::string     pattern_file;
+    std::string     top_file;
+    std::string     pick_file;
+    //ThumbnailData   pattern_thumbnail;
+    //std::string     pattern_file;
     std::string     pattern_bbox_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
@@ -103,6 +107,7 @@ enum class SaveStrategy
     SkipModel           = 1 << 7,
     WithSliceInfo       = 1 << 8,
     SkipAuxiliary       = 1 << 9,
+    UseLoadedId         = 1 << 10,
 
     SplitModel = 0x1000 | ProductionExt,
     Encrypted  = SecureContentExt | SplitModel,
@@ -195,6 +200,8 @@ struct StoreParams
     std::vector<Preset*> project_presets;
     DynamicPrintConfig* config;
     std::vector<ThumbnailData*> thumbnail_data;
+    std::vector<ThumbnailData*> top_thumbnail_data;
+    std::vector<ThumbnailData*> pick_thumbnail_data;
     std::vector<ThumbnailData*> calibration_thumbnail_data;
     SaveStrategy strategy = SaveStrategy::Zip64;
     Export3mfProgressFn proFn = nullptr;

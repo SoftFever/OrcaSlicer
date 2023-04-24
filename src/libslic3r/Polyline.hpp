@@ -234,6 +234,10 @@ public:
         std::reverse(this->width.begin(), this->width.end());
         std::swap(this->endpoints.first, this->endpoints.second);
     }
+    void clear() {
+        Polyline::clear();
+        width.clear();
+    }
 
     std::vector<coordf_t> width;
     std::pair<bool,bool>  endpoints;

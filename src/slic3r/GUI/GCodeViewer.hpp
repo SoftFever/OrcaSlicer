@@ -492,6 +492,11 @@ class GCodeViewer
         std::vector<Endpoints>& get_endpoints() { return m_endpoints; }
         double get_z_at(unsigned int id) const { return (id < m_zs.size()) ? m_zs[id] : 0.0; }
         Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
+        int                           get_l_at(double z) const
+        {
+            auto iter = std::upper_bound(m_zs.begin(), m_zs.end(), z);
+            return std::distance(m_zs.begin(), iter);
+        }
 
         bool operator != (const Layers& other) const {
             if (m_zs != other.m_zs)
@@ -650,6 +655,7 @@ public:
                 std::string parameters;
                 std::string comment;
             };
+            bool m_is_dark = false;
             bool m_visible{ true };
             uint64_t m_selected_line_id{ 0 };
             size_t m_last_lines_size{ 0 };
@@ -663,12 +669,15 @@ public:
         public:
             GCodeWindow() = default;
             ~GCodeWindow() { stop_mapping_file(); }
-            void load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends);
+            void load_gcode(const std::string& filename, const std::vector<size_t> &lines_ends);
             void reset() {
                 stop_mapping_file();
                 m_lines_ends.clear();
+                m_lines_ends.shrink_to_fit();
                 m_lines.clear();
+                m_lines.shrink_to_fit();
                 m_filename.clear();
+                m_filename.shrink_to_fit();
             }
 
             void toggle_visibility() { m_visible = !m_visible; }
@@ -676,6 +685,7 @@ public:
             //BBS: GUI refactor: add canvas size
             //void render(float top, float bottom, uint64_t curr_line_id) const;
             void render(float top, float bottom, float right, uint64_t curr_line_id) const;
+            void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
 
             void stop_mapping_file();
         };
@@ -724,6 +734,9 @@ public:
         LayerTimeLog,
         Count
     };
+
+    //BBS
+    ConflictResultOpt m_conflict_result;
 
 private:
     std::vector<int> m_plater_extruder;

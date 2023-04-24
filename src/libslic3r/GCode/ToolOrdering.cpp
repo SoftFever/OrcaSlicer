@@ -704,11 +704,12 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
         wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
 
     unsigned int current_extruder_id = -1;
-    for (LayerTools& lt : m_layer_tools) {
+    for (int i = 0; i < m_layer_tools.size(); ++i) {
+        LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())
             continue;
         // todo: The algorithm complexity is too high(o(n2)), currently only 8 colors are supported
-        if (lt.extruders.size() <= 8) {
+        if (i != 0 && lt.extruders.size() <= 8) {
             lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
         }
         current_extruder_id = lt.extruders.back();

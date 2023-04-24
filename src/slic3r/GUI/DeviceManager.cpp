@@ -186,9 +186,9 @@ bool AmsTray::is_unset_third_filament()
 std::string AmsTray::get_display_filament_type()
 {
     if (type == "PLA-S")
-        return "Support W";
+        return "Sup.PLA";
     else if (type == "PA-S")
-        return "Support G";
+        return "Sup.PA";
     else
         return type;
     return type;
@@ -196,7 +196,11 @@ std::string AmsTray::get_display_filament_type()
 
 std::string AmsTray::get_filament_type()
 {
-    if (type == "Support W") {
+    if (type == "Sup.PLA") {
+        return "PLA-S";
+    } else if (type == "Sup.PA") {
+        return "PA-S";
+    } else if (type == "Support W") {
         return "PLA-S";
     } else if (type == "Support G") {
         return "PA-S";
@@ -556,9 +560,19 @@ AmsTray *MachineObject::get_curr_tray()
     Ams* curr_ams = get_curr_Ams();
     if (!curr_ams) return nullptr;
 
-    auto it = curr_ams->trayList.find(m_tray_now);
-    if (it != curr_ams->trayList.end())
-        return it->second;
+    try {
+        int tray_index = atoi(m_tray_now.c_str());
+        int ams_index = atoi(curr_ams->id.c_str());
+
+        std::string tray_now_index = std::to_string(tray_index - ams_index * 4);
+        auto it = curr_ams->trayList.find(tray_now_index);
+        if (it != curr_ams->trayList.end())
+            return it->second;
+    }
+    catch (...) {
+        ;
+    }
+
     return nullptr;
 }
 
@@ -1369,10 +1383,18 @@ void MachineObject::parse_version_func()
                 is_support_ai_monitoring                = true;
                 is_support_ams_humidity                 = true;
             }
-            local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+            if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+                local_use_ssl = false;
+            else {
+                local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+            }
         }
     } else if (printer_type == "C11") {
-        local_use_ssl = true;
+        if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+            local_use_ssl = false;
+        else {
+            local_use_ssl = true;
+        }
         is_cloud_print_only = true;
         if (ota_version != module_vers.end()) {
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
@@ -1381,6 +1403,14 @@ void MachineObject::parse_version_func()
             ams_support_auto_switch_filament_flag = esp32_version->second.sw_ver.compare("00.03.11.50") >= 0;
         }
     }
+}
+
+bool MachineObject::is_studio_cmd(int sequence_id)
+{
+    if (sequence_id >= START_SEQ_ID && sequence_id < END_SEQ_ID) {
+        return true;
+    }
+    return false;
 }
 
 int MachineObject::command_get_version(bool with_retry)
@@ -1431,6 +1461,18 @@ int MachineObject::command_pushing(std::string cmd)
         return this->publish_json(j.dump());
     }
     return -1;
+}
+
+int MachineObject::command_clean_print_error(std::string subtask_id, int print_error)
+{
+    BOOST_LOG_TRIVIAL(info) << "command_clean_print_error, id = " << subtask_id;
+    json j;
+    j["print"]["command"] = "clean_print_error";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["subtask_id"] = subtask_id;
+    j["print"]["print_error"] = print_error;
+
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_upgrade_confirm()
@@ -1850,8 +1892,8 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
 
 int MachineObject::command_unload_filament()
 {
-    if (printer_type == "BL-P001"
-        || printer_type == "BL-P002") {
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")
+        && !this->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
         // fixed gcode file
         json j;
         j["print"]["command"] = "gcode_file";
@@ -1859,7 +1901,10 @@ int MachineObject::command_unload_filament()
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         return this->publish_json(j.dump());
     }
-    else if (printer_type == "C11") {
+    else if (printer_type == "C11"
+        || ((printer_type == "BL-P001" || printer_type == "BL-P002")
+        && this->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY))
+        ) {
         std::string gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
         if (gcode.empty()) {
             return -1;
@@ -2245,6 +2290,14 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_PRINT_ALL:
         func_name = "FUNC_PRINT_ALL";
         break;
+    case FUNC_VIRTUAL_TYAY:
+        if (!ams_support_virtual_tray)
+            return false;
+        func_name = "FUNC_VIRTUAL_TYAY";
+        break;
+    case FUNC_FILAMENT_BACKUP:
+        func_name = "FUNC_FILAMENT_BACKUP";
+        break;
     default:
         return true;
     }
@@ -2345,6 +2398,18 @@ int MachineObject::parse_json(std::string payload)
 
         if (j.contains("print")) {
             json jj = j["print"];
+            int sequence_id = 0;
+            if (jj.contains("sequence_id")) {
+                if (jj["sequence_id"].is_string()) {
+                    std::string str_seq = jj["sequence_id"].get<std::string>();
+                    try {
+                        sequence_id = stoi(str_seq);
+                    }
+                    catch(...) {
+                        ;
+                    }
+                }
+            }
             if (jj.contains("command")) {
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
@@ -2458,6 +2523,11 @@ int MachineObject::parse_json(std::string payload)
 
                     if (jj.contains("gcode_state")) {
                         this->set_print_state(jj["gcode_state"].get<std::string>());
+                    }
+                    if (jj.contains("queue_number")) {
+                        this->queue_number = jj["queue_number"].get<int>();
+                    } else {
+                        this->queue_number = 0;
                     }
 
                     if (jj.contains("task_id")) {
@@ -2613,6 +2683,21 @@ int MachineObject::parse_json(std::string payload)
                         }
                         if (jj.contains("stg_cur")) {
                             stage_curr = jj["stg_cur"].get<int>();
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+
+                    /*get filam_bak*/
+                    try {
+                        if (jj.contains("filam_bak")) {
+                            filam_bak.clear();
+                            if (jj["filam_bak"].is_array()) {
+                                for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
+                                    filam_bak.push_back(it.value().get<int>());
+                                }
+                            }
                         }
                     }
                     catch (...) {
@@ -3116,6 +3201,16 @@ int MachineObject::parse_json(std::string payload)
                                         } else {
                                             curr_tray->color = "";
                                         }
+
+                                        curr_tray->cols.clear();
+                                        if (tray_it->contains("cols")) {
+                                            if ((*tray_it)["cols"].is_array()) {
+                                                for (auto it = (*tray_it)["cols"].begin(); it != (*tray_it)["cols"].end(); it++) {
+                                                   curr_tray->cols.push_back(it.value().get<std::string>());
+                                                }
+                                            }
+                                        }
+                                 
                                         if (tray_it->contains("remain")) {
                                             curr_tray->remain = (*tray_it)["remain"].get<int>();
                                         } else {
@@ -3264,6 +3359,16 @@ int MachineObject::parse_json(std::string payload)
                                 else {
                                     vt_tray.color = "";
                                 }
+
+                                vt_tray.cols.clear();
+                                if (jj["vt_tray"].contains("cols")) {
+                                    if (jj["vt_tray"].is_array()) {
+                                        for (auto it = jj["vt_tray"].begin(); it != jj["vt_tray"].end(); it++) {
+                                            vt_tray.cols.push_back(it.value().get<std::string>());
+                                        }
+                                    }
+                                }
+
                                 if (jj["vt_tray"].contains("remain")) {
                                     vt_tray.remain = jj["vt_tray"]["remain"].get<int>();
                                 }
@@ -3283,9 +3388,23 @@ int MachineObject::parse_json(std::string payload)
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of gcode_line = " << j.dump(4);
+                    if (m_agent && is_studio_cmd(sequence_id)) {
+                        json t;
+                        t["dev_id"] = this->dev_id;
+                        t["signal"] = this->wifi_signal;
+                        m_agent->track_event("ack_cmd_gcode_line", t.dump());
+                    }
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
+
+                    if (m_agent && is_studio_cmd(sequence_id)) {
+                        json t;
+                        t["dev_id"] = this->dev_id;
+                        t["signal"] = this->wifi_signal;
+                        m_agent->track_event("ack_cmd_project_file", t.dump());
+                    }
+
                     std::string result;
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();
@@ -3324,6 +3443,16 @@ int MachineObject::parse_json(std::string payload)
                                     tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
                                     tray_it->second->type = jj["tray_type"].get<std::string>();
                                     tray_it->second->color = jj["tray_color"].get<std::string>();
+
+                                    /*tray_it->second->cols.clear();
+                                    if (jj.contains("cols")) {
+                                        if (jj["cols"].is_array()) {
+                                            for (auto it = jj["cols"].begin(); it != jj["cols"].end(); it++) {
+                                                tray_it->second->cols.push_back(it.value().get<std::string>());
+                                            }
+                                        }
+                                    }*/
+
                                     tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
                                     // delay update
                                     tray_it->second->set_hold_count();
@@ -3451,6 +3580,7 @@ int MachineObject::parse_json(std::string payload)
                         module_vers.emplace(ver_info.name, ver_info);
                     }
                     parse_version_func();
+
                     bool get_version_result = true;
                     if (j["info"].contains("result"))
                         if (j["info"]["result"].get<std::string>() == "fail")
@@ -3542,8 +3672,13 @@ int MachineObject::publish_gcode(std::string gcode_str)
     j["print"]["param"] = gcode_str;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    if (m_agent)
+    if (m_agent) {
         j["print"]["user_id"] = m_agent->get_user_id();
+        json t;
+        t["dev_id"] = this->dev_id;
+        t["signal"] = this->wifi_signal;
+        m_agent->track_event("cmd_gcode_line", t.dump());
+    }
     return publish_json(j.dump());
 }
 
@@ -3765,14 +3900,19 @@ void DeviceManager::on_machine_alive(std::string json_str)
         std::string printer_signal  = j["dev_signal"].get<std::string>();
         std::string connect_type    = j["connect_type"].get<std::string>();
         std::string bind_state      = j["bind_state"].get<std::string>();
+        std::string sec_link = "";
+        if (j.contains("sec_link")) {
+            sec_link = j["sec_link"].get<std::string>();
+        }
 
         MachineObject* obj;
 
         /* update userMachineList info */
         auto it = userMachineList.find(dev_id);
         if (it != userMachineList.end()) {
-            it->second->dev_ip = dev_ip;
-            it->second->bind_state = bind_state;
+            it->second->dev_ip          = dev_ip;
+            it->second->bind_state      = bind_state;
+            it->second->bind_sec_link   = sec_link;
         }
 
         /* update localMachineList */
@@ -3786,9 +3926,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 obj->dev_ip = dev_ip;
                 /* ip changed reconnect mqtt */
             }
-            obj->wifi_signal = printer_signal;
-            obj->dev_connection_type = connect_type;
-            obj->bind_state = bind_state;
+            obj->wifi_signal        = printer_signal;
+            obj->dev_connection_type= connect_type;
+            obj->bind_state         = bind_state;
+            obj->bind_sec_link      = sec_link;
             obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
 
             // U0 firmware
@@ -3811,6 +3952,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->wifi_signal = printer_signal;
             obj->dev_connection_type = connect_type;
             obj->bind_state     = bind_state;
+            obj->bind_sec_link  = sec_link;
 
             //load access code
             AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
@@ -3956,7 +4098,7 @@ void DeviceManager::clean_user_info()
     userMachineList.clear();
 }
 
-bool DeviceManager::set_selected_machine(std::string dev_id)
+bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnect)
 {
     BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << dev_id;
     auto my_machine_list = get_my_machine_list();
@@ -3966,9 +4108,10 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
     auto last_selected = my_machine_list.find(selected_machine);
     if (last_selected != my_machine_list.end()) {
         if (last_selected->second->connection_type() == "lan") {
-            if (last_selected->second->is_connecting())
+            if (last_selected->second->is_connecting() && !need_disconnect)
                 return false;
-            m_agent->disconnect_printer();
+
+            if (!need_disconnect) {m_agent->disconnect_printer();}
         }
     }
 
@@ -3982,7 +4125,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
             } else {
                 // lan mode printer reconnect printer
                 if (m_agent) {
-                    m_agent->disconnect_printer();
+                    if (!need_disconnect) {m_agent->disconnect_printer();}
                     it->second->reset();
                     it->second->connect();
                     it->second->set_lan_mode_connection_state(true);

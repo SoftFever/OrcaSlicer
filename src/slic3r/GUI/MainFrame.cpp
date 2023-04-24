@@ -180,6 +180,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     wxGetApp().app_config->set_bool("dump_video", false);
 
+    wxString max_recent_count_str = wxGetApp().app_config->get("max_recent_count");
+    long max_recent_count = 18;
+    if (max_recent_count_str.ToLong(&max_recent_count))
+        set_max_recent_count((int)max_recent_count);
 
     //reset log level
     auto loglevel = wxGetApp().app_config->get("severity_level");
@@ -490,10 +494,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         update_slice_print_status(eEventSliceUpdate, true, true);
 
         // BBS: backup project
-        std::string backup_interval;
-        if (!wxGetApp().app_config->get("", "backup_interval", backup_interval))
-            backup_interval = "10";
-        Slic3r::set_backup_interval(boost::lexical_cast<long>(backup_interval));
+        if (wxGetApp().app_config->get("backup_switch") == "true") {
+            std::string backup_interval;
+            if (!wxGetApp().app_config->get("", "backup_interval", backup_interval))
+                backup_interval = "10";
+            Slic3r::set_backup_interval(boost::lexical_cast<long>(backup_interval));
+        } else {
+            Slic3r::set_backup_interval(0);
+        }
         Slic3r::set_backup_callback([this](int action) {
             if (action == 0) {
                 wxPostEvent(this, wxCommandEvent(EVT_BACKUP_POST));
@@ -808,6 +816,11 @@ void MainFrame::shutdown()
         m_plater->get_mouse3d_controller().save_config(*wxGetApp().app_config);
     }
 
+    // stop agent
+    NetworkAgent* agent = wxGetApp().getAgent();
+    if (agent)
+        agent->track_enable(false);
+
     // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
     //wxGetApp().removable_drive_manager()->shutdown();
 	//stop listening for messages from other instances
@@ -993,10 +1006,9 @@ void MainFrame::init_tabpanel() {
     });
     m_printer_view->Hide();
 
-    m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_auxiliary->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
-
+    m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_project->SetBackgroundColour(*wxWHITE);
+    m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
     if (m_plater) {
         // load initial config
         auto full_config = wxGetApp().preset_bundle->full_config();
@@ -1131,6 +1143,7 @@ void MainFrame::create_preset_tabs()
     add_created_tab(new TabPrint(m_param_panel), "cog");
     add_created_tab(new TabPrintObject(m_param_panel), "cog");
     add_created_tab(new TabPrintPart(m_param_panel), "cog");
+    add_created_tab(new TabPrintLayer(m_param_panel), "cog");
     add_created_tab(new TabFilament(m_param_dialog->panel()), "spool");
     /* BBS work around to avoid appearance bug */
     //add_created_tab(new TabSLAPrint(m_param_panel));
@@ -1839,7 +1852,7 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     //BBS GUI refactor: remove unused layout new/dlg
     //if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
     m_param_panel->msw_rescale();
-    m_auxiliary->msw_rescale();
+    m_project->msw_rescale();
     m_monitor->msw_rescale();
 
     // BBS
@@ -2009,26 +2022,27 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
 
 static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, std::function<bool(void)> can_change_view)
 {
+    const wxString ctrl = _L("Ctrl+");
     // The camera control accelerators are captured by GLCanvas3D::on_char().
-    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\tCtrl+0", _L("Default View"), [mainFrame](wxCommandEvent&) {
+    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\t" + ctrl + "0", _L("Default View"), [mainFrame](wxCommandEvent&) {
         mainFrame->select_view("plate");
         mainFrame->plater()->get_current_canvas3D()->zoom_to_bed();
         },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
     //view_menu->AppendSeparator();
     //TRN To be shown in the main menu View->Top
-    append_menu_item(view_menu, wxID_ANY, _L("Top") + "\tCtrl+1", _L("Top View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("top"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Top") + "\t" + ctrl + "1", _L("Top View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("top"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
     //TRN To be shown in the main menu View->Bottom
-    append_menu_item(view_menu, wxID_ANY, _L("Bottom") + "\tCtrl+2", _L("Bottom View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("bottom"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Bottom") + "\t" + ctrl + "2", _L("Bottom View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("bottom"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Front") + "\tCtrl+3", _L("Front View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("front"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Front") + "\t" + ctrl + "3", _L("Front View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("front"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Rear") + "\tCtrl+4", _L("Rear View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("rear"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Rear") + "\t" + ctrl + "4", _L("Rear View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("rear"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Left") + "\tCtrl+5", _L("Left View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("left"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Left") + "\t" + ctrl + "5", _L("Left View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("left"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
-    append_menu_item(view_menu, wxID_ANY, _L("Right") + "\tCtrl+6", _L("Right View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("right"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Right") + "\t" + ctrl + "6", _L("Right View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("right"); },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 }
 
@@ -2038,6 +2052,8 @@ void MainFrame::init_menubar_as_editor()
     wxMenuBar::SetAutoWindowMenu(false);
     m_menubar = new wxMenuBar();
 #endif
+    
+    const wxString ctrl = _L("Ctrl+");
 
     // File menu
     wxMenu* fileMenu = new wxMenu;
@@ -2049,17 +2065,17 @@ void MainFrame::init_menubar_as_editor()
                          []{ return true; }, this);
 #endif
         // New Project
-        append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\tCtrl+N", _L("Start a new project"),
+        append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\t" + ctrl + "N", _L("Start a new project"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
             [this](){return can_start_new_project(); }, this);
         // Open Project
 
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\t" + ctrl + "O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "menu_open", nullptr,
             [this](){return can_open_project(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\t" + ctrl + "O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "", nullptr,
             [this](){return can_open_project(); }, this);
 #endif
@@ -2086,22 +2102,22 @@ void MainFrame::init_menubar_as_editor()
 
         // BBS: close save project
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\tCtrl+S", _L("Save current project to file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\tCtrl+S", _L("Save current project to file"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 #endif
 
 
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
@@ -2112,13 +2128,13 @@ void MainFrame::init_menubar_as_editor()
         // BBS
         wxMenu *import_menu = new wxMenu();
 #ifndef __APPLE__
-        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\t" + ctrl + "I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
             m_plater->add_file();
         } }, "menu_import", nullptr,
             [this](){return can_add_models(); }, this);
 #else
-        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\t" + ctrl + "I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return can_add_models(); }, this);
 #endif
@@ -2138,7 +2154,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_core_3mf(); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export .gcode.3mf
-        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots + "\tCtrl+G", _L("Export current sliced file"),
+        append_menu_item(export_menu, wxID_ANY, _L("Export plate sliced file") + dots + "\t" + ctrl + "G", _L("Export current sliced file"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_gcode(); }, this);
 
@@ -2180,34 +2196,41 @@ void MainFrame::init_menubar_as_editor()
         wxString hotkey_delete = "Del";
     #endif
 
+    auto handle_key_event = [](wxKeyEvent& evt) {
+        if (wxGetApp().imgui()->update_key_data(evt)) {
+            wxGetApp().plater()->get_current_canvas3D()->render();
+            return true;
+        }
+        return false;
+    };
 #ifndef __APPLE__
         // BBS undo
-        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\tCtrl+Z",
+        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
             _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
             "menu_undo", nullptr, [this](){return m_plater->can_undo(); }, this);
         // BBS redo
-        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\tCtrl+Y",
+        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\t" + ctrl + "Y",
             _L("Redo"), [this](wxCommandEvent&) { m_plater->redo(); },
             "menu_redo", nullptr, [this](){return m_plater->can_redo(); }, this);
         editMenu->AppendSeparator();
         // BBS Cut TODO
-        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\tCtrl+X",
+        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\t" + ctrl + "X",
             _L("Cut selection to clipboard"), [this](wxCommandEvent&) {m_plater->cut_selection_to_clipboard(); },
             "menu_cut", nullptr, [this]() {return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Copy
-        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\tCtrl+C",
+        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\t" + ctrl + "C",
             _L("Copy selection to clipboard"), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
             "menu_copy", nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Paste
-        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\tCtrl+V",
+        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\t" + ctrl + "V",
             _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "menu_paste", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
         // BBS Delete selected
-        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tDel",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\t" + _L("Del"),
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\tCtrl+D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2220,40 +2243,97 @@ void MainFrame::init_menubar_as_editor()
         editMenu->AppendSeparator();
 #else
         // BBS undo
-        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\tCtrl+Z",
-            _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
+        append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
+            _L("Undo"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'Z';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->undo(); },
             "", nullptr, [this](){return m_plater->can_undo(); }, this);
         // BBS redo
-        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\tCtrl+Y",
-            _L("Redo"), [this](wxCommandEvent&) { m_plater->redo(); },
+        append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\t" + ctrl + "Y",
+            _L("Redo"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'Y';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->redo(); },
             "", nullptr, [this](){return m_plater->can_redo(); }, this);
         editMenu->AppendSeparator();
         // BBS Cut TODO
-        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\tCtrl+X",
-            _L("Cut selection to clipboard"), [this](wxCommandEvent&) {m_plater->cut_selection_to_clipboard(); },
+        append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\t" + ctrl + "X",
+            _L("Cut selection to clipboard"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'X';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->cut_selection_to_clipboard(); },
             "", nullptr, [this]() {return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Copy
-        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\tCtrl+C",
-            _L("Copy selection to clipboard"), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
+        append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\t" + ctrl + "C",
+            _L("Copy selection to clipboard"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'C';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->copy_selection_to_clipboard(); },
             "", nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Paste
-        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\tCtrl+V",
-            _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
+        append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\t" + ctrl + "V",
+            _L("Paste clipboard"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'V';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->paste_from_clipboard(); },
             "", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
 #if 0
         // BBS Delete selected
         append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tBackSpace",
-            _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
+            _L("Deletes the current selection"),[this](wxCommandEvent&) { 
+                m_plater->remove_selected();
+            },
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\tCtrl+D",
-            _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "D",
+            _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'D';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->delete_all_objects_from_model(); },
             "", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
-        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\tCtrl+M",
-            _L("Clone copies of selections"),[this](wxCommandEvent&) {
+        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\t" + ctrl + "M",
+            _L("Clone copies of selections"),[this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'M';
+                if (handle_key_event(e)) {
+                    return;
+                }
                 m_plater->clone_selection();
             },
             "", nullptr, [this](){return can_clone(); }, this);
@@ -2261,12 +2341,27 @@ void MainFrame::init_menubar_as_editor()
 #endif
 
         // BBS Select All
-        append_menu_item(editMenu, wxID_ANY, _L("Select all") + "\tCtrl+A",
-            _L("Selects all objects"), [this](wxCommandEvent&) { m_plater->select_all(); },
+        append_menu_item(editMenu, wxID_ANY, _L("Select all") + "\t" + ctrl + "A",
+            _L("Selects all objects"), [this, handle_key_event](wxCommandEvent&) { 
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'A';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
         // BBS Deslect All
         append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
-            _L("Deselects all objects"), [this](wxCommandEvent&) { m_plater->deselect_all(); },
+            _L("Deselects all objects"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.m_keyCode = WXK_ESCAPE;
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
         //editMenu->AppendSeparator();
         //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
@@ -2320,7 +2415,7 @@ void MainFrame::init_menubar_as_editor()
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
 
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Labels") + "\tCtrl+E", _L("Show object labels in 3D scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Labels") + "\t" + ctrl + "E", _L("Show object labels in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
 
@@ -2351,7 +2446,7 @@ void MainFrame::init_menubar_as_editor()
     //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
-    auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\tCtrl+P", "");
+    auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
 
 #endif
     //auto printer_item = new wxMenuItem(parent_menu, ConfigMenuPrinter + config_id_base, _L("Printer"), "");
@@ -2393,7 +2488,7 @@ void MainFrame::init_menubar_as_editor()
 //        }
 //        case ConfigMenuPreferences:
 //        {
-//            wxGetApp().CallAfter([this] {
+//            CallAfter([this] {
 //                PreferencesDialog dlg(this);
 //                dlg.ShowModal();
 //#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -2430,7 +2525,7 @@ void MainFrame::init_menubar_as_editor()
         //            Slic3r::GUI::about();
         //            break;
         //        case BambuStudioMenuPreferences:
-        //            wxGetApp().CallAfter([this] {
+        //            CallAfter([this] {
         //                PreferencesDialog dlg(this);
         //                dlg.ShowModal();
         //#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -2451,7 +2546,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent &) { Slic3r::GUI::about();},
         "", nullptr, []() { return true; }, this, 0);
     append_menu_item(
-        parent_menu, wxID_ANY, _L("Preferences") + "\tCtrl+,", "",
+        parent_menu, wxID_ANY, _L("Preferences") + "\t" + ctrl + ",", "",
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
@@ -2478,7 +2573,7 @@ void MainFrame::init_menubar_as_editor()
     //BBS add Preference
 
     append_menu_item(
-        m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\tCtrl+P", "",
+        m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\t" + ctrl + "P", "",
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
@@ -2651,6 +2746,23 @@ void MainFrame::show_publish_button(bool show)
     }
     else {
         m_menubar->Remove(4);
+    }
+}
+
+void MainFrame::set_max_recent_count(int max)
+{
+    max = max < 0 ? 0 : max > 10000 ? 10000 : max;
+    size_t count = m_recent_projects.GetCount();
+    m_recent_projects.SetMaxFiles(max);
+    if (count != m_recent_projects.GetCount()) {
+        count = m_recent_projects.GetCount();
+        std::vector<std::string> recent_projects;
+        for (size_t i = 0; i < count; ++i) {
+            recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+        }
+        wxGetApp().app_config->set_recent_projects(recent_projects);
+        wxGetApp().app_config->save();
+        m_webview->SendRecentList("");
     }
 }
 
@@ -3163,6 +3275,14 @@ void MainFrame::FileHistory::LoadThumbnails()
     m_load_called = true;
 }
 
+inline void MainFrame::FileHistory::SetMaxFiles(int max)
+{
+    m_fileMaxFiles  = max;
+    size_t numFiles = m_fileHistory.size();
+    while (numFiles > m_fileMaxFiles)
+        RemoveFileFromHistory(--numFiles);
+}
+
 void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
 {
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
@@ -3190,7 +3310,7 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
         file_id = m_recent_projects.FindFileInHistory(filename);
     }
     if (wxFileExists(filename)) {
-        wxGetApp().CallAfter([this, filename] {
+        CallAfter([this, filename] {
             if (wxGetApp().can_load_project())
                 m_plater->load_project(filename);
         });

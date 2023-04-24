@@ -230,6 +230,7 @@ public:
 
     EType get_current_type() const { return m_current; }
     GLGizmoBase* get_current() const;
+    GLGizmoBase *get_gizmo(GLGizmosManager::EType type) const;
     EType get_gizmo_from_name(const std::string& gizmo_name) const;
 
     bool is_running() const;
@@ -311,7 +312,7 @@ public:
     //BBS: GUI refactor: GLToolbar adjust
     float get_scaled_total_height() const;
     float get_scaled_total_width() const;
-    //GizmoObjectManipulation& get_object_manipulation() { return m_object_manipulation; }
+    GizmoObjectManipulation& get_object_manipulation() { return m_object_manipulation; }
     bool get_uniform_scaling() const { return m_object_manipulation.get_uniform_scaling();}
 
 private:

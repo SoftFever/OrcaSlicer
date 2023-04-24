@@ -529,9 +529,20 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
             // retract before toolchange
             toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
-            //BBS: current position and fan_speed is unclear after interting change_filament_gcode
-            toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
-            gcodegen.writer().set_current_position_clear(false);
+            //BBS
+            {
+                //BBS: current position and fan_speed is unclear after interting change_filament_gcode
+                check_add_eol(toolchange_gcode_str);
+                toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
+                gcodegen.writer().set_current_position_clear(false);
+                //BBS: check whether custom gcode changes the z position. Update if changed
+                double temp_z_after_tool_change;
+                if (GCodeProcessor::get_last_z_from_gcode(toolchange_gcode_str, temp_z_after_tool_change)) {
+                    Vec3d pos = gcodegen.writer().get_position();
+                    pos(2) = temp_z_after_tool_change;
+                    gcodegen.writer().set_position(pos);
+                }
+            }
 
             // move to start_pos for wiping after toolchange
             std::string start_pos_str;
@@ -1791,6 +1802,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
+    m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
 
     // Process filament-specific gcode.
    /* if (has_wipe_tower) {
@@ -2812,15 +2824,12 @@ GCode::LayerResult GCode::process_layer(
 
     //BBS
     if (first_layer) {
-        //BBS: set first layer global acceleration
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            double acceleration = m_config.initial_layer_acceleration.value;
-            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
-            double jerk = m_config.initial_layer_jerk.value;
-            gcode += m_writer.set_jerk_xy(jerk);
+            gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
 
     }
@@ -2841,16 +2850,14 @@ GCode::LayerResult GCode::process_layer(
           gcode += this->unretract();
         }
       }
-        //BBS:  reset acceleration at sencond layer
-        if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            double acceleration = m_config.default_acceleration.value;
-            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
-        }
+      // BBS:  reset acceleration at sencond layer
+      if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
+        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+      }
 
-        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
-            double jerk = m_config.default_jerk.value;
-            gcode += m_writer.set_jerk_xy(jerk);
-        }
+      if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+        gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
+      }
 
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // nozzle_temperature_initial_layer vs. temperature settings.
@@ -3605,7 +3612,8 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if (m_config.default_acceleration.value > 0)
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
         if(m_config.default_jerk.value > 0)
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
         }
@@ -3636,7 +3644,8 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()){
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if (m_config.default_acceleration.value > 0)
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
         if(m_config.default_jerk.value > 0)
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
@@ -4205,28 +4214,19 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // SoftFever
     if (this->on_first_layer()) {
-        if (m_config.default_acceleration.value > 0) {
-            auto accel = (unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5);
-            if (accel > 0)
-                gcode += m_writer.set_acceleration(accel);
+        if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
-        if (m_config.default_jerk.value > 0) {
-            auto jerk = m_config.initial_layer_jerk.value;
-            if (jerk > 0)
-                gcode += m_writer.set_jerk_xy(jerk);
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+            gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
-    }
-    else
-    {
-        if(m_config.default_jerk.value > 0)
-        {
-            auto jerk = m_config.travel_jerk.value;
-            auto accel = (unsigned int)floor(m_config.travel_acceleration.value + 0.5);
-            if(jerk > 0)
-                gcode += m_writer.set_jerk_xy(jerk);
-            
-            if(accel > 0)
-                gcode += m_writer.set_acceleration(accel);
+    } else {
+        if (m_config.default_acceleration.value > 0 && m_config.travel_acceleration.value > 0) {
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.travel_acceleration.value + 0.5));
+        }
+
+        if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0) {
+            gcode += m_writer.set_jerk_xy(m_config.travel_jerk.value);
         }
     }
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
@@ -4371,11 +4371,13 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     if (role == erSupportMaterial || role == erSupportTransition) {
         const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
         //FIXME support_layer->support_islands.contains should use some search structure!
-        if (support_layer != NULL && support_layer->support_islands.contains(travel))
+        if (support_layer != NULL)
             // skip retraction if this is a travel move inside a support material island
             //FIXME not retracting over a long path may cause oozing, which in turn may result in missing material
             // at the end of the extrusion path!
-            return false;
+            for (const ExPolygon& support_island : support_layer->support_islands)
+                if (support_island.contains(travel))
+                    return false;
         //reduce the retractions in lightning infills for tree support
         if (support_layer != NULL && support_layer->support_type==stInnerTree)
             for (auto &area : support_layer->base_areas)
@@ -4384,7 +4386,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     }
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
     if (!is_perimeter(role) && m_config.reduce_infill_retraction && m_layer != nullptr &&
-        m_config.sparse_infill_density.value > 0 && m_layer->any_internal_region_slice_contains(travel))
+        m_config.sparse_infill_density.value > 0 && m_retract_when_crossing_perimeters.travel_inside_internal_regions(*m_layer, travel))
         // Skip retraction if travel is contained in an internal slice *and*
         // internal infill is enabled (so that stringing is entirely not visible).
         //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
@@ -4485,18 +4487,26 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     float new_retract_length = m_config.retraction_length.get_at(extruder_id);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
     int new_filament_temp = this->on_first_layer() ? m_config.nozzle_temperature_initial_layer.get_at(extruder_id): m_config.nozzle_temperature.get_at(extruder_id);
+    // BBS: if print_z == 0 use first layer temperature
+    if (abs(print_z) < EPSILON)
+        new_filament_temp = m_config.nozzle_temperature_initial_layer.get_at(extruder_id);
+
     Vec3d nozzle_pos = m_writer.get_position();
     float old_retract_length, old_retract_length_toolchange, wipe_volume;
     int old_filament_temp, old_filament_e_feedrate;
 
     float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(extruder_id), 2));
-
-    if (m_writer.extruder() != nullptr) {
+    //BBS: add handling for filament change in start gcode
+    int previous_extruder_id = -1;
+    if (m_writer.extruder() != nullptr || m_start_gcode_filament != -1) {
         std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
         const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
-        assert(m_writer.extruder()->id() < number_of_extruders);
+        if (m_writer.extruder() != nullptr)
+            assert(m_writer.extruder()->id() < number_of_extruders);
+        else
+            assert(m_start_gcode_filament < number_of_extruders);
 
-        int previous_extruder_id = m_writer.extruder()->id();
+        previous_extruder_id = m_writer.extruder() != nullptr ? m_writer.extruder()->id() : m_start_gcode_filament;
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
@@ -4504,8 +4514,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         wipe_volume *= m_config.flush_multiplier;
         old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
-    }
-    else {
+        //BBS: must clean m_start_gcode_filament
+        m_start_gcode_filament = -1;
+    } else {
         old_retract_length = 0.f;
         old_retract_length_toolchange = 0.f;
         old_filament_temp = 0;
@@ -4517,7 +4528,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
     DynamicConfig dyn_config;
-    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1)));
+    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(previous_extruder_id));
     dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int)extruder_id));
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
     dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
@@ -4566,12 +4577,23 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     std::string toolchange_gcode_parsed;
     if (!change_filament_gcode.empty()) {
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
+        check_add_eol(toolchange_gcode_parsed);
         gcode += toolchange_gcode_parsed;
-        check_add_eol(gcode);
-        //BBS: gcode writer doesn't know where the extruder is and whether fan speed is changed after inserting tool change gcode
-        //Set this flag so that normal lift will be used the first time after tool change.
-        gcode += ";_FORCE_RESUME_FAN_SPEED\n";
-        m_writer.set_current_position_clear(false);
+
+        //BBS
+        {
+            //BBS: gcode writer doesn't know where the extruder is and whether fan speed is changed after inserting tool change gcode
+            //Set this flag so that normal lift will be used the first time after tool change.
+            gcode += ";_FORCE_RESUME_FAN_SPEED\n";
+            m_writer.set_current_position_clear(false);
+            //BBS: check whether custom gcode changes the z position. Update if changed
+            double temp_z_after_tool_change;
+            if (GCodeProcessor::get_last_z_from_gcode(toolchange_gcode_parsed, temp_z_after_tool_change)) {
+                Vec3d pos = m_writer.get_position();
+                pos(2) = temp_z_after_tool_change;
+                m_writer.set_position(pos);
+            }
+        }
     }
 
     // BBS. Reset old extruder E-value.

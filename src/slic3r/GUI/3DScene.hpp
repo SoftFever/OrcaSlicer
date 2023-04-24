@@ -357,6 +357,8 @@ public:
     // An ID containing the extruder ID (used to select color).
     int                 	extruder_id;
 
+    size_t                  model_object_ID{0};
+
     // Various boolean flags.
     struct {
 	    // Is this object selected?
@@ -501,9 +503,6 @@ public:
     Transform3d         world_matrix() const;
     bool                is_left_handed() const;
 
-    //BBS: world_matrix with scale factor
-    Transform3d         world_matrix(float scale_factor) const;
-
     const BoundingBoxf3& transformed_bounding_box() const;
     // non-caching variant
     BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
@@ -637,7 +636,8 @@ public:
         int                instance_idx,
         const std::string &color_by,
         bool 			   opengl_initialized,
-        bool               in_assemble_view = false);
+        bool               in_assemble_view = false,
+        bool               use_loaded_id = false);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(

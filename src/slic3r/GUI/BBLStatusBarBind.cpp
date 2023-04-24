@@ -97,6 +97,11 @@ void BBLStatusBarBind::clear_percent()
 
 }
 
+void BBLStatusBarBind::show_networking_test(wxString msg)
+{
+
+}
+
 void BBLStatusBarBind::show_progress(bool show)
 {
     if (show) {

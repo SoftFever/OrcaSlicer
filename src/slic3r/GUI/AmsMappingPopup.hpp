@@ -66,6 +66,7 @@ public:
     MaterialItem(wxWindow *parent,wxColour mcolour, wxString mname);
     ~MaterialItem();
 
+    wxPanel*    m_main_panel;
     wxColour    m_material_coloul;
     wxString    m_material_name;
 
@@ -129,7 +130,6 @@ class AmsMapingPopup : public PopupWindow
 {
 public:
     AmsMapingPopup(wxWindow *parent);
-    wxString format_text(wxString &m_msg);
     ~AmsMapingPopup(){};
 
     wxStaticText *           m_warning_text{nullptr}; 
@@ -143,7 +143,9 @@ public:
     std::string m_tag_material;
     wxBoxSizer *m_sizer_main{nullptr}; 
     wxBoxSizer *m_sizer_list{nullptr}; 
+    wxWindow   *m_parent_item{nullptr}; 
 
+    wxString     format_text(wxString &m_msg);
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
     void         update_ams_data(std::map<std::string, Ams *> amsList);
@@ -155,6 +157,7 @@ public:
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void         paintEvent(wxPaintEvent &evt);
+    void         set_parent_item(wxWindow* item) {m_parent_item = item;};
     std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 };
 
@@ -238,6 +241,75 @@ public:
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 };
 
+
+class AmsReplaceMaterialDialog : public DPIDialog
+{
+public:
+    AmsReplaceMaterialDialog(wxWindow* parent);
+    ~AmsReplaceMaterialDialog() {};
+
+public:
+    wxWindow*   create_split_line(wxString gname, wxColour col, wxString material, std::vector<bool> status_list);
+    void        create();
+    void        update_machine_obj(MachineObject* obj);
+    void        on_left_down(wxMouseEvent& evt);
+    void        paintEvent(wxPaintEvent& evt);
+    void        on_dpi_changed(const wxRect &suggested_rect) override;
+    std::vector<bool>        GetStatus(unsigned int status);
+
+public:
+    wxBoxSizer* m_main_sizer{nullptr};
+    wxBoxSizer* m_groups_sizer{nullptr};
+
+    MachineObject* m_obj{nullptr};
+};
+
+
+enum RMTYPE {
+    RMTYPE_NORMAL   = 0,
+    RMTYPE_VIRTUAL  = 1,
+};
+
+class AmsRMItem : public wxWindow
+{
+public:
+    AmsRMItem(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    ~AmsRMItem() {};
+
+public:
+    void set_color(wxColour col) {m_color = col;};
+    void set_type(RMTYPE type) {m_type = type;};
+    void set_index(std::string index) {m_index = index;};
+    void set_focus(bool focus) {m_focus = focus;};
+
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
+private:
+    RMTYPE      m_type;
+    wxColour    m_color;
+    std::string m_index;
+    bool        m_focus = false;
+    bool        m_selected = false;
+};
+
+class AmsRMArrow : public wxWindow
+{
+public:
+    AmsRMArrow(wxWindow* parent);
+    ~AmsRMArrow() {};
+
+public:
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+
+private:
+    ScalableBitmap m_bitmap_left;
+    ScalableBitmap m_bitmap_right;
+    ScalableBitmap m_bitmap_down;
+};
 
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 

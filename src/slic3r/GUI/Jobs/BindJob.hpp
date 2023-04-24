@@ -16,13 +16,14 @@ class BindJob : public PlaterJob
     std::function<void()> m_success_fun{nullptr};
     std::string         m_dev_id;
     std::string         m_dev_ip;
+    std::string         m_sec_link;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
 
 protected:
     void on_exception(const std::exception_ptr &) override;
 public:
-    BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip);
+    BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip, std::string sec_link);
 
     int  status_range() const override
     {

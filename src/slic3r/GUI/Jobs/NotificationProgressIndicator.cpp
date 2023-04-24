@@ -10,6 +10,11 @@ void NotificationProgressIndicator::clear_percent()
 
 }
 
+void NotificationProgressIndicator::show_networking_test(wxString msg)
+{
+
+}
+
 void NotificationProgressIndicator::set_range(int range)
 {
     m_nm->progress_indicator_set_range(range);

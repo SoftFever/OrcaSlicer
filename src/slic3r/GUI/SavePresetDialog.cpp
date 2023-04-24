@@ -250,6 +250,9 @@ void SavePresetDialog::Item::update()
     } else {
         m_radio_user->Enable();
         m_radio_project->Enable();
+
+        m_radio_user->SetValue(!m_save_to_project);
+        m_radio_project->SetValue(m_save_to_project);
     }
 
     m_valid_label->SetLabel(info_line);

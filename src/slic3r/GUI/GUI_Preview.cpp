@@ -581,12 +581,13 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
         }
     }
     m_layers_slider->SetSelectionSpan(idx_low, idx_high);
-    m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     auto curr_print_seq = curr_plate->get_real_print_seq();
     bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     m_layers_slider->SetDrawMode(sequential_print);
+    
+    m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
     m_layers_slider->SetLayersTimes(print_mode_stat.layers_times, print_mode_stat.time);

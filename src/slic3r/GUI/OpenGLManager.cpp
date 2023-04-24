@@ -251,14 +251,19 @@ bool OpenGLManager::init_gl()
         if (GLEW_ARB_framebuffer_object) {
             s_framebuffers_type = EFramebufferType::Arb;
             BOOST_LOG_TRIVIAL(info) << "Found Framebuffer Type ARB."<< std::endl;
-	}
-        else if (GLEW_EXT_framebuffer_object)
+        }
+        else if (GLEW_EXT_framebuffer_object) {
+            BOOST_LOG_TRIVIAL(info) << "Found Framebuffer Type Ext."<< std::endl;
             s_framebuffers_type = EFramebufferType::Ext;
-        else
+        }
+        else {
             s_framebuffers_type = EFramebufferType::Unknown;
+            BOOST_LOG_TRIVIAL(warning) << "Found Framebuffer Type unknown!"<< std::endl;
+        }
 
         bool valid_version = s_gl_info.is_version_greater_or_equal_to(2, 0);
         if (!valid_version) {
+            BOOST_LOG_TRIVIAL(warning) << "Found opengl version <= 2.0"<< std::endl;
             // Complain about the OpenGL version.
             wxString message = from_u8((boost::format(
                 _utf8(L("The application cannot run normally because OpenGL version is lower than 2.0.\n")))).str());

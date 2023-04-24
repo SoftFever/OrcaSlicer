@@ -84,6 +84,10 @@ static const std::map<const wchar_t, std::string> font_icons = {
 
     {ImGui::TextSearchIcon             , "im_text_search"             },
     {ImGui::TextSearchCloseIcon        , "im_text_search_close"       },
+
+    {ImGui::ExpandBtn                  , "expand_btn"                 },
+    {ImGui::CollapseBtn                , "collapse_btn"               },
+    {ImGui::RevertBtn                  , "revert_btn"                 },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -120,7 +124,7 @@ const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0
 const ImVec4 ImGuiWrapper::COL_GREY_LIGHT        = { 0.4f, 0.4f, 0.4f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ORANGE_DARK       = { 0.757f, 0.404f, 0.216f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ORANGE_LIGHT      = { 1.0f, 0.49f, 0.216f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_WINDOW_BACKGROUND = { 0.133f, 0.133f, 0.133f, 0.8f };
+const ImVec4 ImGuiWrapper::COL_WINDOW_BACKGROUND = { 0.1f, 0.1f, 0.1f, 0.8f };
 const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = COL_ORANGE_DARK;
 const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
 const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = ImGuiWrapper::COL_BUTTON_HOVERED;
@@ -1115,7 +1119,7 @@ bool ImGuiWrapper::undo_redo_list(const ImVec2& size, const bool is_undo, bool (
 // To do that we push a ColorMarkerHovered symbol at the very beginning of the label
 // This symbol will be used to a color selection for the highlighted letters.
 // see imgui_draw.cpp, void ImFont::RenderText()
-static bool selectable(const char* label, bool selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0))
+static bool selectable(const char* label, bool selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0), bool* out_hovered = nullptr)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
@@ -1261,10 +1265,11 @@ static bool selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     if (flags & ImGuiSelectableFlags_Disabled) ImGui::PopStyleColor();
     if (hovered || selected) ImGui::PopStyleColor();
 
+    if (out_hovered) *out_hovered = hovered;
+
     // Automatically close popups
     if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.CurrentItemFlags & ImGuiItemFlags_SelectableDontClosePopup))
         ImGui::CloseCurrentPopup();
-
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
     return pressed;
 }
@@ -1433,7 +1438,7 @@ void end_menu()
     ImGui::EndMenu(); 
 }
 
-bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size /* = ImVec2(0, 0)*/, ImU32 icon_color /* = 0*/, bool selected /* = false*/, bool enabled /* = true*/)
+bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size /* = ImVec2(0, 0)*/, ImU32 icon_color /* = 0*/, bool selected /* = false*/, bool enabled /* = true*/, bool* hovered/* = nullptr*/)
 {
     ImGuiWindow *window = ImGui::GetCurrentWindow();
     if (window->SkipItems) return false;
@@ -1466,7 +1471,7 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
         float shortcut_w = shortcut ? ImGui::CalcTextSize(shortcut, NULL).x : 0.0f;
         float min_w      = window->DC.MenuColumns.DeclColumns(label_size.x, shortcut_w, IM_FLOOR(g.FontSize * 1.20f)); // Feedback for next frame
         float extra_w    = std::max(0.0f, ImGui::GetContentRegionAvail().x - min_w);
-        pressed          = selectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(min_w, 0.0f));
+        pressed          = selectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth, ImVec2(min_w, 0.0f), hovered);
 
         if (icon_size.x != 0 && icon_size.y != 0) {
             float selectable_pos_y = pos.y + -0.5f * style.ItemSpacing.y;
@@ -1665,7 +1670,24 @@ void ImGuiWrapper::bold_text(const std::string& str)
         text(str);
     }
 }
-
+bool ImGuiWrapper::push_bold_font() {
+    if (bold_font) {
+        ImGui::PushFont(bold_font);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+bool ImGuiWrapper::pop_bold_font() {
+    if (bold_font) {
+        ImGui::PopFont();
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 bool ImGuiWrapper::push_font_by_name(std::string font_name)
 {
     auto sys_font = im_fonts_map.find(font_name);
@@ -2002,6 +2024,37 @@ void ImGuiWrapper::pop_button_disable_style() {
     ImGui::PopStyleColor(3);
 }
 
+void ImGuiWrapper::push_combo_style(const float scale)
+{
+    if (m_is_dark_mode) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
+    } else {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_Button, {1.00f, 1.00f, 1.00f, 0.0f});
+    }
+}
+
+void ImGuiWrapper::pop_combo_style()
+{
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(7);
+}
+
 void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();
@@ -2026,7 +2079,7 @@ void ImGuiWrapper::init_font(bool compress)
     cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, m_font_cjk ? ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() : ranges.Data);
     if (default_font == nullptr) {
         default_font = io.Fonts->AddFontDefault();
         if (default_font == nullptr) {

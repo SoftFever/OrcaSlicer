@@ -348,6 +348,15 @@ Vec3d extract_euler_angles(const Transform3d& transform);
 // Euler angles can be obtained by extract_euler_angles()
 void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix = nullptr);
 
+// Returns the transform obtained by assembling the given translation
+Transform3d translation_transform(const Vec3d &translation);
+
+// Returns the transform obtained by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+Transform3d rotation_transform(const Vec3d &rotation);
+
 class Transformation
 {
     struct Flags

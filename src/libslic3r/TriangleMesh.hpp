@@ -337,6 +337,7 @@ indexed_triangle_set    its_make_cube(double x, double y, double z);
 indexed_triangle_set    its_make_prism(float width, float length, float height);
 indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/360));
 indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/360));
+indexed_triangle_set    its_make_frustum_dowel(double r, double h, int sectorCount);
 indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
 

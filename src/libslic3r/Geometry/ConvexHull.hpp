@@ -1,14 +1,22 @@
 #ifndef slic3r_Geometry_ConvexHull_hpp_
 #define slic3r_Geometry_ConvexHull_hpp_
 
+#include <vector>
+
 #include "../Polygon.hpp"
 
 namespace Slic3r {
+
+class ExPolygon;
+using ExPolygons = std::vector<ExPolygon>;
+
 namespace Geometry {
 
 Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);
+Polygon convex_hull(const ExPolygons &expolygons);
+Polygon convex_hulll(const Polylines &polylines);
 
 // Returns true if the intersection of the two convex polygons A and B
 // is not an empty set.

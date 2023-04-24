@@ -345,11 +345,11 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                             if (!bbox_a.overlap(bbox_b))
                                 continue;
 
-                            if (intersection_ex(expoly_a, expoly_b).empty())
+                            ExPolygons temp = intersection_ex(expoly_b, expoly_a, ApplySafetyOffset::Yes);
+                            if (temp.empty())
                                 continue;
 
-                            ExPolygons temp = intersection_ex(expoly_b, expoly_a);
-                            if (expoly_a.area() > expoly_b.area())
+                            if (expoly_a.contour.length() > expoly_b.contour.length())
                                 trimming_a.insert(trimming_a.end(), temp.begin(), temp.end());
                             else
                                 trimming_b.insert(trimming_b.end(), temp.begin(), temp.end());
@@ -397,6 +397,12 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 // Clip every non-zero region preceding it.
                                 for (int idx_region2 = 0; idx_region2 < idx_region; ++ idx_region2)
                                     if (! temp_slices[idx_region2].expolygons.empty()) {
+                                        // Skip trim_overlap for now, because it slow down the performace so much for some special cases
+#if 1
+                                        if (const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
+                                            !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
+                                            temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+#else
                                         const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                         if (!region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
                                             //BBS: handle negative_volume seperately, always minus the negative volume and don't need to trim overlap
@@ -404,6 +410,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                                 trim_overlap(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
                                             else
                                                 temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+#endif
                                     }
                             }
                         }
@@ -462,20 +469,33 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
 bool doesVolumeIntersect(VolumeSlices& vs1, VolumeSlices& vs2)
 {
     if (vs1.volume_id == vs2.volume_id) return true;
+    // two volumes in the same object should have same number of layers, otherwise the slicing is incorrect.
     if (vs1.slices.size() != vs2.slices.size()) return false;
 
-    for (int i = 0; i != vs1.slices.size(); ++i) {
+    auto& vs1s = vs1.slices;
+    auto& vs2s = vs2.slices;
+    bool is_intersect = false;
 
-        if (vs1.slices[i].empty()) continue;
-        if (!vs2.slices[i].empty() && !intersection_ex(vs1.slices[i], vs2.slices[i]).empty()) return true;
-        if (i + 1 != vs2.slices.size() && !vs2.slices[i + 1].empty()) {
-            if (!intersection_ex(vs1.slices[i], vs2.slices[i + 1]).empty()) return true;
-        }
-        if (i - 1 >= 0 && !vs2.slices[i - 1].empty()) {
-            if (!intersection_ex(vs1.slices[i], vs2.slices[i - 1]).empty()) return true;
-        }
-    }
-    return false;
+    tbb::parallel_for(tbb::blocked_range<int>(0, vs1s.size()),
+        [&vs1s, &vs2s, &is_intersect](const tbb::blocked_range<int>& range) {
+            for (auto i = range.begin(); i != range.end(); ++i) {
+                if (vs1s[i].empty()) continue;
+
+                if (overlaps(vs1s[i], vs2s[i])) {
+                    is_intersect = true;
+                    break;
+                }
+                if (i + 1 != vs2s.size() && overlaps(vs1s[i], vs2s[i + 1])) {
+                    is_intersect = true;
+                    break;
+                }
+                if (i - 1 >= 0 && overlaps(vs1s[i], vs2s[i - 1])) {
+                    is_intersect = true;
+                    break;
+                }
+            }
+        });
+    return is_intersect;
 }
 
 //BBS: grouping the volumes of an object according to their connection relationship
@@ -581,15 +601,18 @@ void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons 
     std::vector<int> epsIndex;
     epsIndex.resize(eps.size(), -1);
     for (int ie = 0; ie != eps.size(); ie++) {
+        if (eps[ie].area() <= 0)
+            continue;
+        double minArea = eps[ie].area();
         for (int iv = 0; iv != gvss.size(); iv++) {
             auto clipedExPolys = diff_ex(eps[ie], gvss[iv].slices);
             double area = 0;
             for (const auto& ce : clipedExPolys) {
                 area += ce.area();
             }
-            if (eps[ie].area() > 0 && area / eps[ie].area() < 0.3) {
+            if (area < minArea) {
+                minArea = area;
                 epsIndex[ie] = iv;
-                break;
             }
         }
     }
@@ -603,7 +626,7 @@ void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons 
     }
 }
 
-std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std::function<void()> &throw_if_canceled)
+std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std::function<void()> &throw_if_canceled, int &firstLayerReplacedBy)
 {
     std::string error_msg;//BBS
 
@@ -715,10 +738,14 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
 
     // BBS: first layer slices are sorted by volume group, if the first layer is empty and replaced by the 2nd layer
 // the later will be stored in "object->firstLayerObjGroupsMod()"
-    int firstLayerReplacedBy = 0;
-    if (!buggy_layers.empty() && buggy_layers.front() == 0)
+    if (!buggy_layers.empty() && buggy_layers.front() == 0 && layers.size() > 1)
         firstLayerReplacedBy = 1;
 
+    return error_msg;
+}
+
+void groupingVolumesForBrim(PrintObject* object, LayerPtrs& layers, int firstLayerReplacedBy)
+{
     const auto           scaled_resolution = scaled<double>(object->print()->config().resolution.value);
     auto partsObjSliceByVolume = findPartVolumes(object->firstLayerObjSliceMod(), object->model_object()->volumes);
     groupingVolumes(partsObjSliceByVolume, object->firstLayerObjGroupsMod(), scaled_resolution, firstLayerReplacedBy);
@@ -726,8 +753,6 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
     reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices);
-
-    return error_msg;
 }
 
 // Called by make_perimeters()
@@ -752,15 +777,23 @@ void PrintObject::slice()
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
     this->slice_volumes();
     m_print->throw_if_canceled();
+    int firstLayerReplacedBy = 0;
+
+#if 1
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
-    std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); });
+    std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); }, firstLayerReplacedBy);
     m_print->throw_if_canceled();
     //BBS: send warning message to slicing callback
     if (!warning.empty()) {
         BOOST_LOG_TRIVIAL(info) << warning;
         this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
     }
+#endif
+
+    // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
+    groupingVolumesForBrim(this, m_layers, firstLayerReplacedBy);
+
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),

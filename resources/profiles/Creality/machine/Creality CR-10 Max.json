@@ -7,6 +7,6 @@
     "family": "Creality-CR",
     "bed_model": "",
     "bed_texture": "",
-    "hotend_model": "hotend.stl",
+    "hotend_model": "",
     "default_materials": "Generic PLA @CREALITY;Generic PETG @CREALITY;Generic ABS @CREALITY;"
 }
