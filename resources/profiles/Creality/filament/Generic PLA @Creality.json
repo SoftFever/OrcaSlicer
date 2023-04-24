@@ -17,6 +17,7 @@
     ],
     "compatible_printers": [
       "Creality Ender-3 V2 0.4 nozzle",
-      "Creality CR-10 Max 0.4 nozzle"
+      "Creality CR-10 Max 0.4 nozzle",
+      "Creality Ender-5 Pro 2019 0.4 nozzle"
     ]
 }
