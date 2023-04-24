@@ -13,6 +13,10 @@
             "sub_path": "machine/Qidi Tech X-CF Pro.json"
         },
         {
+            "name": "Qidi Tech X-Smart3",
+            "sub_path": "machine/Qidi Tech X-Smart3.json"
+        },
+        {
             "name": "Qidi Tech X-Plus3",
             "sub_path": "machine/Qidi Tech X-Plus3.json"
         },
@@ -33,6 +37,10 @@
         {
             "name": "0.20mm Standard @QTXCFPro",
             "sub_path": "process/0.20mm Standard @QTXCFPro.json"
+        },
+        {
+            "name": "0.20mm Standard @QTXSmart3",
+            "sub_path": "process/0.20mm Standard @QTXSmart3.json"
         },
         {
             "name": "0.20mm Standard @QTXPlus3",
@@ -57,12 +65,28 @@
             "sub_path": "filament/fdm_filament_pet.json"
         },
         {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
             "name": "Qidi Tech Generic PLA",
             "sub_path": "filament/Qidi Tech Generic PLA.json"
         },
         {
             "name": "Qidi Tech Generic PETG",
             "sub_path": "filament/Qidi Tech Generic PETG.json"
+        },
+        {
+            "name": "Qidi Tech Generic ASA",
+            "sub_path": "filament/Qidi Tech Generic ASA.json"
+        },
+        {
+            "name": "Qidi Tech Generic ABS",
+            "sub_path": "filament/Qidi Tech Generic ABS.json"
         }
     ],
     "machine_list": [
@@ -77,6 +101,10 @@
         {
             "name": "Qidi Tech X-CF Pro 0.4 nozzle",
             "sub_path": "machine/Qidi Tech X-CF Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Qidi Tech X-Smart3 0.4 nozzle",
+            "sub_path": "machine/Qidi Tech X-Smart3 0.4 nozzle.json"
         },
         {
             "name": "Qidi Tech X-Plus3 0.4 nozzle",

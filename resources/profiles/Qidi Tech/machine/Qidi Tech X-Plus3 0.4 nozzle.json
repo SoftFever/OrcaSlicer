@@ -15,11 +15,11 @@
   ],
   "printable_area": [
 	"0x0",
-	"300x0",
-	"300x250",
-	"0x250"
+	"280x0",
+	"280x280",
+	"0x280"
   ],
-  "printable_height": "300",
+  "printable_height": "270",
   "machine_start_gcode": "",
   "machine_end_gcode": "",
   "layer_change_gcode": "",

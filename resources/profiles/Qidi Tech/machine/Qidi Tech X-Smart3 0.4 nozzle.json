@@ -1,12 +1,12 @@
 {
   "type": "machine",
   "setting_id": "xxx",
-  "name": "Qidi Tech X-Max3 0.4 nozzle",
+  "name": "Qidi Tech X-Smart3 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_machine_common",
-  "printer_model": "Qidi Tech X-Max3",
-  "default_print_profile": "0.20mm Standard @QTXMax3",
+  "printer_model": "Qidi Tech X-Smart3",
+  "default_print_profile": "0.20mm Standard @QTXSmart3",
   "nozzle_diameter": [
       "0.4"
   ],
@@ -15,13 +15,13 @@
   ],
   "printable_area": [
 	"0x0",
-	"325x0",
-	"325x325",
-	"0x325"
+	"180x0",
+	"180x180",
+	"0x180"
   ],
-  "printable_height": "325",
-  "machine_start_gcode": "G28\nG92 E0\nG0 X5 Y5 Z0.3 F3600\n",
-  "machine_end_gcode": "M104 S0\nM140 S0\n;Retract the filament\nG92 E0\nG1 E-3 F300\nG28\nM84\n",
+  "printable_height": "170",
+  "machine_start_gcode": "",
+  "machine_end_gcode": "",
   "layer_change_gcode": "",
   "scan_first_layer": "0",
   "nozzle_type": "hardened_steel",
