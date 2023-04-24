@@ -658,6 +658,17 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
         #endif // __WXMSW__
 
+        if (param == "developer_mode") 
+        { 
+            m_developer_mode_def = app_config->get("developer_mode");
+            if (m_developer_mode_def == "true") {
+                Slic3r::GUI::wxGetApp().save_mode(comDevelop);
+                Slic3r::GUI::wxGetApp().mainframe->show_log_window();
+            } else {
+                Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
+            }
+        }
+
         e.Skip();
     });
 
@@ -970,6 +981,8 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
 
+    auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
+    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
@@ -1004,6 +1017,8 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 #endif
 
+    sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));
 
     page->SetSizer(sizer_page);
     page->Layout();
@@ -1087,15 +1102,13 @@ wxWindow* PreferencesDialog::create_debug_page()
     auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
     page->SetBackgroundColour(*wxWHITE);
 
-    m_developer_mode_def  = app_config->get("developer_mode");
     m_dump_video_def      = app_config->get("dump_video");
     m_backup_interval_def = app_config->get("backup_interval");
     m_iot_environment_def = app_config->get("iot_environment");
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto title_develop_mode   = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
-    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
+
     auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
 
     auto title_log_level = create_item_title(_L("Log Level"), page, _L("Log Level"));
@@ -1135,10 +1148,10 @@ wxWindow* PreferencesDialog::create_debug_page()
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         switch (dialog.ShowModal()) {
         case wxID_NO: {
-            if (m_developer_mode_def != app_config->get("developer_mode")) {
-                app_config->set_bool("developer_mode", m_developer_mode_def == "true" ? true : false);
-                m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
-            }
+            //if (m_developer_mode_def != app_config->get("developer_mode")) {
+            //    app_config->set_bool("developer_mode", m_developer_mode_def == "true" ? true : false);
+            //    m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
+            //}
             if (m_dump_video_def != app_config->get("dump_video")) {
                 app_config->set_bool("dump_video", m_dump_video_def == "true" ? true : false);
                 m_dump_video_ckeckbox->SetValue(m_dump_video_def == "true" ? true : false);
@@ -1203,15 +1216,6 @@ wxWindow* PreferencesDialog::create_debug_page()
             app_config->save();
             Slic3r::set_backup_interval(boost::lexical_cast<long>(app_config->get("backup_interval")));
 
-            // bbs  developer mode
-            auto developer_mode = app_config->get("developer_mode");
-            if (developer_mode == "true") {
-                Slic3r::GUI::wxGetApp().save_mode(comDevelop);
-                Slic3r::GUI::wxGetApp().mainframe->show_log_window();
-            } else {
-                Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
-            }
-
             this->Close();
             break;
         }
@@ -1219,8 +1223,6 @@ wxWindow* PreferencesDialog::create_debug_page()
     });
 
 
-    bSizer->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
-    bSizer->Add(item_develop_mode, 0, wxTOP,FromDIP(3));
     bSizer->Add(item_dump_video, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_log_level, 0, wxTOP| wxEXPAND, FromDIP(20));
     bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
