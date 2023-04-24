@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "QIDI X Plus 3",
+    "model_id": "XPlus3",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "QIDI",
+    "bed_model": "",
+    "bed_texture": "Build_Plate_X_Plus_3.png",
+    "hotend_model": "Hotend.stl",
+    "default_materials": "Generic PLA @QIDI;Generic PETG @QIDI;Generic ABS @QIDI;"
+}
