@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
-    "name": "Qidi Tech X-Max3",
-    "model_id": "Qidi-Tech-XMax3",
+    "name": "Qidi Tech X-Smart3",
+    "model_id": "Qidi-Tech-XSmart3",
     "url": "",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",

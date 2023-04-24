@@ -9,5 +9,5 @@
     "bed_model": "",
     "bed_texture": "",
     "hotend_model": "bbl-3dp-hotend.stl",
-    "default_materials": "Qidi Tech Generic PLA;Qidi Tech Generic PETG"
+	"default_materials": "Qidi Tech Generic ASA;Qidi Tech Generic ABS;Qidi Tech Generic PLA;Qidi Tech Generic PETG"
 }
