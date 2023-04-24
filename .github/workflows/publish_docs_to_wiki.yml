@@ -9,7 +9,7 @@ on:
       - PublishDocsToWiki # This can be changed to any branch of your preference
 
 env:
-  USER_TOKEN: ${{ secrets.WIKI_ACTION_TOKEN }} # This is the repository secret
+  USER_TOKEN: ${{ secrets.GH_WIKI_PAT }} # This is the repository secret personal access token
   USER_NAME: ${{ vars.BOT_USER_NAME }} # Enter the username of your (bot) account
   OWNER: ${{ github.event.repository.owner.name }} # This is the repository owner
   REPOSITORY_NAME: ${{ github.event.repository.name }} # This is the repository name
