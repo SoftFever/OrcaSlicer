@@ -44,27 +44,24 @@ void main()
     float alpha = uniform_color.a;
 
     vec3 triangle_normal = normalize(cross(dFdx(model_pos.xyz), dFdy(model_pos.xyz)));
-#ifdef FLIP_TRIANGLE_NORMALS
-    triangle_normal = -triangle_normal;
-#endif
-
+    if (volume_mirrored)
+    {
+        triangle_normal = -triangle_normal;
+    }
     vec3 transformed_normal = normalize(slope.volume_world_normal_matrix * triangle_normal);
+     
     if (slope.actived) {
-         if(world_pos.z<0.1&&world_pos.z>-0.1)
+        if(world_pos.z<0.1&&world_pos.z>-0.1)
          {
-                color = LightBlue;
-                alpha = 1.0;
+              color = LightBlue;
+              alpha = 1.0;
          }
          else if( transformed_normal.z < slope.normal_z - EPSILON)
-         {
-                color = color * 0.5 + LightRed * 0.5;
-                alpha = 1.0;
-         }
+        {
+            color = color * 0.5 + LightRed * 0.5;
+            alpha = 1.0;
+        }
     }
-
-    if (volume_mirrored)
-        triangle_normal = -triangle_normal;
-
     // First transform the normal into camera space and normalize the result.
     vec3 eye_normal = normalize(gl_NormalMatrix * triangle_normal);
 
