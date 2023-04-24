@@ -3856,7 +3856,7 @@ msgid "First Layer Inspection"
 msgstr "Inspektion der ersten Schicht"
 
 msgid "Auto-recovery from step loss"
-msgstr "Automatische Wiederherstellung nach Schrittverlust"
+msgstr "Automatische Wiederherstellung nach Stromverlust"
 
 msgid "Global"
 msgstr "Allgemein"
