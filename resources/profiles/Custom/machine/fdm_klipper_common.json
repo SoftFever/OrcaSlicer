@@ -74,7 +74,7 @@
     "0"
   ],
   "max_layer_height": [
-    "0.28"
+    "0.32"
   ],
   "min_layer_height": [
     "0.08"
@@ -120,7 +120,6 @@
   "silent_mode": "0",
   "single_extruder_multi_material": "1",
   "change_filament_gcode": "",
-  "machine_pause_gcode": "PAUSE",
   "wipe": [
     "1"
   ],
@@ -135,6 +134,7 @@
   "machine_end_gcode": "PRINT_END",
   "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
   "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
+  "machine_pause_gcode": "PAUSE",
   "scan_first_layer": "0",
   "nozzle_type": "undefine",
   "auxiliary_fan": "0"
