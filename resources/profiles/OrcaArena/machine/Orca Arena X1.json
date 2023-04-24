@@ -8,6 +8,6 @@
     "family": "ARENA-3DP",
     "bed_model": "bbl-3dp-X1.stl",
     "bed_texture": "bbl-3dp-logo_cali_lines.svg",
-    "hotend_model": "bbl-3dp-hotend.stl",
+    "hotend_model": "",
     "default_materials": "Generic PLA Silk;Generic PLA;Arena PLA Matte @Arena X1;Arena PLA Basic @Arena X1;Arena ABS @Arena X1C;Arena PC @Arena X1C;Arena Support W @Arena X1;Arena TPU 95A @Arena X1;PolyTerra PLA @Arena X1;PolyLite PLA @Arena X1;"
 }
