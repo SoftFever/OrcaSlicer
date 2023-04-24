@@ -389,6 +389,17 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     m_printing_stage_value->SetForegroundColour(STAGE_TEXT_COL);
 
 
+    m_staticText_profile_value = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_staticText_profile_value->Wrap(-1);
+#ifdef __WXOSX_MAC__
+    m_staticText_profile_value->SetFont(::Label::Body_11);
+#else
+    m_staticText_profile_value->SetFont(wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+#endif
+
+    m_staticText_profile_value->SetForegroundColour(0x6B6B6B);
+
+
     auto m_panel_progress = new wxPanel(parent, wxID_ANY);
     m_panel_progress->SetBackgroundColour(*wxWHITE);
     auto m_sizer_progressbar = new wxBoxSizer(wxHORIZONTAL);
@@ -534,6 +545,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
 
     bSizer_subtask_info->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
     bSizer_subtask_info->Add(bSizer_task_name, 0, wxEXPAND|wxRIGHT, FromDIP(18));
+    bSizer_subtask_info->Add(m_staticText_profile_value, 0, wxEXPAND | wxTOP, FromDIP(5));
     bSizer_subtask_info->Add(m_printing_stage_value, 0, wxEXPAND | wxTOP, FromDIP(5));
     bSizer_subtask_info->Add(penel_bottons, 0, wxEXPAND | wxTOP, FromDIP(10));
     bSizer_subtask_info->Add(m_panel_progress, 0, wxEXPAND|wxRIGHT, FromDIP(25));
@@ -2264,6 +2276,26 @@ void StatusPanel::update_basic_print_data(bool def)
     }
 }
 
+void StatusPanel::update_model_info()
+{
+    if (wxGetApp().getAgent() && obj) {
+
+        BBLSubTask* curr_task = obj->get_subtask();
+        if (curr_task) {
+            BBLModelTask* curr_model_task = obj->get_modeltask();
+            if (!curr_model_task) {
+                curr_model_task = new BBLModelTask();
+                curr_model_task->task_id = curr_task->task_id;
+                int result = wxGetApp().getAgent()->get_subtask(curr_model_task);
+                
+                if (result > -1) {
+                    obj->set_modeltask(curr_model_task);
+                }
+            }
+        }
+    }
+}
+
 void StatusPanel::update_subtask(MachineObject *obj)
 {
     if (!obj) return;
@@ -2274,6 +2306,8 @@ void StatusPanel::update_subtask(MachineObject *obj)
     else {
         m_staticText_layers->Hide();
     }
+
+    update_model_info();
 
     if (obj->is_system_printing()
         || obj->is_in_calibration()) {
@@ -2307,6 +2341,17 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
             wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
             m_staticText_subtask_value->SetLabelText(subtask_text);
+
+
+            if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
+                if(!m_staticText_profile_value->IsShown()){ m_staticText_profile_value->Show();}
+                m_staticText_profile_value->SetLabelText(obj->get_modeltask()->profile_name);
+            }
+            else {
+                m_staticText_profile_value->SetLabelText(wxEmptyString);
+                m_staticText_profile_value->Hide();
+            }
+
             update_basic_print_data(false);
         } else {
             if (obj->can_resume()) {
@@ -2344,6 +2389,16 @@ void StatusPanel::update_subtask(MachineObject *obj)
         }
         wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
         m_staticText_subtask_value->SetLabelText(subtask_text);
+
+        if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
+            if(!m_staticText_profile_value->IsShown()){ m_staticText_profile_value->Show();}
+            m_staticText_profile_value->SetLabelText(obj->get_modeltask()->profile_name);
+        }
+        else {
+            m_staticText_profile_value->SetLabelText(wxEmptyString);
+            m_staticText_profile_value->Hide();
+        }
+
         //update thumbnail
         if (obj->is_sdcard_printing()) {
             update_basic_print_data(false);
@@ -2365,6 +2420,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
     if (!obj->subtask_) return;
 
     if (is_task_changed(obj)) {
+        obj->set_modeltask(nullptr);
         reset_printing_values();
         BOOST_LOG_TRIVIAL(info) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
@@ -2418,6 +2474,8 @@ void StatusPanel::reset_printing_values()
 
     m_gauge_progress->SetValue(0);
     m_staticText_subtask_value->SetLabelText(NA_STR);
+    m_staticText_profile_value->SetLabelText(wxEmptyString);
+    m_staticText_profile_value->Hide();
     update_basic_print_data(false);
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText(NA_STR);

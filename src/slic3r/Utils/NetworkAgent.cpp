@@ -98,6 +98,7 @@ func_get_profile_3mf                NetworkAgent::get_profile_3mf_ptr = nullptr;
 func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
 func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = nullptr;
 func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr = nullptr;
+func_get_subtask                    NetworkAgent::get_subtask_ptr = nullptr;
 func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
 func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
 func_track_event                    NetworkAgent::track_event_ptr = nullptr;
@@ -245,6 +246,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
     get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
+    get_subtask_ptr                   =  reinterpret_cast<func_get_subtask>(get_network_function("bambu_network_get_subtask"));
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
     get_model_mall_detail_url_ptr     =  reinterpret_cast<func_get_model_mall_detail_url>(get_network_function("bambu_network_get_model_mall_detail_url"));
     get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
@@ -347,8 +349,9 @@ int NetworkAgent::unload_network_module()
     start_publish_ptr                 =  nullptr;
     get_profile_3mf_ptr               =  nullptr;
     get_model_publish_url_ptr         =  nullptr;
+    get_subtask_ptr                   =  nullptr;
     get_model_mall_home_url_ptr       =  nullptr;
-    get_model_mall_detail_url_ptr       =  nullptr;
+    get_model_mall_detail_url_ptr     =  nullptr;
     get_my_profile_ptr                =  nullptr;
     track_enable_ptr                  =  nullptr;
     track_event_ptr                   =  nullptr;
@@ -1134,6 +1137,18 @@ int NetworkAgent::get_model_publish_url(std::string* url)
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
+    return ret;
+}
+
+int NetworkAgent::get_subtask(BBLModelTask* task)
+{
+    int ret = 0;
+    if (network_agent && get_subtask_ptr) {
+        ret = get_subtask_ptr(network_agent, task);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+
     return ret;
 }
 

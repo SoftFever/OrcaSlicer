@@ -76,6 +76,7 @@ typedef int (*func_get_design_staffpick)(void *agent, int offset, int limit, std
 typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
 typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
 typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
+typedef int (*func_get_subtask)(void *agent, BBLModelTask* task);
 typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_detail_url)(void *agent, std::string* url, std::string id);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
@@ -167,6 +168,7 @@ public:
     int start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
     int get_profile_3mf(BBLProfile* profile);
     int get_model_publish_url(std::string* url);
+    int get_subtask(BBLModelTask* task);
     int get_model_mall_home_url(std::string* url);   
     int get_model_mall_detail_url(std::string* url, std::string id);
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
@@ -247,6 +249,7 @@ private:
     static func_start_pubilsh                  start_publish_ptr;
     static func_get_profile_3mf                get_profile_3mf_ptr;
     static func_get_model_publish_url          get_model_publish_url_ptr;
+    static func_get_subtask                    get_subtask_ptr;
     static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
     static func_get_model_mall_detail_url      get_model_mall_detail_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;

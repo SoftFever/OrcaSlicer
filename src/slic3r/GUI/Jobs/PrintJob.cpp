@@ -191,8 +191,8 @@ void PrintJob::process()
     params.dev_id = m_dev_id;
     params.ftp_folder = m_ftp_folder;
     //params.project_name = project_name;
-    params.project_name = m_project_name;
-    params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+    
+    
     params.filename = job_data._3mf_path.string();
     params.config_filename = job_data._3mf_config_path.string();
     params.plate_index = curr_plate_idx;
@@ -222,6 +222,26 @@ void PrintJob::process()
             }
             catch(...) {}
         }
+
+        auto profile_name = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_TITLE_TAG);
+        if (profile_name != model_info->metadata_items.end()) {
+            try {
+                params.preset_name = profile_name->second;
+            }
+            catch (...) {}
+        } 
+        
+        auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
+        if (model_name != model_info->metadata_items.end()) {
+            try {
+                params.project_name = model_name->second;
+            }
+            catch (...) {}
+        }
+    }
+    else {
+        params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+        params.project_name = m_project_name;
     }
 
     wxString error_text;

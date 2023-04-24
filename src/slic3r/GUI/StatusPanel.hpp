@@ -134,6 +134,7 @@ protected:
     wxStaticBitmap *m_bitmap_thumbnail;
     wxStaticText *  m_staticText_subtask_value;
     wxStaticText *  m_printing_stage_value;
+    wxStaticText *  m_staticText_profile_value;
     ProgressBar*    m_gauge_progress;
     wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_percent_icon;
@@ -379,7 +380,8 @@ protected:
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
     void update_left_time(int mc_left_time);
     void update_basic_print_data(bool def = false);
-    void update_subtask(MachineObject *obj);
+    void update_model_info();
+    void update_subtask(MachineObject* obj);
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);
     void update_temp_ctrl(MachineObject *obj);

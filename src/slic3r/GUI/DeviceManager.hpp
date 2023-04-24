@@ -678,6 +678,7 @@ public:
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
     BBLSubTask* subtask_;
+    BBLModelTask* model_task;
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
@@ -793,6 +794,8 @@ public:
     int publish_gcode(std::string gcode_str);
 
     BBLSubTask* get_subtask();
+    BBLModelTask* get_modeltask();
+    void set_modeltask(BBLModelTask* task);
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };

@@ -384,6 +384,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     dev_id(id),
     dev_ip(ip),
     subtask_(nullptr),
+    model_task(nullptr),
     slice_info(nullptr),
     m_is_online(false),
     vt_tray(std::to_string(VIRTUAL_TRAY_ID))
@@ -447,6 +448,11 @@ MachineObject::~MachineObject()
     if (subtask_) {
         delete subtask_;
         subtask_ = nullptr;
+    }
+
+    if (model_task) {
+        delete model_task;
+        model_task = nullptr;
     }
 
     if (get_slice_info_thread) {
@@ -3687,6 +3693,16 @@ BBLSubTask* MachineObject::get_subtask()
     if (!subtask_)
         subtask_ = new BBLSubTask(nullptr);
     return subtask_;
+}
+
+BBLModelTask* MachineObject::get_modeltask()
+{
+    return model_task;
+}
+
+void MachineObject::set_modeltask(BBLModelTask* task)
+{
+    model_task = task;
 }
 
 void MachineObject::update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx)
