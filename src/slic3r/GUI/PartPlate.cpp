@@ -42,6 +42,7 @@ using boost::optional;
 namespace fs = boost::filesystem;
 
 static const float GROUND_Z = -0.03f;
+static const float GROUND_Z_GRIDLINE = -0.26f;
 static const float GRABBER_X_FACTOR = 0.20f;
 static const float GRABBER_Y_FACTOR = 0.03f;
 static const float GRABBER_Z_VALUE = 0.5f;
@@ -376,10 +377,10 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	Lines contour_lines = to_lines(poly);
 	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
-	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
+	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 
-	if (!m_gridlines_bolder.set_from_lines(gridlines_bolder, GROUND_Z))
+	if (!m_gridlines_bolder.set_from_lines(gridlines_bolder, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
