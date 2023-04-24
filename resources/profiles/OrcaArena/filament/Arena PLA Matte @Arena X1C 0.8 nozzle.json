@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "setting_id": "GFSA01_01",
+    "name": "Arena PLA Matte @Arena X1C 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Arena PLA Matte @base",
+    "filament_max_volumetric_speed": [
+        "22"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "compatible_printers": [
+      "Orca Arena X1 Carbon 0.8 nozzle"
+    ]
+}

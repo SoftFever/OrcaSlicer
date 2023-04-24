@@ -1,8 +1,8 @@
 {
-    "name": "Voron",
+    "name": "Custom Printer",
     "version": "01.05.01.02",
     "force_update": "0",
-    "description": "Voron configurations",
+    "description": "My configurations",
     "machine_model_list": [
         {
             "name": "MyKlipper",

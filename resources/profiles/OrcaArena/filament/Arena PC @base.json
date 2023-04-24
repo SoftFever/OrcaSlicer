@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "filament_id": "GFC00",
+    "name": "Arena PC @base",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_pc",
+    "filament_vendor": [
+        "Orca Arena"
+    ],
+    "filament_cost": [
+        "39.99"
+    ],
+    "filament_flow_ratio": [
+        "0.94"
+    ]
+}
