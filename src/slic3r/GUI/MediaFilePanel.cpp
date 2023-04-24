@@ -424,8 +424,14 @@ void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
     if (action == 0) {
         if (fs->GetSelectCount() > 1) {
             MessageDialog dlg(this, 
-                wxString::Format(_L("You are going to delete %u files. Are you sure to continue?"), fs->GetSelectCount()), 
+                wxString::Format(_L("You are going to delete %u files from printer. Are you sure to continue?"), fs->GetSelectCount()), 
                 _L("Delete files"), wxYES_NO | wxICON_WARNING);
+            if (dlg.ShowModal() != wxID_YES)
+                return;
+        } else if (index >= 0) {
+            MessageDialog dlg(this, 
+                wxString::Format(_L("Do you want to delete the file '%s' from printer?"), fs->GetSelectCount()), 
+                _L("Delete file"), wxYES_NO | wxICON_WARNING);
             if (dlg.ShowModal() != wxID_YES)
                 return;
         }
