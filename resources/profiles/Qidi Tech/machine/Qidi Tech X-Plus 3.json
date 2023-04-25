@@ -1,0 +1,13 @@
+{
+    "type": "machine_model",
+    "name": "Qidi Tech X-Plus 3",
+    "model_id": "Qidi-Tech-XPlus-3",
+    "url": "",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Qidi Tech",
+    "bed_model": "",
+    "bed_texture": "",
+    "hotend_model": "bbl-3dp-hotend.stl",
+	"default_materials": "Qidi Tech Generic ASA;Qidi Tech Generic ABS;Qidi Tech Generic PA-CF;Qidi Tech Generic PA;Qidi Tech Generic PC;Qidi Tech Generic PETG-CF;Qidi Tech Generic PETG;Qidi Tech Generic PLA Silk;Qidi Tech Generic PLA;Qidi Tech Generic PVA;Qidi Tech Generic TPU"
+}
