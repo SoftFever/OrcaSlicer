@@ -27,6 +27,30 @@
             "sub_path": "process/fdm_process_qidi_common.json"
         },
         {
+            "name": "0.12mm Fine @Qidi XSmart3",
+            "sub_path": "process/0.12mm Fine @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XPlus3",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XMax3",
+            "sub_path": "process/0.12mm Fine @Qidi XMax3.json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XSmart3",
+            "sub_path": "process/0.16mm Optimal @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XPlus3",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XMax3",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax3.json"
+        },
+        {
             "name": "0.20mm Standard @Qidi XSmart3",
             "sub_path": "process/0.20mm Standard @Qidi XSmart3.json"
         },
@@ -37,6 +61,30 @@
         {
             "name": "0.20mm Standard @Qidi XMax3",
             "sub_path": "process/0.20mm Standard @Qidi XMax3.json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XSmart3",
+            "sub_path": "process/0.25mm Draft @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XPlus3",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XMax3",
+            "sub_path": "process/0.25mm Draft @Qidi XMax3.json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XSmart3",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XPlus3",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XMax3",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax3.json"
         }
     ],
     "filament_list": [
