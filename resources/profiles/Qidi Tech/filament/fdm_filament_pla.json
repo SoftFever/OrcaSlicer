@@ -20,22 +20,28 @@
         "20"
     ],
     "cool_plate_temp" : [
-        "35"
+        "60"
     ],
     "eng_plate_temp" : [
-        "0"
+        "60"
     ],
     "hot_plate_temp" : [
-        "45"
+        "60"
+    ],
+    "textured_plate_temp" : [
+        "60"
     ],
     "cool_plate_temp_initial_layer" : [
-        "35"
+        "60"
     ],
     "eng_plate_temp_initial_layer" : [
-        "0"
+        "60"
     ],
     "hot_plate_temp_initial_layer" : [
-        "45"
+        "60"
+    ],
+    "textured_plate_temp_initial_layer" : [
+        "60"
     ],
     "nozzle_temperature_initial_layer": [
         "220"
