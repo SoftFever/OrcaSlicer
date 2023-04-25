@@ -11,6 +11,10 @@
         {
             "name": "Creality CR-10 Max",
             "sub_path": "machine/Creality CR-10 Max.json"
+        },
+        {
+            "name": "Creality Ender-5 Pro 2019",
+            "sub_path": "machine/Creality Ender-5 Pro 2019.json"
         }
     ],
     "process_list": [
@@ -85,6 +89,11 @@
         {
             "name": "Creality CR-10 Max 0.4 nozzle",
             "sub_path": "machine/Creality CR-10 Max 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-5 Pro 2019 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-5 Pro 2019 0.4 nozzle.json"
         }
+
     ]
 }
