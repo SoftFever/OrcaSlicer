@@ -280,7 +280,9 @@ private:
     PrintDialogStatus m_print_status { PrintStatusInit };
 
     std::vector<wxString>               m_bedtype_list;
+
     std::map<std::string, ::CheckBox *> m_checkbox_list;
+    std::map<std::string, bool> m_checkbox_state_list;
 
     wxColour m_colour_def_color{wxColour(255, 255, 255)};
     wxColour m_colour_bold_color{wxColour(38, 46, 48)};
@@ -439,6 +441,7 @@ protected:
     void                     on_dpi_changed(const wxRect &suggested_rect) override;
     void                     update_user_machine_list();
     void                     update_lan_machine_list();
+    void                     set_flow_calibration_state(bool state);
     wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };

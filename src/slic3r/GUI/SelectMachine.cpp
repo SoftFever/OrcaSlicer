@@ -1471,6 +1471,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
 
 
     check->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &e) {
+        if (!m_checkbox_state_list[param]) {return;}
         AppConfig* config = wxGetApp().app_config;
         if (config) {
             if (check->GetValue())
@@ -1482,6 +1483,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     });
 
     checkbox->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent&) {
+        if (!m_checkbox_state_list[param]) {return;}
         check->SetValue(check->GetValue() ? false : true);
         AppConfig* config = wxGetApp().app_config;
         if (config) {
@@ -1493,6 +1495,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
         });
     
     text->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &) {
+        if (!m_checkbox_state_list[param]) {return;}
         check->SetValue(check->GetValue() ? false : true);
         AppConfig* config = wxGetApp().app_config;
         if (config) {
@@ -1502,6 +1505,8 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
                 config->set_str("print", param, "0");
         }
     });
+
+    m_checkbox_state_list[param] = true;
     m_checkbox_list[param] = check;
     return checkbox;
 }
@@ -3036,6 +3041,28 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
     return NULL;
 }
 
+void SelectMachineDialog::set_flow_calibration_state(bool state)
+{
+    if (!state) {
+        m_checkbox_list["flow_cali"]->SetValue(state);
+        m_checkbox_list["flow_cali"]->SetToolTip(_L("Extrusion compensation calibration is not supported when using Textured PEI Plate"));
+        m_checkbox_list["flow_cali"]->Disable();
+        m_checkbox_state_list["flow_cali"] = state;
+        for (auto win : select_flow->GetWindowChildren()) {
+            win->SetToolTip(_L("Extrusion compensation calibration is not supported when using Textured PEI Plate"));
+        }
+        select_flow->SetToolTip(_L("Extrusion compensation calibration is not supported when using Textured PEI Plate"));
+    }
+    else {
+        m_checkbox_list["flow_cali"]->SetValue(state);
+        m_checkbox_list["flow_cali"]->Enable();
+        m_checkbox_state_list["flow_cali"] = state;
+        for (auto win : select_flow->GetWindowChildren()) {
+            win->SetToolTip( _L("Flow Calibration"));
+        }
+    }
+}
+
 void SelectMachineDialog::set_default()
 {
     //project name
@@ -3260,6 +3287,15 @@ void SelectMachineDialog::set_default()
     m_scrollable_view->SetSize(m_scrollable_region->GetSize());
     m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
     m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
+
+    //disable pei bed
+    auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
+    if (bed_type == BedType::btPTE) {
+        set_flow_calibration_state(false);
+    }
+    else {
+        set_flow_calibration_state(true);
+    }
 
     Layout();
     Fit();
