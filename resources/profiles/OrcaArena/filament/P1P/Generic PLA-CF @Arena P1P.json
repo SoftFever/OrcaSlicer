@@ -18,8 +18,6 @@
     "65"
   ],
   "compatible_printers": [
-    "Orca Arena P1P 0.4 nozzle",
-    "Orca Arena P1P 0.6 nozzle",
-    "Orca Arena P1P 0.8 nozzle"
+    "Orca Arena P1P 0.4 nozzle"
   ]
 }
