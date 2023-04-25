@@ -1,0 +1,126 @@
+{
+    "name": "QIDI",
+    "version": "01.00.00.03",
+    "force_update": "0",
+    "description": "QIDI configurations",
+    "machine_model_list": [
+	    {
+            "name": "QIDI X Plus 3",
+            "sub_path": "machine/QIDI_XPlus3.json"
+		}
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "fdm_process_qidi_common",
+            "sub_path": "process/fdm_process_qidi_common.json"
+        },
+        {
+            "name": "0.20mm Standard @QIDI",
+            "sub_path": "process/0.20mm Standard @QIDI.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+		{
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+		        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+		{
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "Generic ABS @QIDI",
+            "sub_path": "filament/Generic ABS.json"
+        },
+        {
+            "name": "Generic ASA @QIDI",
+            "sub_path": "filament/Generic ASA.json"
+        },
+        {
+            "name": "Generic PA @QIDI",
+            "sub_path": "filament/Generic PA.json"
+        },
+		{
+            "name": "Generic PA-CF @QIDI",
+            "sub_path": "filament/Generic PA-CF.json"
+        },
+        {
+            "name": "Generic PC @QIDI",
+            "sub_path": "filament/Generic PC.json"
+        },
+        {
+            "name": "Generic PETG @QIDI",
+            "sub_path": "filament/Generic PETG.json"
+        },
+		{
+            "name": "Generic PETG-CF @QIDI",
+            "sub_path": "filament/Generic PETG-CF.json"
+        },
+        {
+            "name": "Generic PLA Silk @QIDI",
+            "sub_path": "filament/Generic PLA Silk.json"
+        },
+        {
+            "name": "Generic PLA @QIDI",
+            "sub_path": "filament/Generic PLA.json"
+        },
+		{
+            "name": "Generic PLA-CF @QIDI",
+            "sub_path": "filament/Generic PLA-CF.json"
+        },
+        {
+            "name": "Generic PVA @QIDI",
+            "sub_path": "filament/Generic PVA.json"
+        },
+        {
+            "name": "Generic TPU @QIDI",
+            "sub_path": "filament/Generic TPU.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "fdm_qidi_common",
+            "sub_path": "machine/fdm_qidi_common.json"
+        },
+		{
+            "name": "QIDI X Plus 3 0.4 nozzle",
+            "sub_path": "machine/QIDI X Plus 3 0.4 nozzle.json"
+        }
+    ]
+}
