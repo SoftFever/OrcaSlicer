@@ -4144,7 +4144,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
-                if (this->m_canvas_type == ECanvasType::CanvasAssembleView) {
+                if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.get_current_type() == GLGizmosManager::FdmSupports ||
+                    m_gizmos.get_current_type() == GLGizmosManager::Seam || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
                     //BBS rotate around target
                     Camera& camera = wxGetApp().plater()->get_camera();
                     Vec3d rotate_target = Vec3d::Zero();
@@ -4174,13 +4175,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                         camera.recover_from_free_camera();
                         //BBS modify rotation
-                        if (m_gizmos.get_current_type() == GLGizmosManager::FdmSupports
-                            || m_gizmos.get_current_type() == GLGizmosManager::Seam
-                            || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
-                            //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
-                        }
-                        else if (evt.ControlDown() || evt.CmdDown()) {
+                        //if (m_gizmos.get_current_type() == GLGizmosManager::FdmSupports
+                        //    || m_gizmos.get_current_type() == GLGizmosManager::Seam
+                        //    || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
+                        //    //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
+                        //    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
+                        //}
+                        //else
+                        if (evt.ControlDown() || evt.CmdDown()) {
                             if ((m_rotation_center.x() == 0.f) && (m_rotation_center.y() == 0.f) && (m_rotation_center.z() == 0.f)) {
                                 auto canvas_w = float(get_canvas_size().get_width());
                                 auto canvas_h = float(get_canvas_size().get_height());
