@@ -1,0 +1,174 @@
+{
+    "name": "Custom Printer",
+    "version": "01.05.01.02",
+    "force_update": "0",
+    "description": "My configurations",
+    "machine_model_list": [
+        {
+            "name": "Generaic Klipper Printer",
+            "sub_path": "machine/MyKlipper.json"
+        },
+        {
+            "name": "Generic Marlin Printer",
+            "sub_path": "machine/MyMarlin.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "fdm_process_klipper_common",
+            "sub_path": "process/fdm_process_klipper_common.json"
+        },
+        {
+            "name": "fdm_process_marlin_common",
+            "sub_path": "process/fdm_process_marlin_common.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @MyKlipper",
+            "sub_path": "process/0.08mm Extra Fine @MyKlipper.json"
+        },
+        {
+            "name": "0.12mm Fine @MyKlipper",
+            "sub_path": "process/0.12mm Fine @MyKlipper.json"
+        },
+        {
+            "name": "0.15mm Optimal @MyKlipper",
+            "sub_path": "process/0.15mm Optimal @MyKlipper.json"
+        },
+        {
+            "name": "0.20mm Standard @MyKlipper",
+            "sub_path": "process/0.20mm Standard @MyKlipper.json"
+        },
+        {
+            "name": "0.24mm Draft @MyKlipper",
+            "sub_path": "process/0.24mm Draft @MyKlipper.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @MyKlipper",
+            "sub_path": "process/0.28mm Extra Draft @MyKlipper.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @MyMarlin",
+            "sub_path": "process/0.08mm Extra Fine @MyMarlin.json"
+        },
+        {
+            "name": "0.12mm Fine @MyMarlin",
+            "sub_path": "process/0.12mm Fine @MyMarlin.json"
+        },
+        {
+            "name": "0.15mm Optimal @MyMarlin",
+            "sub_path": "process/0.15mm Optimal @MyMarlin.json"
+        },
+        {
+            "name": "0.20mm Standard @MyMarlin",
+            "sub_path": "process/0.20mm Standard @MyMarlin.json"
+        },
+        {
+            "name": "0.24mm Draft @MyMarlin",
+            "sub_path": "process/0.24mm Draft @MyMarlin.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @MyMarlin",
+            "sub_path": "process/0.28mm Extra Draft @MyMarlin.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "My Generic PLA",
+            "sub_path": "filament/My Generic PLA.json"
+        },
+        {
+            "name": "My Generic PLA-CF",
+            "sub_path": "filament/My Generic PLA-CF.json"
+        },
+        {
+            "name": "My Generic PETG",
+            "sub_path": "filament/My Generic PETG.json"
+        },
+        {
+            "name": "My Generic ABS",
+            "sub_path": "filament/My Generic ABS.json"
+        },
+        {
+            "name": "My Generic TPU",
+            "sub_path": "filament/My Generic TPU.json"
+        },
+        {
+            "name": "My Generic ASA",
+            "sub_path": "filament/My Generic ASA.json"
+        },
+        {
+            "name": "My Generic PC",
+            "sub_path": "filament/My Generic PC.json"
+        },
+        {
+            "name": "My Generic PVA",
+            "sub_path": "filament/My Generic PVA.json"
+        },
+        {
+            "name": "My Generic PA",
+            "sub_path": "filament/My Generic PA.json"
+        },
+        {
+            "name": "My Generic PA-CF",
+            "sub_path": "filament/My Generic PA-CF.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "fdm_klipper_common",
+            "sub_path": "machine/fdm_klipper_common.json"
+        },
+        {
+            "name": "MyKlipper 0.4 nozzle",
+            "sub_path": "machine/MyKlipper 0.4 nozzle.json"
+        },
+        {
+            "name": "MyMarlin 0.4 nozzle",
+            "sub_path": "machine/MyMarlin 0.4 nozzle.json"
+        }
+    ]
+}

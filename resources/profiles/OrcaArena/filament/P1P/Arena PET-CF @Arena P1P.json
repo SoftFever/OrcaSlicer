@@ -1,0 +1,23 @@
+{
+  "type": "filament",
+  "setting_id": "GFST01_10",
+  "name": "Arena PET-CF @Arena P1P",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "Arena PET-CF @base",
+  "slow_down_for_layer_cooling": [
+      "1"
+  ],
+  "reduce_fan_stop_start_freq": [
+      "0"
+  ],
+  "slow_down_min_speed": [
+      "20"
+  ],
+  "slow_down_layer_time": [
+      "2"
+  ],
+  "compatible_printers": [
+    "Orca Arena P1P 0.4 nozzle"
+]
+}

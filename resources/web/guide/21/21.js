@@ -62,7 +62,11 @@ function HandleModelList( pVal )
 			let sVV=strVendor;
 			if( sVV=="BBL" )
 				sVV="Bambu Lab";
-			
+			if( sVV=="Custom")
+				sVV="Custom Printer";
+			if( sVV=="Other")
+				sVV="Orca colosseum";
+
 			let HtmlNewVendor='<div class="OneVendorBlock" Vendor="'+strVendor+'">'+
 '<div class="BlockBanner">'+
 '	<div class="BannerBtns">'+
@@ -129,12 +133,12 @@ function HandleModelList( pVal )
 		}
 	}	
 
-	let AlreadySelect=$("input:checked");
-	let nSelect=AlreadySelect.length;
-	if(nSelect==0)
-	{
-		$("input[nozzel='0.4'][vendor='BBL']").prop("checked", true);
-	}
+	// let AlreadySelect=$("input:checked");
+	// let nSelect=AlreadySelect.length;
+	// if(nSelect==0)
+	// {
+	// 	$("input[nozzel='0.4'][vendor='Custom']").prop("checked", true);
+	// }
 	
 	TranslatePage();
 }

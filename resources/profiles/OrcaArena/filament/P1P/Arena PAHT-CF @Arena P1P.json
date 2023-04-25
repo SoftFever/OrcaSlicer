@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "setting_id": "GFSN04_10",
+    "name": "Arena PAHT-CF @Arena P1P",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Arena PAHT-CF @base",
+    "compatible_printers": [
+        "Orca Arena P1P 0.4 nozzle",
+        "Orca Arena P1P 0.6 nozzle",
+        "Orca Arena P1P 0.8 nozzle"
+    ]
+}

@@ -7,6 +7,6 @@
     "family": "Artillery",
     "bed_model": "",
     "bed_texture": "SW-x2.png",
-    "hotend_model": "bbl-3dp-hotend.stl",
+    "hotend_model": "",
     "default_materials": "Artillery Generic ABS;Artillery Generic PLA;Artillery Generic PLA-CF;Artillery Generic PETG;Artillery Generic TPU;Artillery Generic ASA"
 }

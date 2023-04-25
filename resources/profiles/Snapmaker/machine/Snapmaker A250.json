@@ -7,6 +7,6 @@
     "family": "Snapmaker",
     "bed_model": "",
     "bed_texture": "",
-    "hotend_model": "hotend.stl",
+    "hotend_model": "",
     "default_materials": "Snapmaker Generic ABS;Snapmaker Generic PLA;Snapmaker Generic PLA-CF;Snapmaker Generic PETG;Snapmaker Generic TPU;Snapmaker Generic ASA;Snapmaker Generic PC;Snapmaker Generic PVA;Snapmaker Generic PA;Snapmaker Generic PA-CF"
 }
