@@ -3176,6 +3176,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
         else {
             if (m_is_bbl_3mf && boost::ends_with(m_curr_object->uuid, OBJECT_UUID_SUFFIX) && m_load_restore) {
+                // Adjust backup object/volume id 
                 std::istringstream iss(m_curr_object->uuid);
                 int backup_id;
                 bool need_replace = false;
@@ -3183,25 +3184,22 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     need_replace = (m_curr_object->id != backup_id);
                     m_curr_object->id = backup_id;
                 }
-                //if (need_replace)
+                if (!m_curr_object->components.empty())
                 {
+                    Id first_id = m_curr_object->components.front().object_id;
+                    first_id.second = 0;
+                    IdToCurrentObjectMap::iterator current_object = m_current_objects.lower_bound(first_id);
+                    IdToCurrentObjectMap new_map;
                     for (int index = 0; index < m_curr_object->components.size(); index++)
                     {
-                        int temp_id = (index + 1) << 16 | backup_id;
                         Component& component = m_curr_object->components[index];
-                        std::string new_path = component.object_id.first;
-                        Id new_id = std::make_pair(new_path, temp_id);
-                        IdToCurrentObjectMap::iterator current_object = m_current_objects.find(component.object_id);
-                        if (current_object != m_current_objects.end()) {
-                            CurrentObject new_object;
-                            new_object.geometry = std::move(current_object->second.geometry);
-                            new_object.id = temp_id;
-                            new_object.model_object_idx = current_object->second.model_object_idx;
-                            new_object.name = current_object->second.name;
-                            new_object.uuid = current_object->second.uuid;
-
-                            m_current_objects.erase(current_object);
-                            m_current_objects.insert({ new_id, std::move(new_object) });
+                        Id new_id = component.object_id;
+                        new_id.second = (index + 1) << 16 | backup_id;
+                        if (current_object != m_current_objects.end() 
+                                && (new_id.first.empty() || new_id.first == current_object->first.first)) {
+                            current_object->second.id   = new_id.second;
+                            new_map.insert({new_id, std::move(current_object->second)});
+                            current_object = m_current_objects.erase(current_object);
                         }
                         else {
                             add_error("can not find object for component, id=" + std::to_string(component.object_id.second));
@@ -3209,11 +3207,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             m_curr_object = nullptr;
                             return false;
                         }
-
-                        component.object_id.second = temp_id;
+                        component.object_id.second = new_id.second;
                     }
+                    for (auto & obj : new_map)
+                        m_current_objects.insert({obj.first, std::move(obj.second)});
                 }
             }
+
             Id id = std::make_pair(m_sub_model_path, m_curr_object->id);
             if (m_current_objects.find(id) == m_current_objects.end()) {
                 m_current_objects.insert({ id, std::move(*m_curr_object) });
@@ -5117,6 +5117,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         {
             ModelObject const * object;
             int backup_id;
+            int object_id;
+            std::string path;
             VolumeToObjectIDMap volumes_objectID;
         };
 
@@ -5173,9 +5175,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                                 PackingTemporaryData            data    = PackingTemporaryData(),
                                                 int export_plate_idx = -1) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
-        bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID) const;
+        bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, ObjectData const &object_data) const;
+        void _add_object_components_to_stream(std::stringstream &stream, ObjectData const &object_data) const;
         //BBS: change volume to seperate objects
-        bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID, unsigned int& obj_idx) const;
+        bool _add_mesh_to_object_stream(std::function<bool(std::string &, bool)> const &flush, ObjectData const &object_data) const;
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const;
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -5220,6 +5223,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_save_gcode = store_params.strategy & SaveStrategy::WithGcode;
         m_skip_model  = store_params.strategy & SaveStrategy::SkipModel;
         m_skip_auxiliary = store_params.strategy & SaveStrategy::SkipAuxiliary;
+        m_from_backup_save = store_params.strategy & SaveStrategy::Backup;
 
         m_use_loaded_id = store_params.strategy & SaveStrategy::UseLoadedId;
 
@@ -5281,7 +5285,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } lock{archive, &filepath_tmp};
 
         IdToObjectDataMap objects_data;
-        objects_data.insert({obj_id, {&object, obj_id}});
+        auto &            volumes_objectID = objects_data.insert({obj_id, {&object, obj_id}}).first->second.volumes_objectID;
+        unsigned int volume_count = 0;
+        for (ModelVolume *volume : object.volumes) {
+            if (volume == nullptr) continue;
+            volumes_objectID.insert({volume, (++volume_count << 16 | obj_id)});
+        }
+
         _add_model_file_to_archive(filename.str(), archive, model, objects_data);
 
         mz_zip_writer_finalize_archive(&archive);
@@ -6031,7 +6041,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         unsigned int object_id = 1;
 
         bool cb_cancel = false;
-        int obj_idx = 0;
         std::vector<unsigned int> object_ids;
         std::vector<std::string> object_paths;
         if (!m_skip_model) {
@@ -6039,10 +6048,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (sub_model && obj != objects_data.begin()->second.object) continue;
 
                 if (proFn) {
-                    proFn(EXPORT_STAGE_ADD_MODELS, obj_idx, model.objects.size(), cb_cancel);
+                    proFn(EXPORT_STAGE_ADD_MODELS, object_id, model.objects.size(), cb_cancel);
                     if (cb_cancel)
                         return false;
-                    obj_idx++;
                 }
 
                 if (obj == nullptr)
@@ -6050,18 +6058,42 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 // Index of an object in the 3MF file corresponding to the 1st instance of a ModelObject.
                 IdToObjectDataMap::iterator object_it = objects_data.begin();
+
                 if (!sub_model) {
                     // For backup, use backup id as object id
                     int backup_id = const_cast<Model&>(model).get_object_backup_id(*obj);
-                    if (m_skip_static) object_id = backup_id;
+                    if (m_from_backup_save) object_id = backup_id;
                     object_it = objects_data.insert({ (int) object_id, {obj, backup_id} }).first;
+                    auto & object_data = object_it->second;
+
+                    auto &volumes_objectID = object_data.volumes_objectID;
+                    unsigned int volume_id = object_id, volume_count = 0;
+                    for (ModelVolume *volume : obj->volumes) {
+                        if (volume == nullptr)
+                            continue;
+                        volume_count++;
+                        if (m_from_backup_save)
+                            volume_id = (volume_count << 16 | backup_id);
+                        volumes_objectID.insert({volume, volume_id});
+                        volume_id++;
+                    }
+
+                    object_ids.push_back(object_id);
+                    if (!m_from_backup_save) object_id = volume_id;
+                    object_it->second.object_id = object_id;
+
+                    if (m_split_model) {
+                        auto filename = boost::format("3D/Objects/%s_%d.model") % obj->name % backup_id;
+                        object_data.path = filename.str();
+                        object_paths.push_back(object_data.path);
+                    }
                 }
 
                 if (write_object) {
                     // Store geometry of all ModelVolumes contained in a single ModelObject into a single 3MF indexed triangle set object.
                     // object_it->second.volumes_objectID will contain the offsets of the ModelVolumes in that single indexed triangle set.
                     // object_id will be increased to point to the 1st instance of the next ModelObject.
-                    if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.backup_id, object_it->second.volumes_objectID)) {
+                    if (!_add_object_to_model_stream(context, object_it->second)) {
                         add_error("Unable to add object to archive");
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add object to archive\n");
                         return false;
@@ -6070,32 +6102,30 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 if (sub_model) break;
 
-                object_ids.push_back(object_id);
-                unsigned int curr_id;
-                if (m_skip_static)
-                    curr_id =  object_id;
-                else
-                    curr_id =  object_id + obj->volumes.size();
-
-                object_id = object_id + obj->volumes.size() + 1;
-
                 unsigned int count = 0;
                 for (const ModelInstance* instance : obj->instances) {
                     Transform3d t = instance->get_matrix();
                     // instance_id is just a 1 indexed index in build_items.
                     //assert(m_skip_static || curr_id == build_items.size() + 1);
-                    auto filename = boost::format("3D/Objects/%s_%d.model") % obj->name % object_it->second.backup_id;
-                    if (count == 0)
-                        object_paths.push_back(filename.str());
-                    build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id, t, instance->printable);
+                    build_items.emplace_back("", object_it->second.object_id, t, instance->printable);
                     count++;
                 }
+
+                if (!m_from_backup_save) object_id++;
             }
         }
 
         {
             std::stringstream stream;
             reset_stream(stream);
+
+            if (!m_skip_model) {
+                for (size_t i = 0; i < object_ids.size(); ++i) {
+                    auto &data = objects_data[object_ids[i]];
+                    _add_object_components_to_stream(stream, data);
+                }
+            }
+
             stream << " </" << RESOURCES_TAG << ">\n";
 
             // Store the transformations of all the ModelInstances of all ModelObjects, indexed in a linear fashion.
@@ -6122,31 +6152,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // write model rels
         _add_relationships_file_to_archive(archive, MODEL_RELS_FILE, object_paths, {"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"});
 
-        if (m_skip_static) {
-            for (ModelObject* obj : model.objects) {
-                if (obj == nullptr)
-                    continue;
-                int object_id = obj->get_backup_id();
-                auto & volumes_objectID = objects_data.find(object_id)->second.volumes_objectID;
-                //unsigned int vertices_count = 0;
-                //unsigned int triangles_count = 0;
-                unsigned int volume_count = 0;
-                for (ModelVolume* volume : obj->volumes) {
-                    if (volume == nullptr)
-                        continue;
-                    VolumeToObjectIDMap::iterator volume_it = volumes_objectID.insert({ volume, (object_id | ((volume_count+1)<<16)) }).first;
-                    volume_count++;
-                    //const indexed_triangle_set &its = volume->mesh().its;
-                    //vertices_count += (int)its.vertices.size();
-                    //volume_it->second.first_triangle_id = triangles_count;
-                    //triangles_count += (int)its.indices.size();
-                    //volume_it->second.last_triangle_id = triangles_count - 1;
-                }
-            }
-            return true;
-        }
-
-        {
+        if (!m_skip_static) {
             boost::mutex mutex;
             tbb::parallel_for(tbb::blocked_range<size_t>(0, objects_data.size(), 1), [this, &mutex, &model, &object_ids, &objects_data, &object_paths, main = &archive, project](const tbb::blocked_range<size_t>& range) {
                 for (size_t i = range.begin(); i < range.end(); ++i) {
@@ -6177,12 +6183,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID) const
+    bool _BBS_3MF_Exporter::_add_object_to_model_stream(mz_zip_writer_staged_context &context, ObjectData const &object_data) const
     {
         std::stringstream stream;
         reset_stream(stream);
         unsigned int id = 0;
-        unsigned int volume_start_id = object_id;
+        auto &       object          = *object_data.object;
         for (const ModelInstance* instance : object.instances) {
 			assert(instance != nullptr);
             if (instance == nullptr)
@@ -6209,67 +6215,55 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     return true;
                 };
                 if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
-                    ! _add_mesh_to_object_stream(flush, object, backup_id, volumes_objectID, volume_start_id)) {
+                    !_add_mesh_to_object_stream(flush, object_data)) {
                     add_error("Unable to add mesh to archive");
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add mesh to archive\n");
                     return false;
                 }
             }
 
-            stream << "  <" << OBJECT_TAG << " id=\"" << volume_start_id+id;
-            if ((id == 0) && m_production_ext)
-                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id} << OBJECT_UUID_SUFFIX;
-            stream << "\" type=\"model\">\n";
-            stream << "   <" << COMPONENTS_TAG << ">\n";
-            if (id == 0) {
-                if (m_from_backup_save) {
-                    for (unsigned int index = 1; index <= object.volumes.size(); index ++) {
-                        unsigned int ref_id = object_id | (index << 16);
-                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << ref_id; // << "\"/>\n";
-                        //add the transform of the volume
-                        ModelVolume* volume = object.volumes[index - 1];
-                        const Transform3d& transf = volume->get_matrix();
-                        stream << "\" " << TRANSFORM_ATTR << "=\"";
-                        for (unsigned c = 0; c < 4; ++c) {
-                            for (unsigned r = 0; r < 3; ++r) {
-                                stream << transf(r, c);
-                                if (r != 2 || c != 3)
-                                    stream << " ";
-                            }
-                        }
-                        stream << "\"/>\n";
-                    }
-                }
-                else {
-                    for (unsigned int index = object_id; index < volume_start_id; index ++) {
-                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << index; // << "\"/>\n";
-                        //add the transform of the volume
-                        ModelVolume* volume = object.volumes[index - object_id];
-                        const Transform3d& transf = volume->get_matrix();
-                        stream << "\" " << TRANSFORM_ATTR << "=\"";
-                        for (unsigned c = 0; c < 4; ++c) {
-                            for (unsigned r = 0; r < 3; ++r) {
-                                stream << transf(r, c);
-                                if (r != 2 || c != 3)
-                                    stream << " ";
-                            }
-                        }
-                        stream << "\"/>\n";
-                    }
-                }
-            }
-            else {
-                stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_start_id << "\"/>\n";
-            }
-            stream << "   </" << COMPONENTS_TAG << ">\n";
-
-            stream << "  </" << OBJECT_TAG << ">\n";
-
-            ++id;
+            // Move all components to main model
+            //_add_object_components_to_stream(stream, object_data);
         }
 
         std::string buf = stream.str();
         return buf.empty() || mz_zip_writer_add_staged_data(&context, buf.data(), buf.size());
+    }
+
+    void _BBS_3MF_Exporter::_add_object_components_to_stream(std::stringstream &stream, ObjectData const &object_data) const
+    {
+        auto &       object = *object_data.object;
+
+        stream << "  <" << OBJECT_TAG << " id=\"" << object_data.object_id;
+        if (m_production_ext)
+            stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)object_data.backup_id} << OBJECT_UUID_SUFFIX;
+        stream << "\" type=\"model\">\n";
+
+        stream << "   <" << COMPONENTS_TAG << ">\n";
+
+        for (unsigned int index = 0; index < object.volumes.size(); index ++) {
+            ModelVolume *volume    = object.volumes[index];
+            unsigned int volume_id = object_data.volumes_objectID.find(volume)->second;
+            //add the transform of the volume
+            if (object_data.path.empty())
+                stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_id; // << "\"/>\n";
+            else
+                stream << "    <" << COMPONENT_TAG << " p:path=\"" << object_data.path << "\" objectid=\"" << volume_id; // << "\"/>\n";
+            const Transform3d &transf = volume->get_matrix();
+            stream << "\" " << TRANSFORM_ATTR << "=\"";
+            for (unsigned c = 0; c < 4; ++c) {
+                for (unsigned r = 0; r < 3; ++r) {
+                    stream << transf(r, c);
+                    if (r != 2 || c != 3)
+                        stream << " ";
+                }
+            }
+            stream << "\"/>\n";
+        }
+
+        stream << "   </" << COMPONENTS_TAG << ">\n";
+
+        stream << "  </" << OBJECT_TAG << ">\n";
     }
 
 #if EXPORT_3MF_USE_SPIRIT_KARMA_FP
@@ -6293,7 +6287,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 #endif // EXPORT_3MF_USE_SPIRIT_KARMA_FP
 
     //BBS: change volume to seperate objects
-    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &,bool)> const & flush, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID, unsigned int& obj_idx) const
+    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &, bool)> const &flush, ObjectData const &object_data) const
     {
         std::string output_buffer;
 
@@ -6347,25 +6341,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 #endif
         };
 
+        auto const & object = *object_data.object;
+
         char buf[256];
         unsigned int vertices_count = 0;
         //unsigned int triangles_count = 0;
-        unsigned int volume_idx, volume_count = 0;
         for (ModelVolume* volume : object.volumes) {
             if (volume == nullptr)
                 continue;
 
 			//if (!volume->mesh().stats().repaired())
 			//	throw Slic3r::FileIOError("store_3mf() requires repair()");
-			unsigned int first_vertex_id = 0;
-            volume_count++;
-            if (m_from_backup_save)
-                volume_idx = (volume_count<<16 | obj_idx);
-            else {
-                volume_idx = obj_idx;
-                obj_idx++;
-            }
-            volumes_objectID.insert({ volume, volume_idx });
 
             const indexed_triangle_set &its = volume->mesh().its;
             if (its.vertices.empty()) {
@@ -6379,7 +6365,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             output_buffer += "  <";
             output_buffer += OBJECT_TAG;
             output_buffer += " id=\"";
-            output_buffer += std::to_string(volume_idx);
+            output_buffer += std::to_string(object_data.volumes_objectID.find(volume)->second);
             /*if (m_production_ext) {
                 std::stringstream stream;
                 reset_stream(stream);
@@ -6401,8 +6387,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             output_buffer += ">\n";
 
             vertices_count += (int)its.vertices.size();
-
-            const Transform3d& matrix = volume->get_matrix();
 
             for (size_t i = 0; i < its.vertices.size(); ++i) {
                 //don't save the volume's matrix into vertex data
@@ -6456,9 +6440,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         " v1=\"" << boost::spirit::int_ <<
                         "\" v2=\"" << boost::spirit::int_ <<
                         "\" v3=\"" << boost::spirit::int_ << "\"",
-                        idx[is_left_handed ? 2 : 0] + first_vertex_id,
-                        idx[1] + first_vertex_id,
-                        idx[is_left_handed ? 0 : 2] + first_vertex_id);
+                        idx[is_left_handed ? 2 : 0],
+                        idx[1],
+                        idx[is_left_handed ? 0 : 2]);
                     *ptr = '\0';
                     output_buffer += buf;
                 }
