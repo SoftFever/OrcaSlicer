@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-02 11:05+0800\n"
+"POT-Creation-Date: 2023-04-26 22:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -693,6 +693,18 @@ msgstr ""
 
 msgid "Load..."
 msgstr "ファイルを読込む"
+
+msgid "Orca Cube"
+msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "Autodesk FDM Test"
+msgstr ""
+
+msgid "Voron Cube"
+msgstr ""
 
 msgid "Cube"
 msgstr "キューブ"
@@ -6631,14 +6643,6 @@ msgstr ""
 "押出機のクリアランス（半径）：オブジェクト順で造形する時にこのパラメータでオ"
 "ブジェクトの間隔を計算します。"
 
-msgid "Max Radius"
-msgstr "最大半径"
-
-msgid ""
-"Max clearance radius around extruder. Used for collision avoidance in by-"
-"object printing."
-msgstr "押出機のクリアランス半径。オブジェクト順で造形する時に衝突防止用です。"
-
 msgid "Extruder Color"
 msgstr "押出機の色"
 
@@ -8874,6 +8878,15 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Max Radius"
+#~ msgstr "最大半径"
+
+#~ msgid ""
+#~ "Max clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "押出機のクリアランス半径。オブジェクト順で造形する時に衝突防止用です。"
 
 #~ msgid "Z Hop Type"
 #~ msgstr "Z方向調整タイプ"
