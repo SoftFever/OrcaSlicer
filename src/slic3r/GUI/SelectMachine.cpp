@@ -1554,7 +1554,7 @@ void SelectMachineDialog::popup_filament_backup()
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-    if (dev->get_selected_machine() && dev->get_selected_machine()->filam_bak.size() > 0) {
+    if (dev->get_selected_machine()/* && dev->get_selected_machine()->filam_bak.size() > 0*/) {
         AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
         m_replace_material_popup->update_machine_obj(dev->get_selected_machine());
         m_replace_material_popup->ShowModal();
