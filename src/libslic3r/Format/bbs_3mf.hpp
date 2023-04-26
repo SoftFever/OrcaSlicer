@@ -109,6 +109,7 @@ enum class SaveStrategy
     WithSliceInfo       = 1 << 8,
     SkipAuxiliary       = 1 << 9,
     UseLoadedId         = 1 << 10,
+    ShareMesh           = 1 << 11,
 
     SplitModel = 0x1000 | ProductionExt,
     Encrypted  = SecureContentExt | SplitModel,
