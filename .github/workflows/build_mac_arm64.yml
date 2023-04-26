@@ -4,6 +4,9 @@ on:
     push:
       branches: 
        - main
+    pull_request:
+      branches: 
+       - main 
     
 jobs:
   build_osx_arm64:
@@ -73,7 +76,7 @@ jobs:
           export ver=$(grep '^#define SoftFever_VERSION' ./build_arm64/src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
           ver="_V${ver//\"}"
           cd ${{ github.workspace }}/build_arm64/OrcaSlicer
-          zip -FSrq OrcaSlicer${ver}_nightly_Mac_AppleSilicon_signed.zip ./OrcaSlicer.app
+          zip -FSrq OrcaSlicer${ver}_Mac_AppleSilicon_signed.zip ./OrcaSlicer.app
 
       # (wip: staple failed, error 65)
       # - name: Notarize the app 

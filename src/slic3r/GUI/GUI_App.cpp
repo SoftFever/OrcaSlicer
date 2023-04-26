@@ -290,15 +290,13 @@ public:
         memDc.SetTextForeground(StateColor::darkModeColorFor(wxColor(134, 134, 134)));
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
-// #if BBL_INTERNAL_TESTING
-        auto bs_version = wxString::Format("Based on BambuStudio %s",std::string(SLIC3R_VERSION)).ToStdString();
+        auto bs_version = wxString::Format("Based on PrusaSlicer BambuStudio").ToStdString();
         memDc.SetFont(Label::Body_12);
         wxSize text_rect = memDc.GetTextExtent(bs_version);
         int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth()/2;
         int start_y = version_rect.GetBottom() + 10;
         wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
         memDc.DrawLabel(bs_version, internal_sign_rect, wxALIGN_RIGHT);
-// #endif
 
         // load bitmap for logo
         BitmapCache bmp_cache;
