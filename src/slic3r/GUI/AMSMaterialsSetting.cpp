@@ -669,17 +669,6 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
     m_color_picker_popup.set_ams_colours(ams_colors);
     m_color_picker_popup.set_def_colour(m_clr_picker->m_colour);
     m_color_picker_popup.Popup();
-
-    /*auto clr_dialog = new wxColourDialog(this, m_clrData);
-    if (clr_dialog->ShowModal() == wxID_OK) {
-        m_clrData = &(clr_dialog->GetColourData());
-        m_clr_picker->SetBackgroundColor(wxColour(
-            m_clrData->GetColour().Red(),
-            m_clrData->GetColour().Green(),
-            m_clrData->GetColour().Blue(),
-            254
-        ));
-    }*/
 }
 
 bool AMSMaterialsSetting::is_virtual_tray()
@@ -1114,7 +1103,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     }
 
     wxBoxSizer* m_sizer_other = new wxBoxSizer(wxHORIZONTAL);
-    auto m_title_other = new wxStaticText(m_def_color_box, wxID_ANY, _L("Other color"), wxDefaultPosition, wxDefaultSize, 0);
+    auto m_title_other = new wxStaticText(m_def_color_box, wxID_ANY, _L("Other Color"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_other->SetFont(::Label::Body_14);
     m_title_other->SetBackgroundColour(wxColour(238, 238, 238));
     m_sizer_other->Add(m_title_other, 0, wxALL, 5);
@@ -1124,11 +1113,43 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     other_line->SetBackgroundColour(wxColour(0xCECECE));
     m_sizer_other->Add(other_line, 1, wxALIGN_CENTER, 0);
 
+    //custom color
+    wxBoxSizer* m_sizer_custom = new wxBoxSizer(wxHORIZONTAL);
+    auto m_title_custom = new wxStaticText(m_def_color_box, wxID_ANY, _L("Custom Color"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_custom->SetFont(::Label::Body_14);
+    m_title_custom->SetBackgroundColour(wxColour(238, 238, 238));
+    auto custom_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    custom_line->SetBackgroundColour(wxColour(0xCECECE));
+    custom_line->SetMinSize(wxSize(-1, 1));
+    custom_line->SetMaxSize(wxSize(-1, 1));
+    m_sizer_custom->Add(m_title_custom, 0, wxALL, 5);
+    m_sizer_custom->Add(custom_line, 1, wxALIGN_CENTER, 0);
+
+    m_custom_cp =  new StaticBox(m_def_color_box);
+    m_custom_cp->SetSize(FromDIP(60), FromDIP(25));
+    m_custom_cp->SetMinSize(wxSize(FromDIP(60), FromDIP(25)));
+    m_custom_cp->SetMaxSize(wxSize(FromDIP(60), FromDIP(25)));
+    m_custom_cp->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal)));
+    m_custom_cp->Bind(wxEVT_LEFT_DOWN, &ColorPickerPopup::on_custom_clr_picker, this);
+    m_custom_cp->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+        SetCursor(wxCURSOR_HAND);
+    });
+    m_custom_cp->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
+        SetCursor(wxCURSOR_ARROW);
+    });
+
+    m_clrData = new wxColourData();
+    m_clrData->SetChooseFull(true);
+    m_clrData->SetChooseAlpha(false);
+
+
     m_sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_box->Add(m_sizer_ams, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_ams_fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_sizer_other, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(m_sizer_custom, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(m_custom_cp, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(16));
     m_sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
 
 
@@ -1145,6 +1166,28 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     wxGetApp().UpdateDarkUIWin(this);
 }
 
+void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& event)
+{
+    auto clr_dialog = new wxColourDialog(nullptr, m_clrData);
+    wxColour picker_color;
+
+    if (clr_dialog->ShowModal() == wxID_OK) {
+        m_clrData = &(clr_dialog->GetColourData());
+
+        picker_color = wxColour(
+            m_clrData->GetColour().Red(),
+            m_clrData->GetColour().Green(),
+            m_clrData->GetColour().Blue(),
+            254
+        );
+        m_custom_cp->SetBackgroundColor(picker_color);
+        set_def_colour(picker_color);
+        wxCommandEvent evt(EVT_SELECTED_COLOR);
+        unsigned long g_col = ((picker_color.Red() & 0xff) << 16) + ((picker_color.Green() & 0xff) << 8) + (picker_color.Blue() & 0xff);
+        evt.SetInt(g_col);
+        wxPostEvent(GetParent(), evt);
+    }
+}
 
 void ColorPickerPopup::set_ams_colours(std::vector<wxColour> ams)
 {
@@ -1201,6 +1244,8 @@ void ColorPickerPopup::set_def_colour(wxColour col)
             break;
         }
     }
+
+    m_custom_cp->SetBackgroundColor(m_def_col);
 
     Dismiss();
 }
