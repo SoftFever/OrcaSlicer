@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-02 11:05+0800\n"
+"POT-Creation-Date: 2023-04-26 22:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -699,6 +699,18 @@ msgstr ""
 
 msgid "Load..."
 msgstr "Load..."
+
+msgid "Orca Cube"
+msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "Autodesk FDM Test"
+msgstr ""
+
+msgid "Voron Cube"
+msgstr ""
 
 msgid "Cube"
 msgstr "Cube"
@@ -6619,14 +6631,6 @@ msgstr ""
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
-msgstr ""
-
-msgid "Max Radius"
-msgstr ""
-
-msgid ""
-"Max clearance radius around extruder. Used for collision avoidance in by-"
-"object printing."
 msgstr ""
 
 msgid "Extruder Color"

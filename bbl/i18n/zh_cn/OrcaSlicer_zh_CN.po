@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-02 11:05+0800\n"
+"POT-Creation-Date: 2023-04-26 22:21+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -691,6 +691,18 @@ msgstr ""
 
 msgid "Load..."
 msgstr "加载..."
+
+msgid "Orca Cube"
+msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "Autodesk FDM Test"
+msgstr ""
+
+msgid "Voron Cube"
+msgstr ""
 
 msgid "Cube"
 msgstr "立方体"
@@ -6526,14 +6538,6 @@ msgid ""
 "printing."
 msgstr "挤出机四周的避让半径。用于在逐件打印中避免碰撞。"
 
-msgid "Max Radius"
-msgstr "最大半径"
-
-msgid ""
-"Max clearance radius around extruder. Used for collision avoidance in by-"
-"object printing."
-msgstr "挤出机四周的最大避让半径。用于在逐件打印中避免碰撞。"
-
 msgid "Extruder Color"
 msgstr "挤出机颜色"
 
@@ -8727,6 +8731,14 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Max Radius"
+#~ msgstr "最大半径"
+
+#~ msgid ""
+#~ "Max clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr "挤出机四周的最大避让半径。用于在逐件打印中避免碰撞。"
 
 #~ msgid "NormalLift"
 #~ msgstr "直接抬Z"

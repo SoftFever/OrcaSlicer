@@ -25,9 +25,5 @@
   ],
   "retraction_minimum_travel": [
       "3"
-  ],
-  "upward_compatible_machine":[
-        "Orca Arena P1P 0.6 nozzle",
-        "Orca Arena X1 0.6 nozzle"
-    ]
+  ]
 }

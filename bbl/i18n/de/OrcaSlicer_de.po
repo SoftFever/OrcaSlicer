@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-02 11:05+0800\n"
+"POT-Creation-Date: 2023-04-26 22:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -720,6 +720,18 @@ msgstr "Text bearbeiten"
 
 msgid "Load..."
 msgstr "Laden..."
+
+msgid "Orca Cube"
+msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "Autodesk FDM Test"
+msgstr ""
+
+msgid "Voron Cube"
+msgstr ""
 
 msgid "Cube"
 msgstr "Würfel"
@@ -7094,16 +7106,6 @@ msgstr ""
 "Abstandsradius um den Extruder. Wird zur Kollisionsvermeidung im "
 "nacheinander Objektdruck verwendet."
 
-msgid "Max Radius"
-msgstr "Max Radius"
-
-msgid ""
-"Max clearance radius around extruder. Used for collision avoidance in by-"
-"object printing."
-msgstr ""
-"Maximaler Abstandsradius um den Extruder. Wird zur Kollisionsvermeidung im "
-"nacheinander Objektdruck verwendet."
-
 msgid "Extruder Color"
 msgstr "Extruder Farbe"
 
@@ -9631,6 +9633,16 @@ msgstr ""
 "Improve strength\n"
 "Wussten Sie, dass Sie mehr Wandschlaufen und eine höhere spärliche "
 "Fülldichte verwenden können, um die Festigkeit des Modells zu verbessern?"
+
+#~ msgid "Max Radius"
+#~ msgstr "Max Radius"
+
+#~ msgid ""
+#~ "Max clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Maximaler Abstandsradius um den Extruder. Wird zur Kollisionsvermeidung "
+#~ "im nacheinander Objektdruck verwendet."
 
 #~ msgid "Z Hop Type"
 #~ msgstr "Z Hop Type"
