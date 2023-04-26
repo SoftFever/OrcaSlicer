@@ -242,7 +242,7 @@ AboutDialog::AboutDialog()
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
         auto version_string = _L("Orca Slicer ") + " " + std::string(SoftFever_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
-        wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on BambuStudio %s",std::string(SLIC3R_VERSION)), wxDefaultPosition, wxDefaultSize);
+        wxStaticText* bs_version = new wxStaticText(this, wxID_ANY, wxString::Format("Based on BambuStudio and PrusaSlicer"), wxDefaultPosition, wxDefaultSize);
         bs_version->SetFont(Label::Body_12);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
