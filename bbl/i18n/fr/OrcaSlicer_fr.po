@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-02 11:05+0800\n"
+"POT-Creation-Date: 2023-04-26 22:21+0800\n"
 "PO-Revision-Date: 2023-02-21 21:56+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
@@ -710,6 +710,18 @@ msgstr ""
 
 msgid "Load..."
 msgstr "Charger..."
+
+msgid "Orca Cube"
+msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "Autodesk FDM Test"
+msgstr ""
+
+msgid "Voron Cube"
+msgstr ""
 
 msgid "Cube"
 msgstr "Cube"
@@ -7013,16 +7025,6 @@ msgstr ""
 "Rayon de dégagement autour de l'extrudeuse. Utilisé pour éviter les "
 "collisions dans l'impression par objet."
 
-msgid "Max Radius"
-msgstr "Rayon maxi"
-
-msgid ""
-"Max clearance radius around extruder. Used for collision avoidance in by-"
-"object printing."
-msgstr ""
-"Rayon de dégagement maximal autour de l'extrudeuse. Utilisé pour éviter les "
-"collisions dans l'impression par objet."
-
 msgid "Extruder Color"
 msgstr "Couleur de l'extrudeuse"
 
@@ -9507,6 +9509,16 @@ msgstr ""
 "Améliorer la résistance\n"
 "Saviez-vous que vous pouvez utiliser plus de boucles de mur et une densité "
 "de remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#~ msgid "Max Radius"
+#~ msgstr "Rayon maxi"
+
+#~ msgid ""
+#~ "Max clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Rayon de dégagement maximal autour de l'extrudeuse. Utilisé pour éviter "
+#~ "les collisions dans l'impression par objet."
 
 #~ msgid "NormalLift"
 #~ msgstr "Retrait Normal"

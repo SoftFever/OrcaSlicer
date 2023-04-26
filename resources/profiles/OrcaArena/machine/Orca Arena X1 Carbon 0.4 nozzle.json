@@ -14,7 +14,7 @@
       "0.4"
   ],
   "extruder_offset": [
-      "0x2"
+      "0x0"
   ],
   "machine_max_speed_z": [
     "20",
@@ -25,9 +25,5 @@
   "machine_unload_filament_time": "28",
   "nozzle_type": "hardened_steel",
   "nozzle_hrc": "55",
-  "auxiliary_fan": "0",
-  "upward_compatible_machine":[
-      "Orca Arena P1P 0.4 nozzle",
-      "Orca Arena X1 0.4 nozzle"
-  ]
+  "auxiliary_fan": "0"
 }
