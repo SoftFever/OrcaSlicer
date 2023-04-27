@@ -1,32 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Printer Connection Required</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #272727;
-        }
-        .container {
-            text-align: center;
-            background-color: #272727;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(39, 39, 39, 0.1);
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Printer Connection Required</title>
+<link rel="stylesheet" type="text/css" href="css/home.css" />
+<link rel="stylesheet" type="text/css" href="css/dark.css" />
+<script type="text/javascript" src="../data/text.js"></script>	
+<script type="text/javascript" src="../homepage/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="../homepage/js/json2.js"></script>
+<script type="text/javascript" src="../homepage/js/globalapi.js"></script>
+<script type="text/javascript" src="../homepage/js/home.js"></script>
 </head>
-<body>
+<body onLoad="OnInit()">
     <div class="container">
-        <h1>Printer Connection</h1>
-        <p>Please set up your printer connection to view the device.</p>
+        <h1 class="trans" tid="t93">Printer Connection</h1>
+        <p class="trans" tid="t94">Please set up your printer connection to view the device.</p>
         <img src="setup_connection.gif" alt="Printer connection setup demonstration" style="max-width: 100%; height: auto; display: block;"/>
     </div>
 </body>
