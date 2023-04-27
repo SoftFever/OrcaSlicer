@@ -7,6 +7,14 @@
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/Label.hpp"
 #include "Printer/PrinterFileSystem.h"
+#include "MsgDialog.hpp"
+
+#ifdef __WXMSW__
+#include <shellapi.h>
+#endif
+#ifdef __APPLE__
+#include "../Utils/MacDarkMode.hpp"
+#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -64,17 +72,20 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_timelapse->SetToolTip(L("Switch to timelapse files."));
     m_button_video = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);
     m_button_video->SetToolTip(L("Switch to video files."));
-    for (auto b : {m_button_timelapse, m_button_video} ) {
+    m_button_model = new ::Button(m_type_panel, _L("Model"), "", wxBORDER_NONE);
+    m_button_video->SetToolTip(L("Switch to 3mf model files."));
+    for (auto b : {m_button_timelapse, m_button_video, m_button_model}) {
         b->SetBackgroundColor(background);
         b->SetCanFocus(false);
     }
 
     wxBoxSizer *type_sizer = new wxBoxSizer(wxHORIZONTAL);
     type_sizer->Add(m_button_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
-    type_sizer->Add(m_button_video, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24);
+    //type_sizer->Add(m_button_video, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24);
+    m_button_video->Hide();
+    type_sizer->Add(m_button_model, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24);
     m_type_panel->SetSizer(type_sizer);
-    m_type_panel->Hide();
-    // top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL);
+    top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL);
 
     // File management
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
@@ -109,6 +120,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     sizer->Add(top_sizer, 0, wxEXPAND);
 
     m_image_grid = new ImageGrid(this);
+    m_image_grid->Bind(EVT_ITEM_ACTION, [this](wxCommandEvent &e) { doAction(size_t(e.GetExtraLong()), e.GetInt()); });
     m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
     sizer->Add(m_image_grid, 1, wxEXPAND);
 
@@ -130,19 +142,20 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
     // File type
     auto type_button_clicked = [this](wxEvent &e) {
-        auto type = PrinterFileSystem::F_TIMELAPSE;
-        auto b    = dynamic_cast<Button *>(e.GetEventObject());
-        if (b == m_button_video)
-            type = PrinterFileSystem::F_VIDEO;
+        Button *buttons[]{m_button_timelapse, m_button_video, m_button_model};
+        auto    type = std::find(buttons, buttons + sizeof(buttons) / sizeof(buttons[0]), e.GetEventObject()) - buttons;
         if (m_last_type == type)
             return;
-        m_image_grid->SetFileType(type);
+        m_image_grid->SetFileType(type, m_external ? "" : "internal");
+        buttons[m_last_type]->SetValue(!buttons[m_last_type]->GetValue());
         m_last_type = type;
-        m_button_timelapse->SetValue(!m_button_timelapse->GetValue());
-        m_button_video->SetValue(!m_button_video->GetValue());
+        buttons[m_last_type]->SetValue(!buttons[m_last_type]->GetValue());
+        if (type == PrinterFileSystem::F_MODEL)
+            m_image_grid->SetGroupMode(PrinterFileSystem::G_NONE);
     };
-    m_button_video->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
     m_button_timelapse->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
+    m_button_video->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
+    m_button_model->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
     m_button_timelapse->SetValue(true);
 
     // File management
@@ -162,8 +175,10 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     auto onShowHide = [this](auto &e) {
         e.Skip();
         if (m_isBeingDeleted) return;
-        auto fs = m_image_grid ? m_image_grid->GetFileSystem() : nullptr;
-        if (fs) IsShownOnScreen() ? fs->Start() : fs->Stop();
+        CallAfter([this] {
+            auto fs = m_image_grid ? m_image_grid->GetFileSystem() : nullptr;
+            if (fs) IsShownOnScreen() ? fs->Start() : fs->Stop();
+        });
     };
     Bind(wxEVT_SHOW, onShowHide);
     parent->GetParent()->Bind(wxEVT_SHOW, onShowHide);
@@ -208,13 +223,15 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         fs->Attached();
-        m_image_grid->SetFileType(m_last_type);
         m_image_grid->SetFileSystem(fs);
+        m_image_grid->SetFileType(m_last_type, m_external ? "" : "internal");
         fs->Bind(EVT_FILE_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
             if (m_image_grid->GetFileSystem() != fs) // canceled
                 return;
+            m_time_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
+            //m_manage_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             m_button_management->Enable(fs->GetCount() > 0);
             if (fs->GetCount() == 0)
                 SetSelecting(false);
@@ -301,6 +318,22 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     modeChanged(e);
 }
 
+void MediaFilePanel::SwitchStorage(bool external)
+{
+    if (m_external == external)
+        return;
+    m_external = external;
+    m_type_panel->Show(external);
+    if (!external) {
+        Button *buttons[]{m_button_timelapse, m_button_video, m_button_model};
+        auto button = buttons[PrinterFileSystem::F_MODEL];
+        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, button->GetId());
+        event.SetEventObject(button);
+        wxPostEvent(button, event);
+    }
+    m_image_grid->SetFileType(m_last_type, m_external ? "" : "internal");
+}
+
 void MediaFilePanel::Rescale()
 {
     m_bmp_loading.msw_rescale();
@@ -315,6 +348,7 @@ void MediaFilePanel::Rescale()
 
     m_button_video->Rescale();
     m_button_timelapse->Rescale();
+    m_button_model->Rescale();
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
 
     m_button_download->Rescale();
@@ -381,6 +415,80 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                     m_image_grid->SetStatus(m_bmp_failed, url.empty() ? _L("Network unreachable") : from_u8(url));
             });
         });
+    }
+}
+
+void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
+{
+    auto fs = m_image_grid->GetFileSystem();
+    if (action == 0) {
+        if (fs->GetSelectCount() > 1) {
+            MessageDialog dlg(this, 
+                wxString::Format(_L("You are going to delete %u files. Are you sure to continue?"), fs->GetSelectCount()), 
+                _L("Delete files"), wxYES_NO | wxICON_WARNING);
+            if (dlg.ShowModal() != wxID_YES)
+                return;
+        }
+        fs->DeleteFiles(index);
+    } else if (action == 1) {
+        if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
+            if (index != -1) {
+                fs->FetchModel(index, [](std::string const & data) {
+                    // TODO: print gcode 3mf
+                });
+            }
+            return;
+        }
+        if (index != -1) {
+            auto &file = fs->GetFile(index);
+            if (file.IsDownload() && file.progress >= -1) {
+                if (file.progress >= 100) {
+                    if (!fs->DownloadCheckFile(index)) {
+                        MessageDialog(this, 
+                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
+                            _L("Error"), wxOK).ShowModal();
+                        Refresh();
+                        return;
+                    }
+#ifdef __WXMSW__
+                    auto             wfile = boost::filesystem::path(file.local_path).wstring();
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, NULL, wfile.c_str(), L"", SW_HIDE};
+                    ::ShellExecuteEx(&info);
+#else
+                    wxShell("open " + file.local_path);
+#endif
+                } else {
+                    fs->DownloadCancel(index);
+                }
+                return;
+            }
+        }
+        fs->DownloadFiles(index, wxGetApp().app_config->get("download_path"));
+    } else if (action == 2) {
+        if (index != -1) {
+            auto &file = fs->GetFile(index);
+            if (file.IsDownload() && file.progress >= -1) {
+                if (file.progress >= 100) {
+                    if (!fs->DownloadCheckFile(index)) {
+                        MessageDialog(this, 
+                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
+                            _L("Error"), wxOK).ShowModal();
+                        Refresh();
+                        return;
+                    }
+#ifdef __WIN32__
+                    wxExecute(L"explorer.exe /select," + from_u8(file.local_path));
+#elif __APPLE__
+                    openFolderForFile(from_u8(file.local_path));
+#else
+#endif
+                } else if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
+                    fs->DownloadCancel(index);
+                }
+                return;
+            }
+        }
+        fs->DownloadFiles(index, wxGetApp().app_config->get("download_path"));
     }
 }
 

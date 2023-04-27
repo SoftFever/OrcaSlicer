@@ -19,6 +19,8 @@ class Label;
 
 class PrinterFileSystem;
 
+wxDECLARE_EVENT(EVT_ITEM_ACTION, wxCommandEvent);
+
 namespace Slic3r {
 
 class MachineObject;
@@ -36,7 +38,7 @@ public:
 
     boost::shared_ptr<PrinterFileSystem> GetFileSystem() { return m_file_sys; }
 
-    void SetFileType(int type);
+    void SetFileType(int type, std::string const &storage);
 
     void SetGroupMode(int mode);
 
@@ -72,15 +74,23 @@ protected:
 
     wxBitmap createAlphaBitmap(wxSize size, wxColour color, int alpha1, int alpha2);
 
+    wxBitmap createShadowBorder(wxSize size, wxColour color, int radius, int shadow);
+
     wxBitmap createCircleBitmap(wxSize size, int borderWidth, int percent, wxColour fillColor, wxColour borderColor = wxTransparentColour);
 
     void render(wxDC &dc);
 
-    void renderContent(wxDC &dc, wxPoint const &pt, int index, bool hit);
+    void renderContent1(wxDC &dc, wxPoint const &pt, int index, bool hit);
+
+    void renderContent2(wxDC &dc, wxPoint const &pt, int index, bool hit);
 
     void renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect, size_t hit, int states);
 
-    void renderText(wxDC &dc, wxString const & text, wxRect const & rect, int states);
+    void renderText(wxDC &dc, wxString const &text, wxRect const &rect, int states);
+
+    void renderText2(wxDC &dc, wxString text, wxRect const &rect);
+
+    void renderIconText(wxDC &dc, ScalableBitmap const & icon, wxString text, wxRect const &rect);
 
     // some useful events
     void mouseMoved(wxMouseEvent& event);
@@ -100,14 +110,17 @@ private:
 
     ScalableBitmap m_checked_icon;
     ScalableBitmap m_unchecked_icon;
-    StateColor m_buttonBackgroundColor;
+    ScalableBitmap m_model_time_icon;
+    ScalableBitmap m_model_weight_icon;
+    StateColor     m_buttonBackgroundColor;
     StateColor m_buttonTextColor;
 
     bool m_hovered = false;
     bool m_pressed = false;
 
     wxTimer m_timer;
-    wxBitmap   m_mask;
+    wxBitmap m_title_mask;
+    wxBitmap m_border_mask;
     wxBitmap m_buttons_background;
     wxBitmap m_buttons_background_checked;
     // wxBitmap   m_button_background;
@@ -128,8 +141,9 @@ private:
     int m_row_offset = 0; // 1/4 row height
     int m_row_count = 0; // 1/4 row height
     int m_col_count = 1;
-    wxSize m_image_size;
     wxSize m_cell_size;
+    wxSize m_border_size;
+    wxRect m_content_rect;
 };
 
 }}
