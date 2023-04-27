@@ -758,32 +758,18 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
 // Normal ranges
 // blue to red
 const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
-    decode_color_to_float_array("#FF00FF"),  // bluish
-    decode_color_to_float_array("#FF55A9"),
-    decode_color_to_float_array("#FE8778"),
-    decode_color_to_float_array("#FFB847"),
-    decode_color_to_float_array("#FFD925"),
-    decode_color_to_float_array("#FFFF00"),
-    decode_color_to_float_array("#D8FF00"),
-    decode_color_to_float_array("#ADFF04"),
-    decode_color_to_float_array("#76FF01"),
-    decode_color_to_float_array("#52c7b8")    // reddish
+    decode_color_to_float_array("#0b2c7a"),  // bluish
+    decode_color_to_float_array("#135985"),
+    decode_color_to_float_array("#1c8891"),
+    decode_color_to_float_array("#04d60f"),
+    decode_color_to_float_array("#aaf200"),
+    decode_color_to_float_array("#fcf903"),
+    decode_color_to_float_array("#f5ce0a"),
+    //decode_color_to_float_array("#e38820"),
+    decode_color_to_float_array("#d16830"),
+    decode_color_to_float_array("#c2523c"),
+    decode_color_to_float_array("#942616")    // reddish
 }};
-
-//const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
-//    {0.043f, 0.173f, 0.478f, 1.0f}, // bluish
-//    {0.075f, 0.349f, 0.522f, 1.0f},
-//    {0.110f, 0.533f, 0.569f, 1.0f},
-//    {0.016f, 0.839f, 0.059f, 1.0f},
-//    {0.667f, 0.949f, 0.000f, 1.0f},
-//    {0.988f, 0.975f, 0.012f, 1.0f},
-//    {0.961f, 0.808f, 0.039f, 1.0f},
-//    //{0.890f, 0.533f, 0.125f, 1.0f},
-//    {0.820f, 0.408f, 0.188f, 1.0f},
-//    {0.761f, 0.322f, 0.235f, 1.0f},
-//    {0.581f, 0.149f, 0.087f, 1.0f} // reddish
-//}};
-
 
 const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f, 1.0f };
 const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0f };
