@@ -1,0 +1,198 @@
+{
+    "name": "Qidi",
+    "version": "01.00.00.03",
+    "force_update": "0",
+    "description": "Qidi configurations",
+    "machine_model_list": [
+        {
+            "name": "Qidi X-Smart 3",
+            "sub_path": "machine/Qidi X-Smart 3.json"
+        },
+        {
+            "name": "Qidi X-Plus 3",
+            "sub_path": "machine/Qidi X-Plus 3.json"
+        },
+        {
+            "name": "Qidi X-Max 3",
+            "sub_path": "machine/Qidi X-Max 3.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "fdm_process_qidi_common",
+            "sub_path": "process/fdm_process_qidi_common.json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XSmart3",
+            "sub_path": "process/0.12mm Fine @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XPlus3",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XMax3",
+            "sub_path": "process/0.12mm Fine @Qidi XMax3.json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XSmart3",
+            "sub_path": "process/0.16mm Optimal @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XPlus3",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XMax3",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax3.json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XSmart3",
+            "sub_path": "process/0.20mm Standard @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XPlus3",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XMax3",
+            "sub_path": "process/0.20mm Standard @Qidi XMax3.json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XSmart3",
+            "sub_path": "process/0.25mm Draft @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XPlus3",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XMax3",
+            "sub_path": "process/0.25mm Draft @Qidi XMax3.json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XSmart3",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XSmart3.json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XPlus3",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus3.json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XMax3",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax3.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+		{
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+		        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+		{
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "Qidi Generic ABS",
+            "sub_path": "filament/Qidi Generic ABS.json"
+        },
+        {
+            "name": "Qidi Generic ASA",
+            "sub_path": "filament/Qidi Generic ASA.json"
+        },
+        {
+            "name": "Qidi Generic PA",
+            "sub_path": "filament/Qidi Generic PA.json"
+        },
+		{
+            "name": "Qidi Generic PA-CF",
+            "sub_path": "filament/Qidi Generic PA-CF.json"
+        },
+        {
+            "name": "Qidi Generic PC",
+            "sub_path": "filament/Qidi Generic PC.json"
+        },
+        {
+            "name": "Qidi Generic PETG",
+            "sub_path": "filament/Qidi Generic PETG.json"
+        },
+		{
+            "name": "Qidi Generic PETG-CF",
+            "sub_path": "filament/Qidi Generic PETG-CF.json"
+        },
+        {
+            "name": "Qidi Generic PLA Silk",
+            "sub_path": "filament/Qidi Generic PLA Silk.json"
+        },
+        {
+            "name": "Qidi Generic PLA",
+            "sub_path": "filament/Qidi Generic PLA.json"
+        },
+		{
+            "name": "Qidi Generic PLA-CF",
+            "sub_path": "filament/Qidi Generic PLA-CF.json"
+        },
+        {
+            "name": "Qidi Generic PVA",
+            "sub_path": "filament/Qidi Generic PVA.json"
+        },
+        {
+            "name": "Qidi Generic TPU",
+            "sub_path": "filament/Qidi Generic TPU.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "fdm_qidi_common",
+            "sub_path": "machine/fdm_qidi_common.json"
+        },
+        {
+            "name": "Qidi X-Smart 3 0.4 nozzle",
+            "sub_path": "machine/Qidi X-Smart 3 0.4 nozzle.json"
+        },
+        {
+            "name": "Qidi X-Plus 3 0.4 nozzle",
+            "sub_path": "machine/Qidi X-Plus 3 0.4 nozzle.json"
+        },
+        {
+            "name": "Qidi X-Max 3 0.4 nozzle",
+            "sub_path": "machine/Qidi X-Max 3 0.4 nozzle.json"
+        }
+    ]
+}
