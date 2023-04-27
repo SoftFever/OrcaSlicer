@@ -1,0 +1,109 @@
+{
+	"type": "machine",
+	"setting_id": "GM001",
+	"name": "Qidi X-Plus 3 0.4 nozzle",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_qidi_common",
+	"printer_model": "Qidi X-Plus 3",
+	"default_print_profile": "0.20mm Standard @Qidi XPlus3",
+	"nozzle_diameter": [
+		"0.4"
+	],
+	"printable_area": [
+		"0x0",
+		"280x0",
+		"280x280",
+		"0x280"
+	],
+	"printable_height": "270",
+	"nozzle_type": "hardened_steel",
+	"auxiliary_fan": "0",
+	"machine_max_acceleration_extruding": [
+		"20000",
+		"1250"
+	],
+	"machine_max_acceleration_retracting": [
+		"5000",
+		"1250"
+	],
+	"machine_max_acceleration_travel": [
+		"1500",
+		"1250"
+	],
+	"machine_max_acceleration_x": [
+		"20000",
+		"1000"
+	],
+	"machine_max_acceleration_y": [
+		"20000",
+		"1000"
+	],
+	"machine_max_acceleration_z": [
+		"500",
+		"200"
+	],
+	"machine_max_speed_e": [
+		"30",
+		"120"
+	],
+	"machine_max_speed_x": [
+		"500",
+		"200"
+	],
+	"machine_max_speed_y": [
+		"500",
+		"200"
+	],
+	"machine_max_speed_z": [
+		"20",
+		"12"
+	],
+	"machine_max_jerk_e": [
+		"2",
+		"2.5"
+	],
+	"machine_max_jerk_x": [
+		"10",
+		"10"
+	],
+	"machine_max_jerk_y": [
+		"10",
+		"10"
+	],
+	"machine_max_jerk_z": [
+		"3",
+		"0.4"
+	],
+	"max_layer_height": [
+		"0"
+	],
+	"min_layer_height": [
+		"0.07"
+	],
+	"printer_settings_id": "Qidi",
+	"retraction_minimum_travel": [
+		"2"
+	],
+	"retract_before_wipe": [
+		"0%"
+	],
+	"retraction_length": [
+		"0.8"
+	],
+	"retract_length_toolchange": [
+		"10"
+	],
+	"deretraction_speed": [
+		"0"
+	],
+	"single_extruder_multi_material": "0",
+	"change_filament_gcode": "",
+	"machine_pause_gcode": "M0",
+	"default_filament_profile": [
+		"Qidi Generic PLA"
+	],
+	"machine_start_gcode": "G28\nM190 S[first_layer_bed_temperature]\nG28 Z\n;G29\nG0 X4 Y5 Z50 F6000\nM109 S[first_layer_temperature]\nM82\nG0 Z0.3 F600\nG92 E-36.45\nG1 Y120 E-27.45 F3000\nG1 X6 E-27.30\nG1 Y5 E-18.30\nG1 X8 E-18.15\nG1 Y120 E-9.15\nG1 X10 E-9\nG1 Y5 E0",
+	"machine_end_gcode": "M104 S0\nM140 S0\nG92 E0\nG1 E-3 F1800\nG91\nG0 Z10 F600\nG90\nG0 X0 Y0 F12000\nG0 Z[max_print_height] F600",
+	"scan_first_layer": "0"
+}
