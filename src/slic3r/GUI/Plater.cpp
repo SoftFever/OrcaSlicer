@@ -57,6 +57,10 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 
+// For stl export
+#include "libslic3r/CSGMesh/ModelToCSGMesh.hpp"
+#include "libslic3r/CSGMesh/PerformCSGMeshBooleans.hpp"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -9499,39 +9503,46 @@ void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
-    wxBusyCursor wait;
-
-    const auto &selection = p->get_selection();
-
-    // BBS support mulity objects
-    // const auto obj_idx = selection.get_object_idx();
-    // if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
-    //    return;
-
-    if (selection_only && selection.is_wipe_tower())
-        return;
-
-    //BBS
-    if (selection_only) {
-        // only support selection single full object and mulitiple full object
-        if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
-            return;
-    }
-
     wxString path = p->get_export_file(FT_STL);
     if (path.empty()) { return; }
     const std::string path_u8 = into_u8(path);
 
+    wxBusyCursor wait;
+
+    const auto &selection = p->get_selection();
+    const auto obj_idx = selection.get_object_idx();
+    if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
+        return;
 
     // Following lambda generates a combined mesh for export with normals pointing outwards.
-    auto mesh_to_export = [](const ModelObject& mo, int instance_id) {
+    auto mesh_to_export_fff = [this](const ModelObject& mo, int instance_id) {
         TriangleMesh mesh;
-        for (const ModelVolume* v : mo.volumes)
-            if (v->is_model_part()) {
-                TriangleMesh vol_mesh(v->mesh());
-                vol_mesh.transform(v->get_matrix(), true);
-                mesh.merge(vol_mesh);
-            }
+
+        std::vector<csg::CSGPart> csgmesh;
+        csgmesh.reserve(2 * mo.volumes.size());
+        csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
+                              csg::mpartsPositive | csg::mpartsNegative | csg::mpartsDoSplits);
+
+        if (csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }) == csgmesh.end()) {
+            try {
+                auto meshPtr = csg::perform_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) });
+                mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*meshPtr);
+            } catch (...) {}
+        }
+
+        if (mesh.empty()) {
+            get_notification_manager()->push_plater_error_notification(
+                _u8L("Unable to perform boolean operation on model meshes. "
+                     "Only positive parts will be exported."));
+
+            for (const ModelVolume* v : mo.volumes)
+                if (v->is_model_part()) {
+                    TriangleMesh vol_mesh(v->mesh());
+                    vol_mesh.transform(v->get_matrix(), true);
+                    mesh.merge(vol_mesh);
+                }
+        }
+
         if (instance_id == -1) {
             TriangleMesh vols_mesh(mesh);
             mesh = TriangleMesh();
@@ -9546,114 +9557,62 @@ void Plater::export_stl(bool extended, bool selection_only)
         return mesh;
     };
 
-    TriangleMesh mesh;
-    if (p->printer_technology == ptFFF) {
-        if (selection_only) {
-            if (selection.is_single_full_object()) {
-                const auto obj_idx = selection.get_object_idx();
-                const ModelObject* model_object = p->model.objects[obj_idx];
-                if (selection.get_mode() == Selection::Instance)
-                {
-                    mesh = std::move(mesh_to_export(*model_object, ( model_object->instances.size() > 1) ? -1 : selection.get_instance_idx()));
-                }
-                else
-                {
-                    const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-                    mesh = model_object->volumes[volume->volume_idx()]->mesh();
-                    mesh.transform(volume->get_volume_transformation().get_matrix(), true);
-                }
+    auto mesh_to_export_sla = [&, this](const ModelObject& mo, int instance_id) {
+        TriangleMesh mesh;
 
-                if (model_object->instances.size() == 1)
-                    mesh.translate(-model_object->origin_translation.cast<float>());
-            }
-            else if (selection.is_multiple_full_object()) {
-                const std::set<std::pair<int, int>>& instances_idxs = p->get_selection().get_selected_object_instances();
-                for (const std::pair<int, int>& i : instances_idxs)
-                {
-                    ModelObject* object = p->model.objects[i.first];
-                    mesh.merge(mesh_to_export(*object, i.second));
-                }
-            }
-        }
+        const SLAPrintObject *object = this->p->sla_print.get_print_object_by_model_object_id(mo.id());
+
+        if (auto m = object->get_mesh_to_print(); m.empty())
+            mesh = mesh_to_export_fff(mo, instance_id);
         else {
-            for (const ModelObject *o : p->model.objects)
-                mesh.merge(mesh_to_export(*o, -1));
-        }
-    }
-    else
-    {
-        // This is SLA mode, all objects have only one volume.
-        // However, we must have a look at the backend to load
-        // hollowed mesh and/or supports
-        const auto obj_idx = selection.get_object_idx();
-        const PrintObjects& objects = p->sla_print.objects();
-        for (const SLAPrintObject* object : objects)
-        {
-            const ModelObject* model_object = object->model_object();
-            if (selection_only) {
-                if (model_object->id() != p->model.objects[obj_idx]->id())
-                    continue;
-            }
-            Transform3d mesh_trafo_inv = object->trafo().inverse();
-            bool is_left_handed = object->is_left_handed();
+            const Transform3d mesh_trafo_inv = object->trafo().inverse();
+            const bool is_left_handed = object->is_left_handed();
 
-            TriangleMesh pad_mesh;
-            bool has_pad_mesh = extended && object->has_mesh(slaposPad);
-            if (has_pad_mesh)
-            {
-                pad_mesh = object->get_mesh(slaposPad);
-                pad_mesh.transform(mesh_trafo_inv);
-            }
+            auto pad_mesh = extended? object->pad_mesh() : TriangleMesh{};
+            pad_mesh.transform(mesh_trafo_inv);
 
-            TriangleMesh supports_mesh;
-            bool has_supports_mesh = extended && object->has_mesh(slaposSupportTree);
-            if (has_supports_mesh)
-            {
-                supports_mesh = object->get_mesh(slaposSupportTree);
-                supports_mesh.transform(mesh_trafo_inv);
-            }
+            auto supports_mesh = extended ? object->support_mesh() : TriangleMesh{};
+            supports_mesh.transform(mesh_trafo_inv);
+
             const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
-            for (const SLAPrintObject::Instance& obj_instance : obj_instances)
-            {
-                auto it = std::find_if(model_object->instances.begin(), model_object->instances.end(),
-                    [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
-                assert(it != model_object->instances.end());
+            for (const SLAPrintObject::Instance& obj_instance : obj_instances) {
+                auto it = std::find_if(object->model_object()->instances.begin(), object->model_object()->instances.end(),
+                                       [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
+                assert(it != object->model_object()->instances.end());
 
-                if (it != model_object->instances.end())
-                {
-                    bool one_inst_only = selection_only && ! selection.is_single_full_object();
+                if (it != object->model_object()->instances.end()) {
+                    const bool one_inst_only = selection_only && ! selection.is_single_full_object();
 
-                    int instance_idx = it - model_object->instances.begin();
+                    const int instance_idx = it - object->model_object()->instances.begin();
                     const Transform3d& inst_transform = one_inst_only
-                            ? Transform3d::Identity()
-                            : object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
+                                                            ? Transform3d::Identity()
+                                                            : object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
 
                     TriangleMesh inst_mesh;
 
-                    if (has_pad_mesh)
-                    {
+                    if (!pad_mesh.empty()) {
                         TriangleMesh inst_pad_mesh = pad_mesh;
                         inst_pad_mesh.transform(inst_transform, is_left_handed);
                         inst_mesh.merge(inst_pad_mesh);
                     }
 
-                    if (has_supports_mesh)
-                    {
+                    if (!supports_mesh.empty()) {
                         TriangleMesh inst_supports_mesh = supports_mesh;
                         inst_supports_mesh.transform(inst_transform, is_left_handed);
                         inst_mesh.merge(inst_supports_mesh);
                     }
 
-                    TriangleMesh inst_object_mesh = object->get_mesh_to_slice();
+                    TriangleMesh inst_object_mesh = object->get_mesh_to_print();
+
                     inst_object_mesh.transform(mesh_trafo_inv);
                     inst_object_mesh.transform(inst_transform, is_left_handed);
 
                     inst_mesh.merge(inst_object_mesh);
 
-                    // ensure that the instance lays on the bed
-                    inst_mesh.translate(0.0f, 0.0f, -inst_mesh.bounding_box().min[2]);
+                           // ensure that the instance lays on the bed
+                    inst_mesh.translate(0.0f, 0.0f, -inst_mesh.bounding_box().min.z());
 
-                    // merge instance with global mesh
+                           // merge instance with global mesh
                     mesh.merge(inst_mesh);
 
                     if (one_inst_only)
@@ -9661,9 +9620,40 @@ void Plater::export_stl(bool extended, bool selection_only)
                 }
             }
         }
+
+        return mesh;
+    };
+
+    std::function<TriangleMesh(const ModelObject& mo, int instance_id)>
+        mesh_to_export;
+
+    if (p->printer_technology == ptFFF )
+        mesh_to_export = mesh_to_export_fff;
+    else
+        mesh_to_export = mesh_to_export_sla;
+
+    TriangleMesh mesh;
+    if (selection_only) {
+        const ModelObject* model_object = p->model.objects[obj_idx];
+        if (selection.get_mode() == Selection::Instance)
+            mesh = mesh_to_export(*model_object, (selection.is_single_full_object() && model_object->instances.size() > 1) ? -1 : selection.get_instance_idx());
+        else {
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+            mesh = model_object->volumes[volume->volume_idx()]->mesh();
+            mesh.transform(volume->get_volume_transformation().get_matrix(), true);
+        }
+
+        if (!selection.is_single_full_object() || model_object->instances.size() == 1)
+            mesh.translate(-model_object->origin_translation.cast<float>());
+    }
+    else {
+        for (const ModelObject* o : p->model.objects) {
+            mesh.merge(mesh_to_export(*o, -1));
+        }
     }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
+//    p->statusbar()->set_status_text(format_wxstr(_L("STL file exported to %s"), path));
 }
 
 //BBS: remove amf export

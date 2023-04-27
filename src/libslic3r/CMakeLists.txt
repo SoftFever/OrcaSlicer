@@ -24,6 +24,9 @@ set(lisbslic3r_sources
     pchheader.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
+    AABBMesh.hpp
+    AABBMesh.cpp
+    AnyPtr.hpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
