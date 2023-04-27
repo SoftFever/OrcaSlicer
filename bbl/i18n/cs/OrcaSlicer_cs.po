@@ -18,6 +18,36 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
 "X-Generator: Poedit 3.2.2\n"
 
+msgid "Physical Printer"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+
+msgid "Send to print"
+msgstr ""
+
+msgid "Upload"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
 msgid "Supports Painting"
 msgstr "Malování podpěr"
 
@@ -6496,7 +6526,6 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Práh převisu chlazení"
 
-#, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
@@ -6504,8 +6533,8 @@ msgid ""
 "all outer wall no matter how much overhang degree"
 msgstr ""
 "Vynutit chladicí ventilátor na určitou rychlost, když stupeň převisu "
-"tištěného dílu překročí tuto hodnotu. Vyjádřeno v procentech, které udává, "
-"jak velká šířka linky bez podpěry spodní vrstvy. 0% znamená vynucení "
+"tištěného dílu překročí tuto hodnotu. Vyjádřeno v procentech, které udává, jak "
+"velká šířka linky bez podpěry spodní vrstvy. 0% znamená vynucení "
 "chlazení pro celou vnější stěnu bez ohledu na míru převisu"
 
 msgid "Bridge direction"
@@ -7030,7 +7059,6 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Smrštění"
 
-#, c-format, boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling "
 "(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
@@ -7116,7 +7144,6 @@ msgstr "Úhel pro vzor výplně mostu, který řídí začátek nebo hlavní sm�
 msgid "Sparse infill density"
 msgstr "Hustota řídké výplně"
 
-#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Hustota vnitřní řídké výplně, 100% znamená celistvou v celém rozsahu"
 
@@ -7216,7 +7243,6 @@ msgstr "Klipper max_accel_to_decel bude upraven automaticky"
 msgid "accel_to_decel"
 msgstr "accel_to_decel"
 
-#, c-format, boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr "Klipper max_accel_to_decel bude upraven na toto % zrychlení"
 
