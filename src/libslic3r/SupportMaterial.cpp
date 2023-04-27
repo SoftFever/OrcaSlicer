@@ -2379,8 +2379,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             if (!cluster.is_sharp_tail && !cluster.is_cantilever) {
                 // 2. check overhang cluster size is small
                 cluster.is_small_overhang = false;
-                auto erode1 = offset_ex(cluster.merged_overhangs_dilated, -2.5 * fw_scaled);
-                if (area(erode1) < SQ(scale_(0.1))) {
+                auto erode1 = offset_ex(cluster.merged_overhangs_dilated, -1.0 * fw_scaled);
+                Point bbox_sz = get_extents(erode1).size();
+                if (bbox_sz.x() < 2 * fw_scaled || bbox_sz.y() < 2 * fw_scaled) {
                     cluster.is_small_overhang = true;
                 }
             }

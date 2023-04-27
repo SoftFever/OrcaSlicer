@@ -1059,8 +1059,11 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
             if (!cluster.is_sharp_tail && !cluster.is_cantilever) {
                 // 2. check overhang cluster size is smaller than 3.0 * fw_scaled
-                auto erode1 = offset_ex(cluster.merged_poly, -1.5 * extrusion_width_scaled);
-                cluster.is_small_overhang = area(erode1) < SQ(scale_(0.1));
+                auto erode1 = offset_ex(cluster.merged_poly, -1 * extrusion_width_scaled);
+                Point bbox_sz = get_extents(erode1).size();
+                if (bbox_sz.x() < 2 * extrusion_width_scaled || bbox_sz.y() < 2 * extrusion_width_scaled) {
+                    cluster.is_small_overhang = true;
+                }
             }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
