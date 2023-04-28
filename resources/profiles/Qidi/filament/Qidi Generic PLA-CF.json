@@ -6,7 +6,6 @@
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_filament_pla",
-	"default_filament_colour": "#283688",
 	"required_nozzle_HRC": [
 		"40"
 	],

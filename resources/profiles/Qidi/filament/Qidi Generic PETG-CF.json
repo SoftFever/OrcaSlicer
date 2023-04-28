@@ -6,7 +6,6 @@
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_filament_pet",
-	"default_filament_colour": "#283688",
 	"temperature_vitrification": [
 		"75"
 	],

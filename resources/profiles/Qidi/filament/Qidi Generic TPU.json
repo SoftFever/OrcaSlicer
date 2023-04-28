@@ -6,7 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
-	"default_filament_colour": "#283688",
     "filament_max_volumetric_speed": [
         "3.2"
     ],
