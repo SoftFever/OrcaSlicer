@@ -14,34 +14,41 @@ msgstr ""
 "X-Generator: Poedit 3.2.2\n"
 
 msgid "Physical Printer"
-msgstr ""
+msgstr "Pphysischer Drucker"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
 msgstr ""
+"Die HTTPS-CA-Datei ist optional. Sie wird nur benötigt, wenn Sie HTTPS mit einem"
+"selbstsignierten Zertifikat verwenden."
 
 msgid ""
 "On this system, %s uses HTTPS certificates from the system Certificate Store "
 "or Keychain."
 msgstr ""
+"In diesem System werden %s HTTPS-Zertifikate aus dem Systemzertifikatspeicher"
+"oder Schlüsselbund verwendet."
 
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
+"Keychain." 
 msgstr ""
+"Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte Ihre CA-Datei in den Zertifikatspeicher / Schlüsselbund"
 
 msgid "Send to print"
-msgstr ""
+msgstr "zum Ausdrucken senden"
 
 msgid "Upload"
-msgstr ""
+msgstr "Hochladen"
 
 msgid "Upload and Print"
-msgstr ""
+msgstr "Hochladen und Drucken"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
+"Verwenden Sie vorwärts geneigte Schrägstriche ( / ) als "
+"Verzeichnistrennzeichen, falls erforderlich."
 
 msgid "Supports Painting"
 msgstr "Stützen aufmalen"
@@ -4665,7 +4672,7 @@ msgid "Print sequence"
 msgstr "Druckreihenfolge"
 
 msgid "Plate name"
-msgstr ""
+msgstr "Platten-Name"
 
 msgid "Same as Global Bed Type"
 msgstr "Der selbe wie der globale Betttyp"
@@ -7692,10 +7699,11 @@ msgstr ""
 "Option zum Wischen in das Objekt / in den Innenfüllbereich."
 
 msgid "Exclude objects"
-msgstr ""
+msgstr "Objekte ausschließen"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
 msgstr ""
+"Aktivieren Sie diese Option, um den Befehl EXCLUDE OBJECT im G-Code hinzuzufügen."
 
 msgid "Verbose G-code"
 msgstr "ausführlicher G-Code"
@@ -8216,7 +8224,7 @@ msgstr ""
 "Firmware unterstützt."
 
 msgid "Show auto-calibration marks"
-msgstr ""
+msgstr "Zeige automatische Kalibrierungsmarkierungen"
 
 msgid "Seam position"
 msgstr "Nahtposition"
