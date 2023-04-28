@@ -6,7 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
-	"default_filament_colour": "#283688",
 	"reduce_fan_stop_start_freq": [
         "1"
     ],
