@@ -5560,10 +5560,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     }
     else {
         camera.zoom_to_box(volumes_box);
-
         const Vec3d& target = camera.get_target();
         double distance = camera.get_distance();
-        camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
+        camera.select_view("iso");
+        camera.apply_view_matrix();
+
+        camera.apply_projection(plate_build_volume);
     }
 
     camera.apply_view_matrix();
