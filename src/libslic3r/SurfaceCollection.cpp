@@ -67,12 +67,9 @@ SurfacesPtr SurfaceCollection::filter_by_types(const SurfaceType *types, int nty
 
 void SurfaceCollection::filter_by_type(SurfaceType type, Polygons* polygons)
 {
-    for (Surfaces::iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
-        if (surface->surface_type == type) {
-            Polygons pp = surface->expolygon;
-            polygons->insert(polygons->end(), pp.begin(), pp.end());
-        }
-    }
+    for (const Surface &surface : this->surfaces)
+        if (surface.surface_type == type)
+            polygons_append(*polygons, to_polygons(surface.expolygon));
 }
 
 void SurfaceCollection::keep_type(const SurfaceType type)

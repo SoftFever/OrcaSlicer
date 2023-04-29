@@ -2,8 +2,8 @@
 
 #include "../wxExtensions.hpp"
 
-CheckBox::CheckBox(wxWindow* parent)
-	: wxBitmapToggleButton(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+CheckBox::CheckBox(wxWindow *parent, int id)
+    : wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_on(this, "check_on", 18)
     , m_half(this, "check_half", 18)
     , m_off(this, "check_off", 18)

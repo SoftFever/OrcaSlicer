@@ -190,15 +190,16 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_extruder_filled_load     = *cache.load_png("monitor_extruder_filled_load", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_extruder_empty_unload    = *cache.load_png("monitor_extruder_empty_unload", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_extruder_filled_unload   = *cache.load_png("monitor_extruder_filled_unload", FromDIP(28), FromDIP(70), false, false);
-    m_bitmap_sdcard_state_abnormal  = ScalableBitmap(this, "sdcard_state_abnormal", 20);
-    m_bitmap_sdcard_state_normal    = ScalableBitmap(this, "sdcard_state_normal", 20);
-    m_bitmap_sdcard_state_no        = ScalableBitmap(this, "sdcard_state_no", 20);
-    m_bitmap_recording_on           = ScalableBitmap(this, "monitor_recording_on", 20);
-    m_bitmap_recording_off          = ScalableBitmap(this, "monitor_recording_off", 20);
-    m_bitmap_timelapse_on           = ScalableBitmap(this, "monitor_timelapse_on", 20);
-    m_bitmap_timelapse_off          = ScalableBitmap(this, "monitor_timelapse_off", 20);
-    m_bitmap_vcamera_on             = ScalableBitmap(this, "monitor_vcamera_on", 20);
-    m_bitmap_vcamera_off            = ScalableBitmap(this, "monitor_vcamera_off", 20);
+
+    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_abnormal_dark" : "sdcard_state_abnormal", 20);
+    m_bitmap_sdcard_state_normal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_normal_dark" : "sdcard_state_normal", 20);
+    m_bitmap_sdcard_state_no = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_no_dark" : "sdcard_state_no", 20);
+    m_bitmap_recording_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_on_dark" : "monitor_recording_on", 20);
+    m_bitmap_recording_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_off_dark" : "monitor_recording_off", 20);
+    m_bitmap_timelapse_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_on_dark" : "monitor_timelapse_on", 20);
+    m_bitmap_timelapse_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_off_dark" : "monitor_timelapse_off", 20);
+    m_bitmap_vcamera_on = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_on_dark" : "monitor_vcamera_on", 20);
+    m_bitmap_vcamera_off = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_off_dark" : "monitor_vcamera_off", 20);
 
 }
 
@@ -508,7 +509,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     panel_button_block->SetSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 2, -1));
     panel_button_block->SetBackgroundColour(*wxWHITE);
 
-    m_staticText_layers = new wxStaticText(penel_text, wxID_ANY, _L("Layers: N/A"));
+    m_staticText_layers = new wxStaticText(penel_text, wxID_ANY, _L("Layer: N/A"));
     m_staticText_layers->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_layers->SetForegroundColour(wxColour(146, 146, 146));
     m_staticText_layers->Hide();
@@ -1096,11 +1097,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     return sizer;
 }
 
-void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_vt_load)
+void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load)
 {
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode(show, support_virtual_tray, support_vt_load);
+    m_ams_control->show_noams_mode(show, support_virtual_tray, support_extrustion_cali, support_vt_load);
     if (m_show_ams_group != show) {
         Fit();
     }
@@ -1266,6 +1267,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_EXTRUSION_CALI, &StatusPanel::on_filament_extrusion_cali, this);
     Bind(EVT_AMS_LOAD, &StatusPanel::on_ams_load, this);
     Bind(EVT_AMS_UNLOAD, &StatusPanel::on_ams_unload, this);
+    Bind(EVT_AMS_FILAMENT_BACKUP, &StatusPanel::on_ams_filament_backup, this);
     Bind(EVT_AMS_SETTINGS, &StatusPanel::on_ams_setting_click, this);
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
@@ -1591,7 +1593,7 @@ void StatusPanel::show_recenter_dialog() {
         obj->command_go_home();
 }
 
-void StatusPanel::show_error_message(wxString msg, std::string print_error_str)
+void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str)
 {
     if (msg.IsEmpty()) {
         if (m_panel_error_txt->IsShown()) {
@@ -1618,6 +1620,14 @@ void StatusPanel::show_error_message(wxString msg, std::string print_error_str)
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
         }
         m_print_error_dlg->update_text(msg);
+        
+        m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
+            if (obj) {
+                obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
+            }
+        });
+        
+
         m_print_error_dlg->on_show();
     }
 }
@@ -1626,7 +1636,7 @@ void StatusPanel::update_error_message()
 {
     if (obj->print_error <= 0) {
         before_error_code = obj->print_error;
-        show_error_message(wxEmptyString);
+        show_error_message(obj, wxEmptyString);
         return;
     } else if (before_error_code != obj->print_error && obj->print_error != skip_print_error) {
         before_error_code = obj->print_error;
@@ -1646,7 +1656,7 @@ void StatusPanel::update_error_message()
                 error_msg = wxString::Format("%s[%s %s]",
                     error_msg,
                     print_error_str, show_time);
-                show_error_message(error_msg, print_error_str);
+                show_error_message(obj, error_msg, print_error_str);
             } else {
                 BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
             }
@@ -1898,6 +1908,8 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
+    bool is_none_ams_mode = false;
+
     if (!obj
         || !obj->is_connected()
         || obj->amsList.empty()
@@ -1912,19 +1924,30 @@ void StatusPanel::update_ams(MachineObject *obj)
             BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         }
         bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-        if (is_support_extrusion_cali) {
-            m_ams_control->update_vams_kn_value(obj->vt_tray);
+        bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+
+        if (is_support_virtual_tray) {
+            m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
         }
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
-        return;
+        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
+        is_none_ams_mode = true;
+        //return;
     }
 
     bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-    if (is_support_extrusion_cali) {
-        m_ams_control->update_vams_kn_value(obj->vt_tray);
+    bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+    bool is_support_filament_backup = obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP);
+
+    m_ams_control->show_filament_backup(is_support_filament_backup);
+
+    if (is_support_virtual_tray) {
+        m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
     }
 
-    show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
+    if (!is_none_ams_mode) {
+         show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
+    }
+   
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
@@ -1964,26 +1987,27 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_vt_tray = true;
 
     // set segment 1, 2
-    if ( obj->m_ams_id != curr_ams_id || obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID) ) {
-         m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID) ) {
+         m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
     else {
         if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
+            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
         }
         else if (obj->m_tray_now != "255") {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
+            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
         }
         else {
-            m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         }
     }
 
     // set segment 3
     if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), obj->vt_tray.get_color());
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->vt_tray.get_color());
     } else {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+       
     }
 
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
@@ -2032,7 +2056,12 @@ void StatusPanel::update_ams(MachineObject *obj)
                 }
             } else if (obj->ams_status_sub == 0x05) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    if(m_is_load_with_temp){
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }else{
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }
+                    
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
@@ -2046,7 +2075,11 @@ void StatusPanel::update_ams(MachineObject *obj)
                 }
             } else if (obj->ams_status_sub == 0x07) {
                 if (!obj->is_ams_unload()) {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    if (m_is_load_with_temp) {
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }else{
+                        m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    }
                 }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
@@ -2134,23 +2167,23 @@ void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is
         enable[ACTION_BTN_UNLOAD] = false;
     }
 
-    /*if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+    if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         enable[ACTION_BTN_LOAD] = false;
         enable[ACTION_BTN_UNLOAD] = false;
-    }*/
+    }
 
     // select current
     if (is_curr_tray_selected) {
         enable[ACTION_BTN_LOAD] = false;
     }
 
-    /*if (!obj->is_filament_at_extruder()) {
+    if (!obj->is_filament_at_extruder()) {
         enable[ACTION_BTN_UNLOAD] = false;
     }
 
-    if (obj->m_tray_now == "255") {
-        enable[ACTION_BTN_UNLOAD] = false;
-    }*/
+//    if (obj->m_tray_now == "255") {
+//        enable[ACTION_BTN_UNLOAD] = false;
+//    }
 
     m_ams_control->SetActionState(enable);
 }
@@ -2255,9 +2288,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
             wxString prepare_text;
             if (obj->is_in_prepare())
                 prepare_text = wxString::Format(_L("Downloading..."));
-            else if (obj->print_status == "SLICING")
-                prepare_text = wxString::Format(_L("Cloud Slicing..."));
-            else
+            else if (obj->print_status == "SLICING") {
+                if (obj->queue_number <= 0) {
+                    prepare_text = wxString::Format(_L("Cloud Slicing..."));
+                } else {
+                    prepare_text = wxString::Format(_L("In Cloud Slicing Queue, there are %s tasks ahead."), std::to_string(obj->queue_number));
+                }
+            } else
                 prepare_text = wxString::Format(_L("Downloading..."));
 
             if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100)
@@ -2267,7 +2304,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_staticText_progress_percent->SetLabelText(NA_STR);
             m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
             m_staticText_progress_left->SetLabel(NA_STR);
-            m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %s"), NA_STR));
+            m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
             wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
             m_staticText_subtask_value->SetLabelText(subtask_text);
             update_basic_print_data(false);
@@ -2296,13 +2333,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_gauge_progress->SetValue(obj->subtask_->task_progress);
                 m_staticText_progress_percent->SetLabelText(wxString::Format("%d", obj->subtask_->task_progress));
                 m_staticText_progress_percent_icon->SetLabelText("%");
-                m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %d/%d"), obj->curr_layer, obj->total_layers));
+                m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
 
             } else {
                 m_gauge_progress->SetValue(0);
                 m_staticText_progress_percent->SetLabelText(NA_STR);
                 m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
-                m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %s"), NA_STR));
+                m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
             }
         }
         wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
@@ -2384,7 +2421,7 @@ void StatusPanel::reset_printing_values()
     update_basic_print_data(false);
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText(NA_STR);
-    m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %s"), NA_STR));
+    m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
     m_staticText_progress_percent->SetLabelText(NA_STR);
     m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());
@@ -2445,7 +2482,7 @@ bool StatusPanel::check_axis_z_at_home(MachineObject* obj)
 }
 
 void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
-{
+{    
     if (obj) {
         obj->command_axis_control("Z", 1.0, -10.0f, 900);
         if (!check_axis_z_at_home(obj))
@@ -2573,6 +2610,14 @@ void StatusPanel::on_ams_load_curr()
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
+        m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
+        if(!obj->is_filament_at_extruder()){
+            m_is_load_with_temp = true;
+        }else{
+            m_is_load_with_temp = false;
+        }
+        
+        
         //virtual tray
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
             /*if (con_load_dlg == nullptr) {
@@ -2580,7 +2625,10 @@ void StatusPanel::on_ams_load_curr()
                 con_load_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {*/
                         int old_temp = -1;
                         int new_temp = -1;
-                        AmsTray* curr_tray = obj->get_curr_tray();
+                        AmsTray* curr_tray = &obj->vt_tray;
+
+                        if (!curr_tray) return;
+
                         try {
                             if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
                                 old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
@@ -2638,17 +2686,26 @@ void StatusPanel::on_ams_unload(SimpleEvent &event)
     if (obj) { obj->command_ams_switch(255); }
 }
 
+void StatusPanel::on_ams_filament_backup(SimpleEvent& event)
+{
+    if (obj && obj->filam_bak.size() > 0) {
+        AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
+        m_replace_material_popup->update_machine_obj(obj);
+        m_replace_material_popup->ShowModal();
+    }
+}
+
 void StatusPanel::on_ams_setting_click(SimpleEvent &event)
 {
     if (!m_ams_setting_dlg) m_ams_setting_dlg = new AMSSetting((wxWindow *) this, wxID_ANY);
     if (obj) {
         m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
         m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
-        std::string ams_id = m_ams_control->GetCurentAms();
-        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            wxString txt = _L("AMS settings are not supported for external spool");
-            MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
+        std::string ams_id = m_ams_control->GetCurentShowAms();
+        if (obj->amsList.size() == 0) {
+            /* wxString txt = _L("AMS settings are not supported for external spool");
+             MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
+             msg_dlg.ShowModal();*/
             return;
         } else {
             try {
@@ -2758,6 +2815,14 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         n_val = wxString::Format("%.3f", tray_it->second->n);
                         wxColor color = AmsTray::decode_color(tray_it->second->color);
                         m_filament_setting_dlg->set_color(color);
+
+                        std::vector<wxColour> cols;
+                        for (auto col : tray_it->second->cols) {
+                            cols.push_back( AmsTray::decode_color(col));
+                        }
+
+                        m_filament_setting_dlg->set_colors(cols);
+
                         m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
                         m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
                         if (!m_filament_setting_dlg->m_is_third) {
@@ -3006,16 +3071,13 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     });
     popUp->Bind(wxEVT_SHOW, [this, popUp](auto &e) {
         if (!e.IsShown()) {
-           /* wxGetApp().CallAfter([this, popUp] { 
-                
-            });*/
             popUp->Destroy();
             m_showing_speed_popup = false;
             speed_dismiss_time = boost::posix_time::microsec_clock::universal_time();
         }
         });
     
-    m_ams_control->Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this, popUp](auto& e) {
+    m_ams_control->Bind(EVT_CLEAR_SPEED_CONTROL, [this, popUp](auto& e) {
         if (m_showing_speed_popup) {
             if (popUp && popUp->IsShown()) {
                 popUp->Show(false);
@@ -3318,8 +3380,17 @@ void StatusPanel::rescale_camera_icons()
 {
     m_setting_button->msw_rescale();
 
-    m_bitmap_vcamera_on.msw_rescale();
-    m_bitmap_vcamera_off.msw_rescale();
+
+    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_abnormal_dark":"sdcard_state_abnormal", 20);
+    m_bitmap_sdcard_state_normal = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_normal_dark":"sdcard_state_normal", 20);
+    m_bitmap_sdcard_state_no = ScalableBitmap(this, wxGetApp().dark_mode()?"sdcard_state_no_dark":"sdcard_state_no", 20);
+    m_bitmap_recording_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_recording_on_dark":"monitor_recording_on", 20);
+    m_bitmap_recording_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_recording_off_dark":"monitor_recording_off", 20);
+    m_bitmap_timelapse_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_timelapse_on_dark":"monitor_timelapse_on", 20);
+    m_bitmap_timelapse_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_timelapse_off_dark":"monitor_timelapse_off", 20);
+    m_bitmap_vcamera_on = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_vcamera_on_dark":"monitor_vcamera_on", 20);
+    m_bitmap_vcamera_off = ScalableBitmap(this, wxGetApp().dark_mode()?"monitor_vcamera_off_dark":"monitor_vcamera_off", 20);
+
     if (m_media_play_ctrl->IsStreaming()) {
         m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_on.bmp());
     }
@@ -3328,9 +3399,7 @@ void StatusPanel::rescale_camera_icons()
     }
 
     if (!obj) return;
-    m_bitmap_sdcard_state_no.msw_rescale();
-    m_bitmap_sdcard_state_abnormal.msw_rescale();
-    m_bitmap_sdcard_state_normal.msw_rescale();
+
     if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
         m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_no.bmp());
     } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
@@ -3341,16 +3410,12 @@ void StatusPanel::rescale_camera_icons()
         m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
     }
 
-    m_bitmap_recording_on.msw_rescale();
-    m_bitmap_recording_off.msw_rescale();
     if (obj->is_recording()) {
         m_bitmap_recording_img->SetBitmap(m_bitmap_recording_on.bmp());
     } else {
         m_bitmap_recording_img->SetBitmap(m_bitmap_recording_off.bmp());
     }
 
-    m_bitmap_timelapse_on.msw_rescale();
-    m_bitmap_timelapse_off.msw_rescale();
     if (obj->is_timelapse()) {
         m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_on.bmp());
     } else {
@@ -3365,6 +3430,7 @@ void StatusPanel::on_sys_color_changed()
     m_bitmap_speed_active.msw_rescale();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_ams_control->msw_rescale();
+    if (m_filament_setting_dlg) {m_filament_setting_dlg->msw_rescale();}
     rescale_camera_icons();
 }
 

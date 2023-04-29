@@ -861,7 +861,7 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 8 * scale, 1 * scale });
 		ImGui::BeginTooltip();
-		imgui.text(_u8L("Safely remove hardware."));
+		imgui.text(_L("Safely remove hardware."));
 		ImGui::EndTooltip();
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar();
@@ -1020,6 +1020,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object has color painting.",			"%1$d Objects have color painting.",(*it).second), (*it).second) + "\n"; break;
 		// BBS
 		//case InfoItemType::Sinking:             text += format(("%1$d Object has partial sinking.",		"%1$d Objects have partial sinking.",		(*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::CutConnectors:       text += format(_L_PLURAL("%1$d object was loaded as a part of cut object.",		"%1$d objects were loaded as parts of cut object", (*it).second), (*it).second) + "\n"; break;
 		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
 	}
@@ -1111,13 +1112,14 @@ void NotificationManager::PrintHostUploadNotification::render_bar(ImGuiWrapper& 
 }
 void NotificationManager::PrintHostUploadNotification::render_left_sign(ImGuiWrapper& imgui)
 {
-	if (m_uj_state == UploadJobState::PB_ERROR) {
-		std::string text;
-		text = ImGui::ErrorMarker;
-		ImGui::SetCursorPosX(m_line_height / 3);
-		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
-		imgui.text(text.c_str());
-	}
+	// BBS: do not render left button
+	//if (m_uj_state == UploadJobState::PB_ERROR) {
+	//	std::string text;
+	//	text = ImGui::ErrorMarker;
+	//	ImGui::SetCursorPosX(m_line_height / 3);
+	//	ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
+	//	imgui.text(text.c_str());
+	//}
 }
 void NotificationManager::PrintHostUploadNotification::render_cancel_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {

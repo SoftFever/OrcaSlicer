@@ -335,6 +335,7 @@ remove_unconnected_vertices(const indexed_triangle_set &its)
 // Drill holes into the hollowed/original mesh.
 void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
 {
+    /*
     bool needs_drilling = ! po.m_model_object->sla_drain_holes.empty();
     bool is_hollowed =
         (po.m_hollowing_data && po.m_hollowing_data->interior &&
@@ -465,6 +466,7 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
     if (hole_fail)
         po.active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
                                    L("Failed to drill some holes into the model"));
+     */
 }
 
 // The slicing will be performed on an imaginary 1D grid which starts from

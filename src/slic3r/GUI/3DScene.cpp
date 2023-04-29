@@ -569,26 +569,6 @@ Transform3d GLVolume::world_matrix() const
     return m;
 }
 
-//BBS: scaled_matrix
-Transform3d GLVolume::world_matrix( float scale_factor) const
-{
-    //const Vec3d& volume_translation = m_volume_transformation.get_offset();
-    //Vec3d scaling_factor = { scale_factor, scale_factor, scale_factor };
-    Vec3d ofs2ass = m_offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
-    Vec3d volofs2obj = m_volume_transformation.get_offset() * (GLVolume::explosion_ratio - 1.0);
-
-    Transform3d volume_matrix = Geometry::assemble_transform(
-        m_volume_transformation.get_offset() + ofs2ass + volofs2obj,
-        m_volume_transformation.get_rotation(),
-        m_volume_transformation.get_scaling_factor() * scale_factor,
-        m_volume_transformation.get_mirror()
-    );
-    Transform3d m = m_instance_transformation.get_matrix() * volume_matrix;
-
-    //m.translation()(2) += m_sla_shift_z;
-    return m;
-}
-
 bool GLVolume::is_left_handed() const
 {
     const Vec3d &m1 = m_instance_transformation.get_mirror();
@@ -834,8 +814,6 @@ void GLVolume::render(bool with_outline) const
                 fclose(file);
             }
 #endif
-
-            Transform3d matrix = world_matrix();
             render_body();
             //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render body, shader name %2%")%__LINE__ %shader->get_name();
 
@@ -887,7 +865,8 @@ void GLVolume::render(bool with_outline) const
             glsafe(::glPopMatrix());
             glsafe(::glPushMatrix());
 
-            matrix = world_matrix(scale);
+            Transform3d matrix = world_matrix();
+            matrix.scale(scale);
             glsafe(::glMultMatrixd(matrix.data()));
             this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
             //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render for body, shader name %2%")%__LINE__ %shader->get_name();
@@ -1065,7 +1044,8 @@ int GLVolumeCollection::load_object_volume(
     int                  instance_idx,
     const std::string   &color_by,
     bool 				 opengl_initialized,
-    bool                 in_assemble_view)
+    bool                 in_assemble_view,
+    bool                 use_loaded_id)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
@@ -1100,6 +1080,11 @@ int GLVolumeCollection::load_object_volume(
     else
         v.set_instance_transformation(instance->get_transformation());
     v.set_volume_transformation(model_volume->get_transformation());
+    //use object's instance id
+    if (use_loaded_id && (instance->loaded_id > 0))
+        v.model_object_ID = instance->loaded_id;
+    else
+        v.model_object_ID = instance->id().id;
 
     return int(this->volumes.size() - 1);
 }
@@ -1287,14 +1272,13 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 #endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
 
         // render sinking contours of non-hovered volumes
-        //BBS: remove sinking logic
-        /*if (m_show_sinking_contours)
+        if (m_show_sinking_contours)
             if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
                 volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
                 shader->stop_using();
                 volume.first->render_sinking_contours();
                 shader->start_using();
-            }*/
+            }
 
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
@@ -1350,8 +1334,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     }
 
-    //BBS: remove sinking logic
-    /*if (m_show_sinking_contours) {
+    if (m_show_sinking_contours) {
         for (GLVolumeWithIdAndZ& volume : to_render) {
             // render sinking contours of hovered/displaced volumes
             if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
@@ -1363,7 +1346,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
                 shader->start_using();
             }
         }
-    }*/
+    }
 
     if (disable_cullface)
         glsafe(::glEnable(GL_CULL_FACE));

@@ -49,6 +49,7 @@ enum class AMSRoadMode : int {
     AMS_ROAD_MODE_END_ONLY,
     AMS_ROAD_MODE_NONE,
     AMS_ROAD_MODE_NONE_ANY_ROAD,
+    AMS_ROAD_MODE_VIRTUAL_TRAY
 };
 
 enum class AMSPassRoadMode : int {
@@ -121,9 +122,9 @@ enum FilamentStepType {
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(186))
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(186))
-#define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(180))
+#define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(186))
 #define AMS_REFRESH_SIZE wxSize(FromDIP(30), FromDIP(30))
-#define AMS_EXTRUDER_SIZE wxSize(FromDIP(66), FromDIP(55))
+#define AMS_EXTRUDER_SIZE wxSize(FromDIP(86), FromDIP(72))
 #define AMS_EXTRUDER_BITMAP_SIZE wxSize(FromDIP(36), FromDIP(55))
 
 struct Caninfo
@@ -135,6 +136,7 @@ struct Caninfo
     int             material_remain = 100;
     float           k = 0.0f;
     float           n = 0.0f;
+    std::vector<wxColour> material_cols;
 };
 
 struct AMSinfo
@@ -229,7 +231,20 @@ public:
     void TurnOn(wxColour col);
     void TurnOff();
     void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
+    void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
+    void OnAmsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
     void msw_rescale();
+    void has_ams(bool hams) {m_has_vams = hams; Refresh();};
+    void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
+
+    bool            m_none_ams_mode{false};
+    bool            m_has_vams{false};
+    bool            m_vams_loading{false};
+    bool            m_ams_loading{false};
+    wxColour        m_current_colur;
 
     wxBoxSizer *    m_bitmap_sizer{nullptr};
     wxPanel *       m_bitmap_panel{nullptr};
@@ -237,6 +252,27 @@ public:
     ScalableBitmap        monitor_ams_extruder;
     AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSextruder();
+};
+
+class AMSVirtualRoad : public wxWindow
+{
+public:
+    AMSVirtualRoad(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    ~AMSVirtualRoad();
+
+private:
+    bool    m_has_vams{ true };
+    bool    m_vams_loading{ false };
+    wxColour m_current_color;
+
+public:
+    void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
+    void SetHasVams(bool hvams) { m_has_vams = hvams; };
+    void create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size);
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+    void msw_rescale();
 };
 
 /*************************************************
@@ -248,17 +284,21 @@ public:
     AMSLib(wxWindow *parent, wxWindowID id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 public:
+    wxColour     GetLibColour();
+    Caninfo      m_info;
+    MachineObject* m_obj = {nullptr};
     int          m_can_index;
     void         Update(Caninfo info, bool refresh = true);
     void         UnableSelected() { m_unable_selected = true; };
     void         EableSelected() { m_unable_selected = false; };
-    wxColour     GetLibColour();
     void         OnSelected();
     void         UnSelected();
-    virtual bool Enable(bool enable = true);
+    bool         is_selected() {return m_selected;};
     void         post_event(wxCommandEvent &&event);
-    Caninfo      m_info;
     void         show_kn_value(bool show) { m_show_kn = show; };
+    void         support_cali(bool sup) { m_support_cali = sup; Refresh(); };
+    virtual bool Enable(bool enable = true);
+
 
 protected:
     wxStaticBitmap *m_edit_bitmp       = {nullptr};
@@ -272,6 +312,7 @@ protected:
     bool            m_selected        = {false};
     bool            m_hover           = {false};
     bool            m_show_kn         = {false};
+    bool            m_support_cali    = {false};
 
     double   m_radius = {4};
     wxColour m_border_color;
@@ -314,9 +355,12 @@ public:
     ScalableBitmap ams_humidity_2;
     ScalableBitmap ams_humidity_3;
     ScalableBitmap ams_humidity_4;
-    bool     m_show_humidity = { false };
-    int      m_humidity = { 0 };
 
+    int      m_humidity = { 0 };
+    bool     m_show_humidity = { false };
+    bool     m_vams_loading{false};
+
+    void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(wxColour col);
     void SetMode(AMSRoadMode mode);
     void OnPassRoad(std::vector<AMSPassRoadMode> prord_list);
@@ -407,8 +451,9 @@ public:
     void     Update(AMSinfo info);
     void     create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
     void     AddCan(Caninfo caninfo, int canindex, int maxcan);
-    void SetDefSelectCan();
+    void     SetDefSelectCan();
     void     SelectCan(std::string canid);
+    wxColour GetTagColr(wxString canid);
     void     SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     //wxColour GetCanColour(wxString canid);
     void     PlayRridLoading(wxString canid);
@@ -473,6 +518,8 @@ protected:
     std::vector<AMSinfo>       m_ams_info;
 
     std::string  m_current_ams;
+    std::string  m_current_show_ams;
+
     AmsItemsHash m_ams_item_list;
     AmsCansHash  m_ams_cans_list;
 
@@ -496,11 +543,11 @@ protected:
     wxBoxSizer*   m_vams_sizer               = {nullptr};
     wxBoxSizer*   m_sizer_vams_tips          = {nullptr};
 
-    Caninfo     m_vams_info;
-    StaticBox*  m_panel_virtual = {nullptr};
-    AMSrefresh* m_vams_refresh  = {nullptr};
-    AMSLib*     m_vams_lib      = {nullptr};
-    AMSRoad*    m_vams_road     = {nullptr};
+    Caninfo         m_vams_info;
+    StaticBox*      m_panel_virtual = {nullptr};
+    AMSLib*         m_vams_lib      = {nullptr};
+    AMSRoad*        m_vams_road     = {nullptr};
+    AMSVirtualRoad* m_vams_extra_road = {nullptr};
 
     StaticBox * m_panel_can       = {nullptr};
     wxBoxSizer *m_sizer_top       = {nullptr};
@@ -525,8 +572,12 @@ protected:
 
     wxHyperlinkCtrl *m_hyperlink = {nullptr};
     AmsHumidityTipPopup m_Humidity_tip_popup;
+
+    std::string m_last_ams_id;
+    std::string m_last_tray_id;
 public:
     std::string GetCurentAms();
+    std::string GetCurentShowAms();
     std::string GetCurrentCan(std::string amsid);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
@@ -544,15 +595,15 @@ public:
     void PlayRridLoading(wxString amsid, wxString canid);
     void StopRridLoading(wxString amsid, wxString canid);
 
-    void SetFilamentStep(int item_idx, FilamentStepType f_type);
+    void SetFilamentStep(int item_idx, FilamentStepType f_type, bool is_extrusion_exist = false);
     void ShowFilamentTip(bool hasams = true);
 
     void SetHumidity(std::string amsid, int humidity);
-    void UpdateStepCtrl();
+    void UpdateStepCtrl(bool is_extrusion_exist);
     void CreateAms();
-    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool has_extrusion_cali = true);
+    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool has_extrusion_cali = true, bool is_reset = false);
     void AddAms(AMSinfo info, bool refresh = true);
-    void SetExtruder(bool on_off, wxColour col);
+    void SetExtruder(bool on_off, bool is_vams, wxColour col);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);
 
@@ -566,12 +617,14 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
-    void show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load = false);
+    void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load = false);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
-    void update_vams_kn_value(AmsTray tray);
+    void update_vams_kn_value(AmsTray tray, MachineObject* obj);
+    void show_filament_backup(bool show);
 
-    void post_event(wxEvent &&event);
+    void reset_vams();
+    void post_event(wxEvent&& event);
 
     virtual bool Enable(bool enable = true);
 
@@ -583,6 +636,7 @@ wxDECLARE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
+wxDECLARE_EVENT(EVT_AMS_FILAMENT_BACKUP, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
@@ -593,6 +647,7 @@ wxDECLARE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 

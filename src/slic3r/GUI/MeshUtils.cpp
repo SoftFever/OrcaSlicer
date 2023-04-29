@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 
 #include <igl/unproject.h>
+#include "CameraUtils.hpp"
 
 
 namespace Slic3r {
@@ -75,7 +76,24 @@ void MeshClipper::render_cut()
         m_vertex_array.render();
 }
 
+bool MeshClipper::is_projection_inside_cut(const Vec3d &point_in) const
+{
+    if (!m_result || m_result->cut_islands.empty())
+        return false;
+    Vec3d point = m_result->trafo.inverse() * point_in;
+    Point pt_2d = Point::new_scale(Vec2d(point.x(), point.y()));
 
+    for (const CutIsland &isl : m_result->cut_islands) {
+        if (isl.expoly_bb.contains(pt_2d) && isl.expoly.contains(pt_2d))
+            return true;
+    }
+    return false;
+}
+
+bool MeshClipper::has_valid_contour() const
+{
+    return m_result && std::any_of(m_result->cut_islands.begin(), m_result->cut_islands.end(), [](const CutIsland &isl) { return !isl.expoly.empty(); });
+}
 
 void MeshClipper::recalculate_triangles()
 {
@@ -103,6 +121,9 @@ void MeshClipper::recalculate_triangles()
     Transform3d tr = Transform3d::Identity();
     tr.rotate(q);
     tr = m_trafo.get_matrix() * tr;
+
+    m_result = ClipResult();
+    m_result->trafo = tr;
 
     if (m_limiting_plane != ClippingPlane::ClipsNothing())
     {
@@ -157,6 +178,13 @@ void MeshClipper::recalculate_triangles()
         }
     }
 
+     for (const ExPolygon &exp : expolys) {
+        m_result->cut_islands.push_back(CutIsland());
+        CutIsland &isl = m_result->cut_islands.back();
+        isl.expoly     = std::move(exp);
+        isl.expoly_bb  = get_extents(exp);
+    }
+
     m_triangles2d = triangulate_expolygons_2f(expolys, m_trafo.get_matrix().matrix().determinant() < 0.);
 
     tr.pretranslate(0.001 * m_plane.get_normal().normalized()); // to avoid z-fighting
@@ -178,6 +206,14 @@ void MeshClipper::recalculate_triangles()
 Vec3f MeshRaycaster::get_triangle_normal(size_t facet_idx) const
 {
     return m_normals[facet_idx];
+}
+
+void MeshRaycaster::line_from_mouse_pos_static(const Vec2d &mouse_pos, const Transform3d &trafo, const Camera &camera, Vec3d &point, Vec3d &direction)
+{
+    CameraUtils::ray_from_screen_pos(camera, mouse_pos, point, direction);
+    Transform3d inv = trafo.inverse();
+    point           = inv * point;
+    direction       = inv.linear() * direction;
 }
 
 void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,

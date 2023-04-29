@@ -4,8 +4,14 @@
 namespace Slic3r {
 class TriangleMesh;
 
+struct TextResult
+{
+    TriangleMesh text_mesh;
+    double       text_width;
+};
+
 extern std::vector<std::string> init_occt_fonts();
-extern void load_text_shape(const char* text, const char* font, const float text_height, const float thickness, bool is_bold, bool is_italic, TriangleMesh& text_mesh);
+extern void load_text_shape(const char *text, const char *font, const float text_height, const float thickness, bool is_bold, bool is_italic, TextResult &text_result);
 
 std::map<std::string, std::string> get_occt_fonts_maps();
 

@@ -241,12 +241,12 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     //BBS: change system config to json
     std::tie(substitutions, errors_cummulative) = this->load_system_presets_from_json(substitution_rule);
 
-    // Load default user presets always
-    load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
     // BBS load preset from user's folder, load system default if
     // BBS: change directories by design
     std::string dir_user_presets = config.get("preset_folder");
-    if (!dir_user_presets.empty()) {
+    if (dir_user_presets.empty()) {
+        load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
+    } else {
         load_user_presets(dir_user_presets, substitution_rule);
     }
 
@@ -653,24 +653,26 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                     BOOST_LOG_TRIVIAL(warning) << "Preset type is unknown, not loading: " << name;
                     continue;
                 }
+                if (overwrite == 0) overwrite = 1;
                 if (auto p = collection->find_preset(name, false)) {
                     if (p->is_default || p->is_system) {
                         BOOST_LOG_TRIVIAL(warning) << "Preset already present and is system preset, not loading: " << name;
                         continue;
                     }
                     overwrite = override_confirm(name);
-                    if (overwrite == 0 || overwrite == 2) {
-                        BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
-                        continue;
-                    }
+                }
+                if (overwrite == 0 || overwrite == 2) {
+                    BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+                    continue;
                 }
 
                 DynamicPrintConfig new_config;
                 Preset *      inherit_preset  = nullptr;
                 ConfigOption *inherits_config = config.option(BBL_JSON_KEY_INHERITS);
+                std::string        inherits_value;
                 if (inherits_config) {
                     ConfigOptionString *option_str     = dynamic_cast<ConfigOptionString *>(inherits_config);
-                    std::string         inherits_value = option_str->value;
+                    inherits_value = option_str->value;
                     inherit_preset = collection->find_preset(inherits_value, false, true);
                 }
                 if (inherit_preset) {
@@ -687,6 +689,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 Preset &preset     = collection->load_preset(collection->path_from_name(name), name, std::move(new_config), false);
                 preset.is_external = true;
                 preset.version     = *version;
+                inherit_preset     = collection->find_preset(inherits_value, false, true); // pointer maybe wrong after insert, redo find
                 if (inherit_preset)
                     preset.base_id     = inherit_preset->setting_id;
                 Preset::normalize(preset.config);
@@ -866,7 +869,7 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     std::string printer_selected_preset_name = printers.get_selected_preset().name;
     bool need_reset_printer_preset = false;
     for (auto it = printers.begin(); it != printers.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
+        if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":printers erase %1%, type %2%， user_id %3%") % it->name % Preset::get_type_string(it->type) % it->user_id;
             if (it->name == printer_selected_preset_name)
                 need_reset_printer_preset = true;
@@ -1309,7 +1312,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     if (config.has("presets", "filament_colors")) {
         boost::algorithm::split(filament_colors, config.get("presets", "filament_colors"), boost::algorithm::is_any_of(","));
     }
-    filament_colors.resize(filament_presets.size());
+    filament_colors.resize(filament_presets.size(), "#00AE42");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
     std::vector<std::string> matrix;
     if (config.has("presets", "flush_volumes_matrix")) {
@@ -1321,6 +1324,11 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         boost::algorithm::split(matrix, config.get("presets", "flush_volumes_vector"), boost::algorithm::is_any_of("|"));
         auto flush_volumes_vector = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
         project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values = std::vector<double>(flush_volumes_vector.begin(), flush_volumes_vector.end());
+    }
+    if (config.has("app", "flush_multiplier")) {
+        std::string str_flush_multiplier = config.get("app", "flush_multiplier");
+        if (!str_flush_multiplier.empty())
+            project_config.option<ConfigOptionFloat>("flush_multiplier")->set(new ConfigOptionFloat(std::stof(str_flush_multiplier)));
     }
 
     // Update visibility of presets based on their compatibility with the active printer.
@@ -1396,6 +1404,9 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "flush_volumes_vector", flush_volumes_vector);
 
     config.set("presets", PRESET_PRINTER_NAME, printers.get_selected_preset_name());
+
+    auto flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
+    config.set("flush_multiplier", std::to_string(flush_multi_opt ? flush_multi_opt->getFloat() : 1.0f));
     // BBS
     //config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     //config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
@@ -3513,6 +3524,7 @@ std::vector<std::string> PresetBundle::export_current_configs(const std::string 
         if ((preset->is_system  && !export_system_settings) || preset->is_default)
             continue;
         std::string file = path + "/" + preset->name + ".json";
+        if (overwrite == 0) overwrite = 1;
         if (boost::filesystem::exists(file) && overwrite < 2) {
             overwrite = override_confirm(preset->name);
             if (overwrite == 0 || overwrite == 2)

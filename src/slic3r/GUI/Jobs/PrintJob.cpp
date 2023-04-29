@@ -110,6 +110,7 @@ void PrintJob::process()
 {
     /* display info */
     wxString msg;
+    wxString error_str;
     int curr_percent = 10;
     NetworkAgent* m_agent = wxGetApp().getAgent();
     AppConfig* config = wxGetApp().app_config;
@@ -157,6 +158,10 @@ void PrintJob::process()
     else
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
+    PartPlate* curr_plate = m_plater->get_partplate_list().get_curr_plate();
+    if (curr_plate) {
+        this->task_bed_type = bed_type_to_gcode_string(curr_plate->get_bed_type(true));
+    }
 
     BBL::PrintParams params;
 
@@ -200,6 +205,7 @@ void PrintJob::process()
     params.ams_mapping_info     = this->task_ams_mapping_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
+    params.task_bed_type        = this->task_bed_type;
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();
         auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
@@ -227,19 +233,22 @@ void PrintJob::process()
         30,     // PrintingStageUpload
         70,     // PrintingStageWaiting
         75,     // PrintingStageRecord
-        99,     // PrintingStageSending
+        97,     // PrintingStageSending
         100     // PrintingStageFinished
     };
 
-    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
-                        if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
+    bool is_try_lan_mode = false;
+    bool is_try_lan_mode_failed = false;
+
+    auto update_fn = [this, &is_try_lan_mode, &is_try_lan_mode_failed, &msg, &error_str, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
+                        if (stage == BBL::SendingPrintJobStage::PrintingStageCreate && !is_try_lan_mode_failed) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
                             } else {
                                 msg = _L("Sending print job through cloud service");
                             }
                         }
-                        else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload && !is_try_lan_mode_failed) {
                             if (code >= 0 && code <= 100 && !info.empty()) {
                                 if (this->connection_type == "lan") {
                                     msg = _L("Sending print job over LAN");
@@ -256,10 +265,10 @@ void PrintJob::process()
                                 msg = _L("Sending print job through cloud service");
                             }
                         }
-                        else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord) {
+                        else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord && !is_try_lan_mode) {
                             msg = _L("Sending print configuration");
                         }
-                        else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
+                        else if (stage == BBL::SendingPrintJobStage::PrintingStageSending && !is_try_lan_mode) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
                             } else {
@@ -289,9 +298,11 @@ void PrintJob::process()
 
                         if (code > 100 || code < 0) {
                             error_text = this->get_http_error_msg(code, info);
-                            msg += wxString::Format("[%s]", error_text);
+                            error_str = wxString::Format("[%s]", error_text);
+                        } else {
+                            error_str = wxEmptyString;
                         }
-                        this->update_status(curr_percent, msg);
+                        this->update_status(curr_percent, msg + error_str);
                     };
 
     auto cancel_fn = [this]() {
@@ -319,6 +330,7 @@ void PrintJob::process()
             else {
                 BOOST_LOG_TRIVIAL(info) << "print_job: use ftp send print only";
                 this->update_status(curr_percent, _L("Sending print job over LAN"));
+                is_try_lan_mode = true;
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
                 if (result < 0) {
                     error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
@@ -336,7 +348,10 @@ void PrintJob::process()
                 BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
                 this->update_status(curr_percent, _L("Sending print job over LAN"));
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
-                if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+                if (result == 0) {
+                    params.comments = "";
+                }
+                else if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
                     params.comments = "wrong_code";
                 }
                 else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
@@ -346,6 +361,7 @@ void PrintJob::process()
                     params.comments = (boost::format("failed(%1%)") % result).str();
                 }
                 if (result < 0) {
+                    is_try_lan_mode_failed = true;
                     // try to send with cloud
                     BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
                     this->update_status(curr_percent, _L("Sending print job through cloud service"));
@@ -384,7 +400,7 @@ void PrintJob::process()
         } else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
             msg_text = timeout_to_upload_str;
         } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
-            msg_text = _L("Failed to send the print job. Please try again.");
+            msg_text = _L("Failed to send the print job. Please try again."); 
         } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
             msg_text = _L("Failed to send the print job. Please try again.");
         } else {
@@ -394,7 +410,15 @@ void PrintJob::process()
             curr_percent = 0;
             msg_text += wxString::Format("[%d][%s]", result, error_text);
         }
-        update_status(curr_percent, msg_text);
+        
+        
+        if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
+            this->show_networking_test(msg_text);
+        }
+        else {
+            update_status(curr_percent, msg_text);
+        }
+
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";

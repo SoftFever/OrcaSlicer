@@ -39,7 +39,7 @@ bool button_with_pos(ImTextureID   user_texture_id,
                      const ImVec2 &margin        = ImVec2(0, 0));
 bool begin_menu(const char *label, bool enabled = true);
 void end_menu();
-bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size = ImVec2(0, 0), ImU32 icon_color = 0, bool selected = false, bool enabled = true);
+bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size = ImVec2(0, 0), ImU32 icon_color = 0, bool selected = false, bool enabled = true, bool* hovered = nullptr);
 
 
 class ImGuiWrapper
@@ -160,6 +160,8 @@ public:
 
     // set font
     const std::vector<std::string> get_fonts_names() const { return m_fonts_names; }
+    bool push_bold_font();
+    bool pop_bold_font();
     bool push_font_by_name(std::string font_name);
     bool pop_font_by_name(std::string font_name);
     void load_fonts_texture();
@@ -213,6 +215,8 @@ public:
     static void pop_cancel_button_style();
     static void push_button_disable_style();
     static void pop_button_disable_style();
+    static void push_combo_style(const float scale);
+    static void pop_combo_style();
 
     //BBS
     static int TOOLBAR_WINDOW_FLAGS;

@@ -8,6 +8,12 @@
   "required_nozzle_HRC": [
       "40"
   ],
+  "cool_plate_temp" : [
+      "45"
+  ],
+  "cool_plate_temp_initial_layer" : [
+      "45"
+  ],
   "filament_flow_ratio": [
       "0.95"
   ],

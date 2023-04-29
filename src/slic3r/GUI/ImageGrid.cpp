@@ -5,6 +5,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
+#include "MsgDialog.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -68,6 +69,7 @@ void ImageGrid::SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys)
     m_row_count = 0;
     m_col_count = 1;
     m_row_offset = 0;
+    m_scroll_offset = 0;
     UpdateFileSystem();
 }
 
@@ -102,6 +104,7 @@ void Slic3r::GUI::ImageGrid::SetGroupMode(int mode)
     m_row_offset = index / m_col_count * 4;
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset = 0;
 }
 
 void Slic3r::GUI::ImageGrid::SetSelecting(bool selecting)
@@ -127,11 +130,12 @@ void Slic3r::GUI::ImageGrid::Rescale()
 
 void Slic3r::GUI::ImageGrid::Select(size_t index)
 {
+    if (m_selecting) {
+        m_file_sys->ToggleSelect(index);
+        Refresh();
+        return;
+    }
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
-        if (m_selecting) {
-            m_file_sys->ToggleSelect(index);
-            Refresh();
-        }
         return;
     }
     index = m_file_sys->EnterSubGroup(index);
@@ -139,12 +143,20 @@ void Slic3r::GUI::ImageGrid::Select(size_t index)
     m_row_offset = index / m_col_count * 4;
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset = 0;
     Refresh();
 }
 
 void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
 {
     if (action == 0) {
+        if (m_file_sys->GetSelectCount() > 1) {
+            MessageDialog dlg(this, 
+                wxString::Format(_L("You are going to delete %u files. Are you sure to continue?"), m_file_sys->GetSelectCount()), 
+                _L("Delete files"), wxYES_NO | wxICON_WARNING);
+            if (dlg.ShowModal() != wxID_YES)
+                return;
+        }
         m_file_sys->DeleteFiles(index);
     } else if (action == 1) {
         if (index != -1) {
@@ -152,7 +164,9 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {
                     if (!m_file_sys->DownloadCheckFile(index)) {
-                        wxMessageBox(wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), _L("Error"), wxOK);
+                        MessageDialog(this, 
+                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
+                            _L("Error"), wxOK).ShowModal();
                         Refresh();
                         return;
                     }
@@ -176,7 +190,9 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {
                     if (!m_file_sys->DownloadCheckFile(index)) {
-                        wxMessageBox(wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), _L("Error"), wxOK);
+                        MessageDialog(this, 
+                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
+                            _L("Error"), wxOK).ShowModal();
                         Refresh();
                         return;
                     }
@@ -231,6 +247,7 @@ void ImageGrid::UpdateLayout()
     m_row_count = nrow > 0 ? nrow + 1 : 0;
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset = 0;
     // create mask
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
         mask_size.x = (m_col_count - 1) * m_cell_size.GetWidth() + m_image_size.GetWidth();
@@ -369,13 +386,14 @@ void ImageGrid::resize(wxSizeEvent& event)
 void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
 {
     auto delta = -event.GetWheelRotation();
-    m_scroll_offset += delta;
-    int max = m_row_count * m_cell_size.GetHeight() / 4;
-    if (m_scroll_offset < 0)
-        m_scroll_offset = 0;
-    else if (m_scroll_offset >= max)
-        m_scroll_offset = max - 1;
-    m_row_offset = m_scroll_offset * 4 / m_cell_size.GetHeight();
+    m_scroll_offset += delta * 4;
+    delta = m_scroll_offset / m_cell_size.GetHeight();
+    m_row_offset += delta;
+    if (m_row_offset < 0)
+        m_row_offset = 0;
+    else if (m_row_offset >= m_row_count)
+        m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    m_scroll_offset -= delta * m_cell_size.GetHeight();
     m_timer.StartOnce(4000); // Show position bar
     UpdateFocusRange();
     Refresh();
@@ -465,6 +483,8 @@ wxBitmap Slic3r::GUI::ImageGrid::createCircleBitmap(wxSize size, int borderWidth
     return bmp;
 }
 
+static constexpr wchar_t const *TIME_FORMATS[] = {_T("%Y-%m-%d"), _T("%Y-%m"), _T("%Y")};
+
 /*
 * Here we do the actual rendering. I put it in a separate
 * method so that it can work no matter what type of DC
@@ -495,7 +515,6 @@ void ImageGrid::render(wxDC& dc)
     // Draw line spacing at top
     if (off.y > 0)
         dc.DrawRectangle({0, 0, size.x, off.y});
-    constexpr wchar_t const * formats[] = {_T("%Y-%m-%d"), _T("%Y-%m"), _T("%Y")};
     size_t start = index;
     size_t end = index;
     size_t hit_image = m_selecting ? size_t(-1) : m_hit_type == HIT_ITEM ? m_hit_item : m_hit_type == HIT_ACTION ? m_hit_item / 4 :size_t(-1);
@@ -506,65 +525,7 @@ void ImageGrid::render(wxDC& dc)
         wxPoint pt{off.x, off.y};
         end = (index + m_col_count) < m_file_sys->GetCount() ? index + m_col_count : m_file_sys->GetCount();
         while (index < end) {
-            auto & file = m_file_sys->GetFile(index);
-            // Draw thumbnail
-            if (file.thumbnail.IsOk()) {
-                float hs = (float) m_image_size.GetWidth() / file.thumbnail.GetWidth();
-                float vs = (float) m_image_size.GetHeight() / file.thumbnail.GetHeight();
-                dc.SetUserScale(hs, vs);
-                dc.DrawBitmap(file.thumbnail, {(int) (pt.x / hs), (int) (pt.y / vs)});
-                dc.SetUserScale(1, 1);
-                if (m_file_sys->GetGroupMode() != PrinterFileSystem::G_NONE) {
-                    dc.DrawBitmap(m_mask, pt);
-                }
-            }
-            bool show_download_state_always = true;
-            // Draw checked icon
-            if (m_selecting && !show_download_state_always)
-                dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), 
-                    pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
-            // can't handle alpha
-            // dc.GradientFillLinear({pt.x, pt.y, m_image_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
-            else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
-                wxString nonHoverText;
-                wxString secondAction = _L("Download");
-                wxString thirdAction;
-                int      states = 0;
-                // Draw download progress
-                if (file.IsDownload()) {
-                    if (file.progress == -1) {
-                        secondAction = _L("Cancel");
-                        nonHoverText = _L("Download waiting...");
-                    } else if (file.progress < 0) {
-                        secondAction = _L("Retry");
-                        nonHoverText = _L("Download failed");
-                        states       = StateColor::Checked;
-                    } else if (file.progress >= 100) {
-                        secondAction = _L("Play");
-                        thirdAction = _L("Open Folder");
-                        nonHoverText = _L("Download finished");
-                    } else {
-                        secondAction = _L("Cancel");
-                        nonHoverText = wxString::Format(_L("Downloading %d%%..."), file.progress);
-                        thirdAction  = wxString::Format(L"%d%%...", file.progress);
-                    }
-                }
-                // Draw buttons on hovered item
-                wxRect rect{pt.x, pt.y + m_image_size.y - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
-                if (hit_image == index) {
-                    renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, thirdAction.IsEmpty() ? nullptr : (wxChar const *) thirdAction, nullptr}, rect,
-                                  m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
-                } else if (!nonHoverText.IsEmpty()) {
-                    renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
-                }
-                if (m_selecting && show_download_state_always)
-                    dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(),
-                                  pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
-            } else {
-                dc.SetTextForeground(*wxWHITE); // time text color
-                auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
-                dc.DrawText(date, pt + wxPoint{24, 16});
-            }
+            renderContent(dc, pt, index, hit_image == index);
             // Draw colume spacing at right
             dc.DrawRectangle({pt.x + m_image_size.GetWidth(), pt.y, m_cell_size.GetWidth() - m_image_size.GetWidth(), m_image_size.GetHeight()});
             ++index;
@@ -583,8 +544,8 @@ void ImageGrid::render(wxDC& dc)
         dc.DrawRectangle({off.x, 0}, m_mask.GetSize());
         auto & file1 = m_file_sys->GetFile(start);
         auto & file2 = m_file_sys->GetFile(end - 1);
-        auto date1 = wxDateTime((time_t) file1.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
-        auto date2 = wxDateTime((time_t) file2.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
+        auto   date1 = wxDateTime((time_t) file1.time).Format(_L(TIME_FORMATS[m_file_sys->GetGroupMode()]));
+        auto   date2 = wxDateTime((time_t) file2.time).Format(_L(TIME_FORMATS[m_file_sys->GetGroupMode()]));
         dc.SetFont(Label::Head_16);
         dc.SetTextForeground(StateColor::darkModeColorFor("#262E30"));
         dc.DrawText(date1 + " - " + date2, wxPoint{off.x, 2});
@@ -603,6 +564,68 @@ void ImageGrid::render(wxDC& dc)
             dc.DrawRoundedRectangle(rect, 4);
         }
     }
+}
+
+void Slic3r::GUI::ImageGrid::renderContent(wxDC &dc, wxPoint const &pt, int index, bool hit)
+{
+    bool selected = false;
+    auto &file = m_file_sys->GetFile(index, selected);
+    // Draw thumbnail
+    if (file.thumbnail.IsOk()) {
+        float hs = (float) m_image_size.GetWidth() / file.thumbnail.GetWidth();
+        float vs = (float) m_image_size.GetHeight() / file.thumbnail.GetHeight();
+        dc.SetUserScale(hs, vs);
+        dc.DrawBitmap(file.thumbnail, {(int) (pt.x / hs), (int) (pt.y / vs)});
+        dc.SetUserScale(1, 1);
+        if (m_file_sys->GetGroupMode() != PrinterFileSystem::G_NONE) {
+            dc.DrawBitmap(m_mask, pt);
+        }
+    }
+    bool show_download_state_always = true;
+    // Draw checked icon
+    if (m_selecting && !show_download_state_always)
+        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+    // can't handle alpha
+    // dc.GradientFillLinear({pt.x, pt.y, m_border_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
+    else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
+        wxString nonHoverText;
+        wxString secondAction = _L("Download");
+        wxString thirdAction;
+        int      states = 0;
+        // Draw download progress
+        if (file.IsDownload()) {
+            if (file.progress == -1) {
+                secondAction = _L("Cancel");
+                nonHoverText = _L("Download waiting...");
+            } else if (file.progress < 0) {
+                secondAction = _L("Retry");
+                nonHoverText = _L("Download failed");
+                states       = StateColor::Checked;
+            } else if (file.progress >= 100) {
+                secondAction = _L("Play");
+                thirdAction  = _L("Open Folder");
+                nonHoverText = _L("Download finished");
+            } else {
+                secondAction = _L("Cancel");
+                nonHoverText = wxString::Format(_L("Downloading %d%%..."), file.progress);
+                thirdAction  = wxString::Format(L"%d%%...", file.progress);
+            }
+        }
+        // Draw buttons on hovered item
+        wxRect rect{pt.x, pt.y + m_image_size.GetHeight() - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
+        if (hit) {
+            renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, thirdAction.IsEmpty() ? nullptr : (wxChar const *) thirdAction, nullptr}, rect,
+                          m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
+        } else if (!nonHoverText.IsEmpty()) {
+            renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
+        }
+    } else {
+        dc.SetTextForeground(*wxWHITE); // time text color
+        auto date = wxDateTime((time_t) file.time).Format(_L(TIME_FORMATS[m_file_sys->GetGroupMode()]));
+        dc.DrawText(date, pt + wxPoint{24, 16});
+    }
+    if (m_selecting && show_download_state_always)
+        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
 }
 
 void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect2, size_t hit, int states)

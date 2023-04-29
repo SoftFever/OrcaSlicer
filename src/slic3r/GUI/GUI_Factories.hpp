@@ -37,7 +37,7 @@ struct SettingsFactory
     static std::map<std::string, std::vector<SimpleSettingData>>  PART_CATEGORY_SETTINGS;
 
     static wxBitmap                             get_category_bitmap(const std::string& category_name, bool menu_bmp = true);
-    static Bundle                               get_bundle(const DynamicPrintConfig* config, bool is_object_settings);
+    static Bundle                               get_bundle(const DynamicPrintConfig* config, bool is_object_settings, bool is_layer_settings = false);
     static std::vector<std::string>             get_options(bool is_part);
     //BBS: add api to get options for catogary
     static std::vector<SimpleSettingData> get_visible_options(const std::string& category, const bool is_part);
@@ -115,6 +115,7 @@ private:
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_items_add_volume(wxMenu* menu);
+    wxMenuItem* append_menu_item_layers_editing(wxMenu* menu);
     wxMenuItem* append_menu_item_settings(wxMenu* menu);
     wxMenuItem* append_menu_item_change_type(wxMenu* menu);
     wxMenuItem* append_menu_item_instance_to_object(wxMenu* menu);
@@ -136,6 +137,8 @@ private:
     void        append_menu_item_merge_to_single_object(wxMenu* menu);
     void        append_menu_item_merge_parts_to_single_part(wxMenu *menu);
     void        append_menu_items_mirror(wxMenu *menu);
+    void        append_menu_item_invalidate_cut_info(wxMenu *menu);
+
     //void        append_menu_items_instance_manipulation(wxMenu *menu);
     //void        update_menu_items_instance_manipulation(MenuType type);
     //BBS add bbl menu item

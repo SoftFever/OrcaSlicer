@@ -78,6 +78,7 @@ void PrinterFileSystem::SetGroupMode(GroupMode mode)
         return;
     this->m_group_mode = mode;
     m_lock_start = m_lock_end = 0;
+    UpdateGroupSelect();
     SendChangedEvent(EVT_MODE_CHANGED);
 }
 
@@ -131,6 +132,7 @@ void PrinterFileSystem::ListAllFiles()
             }
         }
         BuildGroups();
+        UpdateGroupSelect();
         m_status = Status::ListReady;
         SendChangedEvent(EVT_STATUS_CHANGED, m_status);
         SendChangedEvent(EVT_FILE_CHANGED);
@@ -253,7 +255,28 @@ size_t PrinterFileSystem::GetIndexAtTime(boost::uint32_t time)
 
 void PrinterFileSystem::ToggleSelect(size_t index)
 {
-    if (index < m_file_list.size()) {
+    if (m_group_mode != G_NONE) {
+        size_t beg = m_group_mode == G_YEAR ? m_group_month[m_group_year[index]] : m_group_month[index];
+        size_t end_month = m_group_mode == G_YEAR ? ((index + 1) < m_group_year.size() ? m_group_year[index + 1] : m_group_month.size()) : index + 1;
+        size_t end       = end_month < m_group_month.size() ? m_group_month[end_month] : m_file_list.size();
+        if ((m_group_flags[index] & FF_SELECT) == 0) {
+            for (int i = beg; i < end; ++i) {
+                if ((m_file_list[i].flags & FF_SELECT) == 0) {
+                    m_file_list[i].flags |= FF_SELECT;
+                    ++m_select_count;
+                }
+            }
+            m_group_flags[index] |= FF_SELECT;
+        } else {
+            for (int i = beg; i < end; ++i) {
+                if (m_file_list[i].flags & FF_SELECT) {
+                    m_file_list[i].flags &= ~FF_SELECT;
+                    --m_select_count;
+                }
+            }
+            m_group_flags[index] &= ~FF_SELECT;
+        }
+    } else if (index < m_file_list.size()) {
         m_file_list[index].flags ^= FF_SELECT;
         if (m_file_list[index].flags & FF_SELECT)
             ++m_select_count;
@@ -268,9 +291,11 @@ void PrinterFileSystem::SelectAll(bool select)
     if (select) {
         for (auto &f : m_file_list) f.flags |= FF_SELECT;
         m_select_count = m_file_list.size();
+        for (auto &s : m_group_flags) s |= FF_SELECT;
     } else {
         for (auto &f : m_file_list) f.flags &= ~FF_SELECT;
         m_select_count = 0;
+        for (auto &s : m_group_flags) s &= ~FF_SELECT;
     }
     SendChangedEvent(EVT_SELECT_CHANGED, m_select_count);
 }
@@ -289,6 +314,17 @@ PrinterFileSystem::File const &PrinterFileSystem::GetFile(size_t index)
 {
     if (m_group_mode == G_NONE)
         return m_file_list[index];
+    if (m_group_mode == G_YEAR) index = m_group_year[index];
+    return m_file_list[m_group_month[index]];
+}
+
+PrinterFileSystem::File const &PrinterFileSystem::GetFile(size_t index, bool &select)
+{
+    if (m_group_mode == G_NONE) {
+        select = m_file_list[index].IsSelect();
+        return m_file_list[index];
+    }
+    select = m_group_flags[index] & FF_SELECT;
     if (m_group_mode == G_YEAR)
         index = m_group_year[index];
     return m_file_list[m_group_month[index]];
@@ -377,6 +413,26 @@ void PrinterFileSystem::BuildGroups()
             m_group_month.push_back(i);
         }
         t = s;
+    }
+}
+
+void PrinterFileSystem::UpdateGroupSelect()
+{
+    m_group_flags.clear();
+    int beg = 0;
+    if (m_group_mode != G_NONE) {
+        auto group = m_group_mode == G_YEAR ? m_group_year : m_group_month;
+        if (m_group_mode == G_YEAR)
+            for (auto &g : group) g = m_group_month[g];
+        m_group_flags.resize(group.size(), FF_SELECT);
+        for (int i = 0; i < m_file_list.size(); ++i) {
+            if ((m_file_list[i].flags & FF_SELECT) == 0) {
+                auto iter = std::upper_bound(group.begin(), group.end(), i);
+                m_group_flags[iter - group.begin() - 1] &= ~FF_SELECT;
+                if (iter == group.end()) break;
+                i = *iter - 1; // start from next group
+            }
+        }
     }
 }
 
@@ -481,14 +537,12 @@ void PrinterFileSystem::DownloadNextFile()
                 download->index = FindFile(download->index, download->name);
             if (download->index != size_t(-1)) {
                 int progress = data.size * 100 / data.total;
-                if (result > CONTINUE)
-                    progress = -2;
                 auto & file = m_file_list[download->index];
                 if (result == ERROR_CANCEL)
                     file.flags &= ~FF_DOWNLOAD;
                 else if (file.progress != progress) {
                     file.progress = progress;
-                    SendChangedEvent(EVT_DOWNLOAD, download->index, file.path, data.size);
+                    SendChangedEvent(EVT_DOWNLOAD, download->index, file.path, result);
                 }
             }
             if (result != CONTINUE) DownloadNextFile();
@@ -586,9 +640,14 @@ void PrinterFileSystem::FileRemoved(size_t index, std::string const &name)
     size_t index2 = removeFromGroup(m_group_month, index, m_file_list.size());
     if (index2 < m_group_month.size()) {
         int index3 = removeFromGroup(m_group_year, index, m_group_month.size());
-        if (index3 < m_group_year.size())
+        if (index3 < m_group_year.size()) {
             m_group_year.erase(m_group_year.begin() + index3);
+            if (m_group_mode == G_YEAR)
+                m_group_flags.erase(m_group_flags.begin() + index2);
+        }
         m_group_month.erase(m_group_month.begin() + index2);
+        if (m_group_mode == G_MONTH)
+            m_group_flags.erase(m_group_flags.begin() + index2);
     }
     m_file_list.erase(m_file_list.begin() + index);
 }

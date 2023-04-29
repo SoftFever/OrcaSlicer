@@ -162,6 +162,8 @@ public:
     virtual std::string get_action_snapshot_name() { return "Gizmo action"; }
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
+    virtual bool apply_clipping_plane() { return true; }
+
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
     int get_hover_id() const { return m_hover_id; }

@@ -22,6 +22,7 @@ struct Camera
     static double FrustrumMinNearZ;
     static double FrustrumZMargin;
     static double MaxFovDeg;
+    static double ZoomUnit;
 
     enum class EType : unsigned char
     {
@@ -67,6 +68,7 @@ public:
 
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
 
+    void translate(const Vec3d& displacement);
     const Vec3d& get_target() const { return m_target; }
     void set_target(const Vec3d& target);
 
@@ -76,7 +78,7 @@ public:
 
     double get_zoom() const { return m_zoom; }
     double get_inv_zoom() const { assert(m_zoom != 0.0); return 1.0 / m_zoom; }
-    void update_zoom(double delta_zoom) { set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * 0.1)); }
+    void update_zoom(double delta_zoom) { set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * ZoomUnit)); }
     void set_zoom(double zoom);
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }

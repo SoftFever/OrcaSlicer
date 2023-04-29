@@ -65,6 +65,8 @@ protected:
     // Constructor with ignored int parameter to assign an invalid ID, to be replaced
     // by an existing ID copied from elsewhere.
     ObjectBase(int) : m_id(ObjectID(0)) {}
+
+    ObjectBase(const ObjectID id) : m_id(id) {}
 	// The class tree will have virtual tables and type information.
 	virtual ~ObjectBase() = default;
 
@@ -89,7 +91,6 @@ private:
 	friend class cereal::access;
 	friend class Slic3r::UndoRedo::StackImpl;
 	template<class Archive> void serialize(Archive &ar) { ar(m_id); }
-    ObjectBase(const ObjectID id) : m_id(id) {}
   	template<class Archive> static void load_and_construct(Archive & ar, cereal::construct<ObjectBase> &construct) { ObjectID id; ar(id); construct(id); }
 };
 
@@ -127,6 +128,67 @@ private:
 	friend class Slic3r::UndoRedo::StackImpl;
 	template<class Archive> void serialize(Archive &ar) { ar(m_timestamp); }
 };
+
+class CutObjectBase : public ObjectBase
+{
+    // check sum of CutParts in initial Object
+    size_t m_check_sum{1};
+    // connectors count
+    size_t m_connectors_cnt{0};
+
+public:
+    // Default Constructor to assign an invalid ID
+    CutObjectBase() : ObjectBase(-1) {}
+    // Constructor with ignored int parameter to assign an invalid ID, to be replaced
+    // by an existing ID copied from elsewhere.
+    CutObjectBase(int) : ObjectBase(-1) {}
+    // Constructor to initialize full information from 3mf
+    CutObjectBase(ObjectID id, size_t check_sum, size_t connectors_cnt) : ObjectBase(id), m_check_sum(check_sum), m_connectors_cnt(connectors_cnt) {}
+    // The class tree will have virtual tables and type information.
+    virtual ~CutObjectBase() = default;
+
+    bool operator<(const CutObjectBase &other) const { return other.id() > this->id(); }
+    bool operator==(const CutObjectBase &other) const { return other.id() == this->id(); }
+
+    void copy(const CutObjectBase &rhs)
+    {
+        this->copy_id(rhs);
+        this->m_check_sum      = rhs.check_sum();
+        this->m_connectors_cnt = rhs.connectors_cnt();
+    }
+    CutObjectBase &operator=(const CutObjectBase &other)
+    {
+        this->copy(other);
+        return *this;
+    }
+
+    void invalidate()
+    {
+        set_invalid_id();
+        m_check_sum      = 1;
+        m_connectors_cnt = 0;
+    }
+
+    void init() { this->set_new_unique_id(); }
+    bool has_same_id(const CutObjectBase &rhs) { return this->id() == rhs.id(); }
+    bool is_equal(const CutObjectBase &rhs) { return this->id() == rhs.id() && this->check_sum() == rhs.check_sum() && this->connectors_cnt() == rhs.connectors_cnt(); }
+
+    size_t check_sum() const { return m_check_sum; }
+    void   set_check_sum(size_t cs) { m_check_sum = cs; }
+    void   increase_check_sum(size_t cnt) { m_check_sum += cnt; }
+
+    size_t connectors_cnt() const { return m_connectors_cnt; }
+    void   increase_connectors_cnt(size_t connectors_cnt) { m_connectors_cnt += connectors_cnt; }
+
+private:
+    friend class cereal::access;
+    template<class Archive> void serialize(Archive &ar)
+    {
+        ar(cereal::base_class<ObjectBase>(this));
+        ar(m_check_sum, m_connectors_cnt);
+    }
+};
+
 
 // Unique object / instance ID for the wipe tower.
 extern ObjectID wipe_tower_object_id();

@@ -10,6 +10,7 @@
 namespace Slic3r { namespace GUI {
 
 static const int LOAD_STEP_COUNT    = 5;
+static const int LOAD_WITH_TEMP_STEP_COUNT    = 3;
 static const int UNLOAD_STEP_COUNT  = 3;
 static const int VT_LOAD_STEP_COUNT = 4;
 
@@ -19,6 +20,7 @@ wxDEFINE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
+wxDEFINE_EVENT(EVT_AMS_FILAMENT_BACKUP, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
@@ -29,6 +31,7 @@ wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 
 bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
 {
@@ -56,6 +59,10 @@ bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
                 } else {
                     // set to white by default
                     info.material_colour = AMS_TRAY_DEFAULT_COL;
+                }
+
+                for (std::string cols:it->second->cols) {
+                    info.material_cols.push_back(AmsTray::decode_color(cols));
                 }
 
                 if (MachineObject::is_bbl_filament(it->second->tag_uid)) {
@@ -401,10 +408,106 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
     m_bitmap_panel->SetSizer(m_bitmap_sizer);
     m_bitmap_panel->Layout();
+    m_sizer_body->Add( 0, 0, 1, wxEXPAND, 0 );
     m_sizer_body->Add(m_bitmap_panel, 0, wxALIGN_CENTER, 0);
 
     SetSizer(m_sizer_body);
+
+    Bind(wxEVT_PAINT, &AMSextruder::paintEvent, this);
     Layout();
+}
+
+void AMSextruder::OnVamsLoading(bool load, wxColour col)
+{
+    m_vams_loading = load;
+    if (load)m_current_colur = col;
+    Refresh();
+}
+
+void AMSextruder::OnAmsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY500*/)
+{
+    m_ams_loading = load;
+    if (load)m_current_colur = col;
+    Refresh();
+}
+
+void AMSextruder::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AMSextruder::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+
+}
+
+void AMSextruder::doRender(wxDC& dc)
+{
+    //m_current_colur = 
+    wxSize size = GetSize();
+    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
+    dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+
+    if (!m_none_ams_mode) {
+        dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
+    }
+
+    if (m_has_vams) {
+        dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
+
+        if (m_vams_loading) {
+            dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));
+            dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
+
+            if (m_current_colur == *wxWHITE && !wxGetApp().dark_mode()) {
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+                dc.DrawRoundedRectangle(-size.x / 2 - FromDIP(3), size.y * 0.1 + FromDIP(3), size.x, size.y, 3);
+                dc.DrawRoundedRectangle(-size.x / 2 + FromDIP(3), size.y * 0.1 - FromDIP(3), size.x, size.y, 5);
+            }
+        }
+
+        if (m_ams_loading && !m_none_ams_mode) {
+            dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));
+            dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
+
+            if (m_current_colur == *wxWHITE && !wxGetApp().dark_mode()) {
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+                dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
+                dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
+            }
+        }
+    }
+    else {
+        if (m_ams_loading) {
+            dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));
+            dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
+
+            if (m_current_colur == *wxWHITE && !wxGetApp().dark_mode()) {
+                dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+                dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
+                dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
+            }
+        }
+    }
+
 }
 
 void AMSextruder::msw_rescale()
@@ -414,6 +517,87 @@ void AMSextruder::msw_rescale()
     Update();
     Refresh();
 }
+
+/*************************************************
+Description:AMSVirtualRoad
+**************************************************/
+
+AMSVirtualRoad::AMSVirtualRoad(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) { create(parent, id, pos, size); }
+
+AMSVirtualRoad::~AMSVirtualRoad() {}
+
+void AMSVirtualRoad::OnVamsLoading(bool load, wxColour col)
+{
+    m_vams_loading = load;
+    if (load)m_current_color = col;
+    Refresh();
+}
+
+void AMSVirtualRoad::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+{
+    wxWindow::Create(parent, id, pos, wxDefaultSize, wxBORDER_NONE);
+    SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
+    Layout();
+    Bind(wxEVT_PAINT, &AMSVirtualRoad::paintEvent, this);
+}
+
+void AMSVirtualRoad::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AMSVirtualRoad::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AMSVirtualRoad::doRender(wxDC& dc)
+{
+    if (!m_has_vams) return;
+
+    wxSize size = GetSize();
+    if (m_vams_loading) {
+        dc.SetPen(wxPen(m_current_color, 6, wxSOLID));
+    }
+    else {
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
+    }
+
+    dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+    dc.DrawRoundedRectangle(size.x / 2, -size.y / 1.1 + FromDIP(1), size.x, size.y, 4);
+
+    if (m_current_color == *wxWHITE && !wxGetApp().dark_mode()) {
+        dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
+        dc.DrawRoundedRectangle(size.x / 2 - FromDIP(3), -size.y / 1.1 + FromDIP(4), size.x, size.y, 5);
+        dc.DrawRoundedRectangle(size.x / 2 + FromDIP(3), -size.y / 1.1 - FromDIP(2), size.x, size.y, 3);
+    }
+}
+
+
+void AMSVirtualRoad::msw_rescale()
+{
+    Layout();
+    Update();
+    Refresh();
+}
+
 
 /*************************************************
 Description:AMSLib
@@ -477,10 +661,10 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
         auto pos  = evt.GetPosition();
         if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND ||
             m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
-            auto left   = FromDIP(20);
-            auto top    = (size.y - FromDIP(10) - m_bitmap_editable_light.GetBmpSize().y);
-            auto right  = size.x - FromDIP(20);
-            auto bottom = size.y - FromDIP(10);
+            auto left = FromDIP(10);
+            auto top = (size.y - FromDIP(15) - m_bitmap_editable_light.GetBmpSize().y);
+            auto right = size.x - FromDIP(10);;
+            auto bottom = size.y - FromDIP(15);
 
             if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
                 if (m_selected) {
@@ -550,6 +734,7 @@ void AMSLib::render(wxDC &dc)
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
+
         if (m_info.material_name.empty() &&  m_info.material_state != AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
             auto tsize = dc.GetMultiLineTextExtent("?");
             auto pot = wxPoint(0, 0);
@@ -561,12 +746,23 @@ void AMSLib::render(wxDC &dc)
             dc.DrawText(L("?"), pot);
         } else {
             auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
+            std::vector<std::string> split_char_arr = {" ", "-"};
+            bool has_split = false;
+            std::string has_split_char = " ";
 
-            if (m_info.material_name.find(' ') != std::string::npos) {
+            for (std::string split_char : split_char_arr) {
+                if (m_info.material_name.find(split_char) != std::string::npos) {
+                    has_split = true;
+                    has_split_char = split_char;
+                }
+            }
+
+
+            if (has_split) {
                 dc.SetFont(::Label::Body_12);
 
-                auto line_top    = m_info.material_name.substr(0, m_info.material_name.find(' '));
-                auto line_bottom = m_info.material_name.substr(m_info.material_name.find(' '));
+                auto line_top    = m_info.material_name.substr(0, m_info.material_name.find(has_split_char));
+                auto line_bottom = m_info.material_name.substr(m_info.material_name.find(has_split_char));
 
                 auto line_top_tsize    = dc.GetMultiLineTextExtent(line_top);
                 auto line_bottom_tsize = dc.GetMultiLineTextExtent(line_bottom);
@@ -579,7 +775,7 @@ void AMSLib::render(wxDC &dc)
 
             } else {
                 auto pot = wxPoint(0, 0);
-                if (m_show_kn) {
+                if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
                     pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9));
                 } else {
                     pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
@@ -589,16 +785,15 @@ void AMSLib::render(wxDC &dc)
         }
 
         //draw k&n
-        if (m_show_kn) {
-            wxString str_k = wxString::Format("K %1.3f", m_info.k);
-            wxString str_n = wxString::Format("N %1.3f", m_info.n);
-            dc.SetFont(::Label::Body_11);
-            auto tsize = dc.GetMultiLineTextExtent(str_k);
-            auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
-            dc.DrawText(str_k, pot_k);
-
-            //auto pot_n = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(18) + tsize.y * 2);
-            //dc.DrawText(str_n, pot_n);
+        if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+            if (m_show_kn){
+                wxString str_k = wxString::Format("K %1.3f", m_info.k);
+                wxString str_n = wxString::Format("N %1.3f", m_info.n);
+                dc.SetFont(::Label::Body_11);
+                auto tsize = dc.GetMultiLineTextExtent(str_k);
+                auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
+                dc.DrawText(str_k, pot_k);
+            }
         }
     }
 
@@ -689,18 +884,34 @@ void AMSLib::doRender(wxDC &dc)
     int height = size.y - FromDIP(8);
     int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
 
-    
-
     int top = height - curr_height;
 
     if (curr_height >= FromDIP(6)) {
-#ifdef __APPLE__
-         dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
-#else
-         dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
-#endif
 
-       
+        //gradient
+        if (m_info.material_cols.size() > 1) {
+            int left = FromDIP(4);
+            float total_width = size.x - FromDIP(8);
+            int gwidth = std::round(total_width / (m_info.material_cols.size() - 1));
+
+            for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
+
+                if ((left + gwidth) > (size.x - FromDIP(8))) {
+                    gwidth = (size.x - FromDIP(4)) - left;
+                }
+
+                auto rect = wxRect(left, height - curr_height + FromDIP(4), gwidth, curr_height);
+                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+#ifdef __APPLE__
+            dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
+#else
+            dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
+#endif
+        } 
     }
 
     if (top > 2) {
@@ -753,6 +964,12 @@ void AMSLib::doRender(wxDC &dc)
 
 void AMSLib::Update(Caninfo info, bool refresh)
 {
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    if (dev->get_selected_machine() && dev->get_selected_machine() != m_obj) {
+        m_obj = dev->get_selected_machine();
+    }
+
     m_info = info;
     Layout();
     if (refresh) Refresh();
@@ -805,30 +1022,39 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_LEFT_RIGHT;
     } else if (m_canindex == (maxcan - 1)) {
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_LEFT;
+    } else if (m_canindex == -1 && maxcan == -1) {
+        m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY;
     }
     else {
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_NONE_ANY_ROAD;
     }
 
-    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 18);
-    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 18);
-    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 18);
-    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 18);
-    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 18);
+    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 20);
+    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 20);
+    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 20);
+    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 20);
+    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 20);
 
     create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
-    Bind(wxEVT_MOTION, [this](wxMouseEvent& e) {
+    Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (m_canindex == 3 && m_show_humidity) {
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
             if (mouse_pos.x > rect.x + GetSize().x - FromDIP(25) && 
                 mouse_pos.y > rect.y + GetSize().y - FromDIP(25)) {
-                wxCommandEvent event(EVT_AMS_SHOW_HUMIDITY_TIPS);
-                wxPostEvent(GetParent()->GetParent(), event);
+                wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
+                wxPostEvent(GetParent()->GetParent(), show_event);
+
+#ifdef __WXMSW__
+                wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+                wxPostEvent(GetParent()->GetParent(), close_event);
+#endif // __WXMSW__
+
+               
             }
         }
     });
@@ -851,6 +1077,13 @@ void AMSRoad::Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan)
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_LEFT;
     }
     m_pass_rode_mode.push_back(AMSPassRoadMode::AMS_ROAD_MODE_NONE);
+    Refresh();
+}
+
+void AMSRoad::OnVamsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY500*/)
+{
+    m_vams_loading = load;
+    if(load)m_road_color = col;
     Refresh();
 }
 
@@ -927,6 +1160,12 @@ void AMSRoad::doRender(wxDC &dc)
         // dc.DrawLine(size.x / 2, size.y * 0.6 - 1, size.x, size.y * 0.6 - 1);
     }
 
+    //virtual road
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
+        dc.SetBrush(wxBrush(m_road_def_color));
+        dc.DrawLine(size.x / 2, -1, size.x / 2, size.y - 1);
+    }
+
     // mode none
     // if (m_pass_rode_mode.size() == 1 && m_pass_rode_mode[0] == AMSPassRoadMode::AMS_ROAD_MODE_NONE) return;
 
@@ -948,6 +1187,10 @@ void AMSRoad::doRender(wxDC &dc)
 
         default: break;
         }
+    }
+
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY && m_vams_loading) {
+        dc.DrawLine(size.x / 2, -1, size.x / 2, size.y - 1);
     }
 
     // end mode
@@ -1036,8 +1279,6 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
             }
         }
     }
-
-    //Refresh();
 }
 
 /*************************************************
@@ -1173,7 +1414,31 @@ void AMSItem::doRender(wxDC &dc)
             dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
         }
 
-        dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
+        if (iter->material_cols.size() > 1) {
+            int fleft = left;
+            float total_width = AMS_ITEM_CUBE_SIZE.x;
+            int gwidth = std::round(total_width / (iter->material_cols.size() - 1));
+
+            for (int i = 0; i < iter->material_cols.size() - 1; i++) {
+
+                if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
+                    gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                }
+
+                auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
+                dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
+                fleft += gwidth;
+            }
+
+            dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRoundedRectangle(left - 1, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2 - 1, AMS_ITEM_CUBE_SIZE.x + 2, AMS_ITEM_CUBE_SIZE.y + 2, 2);
+
+        }else {
+            dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
+        }
+
+        
         left += AMS_ITEM_CUBE_SIZE.x;
         left += m_space;
     }
@@ -1367,6 +1632,16 @@ void AmsCans::SelectCan(std::string canid)
     }
 }
 
+wxColour AmsCans::GetTagColr(wxString canid) 
+{
+    auto tag_colour = *wxWHITE;
+    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
+        CanLibs* lib = m_can_lib_list[i];
+        if (canid == lib->canLib->m_info.can_id) tag_colour = lib->canLib->GetLibColour();
+    }
+    return tag_colour;
+}
+
 void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
 
@@ -1505,6 +1780,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     m_amswin                 = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
     m_amswin->SetBackgroundColour(*wxWHITE);
+
     // top - ams tag
     m_simplebook_amsitems = new wxSimplebook(m_amswin, wxID_ANY);
     m_simplebook_amsitems->SetSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
@@ -1533,14 +1809,16 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_left   = new wxBoxSizer(wxVERTICAL);
 
+    //ams tip
     m_sizer_ams_tips = new wxBoxSizer(wxHORIZONTAL);
-    auto m_ams_tip = new wxStaticText(m_amswin, wxID_ANY, _L("AMS"));
+    auto m_ams_tip = new Label(m_amswin, _L("AMS"));
     m_ams_tip->SetFont(::Label::Body_12);
     m_ams_tip->SetBackgroundColour(*wxWHITE);
     auto img_amsmapping_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     img_amsmapping_tip->SetBackgroundColour(*wxWHITE);
-    m_sizer_ams_tips->Add(m_ams_tip, 0, wxALIGN_CENTER, 0);
-    m_sizer_ams_tips->Add(img_amsmapping_tip, 0, wxALL, FromDIP(2));
+
+    m_sizer_ams_tips->Add(m_ams_tip, 0, wxTOP, FromDIP(5));
+    m_sizer_ams_tips->Add(img_amsmapping_tip, 0, wxALL, FromDIP(3));
 
     img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {
          wxPoint img_pos = img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
@@ -1548,13 +1826,45 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
          m_ams_introduce_popup.set_mode(true);
          m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
          m_ams_introduce_popup.Popup();
-    });
 
-    img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+#ifdef __WXMSW__
+         wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+         wxPostEvent(this, close_event);
+#endif // __WXMSW__
+    });
+    img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
          m_ams_introduce_popup.Dismiss();
     });
 
 
+    //backup tips
+
+#ifdef FILAMENT_BACKUP
+    auto m_ams_backup_tip = new Label(m_amswin, _L("Ams filament backup"));
+    m_ams_backup_tip->SetFont(::Label::Head_12);
+    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
+    m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
+    auto m_img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    m_img_ams_backup->SetBackgroundColour(*wxWHITE);
+
+    m_sizer_ams_tips->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_ams_tips->Add(m_img_ams_backup, 0, wxALL, FromDIP(3));
+    m_sizer_ams_tips->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
+
+    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
+
+    m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+    m_img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
+    m_img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
+#endif // FILAMENT_BACKUP
+
+   
+
+
+    //ams cans
     m_panel_can = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
     m_panel_can->SetMinSize(AMS_CANS_SIZE);
     m_panel_can->SetCornerRadius(FromDIP(10));
@@ -1589,20 +1899,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_none_ams_panel->SetSizer(sizer_ams_panel_h);
     m_none_ams_panel->Layout();
 
-    /*wxBoxSizer *sizer_ams_panel = new wxBoxSizer(wxHORIZONTAL);
-    AMSinfo     none_ams = AMSinfo{ "0", std::vector<Caninfo>{Caninfo{"0", wxEmptyString, *wxWHITE, AMSCanType::AMS_CAN_TYPE_EMPTY}} };
-    auto        amscans = new AmsCans(m_none_ams_panel, wxID_ANY, none_ams);
-    sizer_ams_panel->Add(amscans, 0, wxALL, 0);
-    sizer_ams_panel->Add(0, 0, 0, wxLEFT, 20);
-    auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("Click the pencil icon to edit the filament."), wxDefaultPosition, wxDefaultSize, 0);
-    m_tip_none_ams->Wrap(150);
-    m_tip_none_ams->SetFont(::Label::Body_13);
-    m_tip_none_ams->SetForegroundColour(AMS_CONTROL_GRAY500);
-    m_tip_none_ams->SetMinSize({150, -1});
-    sizer_ams_panel->Add(m_tip_none_ams, 0, wxALIGN_CENTER, 0);
-    m_none_ams_panel->SetSizer(sizer_ams_panel);
-    m_none_ams_panel->Layout();*/
-
     m_simplebook_ams->AddPage(m_simplebook_cans, wxEmptyString, true);
     m_simplebook_ams->AddPage(m_none_ams_panel, wxEmptyString, false);
 
@@ -1610,7 +1906,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_can->Layout();
     m_sizer_cans->Fit(m_panel_can);
 
-    m_sizer_left->Add(m_sizer_ams_tips, 0, wxALIGN_CENTER, 0);
+    m_sizer_left->Add(m_sizer_ams_tips, 0, wxEXPAND, 0);
     m_sizer_left->Add(m_panel_can, 1, wxEXPAND, 0);
 
     wxBoxSizer *m_sizer_left_bottom = new wxBoxSizer(wxHORIZONTAL);
@@ -1624,24 +1920,38 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_extruder = new AMSextruder(extruder_pane, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
     sizer_sextruder->Add(m_extruder, 0, wxALIGN_CENTER, 0);
 
-    m_sizer_left_bottom->Add(extruder_pane, 0, wxLEFT, FromDIP(10));
+    m_sizer_left_bottom->Add(extruder_pane, 0, wxALL,0);
 
     //m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), 
+                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+
                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
-                           std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
-                           std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), 
+                            std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
+                            std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
 
-    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
-    StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    StateColor btn_text_green(std::pair<wxColour, int>(*wxBLACK, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Enabled));
-    //m_sizer_left_bottom->AddStretchSpacer();
+    StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled), 
+                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
+
+    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled), 
+                            std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+    StateColor btn_text_green(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled), 
+                              std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Enabled));
+
+    StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                              std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
     m_button_area = new wxWindow(m_amswin, wxID_ANY);
     m_button_area->SetBackgroundColour(m_amswin->GetBackgroundColour());
+
+
+    wxBoxSizer *m_sizer_button = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
 
     m_button_extrusion_cali = new Button(m_button_area, _L("Cali"));
@@ -1654,12 +1964,13 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_feed = new Button(m_button_area, _L("Load Filament"));
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
-    m_button_extruder_feed->SetTextColor(wxColour("#FFFFFE"));
+    m_button_extruder_feed->SetTextColor(btn_text_green);
     m_button_extruder_feed->SetFont(Label::Body_13);
 
     m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
+    m_button_extruder_back->SetTextColor(btn_text_white);
     m_button_extruder_back->SetFont(Label::Body_13);
 
     m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
@@ -1667,7 +1978,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
     m_sizer_button_area->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(6));
 
-    m_button_area->SetSizer(m_sizer_button_area);
+    m_sizer_button->Add(m_sizer_button_area, 0, 1, wxEXPAND, 0);
+
+    m_button_area->SetSizer(m_sizer_button);
     m_button_area->Layout();
     m_button_area->Fit();
 
@@ -1684,9 +1997,10 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_vams_info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
     m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_ID).ToStdString();
+
     auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
     vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
-    //m_vams_refresh = new AMSrefresh(vams_panel, wxID_ANY, 0, m_vams_info);
+
     m_vams_lib = new AMSLib(vams_panel, wxID_ANY, m_vams_info);
     m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
@@ -1705,20 +2019,25 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         });
 
     Bind(EVT_AMS_UNSELETED_VAMS, [this](wxCommandEvent& e) {
+        if (m_current_ams == e.GetString().ToStdString()) {
+            return;
+        }
         m_current_ams = e.GetString().ToStdString();
         SwitchAms(m_current_ams);
         m_vams_lib->UnSelected();
         e.Skip();
     });
 
-    wxBoxSizer* m_sizer_vams = new wxBoxSizer(wxVERTICAL);
-    m_sizer_vams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
-    //m_sizer_vams->Add(m_vams_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_vams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2) + AMS_REFRESH_SIZE.y);
-    m_sizer_vams->Add(m_vams_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
-    m_sizer_vams->Add(m_vams_road, 0, wxALL, 0);
+    wxBoxSizer* m_vams_top_sizer = new wxBoxSizer(wxVERTICAL);
 
-    vams_panel->SetSizer(m_sizer_vams);
+    m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
+    m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2) + AMS_REFRESH_SIZE.y);
+    m_vams_top_sizer->Add(m_vams_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
+    m_vams_top_sizer->Add(m_vams_road, 0, wxALL, 0);
+
+    //extra road
+
+    vams_panel->SetSizer(m_vams_top_sizer);
     vams_panel->Layout();
     vams_panel->Fit();
 
@@ -1728,11 +2047,10 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_virtual->SetSizer(m_sizer_vams_panel);
     m_panel_virtual->Layout();
     m_panel_virtual->Fit();
-    //virtual ams
 
     m_vams_sizer =  new wxBoxSizer(wxVERTICAL);
-
     m_sizer_vams_tips = new wxBoxSizer(wxHORIZONTAL);
+
     auto m_vams_tip = new wxStaticText(m_amswin, wxID_ANY, _L("Ext Spool"));
     m_vams_tip->SetFont(::Label::Body_12);
     m_vams_tip->SetBackgroundColour(*wxWHITE);
@@ -1744,60 +2062,70 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         m_ams_introduce_popup.set_mode(false);
         m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
         m_ams_introduce_popup.Popup();
-        });
+
+#ifdef __WXMSW__
+        wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+        wxPostEvent(this, close_event);
+#endif // __WXMSW__
+    });
 
     img_vams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_ams_introduce_popup.Dismiss();
-        });
+    });
 
+    m_sizer_vams_tips->Add(m_vams_tip, 0, wxTOP, FromDIP(5));
+    m_sizer_vams_tips->Add(img_vams_tip, 0, wxALL, FromDIP(3));
 
-
-    m_sizer_vams_tips->Add(m_vams_tip, 0, wxALIGN_CENTER, 0);
-    m_sizer_vams_tips->Add(img_vams_tip, 0, wxALL, FromDIP(2));
+    m_vams_extra_road = new AMSVirtualRoad(m_amswin, wxID_ANY);
+    m_vams_extra_road->SetMinSize(wxSize(m_panel_virtual->GetSize().x + FromDIP(16), -1));
 
     m_vams_sizer->Add(m_sizer_vams_tips, 0, wxALIGN_CENTER, 0);
     m_vams_sizer->Add(m_panel_virtual, 0, wxALIGN_CENTER, 0);
+    m_vams_sizer->Add(m_vams_extra_road, 1, wxEXPAND, 0);
 
-    m_sizer_bottom->Add(m_vams_sizer, 0, wxEXPAND, 0);
-    m_sizer_bottom->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(10));
-    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 0);
-    m_sizer_bottom->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(23));
 
+    //Right
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
     m_simplebook_right        = new wxSimplebook(m_amswin, wxID_ANY);
-    m_simplebook_right->SetMinSize(AMS_STEP_SIZE);
-    m_simplebook_right->SetSize(AMS_STEP_SIZE);
+    m_simplebook_right->SetMinSize(wxSize(AMS_STEP_SIZE.x, AMS_STEP_SIZE.y + FromDIP(19)));
+    m_simplebook_right->SetMaxSize(wxSize(AMS_STEP_SIZE.x, AMS_STEP_SIZE.y + FromDIP(19)));
     m_simplebook_right->SetBackgroundColour(*wxWHITE);
+
     m_sizer_right->Add(m_simplebook_right, 0, wxALL, 0);
 
     auto tip_right    = new wxPanel(m_simplebook_right, wxID_ANY, wxDefaultPosition, AMS_STEP_SIZE, wxTAB_TRAVERSAL);
     m_sizer_right_tip = new wxBoxSizer(wxVERTICAL);
+
     m_tip_right_top   = new wxStaticText(tip_right, wxID_ANY, _L("Tips"), wxDefaultPosition, wxDefaultSize, 0);
     m_tip_right_top->SetFont(::Label::Head_13);
     m_tip_right_top->SetForegroundColour(AMS_CONTROL_BRAND_COLOUR);
     m_tip_right_top->Wrap(AMS_STEP_SIZE.x);
-    m_sizer_right_tip->Add(m_tip_right_top, 0, 0, 0);
-    m_sizer_right_tip->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+
     m_tip_load_info = new wxStaticText(tip_right, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
     m_tip_load_info->SetFont(::Label::Body_13);
     m_tip_load_info->SetForegroundColour(AMS_CONTROL_GRAY700);
+
+    m_sizer_right_tip->Add(m_tip_right_top, 0, 0, 0);
+    m_sizer_right_tip->Add(0, 0, 0, wxEXPAND, FromDIP(10));
     m_sizer_right_tip->Add(m_tip_load_info, 0, 0, 0);
+
     tip_right->SetSizer(m_sizer_right_tip);
     tip_right->Layout();
 
     m_filament_load_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
     m_filament_load_step->SetMinSize(AMS_STEP_SIZE);
-    m_filament_load_step->SetSize(AMS_STEP_SIZE);
+    m_filament_load_step->SetMaxSize(AMS_STEP_SIZE);
     m_filament_load_step->SetBackgroundColour(*wxWHITE);
 
     m_filament_unload_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
     m_filament_unload_step->SetMinSize(AMS_STEP_SIZE);
-    m_filament_unload_step->SetSize(AMS_STEP_SIZE);
+    m_filament_unload_step->SetMaxSize(AMS_STEP_SIZE);
     m_filament_unload_step->SetBackgroundColour(*wxWHITE);
 
     m_filament_vt_load_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
     m_filament_vt_load_step->SetMinSize(AMS_STEP_SIZE);
-    m_filament_vt_load_step->SetSize(AMS_STEP_SIZE);
+    m_filament_vt_load_step->SetMaxSize(AMS_STEP_SIZE);
     m_filament_vt_load_step->SetBackgroundColour(*wxWHITE);
 
     m_simplebook_right->AddPage(tip_right, wxEmptyString, false);
@@ -1818,6 +2146,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_guide->SetFont(Label::Body_13);
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
+    m_button_guide->SetTextColor(btn_text_white);
     m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_guide->SetBackgroundColor(btn_bg_white);
 
@@ -1825,6 +2154,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_retry->SetFont(Label::Body_13);
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
+    m_button_retry->SetTextColor(btn_text_white);
     m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_retry->SetBackgroundColor(btn_bg_white);
 
@@ -1832,7 +2162,12 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_right_bottom->Add(m_button_guide, 0, wxLEFT, FromDIP(10));
     m_sizer_right_bottom->Add(m_button_retry, 0, wxLEFT, FromDIP(10));
     m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND | wxTOP, FromDIP(20));
-    m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(5));
+
+
+    m_sizer_bottom->Add(m_vams_sizer, 0, wxEXPAND, 0);
+    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 0);
+    m_sizer_bottom->Add(0, 0, 0, wxLEFT, FromDIP(15));
+    m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(0));
 
     m_sizer_body->Add(m_simplebook_amsitems, 0, wxEXPAND, 0);
     m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(18));
@@ -1917,7 +2252,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     AddPage(m_amswin, wxEmptyString, false);
     AddPage(m_simplebook_calibration, wxEmptyString, false);
 
-    UpdateStepCtrl();
+    UpdateStepCtrl(false);
 
     m_button_extrusion_cali->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_extrusion_cali), NULL, this);
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
@@ -1940,10 +2275,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this](wxCommandEvent& evt) {
         wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x, img_pos.y + GetRect().height);
+        wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y);
         m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
         m_Humidity_tip_popup.Popup();
-        m_Humidity_tip_popup.GetParent()->SetFocus();
     });
     
 
@@ -1970,6 +2304,7 @@ void AMSControl::init_scaled_buttons()
 }
 
 std::string AMSControl::GetCurentAms() { return m_current_ams; }
+std::string AMSControl::GetCurentShowAms() { return m_current_show_ams; }
 
 std::string AMSControl::GetCurrentCan(std::string amsid)
 {
@@ -1982,13 +2317,6 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
         }
     }
     return current_can;
-    /*std::string current_can_id = "";
-    for (auto i = 0; i < m_ams_info.size(); i++) {
-        if (m_ams_info[i].ams_id == m_current_ams) {
-            current_can_id =  m_ams_info[i].current_can_id;
-        }
-    }
-    return current_can_id;*/
 }
 
 wxColour AMSControl::GetCanColour(std::string amsid, std::string canid) 
@@ -2024,7 +2352,7 @@ void AMSControl::EnterNoneAMSMode(bool support_vt_load)
     m_panel_top->Hide();
     m_simplebook_amsitems->SetSelection(1);
     m_simplebook_ams->SetSelection(1);
-    m_extruder->Hide();
+    m_extruder->no_ams_mode(true);
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
     m_button_retry->Hide();
@@ -2049,7 +2377,7 @@ void AMSControl::ExitNoneAMSMode()
     m_panel_top->Show();
     m_simplebook_ams->SetSelection(0);
     m_simplebook_amsitems->SetSelection(0);
-    m_extruder->Show();
+    m_extruder->no_ams_mode(false);
     m_button_ams_setting->Show();
     m_button_guide->Show();
     m_button_retry->Show();
@@ -2115,6 +2443,8 @@ void AMSControl::msw_rescale()
     m_button_ams_setting->SetBitmap(m_button_ams_setting_normal.bmp());
 
     m_extruder->msw_rescale();
+    m_vams_extra_road->msw_rescale();
+
     m_button_extrusion_cali->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -2131,15 +2461,35 @@ void AMSControl::msw_rescale()
     Refresh();
 }
 
-void AMSControl::UpdateStepCtrl()
+void AMSControl::UpdateStepCtrl(bool is_extrusion)
 {
-    wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
-        _L("Heat the nozzle"),
-        _L("Cut filament"),
-        _L("Pull back current filament"),
-        _L("Push new filament into extruder"),
-        _L("Purge old filament"),
-    };
+    m_filament_load_step->DeleteAllItems();
+    m_filament_unload_step->DeleteAllItems();
+    m_filament_vt_load_step->DeleteAllItems();
+    
+    if(is_extrusion){
+        wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
+            _L("Heat the nozzle"),
+            _L("Cut filament"),
+            _L("Pull back current filament"),
+            _L("Push new filament into extruder"),
+            _L("Purge old filament"),
+        };
+        
+        for (int i = 0; i < LOAD_STEP_COUNT; i++) {
+            m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
+        }
+    }else{
+        wxString FILAMENT_LOAD_STEP_STRING[LOAD_WITH_TEMP_STEP_COUNT] = {
+            _L("Heat the nozzle"),
+            _L("Push new filament into extruder"),
+            _L("Purge old filament"),
+        };
+        
+        for (int i = 0; i < LOAD_WITH_TEMP_STEP_COUNT; i++) {
+            m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
+        }
+    }
 
     wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
         _L("Heat the nozzle"),
@@ -2154,9 +2504,9 @@ void AMSControl::UpdateStepCtrl()
         _L("Pull back current filament")
     };
 
-    for (int i = 0; i < LOAD_STEP_COUNT; i++) {
-        m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
-    }
+//    for (int i = 0; i < LOAD_STEP_COUNT; i++) {
+//        m_filament_load_step->AppendItem(FILAMENT_LOAD_STEP_STRING[i]);
+//    }
     for (int i = 0; i < UNLOAD_STEP_COUNT; i++) {
         m_filament_unload_step->AppendItem(FILAMENT_UNLOAD_STEP_STRING[i]);
     }
@@ -2186,28 +2536,30 @@ void AMSControl::CreateAms()
 
 void AMSControl::Reset() 
 {
-    auto caninfo0_0 = Caninfo{"def_can_0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"def_can_1", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"def_can_2", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"def_can_3", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_0 = Caninfo{"0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_1 = Caninfo{"1", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"2", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_3 = Caninfo{"3", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
 
-    AMSinfo ams1 = AMSinfo{"def_ams_0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams2 = AMSinfo{"def_ams_1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams3 = AMSinfo{"def_ams_2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams4 = AMSinfo{"def_ams_3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
 
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
     std::vector<AMSinfo>::iterator it;
-    UpdateAms(ams_info, false);
-    m_current_ams    = "";
-    m_current_senect = "";
+    UpdateAms(ams_info, false, false, true);
+    m_current_show_ams  = "";
+    m_current_ams       = "";
+    m_current_senect    = "";
 }
 
-void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load)
+void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load)
 {
     show_vams(support_virtual_tray);
     m_sizer_ams_tips->Show(support_virtual_tray);
-    if (!support_virtual_tray)
+
+    if (!support_extrustion_cali)
         m_button_extrusion_cali->Hide();
     else {
         m_button_extrusion_cali->Show();
@@ -2220,6 +2572,8 @@ void AMSControl::show_vams(bool show)
 {
     m_panel_virtual->Show(show);
     m_vams_sizer->Show(show);
+    m_vams_extra_road->Show(show);
+    m_extruder->has_ams(show);
     show_vams_kn_value(show);
     Layout();
 
@@ -2237,8 +2591,9 @@ void AMSControl::show_vams_kn_value(bool show)
     m_vams_lib->show_kn_value(show);
 }
 
-void AMSControl::update_vams_kn_value(AmsTray tray)
+void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 {
+    m_vams_lib->m_obj = obj;
     m_vams_info.k = tray.k;
     m_vams_info.n = tray.n;
     m_vams_lib->m_info.k = tray.k;
@@ -2250,7 +2605,23 @@ void AMSControl::update_vams_kn_value(AmsTray tray)
     m_vams_lib->Refresh();
 }
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool has_extrusion_cali)
+void AMSControl::show_filament_backup(bool show)
+{
+}
+
+void AMSControl::reset_vams()
+{
+    m_vams_lib->m_info.k = 0;
+    m_vams_lib->m_info.n = 0;
+    m_vams_lib->m_info.material_name = wxEmptyString;
+    m_vams_lib->m_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
+    m_vams_info.material_name = wxEmptyString;
+    m_vams_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
+    m_vams_lib->Refresh();
+}
+
+
+void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool has_extrusion_cali, bool is_reset)
 {
     std::string curr_ams_id = GetCurentAms();
     std::string curr_can_id = GetCurrentCan(curr_ams_id);
@@ -2288,14 +2659,17 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
     // update cans
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
-        if (i < info.size()) {
-            cans->amsCans->m_info = m_ams_info[i];
-            cans->amsCans->Update(m_ams_info[i]);
-            cans->amsCans->show_sn_value(has_extrusion_cali);
+
+        for (auto ifo : m_ams_info) {
+            if (ifo.ams_id == cans->amsIndex) {
+                cans->amsCans->m_info = ifo;
+                cans->amsCans->Update(ifo);
+                cans->amsCans->show_sn_value(has_extrusion_cali);
+            }
         }
     }
 
-    if (m_current_senect.empty() && info.size() > 0) {
+    /*if (m_current_senect.empty() && info.size() > 0) {
         if (curr_ams_id.empty()) {
             SwitchAms(info[0].ams_id);
             return;
@@ -2308,6 +2682,12 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
                 if (i < info.size()) { cans->amsCans->SelectCan(curr_can_id); }
             }
             return;
+        }
+    }*/
+
+    if ( m_current_show_ams.empty() && !is_reset ) {
+        if (info.size() > 0) {
+            SwitchAms(info[0].ams_id);
         }
     }
 }
@@ -2347,22 +2727,27 @@ void AMSControl::AddAms(AMSinfo info, bool refresh)
 
 void AMSControl::SwitchAms(std::string ams_id)
 {
+    if (ams_id != std::to_string(VIRTUAL_TRAY_ID)) {
+        if (m_current_show_ams != ams_id) {
+            m_current_show_ams = ams_id;
+            m_extruder->OnAmsLoading(false);
+        }
+    }
+
     for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
         AmsItems *item = m_ams_item_list[i];
-        if (item->amsItem->m_amsinfo.ams_id == ams_id) {
+        if (item->amsItem->m_amsinfo.ams_id == m_current_show_ams) {
             item->amsItem->OnSelected();
-            //item->amsItem->ShowHumidity();
+            m_current_senect = ams_id;
 
-            if (m_current_ams == std::to_string(VIRTUAL_TRAY_ID)) {
-                for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-                    AmsCansWindow* ams = m_ams_cans_list[i];
-                    if (ams->amsCans->m_info.ams_id == ams_id) {
-                        ams->amsCans->SetDefSelectCan();
-                    }
+            for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+                AmsCansWindow* ams = m_ams_cans_list[i];
+                if (ams->amsCans->m_info.ams_id == ams_id) {
+                    ams->amsCans->SetDefSelectCan();
+                    m_vams_lib->UnSelected();
                 }
             }
 
-            m_current_senect = ams_id;
         } else {
             item->amsItem->UnSelected();
             //item->amsItem->HideHumidity();
@@ -2373,11 +2758,16 @@ void AMSControl::SwitchAms(std::string ams_id)
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
-        if (cans->amsCans->m_info.ams_id == ams_id) { m_simplebook_cans->SetSelection(cans->amsCans->m_selection); }
+        if (cans->amsCans->m_info.ams_id == ams_id) { 
+            m_simplebook_cans->SetSelection(cans->amsCans->m_selection);
+        }
     }
+
     m_current_ams = ams_id;
 
+
      // update extruder
+    //m_extruder->OnAmsLoading(false);
     for (auto i = 0; i < m_ams_info.size(); i++) {
         if (m_ams_info[i].ams_id == m_current_ams) {
             switch (m_ams_info[i].current_step) {
@@ -2391,11 +2781,9 @@ void AMSControl::SwitchAms(std::string ams_id)
             }
         }
     }
-
-    // update buttons
 }
 
-void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type)
+void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type, bool is_extrusion_exist)
 {
     if (item_idx == FilamentStep::STEP_IDLE) {
         m_simplebook_right->SetSelection(0);
@@ -2492,12 +2880,28 @@ bool AMSControl::Enable(bool enable)
     return wxWindow::Enable(enable);
 }
 
-void AMSControl::SetExtruder(bool on_off, wxColour col)
+void AMSControl::SetExtruder(bool on_off, bool is_vams, wxColour col)
 {
     if (!on_off) {
         m_extruder->TurnOff();
+        m_vams_extra_road->OnVamsLoading(false);
+        m_extruder->OnVamsLoading(false);
+        m_vams_road->OnVamsLoading(false);
     } else {
         m_extruder->TurnOn(col);
+        m_extruder->OnAmsLoading(true, col);
+    }
+
+    if (is_vams && on_off) {
+        m_extruder->OnAmsLoading(false, col);
+        m_vams_extra_road->OnVamsLoading(true, col);
+        m_extruder->OnVamsLoading(true, col);
+        m_vams_road->OnVamsLoading(true, col);
+    }
+    else {
+        m_vams_extra_road->OnVamsLoading(false, col);
+        m_extruder->OnVamsLoading(false, col);
+        m_vams_road->OnVamsLoading(false, col);
     }
 }
 
@@ -2514,26 +2918,45 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         }
     }
 
+
+    if (ams_id != m_last_ams_id || m_last_tray_id != canid) {
+        SetAmsStep(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        m_vams_extra_road->OnVamsLoading(false);
+        m_extruder->OnVamsLoading(false);
+        m_vams_road->OnVamsLoading(false);
+    }
+
     if (notfound) return;
     if (cans == nullptr) return;
 
+
+    m_last_ams_id = ams_id;
+    m_last_tray_id = canid;
+
+
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+        m_extruder->OnAmsLoading(false);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+        m_extruder->OnAmsLoading(false);
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+        if (m_current_show_ams == ams_id) {
+            m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
+        } 
     }
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+        m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
     }
 
     for (auto i = 0; i < m_ams_info.size(); i++) {

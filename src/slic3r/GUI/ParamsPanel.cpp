@@ -404,6 +404,10 @@ void ParamsPanel::create_layout()
         m_left_sizer->Add( m_tab_print_part, 0, wxEXPAND );
     }
 
+    if (m_tab_print_layer) {
+        m_left_sizer->Add(m_tab_print_layer, 0, wxEXPAND);
+    }
+
     if (m_tab_filament) {
         if (m_staticline_filament)
             m_left_sizer->Add(m_staticline_filament, 0, wxEXPAND);
@@ -488,6 +492,7 @@ void ParamsPanel::refresh_tabs()
     if (m_top_panel) {
         m_tab_print_object = wxGetApp().get_model_tab();
         m_tab_print_part = wxGetApp().get_model_tab(true);
+        m_tab_print_layer = wxGetApp().get_layer_tab();
     }
     return;
 }
@@ -557,6 +562,8 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
             cur_tab = (Tab*) m_tab_print;
         } else if (m_tab_print_part && ((TabPrintModel*) m_tab_print_part)->has_model_config()) {
             cur_tab = (Tab*) m_tab_print_part;
+        } else if (m_tab_print_layer && ((TabPrintModel*)m_tab_print_layer)->has_model_config()) {
+            cur_tab = (Tab*)m_tab_print_layer;
         } else if (m_tab_print_object && ((TabPrintModel*) m_tab_print_object)->has_model_config()) {
             cur_tab = (Tab*) m_tab_print_object;
         }
@@ -578,6 +585,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
             {m_tab_print, m_staticline_print},
             {m_tab_print_object, m_staticline_print_object},
             {m_tab_print_part, m_staticline_print_part},
+            {m_tab_print_layer, nullptr},
             {m_tab_filament, m_staticline_filament},
             {m_tab_printer, m_staticline_printer}})) {
         if (!t.first) continue;
@@ -650,7 +658,7 @@ void ParamsPanel::msw_rescale()
         ((SwitchButton* )m_mode_region)->Rescale();
     if (m_mode_view)
         ((SwitchButton* )m_mode_view)->Rescale();
-    for (auto tab : {m_tab_print, m_tab_print_object, m_tab_print_part, m_tab_filament, m_tab_printer}) {
+    for (auto tab : {m_tab_print, m_tab_print_object, m_tab_print_part, m_tab_print_layer, m_tab_filament, m_tab_printer}) {
         if (tab) dynamic_cast<Tab*>(tab)->msw_rescale();
     }
     //((Button*)m_export_to_file)->Rescale();

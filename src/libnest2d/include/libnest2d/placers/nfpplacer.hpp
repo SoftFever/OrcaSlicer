@@ -602,6 +602,22 @@ private:
         return nfp::subtract({innerNfp}, nfps);
     }
 
+    Shapes calcnfp(const RawShape &sliding, const Shapes &stationarys, const Box &bed, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
+    {
+        using namespace nfp;
+
+        Shapes nfps(stationarys.size());
+        Item   slidingItem(sliding);
+        slidingItem.transformedShape();
+        __parallel::enumerate(stationarys.begin(), stationarys.end(), [&nfps, sliding, &slidingItem](const RawShape &stationary, size_t n) {
+            auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(stationary, sliding);
+            correctNfpPosition(subnfp_r, stationary, slidingItem);
+            nfps[n] = subnfp_r.first;
+        });
+
+        RawShape innerNfp = nfpInnerRectBed(bed, sliding).first;
+        return nfp::subtract({innerNfp}, nfps);
+    }
 
     template<class Level>
     Shapes calcnfp(const Item &/*trsh*/, Level)
@@ -702,18 +718,31 @@ private:
             };
         }
 
-        if(items_.empty()) {
+        bool first_object = std::all_of(items_.begin(), items_.end(), [&](const Item &rawShape) { return rawShape.is_virt_object && !rawShape.is_wipe_tower; });
+
+        // item won't overlap with virtual objects if it's inside or touches NFP
+        auto overlapWithVirtObject = [&]() -> double {
+            if (items_.empty()) return 0;
+            nfps   = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
+            auto v = item.referenceVertex();
+            for (const RawShape &nfp : nfps) {
+                if (sl::isInside(v, nfp) || sl::touches(v, nfp)) { return 0; }
+            }
+            return 1;
+        };
+
+        if (first_object) {
             setInitialPosition(item);
             auto best_tr = item.translation();
             auto best_rot = item.rotation();
-            best_overfit = overfit(item.transformedShape(), bin_);
+            best_overfit = overfit(item.transformedShape(), bin_) + overlapWithVirtObject();
 
             for(auto rot : config_.rotations) {
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
                 setInitialPosition(item);
                 double of = 0.;
-                if ((of = overfit(item.transformedShape(), bin_)) < best_overfit) {
+                if ((of = overfit(item.transformedShape(), bin_)) + overlapWithVirtObject() < best_overfit) {
                     best_overfit = of;
                     best_tr = item.translation();
                     best_rot = item.rotation();
@@ -725,7 +754,8 @@ private:
                 global_score = 0.2;
             item.rotation(best_rot);
             item.translation(best_tr);
-        } else {
+        }
+        if (can_pack == false) {
 
             Pile merged_pile = merged_pile_;
 
@@ -1035,27 +1065,9 @@ private:
             if (!item.is_virt_object)
                 bb = sl::boundingBox(item.boundingBox(), bb);
 
-        // if move to center is infeasible, move to topright corner instead
-        auto alignment = config_.alignment;
-        if (!config_.m_excluded_regions.empty() && alignment== Config::Alignment::CENTER) {
-            Box bb2 = bb;
-            auto d = bbin.center() - bb2.center();
-            d.x() = std::max(d.x(), 0);
-            d.y() = std::max(d.y(), 0);
-            bb2.minCorner() += d;
-            bb2.maxCorner() += d;
-            for (auto& region : config_.m_excluded_regions) {
-                auto region_bb = region.boundingBox();
-                if (bb2.intersection(region_bb).area()>0) {
-                    alignment = Config::Alignment::TOP_RIGHT;
-                    break;
-                }
-            }
-        }
-
         Vertex ci, cb;
 
-        switch(alignment) {
+        switch(config_.alignment) {
         case Config::Alignment::CENTER: {
             ci = bb.center();
             cb = bbin.center();
@@ -1086,13 +1098,44 @@ private:
 
         auto d = cb - ci;       
 
-        // BBS TODO we assume the exclude region contains bottom left corner. If not, change the code below
-        if (!config_.m_excluded_regions.empty()) { // do not move to left to much to avoid clash with excluded regions
-            if (d.x() < 0) {
-                d.x() = 0;// std::max(long(d.x()), long(bbin.maxCorner().x() - bb.maxCorner().x()));
+        // BBS make sure the item won't clash with excluded regions
+        // do we have wipe tower after arranging?
+        std::set<int> extruders;
+        for (const Item& item : items_) {
+            if (!item.is_virt_object) { extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end()); }
+        }
+        bool need_wipe_tower = extruders.size() > 1;
+
+        std::vector<RawShape> objs,excludes;
+        for (const Item &item : items_) {
+            if (item.isFixed()) continue;
+            objs.push_back(item.transformedShape());
+        }
+        if (objs.empty())
+            return;
+        { // find a best position inside NFP of fixed items (excluded regions), so the center of pile is cloest to bed center
+            RawShape objs_convex_hull = sl::convexHull(objs);
+            for (const Item &item : config_.m_excluded_regions) { excludes.push_back(item.transformedShape()); }
+            for (const Item &item : items_) {
+                if (item.isFixed()) {
+                    if (!(item.is_wipe_tower && !need_wipe_tower))
+                        excludes.push_back(item.transformedShape());
+                }
             }
-            if (d.y() < 0) {
-                d.y() = 0;// std::max(long(d.y()), long(bbin.maxCorner().y() - bb.maxCorner().y()));
+
+            auto   nfps = calcnfp(objs_convex_hull, excludes, bbin, Lvl<MaxNfpLevel::value>());
+            if (nfps.empty()) {
+                return;
+            }
+            Item   objs_convex_hull_item(objs_convex_hull);
+            Vertex objs_convex_hull_ref = objs_convex_hull_item.referenceVertex();
+            Vertex diff                 = objs_convex_hull_ref - sl::boundingBox(objs_convex_hull).center();
+            Vertex ref_aligned = cb + diff;  // reference point when pile center aligned with bed center
+            bool ref_aligned_is_ok = std::any_of(nfps.begin(), nfps.end(), [&ref_aligned](auto& nfp) {return sl::isInside(ref_aligned, nfp); });
+            if (!ref_aligned_is_ok) {
+                // ref_aligned is not good, then find a nearest point on nfp boundary
+                Vertex ref_projected = projection_onto(nfps, ref_aligned);
+                d +=  (ref_projected - ref_aligned);
             }
         }
         for(Item& item : items_)
@@ -1104,7 +1147,10 @@ private:
         Box bb = item.boundingBox();
         
         Vertex ci, cb;
-        auto bbin = sl::boundingBox(bin_);
+        Box    bbin = sl::boundingBox(bin_);
+        Vertex shrink(10, 10);
+        bbin.maxCorner() -= shrink;
+        bbin.minCorner() += shrink;
 
         switch(config_.starting_point) {
         case Config::Alignment::CENTER: {

@@ -1034,7 +1034,6 @@ void AuxiliaryPanel::Reload(wxString aux_path)
                     auto iter = m_paths_list.find(folder.ToStdString());
                     auto     file_path_str = fs::path(file_path.c_str());
 
-
                     if (iter != m_paths_list.end()) {
                         m_paths_list[folder.ToStdString()].push_back(file_path_str);
                         break;

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-26 22:21+0800\n"
+"POT-Creation-Date: 2023-04-29 15:00+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -281,8 +281,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "等比例缩放"
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
 msgstr "剪切"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Movement:"
 msgstr "移动："
@@ -293,11 +323,29 @@ msgstr "移动"
 msgid "Height"
 msgstr "高度"
 
-msgid "Keep upper part"
-msgstr "保留上半部分"
+msgid "Edit connectors"
+msgstr ""
 
-msgid "Keep lower part"
-msgstr "保留下半部分"
+msgid "Add connectors"
+msgstr ""
+
+msgid "Upper part"
+msgstr ""
+
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr "保持"
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "切割为零件"
@@ -310,6 +358,77 @@ msgstr "执行切割"
 
 msgid "Reset"
 msgstr "重置"
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Style"
+msgstr "样式"
+
+msgid "Shape"
+msgstr "形状"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "Mesh名"
@@ -366,9 +485,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "处理预览的过程中无法应用。"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "操作已在取消中，请等待片刻。"
@@ -435,11 +551,11 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "通知"
-
-msgid "Warning"
-msgstr "警告"
 
 msgid "Undefined"
 msgstr "未定义"
@@ -713,6 +829,9 @@ msgstr ""
 msgid "Show"
 msgstr ""
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "删除所选对象"
 
@@ -742,6 +861,9 @@ msgstr "圆柱体"
 
 msgid "Cone"
 msgstr "锥体"
+
+msgid "Height range Modifier"
+msgstr "高度范围修改器"
 
 msgid "Add settings"
 msgstr "添加设置"
@@ -861,6 +983,9 @@ msgstr "镜像"
 msgid "Mirror object"
 msgstr "镜像对象"
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr "添加标准模型"
 
@@ -920,6 +1045,9 @@ msgstr "自动朝向"
 
 msgid "auto rotate current plate"
 msgstr "在当前盘执行自动朝向"
+
+msgid "Delete Plate"
+msgstr ""
 
 msgid "Remove the selected plate"
 msgstr "删除所选盘"
@@ -1005,6 +1133,9 @@ msgstr "点击此图标可编辑这个对象的支撑绘制"
 msgid "Click the icon to edit color painting of the object"
 msgstr "点击此图标可编辑这个对象的颜色绘制"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr "载入文件中"
 
@@ -1025,6 +1156,31 @@ msgid ""
 "objects."
 msgstr "切换到对象设置模式，以编辑所选对象的工艺参数"
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
 
@@ -1033,6 +1189,36 @@ msgstr "目标对象仅包含一个零件，无法被拆分。"
 
 msgid "Assembly"
 msgstr "组合体"
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr "操作对象"
+
+msgid "Group manipulation"
+msgstr "操作组"
+
+msgid "Object Settings to modify"
+msgstr "要修改的对象设置"
+
+msgid "Part Settings to modify"
+msgstr "要修改的零件设置"
+
+msgid "Layer range Settings to modify"
+msgstr "要修改的图层范围设置"
+
+msgid "Part manipulation"
+msgstr "零件操作"
+
+msgid "Instance manipulation"
+msgstr "实例操作"
+
+msgid "Height ranges"
+msgstr "高度范围"
+
+msgid "Settings for height range"
+msgstr "高度范围设置"
 
 msgid "Object"
 msgstr "对象"
@@ -1168,6 +1354,15 @@ msgstr "打开下一条提示"
 msgid "Open Documentation in web browser."
 msgstr "在web浏览器中打开文档。"
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "自定义 G-code"
 
@@ -1176,6 +1371,9 @@ msgstr "输入当前层上使用的自定义G-code："
 
 msgid "OK"
 msgstr "确认"
+
+msgid "Jump to Layer"
+msgstr "跳转到层"
 
 msgid "Jump to layer"
 msgstr "跳转到层"
@@ -1186,22 +1384,40 @@ msgstr "请输入层数"
 msgid "Add Pause"
 msgstr "添加暂停打印"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "添加自定义G-code"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "添加自定义模板"
 
-msgid "Jump to Layer"
-msgstr "跳转到层"
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Filament "
 msgstr "耗材丝"
 
-msgid "Start"
-msgstr "首层"
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
-msgid "G-code"
+msgid "Delete Pause"
+msgstr ""
+
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
 msgstr ""
 
 msgid "No printer"
@@ -1218,6 +1434,9 @@ msgstr "空"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS 未连接"
@@ -1460,9 +1679,6 @@ msgstr "需要插入SD卡后方可发送到打印机。"
 msgid "Please log out and login to the printer again."
 msgstr "请先退出登录然后再重新登录打印机。"
 
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr "上传打印文件失败。请重新输入IP地址。"
-
 msgid "Choose SLA archive:"
 msgstr ""
 
@@ -1631,11 +1847,20 @@ msgstr "系数N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "请输入有效的数值（K的范围为0~0.5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "请输入有效的数值 (K的范围为0~0.5, N的范围为0.6~2.0）"
+
+msgid "You need to select the material type and color first."
+msgstr ""
+
+msgid "Other color"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量标定"
@@ -1781,6 +2006,12 @@ msgstr "使用AMS里的材料打印"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "使用机箱背后挂载的材料打印"
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS 设置"
 
@@ -1836,8 +2067,8 @@ msgstr ""
 "AMS读取Bambu Lab耗材丝信息同时推算料卷的剩余容量。在打印过程中，剩余容量会自"
 "动更新。"
 
-msgid "AMS auto switch filament"
-msgstr "AMS自动续料"
+msgid "AMS filament backup"
+msgstr ""
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -1963,9 +2194,6 @@ msgstr "圆"
 
 msgid "Custom"
 msgstr "自定义"
-
-msgid "Shape"
-msgstr "形状"
 
 msgid "Load shape from STL..."
 msgstr "从STL文件加载形状..."
@@ -2097,10 +2325,8 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
-"影时有效"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2110,18 +2336,6 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
-
-msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
-msgstr "Arachne墙壁生成器和旧版悬垂降速冲突\n"
-
-msgid ""
-"Turn off classic mode automatically? \n"
-"Yes - Enable arachne with classic mode off\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"自动切换到新版悬垂降速？\n"
-"确认 - 启动Arachne和新版悬垂降速\n"
-"取消 - 取消本次操作"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2554,6 +2768,9 @@ msgstr "镜像物体"
 msgid "Tool Move"
 msgstr "工具 移动"
 
+msgid "Tool Rotate"
+msgstr "工具 旋转"
+
 msgid "Move Object"
 msgstr "移动对象"
 
@@ -2621,10 +2838,6 @@ msgstr "返回"
 msgid "Paint Toolbar"
 msgstr "上色工具条"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "爆炸比例"
 
@@ -2646,6 +2859,12 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"separate the conflicted objects farther (%s <-> %s)."
+msgstr ""
+
 msgid "An object is layed over the boundary of plate."
 msgstr "检测到有对象放在盘的边界上。"
 
@@ -2662,6 +2881,12 @@ msgid ""
 msgstr ""
 "对象被放置在构建板的边界上或超过高度限制。\n"
 "请通过将其完全移动到构建板内或构建板外，并确认高度在构建空间以内来解决问题。"
+
+msgid "Jump to"
+msgstr "跳转到"
+
+msgid "ERROR:"
+msgstr "错误："
 
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
@@ -2890,6 +3115,9 @@ msgstr "保存当前项目到文件"
 
 msgid "Save Project as"
 msgstr "项目另存为"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "项目另存为"
@@ -3305,6 +3533,13 @@ msgid "Missing LAN ip of printer!"
 msgstr "未找到打印机的局域网地址！"
 
 #, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
+
+#, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "文件%s丢失，请重新下载。"
 
@@ -3366,7 +3601,7 @@ msgstr "停止"
 msgid "0"
 msgstr ""
 
-msgid "Layers: N/A"
+msgid "Layer: N/A"
 msgstr ""
 
 msgid "Clear"
@@ -3437,11 +3672,15 @@ msgid "Cloud Slicing..."
 msgstr "云切片中..."
 
 #, c-format, boost-format
-msgid "Layers: %s"
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
+msgid "Layer: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layer: %d/%d"
 msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
@@ -3452,9 +3691,6 @@ msgstr "继续退料"
 
 msgid "Still load"
 msgstr "继续进料"
-
-msgid "AMS settings are not supported for external spool"
-msgstr "外挂料卷不支持AMS 设置"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "请在标定前选择一个AMS槽位"
@@ -3582,6 +3818,11 @@ msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d对象有涂色。"
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+
 msgid "ERROR"
 msgstr ""
 
@@ -3596,9 +3837,6 @@ msgstr "取消上传"
 
 msgid "Slice ok."
 msgstr "切片完成."
-
-msgid "Jump to"
-msgstr "跳转到"
 
 msgid "Error:"
 msgstr "错误："
@@ -3629,6 +3867,9 @@ msgstr "支撑绘制"
 
 msgid "Color painting"
 msgstr "颜色绘制"
+
+msgid "Cut connectors"
+msgstr ""
 
 msgid "Layers"
 msgstr "层"
@@ -3934,6 +4175,15 @@ msgstr "导出 STL 文件："
 msgid "Save file as:"
 msgstr "文件另存为："
 
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
+
 msgid "The selected object couldn't be split."
 msgstr "选中的模型不可分裂。"
 
@@ -4057,6 +4307,9 @@ msgstr "即将删除所有对象，是否继续？"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr "当前项目包含未保存的修改，是否先保存？"
+
+msgid "Remember my choice."
+msgstr ""
 
 msgid "Number of copies:"
 msgstr "克隆数量："
@@ -4202,6 +4455,14 @@ msgstr "英制"
 msgid "Units"
 msgstr "单位"
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "启动后显示“每日小贴士”通知"
 
@@ -4214,14 +4475,23 @@ msgstr "显示g-code窗口"
 msgid "If enabled, g-code window will be displayed."
 msgstr "如果启用，将显示g-code窗口。"
 
-msgid "User sync"
-msgstr "用户同步"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "同步用户预设（打印机/耗材丝/工艺）"
 
 msgid "User Sync"
 msgstr "用户同步"
+
+msgid "Update built-in Presets automatically."
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to OrcaSlicer"
 msgstr "逆戟鲸文件关联"
@@ -4244,14 +4514,27 @@ msgstr "使用逆戟鲸打开.step/.stp文件"
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "开启后，将缺省使用逆戟鲸打开.step文件"
 
-msgid "Backup"
-msgstr "备份"
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "自动备份"
 
-msgid "Backup interval"
-msgstr "备份间隔时长"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "下载"
@@ -4270,6 +4553,9 @@ msgstr "启动时显示主页"
 
 msgid "Sync settings"
 msgstr "同步设置"
+
+msgid "User sync"
+msgstr "用户同步"
 
 msgid "Preset sync"
 msgstr "配置同步"
@@ -4363,6 +4649,9 @@ msgstr "AMS 打印丝"
 
 msgid "Click to pick filament color"
 msgstr "点击设置材料颜色"
+
+msgid "Please choose the filament colour"
+msgstr ""
 
 msgid "Add/Remove presets"
 msgstr "添加/删除配置"
@@ -4660,20 +4949,18 @@ msgstr "此打印机类型不支持打印所有盘"
 msgid "Errors"
 msgstr "错误"
 
-msgid ""
-"Please check the following infomation and click Confirm to continue sending "
-"print:"
-msgstr "请检查以下信息，并点击确认继续发送打印："
+msgid "Please check the following:"
+msgstr ""
 
 msgid ""
-"The printer type used to generate G-code is not the same type as the "
-"currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type."
+"The printer type selected when generating G-Code is not consistent with the "
+"currently selected printer. It is recommended that you use the same printer "
+"type for slicing."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "%s耗材太软，无法与AMS一起使用"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4682,6 +4969,10 @@ msgid ""
 msgstr ""
 "AMS映射中存在一些未知的耗材。请检查它们是否符合预期。如果符合，按“确定”以开始"
 "打印任务。"
+
+msgid ""
+"Please click the confirm button if you still want to proceed with printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
@@ -4779,7 +5070,8 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
 
 msgid ""
@@ -4850,6 +5142,9 @@ msgstr "G-code 输出"
 
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
+
+msgid "Post-processing scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "常用"
@@ -5157,11 +5452,6 @@ msgstr "常规"
 msgid "Capabilities"
 msgstr "能力"
 
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr "P1P打印机不支持平滑模式的延时摄影，请改用传统模式。"
-
 msgid "Select presets to compare"
 msgstr ""
 
@@ -5298,6 +5588,12 @@ msgstr "对象列表"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "⌘+Shift+G"
+msgstr ""
+
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
@@ -5325,6 +5621,12 @@ msgstr "鼠标滚轮"
 msgid "Zoom View"
 msgstr "缩放视角"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5332,6 +5634,9 @@ msgid ""
 msgstr ""
 "自动调整选定零件/所有零件的方向,\n"
 "有选定零件时调整选定零件的朝向,没有选择零件时调整当前盘所有零件的朝向"
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "收起/展开 侧边栏"
@@ -5398,6 +5703,9 @@ msgstr "Shift+方向键"
 
 msgid "Movement step set to 1 mm"
 msgstr "沿X、Y轴以1mm为步进移动对象"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "按键1-9：设置对象/零件的耗材丝"
@@ -6306,8 +6614,8 @@ msgid "Brim type"
 msgstr "Brim类型"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "outer_only"
@@ -6710,9 +7018,6 @@ msgstr "耗材丝的密度。只用于统计信息。"
 msgid "g/cm³"
 msgstr "g/cm³"
 
-msgid "Type"
-msgstr "类型"
-
 msgid "The material type of filament"
 msgstr "耗材丝的材料类型"
 
@@ -6923,6 +7228,12 @@ msgstr "打印外墙时随机抖动，使外表面产生绒效果。这个设置
 
 msgid "None"
 msgstr "无"
+
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
 
 msgid "All walls"
 msgstr "所有墙"
@@ -7731,8 +8042,8 @@ msgstr "底部Z距离"
 msgid "The z gap between the bottom support interface and object"
 msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间隙"
 
-msgid "Support base"
-msgstr "支撑主体"
+msgid "Support/raft base"
+msgstr ""
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -7749,6 +8060,9 @@ msgstr "接触面采用圈形走线。"
 msgid ""
 "Cover the top contact layer of the supports with loops. Disabled by default."
 msgstr "使用圈形走线覆盖顶部接触面。默认关闭。"
+
+msgid "Support/raft interface"
+msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -7802,6 +8116,9 @@ msgstr ""
 "支撑接触面的走线图案。非可溶支撑接触面的缺省图案为直线，可溶支撑接触面的缺省"
 "图案为同心。"
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "主体图案线距"
 
@@ -7816,9 +8133,6 @@ msgstr "在水平方向对普通支撑进行拓展（+）或收缩（-）"
 
 msgid "Speed of support"
 msgstr "支撑打印速度"
-
-msgid "Style"
-msgstr "样式"
 
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
@@ -7846,8 +8160,9 @@ msgstr "支撑独立层高"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
-msgstr "支撑使用不同于对象的层高。这样可以支持自定义Z方向间隙并节省打印时间。"
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
+msgstr ""
 
 msgid "Threshold angle"
 msgstr "阈值角度"
@@ -8002,8 +8317,10 @@ msgid ""
 msgstr "表示回抽时擦拭的移动距离。"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
-msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
+msgstr ""
 
 msgid "Purging volumes"
 msgstr "冲刷体积"
@@ -8245,6 +8562,30 @@ msgstr ""
 msgid "Update the configs values of 3mf to latest."
 msgstr ""
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "输出模型信息"
 
@@ -8293,6 +8634,12 @@ msgstr "加载耗材丝设置"
 msgid "Load filament settings from the specified file list"
 msgstr "从指定文件加载耗材丝设置"
 
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
+
 msgid "Data directory"
 msgstr ""
 
@@ -8339,16 +8686,20 @@ msgstr "正在生成支撑"
 msgid "Checking support necessity"
 msgstr "正在检查支撑必要性"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
-msgstr "似乎对象%s有完全浮空的区域。请调整朝向或打开支撑生成。"
+msgid "floating regions"
+msgstr ""
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
-msgstr "似乎对象%s有很大面积的悬垂面。请打开支撑生成。"
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
+msgstr ""
 
 msgid "Optimizing toolpath"
 msgstr "正在优化走线"
@@ -8761,6 +9112,92 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Physical Printer"
+#~ msgstr "物理打印机"
+
+#~ msgid "Keep upper part"
+#~ msgstr "保留上半部分"
+
+#~ msgid "Keep lower part"
+#~ msgstr "保留下半部分"
+
+#~ msgid "Start"
+#~ msgstr "首层"
+
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr "上传打印文件失败。请重新输入IP地址。"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "AMS自动续料"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延"
+#~ "时摄影时有效"
+
+#~ msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
+#~ msgstr "Arachne墙壁生成器和旧版悬垂降速冲突\n"
+
+#~ msgid ""
+#~ "Turn off classic mode automatically? \n"
+#~ "Yes - Enable arachne with classic mode off\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "自动切换到新版悬垂降速？\n"
+#~ "确认 - 启动Arachne和新版悬垂降速\n"
+#~ "取消 - 取消本次操作"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr "外挂料卷不支持AMS 设置"
+
+#~ msgid "Backup"
+#~ msgstr "备份"
+
+#~ msgid "Backup interval"
+#~ msgstr "备份间隔时长"
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:"
+#~ msgstr "请检查以下信息，并点击确认继续发送打印："
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "%s耗材太软，无法与AMS一起使用"
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr "P1P打印机不支持平滑模式的延时摄影，请改用传统模式。"
+
+#~ msgid "Support base"
+#~ msgstr "支撑主体"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr ""
+#~ "支撑使用不同于对象的层高。这样可以支持自定义Z方向间隙并节省打印时间。"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr "似乎对象%s有完全浮空的区域。请调整朝向或打开支撑生成。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr "似乎对象%s有很大面积的悬垂面。请打开支撑生成。"
 
 #~ msgid "Max Radius"
 #~ msgstr "最大半径"
@@ -10003,9 +10440,6 @@ msgstr ""
 #~ msgid "Smart"
 #~ msgstr "自动"
 
-#~ msgid "Keep"
-#~ msgstr "保持"
-
 #~ msgid "Total Size:"
 #~ msgstr "总尺寸："
 
@@ -11050,9 +11484,6 @@ msgstr ""
 #~ msgid "Value is out of range, continue?"
 #~ msgstr "值越界，是否继续？"
 
-#~ msgid "Tool Rotate"
-#~ msgstr "工具 旋转"
-
 #~ msgid "Open %s"
 #~ msgstr "打开%s"
 
@@ -11176,9 +11607,6 @@ msgstr ""
 
 #~ msgid "Slicing finished."
 #~ msgstr "切片完成。"
-
-#~ msgid "ERROR:"
-#~ msgstr "错误："
 
 #~ msgid "Exporting finished."
 #~ msgstr "导出完成。"
@@ -12643,9 +13071,6 @@ msgstr ""
 #~ msgid "Slab"
 #~ msgstr "板坯"
 
-#~ msgid "Height range Modifier"
-#~ msgstr "高度范围修改器"
-
 #~ msgid "Set as a Separated Object"
 #~ msgstr "设置为独立的对象"
 
@@ -12832,33 +13257,6 @@ msgstr ""
 
 #~ msgid "Add Layers"
 #~ msgstr "添加图层"
-
-#~ msgid "Group manipulation"
-#~ msgstr "操作组"
-
-#~ msgid "Object manipulation"
-#~ msgstr "操作对象"
-
-#~ msgid "Object Settings to modify"
-#~ msgstr "要修改的对象设置"
-
-#~ msgid "Part Settings to modify"
-#~ msgstr "要修改的零件设置"
-
-#~ msgid "Layer range Settings to modify"
-#~ msgstr "要修改的图层范围设置"
-
-#~ msgid "Part manipulation"
-#~ msgstr "零件操作"
-
-#~ msgid "Instance manipulation"
-#~ msgstr "实例操作"
-
-#~ msgid "Height ranges"
-#~ msgstr "高度范围"
-
-#~ msgid "Settings for height range"
-#~ msgstr "高度范围设置"
 
 #~ msgid "Delete Selected Item"
 #~ msgstr "删除所选项目"
