@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-26 22:21+0800\n"
+"POT-Creation-Date: 2023-04-29 15:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -12,36 +12,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
-
-msgid "Physical Printer"
-msgstr ""
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-
-msgid "Send to print"
-msgstr ""
-
-msgid "Upload"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
 
 msgid "Supports Painting"
 msgstr "サポートペイント"
@@ -277,8 +247,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "スケール"
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
 msgstr "カット"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Movement:"
 msgstr "移動"
@@ -289,11 +289,29 @@ msgstr "移動"
 msgid "Height"
 msgstr "高度"
 
-msgid "Keep upper part"
-msgstr "上の部分を残す"
+msgid "Edit connectors"
+msgstr ""
 
-msgid "Keep lower part"
-msgstr "下の部分を残す"
+msgid "Add connectors"
+msgstr ""
+
+msgid "Upper part"
+msgstr ""
+
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "パーツに割り切る"
@@ -306,6 +324,77 @@ msgstr "カットを実行"
 
 msgid "Reset"
 msgstr "リセット"
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Type"
+msgstr "タイプ"
+
+msgid "Style"
+msgstr "スタイル"
+
+msgid "Shape"
+msgstr "形状"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消し"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "メッシュ名"
@@ -364,9 +453,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "プレビュー処理中は適用できません"
-
-msgid "Cancel"
-msgstr "取消し"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "操作を取り消し中、少々お待ちください。"
@@ -433,11 +519,11 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "通知"
-
-msgid "Warning"
-msgstr "警告"
 
 msgid "Undefined"
 msgstr "未定義"
@@ -715,6 +801,9 @@ msgstr "非表示"
 msgid "Show"
 msgstr "表示"
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "選択したオブジェクトを削除"
 
@@ -744,6 +833,9 @@ msgstr "シリンダー"
 
 msgid "Cone"
 msgstr "コーン"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "設定を追加"
@@ -863,6 +955,9 @@ msgstr "反転"
 msgid "Mirror object"
 msgstr "オブジェクトを反転"
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr "プリミティブを追加"
 
@@ -922,6 +1017,9 @@ msgstr "自動回転"
 
 msgid "auto rotate current plate"
 msgstr "現在のプレートを自動回転させる"
+
+msgid "Delete Plate"
+msgstr ""
 
 msgid "Remove the selected plate"
 msgstr "選択したプレートを削除"
@@ -1007,6 +1105,9 @@ msgstr "オブジェクトのサポートを編集します"
 msgid "Click the icon to edit color painting of the object"
 msgstr "オブジェクトに色塗りをします"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr "ファイルを読み込み中"
 
@@ -1028,6 +1129,31 @@ msgid ""
 "objects."
 msgstr "オブジェクト設定で、各オブジェクトの造形設定を指定できます。"
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "最後のソリッドパーツは削除できません。"
 
@@ -1036,6 +1162,36 @@ msgstr "オブジェクトは一つだけのパーツが入っており、分割
 
 msgid "Assembly"
 msgstr "アセンブリ"
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr ""
+
+msgid "Group manipulation"
+msgstr ""
+
+msgid "Object Settings to modify"
+msgstr ""
+
+msgid "Part Settings to modify"
+msgstr ""
+
+msgid "Layer range Settings to modify"
+msgstr ""
+
+msgid "Part manipulation"
+msgstr ""
+
+msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
+msgstr ""
 
 msgid "Object"
 msgstr "OBJ"
@@ -1174,6 +1330,15 @@ msgstr "次のヒント"
 msgid "Open Documentation in web browser."
 msgstr "ブラウザで開く"
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "カスタム G-code"
 
@@ -1182,6 +1347,9 @@ msgstr "現在の積層にカスタムG-codeを追加"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Jump to Layer"
+msgstr "積層に移動"
 
 msgid "Jump to layer"
 msgstr "積層に移動"
@@ -1192,23 +1360,41 @@ msgstr "層の番号をご入力ください"
 msgid "Add Pause"
 msgstr "一時停止を追加"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "カスタムG-codeを追加"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "カスタムテンプレートを追加"
 
-msgid "Jump to Layer"
-msgstr "積層に移動"
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Filament "
 msgstr "フィラメント"
 
-msgid "Start"
-msgstr "開始"
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
-msgid "G-code"
-msgstr "G-code"
+msgid "Delete Pause"
+msgstr ""
+
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
+msgstr ""
 
 msgid "No printer"
 msgstr "プリンタ無し"
@@ -1224,6 +1410,9 @@ msgstr "空"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS が接続されていません"
@@ -1475,9 +1664,6 @@ msgstr "SDカードが必要です"
 msgid "Please log out and login to the printer again."
 msgstr "一旦サインアウトし、再度サインインしてください"
 
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr "造型ファイルをアップロードできませんでした、ご確認ください。"
-
 msgid "Choose SLA archive:"
 msgstr ""
 
@@ -1651,11 +1837,20 @@ msgstr "係数N"
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "有効な値を入力してください (0 ~ 0.5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "有効な値を入力してください (K: 0 ~ 0.5, N: 0.6 ~ 2.0)"
+
+msgid "You need to select the material type and color first."
+msgstr ""
+
+msgid "Other color"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "流量キャリブレーション"
@@ -1802,6 +1997,12 @@ msgstr "AMSのフィラメントで造形します"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "外部スプールホルダーのフィラメントで造形します"
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS 設定"
 
@@ -1853,8 +2054,8 @@ msgstr ""
 "BambuLab純正フィラメントの場合、残量の推定を行います。造形時に、残量自動的に"
 "更新します。"
 
-msgid "AMS auto switch filament"
-msgstr "AMSフィラメント自動切替え"
+msgid "AMS filament backup"
+msgstr ""
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -1987,9 +2188,6 @@ msgstr "円形"
 msgid "Custom"
 msgstr "カスタム"
 
-msgid "Shape"
-msgstr "形状"
-
 msgid "Load shape from STL..."
 msgstr "STLからシェープデータを読込む"
 
@@ -2115,10 +2313,8 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"スパイラルモードを使用するには、壁面層数を１、サポートを無効、トップ面層数を"
-"０、充填密度を０にする必要があります"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2128,15 +2324,6 @@ msgstr ""
 "これらの設定を変更しますか？\n"
 "はい - 変更して、スパイラルモードを有効にします\n"
 "いいえ - 変更せず、スパイラルモードを有効しません"
-
-msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
-msgstr ""
-
-msgid ""
-"Turn off classic mode automatically? \n"
-"Yes - Enable arachne with classic mode off\n"
-"No  - Give up using arachne this time"
-msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2572,6 +2759,9 @@ msgstr "オブジェクトを反転"
 msgid "Tool Move"
 msgstr "ツール 移動"
 
+msgid "Tool Rotate"
+msgstr ""
+
 msgid "Move Object"
 msgstr "オブジェクトを移動"
 
@@ -2638,10 +2828,6 @@ msgstr "戻る"
 msgid "Paint Toolbar"
 msgstr "ペイント ツールバー"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "分解比率"
 
@@ -2663,6 +2849,12 @@ msgstr "ボリューム"
 msgid "Size:"
 msgstr "サイズ:"
 
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"separate the conflicted objects farther (%s <-> %s)."
+msgstr ""
+
 msgid "An object is layed over the boundary of plate."
 msgstr "プレートの境界を超えるオブジェクトがあります"
 
@@ -2679,6 +2871,12 @@ msgid ""
 msgstr ""
 "プレートの境界を越えるか、高さ制限を超えるオブジェクトがあります、ご確認くだ"
 "さい"
+
+msgid "Jump to"
+msgstr "確認"
+
+msgid "ERROR:"
+msgstr ""
 
 msgid "Calibration step selection"
 msgstr "キャリブレーション項目を選択"
@@ -2906,6 +3104,9 @@ msgstr "現在のプロジェクトを保存"
 
 msgid "Save Project as"
 msgstr "プロジェクトを名前を付けて保存"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "プロジェクトを名前を付けて保存"
@@ -3319,6 +3520,13 @@ msgid "Missing LAN ip of printer!"
 msgstr "プリンターのIPが見つかりません"
 
 #, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
+
+#, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "ファイル %s が見つかりませんでした、もう一度ダウンロードしてください。"
 
@@ -3380,8 +3588,8 @@ msgstr "中止"
 msgid "0"
 msgstr "0"
 
-msgid "Layers: N/A"
-msgstr "積層: N/A"
+msgid "Layer: N/A"
+msgstr ""
 
 msgid "Clear"
 msgstr "クリア"
@@ -3451,12 +3659,16 @@ msgid "Cloud Slicing..."
 msgstr "クラウドにてスライス中"
 
 #, c-format, boost-format
-msgid "Layers: %s"
-msgstr "積層: %s"
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
-msgstr "積層: %d/%d"
+msgid "Layer: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layer: %d/%d"
+msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr "フィラメントをロードする前に、ノズル温度を170℃以上に加熱してください"
@@ -3466,9 +3678,6 @@ msgstr "アンロード"
 
 msgid "Still load"
 msgstr "ロード"
-
-msgid "AMS settings are not supported for external spool"
-msgstr "現在のAMS設定は、外部スプールホルダーを使用できません"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "キャリブレーション前に、AMSスロットを選択してください"
@@ -3598,6 +3807,11 @@ msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$dのオブジェクトは色が付いています"
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+
 msgid "ERROR"
 msgstr "エラー"
 
@@ -3612,9 +3826,6 @@ msgstr "アップロードを取消し"
 
 msgid "Slice ok."
 msgstr "スライス完了"
-
-msgid "Jump to"
-msgstr "確認"
 
 msgid "Error:"
 msgstr "エラー:"
@@ -3646,6 +3857,9 @@ msgstr "サポートペイント"
 
 msgid "Color painting"
 msgstr "色塗り"
+
+msgid "Cut connectors"
+msgstr ""
 
 msgid "Layers"
 msgstr "積層"
@@ -3964,6 +4178,15 @@ msgstr "STLファイルをエクスポート:"
 msgid "Save file as:"
 msgstr "名前を付けて保存"
 
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
+
 msgid "The selected object couldn't be split."
 msgstr "選択したオブジェクトを分割できませんでした。"
 
@@ -4092,6 +4315,9 @@ msgstr "すべてのオブジェクトが削除されます。続行しますか
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "現在のプロジェクトには未保存の変更があります。続行する前に保存しますか?"
+
+msgid "Remember my choice."
+msgstr ""
 
 msgid "Number of copies:"
 msgstr "複製数"
@@ -4239,6 +4465,14 @@ msgstr "インチ"
 msgid "Units"
 msgstr "単位"
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "起動後「毎日のヒント」を表示"
 
@@ -4251,14 +4485,23 @@ msgstr ""
 msgid "If enabled, g-code window will be displayed."
 msgstr ""
 
-msgid "User sync"
-msgstr "ユーザー同期"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "ユーザープリセットの自動同期 (プリンター/フィラメント/プロセス)"
 
 msgid "User Sync"
 msgstr "ユーザー同期"
+
+msgid "Update built-in Presets automatically."
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to OrcaSlicer"
 msgstr "ファイルをBambu Studioに関連付ける"
@@ -4281,14 +4524,27 @@ msgstr ".step/.stpファイルをBambu Studioに関連付けます。"
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "デフォルトで.step/.stpファイルをBambu Studioで開く"
 
-msgid "Backup"
-msgstr "バックアップ"
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "自動バックアップ"
 
-msgid "Backup interval"
-msgstr "時間間隔"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "ダウンロード"
@@ -4307,6 +4563,9 @@ msgstr "起動時にホームページを表示"
 
 msgid "Sync settings"
 msgstr "同期設定"
+
+msgid "User sync"
+msgstr "ユーザー同期"
 
 msgid "Preset sync"
 msgstr "プリセット同期"
@@ -4400,6 +4659,9 @@ msgstr "AMSフィラメント"
 
 msgid "Click to pick filament color"
 msgstr "フィラメントの色を選択"
+
+msgid "Please choose the filament colour"
+msgstr ""
 
 msgid "Add/Remove presets"
 msgstr "プリセットの追加/削除"
@@ -4691,22 +4953,18 @@ msgstr "プリンターが全てのプレートを造形することができま
 msgid "Errors"
 msgstr "エラー"
 
-msgid ""
-"Please check the following infomation and click Confirm to continue sending "
-"print:"
-msgstr "次の情報をご確認の上、「確認」で送信してください"
+msgid "Please check the following:"
+msgstr ""
 
 msgid ""
-"The printer type used to generate G-code is not the same type as the "
-"currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type."
+"The printer type selected when generating G-Code is not consistent with the "
+"currently selected printer. It is recommended that you use the same printer "
+"type for slicing."
 msgstr ""
-"G-code中の機種は現在選択したプリンターではありません、プリンターを選択し直す"
-"か、一致機種でスライスしてください。"
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "%sは柔らかい為AMSに使用できません"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4715,6 +4973,10 @@ msgid ""
 msgstr ""
 "不明なフィラメントがあります、造形に必要かどうかご確認ください。引き続き造形"
 "する場合は、「確認」を押してください。"
+
+msgid ""
+"Please click the confirm button if you still want to proceed with printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "造形タスクを準備"
@@ -4816,11 +5078,9 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -4892,6 +5152,9 @@ msgid "G-code output"
 msgstr "G-code出力"
 
 msgid "Post-processing Scripts"
+msgstr ""
+
+msgid "Post-processing scripts"
 msgstr ""
 
 msgid "Frequent"
@@ -5212,13 +5475,6 @@ msgstr "一般"
 msgid "Capabilities"
 msgstr "能力"
 
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr ""
-"P1Pプリンターはスムージタイムラプスをサポートしません、通常タイムラプスに切替"
-"えます。"
-
 msgid "Select presets to compare"
 msgstr ""
 
@@ -5355,6 +5611,12 @@ msgstr "オブジェクト一覧"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "⌘+Shift+G"
+msgstr ""
+
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "コピー"
 
@@ -5382,11 +5644,20 @@ msgstr "マウスホイール"
 msgid "Zoom View"
 msgstr "ズーム"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr "選択した或いは全てのオブジェクトの向きを自動調整します。"
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "サイドバーを展開/隠す"
@@ -5453,6 +5724,9 @@ msgstr "Shift + ↑↓←→"
 
 msgid "Movement step set to 1 mm"
 msgstr "移動ステップを1mmに設定"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "キー1-9: オブジェクト/パーツのフィラメントを設定"
@@ -6406,8 +6680,8 @@ msgid "Brim type"
 msgstr "ブリムタイプ"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "outer_only"
@@ -6816,9 +7090,6 @@ msgstr "フィラメント密度"
 msgid "g/cm³"
 msgstr "g/cm³"
 
-msgid "Type"
-msgstr "タイプ"
-
 msgid "The material type of filament"
 msgstr "フィラメント素材タイプ"
 
@@ -7036,6 +7307,12 @@ msgstr ""
 
 msgid "None"
 msgstr "無し"
+
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
 
 msgid "All walls"
 msgstr "すべての壁"
@@ -7861,8 +8138,8 @@ msgstr "底面とのZ間隔"
 msgid "The z gap between the bottom support interface and object"
 msgstr "サポート底面とオブジェクトのZ方向間隔"
 
-msgid "Support base"
-msgstr "サポート基材"
+msgid "Support/raft base"
+msgstr ""
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -7882,6 +8159,9 @@ msgid ""
 msgstr ""
 "これにより、サポートの上部接触層がループで覆われます。デフォルトでは無効に"
 "なっています。"
+
+msgid "Support/raft interface"
+msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -7937,6 +8217,9 @@ msgstr ""
 "サポート接触面のパターンです。非可溶性材を使用する場合はRectilinear、可溶性材"
 "を使用する場合同心です。"
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "基本パターン間隔"
 
@@ -7951,9 +8234,6 @@ msgstr "+/-でサポートの水平サイズを調整します"
 
 msgid "Speed of support"
 msgstr "サポートの造形速度です。"
-
-msgid "Style"
-msgstr "スタイル"
 
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
@@ -7984,8 +8264,9 @@ msgstr "独立サポート層ピッチ"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
-msgstr "サポートの積層ピッチは独立で設定できます。"
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
+msgstr ""
 
 msgid "Threshold angle"
 msgstr "閾値角度"
@@ -8143,10 +8424,10 @@ msgid ""
 msgstr "リトラクション時にノズルが最後のパスに沿って移動する距離です。"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"フィラメントを入れ替えるために、ノズルに残るフィラメントをフラッシュする特定"
-"の造形物です。"
 
 msgid "Purging volumes"
 msgstr "フラッシュ体積"
@@ -8394,6 +8675,30 @@ msgstr "最新の状態です。"
 msgid "Update the configs values of 3mf to latest."
 msgstr "3mfの構成値を更新"
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "出力モデル情報"
 
@@ -8442,6 +8747,12 @@ msgstr "フィラメント設定を読込む"
 msgid "Load filament settings from the specified file list"
 msgstr "指定したファイルリストからフィラメント設定を読込む"
 
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
+
 msgid "Data directory"
 msgstr ""
 
@@ -8488,20 +8799,20 @@ msgstr "サポートを生成"
 msgid "Checking support necessity"
 msgstr "サポートの必要性を確認"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
 msgstr ""
-"オブジェクト %s がプレートに接触していません。向きを調整するか、サポートを有"
-"効にしてください。"
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
-"オブジェクト %s に大きなオーバーハングがあります、サポートを有効にしてくださ"
-"い。"
 
 msgid "Optimizing toolpath"
 msgstr "ツールパスを最適化"
@@ -8908,6 +9219,115 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Keep upper part"
+#~ msgstr "上の部分を残す"
+
+#~ msgid "Keep lower part"
+#~ msgstr "下の部分を残す"
+
+#~ msgid "Start"
+#~ msgstr "開始"
+
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr "造型ファイルをアップロードできませんでした、ご確認ください。"
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "AMSフィラメント自動切替え"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "スパイラルモードを使用するには、壁面層数を１、サポートを無効、トップ面層数"
+#~ "を０、充填密度を０にする必要があります"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "積層: N/A"
+
+#, c-format, boost-format
+#~ msgid "Layers: %s"
+#~ msgstr "積層: %s"
+
+#, c-format, boost-format
+#~ msgid "Layers: %d/%d"
+#~ msgstr "積層: %d/%d"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr "現在のAMS設定は、外部スプールホルダーを使用できません"
+
+#~ msgid "Backup"
+#~ msgstr "バックアップ"
+
+#~ msgid "Backup interval"
+#~ msgstr "時間間隔"
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:"
+#~ msgstr "次の情報をご確認の上、「確認」で送信してください"
+
+#~ msgid ""
+#~ "The printer type used to generate G-code is not the same type as the "
+#~ "currently selected physical printer. It is recommend to re-slice by "
+#~ "selecting the same printer type."
+#~ msgstr ""
+#~ "G-code中の機種は現在選択したプリンターではありません、プリンターを選択し直"
+#~ "すか、一致機種でスライスしてください。"
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "%sは柔らかい為AMSに使用できません"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "P1Pプリンターはスムージタイムラプスをサポートしません、通常タイムラプスに"
+#~ "切替えます。"
+
+#~ msgid "Support base"
+#~ msgstr "サポート基材"
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr "サポートの積層ピッチは独立で設定できます。"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "フィラメントを入れ替えるために、ノズルに残るフィラメントをフラッシュする特"
+#~ "定の造形物です。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "オブジェクト %s がプレートに接触していません。向きを調整するか、サポートを"
+#~ "有効にしてください。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "オブジェクト %s に大きなオーバーハングがあります、サポートを有効にしてくだ"
+#~ "さい。"
 
 #~ msgid "Max Radius"
 #~ msgstr "最大半径"
