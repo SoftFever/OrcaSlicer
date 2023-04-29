@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-29 15:00+0800\n"
+"POT-Creation-Date: 2023-04-29 20:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -12,43 +12,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.2.2\n"
-
-msgid "Physical Printer"
-msgstr "Pphysischer Drucker"
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-"Die HTTPS-CA-Datei ist optional. Sie wird nur benötigt, wenn Sie HTTPS mit einem"
-"selbstsignierten Zertifikat verwenden."
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-"In diesem System werden %s HTTPS-Zertifikate aus dem Systemzertifikatspeicher"
-"oder Schlüsselbund verwendet."
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain." 
-msgstr ""
-"Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte Ihre CA-Datei in den Zertifikatspeicher / Schlüsselbund"
-
-msgid "Send to print"
-msgstr "zum Ausdrucken senden"
-
-msgid "Upload"
-msgstr "Hochladen"
-
-msgid "Upload and Print"
-msgstr "Hochladen und Drucken"
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
-"Verwenden Sie vorwärts geneigte Schrägstriche ( / ) als "
-"Verzeichnistrennzeichen, falls erforderlich."
 
 msgid "Supports Painting"
 msgstr "Stützen aufmalen"
@@ -1350,6 +1313,18 @@ msgstr "Zusätzliche Prozessvoreinstellung"
 
 msgid "Remove parameter"
 msgstr "Parameter entfernen"
+
+msgid "to"
+msgstr "bis"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "Ungültige Zahl."
 
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
@@ -2677,9 +2652,6 @@ msgstr "Parametername"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "Ungültige Zahl."
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kann nicht Prozent sein"
@@ -2788,9 +2760,6 @@ msgstr "über"
 
 msgid "from"
 msgstr "von"
-
-msgid "to"
-msgstr "bis"
 
 msgid "Color Scheme"
 msgstr "Farbschema"
@@ -7997,7 +7966,8 @@ msgstr "Objekte ausschließen"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in g-code"
 msgstr ""
-"Aktivieren Sie diese Option, um den Befehl EXCLUDE OBJECT im G-Code hinzuzufügen."
+"Aktivieren Sie diese Option, um den Befehl EXCLUDE OBJECT im G-Code "
+"hinzuzufügen."
 
 msgid "Verbose G-code"
 msgstr "ausführlicher G-Code"

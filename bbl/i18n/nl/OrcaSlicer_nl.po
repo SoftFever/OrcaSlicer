@@ -2,43 +2,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-29 15:00+0800\n"
+"POT-Creation-Date: 2023-04-29 20:13+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-
-msgid "Physical Printer"
-msgstr ""
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-
-msgid "Send to print"
-msgstr ""
-
-msgid "Upload"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
 
 msgid "Supports Painting"
 msgstr "Onderteuning (Support) tekenen"
@@ -1324,6 +1294,18 @@ msgstr "Extra procesvoorinstelling"
 msgid "Remove parameter"
 msgstr "Verwijder parameter"
 
+msgid "to"
+msgstr "naar"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "Onjuist getal."
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 "één cel kan alleen naar één of meerdere cellen in dezelfde kolom worden "
@@ -2571,9 +2553,6 @@ msgstr ""
 msgid "N/A"
 msgstr "N/B"
 
-msgid "Invalid numeric."
-msgstr "Onjuist getal."
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan geen percentage zijn"
@@ -2682,9 +2661,6 @@ msgstr "Boven"
 
 msgid "from"
 msgstr "Van"
-
-msgid "to"
-msgstr "naar"
 
 msgid "Color Scheme"
 msgstr "Kleurschema"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-29 15:00+0800\n"
+"POT-Creation-Date: 2023-04-29 20:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril\n"
@@ -16,44 +16,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.2.2\n"
-
-msgid "Physical Printer"
-msgstr "Imprimante Physique"
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-"Le fichier CA HTTPS est facultatif. Il n'est nécessaire que si vous utilisez "
-"HTTPS avec un certificat auto-signé."
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-"Sur ce système, %s utilise les certificats HTTPS du magasin de certificats "
-"du système ou du trousseau."
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-"Pour utiliser un certificat personnalisé, veuillez importer votre fichier "
-"dans magasin de certificats / trousseau."
-
-msgid "Send to print"
-msgstr "Envoi vers l'imprimante"
-
-msgid "Upload"
-msgstr "Envoyer"
-
-msgid "Upload and Print"
-msgstr "Imprimer"
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
-"Utilisez des barres obliques ( / ) comme séparateur de répertoire si "
-"nécessaire."
 
 msgid "Supports Painting"
 msgstr "Peindre les supports"
@@ -567,9 +529,6 @@ msgstr "Surface"
 
 msgid "Horizontal text"
 msgstr "Texte horizontal"
-
-msgid "Warning"
-msgstr "Avertissement"
 
 msgid "Ctrl+"
 msgstr ""
@@ -1350,6 +1309,18 @@ msgstr "Préréglage de processus supplémentaire"
 msgid "Remove parameter"
 msgstr "Supprimer le paramètre"
 
+msgid "to"
+msgstr "à"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "Chiffre non valide."
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 "une cellule ne peut être copiée que dans une ou plusieurs cellules de la "
@@ -1461,20 +1432,11 @@ msgstr ""
 msgid "Add Custom Template"
 msgstr "Ajouter un G-code personnalisé"
 
-msgid "Jump to Layer"
-msgstr "Aller à la couche"
-
 msgid "Insert template custom G-code at the beginning of this layer."
 msgstr ""
 
 msgid "Filament "
 msgstr "Filament "
-
-msgid "Start"
-msgstr "Démarrer"
-
-msgid "G-code"
-msgstr "G-code"
 
 msgid "Change filament at the beginning of this layer."
 msgstr ""
@@ -1768,11 +1730,6 @@ msgstr "Une carte SD doit être insérée avant l'envoi à l'imprimante."
 
 msgid "Please log out and login to the printer again."
 msgstr "Veuillez vous déconnecter et vous reconnecter à l'imprimante."
-
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr ""
-"Échec du téléchargement du fichier d’impression. Veuillez saisir à nouveau "
-"l’adresse IP."
 
 msgid "Choose SLA archive:"
 msgstr "Choisissez l’archive SLA :"
@@ -2206,9 +2163,6 @@ msgstr ""
 "des informations sur le filament. Pendant l'impression, la capacité restante "
 "sera mise à jour automatiquement."
 
-msgid "AMS auto switch filament"
-msgstr "Bascule automatique de bobine"
-
 msgid "AMS filament backup"
 msgstr ""
 
@@ -2353,9 +2307,6 @@ msgstr "Circulaire"
 
 msgid "Custom"
 msgstr "Personnalisée"
-
-msgid "Shape"
-msgstr "Forme"
 
 msgid "Load shape from STL..."
 msgstr "Charger la forme depuis un STL..."
@@ -2519,20 +2470,6 @@ msgstr ""
 "Modifier ces paramètres automatiquement ?\n"
 "Oui - Modifier ces paramètres et activer automatiquement le mode vase\n"
 "Non - Abandonner l'utilisation du mode vase"
-
-msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
-msgstr ""
-"Le moteur Arachne ne fonctionne pas avec le mode de vitesse classique du "
-"surplomb.\n"
-
-msgid ""
-"Turn off classic mode automatically? \n"
-"Yes - Enable arachne with classic mode off\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"Désactiver le mode classique automatiquement ?\n"
-"Oui - Activer arachne avec le mode classique désactivé\n"
-"Non - Renoncer à utiliser arachne cette fois-ci"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2707,9 +2644,6 @@ msgstr "nom du paramètre"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "Chiffre non valide."
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s ne peut pas être un pourcentage"
@@ -2818,9 +2752,6 @@ msgstr "au dessus"
 
 msgid "from"
 msgstr "de"
-
-msgid "to"
-msgstr "à"
 
 msgid "Color Scheme"
 msgstr "Schéma de couleur"
@@ -3046,10 +2977,6 @@ msgstr "retour"
 
 msgid "Paint Toolbar"
 msgstr "Barre d'outils de peinture"
-
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr "Touche de raccourci %1%"
 
 msgid "Explosion Ratio"
 msgstr "Ratio d'explosion"
@@ -3928,9 +3855,6 @@ msgstr "Toujours en train de décharger"
 
 msgid "Still load"
 msgstr "Toujours en train de charger"
-
-msgid "AMS settings are not supported for external spool"
-msgstr "Les paramètres AMS ne sont pas pris en charge pour la bobine externe"
 
 msgid "Please select an AMS slot before calibration"
 msgstr ""
@@ -4840,9 +4764,6 @@ msgstr ""
 msgid "Auto-Backup"
 msgstr "Sauvegarde automatique"
 
-msgid "Backup interval"
-msgstr "Intervalle de"
-
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
 msgstr ""
@@ -4852,7 +4773,6 @@ msgstr ""
 
 msgid "The peroid of backup in seconds."
 msgstr ""
-
 
 msgid "Downloads"
 msgstr "Téléchargements"
@@ -5295,12 +5215,8 @@ msgstr ""
 msgid "Errors"
 msgstr "Erreurs"
 
-msgid ""
-"Please check the following infomation and click Confirm to continue sending "
-"print:"
+msgid "Please check the following:"
 msgstr ""
-"Veuillez vérifier les informations suivantes et cliquez sur Confirmer pour "
-"continuer à envoyer l'impression :"
 
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
@@ -8858,13 +8774,8 @@ msgstr "Distance Z inférieure"
 msgid "The z gap between the bottom support interface and object"
 msgstr "Distance Z entre l'interface de support inférieure et l'objet"
 
-
-msgid "Support base"
-msgstr "Base & Radeau des supports"
-
 msgid "Support/raft base"
 msgstr ""
-
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -8966,9 +8877,6 @@ msgstr "Agrandir (+) ou réduire (-) la portée horizontale des supports normaux
 
 msgid "Speed of support"
 msgstr "Vitesse des supports"
-
-msgid "Style"
-msgstr "Style & Forme"
 
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
@@ -9621,8 +9529,8 @@ msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
 msgstr ""
-"Il semblerait que l'objet %s ait de grands surplombs. Veuillez activer la "
-"génération de supports."
+"Il semblerait que l'objet %s a %s. Veuillez activer la génération de "
+"supports."
 
 msgid "Optimizing toolpath"
 msgstr "Optimisation du parcours"
@@ -10122,12 +10030,6 @@ msgstr ""
 #~ "Utilisez des barres obliques ( / ) comme séparateur de répertoire si "
 #~ "nécessaire."
 
-#~ msgid "Keep upper part"
-#~ msgstr "Conserver la partie supérieure"
-
-#~ msgid "Keep lower part"
-#~ msgstr "Conserver la partie inférieure"
-
 #~ msgid "Start"
 #~ msgstr "Démarrer"
 
@@ -10141,15 +10043,6 @@ msgstr ""
 
 #~ msgid "AMS auto switch filament"
 #~ msgstr "Bascule automatique de bobine"
-
-#~ msgid ""
-#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
-#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
-#~ "traditional"
-#~ msgstr ""
-#~ "Le mode vase ne fonctionne que lorsque le nombre de paroi est définie à "
-#~ "1, le nombre de couches supérieures à 0, la densité de remplissage à 0%, "
-#~ "les supports désactivés et le type de timelapse sur Traditionnel"
 
 #~ msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
 #~ msgstr ""
@@ -10169,6 +10062,38 @@ msgstr ""
 #~ msgid "Shortcut key %1%"
 #~ msgstr "Touche de raccourci %1%"
 
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "Les paramètres AMS ne sont pas pris en charge pour la bobine externe"
+
+#~ msgid "Backup interval"
+#~ msgstr "Intervalle de"
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:"
+#~ msgstr ""
+#~ "Veuillez vérifier les informations suivantes et cliquez sur Confirmer "
+#~ "pour continuer à envoyer l'impression :"
+
+#~ msgid "Support base"
+#~ msgstr "Base & Radeau des supports"
+
+#~ msgid "Keep upper part"
+#~ msgstr "Conserver la partie supérieure"
+
+#~ msgid "Keep lower part"
+#~ msgstr "Conserver la partie inférieure"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "Le mode vase ne fonctionne que lorsque le nombre de paroi est définie à "
+#~ "1, le nombre de couches supérieures à 0, la densité de remplissage à 0%, "
+#~ "les supports désactivés et le type de timelapse sur Traditionnel"
+
 #~ msgid "Layers: N/A"
 #~ msgstr "Couches: N/A"
 
@@ -10180,22 +10105,8 @@ msgstr ""
 #~ msgid "Layers: %d/%d"
 #~ msgstr "Couches: %d/%d"
 
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr ""
-#~ "Les paramètres AMS ne sont pas pris en charge pour la bobine externe"
-
 #~ msgid "Backup"
 #~ msgstr "Sauvegarde"
-
-#~ msgid "Backup interval"
-#~ msgstr "Intervalle de"
-
-#~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
-#~ "sending print:"
-#~ msgstr ""
-#~ "Veuillez vérifier les informations suivantes et cliquez sur Confirmer "
-#~ "pour continuer à envoyer l'impression :"
 
 #~ msgid ""
 #~ "The printer type used to generate G-code is not the same type as the "
@@ -10236,9 +10147,6 @@ msgstr ""
 #~ "Cela contrôle la génération de la bordure sur le côté extérieur des "
 #~ "modèles. Automatique signifie que la largeur de la bordure est analysée "
 #~ "et calculée automatiquement."
-
-#~ msgid "Support base"
-#~ msgstr "Base & Radeau des supports"
 
 #~ msgid ""
 #~ "Support layer uses layer height independent with object layer. This is to "

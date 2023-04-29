@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-29 15:00+0800\n"
+"POT-Creation-Date: 2023-04-29 20:13+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -16,36 +16,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
-
-msgid "Physical Printer"
-msgstr "物理打印机"
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-
-msgid "Send to print"
-msgstr ""
-
-msgid "Upload"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -1288,6 +1258,18 @@ msgstr "附加工艺预设"
 msgid "Remove parameter"
 msgstr "删除参数"
 
+msgid "to"
+msgstr "到"
+
+msgid "Remove height range"
+msgstr "移除高度范围"
+
+msgid "Add height range"
+msgstr "添加高度范围"
+
+msgid "Invalid numeric."
+msgstr "数值错误。"
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr "一个单元格仅能被复制到同一列的一个或多个单元格"
 
@@ -2497,9 +2479,6 @@ msgstr "参数名称"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "数值错误。"
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s 不可以是百分比"
@@ -2608,9 +2587,6 @@ msgstr "高于"
 
 msgid "from"
 msgstr "从"
-
-msgid "to"
-msgstr "到"
 
 msgid "Color Scheme"
 msgstr "颜色方案"
@@ -11346,12 +11322,6 @@ msgstr ""
 
 #~ msgid "To height"
 #~ msgstr "到高度"
-
-#~ msgid "Remove height range"
-#~ msgstr "移除高度范围"
-
-#~ msgid "Add height range"
-#~ msgstr "添加高度范围"
 
 #~ msgid "Local coordinates"
 #~ msgstr "本地坐标"
