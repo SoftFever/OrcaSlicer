@@ -4,6 +4,14 @@
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
+		{
+            "name": "Qidi X-Max",
+            "sub_path": "machine/Qidi X-Max.json"
+        },
+	    {
+            "name": "Qidi X-CF Pro",
+            "sub_path": "machine/Qidi X-CF Pro.json"
+        },
         {
             "name": "Qidi X-Smart 3",
             "sub_path": "machine/Qidi X-Smart 3.json"
@@ -26,6 +34,14 @@
             "name": "fdm_process_qidi_common",
             "sub_path": "process/fdm_process_qidi_common.json"
         },
+		{
+            "name": "0.12mm Fine @Qidi XMax",
+            "sub_path": "process/0.12mm Fine @Qidi XMax.json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XCFPro",
+            "sub_path": "process/0.12mm Fine @Qidi XCFPro.json"
+        },
         {
             "name": "0.12mm Fine @Qidi XSmart3",
             "sub_path": "process/0.12mm Fine @Qidi XSmart3.json"
@@ -37,6 +53,14 @@
         {
             "name": "0.12mm Fine @Qidi XMax3",
             "sub_path": "process/0.12mm Fine @Qidi XMax3.json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XMax",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax.json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XCFPro",
+            "sub_path": "process/0.16mm Optimal @Qidi XCFPro.json"
         },
         {
             "name": "0.16mm Optimal @Qidi XSmart3",
@@ -50,6 +74,14 @@
             "name": "0.16mm Optimal @Qidi XMax3",
             "sub_path": "process/0.16mm Optimal @Qidi XMax3.json"
         },
+		{
+            "name": "0.20mm Standard @Qidi XMax",
+            "sub_path": "process/0.20mm Standard @Qidi XMax.json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XCFPro",
+            "sub_path": "process/0.20mm Standard @Qidi XCFPro.json"
+        },
         {
             "name": "0.20mm Standard @Qidi XSmart3",
             "sub_path": "process/0.20mm Standard @Qidi XSmart3.json"
@@ -62,6 +94,14 @@
             "name": "0.20mm Standard @Qidi XMax3",
             "sub_path": "process/0.20mm Standard @Qidi XMax3.json"
         },
+		{
+            "name": "0.25mm Draft @Qidi XMax",
+            "sub_path": "process/0.25mm Draft @Qidi XMax.json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XCFPro",
+            "sub_path": "process/0.25mm Draft @Qidi XCFPro.json"
+        },
         {
             "name": "0.25mm Draft @Qidi XSmart3",
             "sub_path": "process/0.25mm Draft @Qidi XSmart3.json"
@@ -73,6 +113,14 @@
         {
             "name": "0.25mm Draft @Qidi XMax3",
             "sub_path": "process/0.25mm Draft @Qidi XMax3.json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XMax",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax.json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XCFPro",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XCFPro.json"
         },
         {
             "name": "0.30mm Extra Draft @Qidi XSmart3",
@@ -181,6 +229,14 @@
         {
             "name": "fdm_qidi_common",
             "sub_path": "machine/fdm_qidi_common.json"
+        },
+		{
+            "name": "Qidi X-Max 0.4 nozzle",
+            "sub_path": "machine/Qidi X-Max 0.4 nozzle.json"
+        },
+		{
+            "name": "Qidi X-CF Pro 0.4 nozzle",
+            "sub_path": "machine/Qidi X-CF Pro 0.4 nozzle.json"
         },
         {
             "name": "Qidi X-Smart 3 0.4 nozzle",
