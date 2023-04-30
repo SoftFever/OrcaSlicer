@@ -510,6 +510,8 @@ public:
     //BBS: get/set plate id
     int get_plate_index() const { return m_plate_index; }
     void set_plate_index(int index) { m_plate_index = index; }
+    bool get_no_check_flag() const { return m_no_check; }
+    void set_no_check_flag(bool no_check) { m_no_check = no_check; }
 
     //SoftFever plate name
     std::string get_plate_name() const { return m_plate_name; }
@@ -547,6 +549,7 @@ protected:
 
     //BBS: add plate id into print base
     int m_plate_index{ 0 };
+    bool m_no_check = false;
 
     // SoftFever: current plate name
     std::string m_plate_name;

@@ -206,7 +206,8 @@ public:
     const int POPUP_WIDTH  = 38;
     const int POPUP_HEIGHT = 40;
 
-    TextInput *      search_line{nullptr};
+    TextInput *  search_line{nullptr};
+    wxTextCtrl *  search_line2{nullptr};
     Preset::Type     search_type = Preset::TYPE_INVALID;
 
     wxDataViewCtrl * search_list{nullptr};

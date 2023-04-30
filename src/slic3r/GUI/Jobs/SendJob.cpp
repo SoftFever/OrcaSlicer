@@ -162,9 +162,26 @@ void SendJob::process()
 
     PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
     if (plate == nullptr) {
-        plate = m_plater->get_partplate_list().get_curr_plate();
-        if (plate == nullptr)
-        return;
+        if (job_data.plate_idx == PLATE_ALL_IDX) {
+            //all plate
+            for (int index = 0; index < total_plate_num; index++)
+            {
+                PartPlate* plate_n = m_plater->get_partplate_list().get_plate(index);
+                if (plate_n && plate_n->is_valid_gcode_file())
+                {
+                    plate = plate_n;
+                    break;
+                }
+            }
+        }
+        else {
+            plate = m_plater->get_partplate_list().get_curr_plate();
+        }
+        if (plate == nullptr) {
+            BOOST_LOG_TRIVIAL(error) << "can not find plate with valid gcode file when sending to print, plate_index="<< job_data.plate_idx;
+            update_status(curr_percent, check_gcode_failed_str);
+            return;
+        }
     }
 
     /* check gcode is valid */
@@ -350,7 +367,7 @@ void SendJob::process()
         }
 
         if (result == BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS) {
-            msg_text = _L("Failed uploading print file. Please enter ip address again.");
+            msg_text = timeout_to_upload_str;
         }
             
         update_status(curr_percent, msg_text);

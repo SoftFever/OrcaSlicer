@@ -57,12 +57,8 @@ PrivacyUpdateDialog::PrivacyUpdateDialog(wxWindow* parent, wxWindowID id, const 
     m_vebview_release_note->SetSize(wxSize(FromDIP(540), FromDIP(340)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(540), FromDIP(340)));
 
-    fs::path ph(data_dir());
-    ph /= "resources/tooltip/privacyupdate.html";
-    if (!fs::exists(ph)) {
-        ph = resources_dir();
-        ph /= "tooltip/privacyupdate.html";
-    }
+    fs::path ph(resources_dir());
+    ph /= "tooltip/privacyupdate.html";
     m_host_url = ph.string();
     std::replace(m_host_url.begin(), m_host_url.end(), '\\', '/');
     m_host_url = "file:///" + m_host_url;
@@ -87,7 +83,7 @@ PrivacyUpdateDialog::PrivacyUpdateDialog(wxWindow* parent, wxWindowID id, const 
          e.Skip();
     });
 
-    m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING , &PrivacyUpdateDialog::OnNavigating, this);
+    //m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING , &PrivacyUpdateDialog::OnNavigating, this);
 
     m_button_ok = new Button(this, _L("Accept"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -171,6 +167,10 @@ bool PrivacyUpdateDialog::ShowReleaseNote(std::string content)
 void PrivacyUpdateDialog::RunScript(std::string script)
 {
     WebView::RunScript(m_vebview_release_note, script);
+    std::string switch_dark_mode_script = "SwitchDarkMode(";
+    switch_dark_mode_script += wxGetApp().app_config->get("dark_color_mode") == "1" ? "true" : "false";
+    switch_dark_mode_script += ");";
+    WebView::RunScript(m_vebview_release_note, switch_dark_mode_script);
     script.clear();
 }
 

@@ -21,6 +21,7 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include "libslic3r/SVG.hpp"
+#include <codecvt>
 
 namespace Slic3r {
 namespace GUI {
@@ -228,13 +229,6 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
     const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
     const Camera &       camera    = wxGetApp().plater()->get_camera();
 
-    // Precalculate transformations of individual meshes.
-    std::vector<Transform3d> trafo_matrices;
-    for (const ModelVolume *mv : mo->volumes) {
-        if (mv->is_model_part()) {
-            trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
-        }
-    }
     if (action == SLAGizmoEventType::Moving) {
         if (shift_down && !alt_down && !control_down) {
             float angle = m_rotate_angle + 0.5 * (m_mouse_position - mouse_position).y();
@@ -265,6 +259,23 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         if (m_is_modify)
             return true;
 
+        Plater *plater = wxGetApp().plater();
+        if (!plater)
+            return true;
+
+        ModelObject *model_object = selection.get_model()->objects[m_object_idx];
+        if (m_preview_text_volume_id > 0) {
+            model_object->delete_volume(m_preview_text_volume_id);
+            plater->update();
+            m_preview_text_volume_id = -1;
+        }
+
+        // Precalculate transformations of individual meshes.
+        std::vector<Transform3d> trafo_matrices;
+        for (const ModelVolume *mv : mo->volumes) {
+            if (mv->is_model_part()) { trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix()); }
+        }
+
         Vec3f  normal                       = Vec3f::Zero();
         Vec3f  hit                          = Vec3f::Zero();
         size_t facet                        = 0;
@@ -275,9 +286,6 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 
         // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
         for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
-            if (mesh_id == m_preview_text_volume_id)
-                continue;
-
             MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh());
 
             if (mesh_raycaster.unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal,
@@ -301,17 +309,6 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
             return true;
 
         m_rr = {mouse_position, closest_hit_mesh_id, closest_hit, closest_normal};
-
-        Plater *plater = wxGetApp().plater();
-        if (!plater)
-            return true;
-
-        ModelObject *model_object = selection.get_model()->objects[m_object_idx];
-        if (m_preview_text_volume_id > 0) {
-            model_object->delete_volume(m_preview_text_volume_id);
-            plater->update();
-            m_preview_text_volume_id = -1;
-        }
 
         m_is_modify = true;
         generate_text_volume(false);
@@ -937,10 +934,9 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
         } else {
             alpha = texts[i];
         }
-        TriangleMesh mesh;
-        load_text_shape(alpha.c_str(), m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, mesh);
-        auto   center      = mesh.bounding_box().center();
-        double half_x_length = center.x();
+        TextResult text_result;
+        load_text_shape(alpha.c_str(), m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, text_result);
+        double half_x_length = text_result.text_width / 2;
         text_lengths.emplace_back(half_x_length);
     }
 
@@ -978,20 +974,25 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
     TriangleMesh slice_meshs;
     int mesh_index = 0;
+    int volume_index = 0;
     for (int i = 0; i < mo->volumes.size(); ++i) {
+        // skip the editing text volume
+        if (m_is_modify && m_volume_idx == i)
+            continue;
+
         ModelVolume *mv = mo->volumes[i];
         if (mv->is_model_part()) {
             if (mesh_index == m_rr.mesh_id) {
-                TriangleMesh vol_mesh(mv->mesh());
-                vol_mesh.transform(mv->get_matrix());
-                slice_meshs = vol_mesh;
-                break;
+                volume_index = i;
             }
+            TriangleMesh vol_mesh(mv->mesh());
+            vol_mesh.transform(mv->get_matrix());
+            slice_meshs.merge(vol_mesh);
             mesh_index++;
         }
     }
 
-    ModelVolume* volume = mo->volumes[mesh_index];
+    ModelVolume* volume = mo->volumes[volume_index];
 
     Vec3d temp_position = m_mouse_position_world;
     Vec3d temp_normal   = m_mouse_normal_world;
@@ -1093,7 +1094,7 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     // for debug
     //export_regions_to_svg(Point(m_mouse_position_world.x(), m_mouse_position_world.y()), temp_polys);
 
-    Polygons polys = temp_polys;
+    Polygons polys = union_(temp_polys);
 
     auto point_in_line_rectange = [](const Line &line, const Point &point, double& distance) {
         distance = abs((point.x() - line.a.x()) * (line.b.y() - line.a.y()) - (line.b.x() - line.a.x()) * (point.y() - line.a.y()));
@@ -1354,13 +1355,13 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
 TriangleMesh GLGizmoText::get_text_mesh(const char* text_str, const Vec3d &position, const Vec3d &normal, const Vec3d& text_up_dir)
 {
-    TriangleMesh mesh;
-    load_text_shape(text_str, m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, mesh);
+    TextResult   text_result;
+    load_text_shape(text_str, m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, text_result);
+    TriangleMesh mesh = text_result.text_mesh;
 
     auto   center      = mesh.bounding_box().center();
     double mesh_offset = center.z();
-
-    mesh.translate(-center.x(), -m_font_size / 4, -center.z());
+    mesh.translate(-text_result.text_width / 2, -m_font_size / 4, -center.z());
 
     double   phi;
     Vec3d    rotation_axis;
@@ -1377,6 +1378,11 @@ TriangleMesh GLGizmoText::get_text_mesh(const char* text_str, const Vec3d &posit
     Vec3d new_text_dir = project_on_plane(text_up_dir, normal);
     new_text_dir.normalize();
     Geometry::rotation_from_two_vectors(old_text_dir, new_text_dir, rotation_axis, phi, &rotation_matrix);
+
+    static double const PI = 3.141592653589793238;
+    if (abs(phi - PI) < EPSILON)
+        rotation_axis = normal;
+
     mesh.rotate(phi, rotation_axis);
 
     const Selection &        selection               = m_parent.get_selection();
@@ -1438,10 +1444,11 @@ void GLGizmoText::generate_text_volume(bool is_temp)
     if (text.empty())
         return;
 
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> str_cnv;
+    std::wstring ws = boost::nowide::widen(m_text);
     std::vector<std::string> alphas;
-    if (!get_utf8_sub_strings(m_text, strlen(m_text), alphas)) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("Text: input text is not utf8");
-        return;
+    for (auto w : ws) {
+        alphas.push_back(str_cnv.to_bytes(w));
     }
 
     update_text_positions(alphas);

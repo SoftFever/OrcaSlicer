@@ -441,20 +441,30 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         /*  In all the other cases, we perform an actual XYZ move and cancel
             the lift. */
         m_lifted = 0;
-        m_pos = point;
     }
     
     //BBS: take plate offset into consider
-    this->set_current_position_clear(true);
     Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
-    m_pos = dest_point;
-
+    std::string out_string;
     GCodeG1Formatter w;
-    w.emit_xyz(point_on_plate);
-    w.emit_f(travel_speed * 60.0);
-    //BBS
-    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return w.string();
+    if (!this->is_current_position_clear())
+    {
+        //force to move xy first then z after filament change
+        w.emit_xy(Vec2d(point_on_plate.x(), point_on_plate.y()));
+        w.emit_f(this->config.travel_speed.value * 60.0);
+        w.emit_comment(GCodeWriter::full_gcode_comment, comment);
+        out_string = w.string() + _travel_to_z(point_on_plate.z(), comment);
+    } else {
+        GCodeG1Formatter w;
+        w.emit_xyz(point_on_plate);
+        w.emit_f(this->config.travel_speed.value * 60.0);
+        w.emit_comment(GCodeWriter::full_gcode_comment, comment);
+        out_string = w.string();
+    }
+
+    m_pos = dest_point;
+    this->set_current_position_clear(true);
+    return out_string;
 }
 
 std::string GCodeWriter::travel_to_z(double z, const std::string &comment)

@@ -41,7 +41,8 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.05.00.08"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.06.00.01"
+
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -143,6 +144,8 @@ struct PrintParams {
     bool            task_layer_inspect;     /* first layer inspection of task */
     bool            task_record_timelapse;  /* record timelapse of task */
     bool            task_use_ams;
+    std::string     task_bed_type;
+    std::string     extra_options;
 };
 
 struct PublishParams {

@@ -156,6 +156,8 @@ public:
 
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width_real; }
+    float get_height() const { return m_wipe_tower_height; }
+    float get_layer_height() const { return m_layer_height; }
 
 	void set_last_layer_extruder_fill(bool extruder_fill) {
         if (!m_plan.empty()) {

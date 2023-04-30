@@ -32,10 +32,11 @@ wxString get_login_fail_reason(std::string fail_reason)
         return _L("Unknown Failure");
 }
 
-BindJob::BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip)
+BindJob::BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip, std::string sec_link)
     : PlaterJob{std::move(pri), plater},
     m_dev_id(dev_id),
-    m_dev_ip(dev_ip)
+    m_dev_ip(dev_ip),
+    m_sec_link(sec_link)
 {
     ;
 }
@@ -79,7 +80,7 @@ void BindJob::process()
     long offset = tz.GetOffset();
     std::string timezone = get_timezone_utc_hm(offset);
 
-    int result = m_agent->bind(m_dev_ip, timezone,
+    int result = m_agent->bind(m_dev_ip, m_dev_id, m_sec_link, timezone,
         [this, &curr_percent, &msg](int stage, int code, std::string info) {
             if (stage == BBL::BindJobStage::LoginStageConnect) {
                 curr_percent = 15;

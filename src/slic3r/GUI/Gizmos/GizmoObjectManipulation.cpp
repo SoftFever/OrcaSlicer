@@ -330,8 +330,11 @@ void GizmoObjectManipulation::change_size_value(int axis, double value)
     const Selection& selection = m_glcanvas.get_selection();
 
     Vec3d ref_size = m_cache.size;
-	if (selection.is_single_volume() || selection.is_single_modifier())
+    if (selection.is_single_volume() || selection.is_single_modifier()) {
+        Vec3d instance_scale = wxGetApp().model().objects[selection.get_volume(*selection.get_volume_idxs().begin())->object_idx()]->instances[0]->get_transformation().get_scaling_factor();
         ref_size = selection.get_volume(*selection.get_volume_idxs().begin())->bounding_box().size();
+        ref_size = Vec3d(instance_scale[0] * ref_size[0], instance_scale[1] * ref_size[1], instance_scale[2] * ref_size[2]);
+    }
     else if (selection.is_single_full_instance())
 		ref_size = m_world_coordinates ? 
             selection.get_unscaled_instance_bounding_box().size() :

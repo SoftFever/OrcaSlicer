@@ -59,9 +59,13 @@ namespace Slic3r {
                 time = 0.0f;
                 prepare_time = 0.0f;
                 custom_gcode_times.clear();
+                custom_gcode_times.shrink_to_fit();
                 moves_times.clear();
+                moves_times.shrink_to_fit();
                 roles_times.clear();
+                roles_times.shrink_to_fit();
                 layers_times.clear();
+                layers_times.shrink_to_fit();
             }
         };
 
@@ -81,6 +85,7 @@ namespace Slic3r {
                 m.reset();
             }
             volumes_per_color_change.clear();
+            volumes_per_color_change.shrink_to_fit();
             volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
@@ -88,8 +93,25 @@ namespace Slic3r {
         }
     };
 
+    struct ConflictResult
+    {
+        std::string        _objName1;
+        std::string        _objName2;
+        double             _height;
+        const void *_obj1; // nullptr means wipe tower
+        const void *_obj2;
+        int                layer = -1;
+        ConflictResult(const std::string &objName1, const std::string &objName2, double height, const void *obj1, const void *obj2)
+            : _objName1(objName1), _objName2(objName2), _height(height), _obj1(obj1), _obj2(obj2)
+        {}
+        ConflictResult() = default;
+    };
+
+    using ConflictResultOpt = std::optional<ConflictResult>;
+
     struct GCodeProcessorResult
     {
+        ConflictResultOpt conflict_result;
 
         struct SettingsIds
         {
@@ -237,6 +259,9 @@ namespace Slic3r {
         // checks the given gcode for reserved tags and returns true when finding any
         // (the first max_count found tags are returned into found_tag)
         static bool contains_reserved_tags(const std::string& gcode, unsigned int max_count, std::vector<std::string>& found_tag);
+
+        static int get_gcode_last_filament(const std::string &gcode_str);
+        static bool get_last_z_from_gcode(const std::string& gcode_str, double& z);
 
         static const float Wipe_Width;
         static const float Wipe_Height;

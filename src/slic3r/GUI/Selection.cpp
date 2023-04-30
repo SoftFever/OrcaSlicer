@@ -2350,7 +2350,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
 
     ::glBegin(GL_QUADS);
     if ((camera_on_top && type == 1) || (!camera_on_top && type == 2))
-        ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
+        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
     else
         ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
     ::glVertex3f(min_x, min_y, z1);
@@ -2361,7 +2361,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
 
     ::glBegin(GL_QUADS);
     if ((camera_on_top && type == 2) || (!camera_on_top && type == 1))
-        ::glColor4f(1.0f, 0.38f, 0.0f, 1.0f);
+        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
     else
         ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
     ::glVertex3f(min_x, min_y, z2);

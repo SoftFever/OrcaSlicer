@@ -110,7 +110,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
-    { "all",            int(FuzzySkinType::All) }
+    { "all",            int(FuzzySkinType::All) },
+    { "allwalls",       int(FuzzySkinType::AllWalls)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinType)
 
@@ -193,7 +194,9 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 static t_config_enum_values s_keys_map_SupportMaterialInterfacePattern {
     { "auto",           smipAuto },
     { "rectilinear",    smipRectilinear },
-    { "concentric",     smipConcentric }
+    { "concentric",     smipConcentric },
+    { "rectilinear_interlaced", smipRectilinearInterlaced},
+    { "grid",           smipGrid }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 
@@ -560,7 +563,7 @@ void PrintConfigDef::init_fff_params()
         "Value 0 means the filament does not support to print on the Cool Plate");
     def->sidetext = L("°C");
     def->min = 0;
-    def->max = 300;
+    def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
     def = this->add("eng_plate_temp_initial_layer", coInts);
@@ -822,7 +825,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_type", coEnum);
     def->label = L("Brim type");
     def->category = L("Support");
-    def->tooltip = L("This controls the generation of the brim at outer side of models. "
+    def->tooltip = L("This controls the generation of the brim at outer and/or inner side of models. "
                      "Auto means the brim width is analysed and calculated automatically.");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
@@ -1668,8 +1671,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("none");
     def->enum_values.push_back("external");
     def->enum_values.push_back("all");
+    def->enum_values.push_back("allwalls");
     def->enum_labels.push_back(L("None"));
-    def->enum_labels.push_back(L("Outer wall"));
+    def->enum_labels.push_back(L("Contour"));
+    def->enum_labels.push_back(L("Contour and hole"));
     def->enum_labels.push_back(L("All walls"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));
@@ -1680,6 +1685,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The width within which to jitter. It's adversed to be below outer wall line width");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max = 1;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.3));
 
@@ -1688,6 +1694,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Others");
     def->tooltip = L("The average diatance between the random points introducded on each line segment");
     def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 5;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.8));
 
@@ -2839,7 +2847,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("support_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label    = L("Support base");
+    def->label    = L("Support/raft base");
     def->category = L("Support");
     def->tooltip = L("Filament to print support base and raft. \"Default\" means no specific filament for support and current filament is used");
     def->min = 0;
@@ -2864,7 +2872,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("support_interface_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label    = L("Support interface");
+    def->label    = L("Support/raft interface");
     def->category = L("Support");
     def->tooltip = L("Filament to print support interface. \"Default\" means no specific filament for support interface and current filament is used");
     def->min = 0;
@@ -2964,9 +2972,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("auto");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
+    def->enum_values.push_back("rectilinear_interlaced");
+    def->enum_values.push_back("grid");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Rectilinear Interlaced"));
+    def->enum_labels.push_back(L("Grid"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialInterfacePattern>(smipRectilinear));
 
@@ -3024,7 +3036,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("independent_support_layer_height", coBool);
     def->label = L("Independent support layer height");
     def->category = L("Support");
-    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time.");
+    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time."
+                     "This option will be invalid when the prime tower is enabled.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -3238,7 +3251,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_prime_tower", coBool);
     def->label = L("Enable");
-    def->tooltip = L("Print a tower to prime material in nozzle after switching to a new material.");
+    def->tooltip = L("The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, "
+                    "in order to avoid appearance defects when printing objects.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -4412,10 +4426,12 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
             //if (alh_opt)
             //    alh_opt->value = false;
         }
+        /* BBS: MusangKing - not sure if this is still valid, just comment it out cause "Independent support layer height" is re-opened.
         else {
             if (islh_opt)
                 islh_opt->value = true;
         }
+        */
     }
 }
 
@@ -4501,6 +4517,7 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
             //    //alh_opt->value = false;
             //}
         }
+        /* BBS：MusangKing - use "global->support->Independent support layer height" widget to replace previous assignment
         else {
             if (islh_opt) {
                 if (!islh_opt->value) {
@@ -4510,6 +4527,7 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
                 //islh_opt->value = true;
             }
         }
+        */
     }
 
     return changed_keys;
@@ -4614,24 +4632,34 @@ std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filamen
         if (is_support) {
             if (filament_id) {
                 if (filament_id->get_at(id) == "GFS00") {
-                    displayed_filament_type = "Support W";
+                    displayed_filament_type = "Sup.PLA";
                     return "PLA-S";
                 }
                 else if (filament_id->get_at(id) == "GFS01") {
-                    displayed_filament_type = "Support G";
+                    displayed_filament_type = "Sup.PA";
                     return "PA-S";
                 }
                 else {
-                    displayed_filament_type = filament_type->get_at(id);
-                    return filament_type->get_at(id);
+                    if (filament_type->get_at(id) == "PLA") {
+                        displayed_filament_type = "Sup.PLA";
+                        return "PLA-S";
+                    }
+                    else if (filament_type->get_at(id) == "PA") {
+                        displayed_filament_type = "Sup.PA";
+                        return "PA-S";
+                    }
+                    else {
+                        displayed_filament_type = filament_type->get_at(id);
+                        return filament_type->get_at(id);
+                    }
                 }
             }
             else {
                 if (filament_type->get_at(id) == "PLA") {
-                    displayed_filament_type = "Support W";
+                    displayed_filament_type = "Sup.PLA";
                     return "PLA-S";
                 } else if (filament_type->get_at(id) == "PA") {
-                    displayed_filament_type = "Support G";
+                    displayed_filament_type = "Sup.PA";
                     return "PA-S";
                 } else {
                     displayed_filament_type = filament_type->get_at(id);
@@ -4975,6 +5003,33 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli = "uptodate";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("mtcpp", coInt);
+    def->label = L("mtcpp");
+    def->tooltip = L("max triangle count per plate for slicing.");
+    def->cli = "mtcpp";
+    def->cli_params = "count";
+    def->set_default_value(new ConfigOptionInt(1000000));
+
+    def = this->add("mstpp", coInt);
+    def->label = L("mstpp");
+    def->tooltip = L("max slicing time per plate in seconds.");
+    def->cli = "mstpp";
+    def->cli_params = "time";
+    def->set_default_value(new ConfigOptionInt(300));
+
+    // must define new params here, otherwise comamnd param check will fail
+    def = this->add("no_check", coBool);
+    def->label = L("No check");
+    def->tooltip = L("Do not run any validity checks, such as gcode path conflicts check.");
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("normative_check", coBool);
+    def->label = L("Normative check");
+    def->tooltip = L("Check the normative items.");
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(true));
+
     /*def = this->add("help_fff", coBool);
     def->label = L("Help (FFF options)");
     def->tooltip = L("Show the full list of print/G-code configuration options.");
@@ -5000,7 +5055,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->label = L("Send progress to pipe");
     def->tooltip = L("Send progress to pipe.");
     def->cli_params = "pipename";
-    def->set_default_value(new ConfigOptionString("cli_pipe"));
+    def->set_default_value(new ConfigOptionString(""));
 }
 
 //BBS: remove unused command currently
@@ -5152,6 +5207,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Load filament settings from the specified file list");
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("skip_objects", coStrings);
+    def->label = L("Skip Objects");
+    def->tooltip = L("Skip some objects in this print");
+    def->cli_params = "\"3;5;10;77\"";
+    def->set_default_value(new ConfigOptionInts());
 
     /*def = this->add("output", coString);
     def->label = L("Output File");

@@ -277,9 +277,9 @@ protected:
 
     enum class Action {
         Undef,
-        Transfer,
+        Transfer, // Or KEEP
+        Save,
         Discard,
-        Save
     };
 
     static constexpr char ActTransfer[] = "transfer";
@@ -320,6 +320,7 @@ public:
         KEEP      = 2,
         SAVE      = 4,
         DONT_SAVE = 8,
+        REMEMBER_CHOISE = 0x10000
     };
 
     // show unsaved changes when preset is switching
@@ -328,7 +329,9 @@ public:
     UnsavedChangesDialog(const wxString& caption, const wxString& header, const std::string& app_config_key, int act_buttons);
     ~UnsavedChangesDialog(){};
 
-    void build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header = "");
+    int ShowModal();
+
+    void        build(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, const wxString &header = "");
     void update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header);
     void update_list();
     std::string subreplace(std::string resource_str, std::string sub_str, std::string new_str);

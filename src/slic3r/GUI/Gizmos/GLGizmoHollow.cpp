@@ -336,8 +336,8 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
     if (action == SLAGizmoEventType::LeftUp) {
         if (m_wait_for_up_event) {
             m_wait_for_up_event = false;
-            return true;
         }
+        return true;
     }
 
     // dragging the selection rectangle:

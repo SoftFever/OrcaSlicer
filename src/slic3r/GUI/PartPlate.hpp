@@ -222,7 +222,7 @@ public:
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
 
-    BedType get_bed_type() const;
+    BedType get_bed_type(bool load_from_project = false) const;
     void set_bed_type(BedType bed_type);
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
@@ -243,10 +243,13 @@ public:
     static const int plate_thumbnail_width = 512;
     static const int plate_thumbnail_height = 512;
 
-    ThumbnailData cali_thumbnail_data;
+    ThumbnailData top_thumbnail_data;
+    ThumbnailData pick_thumbnail_data;
+
+    //ThumbnailData cali_thumbnail_data;
     PlateBBoxData cali_bboxes_data;
-    static const int cali_thumbnail_width = 2560;
-    static const int cali_thumbnail_height = 2560;
+    //static const int cali_thumbnail_width = 2560;
+    //static const int cali_thumbnail_height = 2560;
 
     //set the plate's index
     void set_index(int index);
@@ -397,7 +400,7 @@ public:
     {
         bool result = m_slice_result_valid;
         if (result)
-            result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;
+            result = m_gcode_result ? (!m_gcode_result->toolpath_outside && !m_gcode_result->conflict_result.has_value()) : false;
         return result;
     }
 
@@ -429,7 +432,7 @@ public:
     //load gcode from file
     int load_gcode_from_file(const std::string& filename);
     //load thumbnail data from file
-    int load_thumbnail_data(std::string filename);
+    int load_thumbnail_data(std::string filename, ThumbnailData& thumb_data);
     //load pattern thumbnail data from file
     int load_pattern_thumbnail_data(std::string filename);
     //load pattern box data from file

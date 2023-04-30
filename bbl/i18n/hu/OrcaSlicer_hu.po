@@ -2,43 +2,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-26 22:21+0800\n"
+"POT-Creation-Date: 2023-04-29 20:13+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-
-msgid "Physical Printer"
-msgstr ""
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-
-msgid "Send to print"
-msgstr ""
-
-msgid "Upload"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
 
 msgid "Supports Painting"
 msgstr "Támaszok festése"
@@ -275,8 +245,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "egységes méretarány"
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
 msgstr "Vágás"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Movement:"
 msgstr "Mozgatás:"
@@ -287,11 +287,29 @@ msgstr ""
 msgid "Height"
 msgstr ""
 
-msgid "Keep upper part"
-msgstr "Felső rész megtartása"
+msgid "Edit connectors"
+msgstr ""
 
-msgid "Keep lower part"
-msgstr "Alsó rész megtartása"
+msgid "Add connectors"
+msgstr ""
+
+msgid "Upper part"
+msgstr ""
+
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "Részekre darabolás"
@@ -304,6 +322,77 @@ msgstr "Vágás"
 
 msgid "Reset"
 msgstr "Visszaállítás"
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Type"
+msgstr "Típus"
+
+msgid "Style"
+msgstr "Stílus"
+
+msgid "Shape"
+msgstr "Forma"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Mégse"
+
+msgid "Warning"
+msgstr "Figyelmeztetés"
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "Háló neve"
@@ -364,9 +453,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "Nem használható folyamat előnézetben."
-
-msgid "Cancel"
-msgstr "Mégse"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr ""
@@ -434,11 +520,11 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "Megjegyzés"
-
-msgid "Warning"
-msgstr "Figyelmeztetés"
 
 msgid "Undefined"
 msgstr "Definiálatlan"
@@ -722,6 +808,9 @@ msgstr ""
 msgid "Show"
 msgstr ""
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "Kiválasztott objektum törlése"
 
@@ -751,6 +840,9 @@ msgstr "Henger"
 
 msgid "Cone"
 msgstr "Kúp"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "Beállítások hozzáadása"
@@ -871,6 +963,9 @@ msgstr "Tükrözés"
 msgid "Mirror object"
 msgstr "Objektum tükrözése"
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr "Primitív hozzáadása"
 
@@ -931,6 +1026,9 @@ msgstr "Automatikus forgatás"
 
 msgid "auto rotate current plate"
 msgstr "aktuális tálca automatikus forgatása"
+
+msgid "Delete Plate"
+msgstr ""
 
 msgid "Remove the selected plate"
 msgstr "Kiválasztott tálca eltávolítása"
@@ -1022,6 +1120,9 @@ msgstr "Kattints az ikonra az objektum támasz festésének szerkesztéséhez"
 msgid "Click the icon to edit color painting of the object"
 msgstr "Kattints az ikonra az objektum színfestésének szerkesztéséhez"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr "Fájl betöltése"
 
@@ -1044,6 +1145,31 @@ msgid ""
 "objects."
 msgstr ""
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "Az utolsó szilárd rész törlése nem megengedett."
 
@@ -1054,6 +1180,36 @@ msgstr ""
 
 msgid "Assembly"
 msgstr "Összeállítás"
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr ""
+
+msgid "Group manipulation"
+msgstr ""
+
+msgid "Object Settings to modify"
+msgstr ""
+
+msgid "Part Settings to modify"
+msgstr ""
+
+msgid "Layer range Settings to modify"
+msgstr ""
+
+msgid "Part manipulation"
+msgstr ""
+
+msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
+msgstr ""
 
 msgid "Object"
 msgstr "Objektum"
@@ -1129,6 +1285,18 @@ msgstr "További folyamatbeállítások"
 msgid "Remove parameter"
 msgstr "Paraméter eltávolítása"
 
+msgid "to"
+msgstr "eddig"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "Érvénytelen számjegy."
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 "egy cellát csak az ugyanabban az oszlopban lévő egy vagy több cellába lehet "
@@ -1197,6 +1365,15 @@ msgstr ""
 msgid "Open Documentation in web browser."
 msgstr ""
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "Egyedi G-kód"
 
@@ -1205,6 +1382,9 @@ msgstr ""
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Jump to Layer"
+msgstr ""
 
 msgid "Jump to layer"
 msgstr ""
@@ -1215,22 +1395,40 @@ msgstr ""
 msgid "Add Pause"
 msgstr ""
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
+msgstr ""
+
+msgid "Insert custom G-code at the beginning of this layer."
 msgstr ""
 
 msgid "Add Custom Template"
 msgstr ""
 
-msgid "Jump to Layer"
+msgid "Insert template custom G-code at the beginning of this layer."
 msgstr ""
 
 msgid "Filament "
 msgstr ""
 
-msgid "Start"
+msgid "Change filament at the beginning of this layer."
 msgstr ""
 
-msgid "G-code"
+msgid "Delete Pause"
+msgstr ""
+
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
 msgstr ""
 
 msgid "No printer"
@@ -1247,6 +1445,9 @@ msgstr "Üres"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr ""
@@ -1505,9 +1706,6 @@ msgstr ""
 msgid "Please log out and login to the printer again."
 msgstr ""
 
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr ""
-
 msgid "Choose SLA archive:"
 msgstr ""
 
@@ -1684,10 +1882,19 @@ msgstr ""
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr ""
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgstr ""
+
+msgid "You need to select the material type and color first."
+msgstr ""
+
+msgid "Other color"
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -1828,6 +2035,12 @@ msgstr ""
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr ""
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "AMS beállítások"
 
@@ -1885,7 +2098,7 @@ msgid ""
 "automatically."
 msgstr ""
 
-msgid "AMS auto switch filament"
+msgid "AMS filament backup"
 msgstr ""
 
 msgid ""
@@ -2014,9 +2227,6 @@ msgstr "Kör"
 
 msgid "Custom"
 msgstr "Egyéni"
-
-msgid "Shape"
-msgstr "Forma"
 
 msgid "Load shape from STL..."
 msgstr "Forma betöltése STL-ből..."
@@ -2155,7 +2365,7 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
 
 msgid ""
@@ -2167,15 +2377,6 @@ msgstr ""
 "Igen  - Módosítsa ezeket a beállításokat, és automatikusan engedélyezze a "
 "spirál mód használatát\n"
 "Nem - Ne használja a spirál módot ez alkalommal"
-
-msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
-msgstr ""
-
-msgid ""
-"Turn off classic mode automatically? \n"
-"Yes - Enable arachne with classic mode off\n"
-"No  - Give up using arachne this time"
-msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2339,9 +2540,6 @@ msgstr ""
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "Érvénytelen számjegy."
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s nem lehet százalék"
@@ -2450,9 +2648,6 @@ msgstr "felett"
 
 msgid "from"
 msgstr "ettől"
-
-msgid "to"
-msgstr "eddig"
 
 msgid "Color Scheme"
 msgstr "Színséma"
@@ -2610,6 +2805,9 @@ msgstr "Objektum tükrözése"
 msgid "Tool Move"
 msgstr "Fej mozgatása"
 
+msgid "Tool Rotate"
+msgstr ""
+
 msgid "Move Object"
 msgstr "Objektum mozgatása"
 
@@ -2676,10 +2874,6 @@ msgstr "vissza"
 msgid "Paint Toolbar"
 msgstr "Festés eszköztár"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr ""
-
 msgid "Explosion Ratio"
 msgstr "Robbantási arány"
 
@@ -2701,6 +2895,12 @@ msgstr "Térfogat:"
 msgid "Size:"
 msgstr "Méret:"
 
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"separate the conflicted objects farther (%s <-> %s)."
+msgstr ""
+
 msgid "An object is layed over the boundary of plate."
 msgstr "Egy objektum a tálca határvonalán túlra került."
 
@@ -2719,6 +2919,12 @@ msgstr ""
 "határt.\n"
 "Kérjük, orvosold a problémát azzal, hogy teljesen a lemezre helyezed és "
 "győződj meg, hogy a magassága belefér a nyomtatótérbe."
+
+msgid "Jump to"
+msgstr "Ugrás ide:"
+
+msgid "ERROR:"
+msgstr ""
 
 msgid "Calibration step selection"
 msgstr ""
@@ -2948,6 +3154,9 @@ msgstr "Jelenlegi projekt mentése egy fájlba"
 
 msgid "Save Project as"
 msgstr "Projekt mentése másként"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "Jelenlegi projekt mentése másként"
@@ -3359,6 +3568,13 @@ msgid "Missing LAN ip of printer!"
 msgstr ""
 
 #, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
+
+#, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr ""
 
@@ -3420,7 +3636,7 @@ msgstr "Állj"
 msgid "0"
 msgstr ""
 
-msgid "Layers: N/A"
+msgid "Layer: N/A"
 msgstr ""
 
 msgid "Clear"
@@ -3487,11 +3703,15 @@ msgid "Cloud Slicing..."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %s"
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
+msgid "Layer: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layer: %d/%d"
 msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
@@ -3501,9 +3721,6 @@ msgid "Still unload"
 msgstr ""
 
 msgid "Still load"
-msgstr ""
-
-msgid "AMS settings are not supported for external spool"
 msgstr ""
 
 msgid "Please select an AMS slot before calibration"
@@ -3634,6 +3851,12 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d objektum színfestést tartalmaz."
 msgstr[1] "%1$d objektum színfestést tartalmaz."
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "ERROR"
 msgstr ""
 
@@ -3648,9 +3871,6 @@ msgstr ""
 
 msgid "Slice ok."
 msgstr "Szeletelés kész."
-
-msgid "Jump to"
-msgstr "Ugrás ide:"
 
 msgid "Error:"
 msgstr "Hiba:"
@@ -3682,6 +3902,9 @@ msgstr "Támasz festése"
 
 msgid "Color painting"
 msgstr "Színfestés"
+
+msgid "Cut connectors"
+msgstr ""
 
 msgid "Layers"
 msgstr "Rétegek"
@@ -3986,6 +4209,15 @@ msgstr "STL fájl exportálása:"
 msgid "Save file as:"
 msgstr "Fájl mentése mint:"
 
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
+
 msgid "The selected object couldn't be split."
 msgstr "A kijelölt objektumot nem lehet feldarabolni."
 
@@ -4113,6 +4345,9 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "Az aktuális projektben el nem mentett módosítások vannak, mentsük el a "
 "folytatás előtt?"
+
+msgid "Remember my choice."
+msgstr ""
 
 msgid "Number of copies:"
 msgstr "Másolatok száma:"
@@ -4259,6 +4494,14 @@ msgstr "Angolszász"
 msgid "Units"
 msgstr "Mértékegység"
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr ""
 
@@ -4271,8 +4514,8 @@ msgstr ""
 msgid "If enabled, g-code window will be displayed."
 msgstr ""
 
-msgid "User sync"
-msgstr "Felhasználói szinkronizálás"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -4281,6 +4524,15 @@ msgstr ""
 
 msgid "User Sync"
 msgstr "Felhasználó szinkronizálás"
+
+msgid "Update built-in Presets automatically."
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to OrcaSlicer"
 msgstr "Fájlok társítása a BambuStudiohoz"
@@ -4309,14 +4561,27 @@ msgstr ""
 "Ha engedélyezve van, a BambuStudio-t állítja be alapértelmezett "
 "alkalmazásként a .step fájlok megnyitásához"
 
-msgid "Backup"
-msgstr "Biztonsági mentés"
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "Automatikus biztonsági mentés"
 
-msgid "Backup interval"
-msgstr "Intervallum"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr ""
@@ -4335,6 +4600,9 @@ msgstr "Kezdőlap megjelenítése indításkor"
 
 msgid "Sync settings"
 msgstr "Szinkronizálási beállítások"
+
+msgid "User sync"
+msgstr "Felhasználói szinkronizálás"
 
 msgid "Preset sync"
 msgstr "Beállítások szinkronizálása"
@@ -4428,6 +4696,9 @@ msgstr "AMS filamentek"
 
 msgid "Click to pick filament color"
 msgstr "Kattints a filament szín kiválasztásához"
+
+msgid "Please choose the filament colour"
+msgstr ""
 
 msgid "Add/Remove presets"
 msgstr "Beállítások hozzáadása/eltávolítása"
@@ -4725,25 +4996,27 @@ msgstr ""
 msgid "Errors"
 msgstr ""
 
-msgid ""
-"Please check the following infomation and click Confirm to continue sending "
-"print:"
+msgid "Please check the following:"
 msgstr ""
 
 msgid ""
-"The printer type used to generate G-code is not the same type as the "
-"currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type."
+"The printer type selected when generating G-Code is not consistent with the "
+"currently selected printer. It is recommended that you use the same printer "
+"type for slicing."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
+msgid "%s is not supported by AMS."
 msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
 "they are the required filaments. If they are okay, press \"Confirm\" to "
 "start printing."
+msgstr ""
+
+msgid ""
+"Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
 msgid "Preparing print job"
@@ -4838,7 +5111,8 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
 
 msgid ""
@@ -4909,6 +5183,9 @@ msgid "G-code output"
 msgstr "G-kód kimenet"
 
 msgid "Post-processing Scripts"
+msgstr ""
+
+msgid "Post-processing scripts"
 msgstr ""
 
 msgid "Frequent"
@@ -5245,11 +5522,6 @@ msgstr "Általános"
 msgid "Capabilities"
 msgstr "Képességek"
 
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr ""
-
 msgid "Select presets to compare"
 msgstr ""
 
@@ -5387,6 +5659,12 @@ msgstr "Objektumok listája"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
+msgid "⌘+Shift+G"
+msgstr ""
+
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "Másolás a vágólapra"
 
@@ -5414,6 +5692,12 @@ msgstr ""
 msgid "Zoom View"
 msgstr ""
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5422,6 +5706,9 @@ msgstr ""
 "Automatikusan beállítja a kijelölt objektumok vagy az összes objektum "
 "tájolását. Ha vannak kijelölt objektumok, akkor csak a kijelölteket, "
 "ellenkező esetben az aktuális tálcán lévő összes objektumot orientálja."
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Az oldalsáv összecsukása/kinyitása"
@@ -5488,6 +5775,9 @@ msgstr "Shift+Bármelyik nyílgomb"
 
 msgid "Movement step set to 1 mm"
 msgstr "Mozgatás lépéstávolsága 1mm-re állítva"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "filament hozzárendelése az objektumhoz/tárgyhoz"
@@ -6450,8 +6740,8 @@ msgid "Brim type"
 msgstr "Perem típusa"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
 msgid "outer_only"
@@ -6871,9 +7161,6 @@ msgstr "Filament sűrűsége. Csak statisztikákhoz kerül felhasználásra"
 msgid "g/cm³"
 msgstr "g/cm³"
 
-msgid "Type"
-msgstr "Típus"
-
 msgid "The material type of filament"
 msgstr "Filament anyagának típusa"
 
@@ -7102,6 +7389,12 @@ msgstr ""
 
 msgid "None"
 msgstr "Sehol"
+
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
 
 msgid "All walls"
 msgstr "Összes fal"
@@ -7966,7 +8259,7 @@ msgstr ""
 msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
-msgid "Support base"
+msgid "Support/raft base"
 msgstr ""
 
 msgid ""
@@ -7985,6 +8278,9 @@ msgid ""
 msgstr ""
 "Lefedi a támasz felső érintkező rétegét körökkel. Alapértelmezés szerint "
 "letiltva."
+
+msgid "Support/raft interface"
+msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -8041,6 +8337,9 @@ msgstr ""
 "alapértelmezett mintázata egyenes vonalú, míg az oldható támaszfelület "
 "alapértelmezett mintázata koncentrikus"
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "Alap mintázatának térköze"
 
@@ -8055,9 +8354,6 @@ msgstr ""
 
 msgid "Speed of support"
 msgstr "Támaszok sebessége"
-
-msgid "Style"
-msgstr "Stílus"
 
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
@@ -8085,7 +8381,8 @@ msgstr "Független támasz rétegmagassága"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
 msgstr ""
 
 msgid "Threshold angle"
@@ -8257,10 +8554,10 @@ msgstr ""
 "útvonalán"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
-"Egy tornyot nyomtat a fúvókában lévő anyag kiöblítéséhez új anyagra váltás "
-"után."
 
 msgid "Purging volumes"
 msgstr "Tisztítási mennyiségek"
@@ -8485,6 +8782,30 @@ msgstr ""
 msgid "Update the configs values of 3mf to latest."
 msgstr ""
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Kimeneti modell információ"
 
@@ -8533,6 +8854,12 @@ msgstr "Filamentbeállítások betöltése"
 msgid "Load filament settings from the specified file list"
 msgstr "Filamentbeállítások betöltése a megadott fájllistából"
 
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
+
 msgid "Data directory"
 msgstr ""
 
@@ -8579,15 +8906,19 @@ msgstr "Támaszok generálása"
 msgid "Checking support necessity"
 msgstr "Támasz szükségességének ellenőrzése"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
+msgstr ""
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
 
 msgid "Optimizing toolpath"
@@ -8940,6 +9271,25 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid "Keep upper part"
+#~ msgstr "Felső rész megtartása"
+
+#~ msgid "Keep lower part"
+#~ msgstr "Alsó rész megtartása"
+
+#~ msgid "Backup"
+#~ msgstr "Biztonsági mentés"
+
+#~ msgid "Backup interval"
+#~ msgstr "Intervallum"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "Egy tornyot nyomtat a fúvókában lévő anyag kiöblítéséhez új anyagra "
+#~ "váltás után."
 
 #~ msgid ""
 #~ "The configuration may be generated by a newer version of BambuStudio."

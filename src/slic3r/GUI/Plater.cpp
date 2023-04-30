@@ -325,6 +325,7 @@ struct Sidebar::priv
 
     ObjectList          *m_object_list{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
+    ObjectLayers        *object_layers{ nullptr };
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
@@ -464,7 +465,7 @@ static struct DynamicFilamentList : DynamicList
             wxString str;
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
-            str << (i + 1) << " - " << type;
+            str << type;
             items.push_back({str, icons[i]});
         }
         DynamicList::update();
@@ -757,7 +758,6 @@ Sidebar::Sidebar(Plater *parent)
                 (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 
-                wxGetApp().app_config->set("flush_multiplier", std::to_string(dlg.get_flush_multiplier()));
                 wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
                 wxGetApp().plater()->update_project_dirty_from_presets();
@@ -923,6 +923,10 @@ Sidebar::Sidebar(Plater *parent)
     }
 #endif
     }
+
+    p->object_layers = new ObjectLayers(p->scrolled);
+    p->object_layers->Hide();
+    p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, 0);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
@@ -1285,6 +1289,7 @@ void Sidebar::sys_color_changed()
 
     // BBS
     obj_list()->sys_color_changed();
+    obj_layers()->sys_color_changed();
     // BBS
     //p->object_manipulation->sys_color_changed();
 
@@ -1461,6 +1466,9 @@ void Sidebar::sync_ams_list()
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0]);
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     dynamic_filament_list.update();
+    // Expand filament list
+    p->m_panel_filament_content->SetMaxSize({-1, -1});
+    Layout();
 }
 
 ObjectList* Sidebar::obj_list()
@@ -1473,6 +1481,11 @@ ObjectList* Sidebar::obj_list()
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
+}
+
+ObjectLayers* Sidebar::obj_layers()
+{
+    return p->object_layers;
 }
 
 wxPanel* Sidebar::scrolled_panel()
@@ -1939,7 +1952,7 @@ struct Plater::priv
     void select_all();
     void deselect_all();
     void remove(size_t obj_idx);
-    void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
+    bool delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
     void delete_all_objects_from_model();
     void reset(bool apply_presets_change = false);
     void center_selection();
@@ -2126,7 +2139,8 @@ struct Plater::priv
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
     //BBS: add plate_id for thumbnail
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+        Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
     //BBS
     void generate_calibration_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -2456,12 +2470,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                     plate->update_slice_result_valid_state(false);
                 }
             }
+            set_plater_dirty(true);
 
             preview->on_tick_changed(tick_event_type);
 
             // update slice and print button
             wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, false);
-            set_need_update(true);
+            update();
         });
     }
     if (wxGetApp().is_gcode_viewer())
@@ -3266,9 +3281,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config_substitutions.empty()) show_substitutions_info(config_substitutions.substitutions, filename.string());
 
                     // BBS
-                    this->model.plates_custom_gcodes = model.plates_custom_gcodes;
-                    this->model.design_info = model.design_info;
-                    this->model.model_info  = model.model_info;
+                    if (load_model && !load_config) {
+                        ;
+                    }
+                    else {
+                        this->model.plates_custom_gcodes = model.plates_custom_gcodes;
+                        this->model.design_info = model.design_info;
+                        this->model.model_info = model.model_info;
+                    }
                 }
 
                 if (load_config) {
@@ -3491,7 +3511,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 // convert_model_if(model, answer_convert_from_imperial_units == wxID_YES);
             }
 
-             if (model.looks_like_multipart_object()) {
+             if (!is_project_file && model.looks_like_multipart_object()) {
                MessageDialog msg_dlg(q, _L(
                     "This file contains several objects positioned at multiple heights.\n"
                     "Instead of considering them as multiple objects, should \n"
@@ -3557,9 +3577,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 q->model().load_from(model);
                 load_auxiliary_files();
             }
-            // BBS: don't allow negative_z when load model objects
-            // auto loaded_idxs = load_model_objects(model.objects, is_project_file);
-            auto loaded_idxs = load_model_objects(model.objects);
+            auto loaded_idxs = load_model_objects(model.objects, is_project_file);
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
@@ -3845,7 +3863,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 void Plater::priv::load_auxiliary_files()
 {
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
-    wxGetApp().mainframe->m_auxiliary->Reload(auxiliary_path);
+    //wxGetApp().mainframe->m_project->Reload(auxiliary_path);
 }
 
 fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
@@ -4059,13 +4077,31 @@ void Plater::priv::remove(size_t obj_idx)
 }
 
 
-void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immediately)
+bool Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immediately)
 {
+    // check if object isn't cut
+    // show warning message that "cut consistancy" will not be supported any more
+    ModelObject *obj = model.objects[obj_idx];
+    if (obj->is_cut()) {
+        InfoDialog dialog(q, _L("Delete object which is a part of cut object"),
+                          _L("You try to delete an object which is a part of a cut object.\n"
+                             "This action will break a cut correspondence.\n"
+                             "After that model consistency can't be guaranteed."),
+                          false, wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxICON_WARNING);
+        dialog.SetButtonLabel(wxID_YES, _L("Delete"));
+        if (dialog.ShowModal() == wxID_CANCEL)
+            return false;
+    }
+
     std::string snapshot_label = "Delete Object";
-    if (! model.objects[obj_idx]->name.empty())
-        snapshot_label += ": " + model.objects[obj_idx]->name;
+    if (!obj->name.empty())
+        snapshot_label += ": " + obj->name;
     Plater::TakeSnapshot snapshot(q, snapshot_label);
     m_ui_jobs.cancel_all();
+
+    if (obj->is_cut())
+        sidebar->obj_list()->invalidate_cut_info_for_object(obj_idx);
+
     model.delete_object(obj_idx);
     //BBS: notify partplate the instance removed
     partplate_list.notify_instance_removed(obj_idx, -1);
@@ -4075,6 +4111,8 @@ void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immedia
         update();
         object_list_changed();
     }
+
+    return true;
 }
 
 void Plater::priv::delete_all_objects_from_model()
@@ -6469,9 +6507,10 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
 }
 
 //BBS: add plate id for thumbnail generate param
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type, use_top_view, for_picking);
 }
 
 //BBS: add plate id for thumbnail generate param
@@ -6863,22 +6902,29 @@ bool Plater::priv::has_assemble_view() const
 bool Plater::priv::can_scale_to_print_volume() const
 {
     const BuildVolume_Type type = this->bed.build_volume().type();
-    return !view3D->get_canvas3d()->get_selection().is_empty() && (type == BuildVolume_Type::Rectangle || type == BuildVolume_Type::Circle);
+    return !sidebar->obj_list()->has_selected_cut_object()
+        && !view3D->get_canvas3d()->get_selection().is_empty()
+        && (type == BuildVolume_Type::Rectangle || type == BuildVolume_Type::Circle);
 }
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
 bool Plater::priv::can_mirror() const
 {
-    return get_selection().is_from_single_instance();
+    return !sidebar->obj_list()->has_selected_cut_object()
+        && get_selection().is_from_single_instance();
 }
 
 bool Plater::priv::can_replace_with_stl() const
 {
-    return get_selection().get_volume_idxs().size() == 1;
+    return !sidebar->obj_list()->has_selected_cut_object()
+        && get_selection().get_volume_idxs().size() == 1;
 }
 
 bool Plater::priv::can_reload_from_disk() const
 {
+    if (sidebar->obj_list()->has_selected_cut_object())
+        return false;
+
 #if ENABLE_RELOAD_FROM_DISK_REWORK
     // collect selected reloadable ModelVolumes
     std::vector<std::pair<int, int>> selected_volumes = reloadable_volumes(model, get_selection());
@@ -7089,7 +7135,8 @@ bool Plater::priv::can_increase_instances() const
             return false;
 
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size())
+        && !sidebar->obj_list()->has_selected_cut_object();
 }
 
 bool Plater::priv::can_decrease_instances() const
@@ -7099,7 +7146,8 @@ bool Plater::priv::can_decrease_instances() const
             return false;
 
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1)
+        && !sidebar->obj_list()->has_selected_cut_object();
 }
 
 bool Plater::priv::can_split_to_objects() const
@@ -7566,7 +7614,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
                 _L("You can keep the modifield presets to the new project, discard or save changes as new presets."));
         using ab = UnsavedChangesDialog::ActionButtons;
-        int act_buttons = ab::KEEP;
+        int act_buttons = ab::KEEP | ab::REMEMBER_CHOISE;
         if (!yes_or_no)
             act_buttons |= ab::SAVE;
         return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons, &transfer_preset_changes);
@@ -7701,6 +7749,8 @@ void Plater::load_project(wxString const& filename2,
     // if res is empty no data has been loaded
     if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
         p->set_project_filename(load_restore ? originfile : filename);
+        if (load_restore && originfile.IsEmpty())
+            p->set_project_name(_L("Untitled"));
     } else {
         if (using_exported_file())
             p->set_project_filename(filename);
@@ -7772,15 +7822,13 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(const std::string& download_info)
 {
-    std::string download_url = wxGetApp().get_download_model_url();
-    std::string filename = wxGetApp().get_download_model_name();
+    std::string download_url;
+    std::string filename;
 
-    /* auto selection_data_arr = wxSplit(download_info, '|');
-
-     if (selection_data_arr.size() == 2) {
-         download_url = selection_data_arr[0].ToStdString();
-         filename = selection_data_arr[1].ToStdString();
-     }*/
+    std::string download_origin_url = wxGetApp().url_decode(download_info);
+    fs::path download_path = fs::path(download_origin_url);
+    download_url = download_origin_url;
+    filename = download_path.filename().string();
 
 
     bool download_ok = false;
@@ -7957,9 +8005,10 @@ void Plater::download_project(const wxString& project_id)
     return;
 }
 
-void Plater::request_model_download()
+void Plater::request_model_download(std::string url)
 {
     wxCommandEvent* event = new wxCommandEvent(EVT_IMPORT_MODEL_ID);
+    event->SetString(url);
     wxQueueEvent(this, event);
 }
 
@@ -9218,14 +9267,21 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
         return wxID_NO;
     }
 
-    auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
-        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
+    MessageDialog dlg(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
+        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+    dlg.show_dsa_button(_L("Remember my choice."));
+    auto choise = wxGetApp().app_config->get("save_project_choise");
+    auto result = choise.empty() ? dlg.ShowModal() : choise == "yes" ? wxID_YES : wxID_NO;
     if (result == wxID_CANCEL)
         return result;
-    else if (result == wxID_YES) {
-        result = save_project();
-        if (result == wxID_CANCEL)
-            return result;
+    else {
+        if (dlg.get_checkbox_state())
+            wxGetApp().app_config->set("save_project_choise", result == wxID_YES ? "yes" : "no");
+        if (result == wxID_YES) {
+            result = save_project();
+            if (result == wxID_CANCEL)
+                return result;
+        }
     }
 
     if (second_check && !second_check(result == wxID_YES)) return wxID_CANCEL;
@@ -9247,7 +9303,7 @@ void Plater::trigger_restore_project(int skip_confirm)
 }
 
 //BBS
-void Plater::delete_object_from_model(size_t obj_idx, bool refresh_immediately) { p->delete_object_from_model(obj_idx, refresh_immediately); }
+bool Plater::delete_object_from_model(size_t obj_idx, bool refresh_immediately) { return p->delete_object_from_model(obj_idx, refresh_immediately); }
 
 //BBS: delete all from model
 void Plater::delete_all_objects_from_model()
@@ -9459,14 +9515,20 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane
     if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
         return;
 
-    Plater::TakeSnapshot snapshot(this, "Cut by Plane");
-
     wxBusyCursor wait;
     // BBS: replace z with plane_points
     const auto new_objects = object->cut(instance_idx, plane_points, attributes);
 
     remove(obj_idx);
     p->load_model_objects(new_objects);
+
+    // now process all updates of the 3d scene
+    update();
+
+    // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
+    // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
+    for (size_t idx = 0; idx < p->model.objects.size(); idx++)
+        wxGetApp().obj_list()->update_info_items(idx);
 
     Selection& selection = p->get_selection();
     size_t last_id = p->model.objects.size() - 1;
@@ -9903,6 +9965,7 @@ void Plater::export_stl(bool extended, bool selection_only)
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)
 {
+    int ret = 0;
     //if (p->model.objects.empty()) {
     //    MessageDialog dialog(nullptr, _L("No objects to export."), _L("Save project"), wxYES);
     //    if (dialog.ShowModal() == wxYES)
@@ -9928,6 +9991,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
     std::vector<ThumbnailData*> calibration_thumbnails;
+    std::vector<ThumbnailData*> top_thumbnails;
+    std::vector<ThumbnailData*> picking_thumbnails;
     std::vector<PlateBBoxData*> plate_bboxes;
     // BBS: backup
     if (!(strategy & SaveStrategy::Backup)) {
@@ -9940,22 +10005,50 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate thumbnail for plate %1%") % i;
                 const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
-                p->generate_thumbnail(p->partplate_list.get_plate(i)->thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
+                p->generate_thumbnail(p->partplate_list.get_plate(i)->thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
+                                    thumbnail_params, Camera::EType::Ortho);
             }
             thumbnails.push_back(thumbnail_data);
 
-            ThumbnailData* calibration_data = &p->partplate_list.get_plate(i)->cali_thumbnail_data;
-            calibration_thumbnails.push_back(calibration_data);
+            //ThumbnailData* calibration_data = &p->partplate_list.get_plate(i)->cali_thumbnail_data;
+            //calibration_thumbnails.push_back(calibration_data);
             PlateBBoxData* plate_bbox_data = &p->partplate_list.get_plate(i)->cali_bboxes_data;
             plate_bboxes.push_back(plate_bbox_data);
+
+            //generate top and picking thumbnails
+            ThumbnailData* top_thumbnail = &p->partplate_list.get_plate(i)->top_thumbnail_data;
+            if (top_thumbnail->is_valid() &&  using_exported_file()) {
+                //no need to generate thumbnail
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": non need to re-generate top_thumbnail for gcode/exported mode of plate %1%")%i;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate top_thumbnail for plate %1%") % i;
+                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                p->generate_thumbnail(p->partplate_list.get_plate(i)->top_thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
+                                    thumbnail_params, Camera::EType::Ortho, true, false);
+            }
+            top_thumbnails.push_back(top_thumbnail);
+
+            ThumbnailData* picking_thumbnail = &p->partplate_list.get_plate(i)->pick_thumbnail_data;
+            if (picking_thumbnail->is_valid() &&  using_exported_file()) {
+                //no need to generate thumbnail
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": non need to re-generate pick_thumbnail for gcode/exported mode of plate %1%")%i;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate pick_thumbnail for plate %1%") % i;
+                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                p->generate_thumbnail(p->partplate_list.get_plate(i)->pick_thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
+                                    thumbnail_params, Camera::EType::Ortho, true, true);
+            }
+            picking_thumbnails.push_back(picking_thumbnail);
         }
 
         if (p->partplate_list.get_curr_plate()->is_slice_result_valid()) {
             //BBS generate BBS calibration thumbnails
             int index = p->partplate_list.get_curr_plate_index();
-            ThumbnailData* calibration_data = calibration_thumbnails[index];
-            const ThumbnailsParams calibration_params = { {}, false, true, true, true, p->partplate_list.get_curr_plate_index() };
-            p->generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
+            //ThumbnailData* calibration_data = calibration_thumbnails[index];
+            //const ThumbnailsParams calibration_params = { {}, false, true, true, true, p->partplate_list.get_curr_plate_index() };
+            //p->generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
             if (using_exported_file()) {
                 //do nothing
             }
@@ -9980,6 +10073,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     store_params.project_presets = project_presets;
     store_params.config = export_config ? &cfg : nullptr;
     store_params.thumbnail_data = thumbnails;
+    store_params.top_thumbnail_data = top_thumbnails;
+    store_params.pick_thumbnail_data = picking_thumbnails;
     store_params.calibration_thumbnail_data = calibration_thumbnails;
     store_params.proFn = proFn;
     store_params.id_bboxes = plate_bboxes;//BBS
@@ -10041,7 +10136,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         }
     }
     else {
-        return -1;
+        ret = -1;
     }
 
     if (project_presets.size() > 0)
@@ -10060,8 +10155,20 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         //release the data here, as it will always be generated when export
         calibration_thumbnails[i]->reset();
     }
+    for (unsigned int i = 0; i < top_thumbnails.size(); i++)
+    {
+        //release the data here, as it will always be generated when export
+        top_thumbnails[i]->reset();
+    }
+    top_thumbnails.clear();
+    for (unsigned int i = 0; i < picking_thumbnails.size(); i++)
+    {
+        //release the data here, as it will always be generated when export
+        picking_thumbnails[i]->reset();;
+    }
+    picking_thumbnails.clear();
 
-    return 0;
+    return ret;
 }
 
 void Plater::publish_project()
@@ -10330,9 +10437,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     if (plate_idx == PLATE_CURRENT_IDX) {
         p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
     }
-    else if (plate_idx == PLATE_ALL_IDX) {
-        p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
-    } else {
+    else {
         p->m_print_job_data.plate_idx = plate_idx;
     }
 
@@ -10564,6 +10669,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
             if (update_filament_colors_in_full_config()) {
                 p->sidebar->obj_list()->update_filament_colors();
+                dynamic_filament_list.update();
                 continue;
             }
         }
@@ -11084,6 +11190,7 @@ void Plater::sys_color_changed()
     p->preview->sys_color_changed();
     p->sidebar->sys_color_changed();
     p->menus.sys_color_changed();
+    if (p->m_select_machine_dlg) p->m_select_machine_dlg->sys_color_changed();
 
     Layout();
     GetParent()->Layout();
@@ -11484,8 +11591,10 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         ret = select_plate(plate_index);
         if (!ret)
         {
-            set_prepare_state(Job::PREPARE_STATE_MENU);
-            arrange();
+            if (last_arrange_job_is_finished()) {
+                set_prepare_state(Job::PREPARE_STATE_MENU);
+                arrange();
+            }
         }
         else
         {
@@ -11538,6 +11647,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select print sequence %1% for plate %2% at plate side")%ps_sel %plate_index;
                 auto plate_config = *(curr_plate->config());
                 wxGetApp().plater()->config_change_notification(plate_config, std::string("print_sequence"));
+                update();
                 });
             dlg.ShowModal();
             curr_plate->set_plate_name(dlg.get_plate_name().ToStdString());

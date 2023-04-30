@@ -75,11 +75,11 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     wxSize pSize = FromDIP(wxSize(820, 660));
     SetSize(pSize);
 
-    CenterOnParent();
-    //int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
-    //int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
-    //int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
-    //MoveWindow(this->m_hWnd, (screenwidth - pSize.x) / 2, MaxY, pSize.x, pSize.y, TRUE);
+    int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
+    int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
+    int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
+    wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
+    Move(tmpPT);
 #ifdef __WXMSW__
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
         if ((m_page == BBL_FILAMENT_ONLY || m_page == BBL_MODELS_ONLY) && e.GetKeyCode() == WXK_ESCAPE) {

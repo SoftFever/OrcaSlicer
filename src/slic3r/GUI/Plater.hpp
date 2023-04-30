@@ -66,6 +66,7 @@ namespace GUI {
 class MainFrame;
 class ConfigOptionsGroup;
 class ObjectSettings;
+class ObjectLayers;
 class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
@@ -131,6 +132,7 @@ public:
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
+    ObjectLayers*           obj_layers();
     wxPanel*                scrolled_panel();
     wxPanel* print_panel();
     wxPanel* filament_panel();
@@ -214,7 +216,7 @@ public:
     //BBS download project by project id
     void import_model_id(const std::string& download_info);
     void download_project(const wxString& project_id);
-    void request_model_download();
+    void request_model_download(std::string url);
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
@@ -305,7 +307,7 @@ public:
     int close_with_confirm(std::function<bool(bool yes_or_no)> second_check = nullptr); // BBS close project
     //BBS: trigger a restore project event
     void trigger_restore_project(int skip_confirm = 0);
-    void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); // BBS support refresh immediately
+    bool delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); // BBS support refresh immediately
     void delete_all_objects_from_model(); //BBS delete all objects from model
     void set_selected_visible(bool visible);
     void remove_selected();
@@ -689,6 +691,13 @@ public:
     static void show_illegal_characters_warning(wxWindow* parent);
 
     std::string get_preview_only_filename() { return m_preview_only_filename; };
+
+    bool last_arrange_job_is_finished()
+    {
+        bool prevRunning = false;
+        return m_arrange_running.compare_exchange_strong(prevRunning, true);
+    };
+    std::atomic<bool> m_arrange_running{false};
 
 private:
     struct priv;

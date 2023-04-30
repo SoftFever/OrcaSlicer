@@ -45,7 +45,7 @@ typedef std::string (*func_get_user_nickanme)(void *agent);
 typedef std::string (*func_build_login_cmd)(void *agent);
 typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
-typedef int (*func_bind)(void *agent, std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn);
+typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
 typedef std::string (*func_get_user_selected_machine)(void *agent);
@@ -67,6 +67,7 @@ typedef int (*func_get_user_print_info)(void *agent, unsigned int* http_code, st
 typedef int (*func_get_printer_firmware)(void *agent, std::string dev_id, unsigned* http_code, std::string* http_body);
 typedef int (*func_get_task_plate_index)(void *agent, std::string task_id, int* plate_index);
 typedef int (*func_get_user_info)(void *agent, int* identifier);
+typedef int (*func_request_bind_ticket)(void *agent, std::string* ticket);
 typedef int (*func_get_slice_info)(void *agent, std::string project_id, std::string profile_id, int plate_index, std::string* slice_json);
 typedef int (*func_query_bind_status)(void *agent, std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
 typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::string dev_name);
@@ -76,6 +77,10 @@ typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
 typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
+typedef int (*func_track_enable)(void *agent, bool enable);
+typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
+typedef int (*func_track_header)(void *agent, std::string header);
+typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
 
 
 //the NetworkAgent class
@@ -129,7 +134,7 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn);
+    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
     std::string get_user_selected_machine();
@@ -151,6 +156,7 @@ public:
     int get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body);
     int get_task_plate_index(std::string task_id, int* plate_index);
     int get_user_info(int* identifier);
+    int request_bind_ticket(std::string* ticket);
     int get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json);
     int query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
     int modify_printer_name(std::string dev_id, std::string dev_name);
@@ -160,9 +166,12 @@ public:
     int get_model_publish_url(std::string* url);
     int get_model_mall_home_url(std::string* url);   
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
-
+    int track_enable(bool enable);
+    int track_event(std::string evt_key, std::string content);
+    int track_header(std::string header);
+    int track_update_property(std::string name, std::string value, std::string type = "string");
 private:
-
+    bool enable_track = false;
     void*                   network_agent { nullptr };
 
     static func_check_debug_consistent         check_debug_consistent_ptr;
@@ -225,6 +234,7 @@ private:
     static func_get_printer_firmware           get_printer_firmware_ptr;
     static func_get_task_plate_index           get_task_plate_index_ptr;
     static func_get_user_info                  get_user_info_ptr;
+    static func_request_bind_ticket            request_bind_ticket_ptr;
     static func_get_slice_info                 get_slice_info_ptr;
     static func_query_bind_status              query_bind_status_ptr;
     static func_modify_printer_name            modify_printer_name_ptr;
@@ -234,6 +244,10 @@ private:
     static func_get_model_publish_url          get_model_publish_url_ptr;
     static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;
+    static func_track_enable                   track_enable_ptr;
+    static func_track_event                    track_event_ptr;
+    static func_track_header                   track_header_ptr;
+    static func_track_update_property          track_update_property_ptr;
 };
 
 }

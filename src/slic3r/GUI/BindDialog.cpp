@@ -262,8 +262,13 @@ namespace GUI {
      //check dev_id
      if (m_machine_info->dev_id.empty()) return;
 
+     // update ota version
+     NetworkAgent* agent = wxGetApp().getAgent();
+     if (agent)
+         agent->track_update_property("dev_ota_version", m_machine_info->get_ota_version());
+
      m_simplebook->SetSelection(0);
-     m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip);
+     m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
      m_bind_job->set_event_handle(this);
      m_bind_job->start();
  }

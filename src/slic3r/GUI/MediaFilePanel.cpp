@@ -31,9 +31,9 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_year = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
     m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
     m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
-    m_button_year->SetToolTip(L("Group files by year, recent first."));
-    m_button_month->SetToolTip(L("Group files by month, recent first."));
-    m_button_all->SetToolTip(L("Show all files, recent first."));
+    m_button_year->SetToolTip(_L("Group files by year, recent first."));
+    m_button_month->SetToolTip(_L("Group files by month, recent first."));
+    m_button_all->SetToolTip(_L("Show all files, recent first."));
     m_button_all->SetFont(Label::Head_14); // sync with m_last_mode
     for (auto b : {m_button_year, m_button_month, m_button_all}) {
         b->SetBackgroundColor(StateColor());
@@ -228,14 +228,15 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             m_button_download->Enable(e.GetInt() > 0);
         });
         fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
-        fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
+        fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto& e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
             if (m_image_grid->GetFileSystem() != fs) // canceled
                 return;
             ScalableBitmap icon;
             wxString msg;
-            switch (e.GetInt()) {
+            int status = e.GetInt();
+            switch (status) {
             case PrinterFileSystem::Initializing: icon = m_bmp_loading; msg = _L("Initializing..."); break;
             case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
             case PrinterFileSystem::Failed: icon = m_bmp_failed; msg = _L("Connect failed [%d]!"); break;
@@ -246,6 +247,53 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 m_image_grid->SetStatus(icon, msg);
             if (e.GetInt() == PrinterFileSystem::Initializing)
                 fetchUrl(boost::weak_ptr(fs));
+
+            if (status == PrinterFileSystem::Failed
+                || status == PrinterFileSystem::ListReady) {
+                json j;
+                j["code"] = fs->GetLastError();
+                j["dev_id"] = m_machine;
+                j["dev_ip"] = m_lan_ip;
+                NetworkAgent* agent = wxGetApp().getAgent();
+                if (status == PrinterFileSystem::Failed) {
+                    j["result"] = "failed";
+                    if (agent)
+                        agent->track_event("download_video_conn", j.dump());
+                } else if (status == PrinterFileSystem::ListReady) {
+                    j["result"] = "success";
+                    if (agent)
+                        agent->track_event("download_video_conn", j.dump());
+                }
+            }
+        });
+        fs->Bind(EVT_DOWNLOAD, [this, wfs = boost::weak_ptr(fs)](auto& e) {
+            e.Skip();
+            boost::shared_ptr fs(wfs.lock());
+            if (m_image_grid->GetFileSystem() != fs) // canceled
+                return;
+
+            int result = e.GetExtraLong();
+            NetworkAgent* agent = wxGetApp().getAgent();
+            if (result > 1 || result == 0) {
+                json j;
+                j["code"] = result;
+                j["dev_id"] = m_machine;
+                j["dev_ip"] = m_lan_ip;
+                if (result > 1) {
+                    // download failed
+                    j["result"] = "failed";
+                    if (agent) {
+                        agent->track_event("download_video", j.dump());
+                    }
+                } else if (result == 0) {
+                    // download success
+                    j["result"] = "success";
+                    if (agent) {
+                        agent->track_event("download_video", j.dump());
+                    }
+                }
+            }
+            return;
         });
         if (IsShown()) fs->Start();
     }

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-26 22:21+0800\n"
+"POT-Creation-Date: 2023-04-29 20:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril\n"
@@ -16,44 +16,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.2.2\n"
-
-msgid "Physical Printer"
-msgstr "Imprimante Physique"
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-"Le fichier CA HTTPS est facultatif. Il n'est nécessaire que si vous utilisez "
-"HTTPS avec un certificat auto-signé."
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-"Sur ce système, %s utilise les certificats HTTPS du magasin de certificats "
-"du système ou du trousseau."
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-"Pour utiliser un certificat personnalisé, veuillez importer votre fichier "
-"dans magasin de certificats / trousseau."
-
-msgid "Send to print"
-msgstr "Envoi vers l'imprimante"
-
-msgid "Upload"
-msgstr "Envoyer"
-
-msgid "Upload and Print"
-msgstr "Imprimer"
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
-"Utilisez des barres obliques ( / ) comme séparateur de répertoire si "
-"nécessaire."
 
 msgid "Supports Painting"
 msgstr "Peindre les supports"
@@ -292,8 +254,38 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "Échelle uniforme"
 
+msgid "Left click"
+msgstr ""
+
+msgid "Add connector"
+msgstr ""
+
+msgid "Right click"
+msgstr ""
+
+msgid "Remove connector"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Move connector"
+msgstr ""
+
+msgid "Add connector to selection"
+msgstr ""
+
+msgid "Remove connector from selection"
+msgstr ""
+
+msgid "Select all connectors"
+msgstr ""
+
 msgid "Cut"
 msgstr "Couper"
+
+msgid "Connector"
+msgstr ""
 
 msgid "Movement:"
 msgstr "Mouvement:"
@@ -304,11 +296,29 @@ msgstr "Mouvement"
 msgid "Height"
 msgstr "Hauteur"
 
-msgid "Keep upper part"
-msgstr "Conserver la partie supérieure"
+msgid "Edit connectors"
+msgstr ""
 
-msgid "Keep lower part"
-msgstr "Conserver la partie inférieure"
+msgid "Add connectors"
+msgstr ""
+
+msgid "Upper part"
+msgstr ""
+
+msgid "Lower part"
+msgstr ""
+
+msgid "Keep"
+msgstr ""
+
+msgid "Place on cut"
+msgstr ""
+
+msgid "Flip"
+msgstr ""
+
+msgid "After cut"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "Couper en pièces"
@@ -321,6 +331,77 @@ msgstr "Couper"
 
 msgid "Reset"
 msgstr "Réinitialiser"
+
+msgid "Connectors"
+msgstr ""
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Style"
+msgstr "Style & Forme"
+
+msgid "Shape"
+msgstr "Forme"
+
+msgid "Depth ratio"
+msgstr ""
+
+msgid "Remove connectors"
+msgstr ""
+
+msgid "Prizm"
+msgstr ""
+
+msgid "Frustum"
+msgstr ""
+
+msgid "Square"
+msgstr ""
+
+msgid "Hexagon"
+msgstr ""
+
+msgid "Confirm connectors"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Warning"
+msgstr "Avertissement"
+
+msgid "Invalid connectors detected"
+msgstr ""
+
+msgid "connector is out of cut contour"
+msgstr ""
+
+msgid "connectors are out of cut contour"
+msgstr ""
+
+msgid "connector is out of object"
+msgstr ""
+
+msgid "connectors is out of object"
+msgstr ""
+
+msgid "Some connectors are overlapped"
+msgstr ""
+
+msgid ""
+"Invalid state. \n"
+"No one part is selected for keep after cut"
+msgstr ""
+
+msgid "Plug"
+msgstr ""
+
+msgid "Dowel"
+msgstr ""
+
+msgid "Tolerance"
+msgstr ""
 
 msgid "Mesh name"
 msgstr "Nom du maillage"
@@ -381,9 +462,6 @@ msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
 msgstr "Ne peut pas s'appliquer lors de l'aperçu du processus."
-
-msgid "Cancel"
-msgstr "Annuler"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Opération déjà annulée. Veuillez patienter quelques secondes."
@@ -452,11 +530,11 @@ msgstr "Surface"
 msgid "Horizontal text"
 msgstr "Texte horizontal"
 
+msgid "Ctrl+"
+msgstr ""
+
 msgid "Notice"
 msgstr "Remarque"
-
-msgid "Warning"
-msgstr "Avertissement"
 
 msgid "Undefined"
 msgstr "Non défini"
@@ -751,6 +829,9 @@ msgstr "Masquer"
 msgid "Show"
 msgstr "Afficher"
 
+msgid "Del"
+msgstr ""
+
 msgid "Delete the selected object"
 msgstr "Supprimer l'objet sélectionné"
 
@@ -780,6 +861,9 @@ msgstr "Cylindre"
 
 msgid "Cone"
 msgstr "Cône"
+
+msgid "Height range Modifier"
+msgstr ""
 
 msgid "Add settings"
 msgstr "Ajouter des paramètres"
@@ -899,6 +983,9 @@ msgstr "Miroir"
 msgid "Mirror object"
 msgstr "Objet miroir"
 
+msgid "Invalidate cut info"
+msgstr ""
+
 msgid "Add Primitive"
 msgstr "Ajouter une primitive"
 
@@ -959,6 +1046,9 @@ msgstr "Rotation automatique"
 
 msgid "auto rotate current plate"
 msgstr "rotation automatique du plateau actuel"
+
+msgid "Delete Plate"
+msgstr ""
 
 msgid "Remove the selected plate"
 msgstr "Supprimer le plateau sélectionné"
@@ -1052,6 +1142,9 @@ msgstr "Cliquez sur l'icône pour modifier la peinture des supports de l'objet"
 msgid "Click the icon to edit color painting of the object"
 msgstr "Cliquez sur l'icône pour modifier la couleur de peinture de l'objet"
 
+msgid "Click the icon to shift this object to the bed"
+msgstr ""
+
 msgid "Loading file"
 msgstr "Chargement du fichier"
 
@@ -1076,6 +1169,31 @@ msgstr ""
 "Basculer en mode de réglage par objet pour modifier les paramètres de "
 "processus des objets sélectionnés."
 
+msgid "Delete connector from object which is a part of cut"
+msgstr ""
+
+msgid "Delete solid part from object which is a part of cut"
+msgstr ""
+
+msgid "Delete negative volume from object which is a part of cut"
+msgstr ""
+
+msgid ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
+msgstr ""
+
+msgid ""
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut infornation first."
+msgstr ""
+
+msgid "Delete all connectors"
+msgstr ""
+
 msgid "Deleting the last solid part is not allowed."
 msgstr "La suppression de la dernière partie solide n'est pas autorisée."
 
@@ -1085,6 +1203,36 @@ msgstr ""
 
 msgid "Assembly"
 msgstr "Assemblé"
+
+msgid "Cut Connectors information"
+msgstr ""
+
+msgid "Object manipulation"
+msgstr ""
+
+msgid "Group manipulation"
+msgstr ""
+
+msgid "Object Settings to modify"
+msgstr ""
+
+msgid "Part Settings to modify"
+msgstr ""
+
+msgid "Layer range Settings to modify"
+msgstr ""
+
+msgid "Part manipulation"
+msgstr ""
+
+msgid "Instance manipulation"
+msgstr ""
+
+msgid "Height ranges"
+msgstr ""
+
+msgid "Settings for height range"
+msgstr ""
 
 msgid "Object"
 msgstr "Objet"
@@ -1161,6 +1309,18 @@ msgstr "Préréglage de processus supplémentaire"
 msgid "Remove parameter"
 msgstr "Supprimer le paramètre"
 
+msgid "to"
+msgstr "à"
+
+msgid "Remove height range"
+msgstr ""
+
+msgid "Add height range"
+msgstr ""
+
+msgid "Invalid numeric."
+msgstr "Chiffre non valide."
+
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 "une cellule ne peut être copiée que dans une ou plusieurs cellules de la "
@@ -1229,6 +1389,15 @@ msgstr "Ouvrir le conseil suivant."
 msgid "Open Documentation in web browser."
 msgstr "Ouvrir la documentation dans le navigateur Web."
 
+msgid "Pause:"
+msgstr ""
+
+msgid "Custom Template:"
+msgstr ""
+
+msgid "Custom G-code:"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "G-code personnalisé"
 
@@ -1239,6 +1408,9 @@ msgstr ""
 msgid "OK"
 msgstr "OK"
 
+msgid "Jump to Layer"
+msgstr "Aller à la couche"
+
 msgid "Jump to layer"
 msgstr "Aller à la couche"
 
@@ -1248,23 +1420,41 @@ msgstr "Veuillez entrer le numéro de couche"
 msgid "Add Pause"
 msgstr "Ajouter une pause"
 
+msgid "Insert a pause command at the beginning of this layer."
+msgstr ""
+
 msgid "Add Custom G-code"
 msgstr "Ajouter une commande personnalisée"
+
+msgid "Insert custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Add Custom Template"
 msgstr "Ajouter un G-code personnalisé"
 
-msgid "Jump to Layer"
-msgstr "Aller à la couche"
+msgid "Insert template custom G-code at the beginning of this layer."
+msgstr ""
 
 msgid "Filament "
 msgstr "Filament "
 
-msgid "Start"
-msgstr "Démarrer"
+msgid "Change filament at the beginning of this layer."
+msgstr ""
 
-msgid "G-code"
-msgstr "G-code"
+msgid "Delete Pause"
+msgstr ""
+
+msgid "Delete Custom Template"
+msgstr ""
+
+msgid "Edit Custom G-code"
+msgstr ""
+
+msgid "Delete Custom G-code"
+msgstr ""
+
+msgid "Delete Filament Change"
+msgstr ""
 
 msgid "No printer"
 msgstr "Aucun appareil"
@@ -1280,6 +1470,9 @@ msgstr "Vide"
 
 msgid "AMS"
 msgstr "AMS"
+
+msgid "Ams filament backup"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS non connecté"
@@ -1538,11 +1731,6 @@ msgstr "Une carte SD doit être insérée avant l'envoi à l'imprimante."
 msgid "Please log out and login to the printer again."
 msgstr "Veuillez vous déconnecter et vous reconnecter à l'imprimante."
 
-msgid "Failed uploading print file. Please enter ip address again."
-msgstr ""
-"Échec du téléchargement du fichier d’impression. Veuillez saisir à nouveau "
-"l’adresse IP."
-
 msgid "Choose SLA archive:"
 msgstr "Choisissez l’archive SLA :"
 
@@ -1728,6 +1916,9 @@ msgstr ""
 "La configuration des informations d’emplacement virtuel pendant l’impression "
 "n’est pas prise en charge"
 
+msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Veuillez entrer une valeur valide (K dans la plage 0~0.5)"
 
@@ -1735,6 +1926,12 @@ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr ""
 "Veuillez entrer une valeur valide (K dans la plage 0~0.5, N dans la plage "
 "0.6~2.0)"
+
+msgid "You need to select the material type and color first."
+msgstr ""
+
+msgid "Other color"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Calibration dynamique du débit"
@@ -1898,6 +2095,12 @@ msgstr "Imprimer avec les filaments dans l'AMS"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Imprimer avec le filament placé à l'arrière du châssis"
 
+msgid "Filaments replace"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
 msgid "AMS Settings"
 msgstr "Paramètres de l’AMS"
 
@@ -1960,8 +2163,8 @@ msgstr ""
 "des informations sur le filament. Pendant l'impression, la capacité restante "
 "sera mise à jour automatiquement."
 
-msgid "AMS auto switch filament"
-msgstr "Bascule automatique de bobine"
+msgid "AMS filament backup"
+msgstr ""
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -2104,9 +2307,6 @@ msgstr "Circulaire"
 
 msgid "Custom"
 msgstr "Personnalisée"
-
-msgid "Shape"
-msgstr "Forme"
 
 msgid "Load shape from STL..."
 msgstr "Charger la forme depuis un STL..."
@@ -2256,7 +2456,7 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional"
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
 "Le mode vase ne fonctionne que lorsque le nombre de paroi est définie à 1, "
 "le nombre de couches supérieures à 0, la densité de remplissage à 0%, les "
@@ -2270,20 +2470,6 @@ msgstr ""
 "Modifier ces paramètres automatiquement ?\n"
 "Oui - Modifier ces paramètres et activer automatiquement le mode vase\n"
 "Non - Abandonner l'utilisation du mode vase"
-
-msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
-msgstr ""
-"Le moteur Arachne ne fonctionne pas avec le mode de vitesse classique du "
-"surplomb.\n"
-
-msgid ""
-"Turn off classic mode automatically? \n"
-"Yes - Enable arachne with classic mode off\n"
-"No  - Give up using arachne this time"
-msgstr ""
-"Désactiver le mode classique automatiquement ?\n"
-"Oui - Activer arachne avec le mode classique désactivé\n"
-"Non - Renoncer à utiliser arachne cette fois-ci"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2458,9 +2644,6 @@ msgstr "nom du paramètre"
 msgid "N/A"
 msgstr "N/A"
 
-msgid "Invalid numeric."
-msgstr "Chiffre non valide."
-
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s ne peut pas être un pourcentage"
@@ -2569,9 +2752,6 @@ msgstr "au dessus"
 
 msgid "from"
 msgstr "de"
-
-msgid "to"
-msgstr "à"
 
 msgid "Color Scheme"
 msgstr "Schéma de couleur"
@@ -2729,6 +2909,9 @@ msgstr "Objet miroir"
 msgid "Tool Move"
 msgstr "Déplacements de l'outil"
 
+msgid "Tool Rotate"
+msgstr ""
+
 msgid "Move Object"
 msgstr "Déplacer l'objet"
 
@@ -2795,10 +2978,6 @@ msgstr "retour"
 msgid "Paint Toolbar"
 msgstr "Barre d'outils de peinture"
 
-#, boost-format
-msgid "Shortcut key %1%"
-msgstr "Touche de raccourci %1%"
-
 msgid "Explosion Ratio"
 msgstr "Ratio d'explosion"
 
@@ -2820,6 +2999,12 @@ msgstr "Volume :"
 msgid "Size:"
 msgstr "Taille :"
 
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"separate the conflicted objects farther (%s <-> %s)."
+msgstr ""
+
 msgid "An object is layed over the boundary of plate."
 msgstr "Un objet est posé sur la limite du plateau."
 
@@ -2838,6 +3023,12 @@ msgstr ""
 "Veuillez résoudre le problème en le déplaçant totalement sur ou en dehors du "
 "plateau et en vous assurant que la hauteur ne dépasse pas le volume "
 "d’impression."
+
+msgid "Jump to"
+msgstr "Sélectionner"
+
+msgid "ERROR:"
+msgstr ""
 
 msgid "Calibration step selection"
 msgstr "Sélection des étapes de calibration"
@@ -3068,6 +3259,9 @@ msgstr "Enregistrer le projet actuel vers un fichier"
 
 msgid "Save Project as"
 msgstr "Enregistrer le projet sous"
+
+msgid "Shift+"
+msgstr ""
 
 msgid "Save current project as"
 msgstr "Enregistrer le projet actuel sous"
@@ -3501,6 +3695,13 @@ msgid "Missing LAN ip of printer!"
 msgstr "IP LAN de l'imprimante manquante !"
 
 #, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr ""
+
+msgid "Delete files"
+msgstr ""
+
+#, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Le fichier ‘%s' a été perdu ! Veuillez le télécharger à nouveau."
 
@@ -3562,8 +3763,8 @@ msgstr "Arrêter"
 msgid "0"
 msgstr "0"
 
-msgid "Layers: N/A"
-msgstr "Couches: N/A"
+msgid "Layer: N/A"
+msgstr ""
 
 msgid "Clear"
 msgstr "Effacer"
@@ -3634,12 +3835,16 @@ msgid "Cloud Slicing..."
 msgstr "Découpe via le Cloud…"
 
 #, c-format, boost-format
-msgid "Layers: %s"
-msgstr "Couches: %s"
+msgid "In Cloud Slicing Queue, there are %s tasks ahead."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Layers: %d/%d"
-msgstr "Couches: %d/%d"
+msgid "Layer: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layer: %d/%d"
+msgstr ""
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
@@ -3650,9 +3855,6 @@ msgstr "Toujours en train de décharger"
 
 msgid "Still load"
 msgstr "Toujours en train de charger"
-
-msgid "AMS settings are not supported for external spool"
-msgstr "Les paramètres AMS ne sont pas pris en charge pour la bobine externe"
 
 msgid "Please select an AMS slot before calibration"
 msgstr ""
@@ -3786,6 +3988,12 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "L’objet %1$d est peint en couleur."
 msgstr[1] "Les objets %1$d sont peints en couleur."
 
+#, c-format, boost-format
+msgid "%1$d object was loaded as a part of cut object."
+msgid_plural "%1$d objects were loaded as parts of cut object"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "ERROR"
 msgstr "ERREUR"
 
@@ -3800,9 +4008,6 @@ msgstr "Annuler le téléchargement"
 
 msgid "Slice ok."
 msgstr "Découpage terminé."
-
-msgid "Jump to"
-msgstr "Sélectionner"
 
 msgid "Error:"
 msgstr "Erreur:"
@@ -3833,6 +4038,9 @@ msgstr "Peindre les supports"
 
 msgid "Color painting"
 msgstr "Peindre"
+
+msgid "Cut connectors"
+msgstr ""
 
 msgid "Layers"
 msgstr "Couches"
@@ -4175,6 +4383,15 @@ msgstr "Fichier STL exporté :"
 msgid "Save file as:"
 msgstr "Enregistrer le fichier sous :"
 
+msgid "Delete object which is a part of cut object"
+msgstr ""
+
+msgid ""
+"You try to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed."
+msgstr ""
+
 msgid "The selected object couldn't be split."
 msgstr "L'objet sélectionné n'a pas pu être divisé."
 
@@ -4308,6 +4525,9 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "Le projet en cours comporte des modifications non enregistrées, voulez-vous "
 "les enregistrer avant de continuer ?"
+
+msgid "Remember my choice."
+msgstr ""
 
 msgid "Number of copies:"
 msgstr "Nombre de copies :"
@@ -4465,6 +4685,14 @@ msgstr "Impérial"
 msgid "Units"
 msgstr "Unités"
 
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Afficher la notification \"Astuce du jour\" au démarrage"
 
@@ -4477,8 +4705,8 @@ msgstr "Afficher la fenêtre G-code"
 msgid "If enabled, g-code window will be displayed."
 msgstr "Si activé, la fenêtre avec les commandes G-code sera affichée."
 
-msgid "User sync"
-msgstr "Synchronisation utilisateur"
+msgid "Presets"
+msgstr ""
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -4487,6 +4715,15 @@ msgstr ""
 
 msgid "User Sync"
 msgstr "Synchronisation utilisateur"
+
+msgid "Update built-in Presets automatically."
+msgstr ""
+
+msgid "System Sync"
+msgstr ""
+
+msgid "Clear my choice on the unsaved presets."
+msgstr ""
 
 msgid "Associate files to OrcaSlicer"
 msgstr "Associer des fichiers à Orca Slicer"
@@ -4515,14 +4752,27 @@ msgstr ""
 "Si activé, définit Orca Slicer comme application par défaut pour ouvrir les "
 "fichiers .step/.stp"
 
-msgid "Backup"
-msgstr "Sauvegarde"
+msgid "Maximum recent projects"
+msgstr ""
+
+msgid "Maximum count of recent projects"
+msgstr ""
+
+msgid "Clear my choice on the unsaved projects."
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "Sauvegarde automatique"
 
-msgid "Backup interval"
-msgstr "Intervalle de"
+msgid ""
+"Backup your project periodically for restoring from the occasional crash."
+msgstr ""
+
+msgid "every"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
 
 msgid "Downloads"
 msgstr "Téléchargements"
@@ -4541,6 +4791,9 @@ msgstr "Afficher la page d'accueil au démarrage"
 
 msgid "Sync settings"
 msgstr "Paramètres de synchronisation"
+
+msgid "User sync"
+msgstr "Synchronisation utilisateur"
 
 msgid "Preset sync"
 msgstr "Synchronisation des préréglages"
@@ -4634,6 +4887,9 @@ msgstr "Filaments AMS"
 
 msgid "Click to pick filament color"
 msgstr "Cliquez pour choisir la couleur du filament"
+
+msgid "Please choose the filament colour"
+msgstr ""
 
 msgid "Add/Remove presets"
 msgstr "Ajouter/Supprimer des préréglages"
@@ -4959,25 +5215,21 @@ msgstr ""
 msgid "Errors"
 msgstr "Erreurs"
 
-msgid ""
-"Please check the following infomation and click Confirm to continue sending "
-"print:"
+msgid "Please check the following:"
 msgstr ""
-"Veuillez vérifier les informations suivantes et cliquez sur Confirmer pour "
-"continuer à envoyer l'impression :"
 
 msgid ""
-"The printer type used to generate G-code is not the same type as the "
-"currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type."
+"The printer type selected when generating G-Code is not consistent with the "
+"currently selected printer. It is recommended that you use the same printer "
+"type for slicing."
 msgstr ""
 "Le type d'imprimante utilisé pour générer le G-code n'est pas le même que "
 "l'imprimante physique actuellement sélectionnée. Il est recommandé de "
 "redécouper en sélectionnant le même type d'imprimante."
 
 #, c-format, boost-format
-msgid "The %s filament is too soft to be used with the AMS"
-msgstr "Le filament %s est trop mou pour être utilisé avec l'AMS"
+msgid "%s is not supported by AMS."
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4987,6 +5239,10 @@ msgstr ""
 "Il y a des filaments inconnus dans les affectations de l'AMS. Veuillez "
 "vérifier s'il s'agit des filaments requis. S'ils sont corrects, appuyez sur "
 "\"Confirmer\" pour lancer l'impression."
+
+msgid ""
+"Please click the confirm button if you still want to proceed with printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "Préparation de la tâche d'impression"
@@ -5110,7 +5366,8 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern."
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 msgstr ""
 "Lorsque vous utilisez du filament pour supports, nous vous recommandons les "
 "paramètres suivants :\n"
@@ -5193,6 +5450,9 @@ msgstr "G-code"
 
 msgid "Post-processing Scripts"
 msgstr "Scripts de post-traitement"
+
+msgid "Post-processing scripts"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Fréquent"
@@ -5548,13 +5808,6 @@ msgstr "Général"
 msgid "Capabilities"
 msgstr "Capacités"
 
-msgid ""
-"The P1P printer does not support smooth timelapse, use traditional timelapse "
-"instead."
-msgstr ""
-"L'imprimante P1P ne prend pas en charge le Timelapse fluide, utilisez plutôt "
-"le Timelapse traditionnel."
-
 msgid "Select presets to compare"
 msgstr "Sélectionnez les préréglages à comparer"
 
@@ -5697,6 +5950,12 @@ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 "Importer des données de géométrie à partir de fichiers STL/STEP/3MF/OBJ/AMF."
 
+msgid "⌘+Shift+G"
+msgstr ""
+
+msgid "Ctrl+Shift+G"
+msgstr ""
+
 msgid "Copy to clipboard"
 msgstr "Copier dans le presse-papier"
 
@@ -5726,6 +5985,12 @@ msgstr "Molette de la souris"
 msgid "Zoom View"
 msgstr "Vue zoomée"
 
+msgid "Shift+A"
+msgstr ""
+
+msgid "Shift+R"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -5734,6 +5999,9 @@ msgstr ""
 "Oriente automatiquement les objets sélectionnés ou tous les objets. S'il y a "
 "des objets sélectionnés, il oriente uniquement ceux qui sont sélectionnés. "
 "Sinon, il oriente tous les objets du disque actuel."
+
+msgid "Shift+Tab"
+msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Réduire/Agrandir la barre latérale"
@@ -5800,6 +6068,9 @@ msgstr "Maj + N'importe quelle flèche"
 
 msgid "Movement step set to 1 mm"
 msgstr "Pas de mouvement réglé sur 1 mm"
+
+msgid "Esc"
+msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "clavier 1-9 : définir le filament pour objet/pièce"
@@ -6847,8 +7118,8 @@ msgid "Brim type"
 msgstr "Type de bordure"
 
 msgid ""
-"This controls the generation of the brim at outer side of models. Auto means "
-"the brim width is analysed and calculated automatically."
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 "Cela contrôle la génération de la bordure sur le côté extérieur des modèles. "
 "Automatique signifie que la largeur de la bordure est analysée et calculée "
@@ -7316,9 +7587,6 @@ msgstr "Densité du filament. Pour les statistiques uniquement"
 msgid "g/cm³"
 msgstr "g/cm³"
 
-msgid "Type"
-msgstr "Type"
-
 msgid "The material type of filament"
 msgstr "Type de matériau du filament"
 
@@ -7564,6 +7832,12 @@ msgstr ""
 
 msgid "None"
 msgstr "Aucun"
+
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
 
 msgid "All walls"
 msgstr "Toutes les parois"
@@ -8500,8 +8774,8 @@ msgstr "Distance Z inférieure"
 msgid "The z gap between the bottom support interface and object"
 msgstr "Distance Z entre l'interface de support inférieure et l'objet"
 
-msgid "Support base"
-msgstr "Base & Radeau des supports"
+msgid "Support/raft base"
+msgstr ""
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -8522,6 +8796,9 @@ msgid ""
 msgstr ""
 "Couvrir la couche de contact supérieure des supports avec des boucles. "
 "Désactivé par défaut."
+
+msgid "Support/raft interface"
+msgstr ""
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -8583,6 +8860,9 @@ msgstr ""
 "interfaces de support non solubles est Rectiligne, tandis que le modèle par "
 "défaut pour les interfaces de support solubles est Concentrique"
 
+msgid "Rectilinear Interlaced"
+msgstr ""
+
 msgid "Base pattern spacing"
 msgstr "Espacement du motif de la base"
 
@@ -8597,9 +8877,6 @@ msgstr "Agrandir (+) ou réduire (-) la portée horizontale des supports normaux
 
 msgid "Speed of support"
 msgstr "Vitesse des supports"
-
-msgid "Style"
-msgstr "Style & Forme"
 
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
@@ -8638,7 +8915,8 @@ msgstr "Hauteur de la couche indépendante des supports"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time."
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
 msgstr ""
 "La couche de support utilise une hauteur de couche indépendante de la couche "
 "d'objet. Cela permet de prendre en charge la personnalisation de l’espace Z "
@@ -8822,7 +9100,9 @@ msgstr ""
 "la rétraction"
 
 msgid ""
-"Print a tower to prime material in nozzle after switching to a new material."
+"The wiping tower can be used to clean up the residue on the nozzle and "
+"stabilize the chamber pressure inside the nozzle, in order to avoid "
+"appearance defects when printing objects."
 msgstr ""
 "Imprimer une tour pour amorcer le matériau dans la buse après avoir basculé "
 "vers un nouveau matériau."
@@ -9106,6 +9386,30 @@ msgstr "À jour"
 msgid "Update the configs values of 3mf to latest."
 msgstr "Mettre à jour les dernières valeurs de configuration de 3mf."
 
+msgid "mtcpp"
+msgstr ""
+
+msgid "max triangle count per plate for slicing."
+msgstr ""
+
+msgid "mstpp"
+msgstr ""
+
+msgid "max slicing time per plate in seconds."
+msgstr ""
+
+msgid "No check"
+msgstr ""
+
+msgid "Do not run any validity checks, such as gcode path conflicts check."
+msgstr ""
+
+msgid "Normative check"
+msgstr ""
+
+msgid "Check the normative items."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Informations sur le modèle de sortie"
 
@@ -9156,6 +9460,12 @@ msgid "Load filament settings from the specified file list"
 msgstr ""
 "Charger les paramètres de filament à partir de la liste de fichiers spécifiée"
 
+msgid "Skip Objects"
+msgstr ""
+
+msgid "Skip some objects in this print"
+msgstr ""
+
 msgid "Data directory"
 msgstr "Répertoire de données"
 
@@ -9205,20 +9515,22 @@ msgstr "Génération des supports"
 msgid "Checking support necessity"
 msgstr "Vérification de la nécessité de supports"
 
-#, c-format, boost-format
-msgid ""
-"It seems object %s has completely floating regions. Please re-orient the "
-"object or enable support generation."
+msgid "floating regions"
 msgstr ""
-"Il semblerait que l'objet %s ait des régions complètement flottantes. "
-"Veuillez réorienter l'objet ou activer la génération de supports."
+
+msgid "floating cantilever"
+msgstr ""
+
+msgid "large overhangs"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s has large overhangs. Please enable support generation."
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 msgstr ""
-"Il semblerait que l'objet %s ait de grands surplombs. Veuillez activer la "
-"génération de supports."
+"Il semblerait que l'objet %s a %s. Veuillez activer la génération de "
+"supports."
 
 msgid "Optimizing toolpath"
 msgstr "Optimisation du parcours"
@@ -9679,3 +9991,189 @@ msgstr ""
 "Améliorer la résistance\n"
 "Saviez-vous que vous pouvez utiliser plus de parois et une densité de "
 "remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#~ msgid "Physical Printer"
+#~ msgstr "Imprimante Physique"
+
+#~ msgid ""
+#~ "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+#~ "signed certificate."
+#~ msgstr ""
+#~ "Le fichier CA HTTPS est facultatif. Il n'est nécessaire que si vous "
+#~ "utilisez HTTPS avec un certificat auto-signé."
+
+#~ msgid ""
+#~ "On this system, %s uses HTTPS certificates from the system Certificate "
+#~ "Store or Keychain."
+#~ msgstr ""
+#~ "Sur ce système, %s utilise les certificats HTTPS du magasin de "
+#~ "certificats du système ou du trousseau."
+
+#~ msgid ""
+#~ "To use a custom CA file, please import your CA file into Certificate "
+#~ "Store / Keychain."
+#~ msgstr ""
+#~ "Pour utiliser un certificat personnalisé, veuillez importer votre fichier "
+#~ "dans magasin de certificats / trousseau."
+
+#~ msgid "Send to print"
+#~ msgstr "Envoi vers l'imprimante"
+
+#~ msgid "Upload"
+#~ msgstr "Envoyer"
+
+#~ msgid "Upload and Print"
+#~ msgstr "Imprimer"
+
+#~ msgid "Use forward slashes ( / ) as a directory separator if needed."
+#~ msgstr ""
+#~ "Utilisez des barres obliques ( / ) comme séparateur de répertoire si "
+#~ "nécessaire."
+
+#~ msgid "Start"
+#~ msgstr "Démarrer"
+
+#~ msgid "G-code"
+#~ msgstr "G-code"
+
+#~ msgid "Failed uploading print file. Please enter ip address again."
+#~ msgstr ""
+#~ "Échec du téléchargement du fichier d’impression. Veuillez saisir à "
+#~ "nouveau l’adresse IP."
+
+#~ msgid "AMS auto switch filament"
+#~ msgstr "Bascule automatique de bobine"
+
+#~ msgid "Arachne engine doesn't work with classic overhang speed mode.\n"
+#~ msgstr ""
+#~ "Le moteur Arachne ne fonctionne pas avec le mode de vitesse classique du "
+#~ "surplomb.\n"
+
+#~ msgid ""
+#~ "Turn off classic mode automatically? \n"
+#~ "Yes - Enable arachne with classic mode off\n"
+#~ "No  - Give up using arachne this time"
+#~ msgstr ""
+#~ "Désactiver le mode classique automatiquement ?\n"
+#~ "Oui - Activer arachne avec le mode classique désactivé\n"
+#~ "Non - Renoncer à utiliser arachne cette fois-ci"
+
+#, boost-format
+#~ msgid "Shortcut key %1%"
+#~ msgstr "Touche de raccourci %1%"
+
+#~ msgid "AMS settings are not supported for external spool"
+#~ msgstr ""
+#~ "Les paramètres AMS ne sont pas pris en charge pour la bobine externe"
+
+#~ msgid "Backup interval"
+#~ msgstr "Intervalle de"
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:"
+#~ msgstr ""
+#~ "Veuillez vérifier les informations suivantes et cliquez sur Confirmer "
+#~ "pour continuer à envoyer l'impression :"
+
+#~ msgid "Support base"
+#~ msgstr "Base & Radeau des supports"
+
+#~ msgid "Keep upper part"
+#~ msgstr "Conserver la partie supérieure"
+
+#~ msgid "Keep lower part"
+#~ msgstr "Conserver la partie inférieure"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional"
+#~ msgstr ""
+#~ "Le mode vase ne fonctionne que lorsque le nombre de paroi est définie à "
+#~ "1, le nombre de couches supérieures à 0, la densité de remplissage à 0%, "
+#~ "les supports désactivés et le type de timelapse sur Traditionnel"
+
+#~ msgid "Layers: N/A"
+#~ msgstr "Couches: N/A"
+
+#, c-format, boost-format
+#~ msgid "Layers: %s"
+#~ msgstr "Couches: %s"
+
+#, c-format, boost-format
+#~ msgid "Layers: %d/%d"
+#~ msgstr "Couches: %d/%d"
+
+#~ msgid "Backup"
+#~ msgstr "Sauvegarde"
+
+#~ msgid ""
+#~ "The printer type used to generate G-code is not the same type as the "
+#~ "currently selected physical printer. It is recommend to re-slice by "
+#~ "selecting the same printer type."
+#~ msgstr ""
+#~ "Le type d'imprimante utilisé pour générer le G-code n'est pas le même que "
+#~ "l'imprimante physique actuellement sélectionnée. Il est recommandé de "
+#~ "redécouper en sélectionnant le même type d'imprimante."
+
+#, c-format, boost-format
+#~ msgid "The %s filament is too soft to be used with the AMS"
+#~ msgstr "Le filament %s est trop mou pour être utilisé avec l'AMS"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, concentric pattern."
+#~ msgstr ""
+#~ "Lorsque vous utilisez du filament pour supports, nous vous recommandons "
+#~ "les paramètres suivants :\n"
+#~ "\n"
+#~ "Distance Z supérieure : 0\n"
+#~ "Espacement de l'interface supérieure : 0\n"
+#~ "Motif d’interface : Concentrique."
+
+#~ msgid ""
+#~ "The P1P printer does not support smooth timelapse, use traditional "
+#~ "timelapse instead."
+#~ msgstr ""
+#~ "L'imprimante P1P ne prend pas en charge le Timelapse fluide, utilisez "
+#~ "plutôt le Timelapse traditionnel."
+
+#~ msgid ""
+#~ "This controls the generation of the brim at outer side of models. Auto "
+#~ "means the brim width is analysed and calculated automatically."
+#~ msgstr ""
+#~ "Cela contrôle la génération de la bordure sur le côté extérieur des "
+#~ "modèles. Automatique signifie que la largeur de la bordure est analysée "
+#~ "et calculée automatiquement."
+
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support customizing z-gap and save print time."
+#~ msgstr ""
+#~ "La couche de support utilise une hauteur de couche indépendante de la "
+#~ "couche d'objet. Cela permet de prendre en charge la personnalisation de "
+#~ "l’espace Z et de gagner sur la durée d'impression."
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "Imprimer une tour pour amorcer le matériau dans la buse après avoir "
+#~ "basculé vers un nouveau matériau."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has completely floating regions. Please re-orient the "
+#~ "object or enable support generation."
+#~ msgstr ""
+#~ "Il semblerait que l'objet %s ait des régions complètement flottantes. "
+#~ "Veuillez réorienter l'objet ou activer la génération de supports."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s has large overhangs. Please enable support generation."
+#~ msgstr ""
+#~ "Il semblerait que l'objet %s ait de grands surplombs. Veuillez activer la "
+#~ "génération de supports."

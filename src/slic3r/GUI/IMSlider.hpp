@@ -51,7 +51,6 @@ enum LabelType
     ltEstimatedTime,
 };
 
-
 class IMSlider
 {
 public:
@@ -129,20 +128,26 @@ public:
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
     void on_change_color_mode(bool is_dark);
+    void set_menu_enable(bool enable = true) { m_menu_enable = enable; }
 
 protected:
     void add_custom_gcode(std::string custom_gcode);
     void add_code_as_tick(Type type, int selected_extruder = -1);
-    void do_go_to_layer(size_t layer_number);
+    void delete_tick(const TickCode& tick);
+    void do_go_to_layer(size_t layer_number); //menu
     void correct_lower_value();
     void correct_higher_value();
     bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, const ImVec2& size, float scale = 1.0);
-    void render_go_to_layer_dialog();
-    void render_input_custom_gcode();
+    void render_go_to_layer_dialog(); //menu
+    void render_input_custom_gcode(std::string custom_gcode = ""); //menu
     void render_menu();
+    void render_add_menu(); //menu
+    void render_edit_menu(const TickCode& tick); //menu
     void draw_background_and_groove(const ImRect& bg_rect, const ImRect& groove);
     void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
     void draw_ticks(const ImRect& slideable_region);
+    void show_tooltip(const TickCode& tick); //menu
+    void show_tooltip(const std::string tooltip); //menu
     bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
         std::string& higher_label, std::string& lower_label,
         int v_min, int v_max, const ImVec2& size,
@@ -175,21 +180,14 @@ private:
     bool m_render_as_disabled{ false };
 
     SelectedSlider m_selection;
-    bool m_is_left_down       = false;
-    bool m_is_right_down      = false;
     bool m_is_one_layer       = false;
-    bool m_is_focused         = false;
-    bool m_show_menu         = false;
-    bool m_show_custom_gcode_window = false;
-    bool m_show_go_to_layer_dialog = false;
+    bool m_menu_enable        = true; //menu
+    bool m_show_menu          = false; //menu
+    bool m_show_custom_gcode_window = false; //menu
+    bool m_show_go_to_layer_dialog = false; //menu
     bool m_force_mode_apply   = true;
-    bool m_enable_action_icon = true;
-    bool m_enable_cog_icon    = false;
     bool m_is_wipe_tower      = false; // This flag indicates that there is multiple extruder print with wipe tower
     bool m_is_spiral_vase     = false;
-    bool m_display_lower      = true;
-    bool m_display_higher     = true;
-    int  m_selected_tick_value = -1;
 
     /* BBS slider images */
     void *m_one_layer_on_id;
@@ -205,6 +203,7 @@ private:
     void* m_one_layer_off_dark_id;
     void* m_one_layer_off_hover_dark_id;
     void *m_pause_icon_id;
+    void *m_custom_icon_id;
     void *m_delete_icon_id;
 
     DrawMode            m_draw_mode = dmRegular;
@@ -228,8 +227,8 @@ private:
 
     std::vector<double> m_alternate_values;
 
-    char m_custom_gcode[1024] = { 0 };
-    char m_layer_number[64] = { 0 };
+    char m_custom_gcode[1024] = { 0 }; //menu
+    char m_layer_number[64] = { 0 }; //menu
 };
 
 }

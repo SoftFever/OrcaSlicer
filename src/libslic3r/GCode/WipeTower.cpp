@@ -30,6 +30,35 @@ inline float align_floor(float value, float base)
     return std::floor((value) / base) * base;
 }
 
+static bool is_valid_gcode(const std::string &gcode)
+{
+    int  str_size    = gcode.size();
+    int  start_index = 0;
+    int  end_index   = 0;
+    bool is_valid    = false;
+    while (end_index < str_size) {
+        if (gcode[end_index] != '\n') {
+            end_index++;
+            continue;
+        }
+
+        if (end_index > start_index) {
+            std::string line_str = gcode.substr(start_index, end_index - start_index);
+            line_str.erase(0, line_str.find_first_not_of(" "));
+            line_str.erase(line_str.find_last_not_of(" ") + 1);
+            if (!line_str.empty() && line_str[0] != ';') {
+                is_valid = true;
+                break;
+            }
+        }
+
+        start_index = end_index + 1;
+        end_index   = start_index;
+    }
+
+    return is_valid;
+}
+
 class WipeTowerWriter
 {
 public:
@@ -1089,7 +1118,8 @@ void WipeTower::toolchange_Wipe(
 
         x_to_wipe -= (xr - xl);
 		if (x_to_wipe < WT_EPSILON) {
-            writer.travel(m_left_to_right ? xl + 1.5f*m_perimeter_width : xr - 1.5f*m_perimeter_width, writer.y(), 7200);
+            // BBS: Delete some unnecessary travel
+            //writer.travel(m_left_to_right ? xl + 1.5f*m_perimeter_width : xr - 1.5f*m_perimeter_width, writer.y(), 7200);
 			break;
 		}
 		// stepping to the next line:
@@ -1101,9 +1131,12 @@ void WipeTower::toolchange_Wipe(
 
     // We may be going back to the model - wipe the nozzle. If this is followed
     // by finish_layer, this wipe path will be overwritten.
+    //writer.add_wipe_point(writer.x(), writer.y())
+    //      .add_wipe_point(writer.x(), writer.y() - dy)
+    //      .add_wipe_point(! m_left_to_right ? m_wipe_tower_width : 0.f, writer.y() - dy);
+    // BBS: modify the wipe_path after toolchange 
     writer.add_wipe_point(writer.x(), writer.y())
-          .add_wipe_point(writer.x(), writer.y() - dy)
-          .add_wipe_point(! m_left_to_right ? m_wipe_tower_width : 0.f, writer.y() - dy);
+          .add_wipe_point(! m_left_to_right ? m_wipe_tower_width : 0.f, writer.y());
 
     if (m_layer_info != m_plan.end() && m_current_tool != m_layer_info->tool_changes.back().new_tool)
         m_left_to_right = !m_left_to_right;
@@ -1171,13 +1204,15 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
         writer.rectangle_fill_box(this, fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
 
     // we are in one of the corners, travel to ld along the perimeter:
-    if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
-    if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
+    // BBS: Delete some unnecessary travel
+    //if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
+    //if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
 
     // Extrude infill to support the material to be printed above.
     const float dy = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
     float left = fill_box.lu.x() + 2*m_perimeter_width;
     float right = fill_box.ru.x() - 2 * m_perimeter_width;
+    std::vector<Vec2f> finish_rect_wipe_path;
     if (extruder_fill && dy > m_perimeter_width)
     {
         writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
@@ -1225,6 +1260,9 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
                 writer.travel(x,writer.y());
                 writer.extrude(x,i%2 ? fill_box.rd.y() : fill_box.ru.y());
             }
+            // BBS: add wipe_path for this case: only with finish rectangle
+            finish_rect_wipe_path.emplace_back(writer.pos());
+            finish_rect_wipe_path.emplace_back(Vec2f(left + dx * n, n % 2 ? fill_box.ru.y() : fill_box.rd.y()));
         }
 
         writer.append("; CP EMPTY GRID END\n"
@@ -1278,6 +1316,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
                    (writer.pos() == wt_box.rd ? wt_box.ru :
                    (writer.pos() == wt_box.ru ? wt_box.lu :
                     wt_box.ld)));
+
+    // BBS: add wipe_path for this case: only with finish rectangle
+    if (finish_rect_wipe_path.size() == 2 && finish_rect_wipe_path[0] == writer.pos())
+        target = finish_rect_wipe_path[1];
+
     writer.add_wipe_point(writer.pos())
           .add_wipe_point(target);
 
@@ -1606,7 +1649,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         else {
             if (idx == -1)
                 layer_result[0] = merge_tcr(finish_layer_tcr, layer_result[0]);
-            else
+            else if (is_valid_gcode(finish_layer_tcr.gcode))
                 layer_result[idx] = merge_tcr(layer_result[idx], finish_layer_tcr);
         }
 
@@ -1641,8 +1684,9 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
 
     // we are in one of the corners, travel to ld along the perimeter:
-    if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
-    if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
+    // BBS: Delete some unnecessary travel
+    //if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
+    //if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
 
     // outer perimeter (always):
     // BBS

@@ -39,6 +39,7 @@ struct FilamentInfo
     std::string type;
     std::string color;
     std::string filament_id;
+    std::string brand;
     float       used_m;
     float       used_g;
     int         tray_id;    // start with 0

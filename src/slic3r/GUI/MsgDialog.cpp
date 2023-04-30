@@ -74,7 +74,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     for (auto mb : m_buttons) { delete mb.second->buttondata ; delete mb.second; }
 }
 
-void MsgDialog::show_dsa_button()
+void MsgDialog::show_dsa_button(wxString const &title)
 {
     m_checkbox_dsa = new CheckBox(this);
     m_dsa_sizer->Add(m_checkbox_dsa, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
@@ -86,7 +86,7 @@ void MsgDialog::show_dsa_button()
         e.Skip();
     });
 
-    auto  m_text_dsa = new wxStaticText(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
+    auto  m_text_dsa = new wxStaticText(this, wxID_ANY, title.IsEmpty() ? _L("Don't show again") : title, wxDefaultPosition, wxDefaultSize, 0);
     m_dsa_sizer->Add(m_text_dsa, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
     m_text_dsa->SetFont(::Label::Body_13);
     m_text_dsa->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
@@ -136,7 +136,7 @@ void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool se
 
 Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
-    Button* btn = new Button(this, label);
+    Button* btn = new Button(this, label, "", 0, 0, btn_id);
     ButtonSizeType type;
 
     if (label.length() < 5) {

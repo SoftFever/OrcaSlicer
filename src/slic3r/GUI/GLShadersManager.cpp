@@ -35,6 +35,8 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
    valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
+    //used to render thumbnail
+   valid &= append_shader("thumbnail", { "thumbnail.vs", "thumbnail.fs" });
    // used to render first layer for calibration
    valid &= append_shader("cali", { "cali.vs", "cali.fs"});
     // used to render printbed
@@ -44,6 +46,7 @@ std::pair<bool, std::string> GLShadersManager::init()
         valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
+
     // used to render objects in 3d editor
     //if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0)) {
     if (0) {

@@ -36,6 +36,7 @@
 #define CLI_3MF_NEW_MACHINE_NOT_SUPPORTED       -16
 #define CLI_PROCESS_NOT_COMPATIBLE     -17
 #define CLI_INVALID_VALUES_IN_3MF      -18
+#define CLI_POSTPROCESS_NOT_SUPPORTED  -19
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -46,9 +47,12 @@
 #define CLI_IMPORT_CACHE_NOT_FOUND      -55
 #define CLI_IMPORT_CACHE_DATA_CAN_NOT_USE -56
 #define CLI_IMPORT_CACHE_LOAD_FAILED      -57
+#define CLI_SLICING_TIME_EXCEEDS_LIMIT      -58
+#define CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT    -59
+#define CLI_NO_SUITABLE_OBJECTS_AFTER_SKIP  -60
 
-
-#define CLI_SLICING_ERROR           -100
+#define CLI_SLICING_ERROR                  -100
+#define CLI_GCODE_PATH_CONFLICTS           -101
 
 
 namespace boost { namespace filesystem { class directory_entry; }}
