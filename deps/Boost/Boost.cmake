@@ -147,8 +147,8 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE OR BUILD_SHARED_LIBS)
     message(STATUS "Standard boost build with install command '${_install_cmd}'")
 ExternalProject_Add(
     dep_Boost
-   URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
-    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
+   URL "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz"
+    URL_HASH SHA256=94CED8B72956591C4775AE2207A9763D3600B30D9D7446562C552F0A14A63BE7
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
     PATCH_COMMAND ${_patch_command}
@@ -161,8 +161,8 @@ else()
 
 ExternalProject_Add(
     dep_Boost
-   URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
-    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
+   URL "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz"
+    URL_HASH SHA256=94CED8B72956591C4775AE2207A9763D3600B30D9D7446562C552F0A14A63BE7
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND ./bootstrap.sh
         --with-toolset=clang
