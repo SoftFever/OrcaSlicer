@@ -15,9 +15,13 @@
 #define DIR_SEPARATOR '/'
 #endif
 
+//Translation
+#include "I18N.hpp"
+#define _L(s) Slic3r::I18N::translate(s)
+
 namespace Slic3r {
 
-bool load_obj(const char *path, TriangleMesh *meshptr)
+bool load_obj(const char *path, TriangleMesh *meshptr, std::string &message)
 {
     if (meshptr == nullptr)
         return false;
@@ -26,6 +30,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
     ObjParser::ObjData data;
     if (! ObjParser::objparse(path, data)) {
         BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path;
+        message = _L("load_obj: failed to parse");
         return false;
     }
     
@@ -40,10 +45,12 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
             if (num_face_vertices > 4) {
                 // Non-triangular and non-quad faces are not supported as of now.
                 BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with more than 4 vertices.";
+                message = _L("The file contains polygons with more than 4 vertices.");
                 return false;
             } else if (num_face_vertices < 3) {
                 // Non-triangular and non-quad faces are not supported as of now.
                 BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with less than 2 vertices.";
+                message = _L("The file contains polygons with less than 2 vertices.");
                 return false;
             }
             if (num_face_vertices == 4)
@@ -75,6 +82,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
                     assert(cnt < 4);
                     if (vertex.coordIdx < 0 || vertex.coordIdx >= int(its.vertices.size())) {
                         BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains invalid vertex index.";
+                        message = _L("The file contains invalid vertex index.");
                         return false;
                     }
                     indices[cnt ++] = vertex.coordIdx;
@@ -91,6 +99,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
     *meshptr = TriangleMesh(std::move(its));
     if (meshptr->empty()) {
         BOOST_LOG_TRIVIAL(error) << "load_obj: This OBJ file couldn't be read because it's empty. " << path;
+        message = _L("This OBJ file couldn't be read because it's empty.");
         return false;
     }
     if (meshptr->volume() < 0)
@@ -98,11 +107,11 @@ bool load_obj(const char *path, TriangleMesh *meshptr)
     return true;
 }
 
-bool load_obj(const char *path, Model *model, const char *object_name_in)
+bool load_obj(const char *path, Model *model, std::string &message, const char *object_name_in)
 {
     TriangleMesh mesh;
     
-    bool ret = load_obj(path, &mesh);
+    bool ret = load_obj(path, &mesh, message);
     
     if (ret) {
         std::string  object_name;
