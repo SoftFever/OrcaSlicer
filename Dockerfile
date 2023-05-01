@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install  -y \
     extra-cmake-modules \
     file \
     git \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-libav \
     libcairo2-dev \
     libcurl4-openssl-dev \
     libdbus-1-dev \
