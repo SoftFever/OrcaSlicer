@@ -18,6 +18,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid "Physical Printer"
+msgstr ""
+
+msgid "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."
+msgstr ""
+
+msgid "On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."
+msgstr ""
+
+msgid "To use a custom CA file, please import your CA file into Certificate Store / Keychain."
+msgstr ""
+
+msgid "Send to print"
+msgstr ""
+
+msgid "Upload"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
 msgid "Supports Painting"
 msgstr ""
 
