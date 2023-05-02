@@ -3650,7 +3650,8 @@ void TabPrinter::toggle_options()
        is_BBL_printer = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     }
 
-    bool have_multiple_extruders = m_extruders_count > 1;
+    bool have_multiple_extruders = true;
+    //m_extruders_count > 1;
     //if (m_active_page->title() == "Custom G-code") {
     //    toggle_option("change_filament_gcode", have_multiple_extruders);
     //}

@@ -5579,17 +5579,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     }
 
     //if (thumbnail_params.transparent_background)
-    if (for_picking)
-        glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
-    else {
-        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
-        //glsafe(::glClearColor(0.50f, 0.5f, 0.5f, 1.0f));
-        //glsafe(::glClearColor(0.121568f, 0.121568f, 0.121568f, 1.0f));
-        //glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
-        glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
-        //glsafe(::glClearColor(0.37647f, 0.37647f, 0.37647f, 0.5f)); too lite
-        //glsafe(::glClearColor(0.23529f, 0.26666f, 0.2745f, 1.0f));
-    }
+    glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
+
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
