@@ -102,6 +102,7 @@
     "xy_contour_compensation": "0",
     "enable_arc_fitting": "0",
     "compatible_printers": [
-        "SecKit SK-Tank 0.4 nozzle"
+        "SecKit SK-Tank 0.4 nozzle",
+	  "Go3 0.4 nozzle"
     ]
 }
