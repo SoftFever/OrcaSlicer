@@ -2076,13 +2076,6 @@ void TabPrint::build()
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
 
-        optgroup = page->new_optgroup(L("Post-processing scripts"), L"param_gcode", 0);
-        option = optgroup->get_option("post_process");
-        option.opt.full_width = true;
-        option.opt.is_code = true;
-        option.opt.height = 15;
-        optgroup->append_single_option_line(option);
-
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -3657,7 +3650,8 @@ void TabPrinter::toggle_options()
        is_BBL_printer = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     }
 
-    bool have_multiple_extruders = m_extruders_count > 1;
+    bool have_multiple_extruders = true;
+    //m_extruders_count > 1;
     //if (m_active_page->title() == "Custom G-code") {
     //    toggle_option("change_filament_gcode", have_multiple_extruders);
     //}

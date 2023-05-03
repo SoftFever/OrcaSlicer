@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "fdm_machine_common",
     "printer_model": "Artillery Sidewinder X2",
-    "default_print_profile": "0.20mm Standard @Artillery",
+    "default_print_profile": "0.20mm Standard @Artillery X2",
     "nozzle_diameter": [
         "0.4"
     ],

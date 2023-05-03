@@ -7812,7 +7812,7 @@ msgstr "接缝留空"
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
-"his amount can be specified in millimeters or as a percentage of the current "
+"This amount can be specified in millimeters or as a percentage of the current "
 "extruder diameter. The default value for this parameter is 15%."
 msgstr ""
 
@@ -8718,6 +8718,21 @@ msgstr "支撑：正在生成多边形"
 
 msgid "Support: generate toolpath"
 msgstr "支撑：正在生成走线路径"
+
+msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
+
+msgid "Loading of a model file failed."
+msgstr "加载模型文件失败。"
+
+msgid "The supplied file couldn't be read because it's empty"
+msgstr "无法读取提供的文件，因为该文件为空。"
+
+msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
+msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
+
+msgid "Canceled"
+msgstr "已取消"
 
 #, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
