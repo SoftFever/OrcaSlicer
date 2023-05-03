@@ -5,6 +5,10 @@
     "description": "Qidi configurations",
     "machine_model_list": [
 		{
+            "name": "Qidi X-Plus",
+            "sub_path": "machine/Qidi X-Plus.json"
+        },
+		{
             "name": "Qidi X-Max",
             "sub_path": "machine/Qidi X-Max.json"
         },
@@ -35,6 +39,10 @@
             "sub_path": "process/fdm_process_qidi_common.json"
         },
 		{
+            "name": "0.12mm Fine @Qidi XMPlus",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus.json"
+        },
+		{
             "name": "0.12mm Fine @Qidi XMax",
             "sub_path": "process/0.12mm Fine @Qidi XMax.json"
         },
@@ -53,6 +61,10 @@
         {
             "name": "0.12mm Fine @Qidi XMax3",
             "sub_path": "process/0.12mm Fine @Qidi XMax3.json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XPlus",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus.json"
         },
 		{
             "name": "0.16mm Optimal @Qidi XMax",
@@ -75,6 +87,10 @@
             "sub_path": "process/0.16mm Optimal @Qidi XMax3.json"
         },
 		{
+            "name": "0.20mm Standard @Qidi XPlus",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus.json"
+        },
+		{
             "name": "0.20mm Standard @Qidi XMax",
             "sub_path": "process/0.20mm Standard @Qidi XMax.json"
         },
@@ -95,6 +111,10 @@
             "sub_path": "process/0.20mm Standard @Qidi XMax3.json"
         },
 		{
+            "name": "0.25mm Draft @Qidi XPlus",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus.json"
+        },
+		{
             "name": "0.25mm Draft @Qidi XMax",
             "sub_path": "process/0.25mm Draft @Qidi XMax.json"
         },
@@ -113,6 +133,10 @@
         {
             "name": "0.25mm Draft @Qidi XMax3",
             "sub_path": "process/0.25mm Draft @Qidi XMax3.json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XPlus",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus.json"
         },
 		{
             "name": "0.30mm Extra Draft @Qidi XMax",
@@ -229,6 +253,10 @@
         {
             "name": "fdm_qidi_common",
             "sub_path": "machine/fdm_qidi_common.json"
+        },
+		{
+            "name": "Qidi X-Plus 0.4 nozzle",
+            "sub_path": "machine/Qidi X-Plus 0.4 nozzle.json"
         },
 		{
             "name": "Qidi X-Max 0.4 nozzle",
