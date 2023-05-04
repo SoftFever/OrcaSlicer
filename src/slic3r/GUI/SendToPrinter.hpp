@@ -45,129 +45,115 @@ namespace GUI {
 class SendToPrinterDialog : public DPIDialog
 {
 private:
-	void init_model();
 	void init_bind();
 	void init_timer();
 
-	int m_print_plate_idx;
-	PrintDialogStatus m_print_status { PrintStatusInit };
+	int									m_print_plate_idx;
+    int									m_current_filament_id;
+    int                                 m_print_error_code;
+    int									timeout_count = 0;
+    bool								m_is_in_sending_mode{ false };
+    bool								m_is_rename_mode{ false };
+    bool								enable_prepare_mode{ true };
+    bool								m_need_adaptation_screen{ false };
+    bool								m_export_3mf_cancel{ false };
+    bool								m_is_canceled{ false };
+    std::string                         m_print_error_msg;
+    std::string                         m_print_error_extra;
+    std::string							m_print_info;
+	std::string							m_printer_last_select;
+    wxString							m_current_project_name;
 
-	std::string m_printer_last_select;
-	std::vector<wxString>               m_bedtype_list;
-	std::map<std::string, ::CheckBox*> m_checkbox_list;
+    TextInput*							m_rename_input{ nullptr };
+    wxSimplebook*						m_rename_switch_panel{ nullptr };
+	Plater*								m_plater{ nullptr };
+	wxStaticBitmap*						m_staticbitmap{ nullptr };
+	ThumbnailPanel*						m_thumbnailPanel{ nullptr };
+	ComboBox*							m_comboBox_printer{ nullptr };
+	ComboBox*							m_comboBox_bed{ nullptr };
+	Button*								m_rename_button{ nullptr };
+    Button*								m_button_refresh{ nullptr };
+    Button*								m_button_ensure{ nullptr };
+	wxPanel*							m_scrollable_region;
+	wxPanel*							m_line_schedule{ nullptr };
+	wxPanel*							m_panel_sending{ nullptr };
+	wxPanel*							m_panel_prepare{ nullptr };
+	wxPanel*							m_panel_finish{ nullptr };
+    wxPanel*							m_line_top{ nullptr };
+    wxPanel*							m_panel_image{ nullptr };
+    wxPanel*							m_rename_normal_panel{ nullptr };
+    wxPanel*							m_line_materia{ nullptr };
+	wxSimplebook*						m_simplebook{ nullptr };
+	wxStaticText*						m_statictext_finish{ nullptr };
+    wxStaticText*						m_stext_sending{ nullptr };
+    wxStaticText*						m_staticText_bed_title{ nullptr };
+    wxStaticText*						m_statictext_printer_msg{ nullptr };
+    wxStaticText*						m_stext_printer_title{ nullptr };
+    wxStaticText*						m_rename_text{ nullptr };
+    wxStaticText*						m_stext_time{ nullptr };
+    wxStaticText*						m_stext_weight{ nullptr };
+    Label*                              m_st_txt_error_code{ nullptr };
+    Label*                              m_st_txt_error_desc{ nullptr };
+    Label*                              m_st_txt_extra_info{ nullptr };
+    Label *                             m_link_network_state;
+	StateColor							btn_bg_enable;
+    wxBoxSizer*							rename_sizer_v{ nullptr };
+    wxBoxSizer*							rename_sizer_h{ nullptr };
+	wxBoxSizer*							sizer_thumbnail;
+	wxBoxSizer*							m_sizer_scrollable_region;
+	wxBoxSizer*							m_sizer_main;
+	wxStaticText*						m_file_name;
+    PrintDialogStatus					m_print_status{ PrintStatusInit };
 
-	wxColour m_colour_def_color{ wxColour(255, 255, 255) };
-	wxColour m_colour_bold_color{ wxColour(38, 46, 48) };
+    std::shared_ptr<SendJob>			m_send_job{nullptr};
+    std::vector<wxString>               m_bedtype_list;
+    std::map<std::string, ::CheckBox*>	m_checkbox_list;
+    std::vector<MachineObject*>			m_list;
+    wxColour							m_colour_def_color{ wxColour(255, 255, 255) };
+    wxColour							m_colour_bold_color{ wxColour(38, 46, 48) };
+	wxTimer*							m_refresh_timer{ nullptr };
+    wxObjectDataPtr<MachineListModel>   machine_model;
+    std::shared_ptr<BBLStatusBarSend>   m_status_bar;
+	wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
 
-protected:
-	wxString m_current_project_name;
-    wxBoxSizer* rename_sizer_v{ nullptr };
-    wxBoxSizer* rename_sizer_h{ nullptr };
-    wxStaticText* m_rename_text{ nullptr };
-    TextInput* m_rename_input{ nullptr };
-    Button* m_rename_button{ nullptr };
-    wxPanel* m_rename_normal_panel{ nullptr };
-    wxSimplebook* m_rename_switch_panel{ nullptr };
-	Plater* m_plater{ nullptr };
-	wxPanel* m_line_top{ nullptr };
-	wxPanel* m_panel_image{ nullptr };
-	wxStaticText* m_stext_time{ nullptr };
-	wxStaticText* m_stext_weight{ nullptr };
-	wxPanel* m_line_materia{ nullptr };
-	wxStaticText* m_stext_printer_title{ nullptr };
-
-	wxStaticText* m_statictext_printer_msg{ nullptr };
-	wxStaticBitmap* m_staticbitmap{ nullptr };
-	ThumbnailPanel* m_thumbnailPanel{ nullptr };
-
-	::ComboBox* m_comboBox_printer{ nullptr };
-	::ComboBox* m_comboBox_bed{ nullptr };
-	wxStaticText* m_staticText_bed_title{ nullptr };
-	wxPanel* m_line_schedule{ nullptr };
-	wxPanel* m_panel_sending{ nullptr };
-	wxStaticText* m_stext_sending{ nullptr };
-	wxPanel* m_panel_prepare{ nullptr };
-	Button* m_button_refresh{ nullptr };
-	Button* m_button_ensure{ nullptr };
-	wxPanel* m_panel_finish{ nullptr };
-	wxSimplebook* m_simplebook{ nullptr };
-	wxStaticText* m_statictext_finish{ nullptr };
-
-	StateColor btn_bg_enable;
-	int        m_current_filament_id;
-	bool       m_is_in_sending_mode{ false };
-
-	wxBoxSizer* sizer_thumbnail;
-	wxBoxSizer* m_sizer_main;
-	wxBoxSizer* m_sizer_bottom;
-	wxStaticText* m_file_name;
-
-	bool        m_is_rename_mode{false};
-	bool		enable_prepare_mode{true};
-	bool        m_need_adaptation_screen{ false };
-	wxPanel* m_scrollable_region;
-	wxBoxSizer* m_sizer_scrollable_region;
-
-    void                     on_rename_click(wxCommandEvent& event);
-    void                     on_rename_enter();
-
-	void stripWhiteSpace(std::string& str);
-	wxString format_text(wxString& m_msg);
-	void check_focus(wxWindow* window);
-	void check_fcous_state(wxWindow* window);
-	void update_priner_status_msg(wxString msg, bool is_warning = false);
-	void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
-
+   
 public:
 	SendToPrinterDialog(Plater* plater = nullptr);
-	~SendToPrinterDialog();
+    ~SendToPrinterDialog();
 
-	void      prepare_mode();
-	void      sending_mode();
-	void      prepare(int print_plate_idx);
-	bool	  Show(bool show);
-
-	/* model */
-	wxObjectDataPtr<MachineListModel> machine_model;
-	std::shared_ptr<BBLStatusBarSend> m_status_bar;
-	bool                              m_export_3mf_cancel{ false };
-	bool                              m_is_canceled{ false };
-
-protected:
-	std::vector<MachineObject*> m_list;
-	wxDataViewCtrl* m_dataViewListCtrl_machines{ nullptr };
-	wxStaticText* m_staticText_left{ nullptr };
-	wxHyperlinkCtrl* m_hyperlink_add_machine{ nullptr };
-	wxGauge* m_gauge_job_progress{ nullptr };
-	wxPanel* m_panel_status{ nullptr };
-	wxButton* m_button_cancel{ nullptr };
-
-	std::string                  m_print_info;
-	int                          timeout_count = 0;
-	bool                         is_timeout();
-	void                         reset_timeout();
-	void                         update_user_printer();
-	void                         update_show_status();
-
-	wxTimer* m_refresh_timer{ nullptr };
-
-	std::shared_ptr<SendJob> m_send_job{nullptr};
-
-	// Virtual event handlers, overide them in your derived class
-	void                     update_printer_combobox(wxCommandEvent& event);
-	void                     on_cancel(wxCloseEvent& event);
-	void                     on_ok(wxCommandEvent& event);
-	void                     clear_ip_address_config(wxCommandEvent& e);
-	void                     on_refresh(wxCommandEvent& event);
-	void                     on_print_job_cancel(wxCommandEvent& evt);
-	void                     set_default();
-	void                     on_timer(wxTimerEvent& event);
-	void                     on_selection_changed(wxCommandEvent& event);
-	void                     Enable_Refresh_Button(bool en);
-	void				     show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
-	void                     Enable_Send_Button(bool en);
-	void                     on_dpi_changed(const wxRect& suggested_rect) override;
-	void                     update_user_machine_list();
+	bool Show(bool show);
+	bool is_timeout();
+    void on_rename_click(wxCommandEvent& event);
+    void on_rename_enter();
+    void stripWhiteSpace(std::string& str);
+    void prepare_mode();
+    void sending_mode();
+    void link_to_network_check();
+    void reset_timeout();
+    void update_user_printer();
+    void update_show_status();
+    void prepare(int print_plate_idx);
+    void check_focus(wxWindow* window);
+    void check_fcous_state(wxWindow* window);
+    void update_priner_status_msg(wxString msg, bool is_warning = false);
+    void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
+	void update_printer_combobox(wxCommandEvent& event);
+	void on_cancel(wxCloseEvent& event);
+	void on_ok(wxCommandEvent& event);
+	void clear_ip_address_config(wxCommandEvent& e);
+	void on_refresh(wxCommandEvent& event);
+	void on_print_job_cancel(wxCommandEvent& evt);
+	void set_default();
+	void on_timer(wxTimerEvent& event);
+	void on_selection_changed(wxCommandEvent& event);
+	void Enable_Refresh_Button(bool en);
+	void show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
+	void Enable_Send_Button(bool en);
+	void on_dpi_changed(const wxRect& suggested_rect) override;
+	void update_user_machine_list();
+    void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    void update_print_error_info(int code, std::string msg, std::string extra);
+    wxString format_text(wxString& m_msg);
 	std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
 

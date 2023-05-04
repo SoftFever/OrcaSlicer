@@ -51,12 +51,26 @@ private:
     StaticBox *   m_panel_left;
     StaticBox *   m_panel_right;
     wxStaticText *m_status_text;
+    wxStaticText* m_link_show_error;
     Button *      m_button_bind;
     Button *      m_button_cancel;
     wxSimplebook *m_simplebook;
     wxStaticBitmap *m_avatar;
     wxStaticBitmap *m_printer_img;
+    wxStaticBitmap *m_static_bitmap_show_error;
+    wxBitmap      m_bitmap_show_error_close;
+    wxBitmap      m_bitmap_show_error_open;
     wxWebRequest  web_request;
+    wxScrolledWindow* m_sw_bind_failed_info;
+    Label*          m_bind_failed_info;
+    Label*          m_st_txt_error_code{ nullptr };
+    Label*          m_st_txt_error_desc{ nullptr };
+    Label*          m_st_txt_extra_info{ nullptr };
+    Label*          m_link_network_state{ nullptr };
+    std::string     m_result_info;
+    std::string     m_result_extra;
+    bool            m_show_error_info_state = true;
+    int             m_result_code;
 
     MachineObject *                   m_machine_info{nullptr};
     std::shared_ptr<BindJob>          m_bind_job;
@@ -65,7 +79,9 @@ private:
 public:
     BindMachineDialog(Plater *plater = nullptr);
     ~BindMachineDialog();
-    void     on_cancel(wxCommandEvent &event);
+    void link_to_network_check();
+    void     show_bind_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    void     on_cancel(wxCommandEvent& event);
     void     on_bind_fail(wxCommandEvent &event);
     void     on_update_message(wxCommandEvent &event);
     void     on_bind_success(wxCommandEvent &event);

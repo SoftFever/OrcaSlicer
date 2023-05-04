@@ -37,7 +37,7 @@ public:
     void process() override;
     void finalize() override;
     void set_event_handle(wxWindow* hanle);
-    void post_fail_event();
+    void post_fail_event(int code, std::string info);
 };
 
 wxDECLARE_EVENT(EVT_BIND_UPDATE_MESSAGE, wxCommandEvent);

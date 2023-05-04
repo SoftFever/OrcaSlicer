@@ -10501,6 +10501,17 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
     return colors;
 }
 
+void Plater::update_print_error_info(int code, std::string msg, std::string extra)
+{
+    if (p->m_select_machine_dlg) {
+        p->m_select_machine_dlg->update_print_error_info(code, msg, extra);
+    }
+
+    if (p->m_send_to_sdcard_dlg) {
+        p->m_send_to_sdcard_dlg->update_print_error_info(code, msg, extra);
+    }
+}
+    
 wxString Plater::get_project_filename(const wxString& extension) const
 {
     return p->get_project_filename(extension);

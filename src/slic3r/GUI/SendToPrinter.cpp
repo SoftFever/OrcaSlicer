@@ -256,8 +256,6 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_schedule->SetBackgroundColour(wxColour(238, 238, 238));
-
-    m_sizer_bottom = new wxBoxSizer(wxVERTICAL);
     m_simplebook   = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, SELECT_MACHINE_DIALOG_SIMBOOK_SIZE, 0);
 
     // perpare mode
@@ -313,6 +311,93 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_panel_finish->Layout();
     m_sizer_finish->Fit(m_panel_finish);
     m_simplebook->AddPage(m_panel_finish, wxEmptyString, false);
+
+    //show bind failed info
+    m_sw_print_failed_info = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(380), FromDIP(125)), wxVSCROLL);
+    m_sw_print_failed_info->SetBackgroundColour(*wxWHITE);
+    m_sw_print_failed_info->SetScrollRate(0, 5);
+    m_sw_print_failed_info->SetMinSize(wxSize(FromDIP(380), FromDIP(125)));
+    m_sw_print_failed_info->SetMaxSize(wxSize(FromDIP(380), FromDIP(125)));
+
+    wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
+    m_sw_print_failed_info->SetSizer(sizer_print_failed_info);
+
+
+    wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
+
+    auto st_title_error_code = new wxStaticText(m_sw_print_failed_info, wxID_ANY, _L("Error code"));
+    auto st_title_error_code_doc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, ": ");
+    m_st_txt_error_code = new Label(m_sw_print_failed_info, wxEmptyString);
+    st_title_error_code->SetForegroundColour(0x909090);
+    st_title_error_code_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_code->SetForegroundColour(0x909090);
+    st_title_error_code->SetFont(::Label::Body_13);
+    st_title_error_code_doc->SetFont(::Label::Body_13);
+    m_st_txt_error_code->SetFont(::Label::Body_13);
+    st_title_error_code->SetMinSize(wxSize(FromDIP(74), -1));
+    st_title_error_code->SetMaxSize(wxSize(FromDIP(74), -1));
+    m_st_txt_error_code->SetMinSize(wxSize(FromDIP(260), -1));
+    m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(260), -1));
+    sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
+    sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
+    sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
+
+
+    auto st_title_error_desc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, wxT("Error desc"));
+    auto st_title_error_desc_doc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, ": ");
+    m_st_txt_error_desc = new Label(m_sw_print_failed_info, wxEmptyString);
+    st_title_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc->SetFont(::Label::Body_13);
+    st_title_error_desc_doc->SetFont(::Label::Body_13);
+    m_st_txt_error_desc->SetFont(::Label::Body_13);
+    st_title_error_desc->SetMinSize(wxSize(FromDIP(74), -1));
+    st_title_error_desc->SetMaxSize(wxSize(FromDIP(74), -1));
+    m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(260), -1));
+    m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(260), -1));
+    sizer_error_desc->Add(st_title_error_desc, 0, wxALL, 0);
+    sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
+    sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
+
+    auto st_title_extra_info = new wxStaticText(m_sw_print_failed_info, wxID_ANY, wxT("Extra info"));
+    auto st_title_extra_info_doc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, ": ");
+    m_st_txt_extra_info = new Label(m_sw_print_failed_info, wxEmptyString);
+    st_title_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info_doc->SetForegroundColour(0x909090);
+    m_st_txt_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info->SetFont(::Label::Body_13);
+    st_title_extra_info_doc->SetFont(::Label::Body_13);
+    m_st_txt_extra_info->SetFont(::Label::Body_13);
+    st_title_extra_info->SetMinSize(wxSize(FromDIP(74), -1));
+    st_title_extra_info->SetMaxSize(wxSize(FromDIP(74), -1));
+    m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(260), -1));
+    m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(260), -1));
+    sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
+    sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
+    sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
+
+
+    m_link_network_state = new Label(m_sw_print_failed_info, _L("Check the status of current system services"));
+    m_link_network_state->SetForegroundColour(0x00AE42);
+    m_link_network_state->SetFont(::Label::Body_12);
+    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {link_to_network_check(); });
+    m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
+    m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
+
+    sizer_print_failed_info->Add(m_link_network_state, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_error_desc, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
+
+    // bind
+    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
+        show_print_failed_info(true);
+    });
 
     // bind
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SendToPrinterDialog::update_printer_combobox, this);
@@ -411,22 +496,23 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
         });
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_scrollable_region, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
     m_sizer_main->Add(m_rename_switch_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
     m_sizer_main->Add(m_line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(15));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(13));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(11));
     m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(32));
+    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(22));
     m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(m_sizer_bottom, 0, wxALIGN_CENTER_HORIZONTAL);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(15));
+    m_sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(13));
 
+    show_print_failed_info(false);
     SetSizer(m_sizer_main);
     Layout();
     Fit();
@@ -439,6 +525,44 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
+void SendToPrinterDialog::update_print_error_info(int code, std::string msg, std::string extra)
+{
+    m_print_error_code = code;
+    m_print_error_msg = msg;
+    m_print_error_extra = extra;
+}
+
+void SendToPrinterDialog::show_print_failed_info(bool show, int code, wxString description, wxString extra)
+{
+    if (show) {
+        if (!m_sw_print_failed_info->IsShown()) {
+            m_sw_print_failed_info->Show(true);
+
+            m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_print_error_code));
+            m_st_txt_error_desc->SetLabelText(m_print_error_msg);
+            m_st_txt_extra_info->SetLabelText(m_print_error_extra);
+
+            m_st_txt_error_code->Wrap(FromDIP(260));
+            m_st_txt_error_desc->Wrap(FromDIP(260));
+            m_st_txt_extra_info->Wrap(FromDIP(260));
+        }
+        else {
+            m_sw_print_failed_info->Show(false);
+        }
+        Layout();
+        Fit();
+    }
+    else {
+        if (!m_sw_print_failed_info->IsShown()) { return; }
+        m_sw_print_failed_info->Show(false);
+        m_st_txt_error_code->SetLabelText(wxEmptyString);
+        m_st_txt_error_desc->SetLabelText(wxEmptyString);
+        m_st_txt_extra_info->SetLabelText(wxEmptyString);
+        Layout();
+        Fit();
+    }
+}
+
 void SendToPrinterDialog::prepare_mode()
 {
 	m_is_in_sending_mode = false;
@@ -449,6 +573,7 @@ void SendToPrinterDialog::prepare_mode()
 	if (wxIsBusy())
 		wxEndBusyCursor();
 	Enable_Send_Button(true);
+    show_print_failed_info(false);
 
     m_status_bar->reset();
 	if (m_simplebook->GetSelection() != 0) {
@@ -464,6 +589,33 @@ void SendToPrinterDialog::sending_mode()
         Layout();
         Fit();
     }
+}
+
+void SendToPrinterDialog::link_to_network_check()
+{
+    std::string url;
+    std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
+
+
+    if (country_code == "US") {
+        url = "https://status.bambulab.com";
+    }
+    else if (country_code == "CN") {
+        url = "https://status.bambulab.cn";
+    }
+    else if (country_code == "ENV_CN_DEV") {
+        url = "https://status.bambu-lab.com";
+    }
+    else if (country_code == "ENV_CN_QA") {
+        url = "https://status.bambu-lab.com";
+    }
+    else if (country_code == "ENV_CN_PRE") {
+        url = "https://status.bambu-lab.com";
+    }
+    else {
+        url = "https://status.bambu-lab.com";
+    }
+    wxLaunchDefaultBrowser(url);
 }
 
 void SendToPrinterDialog::prepare(int print_plate_idx)
@@ -515,26 +667,6 @@ void SendToPrinterDialog::update_print_status_msg(wxString msg, bool is_warning,
     }
 }
 
-
-void SendToPrinterDialog::init_model()
-{
-    machine_model = new MachineListModel;
-    m_dataViewListCtrl_machines->AssociateModel(machine_model.get());
-    m_dataViewListCtrl_machines->AppendTextColumn("Printer Name", MachineListModel::Col_MachineName, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT,
-                                                  wxDATAVIEW_COL_SORTABLE);
-
-    m_dataViewListCtrl_machines->AppendTextColumn("SN(dev_id)", MachineListModel::Col_MachineSN, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT,
-                                                  wxDATAVIEW_COL_RESIZABLE);
-
-    m_dataViewListCtrl_machines->AppendTextColumn("Status", MachineListModel::Col_MachinePrintingStatus, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT,
-                                                  wxDATAVIEW_COL_RESIZABLE);
-
-    m_dataViewListCtrl_machines->AppendTextColumn("TaskName", MachineListModel::Col_MachineTaskName, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT,
-                                                  wxDATAVIEW_COL_RESIZABLE);
-
-    m_dataViewListCtrl_machines->AppendTextColumn("Connection", MachineListModel::Col_MachineConnection, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT,
-                                                  wxDATAVIEW_COL_RESIZABLE);
-}
 
 void SendToPrinterDialog::init_bind()
 {
@@ -689,13 +821,6 @@ void SendToPrinterDialog::clear_ip_address_config(wxCommandEvent& e)
 {
     enable_prepare_mode = true;
     prepare_mode();
-    /*DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    if (!dev->get_selected_machine()) return;
-    auto obj = dev->get_selected_machine();
-    Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, "");
-    Slic3r::GUI::wxGetApp().app_config->save();
-    wxGetApp().show_ip_address_enter_dialog();*/
 }
 
 void SendToPrinterDialog::update_user_machine_list()

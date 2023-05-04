@@ -13,30 +13,68 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_SEND_MSG_FAILED               -4
 #define BAMBU_NETWORK_ERR_BIND_FAILED                   -5
 #define BAMBU_NETWORK_ERR_UNBIND_FAILED                 -6
-#define BAMBU_NETWORK_ERR_PRINT_FAILED                  -7
-#define BAMBU_NETWORK_ERR_LOCAL_PRINT_FAILED            -8
-#define BAMBU_NETWORK_ERR_REQUEST_SETTING_FAILED        -9
-#define BAMBU_NETWORK_ERR_PUT_SETTING_FAILED            -10
-#define BAMBU_NETWORK_ERR_GET_SETTING_LIST_FAILED       -11
-#define BAMBU_NETWORK_ERR_DEL_SETTING_FAILED            -12
-#define BAMBU_NETWORK_ERR_GET_USER_PRINTINFO_FAILED     -13
-#define BAMBU_NETWORK_ERR_GET_PRINTER_FIRMWARE_FAILED   -14
-#define BAMBU_NETWORK_ERR_QUERY_BIND_INFO_FAILED        -15
-#define BAMBU_NETWORK_ERR_MODIFY_PRINTER_NAME_FAILED    -16
-#define BAMBU_NETWORK_ERR_FILE_NOT_EXIST                -17
-#define BAMBU_NETWORK_ERR_FILE_OVER_SIZE                -18
-#define BAMBU_NETWORK_ERR_CHECK_MD5_FAILED              -19
-#define BAMBU_NETWORK_ERR_TIMEOUT                       -20
-#define BAMBU_NETWORK_ERR_CANCELED                      -21
-#define BAMBU_NETWORK_ERR_INVALID_PARAMS                -22
-#define BAMBU_NETWORK_ERR_INVALID_RESULT                -23
-#define BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED             -24
-#define BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED              -25
-#define BAMBU_NETWORK_ERR_GET_MODEL_PUBLISH_PAGE        -26
-#define BAMBU_NETWORK_ERR_GET_MODEL_MALL_HOME_PAGE      -27
-#define BAMBU_NETWORK_ERR_GET_USER_INFO                 -28
-#define BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS              -29
-#define BAMBU_NETWORK_ERR_NO_SPACE_LEFT_ON_DEVICE       -30
+#define BAMBU_NETWORK_ERR_REQUEST_SETTING_FAILED        -7
+#define BAMBU_NETWORK_ERR_PUT_SETTING_FAILED            -8
+#define BAMBU_NETWORK_ERR_GET_SETTING_LIST_FAILED       -9
+#define BAMBU_NETWORK_ERR_DEL_SETTING_FAILED            -10
+#define BAMBU_NETWORK_ERR_GET_USER_PRINTINFO_FAILED     -11
+#define BAMBU_NETWORK_ERR_QUERY_BIND_INFO_FAILED        -12
+#define BAMBU_NETWORK_ERR_MODIFY_PRINTER_NAME_FAILED    -13
+#define BAMBU_NETWORK_ERR_FILE_NOT_EXIST                -14
+#define BAMBU_NETWORK_ERR_FILE_OVER_SIZE                -15
+#define BAMBU_NETWORK_ERR_CHECK_MD5_FAILED              -16
+#define BAMBU_NETWORK_ERR_TIMEOUT                       -17
+#define BAMBU_NETWORK_ERR_CANCELED                      -18
+#define BAMBU_NETWORK_ERR_INVALID_RESULT                -19
+#define BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED             -20
+
+    //bind error
+#define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket 
+#define BAMBU_NETWORK_ERR_BIND_SOCKET_CONNECT_FAILED         -1020 //failed to socket connect
+#define BAMBU_NETWORK_ERR_BIND_PUBLISH_LOGIN_REQUEST         -1030 //failed to publish login request
+#define BAMBU_NETWORK_ERR_BIND_GET_PRINTER_TICKET_TIMEOUT    -1040 //timeout to get ticket from printer
+#define BAMBU_NETWORK_ERR_BIND_GET_CLOUD_TICKET_TIMEOUT      -1050 //timeout to get ticket from cloud server
+#define BAMBU_NETWORK_ERR_BIND_POST_TICKET_TO_CLOUD_FAILED   -1060 //failed to post ticket to cloud server
+#define BAMBU_NETWORK_ERR_BIND_PARSE_LOGIN_REPORT_FAILED     -1070 //failed to parse login report reason
+#define BAMBU_NETWORK_ERR_BIND_RECEIVE_LOGIN_REPORT_TIMEOUT  -1080 //timeout to receive login report
+
+//start_local_print_with_record  error
+#define BAMBU_NETWORK_ERR_PRINT_WR_REQUEST_PROJECT_ID_FAILED        -2010 //failed to request project id
+#define BAMBU_NETWORK_ERR_PRINT_WR_CHECK_MD5_FAILED                 -2020 //failed to check md5 for upload 3mf to oss
+#define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_3MF_CONFIG_TO_OSS_FAILED  -2030 //failed to  upload 3mf config to oss
+#define BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE                   -2040 //the size of the uploaded file cannot exceed 1 GB
+#define BAMBU_NETWORK_ERR_PRINT_WR_PUT_NOTIFICATION_FAILED          -2050 //timeout to get notification
+#define BAMBU_NETWORK_ERR_PRINT_WR_GET_NOTIFICATION_TIMEOUT         -2060 //timeout to get notification
+#define BAMBU_NETWORK_ERR_PRINT_WR_GET_NOTIFICATION_FAILED          -2070 //failed to get notification
+#define BAMBU_NETWORK_ERR_PRINT_WR_PATCH_PROJECT_FAILED             -2080 //failed to patch project
+#define BAMBU_NETWORK_ERR_PRINT_WR_GET_MY_SETTING_FAILED            -2090 //failed to get my setting
+#define BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST                   -2100 //3mf file is not exists
+#define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_3MF_TO_OSS_FAILED         -2110 //failed to upload 3mf to oss
+#define BAMBU_NETWORK_ERR_PRINT_WR_POST_TASK_FAILED                 -2120 //failed to post task
+#define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_FTP_FAILED                -2130 //failed to upload to ftp
+#define BAMBU_NETWORK_ERR_PRINT_WR_GET_USER_UPLOAD_FAILED           -2140 //failed to get_user_upload  
+
+//start_print  error
+#define BAMBU_NETWORK_ERR_PRINT_SP_REQUEST_PROJECT_ID_FAILED        -3010 //failed to request project id 
+#define BAMBU_NETWORK_ERR_PRINT_SP_CHECK_MD5_FAILED                 -3020 //failed to check md5 for upload 3mf to oss
+#define BAMBU_NETWORK_ERR_PRINT_SP_UPLOAD_3MF_CONFIG_TO_OSS_FAILED  -3030 //failed to upload 3mf config to oss
+#define BAMBU_NETWORK_ERR_PRINT_SP_PUT_NOTIFICATION_FAILED          -3040 //failed to put notification
+#define BAMBU_NETWORK_ERR_PRINT_SP_GET_NOTIFICATION_TIMEOUT         -3050 //timeout to get notification
+#define BAMBU_NETWORK_ERR_PRINT_SP_GET_NOTIFICATION_FAILED          -3060 //failed to get notification
+#define BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST                   -3070 //3mf file is not exists
+#define BAMBU_NETWORK_ERR_PRINT_SP_GET_USER_UPLOAD_FAILED           -3080 //failed to get_user_upload 
+#define BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE                   -3090 //the size of the uploaded file cannot exceed 1 GB
+#define BAMBU_NETWORK_ERR_PRINT_SP_UPLOAD_3MF_TO_OSS_FAILED         -3100 //failed to  upload 3mf to oss
+#define BAMBU_NETWORK_ERR_PRINT_SP_PATCH_PROJECT_FAILED             -3110 //failed to patch project
+#define BAMBU_NETWORK_ERR_PRINT_SP_POST_TASK_FAILED                 -3120 //failed to post task
+
+//start_local_print   error
+#define BAMBU_NETWORK_ERR_PRINT_LP_FILE_OVER_SIZE                   -4010 //the size of the uploaded file cannot exceed 1 GB
+#define BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED                -4020 //failed to upload ftp
+#define BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED               -4030 //failed to send mqtt message to  device
+
+//start_send_gcode_to_sdcard error
+#define BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED                -5010 //failed to upload ftp
 
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
@@ -87,6 +125,7 @@ enum SendingPrintJobStage {
     PrintingStageSending = 3,
     PrintingStageRecord  = 4,
     PrintingStageFinished = 5,
+    PrintingStageERROR = 6,
 };
 
 enum PublishingStage {

@@ -33,9 +33,7 @@ class PrintJob : public PlaterJob
     std::function<void()> m_enter_ip_address_fun_success{ nullptr };
 
 protected:
-
     void prepare() override;
-
     void on_exception(const std::exception_ptr &) override;
 public:
     PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
@@ -43,17 +41,18 @@ public:
     std::string m_project_name;
     std::string m_dev_ip;
     std::string m_ftp_folder;
-    bool        m_local_use_ssl { true };
     std::string m_access_code;
     std::string task_bed_type;
+    std::string task_ams_mapping;
+    std::string task_ams_mapping_info;
+    std::string connection_type;
+
+    bool        m_local_use_ssl { true };
     bool        task_bed_leveling;
     bool        task_flow_cali;
     bool        task_vibration_cali;
     bool        task_record_timelapse;
     bool        task_layer_inspect;
-    std::string task_ams_mapping;
-    std::string task_ams_mapping_info;
-    std::string connection_type;
     bool        cloud_print_only { false };
     bool        has_sdcard { false };
     bool        task_use_ams { true };

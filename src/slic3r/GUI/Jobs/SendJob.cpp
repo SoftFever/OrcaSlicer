@@ -9,20 +9,23 @@
 namespace Slic3r {
 namespace GUI {
 
-static wxString check_gcode_failed_str      = _L("Abnormal print file data. Please slice again");
-static wxString printjob_cancel_str         = _L("Task canceled");
-static wxString timeout_to_upload_str       = _L("Upload task timed out. Please check the network problem and try again");
-static wxString failed_in_cloud_service_str = _L("Send to Printer failed. Please try again.");
-static wxString file_is_not_exists_str      = _L("Print file not found, please slice again");
-static wxString file_over_size_str          = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again");
-static wxString print_canceled_str          = _L("Task canceled");
-static wxString upload_failed_str           = _L("Failed uploading print file");
-static wxString upload_login_failed_str     = _L("Wrong Access code");
-static wxString upload_no_space_left_str    = _L("No space left on Printer SD card");
+static wxString check_gcode_failed_str = _L("Abnormal print file data. Please slice again.");
+static wxString printjob_cancel_str = _L("Task canceled.");
+static wxString timeout_to_upload_str = _L("Upload task timed out. Please check the network status and try again.");
+static wxString failed_in_cloud_service_str = _L("Cloud service connection failed. Please try again.");
+static wxString file_is_not_exists_str = _L("Print file not found. please slice again.");
+static wxString file_over_size_str = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again.");
+static wxString print_canceled_str = _L("Task canceled.");
+static wxString send_print_failed_str = _L("Failed to send the print job. Please try again.");
+static wxString upload_ftp_failed_str = _L("Failed to upload file to ftp. Please try again.");
 
+static wxString desc_network_error = _L("Check the current status of the bambu server by clicking on the link above.");
+static wxString desc_file_too_large = _L("The size of the print file is too large. Please adjust the file size and try again.");
+static wxString desc_fail_not_exist = _L("Print file not found, Please slice it again and send it for printing.");
+static wxString desc_upload_ftp_failed = _L("Failed to upload print file to FTP. Please check the network status and try again.");
 
-static wxString sending_over_lan_str = _L("Sending gcode file over LAN");
-static wxString sending_over_cloud_str = _L("Sending gcode file through cloud service");
+static wxString sending_over_lan_str = _L("Sending print job over LAN");
+static wxString sending_over_cloud_str = _L("Sending print job through cloud service");
 
 SendJob::SendJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
@@ -271,11 +274,24 @@ void SendJob::process()
                             }
                         }
 
-                        if (code < 0 || code > 100) {
-                            error_text = this->get_http_error_msg(code, info);
-                            msg += wxString::Format("[%s]", error_text);
+                        //get errors 
+                        if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
+                            if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE) {
+                                m_plater->update_print_error_info(code, desc_file_too_large.ToStdString(), info);
+                            }
+                            else if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
+                                m_plater->update_print_error_info(code, desc_fail_not_exist.ToStdString(), info);
+                            }
+                            else if (code == BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED || code == BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED) {
+                                m_plater->update_print_error_info(code, desc_upload_ftp_failed.ToStdString(), info);
+                            }
+                            else {
+                                m_plater->update_print_error_info(code, desc_network_error.ToStdString(), info);
+                            }
                         }
-                        this->update_status(curr_percent, msg);
+                        else {
+                            this->update_status(curr_percent, msg);
+                        }
                     };
 
     auto cancel_fn = [this]() {
@@ -300,9 +316,7 @@ void SendJob::process()
             BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode to printer";
             this->update_status(curr_percent, _L("Sending gcode file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn);
-            if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-                params.comments = "wrong_code";
-            } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
+            if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
                 params.comments = "upload_failed";
             } else {
                 params.comments = (boost::format("failed(%1%)") % result).str();
@@ -332,50 +346,38 @@ void SendJob::process()
     }
 
     if (result < 0) {
-        if (result == BAMBU_NETWORK_ERR_NO_SPACE_LEFT_ON_DEVICE) {
-            msg_text = upload_no_space_left_str;
-        } else if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-            msg_text = upload_login_failed_str;
-        } else if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
+        curr_percent = -1;
+
+        if (result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
-        } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
+        }
+        else if (result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE || result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE) {
             msg_text = file_over_size_str;
-        } else if (result == BAMBU_NETWORK_ERR_CHECK_MD5_FAILED) {
+        }
+        else if (result == BAMBU_NETWORK_ERR_PRINT_WR_CHECK_MD5_FAILED || result == BAMBU_NETWORK_ERR_PRINT_SP_CHECK_MD5_FAILED) {
             msg_text = failed_in_cloud_service_str;
-        } else if (result == BAMBU_NETWORK_ERR_INVALID_PARAMS) {
-            msg_text = upload_failed_str;
-        } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
+        }
+        else if (result == BAMBU_NETWORK_ERR_PRINT_WR_GET_NOTIFICATION_TIMEOUT || result == BAMBU_NETWORK_ERR_PRINT_SP_GET_NOTIFICATION_TIMEOUT) {
+            msg_text = timeout_to_upload_str;
+        }
+        else if (result == BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED || result == BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED) {
+            msg_text = upload_ftp_failed_str;
+        }
+        else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             msg_text = print_canceled_str;
-        } else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
-            msg_text = timeout_to_upload_str;
-        } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
-            msg_text = upload_failed_str;
-        } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
-            msg_text = upload_failed_str;
-        } else {
-            update_status(curr_percent, failed_in_cloud_service_str);
+        }
+        else {
+            msg_text = send_print_failed_str;
         }
 
-        if (!error_text.IsEmpty()) {
-            if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-                msg_text += ". ";
-                msg_text += _L("Please log out and login to the printer again.");
-            }
-            else {
-                msg_text += wxString::Format("[%s]", error_text);
-            }
-        }
-
-        if (result == BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS) {
-            msg_text = timeout_to_upload_str;
-        }
-            
-        update_status(curr_percent, msg_text);
+        this->show_error_info(msg_text, 0, "", "");
         BOOST_LOG_TRIVIAL(error) << "send_job: failed, result = " << result;
-    } else {
+
+    }
+    else {
         BOOST_LOG_TRIVIAL(error) << "send_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
-        evt->SetString(from_u8(params.project_name));
+        evt->SetString(m_dev_id);
         wxQueueEvent(m_plater, evt);
         m_job_finished = true;
     }
