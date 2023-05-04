@@ -3568,7 +3568,6 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
     const auto& radius = key.radius;
     const auto& layer_nr = key.layer_nr;
     BOOST_LOG_TRIVIAL(debug) << "calculate_avoidance on radius=" << radius << ", layer=" << layer_nr<<", recursion="<<key.recursions;
-    std::pair<tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash>::iterator,bool> ret;
     constexpr auto max_recursion_depth = 100;
     if (key.recursions <= max_recursion_depth*2) {
         if (layer_nr == 0) {
@@ -3595,14 +3594,15 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
         const ExPolygons &collision       = get_collision(radius, layer_nr);
         avoidance_areas.insert(avoidance_areas.end(), collision.begin(), collision.end());
         avoidance_areas = std::move(union_ex(avoidance_areas));
-        ret  = m_avoidance_cache.insert({key, std::move(avoidance_areas)});
+        auto ret = m_avoidance_cache.insert({ key, std::move(avoidance_areas) });
         //assert(ret.second);
+        return ret.first->second;
     } else {
         ExPolygons avoidance_areas = std::move(offset_ex(m_layer_outlines_below[layer_nr], scale_(m_xy_distance + radius)));
-        ret             = m_avoidance_cache.insert({key, std::move(avoidance_areas)});
+        auto ret = m_avoidance_cache.insert({ key, std::move(avoidance_areas) });
         assert(ret.second);
+        return ret.first->second;
     }
-    return ret.first->second;
 }
 
 } //namespace Slic3r
