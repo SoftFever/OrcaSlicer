@@ -26,6 +26,7 @@
 namespace Slic3r {
 namespace GUI {
 
+static const double PI = 3.141592653589793238;
 static const wxColour FONT_TEXTURE_BG = wxColour(0, 0, 0, 0);
 static const wxColour FONT_TEXTURE_FG = *wxWHITE;
 static const int FONT_SIZE = 12;
@@ -1071,6 +1072,11 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     Vec3d    rotation_axis;
     Matrix3d rotation_matrix;
     Geometry::rotation_from_two_vectors(m_cut_plane_dir, Vec3d::UnitZ(), rotation_axis, phi, &rotation_matrix);
+    if (abs(phi - PI) < 1e-6) {
+        Transform3d transform = Transform3d::Identity();
+        transform.rotate(Eigen::AngleAxisd(phi, m_mouse_normal_world));
+        rotation_matrix = transform.matrix().block<3, 3>(0, 0);
+    }
 
     Transform3d transfo1;
     transfo1.setIdentity();
@@ -1383,7 +1389,6 @@ TriangleMesh GLGizmoText::get_text_mesh(const char* text_str, const Vec3d &posit
     new_text_dir.normalize();
     Geometry::rotation_from_two_vectors(old_text_dir, new_text_dir, rotation_axis, phi, &rotation_matrix);
 
-    static double const PI = 3.141592653589793238;
     if (abs(phi - PI) < EPSILON)
         rotation_axis = normal;
 
