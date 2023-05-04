@@ -2329,7 +2329,7 @@ int CLI::run(int argc, char **argv)
             //opengl manager related logic
             {
                 Slic3r::GUI::OpenGLManager opengl_mgr;
-                bool opengl_valid = opengl_mgr.init_gl();
+                bool opengl_valid = opengl_mgr.init_gl(false);
                 if (!opengl_valid) {
                     BOOST_LOG_TRIVIAL(error) << "init opengl failed! skip thumbnail generating" << std::endl;
                 }
