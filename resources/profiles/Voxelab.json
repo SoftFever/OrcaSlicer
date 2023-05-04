@@ -16,12 +16,12 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "0.16mm Optimal @Voxelab Aquila X2",
-            "sub_path": "process/0.16mm Optimal @Voxelab Aquila X2.json"
+            "name": "0.16mm Optimal @Voxelab AquilaX2",
+            "sub_path": "process/0.16mm Optimal @Voxelab AquilaX2.json"
         },
         {
-            "name": "0.20mm Standard @Voxelab Aquila X2",
-            "sub_path": "process/0.20mm Standard @Voxelab Aquila X2.json"
+            "name": "0.20mm Standard @Voxelab AquilaX2",
+            "sub_path": "process/0.20mm Standard @Voxelab AquilaX2.json"
         }
     ],
     "filament_list": [
