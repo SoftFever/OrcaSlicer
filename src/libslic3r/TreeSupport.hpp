@@ -30,6 +30,15 @@ struct LayerHeightData
     LayerHeightData(coordf_t z, coordf_t h, size_t next_layer) : print_z(z), height(h), next_layer_nr(next_layer) {}
 };
 
+struct TreeNode {
+    Vec3f pos;
+    std::vector<int> children;  // index of children in the storing vector
+    std::vector<int> parents;  // index of parents in the storing vector
+    TreeNode(Point pt, float z) {
+        pos = { float(unscale_(pt.x())),float(unscale_(pt.y())),z };
+    }
+};
+
 /*!
  * \brief Lazily generates tree guidance volumes.
  *
@@ -89,6 +98,8 @@ public:
     Polygons get_contours_with_holes(size_t layer_nr) const;
 
     std::vector<LayerHeightData> layer_heights;
+
+    std::vector<TreeNode> tree_nodes;
 
 private:
     /*!

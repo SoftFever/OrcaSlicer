@@ -25,7 +25,7 @@
 #define TAU (2.0 * M_PI)
 #define NO_INDEX (std::numeric_limits<unsigned int>::max())
 
-// #define SUPPORT_TREE_DEBUG_TO_SVG
+//#define SUPPORT_TREE_DEBUG_TO_SVG
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
 #include "nlohmann/json.hpp"
@@ -2714,20 +2714,17 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                         node_ = (node.dist_mm_to_top >= neighbour->dist_mm_to_top && p_node->parent) ? p_node : neighbour;
                     else
                         node_ = p_node->parent ? p_node : neighbour;
+                    // Make sure the next pass doesn't drop down either of these (since that already happened).
+                    node_->merged_neighbours.push_front(node_ == p_node ? neighbour : p_node);
                     const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(0, layer_nr_next), next_position);
-                    Node *     next_node     = new Node(next_position, node_->distance_to_top + 1, layer_nr_next, node_->support_roof_layers_below-1, to_buildplate, node_->parent,
+                    Node *     next_node     = new Node(next_position, node_->distance_to_top + 1, layer_nr_next, node_->support_roof_layers_below-1, to_buildplate, node_,
                                                print_z_next, height_next);
                     next_node->movement = next_position - node.position;
                     get_max_move_dist(next_node);
                     next_node->is_merged     = true;
                     contact_nodes[layer_nr_next].push_back(next_node);
 
-                    // make sure the trees are all connected
-                    if (node.parent) node.parent->child = next_node;
-                    if (neighbour->parent) neighbour->parent->child = next_node;
 
-                    // Make sure the next pass doesn't drop down either of these (since that already happened).
-                    node.merged_neighbours.push_front(neighbour);
                     to_delete.insert(neighbour);
                     to_delete.insert(p_node);
                 }
@@ -3036,16 +3033,8 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes)
             }
         }
     }
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
     // save tree structure for viewing in python
-    struct TreeNode {
-        Vec3f pos;
-        std::vector<int> children;  // index of children in the storing vector
-        TreeNode(Point pt, float z) {
-            pos = { float(unscale_(pt.x())),float(unscale_(pt.y())),z };
-        }
-    };
-    std::vector<TreeNode> tree_nodes;
+    auto& tree_nodes = m_ts_data->tree_nodes;
     std::map<Node*, int> ptr2idx;
     std::map<int, Node*> idx2ptr;
     for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
@@ -3061,12 +3050,16 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes)
         Node* p_node = idx2ptr[i];
         if (p_node->child)
             tree_node.children.push_back(ptr2idx[p_node->child]);
+        if(p_node->parent)
+            tree_node.parents.push_back(ptr2idx[p_node->parent]);
     }
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
     nlohmann::json jj;
     for (size_t i = 0; i < tree_nodes.size(); i++) {
         nlohmann::json j;
         j["pos"] = tree_nodes[i].pos;
         j["children"] = tree_nodes[i].children;
+        j["linked"] = !(tree_nodes[i].pos.z() > 0.205 && tree_nodes[i].children.empty());
         jj.push_back(j);
     }
     
