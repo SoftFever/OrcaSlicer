@@ -45,6 +45,7 @@ func_set_get_country_code_fn        NetworkAgent::set_get_country_code_fn_ptr = 
 func_set_on_message_fn              NetworkAgent::set_on_message_fn_ptr = nullptr;
 func_set_on_local_connect_fn        NetworkAgent::set_on_local_connect_fn_ptr = nullptr;
 func_set_on_local_message_fn        NetworkAgent::set_on_local_message_fn_ptr = nullptr;
+func_set_queue_on_main_fn           NetworkAgent::set_queue_on_main_fn_ptr = nullptr;
 func_connect_server                 NetworkAgent::connect_server_ptr = nullptr;
 func_is_server_connected            NetworkAgent::is_server_connected_ptr = nullptr;
 func_refresh_connection             NetworkAgent::refresh_connection_ptr = nullptr;
@@ -195,6 +196,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     set_on_message_fn_ptr             =  reinterpret_cast<func_set_on_message_fn>(get_network_function("bambu_network_set_on_message_fn"));
     set_on_local_connect_fn_ptr       =  reinterpret_cast<func_set_on_local_connect_fn>(get_network_function("bambu_network_set_on_local_connect_fn"));
     set_on_local_message_fn_ptr       =  reinterpret_cast<func_set_on_local_message_fn>(get_network_function("bambu_network_set_on_local_message_fn"));
+    set_queue_on_main_fn_ptr          = reinterpret_cast<func_set_queue_on_main_fn>(get_network_function("bambu_network_set_queue_on_main_fn"));
     connect_server_ptr                =  reinterpret_cast<func_connect_server>(get_network_function("bambu_network_connect_server"));
     is_server_connected_ptr           =  reinterpret_cast<func_is_server_connected>(get_network_function("bambu_network_is_server_connected"));
     refresh_connection_ptr            =  reinterpret_cast<func_refresh_connection>(get_network_function("bambu_network_refresh_connection"));
@@ -299,6 +301,7 @@ int NetworkAgent::unload_network_module()
     set_on_message_fn_ptr             =  nullptr;
     set_on_local_connect_fn_ptr       =  nullptr;
     set_on_local_message_fn_ptr       =  nullptr;
+    set_queue_on_main_fn_ptr          = nullptr;
     connect_server_ptr                =  nullptr;
     is_server_connected_ptr           =  nullptr;
     refresh_connection_ptr            =  nullptr;
@@ -598,6 +601,17 @@ int NetworkAgent::set_on_local_message_fn(OnMessageFn fn)
     int ret = 0;
     if (network_agent && set_on_local_message_fn_ptr) {
         ret = set_on_local_message_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_queue_on_main_fn(QueueOnMainFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_queue_on_main_fn_ptr) {
+        ret = set_queue_on_main_fn_ptr(network_agent, fn);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
     }

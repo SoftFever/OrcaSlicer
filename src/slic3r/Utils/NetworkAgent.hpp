@@ -25,6 +25,7 @@ typedef int (*func_set_get_country_code_fn)(void *agent, GetCountryCodeFn fn);
 typedef int (*func_set_on_message_fn)(void *agent, OnMessageFn fn);
 typedef int (*func_set_on_local_connect_fn)(void *agent, OnLocalConnectedFn fn);
 typedef int (*func_set_on_local_message_fn)(void *agent, OnMessageFn fn);
+typedef int (*func_set_queue_on_main_fn)(void *agent, QueueOnMainFn fn);
 typedef int (*func_connect_server)(void *agent);
 typedef bool (*func_is_server_connected)(void *agent);
 typedef int (*func_refresh_connection)(void *agent);
@@ -117,6 +118,7 @@ public:
     int set_on_message_fn(OnMessageFn fn);
     int set_on_local_connect_fn(OnLocalConnectedFn fn);
     int set_on_local_message_fn(OnMessageFn fn);
+    int set_queue_on_main_fn(QueueOnMainFn fn);
     int connect_server();
     bool is_server_connected();
     int refresh_connection();
@@ -198,6 +200,7 @@ private:
     static func_set_on_message_fn              set_on_message_fn_ptr;
     static func_set_on_local_connect_fn        set_on_local_connect_fn_ptr;
     static func_set_on_local_message_fn        set_on_local_message_fn_ptr;
+    static func_set_queue_on_main_fn           set_queue_on_main_fn_ptr;
     static func_connect_server                 connect_server_ptr;
     static func_is_server_connected            is_server_connected_ptr;
     static func_refresh_connection             refresh_connection_ptr;

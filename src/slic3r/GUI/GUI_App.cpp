@@ -1958,6 +1958,9 @@ void GUI_App::init_networking_callbacks()
                 });
         };
         m_agent->set_on_local_message_fn(lan_message_arrive_fn);
+        m_agent->set_queue_on_main_fn([this](std::function<void()> callback) {
+            CallAfter(callback);
+        });
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit, m_agent=%1%")%m_agent;
 }

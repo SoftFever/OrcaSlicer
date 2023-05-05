@@ -10,4 +10,6 @@ endif()
 if(NOT DEFINED BBL_INTERNAL_TESTING)
 set(BBL_INTERNAL_TESTING "1")
 endif()
-set(SLIC3R_VERSION "01.06.01.54")
+
+# The build_version should start from 50 in master branch
+set(SLIC3R_VERSION "01.06.05.01")

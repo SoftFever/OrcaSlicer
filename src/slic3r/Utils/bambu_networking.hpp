@@ -79,8 +79,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.06.01.01"
-
+#define BAMBU_NETWORK_AGENT_VERSION         "01.06.05.01"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -112,6 +111,8 @@ typedef std::function<void(int status, int code, std::string msg)> OnUpdateStatu
 typedef std::function<bool()>                       WasCancelledFn;
 // local callbacks
 typedef std::function<void(std::string dev_info_json_str)> OnMsgArrivedFn;
+// queue call to main thread
+typedef std::function<void(std::function<void()>)> QueueOnMainFn;
 
 typedef std::function<void(int progress)> ProgressFn;
 typedef std::function<void(int retcode, std::string info)> LoginFn;
