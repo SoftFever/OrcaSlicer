@@ -1199,7 +1199,7 @@ void SendToPrinterDialog::set_default()
     wxString   time;
     PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
     if (plate) {
-        if (plate->get_slice_result()) { time = wxString::Format("%s", get_bbl_monitor_time_dhm(plate->get_slice_result()->print_statistics.modes[0].time)); }
+        if (plate->get_slice_result()) { time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); }
     }
 
     char weight[64];
