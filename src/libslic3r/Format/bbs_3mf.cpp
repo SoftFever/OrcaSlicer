@@ -2343,7 +2343,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             if (cut_connector.first != "connector") continue;
                             pt::ptree                connector_tree = cut_connector.second;
                             CutObjectInfo::Connector connector      = {connector_tree.get<int>("<xmlattr>.volume_id"), connector_tree.get<int>("<xmlattr>.type"),
-                                                                  connector_tree.get<float>("<xmlattr>.radius", 0.f), connector_tree.get<float>("<xmlattr>.height", 0.f),   
+                                                                  connector_tree.get<float>("<xmlattr>.radius", 0.f), connector_tree.get<float>("<xmlattr>.height", 0.f),
                                                                   connector_tree.get<float>("<xmlattr>.r_tolerance"), connector_tree.get<float>("<xmlattr>.h_tolerance")};
                             connectors.emplace_back(connector);
                         }
@@ -2609,7 +2609,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
     }
-    
+
     void _BBS_3MF_Importer::_extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, ConfigSubstitutionContext& config_substitutions)
     {
         if (stat.m_uncomp_size > 0) {
@@ -3182,7 +3182,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
         else {
             if (m_is_bbl_3mf && boost::ends_with(m_curr_object->uuid, OBJECT_UUID_SUFFIX) && m_load_restore) {
-                // Adjust backup object/volume id 
+                // Adjust backup object/volume id
                 std::istringstream iss(m_curr_object->uuid);
                 int backup_id;
                 bool need_replace = false;
@@ -3201,7 +3201,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         Component& component = m_curr_object->components[index];
                         Id new_id = component.object_id;
                         new_id.second = (index + 1) << 16 | backup_id;
-                        if (current_object != m_current_objects.end() 
+                        if (current_object != m_current_objects.end()
                                 && (new_id.first.empty() || new_id.first == current_object->first.first)) {
                             current_object->second.id   = new_id.second;
                             new_map.insert({new_id, std::move(current_object->second)});
@@ -3819,7 +3819,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (key == PLATERID_ATTR)
             {
                 m_curr_plater->plate_index = atoi(value.c_str());
-            } 
+            }
             else if (key == PLATER_NAME_ATTR) {
                 m_curr_plater->plate_name = encode_path(value.c_str());
             }
@@ -6052,6 +6052,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // all the object instances of all ModelObjects are stored and indexed in a 1 based linear fashion.
         // Therefore the list of object_ids here may not be continuous.
         unsigned int object_id = 1;
+        unsigned int object_index = 0;
 
         bool cb_cancel = false;
         std::vector<std::string> object_paths;
@@ -6060,7 +6061,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (sub_model && obj != objects_data.begin()->second.object) continue;
 
                 if (proFn) {
-                    proFn(EXPORT_STAGE_ADD_MODELS, object_id, model.objects.size(), cb_cancel);
+                    proFn(EXPORT_STAGE_ADD_MODELS, object_index++, model.objects.size(), cb_cancel);
                     if (cb_cancel)
                         return false;
                 }
@@ -6092,14 +6093,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         volume_count++;
                         if (m_share_mesh) {
                             auto iter = m_shared_meshes.find(volume->mesh_ptr());
-                            if (iter != m_shared_meshes.end() && volume->supported_facets.empty() 
-                                    && volume->seam_facets.empty() 
-                                    && volume->mmu_segmentation_facets.empty()) {
-                                auto data = iter->second.first;
-                                const_cast<_BBS_3MF_Exporter *>(this)->m_volume_paths.insert({volume, {data->sub_path, data->volumes_objectID.find(iter->second.second)->second}});
-                                volumes_objectID.insert({volume, 0});
-                                object_data.share_mesh = true;
-                                continue;
+                            if (iter != m_shared_meshes.end())
+                            {
+                                const ModelVolume* shared_volume = iter->second.second;
+                                if ((shared_volume->supported_facets.equals(volume->supported_facets))
+                                    && (shared_volume->seam_facets.equals(volume->seam_facets))
+                                    && (shared_volume->mmu_segmentation_facets.equals(volume->mmu_segmentation_facets)))
+                                {
+                                    auto data = iter->second.first;
+                                    const_cast<_BBS_3MF_Exporter *>(this)->m_volume_paths.insert({volume, {data->sub_path, data->volumes_objectID.find(iter->second.second)->second}});
+                                    volumes_objectID.insert({volume, 0});
+                                    object_data.share_mesh = true;
+                                    continue;
+                                }
                             }
                             const_cast<_BBS_3MF_Exporter *>(this)->m_shared_meshes.insert({volume->mesh_ptr(), {&object_data, volume}});
                         }
@@ -6239,7 +6245,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         stream << "  <" << OBJECT_TAG << " id=\"" << object_data.object_id;
         if (m_production_ext)
-            stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)object_data.backup_id} 
+            stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)object_data.backup_id}
                     << (object_data.share_mesh ? OBJECT_UUID_SUFFIX2 : OBJECT_UUID_SUFFIX);
         stream << "\" type=\"model\">\n";
 

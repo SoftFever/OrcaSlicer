@@ -2896,7 +2896,7 @@ bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partpla
     store_params.pick_thumbnail_data = pick_thumbnails;
     store_params.calibration_thumbnail_data = calibration_thumbnails;
     store_params.id_bboxes = plate_bboxes;
-    store_params.strategy = SaveStrategy::Silence|SaveStrategy::WithGcode|SaveStrategy::SplitModel|SaveStrategy::UseLoadedId;
+    store_params.strategy = SaveStrategy::Silence|SaveStrategy::WithGcode|SaveStrategy::SplitModel|SaveStrategy::UseLoadedId|SaveStrategy::ShareMesh;
 
     success = Slic3r::store_bbs_3mf(store_params);
 
