@@ -7724,6 +7724,9 @@ void Plater::load_project(wxString const& filename2,
         p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
     }
+    else {
+        p->partplate_list.select_plate_view();
+    }
 
     if (previous_gcode)
         collapse_sidebar(false);
