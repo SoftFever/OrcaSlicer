@@ -1,9 +1,14 @@
 include(ExternalProject)
 
+# Use boost 1.78 for Windows, to support VS2022
 if (WIN32)
+	set(_boost_url "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz")
+	set(_boost_hash 94CED8B72956591C4775AE2207A9763D3600B30D9D7446562C552F0A14A63BE7)
     set(_bootstrap_cmd bootstrap.bat)
     set(_build_cmd  b2.exe)
 else()
+	set(_boost_url "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz")
+	set(_boost_hash AEB26F80E80945E82EE93E5939BAEBDCA47B9DEE80A07D3144BE1E1A6A66DD6A)
     set(_bootstrap_cmd ./bootstrap.sh)
     set(_build_cmd ./b2)
 endif()
@@ -147,8 +152,8 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE OR BUILD_SHARED_LIBS)
     message(STATUS "Standard boost build with install command '${_install_cmd}'")
 ExternalProject_Add(
     dep_Boost
-   URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
-    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
+	URL ${_boost_url}
+    URL_HASH SHA256=${_boost_hash}
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
     PATCH_COMMAND ${_patch_command}
@@ -161,8 +166,8 @@ else()
 
 ExternalProject_Add(
     dep_Boost
-   URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
-    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
+	URL ${_boost_url}
+    URL_HASH SHA256=${_boost_hash}
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND ./bootstrap.sh
         --with-toolset=clang
