@@ -239,8 +239,10 @@ void PrintJob::process()
             catch (...) {}
         }
     }
-    else {
-        params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+    
+
+    if (params.preset_name.empty() && params.project_name.empty()) {
+        params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString();
         params.project_name = m_project_name;
     }
 
