@@ -5694,7 +5694,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             int i = 0;
             for (auto & path : targets) {
                 for (auto & type : types)
-                    stream << " <Relationship Target=\"/" << xml_escape(path) << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"" << type << "\"/>\n";
+                    stream << " <Relationship Target=\"/" << xml_escape(path) << "\" Id=\"rel-" << std::to_string(++i) << "\" Type=\"" << type << "\"/>\n";
             }
         }
         stream << "</Relationships>";
