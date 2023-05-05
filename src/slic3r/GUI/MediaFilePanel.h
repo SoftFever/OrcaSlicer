@@ -85,6 +85,7 @@ private:
 
     int m_last_mode = 0;
     int m_last_type = 0;
+    std::set<int> m_last_errors;
 };
 
 

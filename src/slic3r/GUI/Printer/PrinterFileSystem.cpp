@@ -1074,9 +1074,14 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             if (ret == 0)
                 ret = Bambu_StartStream(tunnel, false);
             l.lock();
-            m_session.tunnel = tunnel;
-            if (ret == 0)
+            if (ret == 0) {
+                m_session.tunnel = tunnel;
                 break;
+            }
+            if (tunnel) {
+                Bambu_Close(tunnel);
+                Bambu_Destroy(tunnel);
+            }
             m_last_error = ret;
         }
         m_status     = Status::Failed;

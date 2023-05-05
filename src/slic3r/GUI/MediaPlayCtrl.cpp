@@ -100,6 +100,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_machine = machine;
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << m_machine;
     m_failed_retry = 0;
+    m_last_failed_codes.clear();
     std::string stream_url;
     if (get_stream_url(&stream_url)) {
         m_streaming = boost::algorithm::contains(stream_url, "device=" + m_machine);
@@ -215,7 +216,7 @@ void MediaPlayCtrl::Play()
 
 void MediaPlayCtrl::Stop(wxString const &msg)
 {
-    bool init_failed = m_last_state != wxMEDIASTATE_PLAYING;
+    int last_state = m_last_state;
 
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
@@ -238,19 +239,22 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         m_failed_code = 0;
     }
 
-    if (init_failed && m_failed_code != 0 && m_last_failed_code != m_failed_code) {
+    if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
+            && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
+            && (m_user_triggered || m_failed_retry > 3)) {
         json j;
-        j["stage"]          = std::to_string(m_last_state);
+        j["stage"]          = last_state;
         j["dev_id"]         = m_machine;
         j["dev_ip"]         = m_lan_ip;
         j["result"]         = "failed";
+        j["user_triggered"] = m_user_triggered;
         j["code"]           = m_failed_code;
         j["msg"]            = into_u8(msg);
         NetworkAgent *agent = wxGetApp().getAgent();
         if (agent)
             agent->track_event("start_liveview", j.dump());
+        m_last_failed_codes.insert(m_failed_code);
     }
-    m_last_failed_code = m_failed_code;
 
     ++m_failed_retry;
     if (m_failed_code != 0 && !m_tutk_support && (m_failed_retry > 1 || m_user_triggered)) {
@@ -258,7 +262,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_user_triggered = true;
-            m_last_failed_code = 0;
+            m_last_failed_codes.clear();
             m_next_retry   = wxDateTime::Now();
             return;
         }
@@ -276,7 +280,7 @@ void MediaPlayCtrl::TogglePlay()
     } else {
         m_failed_retry = 0;
         m_user_triggered = true;
-        m_last_failed_code = 0;
+        m_last_failed_codes.clear();
         m_next_retry   = wxDateTime::Now();
         Play();
     }

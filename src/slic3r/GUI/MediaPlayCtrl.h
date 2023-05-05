@@ -16,6 +16,7 @@
 #include <boost/thread/condition_variable.hpp>
 
 #include <deque>
+#include <set>
 
 class Button;
 class Label;
@@ -86,7 +87,7 @@ private:
     bool m_user_triggered = false;
     int m_failed_retry = 0;
     int m_failed_code = 0;
-    int m_last_failed_code = 0;
+    std::set<int> m_last_failed_codes;
     wxDateTime m_next_retry;
 
     ::Button *m_button_play;

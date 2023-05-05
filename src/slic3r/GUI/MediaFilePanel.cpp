@@ -208,6 +208,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     if (machine == m_machine)
         return;
     m_machine = machine;
+    m_last_errors.clear();
     auto fs = m_image_grid->GetFileSystem();
     if (fs) {
         m_image_grid->SetFileSystem(nullptr);
@@ -265,7 +266,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             if (e.GetInt() == PrinterFileSystem::Initializing)
                 fetchUrl(boost::weak_ptr(fs));
 
-            if (status == PrinterFileSystem::Failed
+            if ((status == PrinterFileSystem::Failed && m_last_errors.find(fs->GetLastError()) == m_last_errors.end())
                 || status == PrinterFileSystem::ListReady) {
                 json j;
                 j["code"] = fs->GetLastError();
@@ -281,6 +282,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                     if (agent)
                         agent->track_event("download_video_conn", j.dump());
                 }
+                m_last_errors.insert(fs->GetLastError());
             }
         });
         fs->Bind(EVT_DOWNLOAD, [this, wfs = boost::weak_ptr(fs)](auto& e) {
