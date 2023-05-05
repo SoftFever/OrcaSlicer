@@ -555,6 +555,13 @@ public:
         Base::clearItems();
     }
 
+    //clearFunc: itm will be cleared if return ture
+    inline void clearItems(const std::function<bool(const Item &itm)> &clearFunc)
+    {
+        finalAlign(bin_);
+        Base::clearItems(clearFunc);
+    }
+
     void preload(const ItemGroup& packeditems) {
         Base::preload(packeditems);
         if (config_.on_preload)

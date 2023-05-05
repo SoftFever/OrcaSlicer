@@ -84,6 +84,7 @@ public:
     //BBS: virtual object to mark unprintable region on heatbed
     bool is_virt_object{ false };
     bool is_wipe_tower{ false };
+    bool has_tried_with_excluded{ false };
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;
@@ -662,8 +663,20 @@ public:
     /// Get the packed items.
     inline ItemGroup getItems() { return impl_.getItems(); }
 
+    inline int getPackedSize()
+    {
+        int  size  = 0;
+        auto items = getItems();
+        for (const auto &itm : items) {
+            if (itm.get().isFixed() == false) { size++; }
+        }
+        return size;
+    }
+
     /// Clear the packed items so a new session can be started.
     inline void clearItems() { impl_.clearItems(); }
+
+    inline void clearItems(const std::function<bool(const Item &itm)> &func) { impl_.clearItems(func); }
 
     inline double filledArea() const { return impl_.filledArea(); }
 
