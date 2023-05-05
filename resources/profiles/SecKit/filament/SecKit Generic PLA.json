@@ -31,6 +31,7 @@
         "200"
     ],
     "compatible_printers": [
-        "SecKit SK-Tank 0.4 nozzle"
+        "SecKit SK-Tank 0.4 nozzle",
+	  "Go3 0.4 nozzle"
     ]
 }

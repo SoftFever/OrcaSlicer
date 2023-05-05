@@ -511,8 +511,9 @@ void TextCtrl::BUILD() {
     m_combine_side_text = !m_opt.multiline;
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) text_ctrl->GetSize().GetHeight() / m_em_unit;
-    if (m_opt.is_code) // BBS
-        temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    temp->SetFont(m_opt.is_code ?
+                    Slic3r::GUI::wxGetApp().code_font() :
+                    Slic3r::GUI::wxGetApp().normal_font());
 
 	wxGetApp().UpdateDarkUI(temp);
 

@@ -1725,6 +1725,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
+
+    std::vector<unsigned char> is_extruder_used(print.config().filament_diameter.size(), 0);
+    for (unsigned int extruder : tool_ordering.all_extruders())
+        is_extruder_used[extruder] = true;
+    m_placeholder_parser.set("is_extruder_used", new ConfigOptionBools(is_extruder_used));
+
     Vec2f plate_offset = m_writer.get_xy_offset();
     {
         BoundingBoxf bbox(print.config().printable_area.values);

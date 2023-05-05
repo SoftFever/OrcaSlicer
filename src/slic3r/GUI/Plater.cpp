@@ -8091,6 +8091,14 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
         wxGetApp().mainframe->update_title();
     }
 }
+std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3& bbox, const double& cut_height) {
+    std::array<Vec3d, 4> plane_pts;
+    plane_pts[0] = Vec3d(bbox.min(0), bbox.min(1), cut_height);
+    plane_pts[1] = Vec3d(bbox.max(0), bbox.min(1), cut_height);
+    plane_pts[2] = Vec3d(bbox.max(0), bbox.max(1), cut_height);
+    plane_pts[3] = Vec3d(bbox.min(0), bbox.max(1), cut_height);
+    return plane_pts;
+}
 
 void Plater::calib_pa(const Calib_Params& params) {
     
@@ -8124,11 +8132,7 @@ void Plater::calib_pa(const Calib_Params& params) {
         auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
         auto obj_bb = model().objects[0]->bounding_box();
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts;
-            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
-            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
-            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
-            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
             cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
         }
 
@@ -8271,11 +8275,7 @@ void Plater::calib_temp(const Calib_Params& params) {
         // add EPSILON offset to avoid cutting at the exact location where the flat surface is
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts;
-            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
-            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
-            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
-            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
             cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
         }
     }
@@ -8286,11 +8286,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     if(block_count > 0){
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts;
-            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
-            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
-            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
-            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
             cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepUpper);
         }
     }
@@ -8358,11 +8354,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     auto obj_bb = obj->bounding_box();
     auto height = (params.end - params.start + 1) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts;
-        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
-        plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
-        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
-        plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
     }
 
@@ -8410,11 +8402,7 @@ void Plater::calib_VFA(const Calib_Params& params)
     auto obj_bb = model().objects[0]->bounding_box();
     auto height = 5 * ((params.end - params.start) / params.step + 1);
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts;
-        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
-        plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
-        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
-        plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
     }
 
