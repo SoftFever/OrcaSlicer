@@ -2344,8 +2344,8 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
 
             if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-                if(!m_staticText_profile_value->IsShown()){ m_staticText_profile_value->Show();}
-                m_staticText_profile_value->SetLabelText(obj->get_modeltask()->profile_name);
+                if (!m_staticText_profile_value->IsShown()) { m_staticText_profile_value->Show(); }
+                m_staticText_profile_value->SetLabelText(wxString::FromUTF8(obj->get_modeltask()->profile_name));
             }
             else {
                 m_staticText_profile_value->SetLabelText(wxEmptyString);
@@ -2392,7 +2392,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
         if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
             if(!m_staticText_profile_value->IsShown()){ m_staticText_profile_value->Show();}
-            m_staticText_profile_value->SetLabelText(obj->get_modeltask()->profile_name);
+            m_staticText_profile_value->SetLabelText(wxString::FromUTF8(obj->get_modeltask()->profile_name));
         }
         else {
             m_staticText_profile_value->SetLabelText(wxEmptyString);
