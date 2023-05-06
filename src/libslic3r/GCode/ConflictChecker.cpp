@@ -263,14 +263,24 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
 
 ConflictComputeOpt ConflictChecker::line_intersect(const LineWithID &l1, const LineWithID &l2)
 {
+    constexpr double SUPPORT_THRESHOLD = 1.0;
+    constexpr double OTHER_THRESHOLD   = 0.01;
     if (l1._id == l2._id) { return {}; } // return true if lines are from same object
     Point inter;
     bool  intersect = l1._line.intersection(l2._line, &inter);
+
     if (intersect) {
         auto dist1 = std::min(unscale(Point(l1._line.a - inter)).norm(), unscale(Point(l1._line.b - inter)).norm());
         auto dist2 = std::min(unscale(Point(l2._line.a - inter)).norm(), unscale(Point(l2._line.b - inter)).norm());
         auto dist  = std::min(dist1, dist2);
-        if (dist > 0.01) { return std::make_optional<ConflictComputeResult>(l1._id, l2._id); } // the two lines intersects if dist>0.01mm
+        ExtrusionRole r1        = l1._role;
+        ExtrusionRole r2        = l2._role;
+        bool          both_support = r1 == ExtrusionRole::erSupportMaterial || r1 == ExtrusionRole::erSupportMaterialInterface || r1 == ExtrusionRole::erSupportTransition;
+        both_support &= r2 == ExtrusionRole::erSupportMaterial || r2 == ExtrusionRole::erSupportMaterialInterface || r2 == ExtrusionRole::erSupportTransition;
+        if (dist > (both_support ? SUPPORT_THRESHOLD:OTHER_THRESHOLD)) {
+            // the two lines intersects if dist>0.01mm for regular lines, and if dist>1mm for both supports
+            return std::make_optional<ConflictComputeResult>(l1._id, l2._id);
+        }
     }
     return {};
 }

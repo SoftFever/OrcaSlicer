@@ -16,9 +16,9 @@ struct LineWithID
 {
     Line _line;
     int  _id;
-    int  _role;
+    ExtrusionRole _role;
 
-    LineWithID(const Line &line, int id, int role) : _line(line), _id(id), _role(role) {}
+    LineWithID(const Line &line, int id, ExtrusionRole role) : _line(line), _id(id), _role(role) {}
 };
 
 using LineWithIDs = std::vector<LineWithID>;
