@@ -508,7 +508,7 @@ public:
     //BBS: update progress result
     void apply_background_progress();
     //BBS: select the plate by hover_id
-    int select_plate_by_hover_id(int hover_id, bool right_click = false);
+    int select_plate_by_hover_id(int hover_id, bool right_click = false, bool isModidyPlateName = false);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
     //BBS: select the sliced plate by index
@@ -673,7 +673,8 @@ public:
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
-
+    int     GetPlateIndexByRightMenuInLeftUI();
+    void    SetPlateIndexByRightMenuInLeftUI(int);
     static bool has_illegal_filename_characters(const wxString& name);
     static bool has_illegal_filename_characters(const std::string& name);
     static void show_illegal_characters_warning(wxWindow* parent);

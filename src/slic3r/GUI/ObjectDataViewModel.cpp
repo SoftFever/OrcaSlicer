@@ -328,7 +328,14 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
     return false;
 }
 
-void ObjectDataViewModelNode::SetIdx(const int& idx)
+void ObjectDataViewModelNode::SetName(const wxString &tempName) 
+{ 
+    if (m_name != tempName) {
+        m_name = tempName; 
+    }
+}
+
+void ObjectDataViewModelNode::SetIdx(const int &idx)
 {
     m_idx = idx;
     // update name if this node is instance
@@ -447,11 +454,16 @@ wxBitmap& ObjectDataViewModel::GetWarningBitmap(const std::string& warning_icon_
 
 wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString name, bool refresh)
 {
-    int plate_idx = part_plate ? part_plate->get_index() : -1;
+    int  plate_idx  = part_plate ? part_plate->get_index() : -1;
     wxString plate_name = name;
     if (plate_name == "") {
-        plate_name = _L("Plate");
-        plate_name << " " << plate_idx + 1;
+        plate_name                   = _L("Plate");
+        std::string plate_CustomName = part_plate ? part_plate->get_plate_name() : "";
+        if (plate_CustomName.length() > 0) {
+            plate_name << " " << plate_idx + 1 << " (" << plate_CustomName << ")";
+        } else {
+            plate_name << " " << plate_idx + 1;
+        }
     }
     auto plate_node = new ObjectDataViewModelNode(part_plate, plate_name);
 
@@ -469,7 +481,7 @@ wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString nam
     if (!is_added) {
         m_plates.push_back(plate_node);
     }
-
+    
     wxDataViewItem plate_item(plate_node);
     if (refresh) {
         ItemAdded(wxDataViewItem(nullptr), plate_item);
@@ -1241,6 +1253,20 @@ wxDataViewItem ObjectDataViewModel::GetItemByPlateId(int plate_idx)
     return wxDataViewItem(nullptr);
 }
 
+void ObjectDataViewModel::SetCurSelectedPlateFullNmae(int plate_idx, const std::string & custom_name) { 
+    for (auto plate : m_plates) {
+        if (plate->m_plate_idx == plate_idx) { 
+            wxString plate_full_name=_L("Plate");
+            if (custom_name.length() > 0) {
+                plate_full_name << " " << plate_idx + 1 << " (" << custom_name << ")";
+            } else {
+                plate_full_name << " " << plate_idx + 1;
+            }
+            plate->SetName(plate_full_name); 
+        }
+    }
+}
+
 wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_idx)
 {
     if (size_t(obj_idx) >= m_objects.size()) {
@@ -1951,9 +1977,18 @@ bool ObjectDataViewModel::HasInfoItem(InfoItemType type) const
 
 ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item) const
 {
+    if (!item.IsOk()) 
+        return itUndef;
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(item.GetID());
+    return node->m_type < 0 ? itUndef : node->m_type;
+}
+
+ItemType ObjectDataViewModel::GetItemType(const wxDataViewItem &item, int &plate_idx) const
+{
     if (!item.IsOk())
         return itUndef;
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    plate_idx=node->m_plate_idx;
     return node->m_type < 0 ? itUndef : node->m_type;
 }
 

@@ -1381,6 +1381,7 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
 wxMenu* MenuFactory::plate_menu()
 {
     append_menu_item_locked(&m_plate_menu);
+    append_menu_item_plate_name(&m_plate_menu);
     return &m_plate_menu;
 }
 
@@ -1626,6 +1627,40 @@ void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
     append_menu_item(
         menu, wxID_ANY, _L("Fill bed with copies") + dots, _L("Fill the remaining area of bed with copies of the selected object"),
         [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
+}
+void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
+{
+    wxString name= _L("Edit plate setitngs");
+    // Delete old menu item
+    const int item_id = menu->FindItem(name);
+    if (item_id != wxNOT_FOUND) menu->Destroy(item_id);
+    
+    PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
+    assert(plate);
+   
+    auto item = append_menu_item(
+        menu, wxID_ANY, name, "",
+        [plate](wxCommandEvent &e) {
+            int hover_idx =plater()->canvas3D()->GetHoverId();
+            if (hover_idx == -1) {
+                int plate_idx=plater()->GetPlateIndexByRightMenuInLeftUI();
+                plater()->select_plate_by_hover_id(plate_idx * PartPlate::GRABBER_COUNT, false, true);
+            }
+            else
+            {
+                plater()->select_plate_by_hover_id(hover_idx, false, true);
+            } 
+        },
+        "", nullptr, []() { return true; }, m_parent);
+
+    m_parent->Bind(
+        wxEVT_UPDATE_UI,
+        [](wxUpdateUIEvent &evt) {
+            PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            plater()->set_current_canvas_as_dirty();
+        },
+        item->GetId());
 }
 
 void MenuFactory::update_object_menu()

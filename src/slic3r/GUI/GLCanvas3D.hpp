@@ -495,6 +495,8 @@ public:
         CanvasAssembleView = 2,
     };
 
+    int GetHoverId();
+
 private:
     bool m_is_dark = false;
     wxGLCanvas* m_canvas;

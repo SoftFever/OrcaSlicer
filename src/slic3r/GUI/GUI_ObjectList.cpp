@@ -1258,7 +1258,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
         const auto item = GetSelection();
         if (item)
         {
-            const ItemType type = m_objects_model->GetItemType(item);
+            const ItemType type      = m_objects_model->GetItemType(item);
             if (!(type & (itPlate | itObject | itVolume | itInstance)))
                 return;
 
@@ -1266,6 +1266,14 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                     type & itInstance                                           ? plater->instance_menu() :
                     type & itVolume                                             ? plater->part_menu() :
                     printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
+            plater->SetPlateIndexByRightMenuInLeftUI(-1);
+            if (type & itPlate) {
+                int            plate_idx = -1;
+                const ItemType type0      = m_objects_model->GetItemType(item, plate_idx);
+                if (plate_idx >= 0) { 
+                    plater->SetPlateIndexByRightMenuInLeftUI(plate_idx);
+                }
+            }
         }
         else if (evt_context_menu)
             menu = plater->default_menu();

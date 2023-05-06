@@ -1701,6 +1701,7 @@ struct Plater::priv
     bool m_slice_all{false};
     bool m_is_slicing {false};
     bool m_is_publishing {false};
+    int m_is_RightClickInLeftUI{-1};
     int m_cur_slice_plate;
     //BBS: m_slice_all in .gcode.3mf file case, set true when slice all
     bool m_slice_all_only_has_gcode{ false };
@@ -11114,13 +11115,13 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 
 
 //BBS: select Plate by hover_id
-int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
+int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName)
 {
     int ret;
     int action, plate_index;
 
     plate_index = hover_id / PartPlate::GRABBER_COUNT;
-    action = hover_id % PartPlate::GRABBER_COUNT;
+    action      = isModidyPlateName?5:hover_id % PartPlate::GRABBER_COUNT;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, hover_id %1%, plate_index %2%, action %3%")%hover_id % plate_index %action;
     if (action == 0)
@@ -11746,7 +11747,8 @@ wxMenu* Plater::default_menu()          { return p->menus.default_menu();       
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
 wxMenu* Plater::layer_menu()            { return p->menus.layer_menu();             }
 wxMenu* Plater::multi_selection_menu()  { return p->menus.multi_selection_menu();   }
-
+int     Plater::GetPlateIndexByRightMenuInLeftUI() { return p->m_is_RightClickInLeftUI; }
+void    Plater::SetPlateIndexByRightMenuInLeftUI(int index) { p->m_is_RightClickInLeftUI = index; }
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
     m_was_scheduled(wxGetApp().plater()->is_background_process_update_scheduled())
 {

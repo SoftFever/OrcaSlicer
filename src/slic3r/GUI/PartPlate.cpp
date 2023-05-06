@@ -1556,6 +1556,12 @@ void PartPlate::set_plate_name(const std::string &name)
     // compare if name equal to m_name, case sensitive
     if (boost::equals(m_name, name)) return;
 
+    if (m_plater) {
+        ObjectList *obj_list = wxGetApp().obj_list();
+        if (obj_list) { 
+			obj_list->GetModel()->SetCurSelectedPlateFullNmae(m_plate_index, name);
+		}
+    }
     m_name = name;
     m_name_change = true;
     if (m_print != nullptr) 
