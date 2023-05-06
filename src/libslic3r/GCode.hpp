@@ -10,6 +10,7 @@
 #include "PrintConfig.hpp"
 #include "GCode/AvoidCrossingPerimeters.hpp"
 #include "GCode/CoolingBuffer.hpp"
+#include "GCode/FanMover.hpp"
 #include "GCode/RetractWhenCrossingPerimeters.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
@@ -490,6 +491,9 @@ private:
 
     // Processor
     GCodeProcessor m_processor;
+
+    //some post-processing on the file, with their data class
+    std::unique_ptr<FanMover> m_fan_mover;
 
     // BBS
     Print* m_curr_print = nullptr;

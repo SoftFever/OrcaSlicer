@@ -679,7 +679,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
 
     def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridge direction");
+    def->label = L("Bridge infill direction");
     def->category = L("Strength");
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
@@ -1384,16 +1384,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
 
-    def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridge infill direction");
-    def->category = L("Strength");
-    def->tooltip = L("Angle for bridge infill pattern, which controls the start or main direction of line");
-    def->sidetext = L("°");
-    def->min = 0;
-    def->max = 360;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
@@ -1772,6 +1762,35 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("fan_speedup_time", coFloat);
+    def->label = L("");
+    def->tooltip = L("Start the fan this number of seconds earlier than its target start time (you can use fractional seconds)."
+        " It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting"
+        " is unsupported)."
+        "\nIt won't move fan comands from custom gcodes (they act as a sort of 'barrier')."
+        "\nIt won't move fan comands into the start gcode if the 'only custom start gcode' is activated."
+        "\nUse 0 to deactivate.");
+    def->sidetext = L("s");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("fan_speedup_overhangs", coBool);
+    def->label = L("Only overhangs");
+    def->tooltip = L("Will only take into account the delay for the cooling of overhangs.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("fan_kickstart", coFloat);
+    def->label = L("Fan kick-start time");
+    def->tooltip = L("Emit a max fan speed command for this amount of seconds before reducing to target speed to kick-start the cooling fan."
+                    "\nThis is useful for fans where a low PWM/power may be insufficient to get the fan started spinning from a stop, or to "
+                    "get the fan up to speed faster."
+                    "\nSet to 0 to deactivate.");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
