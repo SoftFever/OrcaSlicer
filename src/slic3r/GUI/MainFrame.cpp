@@ -2621,6 +2621,13 @@ void MainFrame::init_menubar_as_editor()
             m_pa_calib_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Retraction test"), _L("Retraction test"),
+        [this](wxCommandEvent&) {
+            if (!m_retraction_calib_dlg)
+                m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_retraction_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // Advance calibrations
     auto advance_menu = new wxMenu();
@@ -2689,6 +2696,15 @@ void MainFrame::init_menubar_as_editor()
             if (!m_pa_calib_dlg)
                 m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_pa_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    // Retraction
+    append_menu_item(calib_menu, wxID_ANY, _L("Retraction test"), _L("Retraction test"),
+        [this](wxCommandEvent&) {
+            if (!m_retraction_calib_dlg)
+                m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_retraction_calib_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 

@@ -2844,6 +2844,27 @@ GCode::LayerResult GCode::process_layer(
             + "\n";
     }
 
+    if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
+        gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
+    } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
+        auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
+        gcode += writer().set_temperature(print.calib_params().start - offset);
+    } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
+        auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+    } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
+        auto _speed = print.calib_params().start + print_z * print.calib_params().step;
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+    }
+    else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
+        auto _length = print.calib_params().start + std::floor(print_z) * print.calib_params().step;
+        DynamicConfig _cfg;
+        _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
+        writer().config.apply(_cfg);
+        sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
+        gcode += buf;
+    }
+
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z, !m_spiral_vase);  // this will increase m_layer_index
     m_layer = &layer;
@@ -2856,19 +2877,6 @@ GCode::LayerResult GCode::process_layer(
             print.config().layer_change_gcode.value, m_writer.extruder()->id(), &config)
             + "\n";
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-    }
-
-    if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
-        gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
-    } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
-        auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
-        gcode += writer().set_temperature(print.calib_params().start - offset);
-    } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
-        auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-    } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
-        auto _speed = print.calib_params().start + print_z * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     }
 
     //BBS
