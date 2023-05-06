@@ -902,6 +902,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // Version of the 3mf file
         unsigned int m_version;
         bool m_check_version;
+        bool m_load_model = false;
         bool m_load_aux;
         bool m_load_config;
         // backup & restore
@@ -1189,6 +1190,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_mm_painting_version = 0;
         m_check_version = strategy & LoadStrategy::CheckVersion;
         //BBS: auxiliary data
+        m_load_model  = strategy & LoadStrategy::LoadModel;
         m_load_aux = strategy & LoadStrategy::LoadAuxiliary;
         m_load_restore = strategy & LoadStrategy::Restore;
         m_load_config = strategy & LoadStrategy::LoadConfig;
@@ -1352,6 +1354,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         if (m_thumbnail_middle.empty()) m_thumbnail_middle = m_thumbnail_path;
         if (m_thumbnail_small.empty()) m_thumbnail_small = m_thumbnail_path;
+        if (!m_thumbnail_small.empty() && m_thumbnail_small.front() == '/')
+            m_thumbnail_small.erase(m_thumbnail_small.begin());
+        if (!m_thumbnail_middle.empty() && m_thumbnail_middle.front() == '/')
+            m_thumbnail_middle.erase(m_thumbnail_middle.begin());
         m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_small);
         m_model->model_info->metadata_items.emplace("Poster", m_thumbnail_middle);
 
@@ -3465,7 +3471,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
         int printable = bbs_get_attribute_value_bool(attributes, num_attributes, PRINTABLE_ATTR);
 
-        return _create_object_instance(path, object_id, transform, printable, 1);
+        return !m_load_model || _create_object_instance(path, object_id, transform, printable, 1);
     }
 
     bool _BBS_3MF_Importer::_handle_end_item()
@@ -4047,6 +4053,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Importer::_handle_start_assemble_item(const char** attributes, unsigned int num_attributes)
     {
+        if (!m_load_model) return true;
+
         int object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECT_ID_ATTR);
         int instance_id = bbs_get_attribute_value_int(attributes, num_attributes, INSTANCEID_ATTR);
 
