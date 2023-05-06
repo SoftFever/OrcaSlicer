@@ -1106,7 +1106,9 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
         if (layer_nr < blockers.size()) {
             Polygons& blocker = blockers[layer_nr];
-            ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, offset_ex(blocker, scale_(radius_sample_resolution)));
+            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise, 
+            // which are not valid polygons, and will be removed by offset_ex. union_ can make these polygons right.
+            ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, offset_ex(union_(blocker), scale_(radius_sample_resolution)));
         }
 
         if (max_bridge_length > 0 && ts_layer->overhang_areas.size() > 0 && lower_layer) {
@@ -1137,13 +1139,14 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
     for (const SupportLayer* layer : m_object->support_layers()) {
-        if (layer->overhang_areas.empty())
+        if (layer->overhang_areas.empty() && blockers[layer->id()].empty())
             continue;
 
         SVG svg(format("SVG/overhang_areas_%s.svg", layer->print_z), m_object->bounding_box());
         if (svg.is_opened()) {
             svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
-            svg.draw(layer->overhang_areas, "red");
+            svg.draw(layer->overhang_areas, "orange");
+            svg.draw(blockers[layer->id()], "red");
             for (auto& overhang : layer->overhang_areas) {
                 double aarea = overhang.area()/ area_thresh_well_supported;
                 auto pt = get_extents(overhang).center();
