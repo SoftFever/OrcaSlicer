@@ -91,7 +91,7 @@ void MsgDialog::show_dsa_button(wxString const &title)
     m_text_dsa->SetFont(::Label::Body_13);
     m_text_dsa->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
     btn_sizer->Layout();
-    //Fit();
+    Fit();
 }
 
 bool MsgDialog::get_checkbox_state() 

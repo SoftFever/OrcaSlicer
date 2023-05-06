@@ -543,10 +543,28 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     penel_bottons->SetSizer(bSizer_buttons);
     penel_bottons->Layout();
 
+    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
+
+    m_button_market_scoring = new Button(parent, _L("Immediately score"));
+    m_button_market_scoring->SetBackgroundColor(btn_bg_green);
+    m_button_market_scoring->SetBorderColor(btn_bd_green);
+    m_button_market_scoring->SetTextColor(wxColour("#FFFFFE"));
+    m_button_market_scoring->SetSize(wxSize(FromDIP(128), FromDIP(26)));
+    m_button_market_scoring->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_button_market_scoring->SetCornerRadius(FromDIP(13));
+
+    wxBoxSizer *bSizer_market_scoring = new wxBoxSizer(wxHORIZONTAL);
+    bSizer_market_scoring->Add(m_button_market_scoring);
+    bSizer_market_scoring->Add(0, 0, 1, wxEXPAND, 0);
+    m_button_market_scoring->Hide();
+
     bSizer_subtask_info->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
     bSizer_subtask_info->Add(bSizer_task_name, 0, wxEXPAND|wxRIGHT, FromDIP(18));
     bSizer_subtask_info->Add(m_staticText_profile_value, 0, wxEXPAND | wxTOP, FromDIP(5));
     bSizer_subtask_info->Add(m_printing_stage_value, 0, wxEXPAND | wxTOP, FromDIP(5));
+    bSizer_subtask_info->Add(bSizer_market_scoring, 0, wxEXPAND | wxTOP, FromDIP(5));
     bSizer_subtask_info->Add(penel_bottons, 0, wxEXPAND | wxTOP, FromDIP(10));
     bSizer_subtask_info->Add(m_panel_progress, 0, wxEXPAND|wxRIGHT, FromDIP(25));
 
@@ -1260,6 +1278,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_button_clean->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
+    m_button_market_scoring->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -1306,6 +1325,7 @@ StatusPanel::~StatusPanel()
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_button_clean->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
+    m_button_market_scoring->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -1411,6 +1431,12 @@ void StatusPanel::update_tasklist_info()
 
     // BBS do not show tasklist
     return;
+}
+
+void StatusPanel::on_market_scoring(wxCommandEvent &event) { 
+    if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) { 
+        market_model_scoring_page(obj->get_modeltask()->design_id);
+    }
 }
 
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
@@ -1603,6 +1629,30 @@ void StatusPanel::show_recenter_dialog() {
     RecenterDialog dlg(this);
     if (dlg.ShowModal() == wxID_OK)
         obj->command_go_home();
+}
+
+void StatusPanel::market_model_scoring_page(int design_id)
+{ 
+    std::string url;
+    if (GUI::wxGetApp().getAgent()->get_model_mall_detail_url(&url, std::to_string(design_id)) == 0) {
+        std::string sign_in;
+        std::string ticket;
+        size_t      model_page = url.find("=http");
+        if (model_page != std::string::npos) sign_in = url.substr(0, model_page + 1);
+        size_t ticket_pos = url.find("ticket=");
+        if (ticket_pos != std::string::npos) ticket = url.substr(ticket_pos);
+        std::string user_id = GUI::wxGetApp().getAgent()->get_user_id();
+        if (sign_in.empty() || ticket.empty())
+            url = "https://makerhub-pre.bambu-lab.com/en/u/" + user_id + "/rating";
+        else
+            url = sign_in + "https://makerhub-pre.bambu-lab.com/en/u/" + user_id + "/rating" + '&' + ticket;
+        try {
+            wxLaunchDefaultBrowser(url); }
+        catch(...) {
+            return;
+        }
+        
+    }
 }
 
 void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str)
@@ -2366,10 +2416,31 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_button_abort->SetBitmap_("print_control_stop_disable");
                 m_button_pause_resume->Enable(false);
                 m_button_pause_resume->SetBitmap_("print_control_resume_disable");
+                if (!m_print_finish && obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
+                    m_print_finish = true;
+                    m_button_market_scoring->Show();
+                    if (wxGetApp().app_config->get("not_show_score_dialog") != "1") {
+                        MessageDialog dlg(this,
+                                          _L("The currently printed model belongs to the Bambu Market model,click the Yes button to rate the model.\nYou can also click on the "
+                                             "\"Immediately score\" button to rate the model."),
+                                          wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+                        dlg.show_dsa_button();
+                        int  old_design_id = obj->get_modeltask()->design_id;
+                        auto res = dlg.ShowModal();
+                        if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
+                        if (res == wxID_YES) { 
+                            market_model_scoring_page(old_design_id);
+                        }
+                    }
+                }
             } else {
                 m_button_abort->Enable(true);
                 m_button_abort->SetBitmap_("print_control_stop");
                 m_button_pause_resume->Enable(true);
+                if (m_print_finish) { 
+                    m_print_finish = false;
+                    m_button_market_scoring->Hide();
+                }
             }
             // update printing stage
             m_printing_stage_value->SetLabelText(obj->get_curr_stage());

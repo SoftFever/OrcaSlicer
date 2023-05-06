@@ -144,6 +144,7 @@ protected:
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
     Button *        m_button_clean;
+    Button *        m_button_market_scoring;
 
     wxStaticText *  m_text_tasklist_caption;
 
@@ -292,6 +293,7 @@ protected:
     int          m_last_extrusion = -1;
     int          m_last_vcamera   = -1;
     bool         m_is_load_with_temp = false;
+    bool         m_print_finish            = false;
 
     wxWebRequest web_request;
     bool bed_temp_input    = false;
@@ -312,12 +314,14 @@ protected:
     void show_task_list_info(bool show = true);
     void update_tasklist_info();
 
+    void on_market_scoring(wxCommandEvent &event);
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
     void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "");
     void error_info_reset();
     void show_recenter_dialog();
+    void market_model_scoring_page(int design_id);
 
     /* axis control */
     bool check_axis_z_at_home(MachineObject* obj);
