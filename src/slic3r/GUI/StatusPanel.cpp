@@ -3488,10 +3488,14 @@ void StatusPanel::show_status(int status)
         show_printing_status(false, false);
         m_calibration_btn->Disable();
         m_options_btn->Disable();
+        m_panel_monitoring_title->Disable();
+        m_media_play_ctrl->Disable();
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         show_printing_status(true, true);
         m_calibration_btn->Disable();
         m_options_btn->Enable();
+        m_panel_monitoring_title->Enable();
+        m_media_play_ctrl->Enable();
     }
 }
 

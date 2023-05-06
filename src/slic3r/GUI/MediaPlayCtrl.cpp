@@ -82,14 +82,14 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_mode      = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
         m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
-        m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
-        m_device_busy   = obj->is_in_prepare() || obj->is_in_upgrading();
+        m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+        m_device_busy   = obj->is_camera_busy_off();
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
-        m_tutk_support = true;
+        m_remote_support = true;
         m_device_busy = false;
     }
     if (machine == m_machine) {
@@ -99,6 +99,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     }
     m_machine = machine;
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << m_machine;
+    m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
     std::string stream_url;
@@ -129,8 +130,17 @@ void MediaPlayCtrl::Play()
         Stop(_L("Initialize failed (No Device)!"));
         return;
     }
+    if (!IsEnabled()) {
+        Stop(_L("Initialize failed (Device connection not ready)!"));
+        return;
+    }
     if (!m_camera_exists) {
         Stop(_L("Initialize failed (No Camera Device)!"));
+        return;
+    }
+    if (m_device_busy) {
+        Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
+        m_failed_retry = 0;
         return;
     }
 
@@ -140,7 +150,8 @@ void MediaPlayCtrl::Play()
 
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty()) && !m_device_busy) {
+    if (!m_disable_lan && !m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
+        m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
         m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
@@ -160,27 +171,24 @@ void MediaPlayCtrl::Play()
         return;
     }
 
-    if (m_lan_mode) {
+    m_disable_lan = false;
+    if (m_lan_ip.empty())
         m_failed_code = 1;
+
+    if (m_lan_mode) {
         Stop(m_lan_passwd.empty() 
             ? _L("Initialize failed (Not supported with LAN-only mode)!") 
             : _L("Initialize failed (Not accessible in LAN-only mode)!"));
         return;
     }
     
-    if (!m_tutk_support) { // not support tutk
-        if (m_device_busy) {
-            Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
-            m_failed_retry = 0;
-            return;
-        }
-        m_failed_code = 1;
+    if (!m_remote_support) { // not support tutk
         Stop(m_lan_ip.empty() 
             ? _L("Initialize failed (Missing LAN ip of printer)!") 
             : _L("Initialize failed (Not supported by printer)!"));
         return;
     }
-
+    
     if (agent) {
         agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
@@ -248,6 +256,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["dev_ip"]         = m_lan_ip;
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
+        j["tunnel"]         = m_url.find("/local/") == std::string::npos ? "remote" : "local";
         j["code"]           = m_failed_code;
         j["msg"]            = into_u8(msg);
         NetworkAgent *agent = wxGetApp().getAgent();
@@ -257,7 +266,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     }
 
     ++m_failed_retry;
-    if (m_failed_code != 0 && !m_tutk_support && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_failed_code != 0 && (!m_remote_support || m_lan_mode) && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;

@@ -573,6 +573,7 @@ void MonitorPanel::show_status(int status)
     m_status_info_panel->show_status(status);
     m_hms_panel->show_status(status);
     m_upgrade_panel->show_status(status);
+    m_media_file_panel->Enable(status == MonitorStatus::MONITOR_NORMAL);
 
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();

@@ -74,8 +74,9 @@ private:
     std::string m_lan_passwd;
     bool m_camera_exists = false;
     bool m_lan_mode = false;
-    bool m_tutk_support = false;
+    bool m_remote_support = false;
     bool m_device_busy = false;
+    bool m_disable_lan = false;
     wxString m_url;
     
     std::deque<wxString> m_tasks;

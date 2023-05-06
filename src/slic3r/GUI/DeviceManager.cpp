@@ -2325,6 +2325,13 @@ bool MachineObject::is_support_print_with_timelapse()
     return true;
 }
 
+bool MachineObject::is_camera_busy_off()
+{
+    if (printer_type == "C11")
+        return is_in_prepare() || is_in_upgrading();
+    return false;
+}
+
 int MachineObject::publish_json(std::string json_str, int qos)
 {
     if (is_lan_mode_printer()) {

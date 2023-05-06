@@ -784,7 +784,7 @@ public:
     bool is_function_supported(PrinterFunction func);
     std::vector<std::string> get_resolution_supported();
     bool is_support_print_with_timelapse();
-
+    bool is_camera_busy_off();
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
