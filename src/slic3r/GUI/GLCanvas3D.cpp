@@ -8905,8 +8905,9 @@ std::vector<std::array<float, 4>> GLCanvas3D::_parse_colors(const std::vector<st
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     enum ErrorType{
-        PLATER_WARNING,
-        PLATER_ERROR,
+        PLATER_WARNING, 
+        PLATER_ERROR, 
+        SLICING_SERIOUS_WARNING, 
         SLICING_ERROR
     };
     std::string text;
@@ -8916,7 +8917,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::GCodeConflict: {
         static std::string prevConflictText;
         text  = prevConflictText;
-        error = ErrorType::SLICING_ERROR;
+        error = ErrorType::SLICING_SERIOUS_WARNING;
         if (!m_gcode_viewer.m_conflict_result) { break; }
         std::string objName1 = m_gcode_viewer.m_conflict_result.value()._objName1;
         std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
@@ -8959,6 +8960,12 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             notification_manager.push_plater_error_notification(text);
         else
             notification_manager.close_plater_error_notification(text);
+        break;
+    case SLICING_SERIOUS_WARNING:
+        if (state)
+            notification_manager.push_slicing_serious_warning_notification(text, {conflictObj});
+        else
+            notification_manager.close_slicing_serious_warning_notification(text);
         break;
     case SLICING_ERROR:
         if (state)

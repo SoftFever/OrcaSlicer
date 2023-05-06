@@ -88,6 +88,9 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::ExpandBtn                  , "expand_btn"                 },
     {ImGui::CollapseBtn                , "collapse_btn"               },
     {ImGui::RevertBtn                  , "revert_btn"                 },
+
+    {ImGui::CloseBlockNotifButton      , "block_notification_close"           },
+    {ImGui::CloseBlockNotifHoverButton , "block_notification_close_hover"     },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -113,6 +116,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifHoverDarkButton   , "notification_close_hover_dark"        },
     {ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
     {ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
+    {ImGui::BlockNotifErrorIcon,          "block_notification_error"             },
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {
