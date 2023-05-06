@@ -96,6 +96,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     settings_sizer->Add(PA_step_sizer);
 
 	settings_sizer->Add(create_item_checkbox(_L("Print numbers"), this, &m_params.print_numbers, m_cbPrintNum));
+    m_cbPrintNum->SetValue(false);
 
     v_sizer->Add(settings_sizer);
 	v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
@@ -158,10 +159,14 @@ void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) {
 void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
     int selection = event.GetSelection();
     m_params.mode = selection == 0 ? CalibMode::Calib_PA_Tower : CalibMode::Calib_PA_Line;
-    if (selection == 0)
+    if (selection == 0) {
+        m_cbPrintNum->SetValue(false);
         m_cbPrintNum->Enable(false);
-    else
+    }
+    else {
+        m_cbPrintNum->SetValue(true);
         m_cbPrintNum->Enable(true);
+    }
 
     event.Skip(); 
 }
