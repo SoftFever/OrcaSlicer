@@ -131,7 +131,7 @@ wxString PlateSettingsDialog::to_bed_type_name(BedType bed_type) {
     case btDefault:
         return _L("Same as Global Bed Type");
     case btPC:
-        return _L("Cool Plate");
+        return _L("Cool Plate / PLA Plate");
     case btEP:
         return _L("Engineering Plate");
     case btPEI:
