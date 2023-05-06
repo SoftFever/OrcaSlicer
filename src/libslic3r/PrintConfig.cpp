@@ -679,7 +679,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
 
     def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridge direction");
+    def->label = L("Bridge infill direction");
     def->category = L("Strength");
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
@@ -1383,16 +1383,6 @@ void PrintConfigDef::init_fff_params()
     def->max = 360;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
-
-    def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridge infill direction");
-    def->category = L("Strength");
-    def->tooltip = L("Angle for bridge infill pattern, which controls the start or main direction of line");
-    def->sidetext = L("°");
-    def->min = 0;
-    def->max = 360;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
