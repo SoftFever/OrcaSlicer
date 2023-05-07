@@ -96,7 +96,7 @@ function HandleModelList( pVal )
 			HtmlNozzel+='<div class="pNozzel TextS2"><input type="checkbox" model="'+OneModel['model']+'" nozzel="'+nNozzel+'" vendor="'+strVendor+'" /><span>'+nNozzel+'</span><span class="trans" tid="t13">mm nozzle</span></div>';
 		}
 		
-		let CoverImage="../../image/printer/"+OneModel['model']+"_cover.png";
+		let CoverImage=OneModel['cover'];
 		ModelHtml[strVendor]+='<div class="PrinterBlock">'+
 '	<div class="PImg"><img src="'+CoverImage+'"  /></div>'+
 '    <div class="PName">'+OneModel['model']+'</div>'+ HtmlNozzel +'</div>';
