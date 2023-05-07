@@ -5,7 +5,7 @@
     "description": "My configurations",
     "machine_model_list": [
         {
-            "name": "Generaic Klipper Printer",
+            "name": "Generic Klipper Printer",
             "sub_path": "machine/MyKlipper.json"
         },
         {
