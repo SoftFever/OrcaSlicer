@@ -1010,6 +1010,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionBool,                exclude_object))
     ((ConfigOptionBool,                gcode_comments))
+    ((ConfigOptionInt,                 slow_down_layers))
+
 
 )
 
