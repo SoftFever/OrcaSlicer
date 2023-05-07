@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB98",
-    "name": "Generic ASA",
+    "setting_id": "GFSB99",
+    "name": "OrcaArena Generic ABS",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic ASA @base",
+    "inherits": "OrcaArena Generic ABS @base",
     "compatible_printers": [
       "Orca Arena X1 Carbon 0.4 nozzle",
       "Orca Arena X1 Carbon 0.6 nozzle",

@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB99",
-    "name": "Generic ABS @base",
+    "name": "OrcaArena Generic ABS @base",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_abs",

@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFG99",
-    "name": "Generic PETG @base",
+    "name": "OrcaArena Generic PETG @base",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_pet",
