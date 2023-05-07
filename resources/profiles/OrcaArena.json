@@ -1,7 +1,7 @@
 {
     "name": "Orca Arena Printer",
     "url": "",
-    "version": "01.06.00.03",
+    "version": "01.06.01.00",
     "force_update": "0",
     "description": "Orca Arena configuration files",
     "machine_model_list": [
@@ -306,92 +306,92 @@
             "sub_path": "filament/PolyLite PLA @base.json"
         },
         {
-            "name": "Generic PLA @base",
-            "sub_path": "filament/Generic PLA @base.json"
+            "name": "OrcaArena Generic PLA @base",
+            "sub_path": "filament/OrcaArena Generic PLA @base.json"
         },
         {
-            "name": "Generic PLA",
-            "sub_path": "filament/Generic PLA.json"
+            "name": "OrcaArena Generic PLA",
+            "sub_path": "filament/OrcaArena Generic PLA.json"
         },
         {
-            "name": "Generic PLA Silk @base",
-            "sub_path": "filament/Generic PLA Silk @base.json"
+            "name": "OrcaArena Generic PLA Silk @base",
+            "sub_path": "filament/OrcaArena Generic PLA Silk @base.json"
         },
         {
-            "name": "Generic PLA Silk",
-            "sub_path": "filament/Generic PLA Silk.json"
+            "name": "OrcaArena Generic PLA Silk",
+            "sub_path": "filament/OrcaArena Generic PLA Silk.json"
         },
         {
-            "name": "Generic PLA @0.2 nozzle",
-            "sub_path": "filament/Generic PLA @0.2 nozzle.json"
+            "name": "OrcaArena Generic PLA @0.2 nozzle",
+            "sub_path": "filament/OrcaArena Generic PLA @0.2 nozzle.json"
         },
         {
-            "name": "Generic PLA-CF @base",
-            "sub_path": "filament/Generic PLA-CF @base.json"
+            "name": "OrcaArena Generic PLA-CF @base",
+            "sub_path": "filament/OrcaArena Generic PLA-CF @base.json"
         },
         {
-            "name": "Generic PLA-CF",
-            "sub_path": "filament/Generic PLA-CF.json"
+            "name": "OrcaArena Generic PLA-CF",
+            "sub_path": "filament/OrcaArena Generic PLA-CF.json"
         },
         {
-            "name": "Generic PETG @base",
-            "sub_path": "filament/Generic PETG @base.json"
+            "name": "OrcaArena Generic PETG @base",
+            "sub_path": "filament/OrcaArena Generic PETG @base.json"
         },
         {
-            "name": "Generic PETG",
-            "sub_path": "filament/Generic PETG.json"
+            "name": "OrcaArena Generic PETG",
+            "sub_path": "filament/OrcaArena Generic PETG.json"
         },
         {
-            "name": "Generic ABS @base",
-            "sub_path": "filament/Generic ABS @base.json"
+            "name": "OrcaArena Generic ABS @base",
+            "sub_path": "filament/OrcaArena Generic ABS @base.json"
         },
         {
-            "name": "Generic ABS",
-            "sub_path": "filament/Generic ABS.json"
+            "name": "OrcaArena Generic ABS",
+            "sub_path": "filament/OrcaArena Generic ABS.json"
         },
         {
-            "name": "Generic ABS @0.2 nozzle",
-            "sub_path": "filament/Generic ABS @0.2 nozzle.json"
+            "name": "OrcaArena Generic ABS @0.2 nozzle",
+            "sub_path": "filament/OrcaArena Generic ABS @0.2 nozzle.json"
         },
         {
-            "name": "Generic TPU",
-            "sub_path": "filament/Generic TPU.json"
+            "name": "OrcaArena Generic TPU",
+            "sub_path": "filament/OrcaArena Generic TPU.json"
         },
         {
-            "name": "Generic ASA @base",
-            "sub_path": "filament/Generic ASA @base.json"
+            "name": "OrcaArena Generic ASA @base",
+            "sub_path": "filament/OrcaArena Generic ASA @base.json"
         },
         {
-            "name": "Generic ASA @0.2 nozzle",
-            "sub_path": "filament/Generic ASA @0.2 nozzle.json"
+            "name": "OrcaArena Generic ASA @0.2 nozzle",
+            "sub_path": "filament/OrcaArena Generic ASA @0.2 nozzle.json"
         },
         {
-            "name": "Generic ASA",
-            "sub_path": "filament/Generic ASA.json"
+            "name": "OrcaArena Generic ASA",
+            "sub_path": "filament/OrcaArena Generic ASA.json"
         },
         {
-            "name": "Generic PC @base",
-            "sub_path": "filament/Generic PC @base.json"
+            "name": "OrcaArena Generic PC @base",
+            "sub_path": "filament/OrcaArena Generic PC @base.json"
         },
         {
-            "name": "Generic PC @0.2 nozzle",
-            "sub_path": "filament/Generic PC @0.2 nozzle.json"
+            "name": "OrcaArena Generic PC @0.2 nozzle",
+            "sub_path": "filament/OrcaArena Generic PC @0.2 nozzle.json"
         },
         {
-            "name": "Generic PC",
-            "sub_path": "filament/Generic PC.json"
+            "name": "OrcaArena Generic PC",
+            "sub_path": "filament/OrcaArena Generic PC.json"
         },
         {
-            "name": "Generic PVA @base",
-            "sub_path": "filament/Generic PVA @base.json"
+            "name": "OrcaArena Generic PVA @base",
+            "sub_path": "filament/OrcaArena Generic PVA @base.json"
         },
         {
-            "name": "Generic PETG-CF @base",
-            "sub_path": "filament/Generic PETG-CF @base.json"
+            "name": "OrcaArena Generic PETG-CF @base",
+            "sub_path": "filament/OrcaArena Generic PETG-CF @base.json"
         },
         {
-            "name": "Generic PETG-CF @Arena X1C",
-            "sub_path": "filament/Generic PETG-CF @Arena X1C.json"
+            "name": "OrcaArena Generic PETG-CF @Arena X1C",
+            "sub_path": "filament/OrcaArena Generic PETG-CF @Arena X1C.json"
         },
         {
             "name": "Arena PETG-CF @base",
@@ -402,20 +402,20 @@
             "sub_path": "filament/Arena PETG-CF @Arena X1C.json"
         },
         {
-            "name": "Generic PVA @0.2 nozzle",
-            "sub_path": "filament/Generic PVA @0.2 nozzle.json"
+            "name": "OrcaArena Generic PVA @0.2 nozzle",
+            "sub_path": "filament/OrcaArena Generic PVA @0.2 nozzle.json"
         },
         {
-            "name": "Generic PVA",
-            "sub_path": "filament/Generic PVA.json"
+            "name": "OrcaArena Generic PVA",
+            "sub_path": "filament/OrcaArena Generic PVA.json"
         },
         {
-            "name": "Generic PA",
-            "sub_path": "filament/Generic PA.json"
+            "name": "OrcaArena Generic PA",
+            "sub_path": "filament/OrcaArena Generic PA.json"
         },
         {
-            "name": "Generic PA-CF",
-            "sub_path": "filament/Generic PA-CF.json"
+            "name": "OrcaArena Generic PA-CF",
+            "sub_path": "filament/OrcaArena Generic PA-CF.json"
         },
         {
             "name": "Arena TPU 95A @Arena X1C",
@@ -542,8 +542,8 @@
             "sub_path": "filament/PolyLite PLA @Arena X1C 0.2 nozzle.json"
         },
         {
-            "name":"Generic PETG @0.2 nozzle",
-            "sub_path":"filament/Generic PETG @0.2 nozzle.json"
+            "name":"OrcaArena Generic PETG @0.2 nozzle",
+            "sub_path":"filament/OrcaArena Generic PETG @0.2 nozzle.json"
         },
         {
             "name":"Arena PLA Metal @Arena X1C 0.2 nozzle",
