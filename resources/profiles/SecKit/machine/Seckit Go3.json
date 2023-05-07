@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
     "name": "Seckit Go3",
-    "model_id": "SecKit-SK-Go3",
+    "model_id": "SK-Go3",
     "url": "https://seckit3dp.design",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
