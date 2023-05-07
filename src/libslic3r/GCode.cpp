@@ -4113,6 +4113,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
     auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
+    
+    auto supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
 
 
     //    { "0%", Overhang_threshold_none },
@@ -4151,20 +4153,27 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             comment += ";_EXTERNAL_PERIMETER";
     }
     bool is_overhang_fan_on = false;
+    bool is_supp_interface_fan_on = false;
     if (!variable_speed) {
         // F is mm per minute.
         gcode += m_writer.set_speed(F, "", comment);
         double path_length = 0.;
         {
-            if (m_enable_cooling_markers && enable_overhang_bridge_fan) {
-                // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
-                // perimeter
-                int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
-                                                                                           : overhang_fan_threshold - 1;
-                if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role())) ||
-                    (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
-                    gcode += ";_OVERHANG_FAN_START\n";
-                    is_overhang_fan_on = true;
+            if (m_enable_cooling_markers) {
+                if (enable_overhang_bridge_fan) {
+                    // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
+                    // perimeter
+                    int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
+                    : overhang_fan_threshold - 1;
+                    if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role())) ||
+                        (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
+                        gcode += ";_OVERHANG_FAN_START\n";
+                        is_overhang_fan_on = true;
+                    }
+                }
+                if(supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
+                    gcode += ";_SUPP_INTERFACE_FAN_START\n";
+                    is_supp_interface_fan_on = true;
                 }
             } 
             // BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
@@ -4222,6 +4231,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 is_overhang_fan_on = false;
                 gcode += ";_OVERHANG_FAN_END\n";
             }
+            if (is_supp_interface_fan_on) {
+                is_supp_interface_fan_on = false;
+                gcode += ";_SUPP_INTERFACE_FAN_END\n";
+            }
         }
     } else {
         double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
@@ -4232,18 +4245,32 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             const ProcessedPoint &processed_point = new_points[i];
             Vec2d p = this->point_to_gcode_quantized(processed_point.p);
             const double line_length = (p - prev).norm();
-            if (m_enable_cooling_markers && enable_overhang_bridge_fan) {
-                if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap) ) {
-                    if(!is_overhang_fan_on)
-                        gcode += ";_OVERHANG_FAN_START\n";
-                    is_overhang_fan_on = true;
-                }else {
-                    if (is_overhang_fan_on) {
-                        gcode += ";_OVERHANG_FAN_END\n";
-                        is_overhang_fan_on = false;
+            if (m_enable_cooling_markers) {
+                if(enable_overhang_bridge_fan) {
+                    if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap) ) {
+                        if(!is_overhang_fan_on)
+                            gcode += ";_OVERHANG_FAN_START\n";
+                        is_overhang_fan_on = true;
+                    }else {
+                        if (is_overhang_fan_on) {
+                            gcode += ";_OVERHANG_FAN_END\n";
+                            is_overhang_fan_on = false;
+                        }
+                    }
+                }
+                if(supp_interface_fan_speed >= 0){
+                    if(path.role() == erSupportMaterialInterface) {
+                        if(!is_supp_interface_fan_on)
+                            gcode += ";_SUPP_INTERFACE_FAN_START\n";
+                        is_supp_interface_fan_on = true;
+                    } else {
+                        if(is_supp_interface_fan_on) {
+                            gcode += ";_SUPP_INTERFACE_FAN_END\n";
+                            is_supp_interface_fan_on = false;
+                        }
                     }
                     
-        }
+                }
             }
             gcode +=
                 m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
@@ -4258,6 +4285,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (is_overhang_fan_on) {
             is_overhang_fan_on = false;
             gcode += ";_OVERHANG_FAN_END\n";
+        }
+        if(is_supp_interface_fan_on) {
+            gcode += ";_SUPP_INTERFACE_FAN_END\n";
+            is_supp_interface_fan_on = false;
         }
     }
     if (m_enable_cooling_markers) {

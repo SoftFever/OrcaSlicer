@@ -1011,6 +1011,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,                exclude_object))
     ((ConfigOptionBool,                gcode_comments))
     ((ConfigOptionInt,                 slow_down_layers))
+    ((ConfigOptionInts,                support_material_interface_fan_speed))
 
 
 )
