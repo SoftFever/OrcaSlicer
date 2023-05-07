@@ -1,15 +1,15 @@
 {
   "type": "machine",
   "setting_id": "GM001",
-  "name": "Creality Ender-5 Pro 2019 0.4 nozzle",
+  "name": "Creality Ender-5 Pro (2019) 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_creality_common",
-  "printer_model": "Creality Ender-5 Pro 2019",
+  "printer_model": "Creality Ender-5 Pro (2019)",
   "default_filament_profile": [
-    "Generic PLA @Creality"
+    "Creality Generic PLA"
   ],
-  "default_print_profile": "0.20mm Standard @Creality",
+  "default_print_profile": "0.20mm Standard @Creality Ender5Pro (2019)",
   "nozzle_diameter": [
     "0.4"
   ],

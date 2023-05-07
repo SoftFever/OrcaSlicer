@@ -1,7 +1,7 @@
 {
   "type": "machine",
   "setting_id": "GM002",
-  "name": "Go3 0.4 nozzle",
+  "name": "SecKit Go3 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
@@ -16,8 +16,6 @@
 	"0x300"
   ],
   "printable_height": "275",
-  "machine_start_gcode": "",
-  "machine_end_gcode": "",
   "scan_first_layer": "0",
   "machine_load_filament_time": "0",
   "machine_unload_filament_time": "0",
