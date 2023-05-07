@@ -1,6 +1,6 @@
 {
     "name": "SecKit",
-    "version": "01.05.04.00",
+    "version": "01.06.00.00",
     "force_update": "0",
     "description": "SecKit configurations",
     "machine_model_list": [
@@ -139,12 +139,12 @@
             "sub_path": "machine/fdm_klipper_common.json"
         },
         {
-            "name": "SecKit SK-Tank",
+            "name": "SecKit SK-Tank 0.4 nozzle",
             "sub_path": "machine/SecKit SK-Tank 0.4 nozzle.json"
         },
         {
-            "name": "Go3 0.4 nozzle",
-            "sub_path": "machine/Go3 0.4 nozzle.json"
+            "name": "SecKit Go3 0.4 nozzle",
+            "sub_path": "machine/SecKit Go3 0.4 nozzle.json"
         }
 	]
 }
