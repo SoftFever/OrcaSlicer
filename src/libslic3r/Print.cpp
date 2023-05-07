@@ -166,7 +166,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_on_loops",
         "gcode_comments",
         "gcode_label_objects", 
-        "exclude_object"
+        "exclude_object",
+        "support_material_interface_fan_speed"
     };
 
     static std::unordered_set<std::string> steps_ignore;
