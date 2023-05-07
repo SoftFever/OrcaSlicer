@@ -562,7 +562,7 @@ msgid "Horizontal text"
 msgstr "Horizontaler Text"
 
 msgid "Ctrl+"
-msgstr "Strg+"
+msgstr ""
 
 msgid "Notice"
 msgstr "Hinweis"
