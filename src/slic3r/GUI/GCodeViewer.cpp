@@ -257,9 +257,12 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
 {
     // Input value scaled to the colors range
     const float step = step_size();
-    if(log_scale)
+    float _min = min;
+    if(log_scale) {
         value = std::log(value);
-    const float global_t = (step != 0.0f) ? std::max(0.0f, value - min) / step : 0.0f; // lower limit of 0.0f
+        _min = std::log(min);
+    }
+    const float global_t = (step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f; // lower limit of 0.0f
 
     const size_t color_max_idx = Range_Colors.size() - 1;
 
