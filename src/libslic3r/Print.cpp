@@ -166,7 +166,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_on_loops",
         "gcode_comments",
         "gcode_label_objects", 
-        "exclude_object"
+        "exclude_object",
+        "support_material_interface_fan_speed"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -229,7 +230,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
             || opt_key == "initial_layer_speed"
-            || opt_key == "initial_layer_travel_speed") {
+            || opt_key == "initial_layer_travel_speed"
+            || opt_key == "slow_down_layers") {
             //|| opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);

@@ -61,6 +61,8 @@ struct CoolingLine
         TYPE_G2                 = 1 << 12,
         TYPE_G3                 = 1 << 13,
         TYPE_FORCE_RESUME_FAN   = 1 << 14,
+        TYPE_SUPPORT_INTERFACE_FAN_START     = 1 << 15,
+        TYPE_SUPPORT_INTERFACE_FAN_END       = 1 << 16,
     };
 
     CoolingLine(unsigned int type, size_t  line_start, size_t  line_end) :
@@ -479,6 +481,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             line.type = CoolingLine::TYPE_OVERHANG_FAN_START;
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_END")) {
             line.type = CoolingLine::TYPE_OVERHANG_FAN_END;
+        } else if (boost::starts_with(sline, ";_SUPP_INTERFACE_FAN_START")) {
+            line.type = CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START;
+        } else if (boost::starts_with(sline, ";_SUPP_INTERFACE_FAN_END")) {
+            line.type = CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_END;
         } else if (boost::starts_with(sline, "G4 ")) {
             // Parse the wait time.
             line.type = CoolingLine::TYPE_G4;
@@ -722,7 +728,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
     new_gcode.reserve(gcode.size() * 2);
     bool overhang_fan_control= false;
     int  overhang_fan_speed   = 0;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed](bool immediately_apply) {
+    bool supp_interface_fan_control= false;
+    int  supp_interface_fan_speed = 0;
+    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &supp_interface_fan_control, &supp_interface_fan_speed](bool immediately_apply) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
@@ -731,6 +739,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
         int close_fan_the_first_x_layers = EXTRUDER_CONFIG(close_fan_the_first_x_layers);
         // Is the fan speed ramp enabled?
         int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
+        supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
+
         if (close_fan_the_first_x_layers <= 0 && full_fan_speed_layer > 0) {
             // When ramping up fan speed from close_fan_the_first_x_layers to full_fan_speed_layer, force close_fan_the_first_x_layers above zero,
             // so there will be a zero fan speed at least at the 1st layer.
@@ -759,6 +769,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 fan_speed_new    = std::clamp(int(float(fan_speed_new) * factor + 0.5f), 0, 255);
                 overhang_fan_speed = std::clamp(int(float(overhang_fan_speed) * factor + 0.5f), 0, 255);
             }
+            supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
+            supp_interface_fan_control = supp_interface_fan_speed >= 0;
+
 #undef EXTRUDER_CONFIG
             overhang_fan_control= overhang_fan_speed > fan_speed_new;
         } else {
@@ -766,6 +779,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
             overhang_fan_speed   = 0;
             fan_speed_new      = 0;
             additional_fan_speed_new = 0;
+            supp_interface_fan_control= false;
+            supp_interface_fan_speed   = 0;
         }
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
@@ -806,6 +821,16 @@ std::string CoolingBuffer::apply_layer_cooldown(
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_END) {
             if (overhang_fan_control) {
                 //BBS
+                m_current_fan_speed = m_fan_speed;
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            }
+        } else if (line->type & CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START) {
+            if (supp_interface_fan_control) {
+                m_current_fan_speed = supp_interface_fan_speed;
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, supp_interface_fan_speed);
+            }
+        } else if (line->type & CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_END) {
+            if (supp_interface_fan_control) {
                 m_current_fan_speed = m_fan_speed;
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
             }

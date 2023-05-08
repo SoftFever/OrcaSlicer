@@ -1631,6 +1631,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
+    def = this->add("slow_down_layers", coInt);
+    def->label = L("Number of slow layers");
+    def->tooltip = L("The first few layers are printed slower than normal. "
+                     "The speed is gradually increased in a linear fashion over the specified number of layers.");
+    def->category = L("Speed");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("nozzle_temperature_initial_layer", coInts);
     def->label = L("Initial layer");
@@ -1643,14 +1651,26 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("full_fan_speed_layer", coInts);
     def->label = L("Full fan speed at layer");
-    //def->tooltip = L("Fan speed will be ramped up linearly from zero at layer \"close_fan_the_first_x_layers\" "
-    //               "to maximum at layer \"full_fan_speed_layer\". "
-    //               "\"full_fan_speed_layer\" will be ignored if lower than \"close_fan_the_first_x_layers\", in which case "
-    //               "the fan will be running at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1.");
+    def->tooltip = L("Fan speed will be ramped up linearly from zero at layer \"close_fan_the_first_x_layers\" "
+                  "to maximum at layer \"full_fan_speed_layer\". "
+                  "\"full_fan_speed_layer\" will be ignored if lower than \"close_fan_the_first_x_layers\", in which case "
+                  "the fan will be running at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1.");
     def->min = 0;
     def->max = 1000;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 0 });
+    
+    def = this->add("support_material_interface_fan_speed", coInts);
+    def->label = L("Support interface fan speed");
+    def->tooltip = L("This fan speed is enforced during all support interfaces, to be able to weaken their bonding with a high fan speed."
+        "\nSet to -1 to disable this override."
+        "\nCan only be overriden by disable_fan_first_layers.");
+    def->sidetext = L("%");
+    def->min = -1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{ -1 });
+    
 
     def = this->add("fuzzy_skin", coEnum);
     def->label = L("Fuzzy Skin");
@@ -1764,7 +1784,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("fan_speedup_time", coFloat);
-    def->label = L("");
+    def->label = L("Fan Speedup Time");
     def->tooltip = L("Start the fan this number of seconds earlier than its target start time (you can use fractional seconds)."
         " It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting"
         " is unsupported)."
