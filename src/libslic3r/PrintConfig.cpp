@@ -1784,7 +1784,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("fan_speedup_time", coFloat);
-    def->label = L("Fan Speedup Time");
+	// Label is set in Tab.cpp in the Line object.
+    //def->label = L("Fan speed-up time");
     def->tooltip = L("Start the fan this number of seconds earlier than its target start time (you can use fractional seconds)."
         " It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting"
         " is unsupported)."
