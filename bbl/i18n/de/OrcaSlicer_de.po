@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-06 13:46+0200\n"
+"POT-Creation-Date: 2023-05-08 16:37+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -3469,6 +3469,10 @@ msgstr "Durchflussrate"
 msgid "Pressure advance"
 msgstr "Pressure advance"
 
+#, fuzzy
+msgid "Retraction test"
+msgstr "Rückzugslängen Test"
+
 msgid "Max flowrate"
 msgstr "Maximale Durchflussrate"
 
@@ -5666,8 +5670,8 @@ msgid "Cooling Fan"
 msgstr "Kühlung"
 
 #, fuzzy
-msgid "Fan speedup time"
-msgstr "Lüftergeschwindigkeit"
+msgid "Fan speed-up time"
+msgstr "Lüfter Beschleunigungszeit"
 
 msgid "Extruder Clearance"
 msgstr "Freiraum des Extruders"
@@ -7858,6 +7862,17 @@ msgstr "Bewegung"
 msgid "Travel speed of initial layer"
 msgstr "Bewegungsgeschwindigkeit der ersten Schicht"
 
+#, fuzzy
+msgid "Number of slow layers"
+msgstr "Anzahl der lansamen Schichten"
+
+msgid ""
+"The first few layers are printed slower than normal. The speed is gradually "
+"increased in a linear fashion over the specified number of layers."
+msgstr ""
+"Die ersten paar Schichten werden langsamer als normal gedruckt. Die Geschwindigkeit"
+"wird allmählich linear über die angegebene Anzahl von Schichten erhöht."
+
 msgid "Initial layer nozzle temperature"
 msgstr "Düsentemperatur für die erste Schicht"
 
@@ -7868,6 +7883,33 @@ msgstr ""
 
 msgid "Full fan speed at layer"
 msgstr "Volle Lüfterdrehzahl ab Schicht"
+
+msgid ""
+"Fan speed will be ramped up linearly from zero at layer "
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+msgstr ""
+"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht 
+"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht \"full_fan_speed_layer\" erhöht."
+"\"full_fan_speed_layer\" wird ignoriert, wenn es niedriger ist als \"close_fan_the_first_x_layers\","
+"in diesem Fall läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\"
+" + 1 mit maximal zulässiger Geschwindigkeit."
+
+#, fuzzy
+msgid "Support interface fan speed"
+msgstr "Stützstruktur-Schnittstelle"
+
+msgid ""
+"This fan speed is enforced during all support interfaces, to be able to "
+"weaken their bonding with a high fan speed.\n"
+"Set to -1 to disable this override.\n"
+"Can only be overriden by disable_fan_first_layers."
+msgstr ""
+"Diese Lüftergeschwindigkeit wird während der Stützstruktur verwendet.\n"
+"Setzen Sie es auf -1, um dies zu deaktivieren.\n"
+"Kann nur durch disable_fan_first_layers außer Kraft gesetzt werden."
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
@@ -7996,10 +8038,6 @@ msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 "Aktivieren Sie diese Option, wenn die Maschine über ein zusätzliches "
 "Kühlgebläse verfügt"
-
-#, fuzzy
-msgid "Fan Speedup Time"
-msgstr "Lüftergeschwindigkeit: "
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -9805,6 +9843,17 @@ msgstr ""
 "Start > 10 Schrittweite >= 0\n"
 "Ende > Start + Schrittweite)"
 
+#, fuzzy
+msgid "Start retraction length: "
+msgstr "Start Rückzugslänge"
+
+#, fuzzy
+msgid "End retraction length: "
+msgstr "Ende Rückzugslänge"
+
+msgid "mm/mm"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -10077,6 +10126,10 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#, fuzzy
+#~ msgid "Fan Speedup Time"
+#~ msgstr "Lüftergeschwindigkeit: "
 
 #~ msgid "Post-processing scripts"
 #~ msgstr "Post-Processing-Skripte"
