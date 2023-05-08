@@ -7891,11 +7891,11 @@ msgid ""
 "than \"close_fan_the_first_x_layers\", in which case the fan will be running "
 "at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
-"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht 
-"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht \"full_fan_speed_layer\" erhöht."
+"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht" 
+"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht \"full_fan_speed_layer\" erhöht. "
 "\"full_fan_speed_layer\" wird ignoriert, wenn es niedriger ist als \"close_fan_the_first_x_layers\","
-"in diesem Fall läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\"
-" + 1 mit maximal zulässiger Geschwindigkeit."
+"in diesem Fall läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\""
+"+ 1 mit maximal zulässiger Geschwindigkeit."
 
 #, fuzzy
 msgid "Support interface fan speed"
