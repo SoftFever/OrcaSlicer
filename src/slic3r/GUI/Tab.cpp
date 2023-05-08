@@ -3096,7 +3096,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_unload_filament_time");
 
         optgroup = page->new_optgroup(L("Cooling Fan"));
-        Line line = Line{ L("Fan speedup time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
+        Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
         line.append_option(optgroup->get_option("fan_speedup_time"));
         line.append_option(optgroup->get_option("fan_speedup_overhangs"));
         optgroup->append_line(line);
