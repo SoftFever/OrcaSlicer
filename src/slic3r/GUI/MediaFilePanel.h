@@ -81,7 +81,9 @@ private:
     std::string m_lan_passwd;
     bool        m_supported = false;
     bool        m_lan_mode      = false;
-    bool        m_tutk_support = false;
+    bool        m_local_support = false;
+    bool        m_remote_support = false;
+    bool        m_waiting_enable = false;
 
     int m_last_mode = 0;
     int m_last_type = 0;

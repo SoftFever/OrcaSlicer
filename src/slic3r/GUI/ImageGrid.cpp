@@ -276,7 +276,7 @@ void ImageGrid::mouseMoved(wxMouseEvent& event)
         m_hit_type = hit.first;
         m_hit_item = hit.second;
         if (hit.first == HIT_ITEM)
-            SetToolTip(m_file_sys->GetFile(hit.second).name);
+            SetToolTip(from_u8(m_file_sys->GetFile(hit.second).Title()));
         else
             SetToolTip({});
         Refresh();
@@ -616,7 +616,7 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
             secondAction = _L("Print");
         }
         // Draw buttons on hovered item
-        wxRect rect{pt.x, pt.y + m_content_rect.GetHeight() - m_buttons_background.GetHeight(), m_content_rect.GetWidth(), m_buttons_background.GetHeight()};
+        wxRect rect{pt.x, pt.y + m_content_rect.GetBottom() - m_buttons_background.GetHeight(), m_content_rect.GetWidth(), m_buttons_background.GetHeight()};
         if (hit) {
             renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, thirdAction.IsEmpty() ? nullptr : (wxChar const *) thirdAction, nullptr}, rect,
                           m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
@@ -651,7 +651,7 @@ void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int ind
     auto em = em_unit(this);
     wxRect rect{pt.x, pt.y + m_content_rect.GetHeight() - h, m_content_rect.GetWidth(), h / 2};
     rect.Deflate(em, 0);
-    renderText2(dc, from_u8(file.Metadata("Title", file.name)), rect);
+    renderText2(dc, from_u8(file.name), rect);
     rect.Offset(0, h / 2);
     rect.SetWidth(rect.GetWidth() / 2 - em);
     dc.SetFont(Label::Body_13);

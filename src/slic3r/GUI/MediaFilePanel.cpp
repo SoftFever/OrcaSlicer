@@ -8,6 +8,8 @@
 #include "Widgets/Label.hpp"
 #include "Printer/PrinterFileSystem.h"
 #include "MsgDialog.hpp"
+#include <libslic3r/Model.hpp>
+#include <libslic3r/Format/bbs_3mf.hpp>
 
 #ifdef __WXMSW__
 #include <shellapi.h>
@@ -34,7 +36,8 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     top_sizer->SetMinSize({-1, 75 * em_unit(this) / 10});
 
     // Time group
-    m_time_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    auto time_panel = new wxWindow(this, wxID_ANY);
+    m_time_panel = new ::StaticBox(time_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_time_panel->SetBackgroundColor(StateColor());
     m_button_year = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
     m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
@@ -57,7 +60,10 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     time_sizer->Add(m_button_month, 0, wxALIGN_CENTER_VERTICAL);
     time_sizer->Add(m_button_all, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_time_panel->SetSizer(time_sizer);
-    top_sizer->Add(m_time_panel, 1, wxEXPAND);
+    wxBoxSizer *time_sizer2 = new wxBoxSizer(wxHORIZONTAL);
+    time_sizer2->Add(m_time_panel, 1, wxEXPAND);
+    time_panel->SetSizer(time_sizer2);
+    top_sizer->Add(time_panel, 1, wxEXPAND);
 
     // File type
     StateColor background(
@@ -197,16 +203,21 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_lan_mode     = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
         m_lan_passwd   = obj->get_access_code();
-        m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+        m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
     } else {
         m_supported = false;
         m_lan_mode  = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
-        m_tutk_support = false;
+        m_remote_support = false;
     }
-    if (machine == m_machine)
+    if (machine == m_machine) {
+        if (m_waiting_enable && IsEnabled()) {
+            auto fs = m_image_grid->GetFileSystem();
+            if (fs) fs->Retry();
+        }
         return;
+    }
     m_machine = machine;
     m_last_errors.clear();
     auto fs = m_image_grid->GetFileSystem();
@@ -257,23 +268,24 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             switch (status) {
             case PrinterFileSystem::Initializing: icon = m_bmp_loading; msg = _L("Initializing..."); break;
             case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
-            case PrinterFileSystem::Failed: icon = m_bmp_failed; msg = _L("Connect failed [%d]!"); break;
+            case PrinterFileSystem::Failed: icon = m_bmp_failed; if (e.GetExtraLong() != 1) msg = _L("Connect failed [%d]!"); break;
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
-            case PrinterFileSystem::ListReady: icon = m_bmp_empty; msg = _L("No files"); break;
+            case PrinterFileSystem::ListReady: icon = m_bmp_empty; msg = _L("No files [%d]"); break;
             }
-            if (fs->GetCount() == 0)
+            if (fs->GetCount() == 0 && !msg.empty())
                 m_image_grid->SetStatus(icon, msg);
             if (e.GetInt() == PrinterFileSystem::Initializing)
                 fetchUrl(boost::weak_ptr(fs));
 
-            if ((status == PrinterFileSystem::Failed && m_last_errors.find(fs->GetLastError()) == m_last_errors.end())
-                || status == PrinterFileSystem::ListReady) {
+            int err = fs->GetLastError();
+            if ((status == PrinterFileSystem::Failed && m_last_errors.find(err) == m_last_errors.end()) ||
+                status == PrinterFileSystem::ListReady) {
                 json j;
-                j["code"] = fs->GetLastError();
+                j["code"] = err;
                 j["dev_id"] = m_machine;
                 j["dev_ip"] = m_lan_ip;
                 NetworkAgent* agent = wxGetApp().getAgent();
-                if (status == PrinterFileSystem::Failed) {
+                if (status == PrinterFileSystem::Failed && err != 0) {
                     j["result"] = "failed";
                     if (agent)
                         agent->track_event("download_video_conn", j.dump());
@@ -390,17 +402,26 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
     boost::shared_ptr fs(wfs.lock());
     if (!fs || fs != m_image_grid->GetFileSystem()) return;
-    if (!m_lan_ip.empty()) {
+    if (!IsEnabled()) {
+        m_waiting_enable = true;
+        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Device connection not ready)!"));
+        fs->SetUrl("0");
+        return;
+    }
+    m_waiting_enable = false;
+    if (m_local_support && !m_lan_ip.empty()) {
         std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         fs->SetUrl(url);
         return;
     }
-    if (m_lan_mode ) { // not support tutk
-        m_image_grid->SetStatus(m_bmp_failed, _L("Not accessible in LAN-only mode!"));
+    if (m_lan_mode) {
+        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not accessible in LAN-only mode)!"));
+        fs->SetUrl("0");
         return;
     }
-    if (!m_tutk_support) { // not support tutk
-        m_image_grid->SetStatus(m_bmp_failed, _L("Missing LAN ip of printer!"));
+    if (!m_remote_support && m_local_support) { // not support tutk
+        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Missing LAN ip of printer)!"));
+        fs->SetUrl("1");
         return;
     }
     NetworkAgent *agent = wxGetApp().getAgent();
@@ -411,10 +432,12 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
             CallAfter([this, url, wfs] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;
-                if (boost::algorithm::starts_with(url, "bambu:///"))
+                if (boost::algorithm::starts_with(url, "bambu:///")) {
                     fs->SetUrl(url);
-                else
-                    m_image_grid->SetStatus(m_bmp_failed, url.empty() ? _L("Network unreachable") : from_u8(url));
+                } else {
+                    m_image_grid->SetStatus(m_bmp_failed, wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
+                    fs->SetUrl("3");
+                }
             });
         });
     }
@@ -442,6 +465,13 @@ void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
         if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
             if (index != -1) {
                 fs->FetchModel(index, [](std::string const & data) {
+                    Slic3r::DynamicPrintConfig config;
+                    Slic3r::Model              model;
+                    Slic3r::PlateDataPtrs      plate_data_list;
+                    Slic3r::Semver file_version;
+                    std::istringstream is(data);
+                    if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version))
+                        return;
                     // TODO: print gcode 3mf
                 });
             }

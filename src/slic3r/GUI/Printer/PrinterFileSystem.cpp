@@ -87,6 +87,8 @@ void PrinterFileSystem::SetFileType(FileType type, std::string const &storage)
     SendChangedEvent(EVT_FILE_CHANGED);
     if (type == F_INVALID_TYPE)
         return;
+    if (m_session.tunnel == nullptr)
+        return;
     m_status = Status::ListSyncing;
     SendChangedEvent(EVT_STATUS_CHANGED, m_status);
     ListAllFiles();
@@ -118,22 +120,33 @@ void PrinterFileSystem::ListAllFiles()
     req["type"] = types[m_file_type];
     if (!m_file_storage.empty())
         req["storage"] = m_file_storage;
+    req["api_version"] = 2;
     req["notify"] = "DETAIL";
-    SendRequest<FileList>(LIST_INFO, req, [this](json const& resp, FileList & list, auto) {
+    SendRequest<FileList>(LIST_INFO, req, [this, type = m_file_type](json const& resp, FileList & list, auto) -> int {
         json files = resp["file_lists"];
         for (auto& f : files) {
             std::string     name = f["name"];
             std::string     path = f.value("path", "");
             time_t          time = f.value("time", 0);
             boost::uint64_t size = f["size"];
-            File            ff   = {name, path, time, size, 0, default_thumbnail};
+            if (type > F_TIMELAPSE && path.empty()) // Fix old printer that always return timelapses
+                return FILE_TYPE_ERR;
+            File            ff   = {name, path, time, size, 0};
             list.push_back(ff);
         }
         return 0;
     }, [this, type = m_file_type](int result, FileList list) {
+        if (result != 0) {
+            m_last_error = result;
+            m_status = Status::ListReady;
+            SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", result);
+            return 0;
+        }
         if (type != m_file_type)
             return 0;
         m_file_list.swap(list);
+        for (auto & file : m_file_list)
+            file.thumbnail = default_thumbnail;
         std::sort(m_file_list.begin(), m_file_list.end());
         auto iter1 = m_file_list.begin();
         auto end1  = m_file_list.end();
@@ -269,7 +282,7 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(std::string 
     if (index == (size_t) -1) return;
     if (index >= m_file_list.size()) return;
     auto &file = m_file_list[index];
-    arr.push_back(file.path + "#_rel/.rels");
+    arr.push_back(file.path + "#_rels/.rels");
     arr.push_back(file.path + "#3D/3dmodel.model");
     arr.push_back(file.path + "#Metadata/model_settings.config");
     arr.push_back(file.path + "#Metadata/slice_info.config");
@@ -279,6 +292,7 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(std::string 
             arr.push_back(file.path + "#" + meta.second);
     }
     req["paths"] = arr;
+    req["zip"] = true;
     SendRequest<File>(
         SUB_FILE, req,
         [](json const &resp, File &file, unsigned char const *data) -> int {
@@ -302,7 +316,9 @@ size_t PrinterFileSystem::GetCount() const
     return m_group_mode == G_YEAR ? m_group_year.size() : m_group_month.size();
 }
 
-std::string PrinterFileSystem::File::Metadata(std::string const &key, std::string const & dflt) const
+std::string PrinterFileSystem::File::Title() const { return Metadata("Title", name); }
+
+std::string PrinterFileSystem::File::Metadata(std::string const &key, std::string const &dflt) const
 {
     auto iter = metadata.find(key);
     return iter == metadata.end() || iter->second.empty() ? dflt : iter->second;
@@ -662,7 +678,8 @@ void PrinterFileSystem::UpdateFocusThumbnail()
     if (names.empty() && paths.empty())
         return;
     m_task_flags |= FF_THUMNAIL;
-    UpdateFocusThumbnail2(std::make_shared<std::vector<File>>(paths), paths.empty() ? OldThumbnail : m_file_type == F_MODEL ? ModelMetadata : VideoThumbnail);
+    UpdateFocusThumbnail2(std::make_shared<std::vector<File>>(paths.empty() ? names : paths), 
+        paths.empty() ? OldThumbnail : m_file_type == F_MODEL ? ModelMetadata : VideoThumbnail);
 }
 
 bool PrinterFileSystem::ParseThumbnail(File &file)
@@ -691,7 +708,8 @@ bool PrinterFileSystem::ParseThumbnail(File &file, std::istream &is)
     for (auto &plate : plate_data_list) {
         time += atof(plate->gcode_prediction.c_str());
         weight += atof(plate->gcode_weight.c_str());
-        file.metadata.emplace("plate_thumbnail_" + std::to_string(plate->plate_index), plate->thumbnail_file);
+        if (!plate->thumbnail_file.empty())
+            file.metadata.emplace("plate_thumbnail_" + std::to_string(plate->plate_index), plate->thumbnail_file);
     }
     file.metadata.emplace("Title", model.model_info->model_name);
     file.metadata.emplace("Time", durationString(round(time)));
@@ -699,10 +717,6 @@ bool PrinterFileSystem::ParseThumbnail(File &file, std::istream &is)
     auto thumbnail = model.model_info->metadata_items["Thumbnail"];
     if (thumbnail.empty() && !plate_data_list.empty()) {
         thumbnail = plate_data_list.front()->thumbnail_file;
-        if (thumbnail.empty()) {
-            thumbnail = plate_data_list.front()->gcode_file;
-            boost::algorithm::replace_all(thumbnail, ".gcode", ".png");
-        }
     }
     file.metadata.emplace("Thumbnail", thumbnail);
     return true;
@@ -1082,8 +1096,8 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         if (m_stopped || m_messages.empty()) continue;
         std::string url = m_messages.front();
         m_messages.clear();
-        if (url.empty()) {
-            m_last_error = 1;
+        if (url.size() < 2) {
+            m_last_error = atoi(url.c_str());
         } else {
             l.unlock();
             m_status = Status::Connecting;
@@ -1108,7 +1122,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             m_last_error = ret;
         }
         m_status     = Status::Failed;
-        SendChangedEvent(EVT_STATUS_CHANGED, m_status);
+        SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : 0);
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
     }
     m_status = Status::ListSyncing;

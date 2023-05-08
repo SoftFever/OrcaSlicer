@@ -1421,30 +1421,36 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 add_error("invalid plate index");
                 return false;
             }
-            plate_data_list[it->first-1]->locked = it->second->locked;
-            plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
-            plate_data_list[it->first-1]->obj_inst_map = it->second->obj_inst_map;
-            plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : m_backup_path + "/" + it->second->gcode_file;
-            plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
-            plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
-            plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
-            plate_data_list[it->first-1]->is_support_used = it->second->is_support_used;
-            plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
-            plate_data_list[it->first-1]->warnings = it->second->warnings;
-            plate_data_list[it->first-1]->thumbnail_file = it->second->thumbnail_file;
-            //plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
-            plate_data_list[it->first-1]->top_file = it->second->top_file;
-            plate_data_list[it->first-1]->pick_file = it->second->pick_file.empty();
-            plate_data_list[it->first-1]->pattern_bbox_file = it->second->pattern_bbox_file.empty();
-            plate_data_list[it->first-1]->config = it->second->config;
+            PlateData * plate = plate_data_list[it->first-1];
+            plate->locked = it->second->locked;
+            plate->plate_index = it->second->plate_index-1;
+            plate->obj_inst_map = it->second->obj_inst_map;
+            plate->gcode_file = it->second->gcode_file;
+            plate->gcode_prediction = it->second->gcode_prediction;
+            plate->gcode_weight = it->second->gcode_weight;
+            plate->toolpath_outside = it->second->toolpath_outside;
+            plate->is_support_used = it->second->is_support_used;
+            plate->slice_filaments_info = it->second->slice_filaments_info;
+            plate->warnings = it->second->warnings;
+            plate->thumbnail_file = it->second->thumbnail_file;
+            if (plate->thumbnail_file.empty()) {
+                plate->thumbnail_file = plate->gcode_file;
+                boost::algorithm::replace_all(plate->thumbnail_file, ".gcode", ".png");
+            }
+            //plate->pattern_file = it->second->pattern_file;
+            plate->top_file = it->second->top_file;
+            plate->pick_file = it->second->pick_file.empty();
+            plate->pattern_bbox_file = it->second->pattern_bbox_file.empty();
+            plate->config = it->second->config;
 
-            _extract_from_archive(archive, m_thumbnail_path, [&pixels = plate_data_list[it->first - 1]->plate_thumbnail.pixels](auto &archive, auto const &stat) -> bool {
-                pixels.resize(stat.m_uncomp_size);
-                return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, pixels.data(), pixels.size(), 0);
-            });
+            if (!plate->thumbnail_file.empty())
+                _extract_from_archive(archive, plate->thumbnail_file, [&pixels = plate_data_list[it->first - 1]->plate_thumbnail.pixels](auto &archive, auto const &stat) -> bool {
+                    pixels.resize(stat.m_uncomp_size);
+                    return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, pixels.data(), pixels.size(), 0);
+                });
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate_data_list[it->first-1]->top_file %plate_data_list[it->first-1]->pick_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate->thumbnail_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate->top_file %plate->pick_file;
             it++;
         }
 
@@ -4186,7 +4192,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (m_start_part_path.empty()) m_start_part_path = path;
             else m_sub_model_paths.push_back(path);
         } else if (boost::starts_with(type, "http://schemas.openxmlformats.org/") && boost::ends_with(type, "thumbnail")) {
-            m_thumbnail_path = path;
+            if (boost::algorithm::ends_with(path, ".png"))
+                m_thumbnail_path = path;
         } else if (boost::starts_with(type, "http://schemas.bambulab.com/") && boost::ends_with(type, "cover-thumbnail-middle")) {
             m_thumbnail_middle = path;
         } else if (boost::starts_with(type, "http://schemas.bambulab.com/") && boost::ends_with(type, "cover-thumbnail-small")) {

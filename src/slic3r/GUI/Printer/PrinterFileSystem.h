@@ -49,6 +49,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
         FILE_OPEN_ERR       = 13,
         FILE_READ_ERR       = 14,
         FILE_CHECK_ERR      = 15,
+        FILE_TYPE_ERR       = 16,
     };
 
 
@@ -104,7 +105,8 @@ public:
 
         bool IsSelect() const { return flags & FF_SELECT; }
         bool IsDownload() const { return flags & FF_DOWNLOAD; }
-        std::string Metadata(std::string const & key, std::string const & dflt) const;
+        std::string Title() const;
+        std::string Metadata(std::string const &key, std::string const &dflt) const;
 
         friend bool operator<(File const & l, File const & r) { return l.time > r.time; }
     };
