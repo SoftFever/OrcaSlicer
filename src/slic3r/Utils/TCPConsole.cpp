@@ -4,7 +4,7 @@
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string.hpp>
@@ -41,7 +41,7 @@ void TCPConsole::transmit_next_command()
     boost::asio::async_write(
         m_socket,
         boost::asio::buffer(m_send_buffer),
-        boost::bind(&TCPConsole::handle_write, this, _1, _2)
+        boost::bind(&TCPConsole::handle_write, this, boost::placeholders::_1, boost::placeholders::_2)
     );
 }
 
@@ -52,7 +52,7 @@ void TCPConsole::wait_next_line()
         m_socket,
         m_recv_buffer,
         m_newline,
-        boost::bind(&TCPConsole::handle_read, this, _1, _2)
+        boost::bind(&TCPConsole::handle_read, this, boost::placeholders::_1, boost::placeholders::_2)
     );
 }
 
@@ -157,7 +157,7 @@ bool TCPConsole::run_queue()
         auto endpoints = m_resolver.resolve(m_host_name, m_port_name);
 
         m_socket.async_connect(endpoints->endpoint(),
-            boost::bind(&TCPConsole::handle_connect, this, _1)
+            boost::bind(&TCPConsole::handle_connect, this, boost::placeholders::_1)
         );
 
         // Loop until we get any reasonable result. Negative result is also result.
