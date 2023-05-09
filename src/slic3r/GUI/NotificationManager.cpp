@@ -1630,19 +1630,33 @@ void NotificationManager::push_validate_error_notification(StringObjectException
 	set_slicing_progress_hidden();
 }
 
-void NotificationManager::push_slicing_error_notification(const std::string &text, ModelObject const *obj)
+void NotificationManager::push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs)
 {
-	auto callback = obj ? [id = obj->id()](wxEvtHandler *) {
+    std::vector<ObjectID> ids;
+    for (auto optr : objs) { ids.push_back(optr->id()); }
+	auto callback = !objs.empty() ? [ids](wxEvtHandler *) {
 		auto & objects = wxGetApp().model().objects;
-		auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
-        if (iter != objects.end()) {
-			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+		std::vector<ObjectVolumeID> ovs;
+		for (auto id : ids) {
+            auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+            if (iter != objects.end()) { ovs.push_back({*iter, nullptr}); }
+		}
+		if (!ovs.empty()) {
+            wxGetApp().obj_list()->select_items(ovs);
             wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 		}
 		return false;
 	} : std::function<bool(wxEvtHandler *)>();
     auto link     = callback ? _u8L("Jump to") : "";
-    if (obj) link += std::string(" [") + obj->name + "]";
+    if (!objs.empty()) {
+        link += " [";
+        for (auto obj : objs) { link += obj->name + ", "; }
+        if (!objs.empty()) {
+            link.pop_back();
+            link.pop_back();
+        }
+        link += "] ";
+    }
     set_all_slicing_errors_gray(false);
 	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
 	set_slicing_progress_hidden();

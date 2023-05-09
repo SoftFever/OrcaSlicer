@@ -808,7 +808,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // first layer may result in skirt/brim in the air and maybe other issues.
         if (layers_to_print.size() == 1u) {
             if (!has_extrusions)
-                throw Slic3r::SlicingError(_(L("One object has empty initial layer and can't be printed. Please Cut the bottom or enable supports.")), object.id().id);
+                throw Slic3r::SlicingError(_(L("The following object(s) have empty initial layer and can't be printed. Please Cut the bottom or enable supports.")), object.id().id);
         }
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.
@@ -863,8 +863,16 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
 
     std::vector<std::vector<LayerToPrint>>  per_object(print.objects().size(), std::vector<LayerToPrint>());
     std::vector<OrderingItem>               ordering;
+
+    std::vector<Slic3r::SlicingError> errors;
+
     for (size_t i = 0; i < print.objects().size(); ++i) {
-        per_object[i] = collect_layers_to_print(*print.objects()[i]);
+        try {
+            per_object[i] = collect_layers_to_print(*print.objects()[i]);
+        } catch (const Slic3r::SlicingError &e) {
+            errors.push_back(e);
+            continue;
+        }
         OrderingItem ordering_item;
         ordering_item.object_idx = i;
         ordering.reserve(ordering.size() + per_object[i].size());
@@ -875,6 +883,8 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
             ordering.emplace_back(ordering_item);
         }
     }
+    
+    if (!errors.empty()) { throw Slic3r::SlicingErrors(errors); }
 
     std::sort(ordering.begin(), ordering.end(), [](const OrderingItem& oi1, const OrderingItem& oi2) { return oi1.print_z < oi2.print_z; });
 

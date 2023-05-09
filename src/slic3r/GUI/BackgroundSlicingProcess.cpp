@@ -46,9 +46,10 @@ bool SlicingProcessCompletedEvent::critical_error() const
 	} catch (const Slic3r::SlicingError &) {
 		// Exception derived from SlicingError is non-critical.
 		return false;
-	} catch (...) {
-	}
-	return true;
+    } catch (const Slic3r::SlicingErrors &) {
+        return false;
+    } catch (...) {}
+    return true;
 }
 
 bool SlicingProcessCompletedEvent::invalidate_plater() const
@@ -69,7 +70,7 @@ bool SlicingProcessCompletedEvent::invalidate_plater() const
 	return false;
 }
 
-std::pair<std::string, size_t> SlicingProcessCompletedEvent::format_error_message() const
+std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format_error_message() const
 {
 	std::string error;
     size_t      monospace = 0;
@@ -88,12 +89,20 @@ std::pair<std::string, size_t> SlicingProcessCompletedEvent::format_error_messag
     } catch (SlicingError &ex) {
 		error = ex.what();
 		monospace = ex.objectId();
+    } catch (SlicingErrors &exs) {
+        std::vector<size_t> ids;
+        for (auto &ex : exs.errors_) {
+            error     = ex.what();
+            monospace = ex.objectId();
+            ids.push_back(monospace);
+        }
+        return std::make_pair(std::move(error), ids);
     } catch (std::exception &ex) {
-		error = ex.what();
-	} catch (...) {
-		error = "Unknown C++ exception.";
-	}
-	return std::make_pair(std::move(error), monospace);
+        error = ex.what();
+    } catch (...) {
+        error = "Unknown C++ exception.";
+    }
+    return std::make_pair(std::move(error), std::vector<size_t>{monospace});
 }
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()

@@ -2,6 +2,7 @@
 #define _libslic3r_Exception_h_
 
 #include <stdexcept>
+#include <vector>
 
 namespace Slic3r {
 
@@ -35,6 +36,16 @@ public:
 private:
     size_t objectId_ = 0;
 };
+
+class SlicingErrors : public Exception
+{
+public:
+    using Exception::Exception;
+    SlicingErrors(const std::vector<SlicingError> &errors) : Exception("Errors"), errors_(errors) {}
+
+    std::vector<SlicingError> errors_;
+};
+
 #undef SLIC3R_DERIVE_EXCEPTION
 
 } // namespace Slic3r
