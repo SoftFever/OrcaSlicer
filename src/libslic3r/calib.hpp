@@ -13,7 +13,8 @@ enum class CalibMode : int {
     Calib_PA_Tower,
     Calib_Temp_Tower,
     Calib_Vol_speed_Tower,
-    Calib_VFA_Tower
+    Calib_VFA_Tower,
+    Calib_Retraction_tower
 
 };
 struct Calib_Params

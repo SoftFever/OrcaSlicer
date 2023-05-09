@@ -1025,7 +1025,14 @@ void PerimeterGenerator::process_classic()
                         Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, last_box);
 
                         double bridge_offset = std::max(double(ext_perimeter_spacing), (double(perimeter_width)));
-                        bridge_checker  = offset_ex(diff_ex(last, lower_polygons_series_clipped, ApplySafetyOffset::Yes), 1.5 * bridge_offset);
+                        // SoftFever: improve bridging
+                        auto nozzle_diameter =
+                            this->print_config->nozzle_diameter.get_at(this->config->wall_filament - 1);
+                        const float bridge_margin =
+                            std::min(float(scale_(BRIDGE_INFILL_MARGIN)),
+                                     float(scale_(nozzle_diameter * BRIDGE_INFILL_MARGIN / 0.4)));
+                        bridge_checker = offset_ex(diff_ex(last, lower_polygons_series_clipped, ApplySafetyOffset::Yes),
+                                                   1.5 * bridge_offset + bridge_margin + perimeter_spacing / 2);
                     }
                     ExPolygons delete_bridge = diff_ex(last, bridge_checker, ApplySafetyOffset::Yes);
 
@@ -1042,12 +1049,14 @@ void PerimeterGenerator::process_classic()
                     //set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't go outside even with a 100% overlap.
                     double infill_spacing_unscaled = this->config->sparse_infill_line_width.value;
                     fill_clip = offset_ex(last, double(ext_perimeter_spacing / 2) - scale_(infill_spacing_unscaled / 2));
+                    //ExPolygons oldLast = last;
+
                     last = intersection_ex(inner_polygons, last);
                     if (has_gap_fill)
                         last = union_ex(last,temp_gap);
                     //{
                     //    std::stringstream stri;
-                    //    stri << this->layer->id() << "_1_"<< i <<"_only_one_peri"<< ".svg";
+                    //    stri << this->layer_id << "_1_"<< i <<"_only_one_peri"<< ".svg";
                     //    SVG svg(stri.str());
                     //    svg.draw(to_polylines(top_fills), "green");
                     //    svg.draw(to_polylines(inner_polygons), "yellow");

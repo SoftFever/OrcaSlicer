@@ -542,7 +542,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             m_print_enable = get_enable_print_status();
             m_print_btn->Enable(m_print_enable);
             if (m_print_enable) {
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+                PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+                if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+                else
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
             }
             evt.Skip();
             return;
@@ -2617,6 +2621,13 @@ void MainFrame::init_menubar_as_editor()
             m_pa_calib_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Retraction test"), _L("Retraction test"),
+        [this](wxCommandEvent&) {
+            if (!m_retraction_calib_dlg)
+                m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_retraction_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // Advance calibrations
     auto advance_menu = new wxMenu();
@@ -2685,6 +2696,15 @@ void MainFrame::init_menubar_as_editor()
             if (!m_pa_calib_dlg)
                 m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_pa_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    // Retraction
+    append_menu_item(calib_menu, wxID_ANY, _L("Retraction test"), _L("Retraction test"),
+        [this](wxCommandEvent&) {
+            if (!m_retraction_calib_dlg)
+                m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_retraction_calib_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 

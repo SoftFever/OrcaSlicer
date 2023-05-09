@@ -1443,6 +1443,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_last_mm3_per_mm = 0.;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+    m_fan_mover.release();
     
     m_writer.set_is_bbl_machine(is_bbl_printers);
 
@@ -1725,6 +1727,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
+
+    std::vector<unsigned char> is_extruder_used(print.config().filament_diameter.size(), 0);
+    for (unsigned int extruder : tool_ordering.all_extruders())
+        is_extruder_used[extruder] = true;
+    m_placeholder_parser.set("is_extruder_used", new ConfigOptionBools(is_extruder_used));
+
     Vec2f plate_offset = m_writer.get_xy_offset();
     {
         BoundingBoxf bbox(print.config().printable_area.values);
@@ -1803,6 +1811,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
+
+    //flush FanMover buffer to avoid modifying the start gcode if it's manual.
+    if (!machine_start_gcode.empty() && this->m_fan_mover.get() != nullptr)
+        file.write(this->m_fan_mover.get()->process_gcode("", true));
 
     // Process filament-specific gcode.
    /* if (has_wipe_tower) {
@@ -2182,11 +2194,30 @@ void GCode::process_layers(
         [&output_stream](std::string s) { output_stream.write(s); }
     );
 
+    const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
+            [&fan_mover = this->m_fan_mover, &config = this->config(), &writer = this->m_writer](std::string in)->std::string {
+        CNumericLocalesSetter locales_setter;
+
+        if (config.fan_speedup_time.value != 0 || config.fan_kickstart.value > 0) {
+            if (fan_mover.get() == nullptr)
+                fan_mover.reset(new Slic3r::FanMover(
+                    writer,
+                    std::abs((float)config.fan_speedup_time.value),
+                    config.fan_speedup_time.value > 0,
+                    config.use_relative_e_distances.value,
+                    config.fan_speedup_overhangs.value,
+                    (float)config.fan_kickstart.value));
+            //flush as it's a whole layer
+            return fan_mover->process_gcode(in, true);
+        }
+        return in;
+    });
+
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase)
-        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & output);
+        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
     else
-        tbb::parallel_pipeline(12, generator & cooling & output);
+        tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -2230,11 +2261,29 @@ void GCode::process_layers(
         [&output_stream](std::string s) { output_stream.write(s); }
     );
 
+    const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [&fan_mover = this->m_fan_mover, &config = this->config(), &writer = this->m_writer](std::string in)->std::string {
+
+        if (config.fan_speedup_time.value != 0 || config.fan_kickstart.value > 0) {
+            if (fan_mover.get() == nullptr)
+                fan_mover.reset(new Slic3r::FanMover(
+                    writer,
+                    std::abs((float)config.fan_speedup_time.value),
+                    config.fan_speedup_time.value > 0,
+                    config.use_relative_e_distances.value,
+                    config.fan_speedup_overhangs.value,
+                    (float)config.fan_kickstart.value));
+            //flush as it's a whole layer
+            return fan_mover->process_gcode(in, true);
+        }
+        return in;
+    });
+
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase)
-        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & output);
+        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
     else
-        tbb::parallel_pipeline(12, generator & cooling & output);
+        tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
@@ -2797,6 +2846,27 @@ GCode::LayerResult GCode::process_layer(
             + "\n";
     }
 
+    if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
+        gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
+    } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
+        auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
+        gcode += writer().set_temperature(print.calib_params().start - offset);
+    } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
+        auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+    } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
+        auto _speed = print.calib_params().start + print_z * print.calib_params().step;
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+    }
+    else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
+        auto _length = print.calib_params().start + std::floor(print_z) * print.calib_params().step;
+        DynamicConfig _cfg;
+        _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
+        writer().config.apply(_cfg);
+        sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
+        gcode += buf;
+    }
+
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z, !m_spiral_vase);  // this will increase m_layer_index
     m_layer = &layer;
@@ -2809,19 +2879,6 @@ GCode::LayerResult GCode::process_layer(
             print.config().layer_change_gcode.value, m_writer.extruder()->id(), &config)
             + "\n";
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-    }
-
-    if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
-        gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
-    } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
-        auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
-        gcode += writer().set_temperature(print.calib_params().start - offset);
-    } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
-        auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
-    } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
-        auto _speed = print.calib_params().start + print_z * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     }
 
     //BBS
@@ -3945,6 +4002,21 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (path.role() != erBottomSurface)
             speed = m_config.get_abs_value("initial_layer_speed");
     }
+    else if(m_config.slow_down_layers > 1){
+        const auto _layer = layer_id() + 1;
+        if (_layer > 0 && _layer < m_config.slow_down_layers) {
+            const auto first_layer_speed =
+                is_perimeter(path.role())
+                    ? m_config.get_abs_value("initial_layer_speed")
+                    : m_config.get_abs_value("initial_layer_infill_speed");
+            if (first_layer_speed < speed) {
+                speed = std::min(
+                    speed,
+                    Slic3r::lerp(first_layer_speed, speed,
+                                 (double)_layer / m_config.slow_down_layers));
+            }
+        }
+    }
     //BBS: remove this config
     //else if (this->object_layer_over_raft())
     //    speed = m_config.get_abs_value("first_layer_speed_over_raft", speed);
@@ -4043,6 +4115,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
     auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
+    
+    auto supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
 
 
     //    { "0%", Overhang_threshold_none },
@@ -4081,20 +4155,27 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             comment += ";_EXTERNAL_PERIMETER";
     }
     bool is_overhang_fan_on = false;
+    bool is_supp_interface_fan_on = false;
     if (!variable_speed) {
         // F is mm per minute.
         gcode += m_writer.set_speed(F, "", comment);
         double path_length = 0.;
         {
-            if (m_enable_cooling_markers && enable_overhang_bridge_fan) {
-                // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
-                // perimeter
-                int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
-                                                                                           : overhang_fan_threshold - 1;
-                if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role())) ||
-                    (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
-                    gcode += ";_OVERHANG_FAN_START\n";
-                    is_overhang_fan_on = true;
+            if (m_enable_cooling_markers) {
+                if (enable_overhang_bridge_fan) {
+                    // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
+                    // perimeter
+                    int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
+                    : overhang_fan_threshold - 1;
+                    if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role())) ||
+                        (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
+                        gcode += ";_OVERHANG_FAN_START\n";
+                        is_overhang_fan_on = true;
+                    }
+                }
+                if(supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
+                    gcode += ";_SUPP_INTERFACE_FAN_START\n";
+                    is_supp_interface_fan_on = true;
                 }
             } 
             // BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
@@ -4152,6 +4233,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 is_overhang_fan_on = false;
                 gcode += ";_OVERHANG_FAN_END\n";
             }
+            if (is_supp_interface_fan_on) {
+                is_supp_interface_fan_on = false;
+                gcode += ";_SUPP_INTERFACE_FAN_END\n";
+            }
         }
     } else {
         double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
@@ -4162,18 +4247,32 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             const ProcessedPoint &processed_point = new_points[i];
             Vec2d p = this->point_to_gcode_quantized(processed_point.p);
             const double line_length = (p - prev).norm();
-            if (m_enable_cooling_markers && enable_overhang_bridge_fan) {
-                if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap) ) {
-                    if(!is_overhang_fan_on)
-                        gcode += ";_OVERHANG_FAN_START\n";
-                    is_overhang_fan_on = true;
-                }else {
-                    if (is_overhang_fan_on) {
-                        gcode += ";_OVERHANG_FAN_END\n";
-                        is_overhang_fan_on = false;
+            if (m_enable_cooling_markers) {
+                if(enable_overhang_bridge_fan) {
+                    if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap) ) {
+                        if(!is_overhang_fan_on)
+                            gcode += ";_OVERHANG_FAN_START\n";
+                        is_overhang_fan_on = true;
+                    }else {
+                        if (is_overhang_fan_on) {
+                            gcode += ";_OVERHANG_FAN_END\n";
+                            is_overhang_fan_on = false;
+                        }
+                    }
+                }
+                if(supp_interface_fan_speed >= 0){
+                    if(path.role() == erSupportMaterialInterface) {
+                        if(!is_supp_interface_fan_on)
+                            gcode += ";_SUPP_INTERFACE_FAN_START\n";
+                        is_supp_interface_fan_on = true;
+                    } else {
+                        if(is_supp_interface_fan_on) {
+                            gcode += ";_SUPP_INTERFACE_FAN_END\n";
+                            is_supp_interface_fan_on = false;
+                        }
                     }
                     
-        }
+                }
             }
             gcode +=
                 m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
@@ -4188,6 +4287,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (is_overhang_fan_on) {
             is_overhang_fan_on = false;
             gcode += ";_OVERHANG_FAN_END\n";
+        }
+        if(is_supp_interface_fan_on) {
+            gcode += ";_SUPP_INTERFACE_FAN_END\n";
+            is_supp_interface_fan_on = false;
         }
     }
     if (m_enable_cooling_markers) {

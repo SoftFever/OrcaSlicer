@@ -17,7 +17,7 @@ else ()
 endif ()
 
 if (MSVC)
-    set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch)
+    set(_patch_cmd if not exist WXWIDGETS_PATCHED ( "${GIT_EXECUTABLE}" apply --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch && type nul > WXWIDGETS_PATCHED ) )
 else ()
     set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch && touch WXWIDGETS_PATCHED)
 endif ()
@@ -26,8 +26,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch)
 endif ()
 
-
-bambustudio_add_cmake_project(wxWidgets
+bambustudio_add_cmake_project(
+    wxWidgets
     GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
     GIT_TAG ${_wx_git_tag}
     PATCH_COMMAND ${_patch_cmd}

@@ -1,0 +1,20 @@
+{
+    "type": "filament",
+    "filament_id": "GFS99",
+    "name": "OrcaArena Generic PVA @base",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_pva",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ]
+}
