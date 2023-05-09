@@ -134,7 +134,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "archimedeanchords",  ipArchimedeanChords },
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
-    { "lightning",          ipLightning }
+    { "lightning",          ipLightning },
+    { "arc",                ipArc }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -306,6 +307,13 @@ static const t_config_enum_values s_keys_map_ZHopType = {
     { "Spiral Lift",        zhtSpiral }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
+
+static const t_config_enum_values s_keys_map_ArcPosition{
+    {"Middle",  apMiddle},
+    {"Side",  apSide}
+};
+
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ArcPosition)
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -1027,6 +1035,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
     def->enum_values.push_back("alignedrectilinear");
+    def->enum_values.push_back("arc");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
@@ -1035,6 +1044,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
+    def->enum_labels.push_back(L("Arc"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
@@ -1048,6 +1058,106 @@ void PrintConfigDef::init_fff_params()
     def->enum_values = def_top_fill_pattern->enum_values;
     def->enum_labels = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+
+    // Arc Infill params
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    def = this->add("bridge_fill_pattern", coEnum);
+    def->label = L("Bridging fill pattern");
+    def->category = L("Strength");
+    def->tooltip = L("Fill pattern for bridges and bridge infill. Recommended is using Arc infill.");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values.push_back("arc");
+    def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("monotonic");
+    def->enum_values.push_back("monotonicline");
+    def->enum_labels.push_back(L("Arc"));
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Monotonic"));
+    def->enum_labels.push_back(L("Monotonic line"));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipArc));
+
+    def = this->add("bds_ratio_length", coFloat);
+    def->label = L("Scoring on total length of anchored lines in overhang");
+    def->category = L("Quality");
+    def->tooltip = L("Given in percentage of total");
+    def->sidetext = L("%");
+    def->min = -10000.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(7060.0));
+
+    def = this->add("bds_ratio_nr", coFloat);
+    def->label = L("Scoring on total number of anchored lines in overhang");
+    def->category = L("Quality");
+    def->tooltip = L("Given in percentage of total");
+    def->sidetext = L("%");
+    def->min = -10000.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("bds_median_length", coFloat);
+    def->label = L("Scoring on median length of anchored lines in overhang");
+    def->category = L("Quality");
+    def->tooltip = L("Given in percentage of total");
+    def->sidetext = L("%");
+    def->min = -10000.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(40.0));
+
+    def = this->add("bds_max_length", coFloat);
+    def->label = L("Scoring on max length of anchored lines in overhang");
+    def->category = L("Quality");
+    def->tooltip = L("Given in percentage of total");
+    def->sidetext = L("%");
+    def->min = -10000.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("arc_radius", coFloat);
+    def->label = L("Radius of the outer arc");
+    def->category = L("Quality");
+    def->min = 0.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.55));
+
+    def = this->add("arc_infill_raylen", coFloat);
+    def->label = L("Length of the ray used for edge intersection");
+    def->category = L("Quality");
+    def->min = 0.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(12.0));
+
+    def = this->add("arc_infill_raylen", coFloat);
+    def->label = L("Length of the ray used for edge intersection");
+    def->category = L("Quality");
+    def->min = 0.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(12.0));
+
+    def = this->add("overhang_infill_first", coBool);
+    def->label = L("Overhangs before perimeters");
+    def->category = L("Quality");
+    def->tooltip = L("If you have overhangs this will print the overhang first. Choose Arc infill as bridge infill for best results.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("arc_position", coEnum);
+    def->label = L("Arc overhang position");
+    def->category = L("Quality");
+    def->enum_keys_map = &ConfigOptionEnum<ArcPosition>::get_enum_values();
+    def->enum_values.push_back("middle");
+    def->enum_values.push_back("side");
+    def->enum_labels.push_back(L("Middle"));
+    def->enum_labels.push_back(L("Side"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ArcPosition>(apMiddle));
+
+    def = this->add("only_one_perimeter_overhang", coBool);
+    def->label = L("Only one perimeter on overhang surfaces");
+    def->category = L("Quality");
+    def->tooltip = L("Use only one perimeter on overhang surface, to give more space to the top infill pattern.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def = this->add("outer_wall_line_width", coFloat);
     def->label = L("Outer wall");
@@ -1410,6 +1520,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("3dhoneycomb");
+    def->enum_values.push_back("arc");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
@@ -1427,6 +1538,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Adaptive Cubic"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("3D Honeycomb"));
+    def->enum_labels.push_back(L("Arc"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
@@ -4804,6 +4916,11 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --bottom-fill-pattern
     if (! print_config_def.get("bottom_surface_pattern")->has_enum_value(cfg.bottom_surface_pattern.serialize())) {
         error_message.emplace("bottom_surface_pattern", L("invalid value ") + cfg.bottom_surface_pattern.serialize());
+    }
+
+    // --bridge-fill-pattern
+    if (!print_config_def.get("bridge_fill_pattern")->has_enum_value(cfg.bridge_fill_pattern.serialize())) {
+        error_message.emplace("bridge_fill_pattern", L("invalid value ") + cfg.bridge_fill_pattern.serialize());
     }
 
     // --fill-density
