@@ -3799,8 +3799,14 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     for (auto& instance : new_instances) {
         auto offset = instance->get_offset();
         auto start_point = this->bed.build_volume().bounding_volume2d().center();
-        auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({ start_point(0),start_point(1) });
-        Vec3d displacement = { empty_cell.x(),empty_cell.y(),offset(2)};
+        bool plate_empty = partplate_list.get_curr_plate()->empty();
+        Vec3d displacement;
+        if (plate_empty)
+            displacement = {start_point(0), start_point(1), offset(2)};
+        else {
+            auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
+            displacement    = {empty_cell.x(), empty_cell.y(), offset(2)};
+        }
         instance->set_offset(displacement);
     }
 #endif
