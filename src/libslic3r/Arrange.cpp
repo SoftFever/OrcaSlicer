@@ -452,27 +452,25 @@ protected:
         }
 
         std::set<int> extruder_ids;
-        int           non_virt_cnt = 0;
-        std::set<int> first_object_extruder_ids;
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
             if (p.is_virt_object) continue;
             extruder_ids.insert(p.extrude_ids.begin(),p.extrude_ids.end());
-            non_virt_cnt++;
-            if (non_virt_cnt == 1) { first_object_extruder_ids.insert(p.extrude_ids.begin(), p.extrude_ids.end()); }
         }
-        extruder_ids.insert(item.extrude_ids.begin(),item.extrude_ids.end());
 
         // add a large cost if not multi materials on same plate is not allowed
         if (!params.allow_multi_materials_on_same_plate) {
-            bool first_object                 = non_virt_cnt == 0;
-            bool same_color_with_first_object = std::all_of(item.extrude_ids.begin(), item.extrude_ids.end(),
-                                                            [&](int color) { return first_object_extruder_ids.find(color) != first_object_extruder_ids.end(); });
-            // non_virt_cnt==0 means it's the first object, which can be multi-color
-            if (!(first_object || same_color_with_first_object)) score += LARGE_COST_TO_REJECT * 1.3;
+            // it's the first object, which can be multi-color
+            bool first_object                 = extruder_ids.empty();
+            // the two objects (previously packed items and the current item) are considered having same color if either one's colors are a subset of the other
+            std::set<int> item_extruder_ids(item.extrude_ids.begin(), item.extrude_ids.end());
+            bool same_color_with_previous_items = std::includes(item_extruder_ids.begin(), item_extruder_ids.end(), extruder_ids.begin(), extruder_ids.end())
+                || std::includes(extruder_ids.begin(), extruder_ids.end(), item_extruder_ids.begin(), item_extruder_ids.end());
+            if (!(first_object || same_color_with_previous_items)) score += LARGE_COST_TO_REJECT * 1.3;
         }
         // for layered printing, we want extruder change as few as possible
         // this has very weak effect, CAN NOT use a large weight
+        extruder_ids.insert(item.extrude_ids.begin(), item.extrude_ids.end());
         if (!params.is_seq_print) {
             score += 1 * std::max(0, ((int) extruder_ids.size() - 1));
         }
