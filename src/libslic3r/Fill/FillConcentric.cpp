@@ -12,7 +12,8 @@ namespace Slic3r {
 void FillConcentric::_fill_surface_single(
     const FillParams                &params, 
     unsigned int                     thickness_layers,
-    const std::pair<float, Point>   &direction, 
+    const std::pair<float, Point>   &direction,
+    const Polyline                   pedestal,
     ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
@@ -139,7 +140,7 @@ void FillConcentric::_fill_surface_single(const FillParams& params,
     }
     else {
         Polylines polylines;
-        this->_fill_surface_single(params, thickness_layers, direction, expolygon, polylines);
+        this->_fill_surface_single(params, thickness_layers, direction, Polyline(), expolygon, polylines);
         append(thick_polylines_out, to_thick_polylines(std::move(polylines), min_spacing));
     }
 }

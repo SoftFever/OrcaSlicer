@@ -157,7 +157,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
-                    if (surface.is_external() && ! is_bridge) {
+                    if (surface.is_external() && !is_bridge) {
                         if(surface.is_top())
                             params.pattern = region_config.top_surface_pattern.value;
                         else
@@ -172,9 +172,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        } else if (params.density <= 0)
 		            continue;
 
+				if (is_bridge) params.pattern = region_config.bridge_fill_pattern.value;
+
 		        params.extrusion_role =
 		            is_bridge ?
-		                erBridgeInfill :
+		                (surface.is_bottom() ? erOverhangPerimeter : erBridgeInfill) :
 		                (surface.is_solid() ?
 		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : erSolidInfill)) :
 		                    erInternalInfill);

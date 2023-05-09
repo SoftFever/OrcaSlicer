@@ -39,37 +39,38 @@ public:
     unsigned short  thickness_layers;   // in layers
     double          bridge_angle;       // in radians, ccw, 0 = East, only 0+ (negative means undefined)
     unsigned short  extra_perimeters;
+    Polyline        pedestal;
 
     Surface(SurfaceType _surface_type = stInternal)
         : surface_type(_surface_type),
             thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
         {};
     Surface(const Slic3r::Surface &rhs)
-        : surface_type(rhs.surface_type), expolygon(rhs.expolygon),
+        : surface_type(rhs.surface_type), expolygon(rhs.expolygon), pedestal(rhs.pedestal),
             thickness(rhs.thickness), thickness_layers(rhs.thickness_layers),
             bridge_angle(rhs.bridge_angle), extra_perimeters(rhs.extra_perimeters)
         {};
 
     Surface(SurfaceType _surface_type, const ExPolygon &_expolygon)
-        : surface_type(_surface_type), expolygon(_expolygon),
+        : surface_type(_surface_type), expolygon(_expolygon), pedestal(Polyline()),
             thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
         {};
     Surface(const Surface &other, const ExPolygon &_expolygon)
-        : surface_type(other.surface_type), expolygon(_expolygon),
+        : surface_type(other.surface_type), expolygon(_expolygon), pedestal(other.pedestal),
             thickness(other.thickness), thickness_layers(other.thickness_layers),
             bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
         {};
     Surface(Surface &&rhs)
-        : surface_type(rhs.surface_type), expolygon(std::move(rhs.expolygon)),
+        : surface_type(rhs.surface_type), expolygon(std::move(rhs.expolygon)), pedestal(std::move(rhs.pedestal)),
             thickness(rhs.thickness), thickness_layers(rhs.thickness_layers),
             bridge_angle(rhs.bridge_angle), extra_perimeters(rhs.extra_perimeters)
         {};
     Surface(SurfaceType _surface_type, const ExPolygon &&_expolygon)
-        : surface_type(_surface_type), expolygon(std::move(_expolygon)),
+        : surface_type(_surface_type), expolygon(std::move(_expolygon)), pedestal(Polyline()),
             thickness(-1), thickness_layers(1), bridge_angle(-1), extra_perimeters(0)
         {};
     Surface(const Surface &other, const ExPolygon &&_expolygon)
-        : surface_type(other.surface_type), expolygon(std::move(_expolygon)),
+        : surface_type(other.surface_type), expolygon(std::move(_expolygon)), pedestal(std::move(other.pedestal)),
             thickness(other.thickness), thickness_layers(other.thickness_layers),
             bridge_angle(other.bridge_angle), extra_perimeters(other.extra_perimeters)
         {};
@@ -78,6 +79,7 @@ public:
     {
         surface_type     = rhs.surface_type;
         expolygon        = rhs.expolygon;
+        pedestal         = rhs.pedestal;
         thickness        = rhs.thickness;
         thickness_layers = rhs.thickness_layers;
         bridge_angle     = rhs.bridge_angle;
@@ -89,6 +91,7 @@ public:
     {
         surface_type     = rhs.surface_type;
         expolygon        = std::move(rhs.expolygon);
+        pedestal         = std::move(rhs.pedestal);
         thickness        = rhs.thickness;
         thickness_layers = rhs.thickness_layers;
         bridge_angle     = rhs.bridge_angle;

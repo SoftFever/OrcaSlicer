@@ -52,6 +52,9 @@ public:
     bool contains(const Polyline &polyline) const;
     bool contains(const Polylines &polylines) const;
     bool contains(const Point &point, bool border_result = true) const;
+    bool contains_b(const Point &point) const;
+    bool contains_h(const Point &point) const;
+    bool has_boundary_point(const Point &point) const;
     // Approximate on boundary test.
     bool on_boundary(const Point &point, double eps) const;
     // Projection of a point onto the polygon.

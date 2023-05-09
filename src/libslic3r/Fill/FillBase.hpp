@@ -13,6 +13,7 @@
 #include "../BoundingBox.hpp"
 #include "../Exception.hpp"
 #include "../Utils.hpp"
+#include "../Surface.hpp"
 #include "../ExPolygon.hpp"
 //BBS: necessary header for new function
 #include "../PrintConfig.hpp"
@@ -125,6 +126,9 @@ public:
     // Use bridge flow for the fill?
     virtual bool use_bridge_flow() const { return false; }
 
+    // Get spacing of fill
+    coordf_t get_spacing() const { return spacing; }
+
     // Do not sort the fill lines to optimize the print head path?
     virtual bool no_sort() const { return false; }
 
@@ -156,20 +160,26 @@ protected:
         const FillParams                & /* params */, 
         unsigned int                      /* thickness_layers */,
         const std::pair<float, Point>   & /* direction */, 
+        const Polyline                    /* pedestal */,
         ExPolygon                         /* expolygon */,
-        Polylines                       & /* polylines_out */) {};
+        Polylines                       & /* polylines_out */) {
+            BOOST_LOG_TRIVIAL(error)<<"Error, the fill is not implemented!";
+        };
 
     // Used for concentric infill to generate ThickPolylines using Arachne.
     virtual void _fill_surface_single(const FillParams& params,
         unsigned int                   thickness_layers,
         const std::pair<float, Point>& direction,
         ExPolygon                      expolygon,
-        ThickPolylines& thick_polylines_out) {}
+        ThickPolylines& thick_polylines_out) {
+            BOOST_LOG_TRIVIAL(error)<<"Error, the fill is not implemented!";
+        }
 
     virtual float _layer_angle(size_t idx) const { return (idx & 1) ? float(M_PI/2.) : 0; }
 
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
-
+    virtual Polyline _infill_pedestal(const Surface *surface) const;
+    
 public:
     static void connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params);
     static void connect_infill(Polylines &&infill_ordered, const Polygons &boundary, const BoundingBox& bbox, Polylines &polylines_out, const double spacing, const FillParams &params);

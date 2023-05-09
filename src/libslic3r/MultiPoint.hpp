@@ -72,6 +72,11 @@ public:
         const Point* cl = closest_point(point);
         return (*cl - point).cast<double>().norm();
     }
+    double distance_from_edges(const Point& point) const {
+        const Point* cl1 = &this->points[0];//closest_point(point);
+        const Point* cl2 = &this->points[this->points.size()-1];
+        return std::min((*cl1 - point).cast<double>().norm(),(*cl2 - point).cast<double>().norm());
+    }
     BoundingBox bounding_box() const;
     // Return true if there are exact duplicates.
     bool has_duplicate_points() const;

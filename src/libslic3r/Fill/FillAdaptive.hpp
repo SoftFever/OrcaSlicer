@@ -64,6 +64,7 @@ protected:
 	    const FillParams                &params,
 	    unsigned int                     thickness_layers,
 	    const std::pair<float, Point>   &direction,
+        const Polyline                   pedestal,
 	    ExPolygon                        expolygon,
 	    Polylines                       &polylines_out) override;
     // Let the G-code export reoder the infill lines.

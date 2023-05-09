@@ -14,13 +14,15 @@ public:
 protected:
      Fill* clone() const override { return new FillArc(*this); };
     //void init_spacing(coordf_t spacing, const FillParams &params) override;
+
 	void _fill_surface_single(
         const FillParams                &params,
         unsigned int                     thickness_layers,
         const std::pair<float, Point>   &direction,
-	const Polyline  		pedestal,
+		const Polyline  				pedestal,
         ExPolygon                        expolygon,
-        Polylines                       &polylines_out) const override;
+        Polylines                       &polylines_out) override;
+
 	bool no_sort() const override { return true; }
 	// The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
     float _layer_angle(size_t idx) const override { return 0.f; }
