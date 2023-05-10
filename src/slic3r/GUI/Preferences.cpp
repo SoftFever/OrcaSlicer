@@ -663,9 +663,19 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             m_developer_mode_def = app_config->get("developer_mode");
             if (m_developer_mode_def == "true") {
                 Slic3r::GUI::wxGetApp().save_mode(comDevelop);
-                Slic3r::GUI::wxGetApp().mainframe->show_log_window();
             } else {
                 Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
+            }
+        }
+
+        // webview  dump_vedio  
+        if (param == "internal_developer_mode") {
+            m_internal_developer_mode_def = app_config->get("internal_developer_mode");
+            if (m_internal_developer_mode_def == "true") {
+                Slic3r::GUI::wxGetApp().update_internal_development();
+                Slic3r::GUI::wxGetApp().mainframe->show_log_window();
+            } else {
+                Slic3r::GUI::wxGetApp().update_internal_development();
             }
         }
 
@@ -674,7 +684,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
     //// for debug mode
     if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox; }
-    if (param == "dump_video") { m_dump_video_ckeckbox = checkbox; }
+    if (param == "internal_developer_mode") { m_internal_developer_mode_ckeckbox = checkbox; }
 
 
     checkbox->SetToolTip(tooltip);
@@ -1102,14 +1112,14 @@ wxWindow* PreferencesDialog::create_debug_page()
     auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
     page->SetBackgroundColour(*wxWHITE);
 
-    m_dump_video_def      = app_config->get("dump_video");
+    m_internal_developer_mode_def = app_config->get("internal_developer_mode");
     m_backup_interval_def = app_config->get("backup_interval");
     m_iot_environment_def = app_config->get("iot_environment");
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
 
-    auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
+    auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), page, _L("Internal developer mode"), 50, "internal_developer_mode");
 
     auto title_log_level = create_item_title(_L("Log Level"), page, _L("Log Level"));
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
@@ -1152,10 +1162,10 @@ wxWindow* PreferencesDialog::create_debug_page()
             //    app_config->set_bool("developer_mode", m_developer_mode_def == "true" ? true : false);
             //    m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
             //}
-            if (m_dump_video_def != app_config->get("dump_video")) {
-                app_config->set_bool("dump_video", m_dump_video_def == "true" ? true : false);
-                m_dump_video_ckeckbox->SetValue(m_dump_video_def == "true" ? true : false);
-            }
+            //if (m_internal_developer_mode_def != app_config->get("internal_developer_mode")) {
+            //    app_config->set_bool("internal_developer_mode", m_internal_developer_mode_def == "true" ? true : false);
+            //    m_internal_developer_mode_ckeckbox->SetValue(m_internal_developer_mode_def == "true" ? true : false);
+            //}
 
             if (m_backup_interval_def != m_backup_interval_time) { m_backup_interval_textinput->GetTextCtrl()->SetValue(m_backup_interval_def); }
 
@@ -1223,7 +1233,7 @@ wxWindow* PreferencesDialog::create_debug_page()
     });
 
 
-    bSizer->Add(item_dump_video, 0, wxTOP, FromDIP(3));
+    bSizer->Add(item_internal_developer, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_log_level, 0, wxTOP| wxEXPAND, FromDIP(20));
     bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_host, 0, wxTOP| wxEXPAND, FromDIP(20));

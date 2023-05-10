@@ -182,7 +182,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         wxGetApp().app_config->set("user_mode", "advanced");
      }
 
-    wxGetApp().app_config->set_bool("dump_video", false);
+    wxGetApp().app_config->set_bool("internal_developer_mode", false);
 
     wxString max_recent_count_str = wxGetApp().app_config->get("max_recent_count");
     long max_recent_count = 18;

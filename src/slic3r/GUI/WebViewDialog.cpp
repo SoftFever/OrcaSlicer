@@ -476,8 +476,7 @@ void WebViewPanel::ShowNetpluginTip()
 
 void WebViewPanel::update_mode()
 {
-    int app_mode = Slic3r::GUI::wxGetApp().get_mode();
-    GetSizer()->Show(size_t(0), app_mode == comDevelop);
+    GetSizer()->Show(size_t(0), wxGetApp().app_config->get("internal_developer_mode") == "true");
     GetSizer()->Layout();
 }
 

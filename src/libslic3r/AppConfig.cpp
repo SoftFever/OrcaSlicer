@@ -207,8 +207,8 @@ void AppConfig::set_defaults()
     if (get("severity_level").empty())
         set("severity_level", "info");
 
-    if (get("dump_video").empty())
-        set_bool("dump_video", false);
+    if (get("internal_developer_mode").empty())
+        set_bool("internal_developer_mode", false);
 
     // BBS
     if (get("preset_folder").empty())

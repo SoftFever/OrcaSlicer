@@ -144,7 +144,7 @@ void MediaPlayCtrl::Play()
         m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
-        if (wxGetApp().app_config->get("dump_video") == "true") {
+        if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
             std::string file_h264 = data_dir() + "/video.h264";
             std::string file_info = data_dir() + "/video.info";
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << file_h264;
@@ -198,7 +198,7 @@ void MediaPlayCtrl::Play()
                     } else {
                         m_last_state = MEDIASTATE_LOADING;
                         SetStatus(_L("Loading..."));
-                        if (wxGetApp().app_config->get("dump_video") == "true") {
+                        if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
                             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << boost::filesystem::current_path();
                             m_url = m_url + "&dump=video.h264";
                         }
