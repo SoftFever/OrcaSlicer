@@ -3189,7 +3189,7 @@ namespace PresetUtils {
                 out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->hotend_model;
         }
         
-        if(out.empty())
+        if (out.empty() ||!boost::filesystem::exists(boost::filesystem::path(out)))
             out = Slic3r::resources_dir() + "/profiles/hotend.stl";
         return out;
     }

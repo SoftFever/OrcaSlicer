@@ -4274,15 +4274,16 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     
                 }
             }
-            gcode +=
-                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
-
-            prev = p;
             double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), processed_point.speed) * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
             }
+            gcode +=
+                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
+
+            prev = p;
+
         }
         if (is_overhang_fan_on) {
             is_overhang_fan_on = false;
