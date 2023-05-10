@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFA05",
     "setting_id": "GFSL99_01",
-    "name": "Generic PLA Silk @BIQU",
+    "name": "BIQU Generic PLA Silk",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

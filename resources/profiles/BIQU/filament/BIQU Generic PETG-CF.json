@@ -2,7 +2,7 @@
   "type": "filament",
   "filament_id": "GFG98",
   "setting_id": "GFSG50",
-  "name": "Generic PETG-CF @BIQU",
+  "name": "BIQU Generic PETG-CF",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_filament_pet",

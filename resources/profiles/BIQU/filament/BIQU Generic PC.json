@@ -2,7 +2,7 @@
   "type": "filament",
   "filament_id": "GFC99",
   "setting_id": "GFSC99",
-  "name": "Generic PC @BIQU",
+  "name": "BIQU Generic PC",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_filament_pc",

@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFS99",
     "setting_id": "GFSS99",
-    "name": "Generic PVA @BIQU",
+    "name": "BIQU Generic PVA",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pva",

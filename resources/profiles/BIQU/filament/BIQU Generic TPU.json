@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFU99",
     "setting_id": "GFSR99",
-    "name": "Generic TPU @BIQU",
+    "name": "BIQU Generic TPU",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",

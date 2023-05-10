@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFL98",
     "setting_id": "GFSL98",
-    "name": "Generic PLA-CF @BIQU",
+    "name": "BIQU Generic PLA-CF",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

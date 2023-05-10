@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFG99",
     "setting_id": "GFSG99",
-    "name": "Generic PETG @BIQU",
+    "name": "BIQU Generic PETG",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
