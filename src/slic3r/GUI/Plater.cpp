@@ -8384,16 +8384,6 @@ void Plater::calib_retraction(const Calib_Params& params)
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto obj = model().objects[0];
 
-    //auto bed_shape = printer_config->option<ConfigOptionPoints>("printable_area")->values;
-    //BoundingBoxf bed_ext = get_extents(bed_shape);
-    //auto scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box().size().x();
-    //if (scale_obj < 1.0)
-    //    obj->scale(scale_obj, 1, 1);
-
-    //const ConfigOptionFloats* nozzle_diameter_config = printer_config->option<ConfigOptionFloats>("nozzle_diameter");
-    //assert(nozzle_diameter_config->values.size() > 0);
-    //double nozzle_diameter = nozzle_diameter_config->values[0];
-    //double line_width = nozzle_diameter * 1.75;
     double layer_height = 0.2;
 
     auto max_lh = printer_config->option<ConfigOptionFloats>("max_layer_height");
@@ -8402,22 +8392,16 @@ void Plater::calib_retraction(const Calib_Params& params)
 
     obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
     obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-    obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+    obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(3));
     obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     obj->config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
 
     changed_objects({ 0 });
-    //wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
-    //wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
-    //wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
-    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
-    //wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 
     //  cut upper
     auto obj_bb = obj->bounding_box();
-    auto height = (params.end - params.start + 1) / params.step;
+    auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
     if (height < obj_bb.size().z()) {
         std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
