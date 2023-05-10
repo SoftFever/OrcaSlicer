@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "BIQU BX",
+    "model_id": "BX",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "BIQU",
+    "bed_model": "BIQU_BX_bed.stl",
+    "bed_texture": "BIQU_BX-Plate2.png",
+    "hotend_model": "Biqu_BX_hotend.stl",
+    "default_materials": "BIQU Generic PLA;BIQU Generic PETG;BIQU Generic ABS"
+}
