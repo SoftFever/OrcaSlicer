@@ -1091,7 +1091,7 @@ int GLCanvas3D::GetHoverId()
     if (m_hover_plate_idxs.size() == 0) {
         return -1; }
     return m_hover_plate_idxs.front();
-    
+
 }
 
 PrinterTechnology GLCanvas3D::current_printer_technology() const {
@@ -5563,9 +5563,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     else {
         camera.zoom_to_box(volumes_box);
 
-        const Vec3d& target = camera.get_target();
-        double distance = camera.get_distance();
-        camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
+        //const Vec3d& target = camera.get_target();
+        //double distance = camera.get_distance();
+        //camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
+
+        //BBS: use original iso view for thumbnail
+        camera.select_view("iso");
     }
 
     camera.apply_view_matrix();
@@ -5590,9 +5593,9 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //glsafe(::glClearColor(0.50f, 0.5f, 0.5f, 1.0f));
         //glsafe(::glClearColor(0.121568f, 0.121568f, 0.121568f, 1.0f));
         //glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
-        glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
+        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
         //glsafe(::glClearColor(0.37647f, 0.37647f, 0.37647f, 0.5f)); too lite
-        //glsafe(::glClearColor(0.23529f, 0.26666f, 0.2745f, 1.0f));
+        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
     }
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));

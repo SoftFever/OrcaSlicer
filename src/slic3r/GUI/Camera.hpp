@@ -163,6 +163,7 @@ private:
     void set_distance(double distance);
 
     void set_default_orientation();
+    void set_iso_orientation();
     Vec3d validate_target(const Vec3d& target) const;
     void update_zenit();
     void update_target();

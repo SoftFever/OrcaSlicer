@@ -87,7 +87,7 @@ void Camera::set_zoom(double zoom)
 void Camera::select_view(const std::string& direction)
 {
     if (direction == "iso")
-        set_default_orientation();
+        set_iso_orientation();
     else if (direction == "left")
         look_at(m_target - m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
     else if (direction == "right")
@@ -577,6 +577,19 @@ void Camera::set_default_orientation()
     m_view_rotation.normalize();
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());*/
 }
+
+void Camera::set_iso_orientation()
+{
+    m_zenit = 45.0f;
+    const double theta_rad = Geometry::deg2rad(-(double)m_zenit);
+    const double phi_rad = Geometry::deg2rad(45.0);
+    const double sin_theta = ::sin(theta_rad);
+    const Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
+    m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
+    m_view_rotation.normalize();
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());
+}
+
 
 Vec3d Camera::validate_target(const Vec3d& target) const
 {
