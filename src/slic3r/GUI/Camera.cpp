@@ -56,6 +56,7 @@ void Camera::select_next_type()
 void Camera::translate(const Vec3d& displacement) {
     if (!displacement.isApprox(Vec3d::Zero())) {
         m_view_matrix.translate(-displacement);
+        update_target(); 
     }
 }
 
@@ -63,6 +64,7 @@ void Camera::set_target(const Vec3d& target)
 {
     //BBS do not check validation
     //const Vec3d new_target = validate_target(target);
+    update_target();
     const Vec3d new_target = target;
     const Vec3d new_displacement = new_target - m_target;
     if (!new_displacement.isApprox(Vec3d::Zero())) {
@@ -506,6 +508,8 @@ void Camera::set_distance(double distance)
     if (m_distance != distance) {
         m_view_matrix.translate((distance - m_distance) * get_dir_forward());
         m_distance = distance;
+        
+        update_target();
     }
 }
 
@@ -591,7 +595,13 @@ Vec3d Camera::validate_target(const Vec3d& target) const
 
 void Camera::update_zenit()
 {
-    m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0)));
+    m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0))); }
+
+void Camera::update_target() {
+    auto temptarget = get_position() + m_distance * get_dir_forward();
+    if (!(temptarget-m_target).isApprox(Vec3d::Zero())){
+        m_target = temptarget;
+    }      
 }
 
 } // GUI
