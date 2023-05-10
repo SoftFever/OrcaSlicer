@@ -7029,7 +7029,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PATTERN_BBOX_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << pattern_bbox_file_in_3mf << "\"/>\n";
                 }
 
-                if (instance_size > 0)
+                if (!m_skip_model && instance_size > 0)
                 {
                     for (unsigned int j = 0; j < instance_size; ++j)
                     {
