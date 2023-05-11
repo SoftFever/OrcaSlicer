@@ -4,35 +4,23 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
-    "cool_plate_temp" : [
-        "60"
-    ],
-    "eng_plate_temp" : [
+    "eng_plate_temp": [
         "0"
     ],
-    "hot_plate_temp" : [
+    "hot_plate_temp": [
         "80"
     ],
-    "textured_plate_temp" : [
+    "textured_plate_temp": [
         "80"
     ],
-    "cool_plate_temp_initial_layer" : [
-        "60"
-    ],
-    "eng_plate_temp_initial_layer" : [
+    "eng_plate_temp_initial_layer": [
         "0"
     ],
-    "hot_plate_temp_initial_layer" : [
+    "hot_plate_temp_initial_layer": [
         "80"
     ],
-    "textured_plate_temp_initial_layer" : [
+    "textured_plate_temp_initial_layer": [
         "80"
-    ],
-    "slow_down_for_layer_cooling": [
-        "1"
-    ],
-    "close_fan_the_first_x_layers": [
-        "3"
     ],
     "fan_cooling_layer_time": [
         "20"
@@ -55,14 +43,8 @@
     "reduce_fan_stop_start_freq": [
         "1"
     ],
-    "fan_max_speed": [
-        "100"
-    ],
     "fan_min_speed": [
         "20"
-    ],
-    "overhang_fan_speed": [
-        "100"
     ],
     "nozzle_temperature": [
         "255"
