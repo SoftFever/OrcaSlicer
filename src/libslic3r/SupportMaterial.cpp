@@ -2263,7 +2263,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     const coordf_t extrusion_width = m_object_config->line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
-        for (size_t layer_nr = 0; layer_nr < object.layer_count(); layer_nr++) {
+        for (size_t layer_nr = layer_id_start; layer_nr < num_layers; layer_nr++) {
             if (object.print()->canceled())
                 break;
 
