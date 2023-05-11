@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-06 13:46+0200\n"
+"POT-Creation-Date: 2023-05-08 16:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3194,6 +3194,9 @@ msgstr ""
 msgid "Pressure advance"
 msgstr ""
 
+msgid "Retraction test"
+msgstr ""
+
 msgid "Max flowrate"
 msgstr ""
 
@@ -5158,7 +5161,7 @@ msgstr ""
 msgid "Cooling Fan"
 msgstr ""
 
-msgid "Fan speedup time"
+msgid "Fan speed-up time"
 msgstr ""
 
 msgid "Extruder Clearance"
@@ -7044,6 +7047,14 @@ msgstr ""
 msgid "Travel speed of initial layer"
 msgstr ""
 
+msgid "Number of slow layers"
+msgstr ""
+
+msgid ""
+"The first few layers are printed slower than normal. The speed is gradually "
+"increased in a linear fashion over the specified number of layers."
+msgstr ""
+
 msgid "Initial layer nozzle temperature"
 msgstr ""
 
@@ -7051,6 +7062,24 @@ msgid "Nozzle temperature to print initial layer when using this filament"
 msgstr ""
 
 msgid "Full fan speed at layer"
+msgstr ""
+
+msgid ""
+"Fan speed will be ramped up linearly from zero at layer "
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+msgstr ""
+
+msgid "Support interface fan speed"
+msgstr ""
+
+msgid ""
+"This fan speed is enforced during all support interfaces, to be able to "
+"weaken their bonding with a high fan speed.\n"
+"Set to -1 to disable this override.\n"
+"Can only be overriden by disable_fan_first_layers."
 msgstr ""
 
 msgid ""
@@ -7156,9 +7185,6 @@ msgid "HRC"
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
-msgstr ""
-
-msgid "Fan Speedup Time"
 msgstr ""
 
 msgid ""
@@ -8655,6 +8681,15 @@ msgid ""
 "end > start + step)"
 msgstr ""
 
+msgid "Start retraction length: "
+msgstr ""
+
+msgid "End retraction length: "
+msgstr ""
+
+msgid "mm/mm"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid "3D Scene Operations\nDid you know how to control view and object/part selection with mouse and touchpanel in the 3D scene?"
 msgstr ""
@@ -8754,3 +8789,4 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid "Improve strength\nDid you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""
+

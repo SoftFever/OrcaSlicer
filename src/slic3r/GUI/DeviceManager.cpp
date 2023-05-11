@@ -3627,7 +3627,7 @@ int MachineObject::parse_json(std::string payload)
             if (j.contains("upgrade")) {
                 if (j["upgrade"].contains("command")) {
                     if (j["upgrade"]["command"].get<std::string>() == "upgrade_confirm") {
-                        this->upgrade_display_state == UpgradingInProgress;
+                        this->upgrade_display_state = (int)UpgradingDisplayState::UpgradingInProgress;
                         upgrade_display_hold_count = HOLD_COUNT_MAX;
                         BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
                     }

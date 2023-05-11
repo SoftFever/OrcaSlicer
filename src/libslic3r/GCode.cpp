@@ -1871,7 +1871,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // SoftFever: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
+        if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
+            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
+        }
 
         if (m_config.default_jerk.value > 0) {
             double jerk = m_config.outer_wall_jerk.value;
@@ -2857,7 +2859,7 @@ GCode::LayerResult GCode::process_layer(
         m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     }
     else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
-        auto _length = print.calib_params().start + std::floor(print_z) * print.calib_params().step;
+        auto _length = print.calib_params().start + std::floor(std::max(0.0,print_z-0.4)) * print.calib_params().step;
         DynamicConfig _cfg;
         _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
         writer().config.apply(_cfg);
@@ -4272,15 +4274,16 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     
                 }
             }
-            gcode +=
-                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
-
-            prev = p;
             double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), processed_point.speed) * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
             }
+            gcode +=
+                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
+
+            prev = p;
+
         }
         if (is_overhang_fan_on) {
             is_overhang_fan_on = false;
