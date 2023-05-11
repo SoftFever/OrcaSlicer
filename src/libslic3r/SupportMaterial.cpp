@@ -1634,25 +1634,28 @@ static inline ExPolygons detect_overhangs(
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
 
                 // BBS
-                for (ExPolygon& expoly : layerm->raw_slices) {
-                    bool is_sharp_tail = false;
-                    float accum_height = layer.height;
+                if (g_config_support_sharp_tails) {
+                    for (ExPolygon& expoly : layerm->raw_slices) {
+                        if (offset_ex(expoly, -0.5 * fw).empty()) continue;
+                        bool is_sharp_tail = false;
+                        float accum_height = layer.height;
 
-                    // 1. nothing below
-                    // Check whether this is a sharp tail region.
-                    // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
-                    if (g_config_support_sharp_tails && !overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
-                        is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.1*fw).empty();
-                    }
+                        // 1. nothing below
+                        // Check whether this is a sharp tail region.
+                        // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
+                        if (!overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
+                            is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly, -0.1 * fw).empty();
+                        }
 
-                    if (is_sharp_tail) {
-                        ExPolygons overhang = diff_ex({ expoly }, lower_layer_polygons);
-                        layer.sharp_tails.push_back(expoly);
-                        layer.sharp_tails_height.insert({ &expoly, accum_height });
-                        overhang = offset_ex(overhang, 0.05 * fw);
-                        polygons_append(diff_polygons, to_polygons(overhang));
+                        if (is_sharp_tail) {
+                            ExPolygons overhang = diff_ex({ expoly }, lower_layer_expolys);
+                            layer.sharp_tails.push_back(expoly);
+                            layer.sharp_tails_height.insert({ &expoly, accum_height });
+                            overhang = offset_ex(overhang, 0.05 * fw);
+                            polygons_append(diff_polygons, to_polygons(overhang));
+                        }
                     }
-                }               
+                }
             }
 
             if (diff_polygons.empty())
@@ -2269,15 +2272,12 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
             const Layer* layer = object.get_layer(layer_nr);
             const Layer* lower_layer = layer->lower_layer;
-            // skip if:
-            // 1) if the current layer is already detected as sharp tails
-            // 2) lower layer has no sharp tails
-            if (!lower_layer || layer->sharp_tails.empty() == false || lower_layer->sharp_tails.empty() == true)
+            if (!lower_layer)
                 continue;
 
             // BBS detect sharp tail
             const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
-            auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
+            const auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
             for (const ExPolygon& expoly : layer->lslices) {
                 bool  is_sharp_tail = false;
                 float accum_height = layer->height;
@@ -2308,13 +2308,13 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     }
 
                     // 2.3 check whether sharp tail exceed the max height
-                    for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
+                    for (const auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
                         if (lower_sharp_tail_height.first->overlaps(expoly)) {
                             accum_height += lower_sharp_tail_height.second;
                             break;
                         }
                     }
-                    if (accum_height >= sharp_tail_max_support_height) {
+                    if (accum_height > sharp_tail_max_support_height) {
                         is_sharp_tail = false;
                         break;
                     }

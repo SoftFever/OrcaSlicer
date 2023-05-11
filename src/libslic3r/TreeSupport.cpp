@@ -864,9 +864,11 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                     }
                 }
                 ExPolygons curr_polys;
+                std::vector<const ExPolygon*> curr_poly_ptrs;
                 for (const ExPolygon& expoly : layer->lslices) {
                     if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
                         curr_polys.emplace_back(expoly);
+                        curr_poly_ptrs.emplace_back(&expoly);
                     }
                 }
 
@@ -879,28 +881,30 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                     overhang_areas.end());
 
 
-                ExPolygons overhangs_sharp_tail;
                 if (is_auto(stype) && g_config_support_sharp_tails)
                 {
                     // BBS detect sharp tail
-                    const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
-                    auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
-                    for (ExPolygon& expoly : layer->lslices) {
+                    for (const ExPolygon* expoly : curr_poly_ptrs) {
                         bool  is_sharp_tail = false;
                         // 1. nothing below
                         // this is a sharp tail region if it's small but non-ignorable
-                        if (!overlaps(offset_ex(expoly, 0.5 * extrusion_width_scaled), lower_polys)) {
-                            is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly, -0.1 * extrusion_width_scaled).empty();
+                        if (!overlaps(offset_ex(*expoly, 0.5 * extrusion_width_scaled), lower_polys)) {
+                            is_sharp_tail = expoly->area() < area_thresh_well_supported && !offset_ex(*expoly, -0.1 * extrusion_width_scaled).empty();
                         }
 
                         if (is_sharp_tail) {
-                            ExPolygons overhang = diff_ex({ expoly }, lower_layer->lslices);
-                            layer->sharp_tails.push_back(expoly);
-                            layer->sharp_tails_height.insert({ &expoly, layer->height });
+                            ExPolygons overhang = diff_ex({ *expoly }, lower_polys);
+                            layer->sharp_tails.push_back(*expoly);
+                            layer->sharp_tails_height.insert({ expoly, layer->height });
                             append(overhang_areas, overhang);
 
-                            if (!overhang.empty())
+                            if (!overhang.empty()) {
                                 has_sharp_tails = true;
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+                                SVG svg(format("SVG/sharp_tail_orig_%.02f.svg", layer->print_z), m_object->bounding_box());
+                                if (svg.is_opened()) svg.draw(overhang, "red");
+#endif
+                            }
                         }                        
                     }
                 }
@@ -947,15 +951,12 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
             Layer* layer = m_object->get_layer(layer_nr);
             SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
             Layer* lower_layer = layer->lower_layer;
-            // skip if:
-            // 1) if the current layer is already detected as sharp tails
-            // 2) lower layer has no sharp tails
-            if (!lower_layer || layer->sharp_tails.empty() == false || lower_layer->sharp_tails.empty() == true)
+            if (!lower_layer)
                 continue;
 
             // BBS detect sharp tail
             const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
-            auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
+            const auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
             for (ExPolygon& expoly : layer->lslices) {
                 bool  is_sharp_tail = false;
                 float accum_height = layer->height;
@@ -986,13 +987,13 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                     }
 
                     // 2.3 check whether sharp tail exceed the max height
-                    for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
+                    for (const auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
                         if (lower_sharp_tail_height.first->overlaps(expoly)) {
                             accum_height += lower_sharp_tail_height.second;
                             break;
                         }
                     }
-                    if (accum_height >= sharp_tail_max_support_height) {
+                    if (accum_height > sharp_tail_max_support_height) {
                         is_sharp_tail = false;
                         break;
                     }
@@ -1018,8 +1019,8 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                     if (!overhang.empty())
                         has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                    SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), m_object->bounding_box());
-                    if (svg.is_opened()) svg.draw(overhang, "yellow");
+                    SVG svg(format("SVG/sharp_tail_%.02f.svg",layer->print_z), m_object->bounding_box());
+                    if (svg.is_opened()) svg.draw(overhang, "red");
 #endif
                 }
 
@@ -1068,10 +1069,14 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
             const Layer* layer1 = m_object->get_layer(cluster.min_layer);
             BoundingBox bbox = cluster.merged_bbox;
             bbox.merge(get_extents(layer1->lslices));
-            SVG svg(format("SVG/overhangCluster_%s_%s_tail=%s_cantilever=%s_small=%s.svg", cluster.min_layer, layer1->print_z, cluster.is_sharp_tail, cluster.is_cantilever, cluster.is_small_overhang), bbox);
+            SVG svg(format("SVG/overhangCluster_%s-%s_%s-%s_tail=%s_cantilever=%s_small=%s.svg",
+                cluster.min_layer, cluster.max_layer, layer1->print_z, m_object->get_layer(cluster.max_layer)->print_z,
+                cluster.is_sharp_tail, cluster.is_cantilever, cluster.is_small_overhang), bbox);
             if (svg.is_opened()) {
                 svg.draw(layer1->lslices, "red");
                 svg.draw(cluster.merged_poly, "blue");
+                svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), "lslices", "red", 2);
+                svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), "overhang", "blue", 2);
             }
 #endif
 
