@@ -51,7 +51,8 @@ void ImageSwitchButton::SetLabels(wxString const &lbl_on, wxString const &lbl_of
 	labels[0] = lbl_on;
 	labels[1] = lbl_off;
     auto fina_txt = GetValue() ? labels[0] : labels[1];
-    SetToolTip(fina_txt);
+    if (GetToolTipText() != fina_txt)
+        SetToolTip(fina_txt);
     messureSize();
     Refresh();
 }
