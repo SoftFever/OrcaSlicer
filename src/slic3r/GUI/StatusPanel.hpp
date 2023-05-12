@@ -269,6 +269,7 @@ protected:
     std::shared_ptr<ImageTransientPopup> m_image_popup;
     std::shared_ptr<CameraPopup> m_camera_popup;
     std::vector<SliceInfoPanel *> slice_info_list;
+    std::set<int> rated_model_id;
     AMSSetting *m_ams_setting_dlg{nullptr};
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};

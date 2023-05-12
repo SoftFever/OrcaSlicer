@@ -2364,6 +2364,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         reset_printing_values();
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
         if (obj->is_in_prepare() || obj->print_status == "SLICING") {
+            m_button_market_scoring->Hide();
             m_button_abort->Enable(false);
             m_button_abort->SetBitmap_("print_control_stop_disable");
 
@@ -2419,10 +2420,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 if (!m_print_finish && obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
                     m_print_finish = true;
                     m_button_market_scoring->Show();
-                    if (wxGetApp().app_config->get("not_show_score_dialog") != "1") {
-                        MessageDialog dlg(this,
-                                          _L("The currently printed model belongs to the Bambu Market model,click the Yes button to rate the model.\nYou can also click on the "
-                                             "\"Immediately score\" button to rate the model."),
+                    int job_id = obj->get_modeltask()->job_id;
+                    if (wxGetApp().app_config->get("not_show_score_dialog") != "1" && rated_model_id.find(job_id) == rated_model_id.end()) {
+                        MessageDialog dlg(this, _L("Please give a score for your favorite Bambu Market model."),
                                           wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                         dlg.show_dsa_button();
                         int  old_design_id = obj->get_modeltask()->design_id;
@@ -2431,7 +2431,10 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         if (res == wxID_YES) { 
                             market_model_scoring_page(old_design_id);
                         }
+                        rated_model_id.insert(job_id);
                     }
+                } else if (obj->get_modeltask() && obj->get_modeltask()->design_id <= 0) {
+                    m_button_market_scoring->Hide();
                 }
             } else {
                 m_button_abort->Enable(true);
@@ -2547,6 +2550,7 @@ void StatusPanel::reset_printing_values()
     m_staticText_subtask_value->SetLabelText(NA_STR);
     m_staticText_profile_value->SetLabelText(wxEmptyString);
     m_staticText_profile_value->Hide();
+    m_button_market_scoring->Hide();
     update_basic_print_data(false);
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText(NA_STR);
