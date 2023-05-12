@@ -69,6 +69,7 @@ private:
     wxMediaCtrl2 * m_media_ctrl;
     wxMediaState m_last_state = MEDIASTATE_IDLE;
     std::string m_machine;
+    int m_lan_proto = 0;
     std::string m_lan_ip;
     std::string m_lan_user;
     std::string m_lan_passwd;

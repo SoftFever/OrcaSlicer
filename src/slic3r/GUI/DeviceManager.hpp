@@ -632,6 +632,7 @@ public:
     std::string camera_resolution = "";
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
+    int local_camera_proto = 0;
     bool is_support_remote_tunnel{false};
 
     bool xcam_ai_monitoring{ false };
@@ -785,6 +786,7 @@ public:
     std::vector<std::string> get_resolution_supported();
     bool is_support_print_with_timelapse();
     bool is_camera_busy_off();
+    int get_local_camera_proto();
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;

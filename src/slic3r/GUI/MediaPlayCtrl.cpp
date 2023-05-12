@@ -78,15 +78,17 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_CAMERA_VIDEO)) {
-        m_camera_exists = obj->has_ipcam;
-        m_lan_mode      = obj->is_lan_mode_printer();
-        m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
-        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
+        m_camera_exists  = obj->has_ipcam;
+        m_lan_mode       = obj->is_lan_mode_printer();
+        m_lan_proto      = obj->get_local_camera_proto();
+        m_lan_ip         = obj->dev_ip;
+        m_lan_passwd     = obj->get_access_code();
         m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
-        m_device_busy   = obj->is_camera_busy_off();
+        m_device_busy    = obj->is_camera_busy_off();
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
+        m_lan_proto = 0;
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_remote_support = true;
@@ -150,9 +152,12 @@ void MediaPlayCtrl::Play()
 
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (!m_disable_lan && !m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
+    if (m_lan_proto && !m_disable_lan && !m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
         m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
-        m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
+        if (m_lan_proto == 1)
+            m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
+        else if (m_lan_proto == 2)
+            m_url = "bambu:///rtsps___" + m_lan_user +":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
@@ -188,7 +193,8 @@ void MediaPlayCtrl::Play()
             : _L("Initialize failed (Not supported by printer)!"));
         return;
     }
-    
+
+    m_failed_code = 0;
     if (agent) {
         agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {

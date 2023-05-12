@@ -201,14 +201,16 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_MEDIA_FILE)) {
         m_supported = true;
         m_lan_mode     = obj->is_lan_mode_printer();
-        m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
+        m_lan_ip       = obj->dev_ip;
         m_lan_passwd   = obj->get_access_code();
+        m_local_support = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL);
         m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
     } else {
         m_supported = false;
         m_lan_mode  = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
+        m_local_support = false;
         m_remote_support = false;
     }
     if (machine == m_machine) {

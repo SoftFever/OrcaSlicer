@@ -1367,6 +1367,7 @@ void MachineObject::parse_version_func()
 {
     auto ota_version = module_vers.find("ota");
     auto esp32_version = module_vers.find("esp32");
+    auto rv1126_version = module_vers.find("rv1126");
     if (printer_type == "BL-P001" ||
         printer_type == "BL-P002") {
         if (ota_version != module_vers.end()) {
@@ -1395,6 +1396,8 @@ void MachineObject::parse_version_func()
                 local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
             }
             is_support_remote_tunnel = true;
+            local_camera_proto       = (ota_version->second.sw_ver.compare("01.03.01.04") >= 0 
+                    || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.20.39") >= 0)) ? 2 : 0;
         }
     } else if (printer_type == "C11") {
         if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
@@ -1407,6 +1410,8 @@ void MachineObject::parse_version_func()
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
             is_support_remote_tunnel  = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
         }
+        local_camera_proto = 1;
+
         if (esp32_version != module_vers.end()) {
             ams_support_auto_switch_filament_flag = esp32_version->second.sw_ver.compare("00.03.11.50") >= 0;
         }
@@ -2263,7 +2268,8 @@ bool MachineObject::is_function_supported(PrinterFunction func)
             return false;
         break;
     case FUNC_LOCAL_TUNNEL:
-        func_name = "FUNC_LOCAL_TUNNEL";
+        parse_version_func();
+        if (!local_camera_proto) return false;
         break;
     case FUNC_PRINT_WITHOUT_SD:
         func_name = "FUNC_PRINT_WITHOUT_SD";
@@ -2330,6 +2336,12 @@ bool MachineObject::is_camera_busy_off()
     if (printer_type == "C11")
         return is_in_prepare() || is_in_upgrading();
     return false;
+}
+
+int MachineObject::get_local_camera_proto()
+{
+    if (!is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL)) return 0;
+    return local_camera_proto;
 }
 
 int MachineObject::publish_json(std::string json_str, int qos)

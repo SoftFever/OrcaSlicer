@@ -894,7 +894,7 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
 
 void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 {
-    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << msg;
+    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << wxString(msg).ToUTF8().data();
     static_cast<PrinterFileSystem*>(thiz)->Bambu_FreeLogMsg(msg);
 }
 
