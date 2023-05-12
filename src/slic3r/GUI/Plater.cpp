@@ -1374,7 +1374,7 @@ void Sidebar::load_ams_list(std::string const &device, std::map<std::string, Ams
             ams.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
             ams.set_key_value("filament_type", new ConfigOptionStrings{tray.second->type});
             ams.set_key_value("tray_name", new ConfigOptionStrings{std::string(1, n) + std::string(1, t)});
-            ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 6)});
+            ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 8)});
             filament_ams_list.emplace_back(std::move(ams));
         }
     }

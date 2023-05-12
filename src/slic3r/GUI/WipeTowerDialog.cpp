@@ -493,8 +493,18 @@ static float calc_triangle_3rd_edge(float edge_a, float edge_b, float degree_ab)
     return std::sqrt(edge_a * edge_a + edge_b * edge_b - 2 * edge_a * edge_b * std::cos(to_radians(degree_ab)));
 }
 
-int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
+int WipingPanel::calc_flushing_volume(const wxColour& from_, const wxColour& to_)
 {
+    wxColour from = from_;
+    wxColour to   = to_;
+    // BBS: Transparent materials are treated as white materials
+    if (from.Alpha() == 0) {
+        from.Set(255, 255, 255);
+    }
+    if (to.Alpha() == 0) {
+        to.Set(255, 255, 255);
+    }
+
     float from_hsv_h, from_hsv_s, from_hsv_v;
     float to_hsv_h, to_hsv_s, to_hsv_v;
 
