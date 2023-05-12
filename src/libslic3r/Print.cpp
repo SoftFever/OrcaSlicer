@@ -399,6 +399,20 @@ bool Print::has_brim() const
 }
 
 //BBS
+std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects)
+{
+    std::vector<size_t> idx_of_object_sorted;
+    size_t              idx = 0;
+    for (const auto &object : m_objects) {
+        idx_of_object_sorted.push_back(idx++);
+        object->get_certain_layers(start, end, layers_of_objects, boundingBox_for_objects);
+    }
+    std::sort(idx_of_object_sorted.begin(), idx_of_object_sorted.end(),
+              [boundingBox_for_objects](auto left, auto right) { return boundingBox_for_objects[left].area() > boundingBox_for_objects[right].area(); });
+
+    return idx_of_object_sorted;
+};
+
 StringObjectException Print::sequential_print_clearance_valid(const Print &print, Polygons *polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
 {
     StringObjectException single_object_exception;

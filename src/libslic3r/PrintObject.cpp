@@ -441,9 +441,9 @@ void PrintObject::detect_overhangs_for_lift()
 
                     ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
                     layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
+                    layer.loverhangs_bbox = get_extents(layer.loverhangs);
                 }
             });
-
         this->set_done(posDetectOverhangsForLift);
     }
 }
@@ -2006,7 +2006,21 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
 
     return updated;
 }
+//BBS:
+void PrintObject::get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects)
+{
+    BoundingBox temp;
+    LayerPtrs   out_temp;
+    for (const auto &layer : layers()) {
+        if (layer->print_z < start) continue;
 
+        if (layer->print_z > end + EPSILON) break;
+        temp.merge(layer->loverhangs_bbox);
+        out_temp.emplace_back(layer);
+    }
+    boundingbox_objects.emplace_back(std::move(temp));
+    out.emplace_back(std::move(out_temp));
+};
 // Only active if config->infill_only_where_needed. This step trims the sparse infill,
 // so it acts as an internal support. It maintains all other infill types intact.
 // Here the internal surfaces and perimeters have to be supported by the sparse infill.

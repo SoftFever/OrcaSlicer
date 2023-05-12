@@ -149,7 +149,7 @@ public:
 
     // BBS
     ExPolygons              loverhangs;
-
+    BoundingBox             loverhangs_bbox;
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions[idx]; }
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }

@@ -149,7 +149,7 @@
         "30"
     ],
     "z_hop_types": [
-      "Spiral Lift"
+      "Auto Lift"
     ],
     "nozzle_type": "hardened_steel",
     "silent_mode": "0",

@@ -4006,27 +4006,47 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         std::pair<float, float> z_range;
         z_range.second = m_layer ? m_layer->print_z : 0.f;
         z_range.first = std::max(0.f, z_range.second - protect_z_scaled);
-        for (auto object : m_curr_print->objects()) {
-            BoundingBox obj_bbox = object->bounding_box();
+        std::vector<LayerPtrs> layers_of_objects;
+        std::vector<BoundingBox> boundingBox_for_objects;
+        std::vector<size_t> idx_of_object_sorted = m_curr_print->layers_sorted_for_object(z_range.first, z_range.second, layers_of_objects, boundingBox_for_objects);
+
+        for (size_t i = 0; i < idx_of_object_sorted.size();i++) {
+            size_t idx = idx_of_object_sorted[i];
+            
+            BoundingBox obj_bbox    = boundingBox_for_objects[idx];
             BoundingBox travel_bbox = get_extents(travel);
             obj_bbox.offset(scale_(EPSILON));
+
             if (!obj_bbox.overlap(travel_bbox))
                 continue;
 
-            for (auto layer : object->layers()) {
-                if (layer->print_z < z_range.first)
-                    continue;
+            Polygon  object_box;
+            Polygons temp;
+            object_box.points.push_back(Point(obj_bbox.min(0), obj_bbox.min(1)));
+            object_box.points.push_back(Point(obj_bbox.max(0), obj_bbox.min(1)));
+            object_box.points.push_back(Point(obj_bbox.max(0), obj_bbox.max(1)));
+            object_box.points.push_back(Point(obj_bbox.min(0), obj_bbox.max(1)));
+            temp.push_back(object_box);
+            if (intersection_pl(travel, temp).empty())
+                continue;
 
-                if (layer->print_z > z_range.second + EPSILON)
-                    break;
+            std::sort(layers_of_objects[idx].begin(), layers_of_objects[idx].end(), [](auto left, auto right) { return left->loverhangs_bbox.area() > right->loverhangs_bbox.area();
+            });
 
-                for (ExPolygon& overhang : layer->loverhangs) {
-                    if (overhang.contains(travel))
-                        return true;
+            for (const auto &layer : layers_of_objects[idx]) {
+                for (const ExPolygon &overhang : layer->loverhangs) {
+                    BoundingBox bbox1 = get_extents(overhang);
+                    travel_bbox.inflated(1);
+                    if (!bbox1.overlap(travel_bbox))
+                        continue;
+
+                    if (intersection_pl(travel, overhang).empty())
+                        continue;
+
+                    return true;
                 }
             }
         }
-
         return false;
     };
 
@@ -4034,19 +4054,13 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     for (int i = 0; i < m_config.z_hop.size(); i++)
         max_z_hop = std::max(max_z_hop, (float)m_config.z_hop.get_at(i));
     float travel_len_thresh = max_z_hop / tan(GCodeWriter::slope_threshold);
+
     float accum_len = 0.f;
     Polyline clipped_travel;
-    for (auto line : travel.lines()) {
-        if (accum_len + line.length() > travel_len_thresh + EPSILON) {
-            Point end_pnt = line.a + line.normal() * (travel_len_thresh - accum_len);
-            clipped_travel.append(Polyline(line.a, end_pnt));
-            break;
-        }
-        else {
-            clipped_travel.append(Polyline(line.a, line.b));
-            accum_len += line.length();
-        }
-    }
+
+    clipped_travel.append(Polyline(travel.points[0], travel.points[1]));
+    if (clipped_travel.length() > travel_len_thresh)
+        clipped_travel.points.back() = clipped_travel.points.front()+(clipped_travel.points.back() - clipped_travel.points.front()) * (travel_len_thresh / clipped_travel.length());
 
     //BBS: force to retract when leave from external perimeter for a long travel
     //Better way is judging whether the travel move direction is same with last extrusion move.
