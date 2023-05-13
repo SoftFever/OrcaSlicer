@@ -15,8 +15,8 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "0.20mm Standard @4MaxPro",
-            "sub_path": "process/0.20mm Standard @4MaxPro.json"
+            "name": "0.20mm Standard @Anycubic 4MaxPro",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro.json"
         }
     ],
     "filament_list": [
