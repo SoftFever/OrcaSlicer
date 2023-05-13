@@ -1390,21 +1390,28 @@ void MachineObject::parse_version_func()
                 is_support_ai_monitoring                = true;
                 is_support_ams_humidity                 = true;
             }
-            if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
-                local_use_ssl = false;
-            else {
-                local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+
+            if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+                local_use_ssl_for_mqtt = false;
+                local_use_ssl_for_ftp = true;
+            }else {
+                local_use_ssl_for_mqtt = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+                local_use_ssl_for_ftp = true;
             }
+
             is_support_remote_tunnel = true;
             local_camera_proto       = (ota_version->second.sw_ver.compare("01.03.01.04") >= 0 
                     || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.20.39") >= 0)) ? 2 : 0;
         }
     } else if (printer_type == "C11") {
-        if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
-            local_use_ssl = false;
-        else {
-            local_use_ssl = true;
+        if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+            local_use_ssl_for_mqtt = false;
+            local_use_ssl_for_ftp = false;
+        } else {
+            local_use_ssl_for_mqtt = true;
+            local_use_ssl_for_ftp = true;
         }
+
         is_cloud_print_only = true;
         if (ota_version != module_vers.end()) {
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
@@ -1414,6 +1421,16 @@ void MachineObject::parse_version_func()
 
         if (esp32_version != module_vers.end()) {
             ams_support_auto_switch_filament_flag = esp32_version->second.sw_ver.compare("00.03.11.50") >= 0;
+        }
+    } else if (printer_type == "C12") {
+        is_support_ai_monitoring = true;
+        if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+            local_use_ssl_for_mqtt = false;
+            local_use_ssl_for_ftp = false;
+        }
+        else {
+            local_use_ssl_for_mqtt = true;
+            local_use_ssl_for_ftp = true;
         }
     }
 }
@@ -2146,8 +2163,9 @@ void MachineObject::set_print_state(std::string status)
     print_status = status;
 }
 
-int MachineObject::connect(bool is_anonymous)
+int MachineObject::connect(bool is_anonymous, bool use_openssl)
 {
+    if (dev_ip.empty()) return -1;
     std::string username;
     std::string password;
     if (!is_anonymous) {
@@ -2735,10 +2753,10 @@ int MachineObject::parse_json(std::string payload)
 
                     /* get fimware type */
                     try {
-                        if (jj.contains("lifecycle")) {
-                            if (jj["lifecycle"].get<std::string>() == "engineer")
+                        if (jj.contains("mess_production_state")) {
+                            if (jj["mess_production_state"].get<std::string>() == "engineer")
                                 firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
-                            else if (jj["lifecycle"].get<std::string>() == "product")
+                            else if (jj["mess_production_state"].get<std::string>() == "product")
                                 firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
                         }
                     }
@@ -3949,9 +3967,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
         /* update userMachineList info */
         auto it = userMachineList.find(dev_id);
         if (it != userMachineList.end()) {
-            it->second->dev_ip          = dev_ip;
-            it->second->bind_state      = bind_state;
-            it->second->bind_sec_link   = sec_link;
+            it->second->dev_ip                  = dev_ip;
+            it->second->bind_state              = bind_state;
+            it->second->bind_sec_link           = sec_link;
+            it->second->dev_connection_type     = connect_type;
         }
 
         /* update localMachineList */
@@ -4150,7 +4169,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
             if (last_selected->second->is_connecting() && !need_disconnect)
                 return false;
 
-            if (!need_disconnect) {m_agent->disconnect_printer();}
+            if (!need_disconnect) {m_agent->disconnect_printer(); }
         }
     }
 
@@ -4166,7 +4185,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                 if (m_agent) {
                     if (!need_disconnect) {m_agent->disconnect_printer();}
                     it->second->reset();
-                    it->second->connect();
+                    it->second->connect(false, it->second->local_use_ssl_for_mqtt);
                     it->second->set_lan_mode_connection_state(true);
                 }
             }
@@ -4182,7 +4201,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                     }
                 } else {
                     it->second->reset();
-                    it->second->connect();
+                    it->second->connect(false, it->second->local_use_ssl_for_mqtt);
                     it->second->set_lan_mode_connection_state(true);
                 }
             }

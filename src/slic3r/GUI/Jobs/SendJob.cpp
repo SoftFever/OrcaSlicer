@@ -130,7 +130,8 @@ void SendJob::process()
     params.dev_ip = m_dev_ip;
     params.username = "bblp";
     params.password = m_access_code;
-    params.use_ssl = m_local_use_ssl;
+    params.use_ssl_for_ftp = m_local_use_ssl_for_ftp;
+    params.use_ssl_for_mqtt = m_local_use_ssl_for_mqtt;
 
     // check access code and ip address
     params.dev_id = m_dev_id;
@@ -219,7 +220,8 @@ void SendJob::process()
     params.dev_ip = m_dev_ip;
     params.username = "bblp";
     params.password = m_access_code;
-    params.use_ssl  = m_local_use_ssl;
+    params.use_ssl_for_ftp = m_local_use_ssl_for_ftp;
+    params.use_ssl_for_mqtt = m_local_use_ssl_for_mqtt;
     wxString error_text;
     wxString msg_text;
 

@@ -46,8 +46,10 @@ public:
     std::string task_ams_mapping;
     std::string task_ams_mapping_info;
     std::string connection_type;
+    std::string m_print_type;
 
-    bool        m_local_use_ssl { true };
+    bool        m_local_use_ssl_for_mqtt { true };
+    bool        m_local_use_ssl_for_ftp { true };
     bool        task_bed_leveling;
     bool        task_flow_cali;
     bool        task_vibration_cali;

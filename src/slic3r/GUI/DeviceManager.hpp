@@ -410,6 +410,8 @@ public:
     std::string dev_ip;
     std::string dev_id;
     bool        local_use_ssl { false };
+    bool        local_use_ssl_for_mqtt { false };
+    bool        local_use_ssl_for_ftp { false };
     float       nozzle_diameter { 0.0f };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
@@ -662,7 +664,7 @@ public:
     std::vector<HMSItem>    hms_list;
 
     /* machine mqtt apis */
-    int connect(bool is_anonymous = false);
+    int connect(bool is_anonymous = false, bool use_openssl = true);
     int disconnect();
 
     json_diff print_json;

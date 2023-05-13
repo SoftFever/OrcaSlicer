@@ -1056,18 +1056,39 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         }
     });
 
+    auto m_sizer_thumbnail_area = new wxBoxSizer(wxHORIZONTAL);
+
+    auto last_plate_panel = new wxWindow(m_scrollable_region, wxID_ANY);
+    last_plate_panel->SetBackgroundColour(*wxWHITE);
+    auto last_plate_sizer = new wxBoxSizer(wxVERTICAL);
+    last_plate_panel->SetMinSize(wxSize(FromDIP(32), FromDIP(32)));
+    m_bitmap_last_plate = new wxStaticBitmap(last_plate_panel, wxID_ANY, create_scaled_bitmap("go_last_plate", this, 32), wxDefaultPosition, wxSize(FromDIP(32), FromDIP(32)), 0);
+    last_plate_sizer->Add(m_bitmap_last_plate, 0, wxALIGN_CENTER, 0);
+    last_plate_panel->SetSizer(last_plate_sizer);
 
     m_panel_image = new wxPanel(m_scrollable_region, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_image->SetBackgroundColour(m_colour_def_color);
-
-    m_sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
+    m_sizer_thumbnail = new wxBoxSizer(wxHORIZONTAL);
     m_thumbnailPanel = new ThumbnailPanel(m_panel_image);
     m_thumbnailPanel->SetSize(wxSize(FromDIP(256), FromDIP(256)));
     m_thumbnailPanel->SetMinSize(wxSize(FromDIP(256), FromDIP(256)));
     m_thumbnailPanel->SetMaxSize(wxSize(FromDIP(256), FromDIP(256)));
-    m_sizer_thumbnail->Add(m_thumbnailPanel, 0, wxEXPAND, 0);
+    m_thumbnailPanel->SetBackgroundColour(*wxRED);
+    m_sizer_thumbnail->Add(m_thumbnailPanel, 0, wxALIGN_CENTER, 0);
     m_panel_image->SetSizer(m_sizer_thumbnail);
     m_panel_image->Layout();
+
+    auto next_plate_panel = new wxWindow(m_scrollable_region, wxID_ANY);
+    next_plate_panel->SetBackgroundColour(*wxWHITE);
+    auto next_plate_sizer = new wxBoxSizer(wxVERTICAL);
+    next_plate_panel->SetMinSize(wxSize(FromDIP(32), FromDIP(32)));
+    m_bitmap_next_plate = new wxStaticBitmap(next_plate_panel, wxID_ANY, create_scaled_bitmap("go_next_plate", this, 32), wxDefaultPosition, wxSize(FromDIP(32), FromDIP(32)), 0);
+    next_plate_sizer->Add(m_bitmap_next_plate, 0, wxALIGN_CENTER, 0);
+    next_plate_panel->SetSizer(next_plate_sizer);
+
+    m_sizer_thumbnail_area->Add(last_plate_panel, 0, wxALIGN_CENTER, 0);
+    m_sizer_thumbnail_area->Add(m_panel_image, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(24));
+    m_sizer_thumbnail_area->Add(next_plate_panel, 0, wxALIGN_CENTER, 0);
 
     wxBoxSizer *m_sizer_basic        = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_basic_weight = new wxBoxSizer(wxHORIZONTAL);
@@ -1215,8 +1236,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
 
     auto hyperlink_sizer = new wxBoxSizer( wxHORIZONTAL );
-    auto m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Can't find my devices?"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-
+    m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
 
     hyperlink_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
     m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
@@ -1352,41 +1372,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
     sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
 
-    // bind
-    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
-        show_print_failed_info(true);
-    });
-    Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
-    Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
-    Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
-    wxGetApp().Bind(EVT_CONNECT_LAN_MODE_PRINT, [this](wxCommandEvent& e) {
-        if (e.GetInt() == 1) {
-            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev) return;
-            if (dev->get_selected_machine()) {
-                m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
-            }
-        }
-    });
-
-    m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        check_fcous_state(this);
-        e.Skip();
-    });
-
-    m_scrollable_region->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        check_fcous_state(this);
-        e.Skip();
-    });
-
-    Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        check_fcous_state(this);
-        e.Skip();
-    });
 
     m_sizer_scrollable_region->Add(m_rename_switch_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(8));
-    m_sizer_scrollable_region->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_scrollable_region->Add(m_sizer_thumbnail_area, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_scrollable_region->Add(m_sizer_basic, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     //m_sizer_scrollable_region->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1401,7 +1390,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(13));
-    m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT, FromDIP(25));
 
 #ifdef FILAMENT_BACKUP
     m_sizer_main->Add(m_sizer_backup, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1421,7 +1410,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(m_sw_print_failed_info, 0, wxALIGN_CENTER, 0);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(13));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(18));
 
     show_print_failed_info(false);
 
@@ -1432,10 +1421,60 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     init_bind();
     init_timer();
-    // CenterOnParent();
     Centre(wxBOTH);
     wxGetApp().UpdateDlgDarkUI(this);
 }
+
+void SelectMachineDialog::init_bind()
+{
+    Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
+    Bind(EVT_CLEAR_IPADDRESS, &SelectMachineDialog::clear_ip_address_config, this);
+    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {show_print_failed_info(true);});
+    Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
+    Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
+    Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
+    Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
+    m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
+    m_scrollable_region->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
+    m_bitmap_last_plate->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_bitmap_last_plate->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+    m_bitmap_next_plate->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_bitmap_next_plate->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+
+    wxGetApp().Bind(EVT_CONNECT_LAN_MODE_PRINT, [this](wxCommandEvent& e) {
+        if (e.GetInt() == 0) {
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev) return;
+            if (dev->get_selected_machine()) {
+                m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
+            }
+        }else if(e.GetInt() == 1){
+            on_send_print();
+        }
+        else if (e.GetInt() == -2) {
+            MessageDialog msg_wingow(nullptr, _L("Printer local connection failed, please try again."), "", wxAPPLY | wxOK);
+            msg_wingow.ShowModal();
+        }
+    }); 
+
+    m_bitmap_last_plate->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (m_print_plate_idx > 0) {
+            m_print_plate_idx--;
+            update_page_turn_state(true);
+            set_default_from_sdcard();
+        }
+    });
+
+    m_bitmap_next_plate->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (m_print_plate_idx < (m_print_plate_total - 1)) {
+            m_print_plate_idx++;
+            update_page_turn_state(true);
+            set_default_from_sdcard();
+        }
+    });
+}
+
 void SelectMachineDialog::check_focus(wxWindow* window)
 {
     if (window == m_rename_input || window == m_rename_input->GetTextCtrl()) {
@@ -2144,12 +2183,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     }
 }
 
-void SelectMachineDialog::init_bind()
-{
-    Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
-    Bind(EVT_CLEAR_IPADDRESS, &SelectMachineDialog::clear_ip_address_config, this);
-}
-
 void SelectMachineDialog::init_timer()
 {
     m_refresh_timer = new wxTimer();
@@ -2302,7 +2335,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, confirm_title);
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
             confirm_dlg.on_hide();
-            this->on_ok();
+            if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+                this->connect_printer_mqtt();
+            }
+            else {
+                this->on_send_print();
+            }
+            
         });
 
         confirm_text.push_back(_L("Please click the confirm button if you still want to proceed with printing.") + "\n");
@@ -2324,11 +2363,30 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_dlg.on_show();
 
     } else {
-        this->on_ok();
+        if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+            this->connect_printer_mqtt();
+        }
+        else {
+            this->on_send_print();
+        }
     }
 }
 
-void SelectMachineDialog::on_ok()
+void SelectMachineDialog::connect_printer_mqtt()
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    MachineObject* obj_ = dev->get_selected_machine();
+
+    if (obj_->connection_type() == "cloud") {
+        obj_->connect(false, obj_->local_use_ssl_for_mqtt);
+    }
+    else {
+        on_send_print();
+    }
+}
+
+void SelectMachineDialog::on_send_print()
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
     m_is_canceled = false;
@@ -2341,10 +2399,10 @@ void SelectMachineDialog::on_ok()
         return;
     }
 
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
-    MachineObject *obj_ = dev->get_selected_machine();
+    MachineObject* obj_ = dev->get_selected_machine();
     assert(obj_->dev_id == m_printer_last_select);
     if (obj_ == nullptr) {
         return;
@@ -2367,7 +2425,7 @@ void SelectMachineDialog::on_ok()
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
-    });
+        });
 
     if (m_is_canceled) {
         BOOST_LOG_TRIVIAL(info) << "print_job: m_is_canceled";
@@ -2387,55 +2445,71 @@ void SelectMachineDialog::on_ok()
         json mapping_info_json = json::array();
         json item;
         if (m_filaments.size() > 0) {
-            item["sourceColor"]  = m_filaments[0].color.substr(1, 6) + "FF";
+            item["sourceColor"] = m_filaments[0].color.substr(1, 6) + "FF";
             item["filamentType"] = m_filaments[0].type;
             mapping_info_json.push_back(item);
             ams_mapping_info = mapping_info_json.dump();
         }
     }
 
-    result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
-        if (this->m_is_canceled) return;
-        bool     cancelled = false;
-        wxString msg       = _L("Preparing print job");
-        m_status_bar->update_status(msg, cancelled, 10, true);
-        m_export_3mf_cancel = cancel = cancelled;
-    });
 
-    if (m_is_canceled || m_export_3mf_cancel) {
-        BOOST_LOG_TRIVIAL(info) << "print_job: m_export_3mf_cancel or m_is_canceled";
-        m_status_bar->set_status_text(task_canceled_text);
-        return;
-    }
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
+            if (this->m_is_canceled) return;
+            bool     cancelled = false;
+            wxString msg = _L("Preparing print job");
+            m_status_bar->update_status(msg, cancelled, 10, true);
+            m_export_3mf_cancel = cancel = cancelled;
+            });
 
-    if (result < 0) {
-        wxString msg = _L("Abnormal print file data. Please slice again");
-        m_status_bar->set_status_text(msg);
-        return;
-    }
+        if (m_is_canceled || m_export_3mf_cancel) {
+            BOOST_LOG_TRIVIAL(info) << "print_job: m_export_3mf_cancel or m_is_canceled";
+            m_status_bar->set_status_text(task_canceled_text);
+            return;
+        }
 
-    // export config 3mf if needed
-    if (!obj_->is_lan_mode_printer()) {
-        result = m_plater->export_config_3mf(m_print_plate_idx);
         if (result < 0) {
-            BOOST_LOG_TRIVIAL(trace) << "export_config_3mf failed, result = " << result;
+            wxString msg = _L("Abnormal print file data. Please slice again");
+            m_status_bar->set_status_text(msg);
+            return;
+        }
+
+        // export config 3mf if needed
+        if (!obj_->is_lan_mode_printer()) {
+            result = m_plater->export_config_3mf(m_print_plate_idx);
+            if (result < 0) {
+                BOOST_LOG_TRIVIAL(trace) << "export_config_3mf failed, result = " << result;
+                return;
+            }
+        }
+        if (m_is_canceled || m_export_3mf_cancel) {
+            BOOST_LOG_TRIVIAL(info) << "print_job: m_export_3mf_cancel or m_is_canceled";
+            m_status_bar->set_status_text(task_canceled_text);
             return;
         }
     }
-    if (m_is_canceled || m_export_3mf_cancel) {
-        BOOST_LOG_TRIVIAL(info) << "print_job: m_export_3mf_cancel or m_is_canceled";
-        m_status_bar->set_status_text(task_canceled_text);
-        return;
-    }
 
-    m_print_job                = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
-    m_print_job->m_dev_ip      = obj_->dev_ip;
-    m_print_job->m_ftp_folder  = obj_->get_ftp_folder();
-    m_print_job->m_access_code   = obj_->get_access_code();
-    m_print_job->m_local_use_ssl = obj_->local_use_ssl;
+    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
+    m_print_job->m_dev_ip = obj_->dev_ip;
+    m_print_job->m_ftp_folder = obj_->get_ftp_folder();
+    m_print_job->m_access_code = obj_->get_access_code();
+    m_print_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
+    m_print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
     m_print_job->connection_type = obj_->connection_type();
-    m_print_job->cloud_print_only= obj_->is_cloud_print_only;
-    m_print_job->set_project_name(m_current_project_name.utf8_string());
+    m_print_job->cloud_print_only = obj_->is_cloud_print_only;
+
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        m_print_job->m_print_type = "from_normal";
+        m_print_job->set_project_name(m_current_project_name.utf8_string());
+    }
+    else if(m_print_type == PrintFromType::FROM_SDCARD_VIEW){
+        m_print_job->m_print_type = "from_sdcard_view";
+        m_print_job->connection_type = "lan";
+        auto input_str_arr = wxGetApp().split_str(m_required_data_file_name,".gcode.3mf");
+        if (input_str_arr.size() > 1) {
+            m_print_job->set_project_name(input_str_arr[0]);
+        }
+    }
 
     if (obj_->is_support_ams_mapping()) {
         m_print_job->task_ams_mapping = ams_mapping_array;
@@ -2578,6 +2652,14 @@ bool  SelectMachineDialog::is_timeout()
         return true;
     }
     return false;
+}
+
+void SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+{
+    m_required_data_config = config;
+    m_required_data_model = model;
+    m_required_data_plate_data_list = plate_data_list;
+    m_required_data_file_name = file_name;
 }
 
 void  SelectMachineDialog::reset_timeout()
@@ -2877,10 +2959,13 @@ void SelectMachineDialog::update_show_status()
     dev->check_pushing();
 
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+
     // blank plate has no valid gcode file
-    if (plate&& !plate->is_valid_gcode_file()) {
-        show_status(PrintDialogStatus::PrintStatusBlankPlate);
-        return;
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        if (plate && !plate->is_valid_gcode_file()) {
+            show_status(PrintDialogStatus::PrintStatusBlankPlate);
+            return;
+        }
     }
 
     MachineObject* obj_ = dev->get_my_machine(m_printer_last_select);
@@ -3195,11 +3280,30 @@ void SelectMachineDialog::set_flow_calibration_state(bool state)
 
 void SelectMachineDialog::set_default()
 {
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        m_stext_printer_title->Show(true);
+        m_comboBox_printer->Show(true);
+        m_button_refresh->Show(true);
+        m_rename_normal_panel->Show(true);
+        m_hyperlink->Show(true);
+    }
+    else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+        m_stext_printer_title->Show(false);
+        m_comboBox_printer->Show(false);
+        m_button_refresh->Show(false);
+        m_rename_normal_panel->Show(false);
+        m_hyperlink->Show(false);
+
+        /* DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+         if (!dev_manager) return;
+         MachineObject* obj_ = dev_manager->get_selected_machine();*/
+    }
+
     //project name
     m_rename_switch_panel->SetSelection(0);
 
     wxString filename = m_plater->get_export_gcode_filename("", false,
-        m_print_plate_idx == PLATE_ALL_IDX ?true:false);
+        m_print_plate_idx == PLATE_ALL_IDX ? true : false);
 
     if (m_print_plate_idx == PLATE_ALL_IDX && filename.empty()) {
         filename = _L("Untitled");
@@ -3208,7 +3312,7 @@ void SelectMachineDialog::set_default()
     if (filename.empty()) {
         filename = m_plater->get_export_gcode_filename("", true);
         if (std::strstr(filename.c_str(), _L("Untitled").c_str()) == NULL) {
-            filename = wxString::Format("Untitled%s",filename);
+            filename = wxString::Format("Untitled%s", filename);
         }
     }
 
@@ -3217,7 +3321,6 @@ void SelectMachineDialog::set_default()
     m_rename_text->SetLabelText(m_current_project_name);
     m_rename_normal_panel->Layout();
 
-
     //clear combobox
     m_list.clear();
     m_comboBox_printer->Clear();
@@ -3225,6 +3328,7 @@ void SelectMachineDialog::set_default()
     m_print_info = "";
     m_comboBox_printer->SetValue(wxEmptyString);
     m_comboBox_printer->Enable();
+
     // rset status bar
     m_status_bar->reset();
 
@@ -3232,7 +3336,8 @@ void SelectMachineDialog::set_default()
     if (agent) {
         if (agent->is_user_login()) {
             show_status(PrintDialogStatus::PrintStatusInit);
-        } else {
+        }
+        else {
             show_status(PrintDialogStatus::PrintStatusNoUserLogin);
         }
     }
@@ -3243,73 +3348,85 @@ void SelectMachineDialog::set_default()
     AppConfig* config = wxGetApp().app_config;
     if (config && config->get("print", "bed_leveling") == "0") {
         m_checkbox_list["bed_leveling"]->SetValue(false);
-    } else {
+    }
+    else {
         m_checkbox_list["bed_leveling"]->SetValue(true);
     }
     if (config && config->get("print", "flow_cali") == "0") {
         m_checkbox_list["flow_cali"]->SetValue(false);
-    } else {
+    }
+    else {
         m_checkbox_list["flow_cali"]->SetValue(true);
     }
     if (config && config->get("print", "timelapse") == "0") {
         m_checkbox_list["timelapse"]->SetValue(false);
-    } else {
+    }
+    else {
         m_checkbox_list["timelapse"]->SetValue(true);
     }
+
     m_ams_check->SetValue(true);
 
-    // thumbmail
-    //wxBitmap bitmap;
-    ThumbnailData &data   = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+       set_default_normal();
+    }
+    else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+        set_default_from_sdcard();
+    }
+
+    Layout();
+    Fit();
+}
+
+void SelectMachineDialog::set_default_normal()
+{
+    update_page_turn_state(false);
+    ThumbnailData& data = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
     if (data.is_valid()) {
         wxImage image(data.width, data.height);
         image.InitAlpha();
         for (unsigned int r = 0; r < data.height; ++r) {
             unsigned int rr = (data.height - 1 - r) * data.width;
             for (unsigned int c = 0; c < data.width; ++c) {
-                unsigned char *px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
-                image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
-                image.SetAlpha((int) c, (int) r, px[3]);
+                unsigned char* px = (unsigned char*)data.pixels.data() + 4 * (rr + c);
+                image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+                image.SetAlpha((int)c, (int)r, px[3]);
             }
         }
-        image  = image.Rescale(FromDIP(256), FromDIP(256));
+        image = image.Rescale(FromDIP(256), FromDIP(256));
         m_thumbnailPanel->set_thumbnail(image);
-        //bitmap = wxBitmap(image);
     }
 
-    //m_staticbitmap->SetBitmap(bitmap);
-    //m_sizer_thumbnail->Layout();
-
+    //for black list
     std::vector<std::string> materials;
     std::vector<std::string> brands;
     std::vector<std::string> display_materials;
-    {
-        auto preset_bundle = wxGetApp().preset_bundle;
-        for (auto filament_name : preset_bundle->filament_presets) {
-            for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
-                if (filament_name.compare(iter->name) == 0) {
-                    std::string display_filament_type;
-                    std::string filament_type = iter->config.get_filament_type(display_filament_type);
-                    display_materials.push_back(display_filament_type);
-                    materials.push_back(filament_type);
+    
+    auto preset_bundle = wxGetApp().preset_bundle;
+    for (auto filament_name : preset_bundle->filament_presets) {
+        for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
+            if (filament_name.compare(iter->name) == 0) {
+                std::string display_filament_type;
+                std::string filament_type = iter->config.get_filament_type(display_filament_type);
+                display_materials.push_back(display_filament_type);
+                materials.push_back(filament_type);
 
-                    if (iter->vendor && !iter->vendor->name.empty())
-                        brands.push_back(iter->vendor->name);
-                    else
-                        brands.push_back("");
-                }
+                if (iter->vendor && !iter->vendor->name.empty())
+                    brands.push_back(iter->vendor->name);
+                else
+                    brands.push_back("");
             }
         }
     }
 
-    // material info
+    //init MaterialItem 
     auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
     BitmapCache bmcache;
 
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
-        int       id   = iter->first;
-        Material *item = iter->second;
+        int       id = iter->first;
+        Material* item = iter->second;
         item->item->Destroy();
         delete item;
         iter++;
@@ -3321,36 +3438,24 @@ void SelectMachineDialog::set_default()
 
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
-        auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
+        auto          colour = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int)extruder);
         unsigned char rgb[3];
         bmcache.parse_color(colour, rgb);
 
-        auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
+        auto          colour_rgb = wxColour((int)rgb[0], (int)rgb[1], (int)rgb[2]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
             continue;
 
-       /* if (m_materialList.size() == 0) {
-            auto tips_panel = new wxPanel(m_scrollable_region, wxID_ANY);
-            tips_panel->SetSize(wxSize(60,40));
-            tips_panel->SetMinSize(wxSize(60,40));
-            tips_panel->SetMaxSize(wxSize(60,40));
-            tips_panel->SetBackgroundColour(*wxRED);
-            m_sizer_material->Add(tips_panel, 0, wxALL, FromDIP(4));
-        }*/
-
-        MaterialItem *item = new MaterialItem(m_scrollable_region, colour_rgb, _L(display_materials[extruder]));
+        MaterialItem* item = new MaterialItem(m_scrollable_region, colour_rgb, _L(display_materials[extruder]));
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
-
-        });
-
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
+        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent& e) {});
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
-                int           id   = iter->first;
-                Material *    item = iter->second;
-                MaterialItem *m    = item->item;
+                int           id = iter->first;
+                Material* item = iter->second;
+                MaterialItem* m = item->item;
                 m->on_normal();
                 iter++;
             }
@@ -3360,11 +3465,11 @@ void SelectMachineDialog::set_default()
 
 
             auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
+            wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
             // update ams data
-            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev_manager) return;
-            MachineObject *obj_ = dev_manager->get_selected_machine();
+            MachineObject* obj_ = dev_manager->get_selected_machine();
 
             if (obj_ && obj_->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
@@ -3372,10 +3477,10 @@ void SelectMachineDialog::set_default()
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Move(pos);
 
-                if (obj_ && 
-                    obj_->has_ams() && 
+                if (obj_ &&
+                    obj_->has_ams() &&
                     m_ams_check->GetValue() &&
-                    obj_->dev_id == m_printer_last_select) 
+                    obj_->dev_id == m_printer_last_select)
                 {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
@@ -3384,18 +3489,18 @@ void SelectMachineDialog::set_default()
                     m_mapping_popup.Popup();
                 }
             }
-        });
+            });
 
-        Material *material_item = new Material();
-        material_item->id       = extruder;
-        material_item->item     = item;
-        m_materialList[i]       = material_item;
+        Material* material_item = new Material();
+        material_item->id = extruder;
+        material_item->item = item;
+        m_materialList[i] = material_item;
 
         // build for ams mapping
         if (extruder < materials.size() && extruder >= 0) {
             FilamentInfo info;
-            info.id    = extruder;
-            info.type  = materials[extruder];
+            info.id = extruder;
+            info.type = materials[extruder];
             info.brand = brands[extruder];
             info.color = colour_rgb.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
             m_filaments.push_back(info);
@@ -3404,15 +3509,13 @@ void SelectMachineDialog::set_default()
 
     if (extruders.size() <= 4) {
         m_sizer_material->SetCols(extruders.size());
-    } else {
+    }
+    else {
         m_sizer_material->SetCols(4);
     }
 
     m_scrollable_region->Layout();
     m_scrollable_region->Fit();
-
-    //m_scrollable_view->Layout();
-    //m_scrollable_view->Fit();
 
     m_scrollable_view->SetSize(m_scrollable_region->GetSize());
     m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
@@ -3427,27 +3530,21 @@ void SelectMachineDialog::set_default()
         set_flow_calibration_state(true);
     }
 
-    Layout();
-    Fit();
-
-
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
 
-    #ifdef __WINDOWS__
+#ifdef __WINDOWS__
     if (screenSize.y < dialogSize.y) {
         m_need_adaptation_screen = true;
         m_scrollable_view->SetScrollRate(0, 5);
         m_scrollable_view->SetSize(wxSize(-1, FromDIP(220)));
         m_scrollable_view->SetMinSize(wxSize(-1, FromDIP(220)));
         m_scrollable_view->SetMaxSize(wxSize(-1, FromDIP(220)));
-    } else {
-        /* m_scrollable_view->SetSize(m_scrollable_region->GetSize());
-         m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
-         m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());*/
+    }
+    else {
         m_scrollable_view->SetScrollRate(0, 0);
     }
-    #endif // __WXOSX_MAC__
+#endif // __WXOSX_MAC__
 
 
     reset_ams_material();
@@ -3455,7 +3552,7 @@ void SelectMachineDialog::set_default()
     // basic info
     auto       aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
     wxString   time;
-    PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
+    PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
     if (plate) {
         if (plate->get_slice_result()) { time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); }
     }
@@ -3465,6 +3562,181 @@ void SelectMachineDialog::set_default()
 
     m_stext_time->SetLabel(time);
     m_stext_weight->SetLabel(weight);
+}
+
+void SelectMachineDialog::set_default_from_sdcard()
+{
+    m_print_plate_total = m_required_data_plate_data_list.size();
+    update_page_turn_state(true);
+
+    ThumbnailData& data = m_required_data_plate_data_list[m_print_plate_idx]->plate_thumbnail;
+    wxMemoryInputStream mis((unsigned char*)data.pixels.data(), data.pixels.size());
+    wxImage image = wxImage(mis);
+    image = image.Rescale(FromDIP(256), FromDIP(256));
+    m_thumbnailPanel->set_thumbnail(image);
+
+    //for black list
+    std::vector<std::string> materials;
+    std::vector<std::string> brands;
+    std::vector<std::string> display_materials;
+
+    for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
+        FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
+        display_materials.push_back(fo.type);
+        materials.push_back(fo.type);
+        brands.push_back(fo.brand);
+    }
+  
+    //init MaterialItem 
+    MaterialHash::iterator iter = m_materialList.begin();
+    while (iter != m_materialList.end()) {
+        int       id = iter->first;
+        Material* item = iter->second;
+        item->item->Destroy();
+        delete item;
+        iter++;
+    }
+
+    m_ams_mapping_result.clear();
+    m_sizer_material->Clear();
+    m_materialList.clear();
+    m_filaments.clear();
+
+    
+    for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
+        FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
+
+        MaterialItem* item = new MaterialItem(m_scrollable_region,  wxColour(fo.color), fo.type);
+        m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
+
+        item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent& e) {});
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, fo](wxMouseEvent& e) {
+            MaterialHash::iterator iter = m_materialList.begin();
+            while (iter != m_materialList.end()) {
+                int           id = iter->first;
+                Material* item = iter->second;
+                MaterialItem* m = item->item;
+                m->on_normal();
+                iter++;
+            }
+
+            try {
+                m_current_filament_id = fo.id;
+            }
+            catch (...) {}
+            item->on_selected();
+
+
+            auto    mouse_pos = ClientToScreen(e.GetPosition());
+            wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
+            // update ams data
+            DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev_manager) return;
+            MachineObject* obj_ = dev_manager->get_selected_machine();
+
+            if (obj_ && obj_->is_support_ams_mapping()) {
+                if (m_mapping_popup.IsShown()) return;
+                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
+                pos.y += item->GetRect().height;
+                m_mapping_popup.Move(pos);
+
+                if (obj_ &&
+                    obj_->has_ams() &&
+                    m_ams_check->GetValue() &&
+                    obj_->dev_id == m_printer_last_select)
+                {
+                    m_mapping_popup.set_parent_item(item);
+                    m_mapping_popup.set_current_filament_id(fo.id);
+                    m_mapping_popup.set_tag_texture(fo.type);
+                    m_mapping_popup.update_ams_data(obj_->amsList);
+                    m_mapping_popup.Popup();
+                }
+            }
+            });
+
+        Material* material_item = new Material();
+        material_item->id = fo.id;
+        material_item->item = item;
+        m_materialList[i] = material_item;
+
+        // build for ams mapping
+        m_filaments.push_back(fo);
+    }
+
+    if (m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size() <= 4) {
+        m_sizer_material->SetCols(m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size());
+    }
+    else {
+        m_sizer_material->SetCols(4);
+    }
+
+    m_scrollable_region->Layout();
+    m_scrollable_region->Fit();
+
+    m_scrollable_view->SetSize(m_scrollable_region->GetSize());
+    m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
+    m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
+
+    //disable pei bed
+    auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
+    if (bed_type == BedType::btPTE) {
+        set_flow_calibration_state(false);
+    }
+    else {
+        set_flow_calibration_state(true);
+    }
+
+    wxSize screenSize = wxGetDisplaySize();
+    auto dialogSize = this->GetSize();
+
+#ifdef __WINDOWS__
+    if (screenSize.y < dialogSize.y) {
+        m_need_adaptation_screen = true;
+        m_scrollable_view->SetScrollRate(0, 5);
+        m_scrollable_view->SetSize(wxSize(-1, FromDIP(220)));
+        m_scrollable_view->SetMinSize(wxSize(-1, FromDIP(220)));
+        m_scrollable_view->SetMaxSize(wxSize(-1, FromDIP(220)));
+    }
+    else {
+        m_scrollable_view->SetScrollRate(0, 0);
+    }
+#endif // __WXOSX_MAC__
+
+
+    reset_ams_material();
+
+    // basic info
+    auto       aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
+    wxString   time;
+    PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+    if (plate) {
+        if (plate->get_slice_result()) { time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); }
+    }
+
+    char weight[64];
+    ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+
+    m_stext_time->SetLabel(time);
+    m_stext_weight->SetLabel(weight);
+}
+
+void SelectMachineDialog::update_page_turn_state(bool show)
+{
+    m_bitmap_last_plate->Show(show);
+    m_bitmap_next_plate->Show(show);
+
+    if (show) {
+        if (m_print_plate_idx <= 0) { m_bitmap_last_plate->Hide(); }
+        else { m_bitmap_last_plate->Show(); }
+
+        if ((m_print_plate_idx + 1) >= m_print_plate_total) { m_bitmap_next_plate->Hide(); }
+        else { m_bitmap_next_plate->Show(); }
+
+        if (m_print_plate_total == 1) {
+            m_bitmap_last_plate->Show(false);
+            m_bitmap_next_plate->Show(false);
+        }
+    }
 }
 
 void SelectMachineDialog::sys_color_changed()
@@ -3489,6 +3761,15 @@ bool SelectMachineDialog::Show(bool show)
         set_default();
         update_user_machine_list();
         //update_lan_machine_list();
+    }
+    else {
+        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (dev) {
+            MachineObject* obj_ = dev->get_selected_machine();
+            if (obj_->connection_type() == "cloud") {
+                obj_->disconnect();
+            }
+        }
     }
 
     if (show) {
@@ -3697,7 +3978,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      SetBackgroundStyle(wxBG_STYLE_CUSTOM);
      wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
      m_staticbitmap    = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
-     sizer->Add(m_staticbitmap, 1, wxEXPAND|wxALL, 0);
+     sizer->Add(m_staticbitmap, 1, wxEXPAND, 0);
      SetSizer(sizer);
      Layout();
      Fit();

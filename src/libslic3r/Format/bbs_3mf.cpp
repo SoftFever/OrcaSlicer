@@ -3188,6 +3188,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Importer::_handle_end_object()
     {
+        if (!m_load_model) {
+            delete m_curr_object;
+            m_curr_object = nullptr;
+            return true;
+        }
         if (!m_curr_object || (m_curr_object->id == -1)) {
             add_error("Found invalid object");
             return false;

@@ -170,10 +170,12 @@ struct PrintParams {
     std::string     comments;
     int             origin_profile_id = 0;
     std::string     origin_model_id;
+    std::string     print_type;
 
     /* access options */
     std::string     dev_ip;
-    bool            use_ssl;
+    bool            use_ssl_for_ftp;
+    bool            use_ssl_for_mqtt;
     std::string     username;
     std::string     password;
 

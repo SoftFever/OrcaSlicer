@@ -140,7 +140,7 @@ void PrintJob::process()
     }
 
     /* check gcode is valid */
-    if (!plate->is_valid_gcode_file()) {
+    if (!plate->is_valid_gcode_file() && m_print_type == "from_normal") {
         update_status(curr_percent, check_gcode_failed_str);
         return;
     }
@@ -171,10 +171,10 @@ void PrintJob::process()
 
     // local print access
     params.dev_ip = m_dev_ip;
-    params.use_ssl  = m_local_use_ssl;
+    params.use_ssl_for_ftp  = m_local_use_ssl_for_ftp;
+    params.use_ssl_for_mqtt  = m_local_use_ssl_for_mqtt;
     params.username = "bblp";
     params.password = m_access_code;
-
 
     // check access code and ip address
     if (this->connection_type == "lan") {
@@ -190,11 +190,14 @@ void PrintJob::process()
             m_job_finished = true;
             return;
         }
+
+        params.project_name = "";
+        params.filename = "";
     }
 
     params.dev_id = m_dev_id;
     params.ftp_folder = m_ftp_folder;
-    //params.project_name = project_name;
+    //params.project_name = m_project_name;
     
     
     params.filename = job_data._3mf_path.string();
@@ -210,6 +213,8 @@ void PrintJob::process()
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
+    params.print_type            = this->m_print_type;
+
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();
         auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
@@ -245,10 +250,8 @@ void PrintJob::process()
     }
     
 
-    if (params.preset_name.empty() && params.project_name.empty()) {
-        params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString();
-        params.project_name = m_project_name;
-    }
+    if (params.preset_name.empty()) {params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString();}
+    if (params.project_name.empty()) {params.project_name = m_project_name;}
 
     wxString error_text;
     wxString msg_text;

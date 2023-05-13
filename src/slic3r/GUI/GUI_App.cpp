@@ -1881,7 +1881,7 @@ void GUI_App::init_networking_callbacks()
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 obj->command_request_push_all();
                                 obj->command_get_version();
-                                event.SetInt(1);
+                                event.SetInt(0);
                                 event.SetString(obj->dev_id);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
@@ -1895,17 +1895,27 @@ void GUI_App::init_networking_callbacks()
                                     text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
                                     wxGetApp().show_dialog(text);
                                 }
-                                event.SetInt(0);
+                                event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
                                 m_device_manager->set_selected_machine("", true);
-                                event.SetInt(0);
+                                event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
-                                event.SetInt(0);
+                                event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
 
                             obj->set_lan_mode_connection_state(false);
+                        }
+                        else {
+                            if (state == ConnectStatus::ConnectStatusOk) {
+                                event.SetInt(1);
+                                event.SetString(obj->dev_id);
+                            }
+                            else {
+                                event.SetInt(-2);
+                                event.SetString(obj->dev_id);
+                            }
                         }
                     }
                     event.SetEventObject(this);

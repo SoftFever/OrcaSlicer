@@ -165,6 +165,8 @@ wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
 wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 //BBS: change light/dark mode
 wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
+//BBS: print 
+wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -2092,6 +2094,7 @@ struct Plater::priv
     //void show_action_buttons(const bool is_ready_to_slice) const;
     bool show_publish_dlg(bool show = true);
     void update_publish_dialog_status(wxString &msg, int percent = -1);
+    void on_action_print_plate_from_sdcard(SimpleEvent&);
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -2167,6 +2170,7 @@ struct Plater::priv
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
     void on_action_send_to_printer(bool isall = false);
+    void update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);
 private:
     bool layers_height_allowed() const;
 
@@ -2490,6 +2494,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
         q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_slice_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
+        q->Bind(EVT_PRINT_FROM_SDCARD_VIEW, &priv::on_action_print_plate_from_sdcard, this);
         q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
@@ -6177,17 +6182,31 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
 
-    //do not check login for lan printing
-    ////BBS check login status
-    //if (!wxGetApp().check_login()) return;
-
-
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
+    m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
     m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
     m_select_machine_dlg->ShowModal();
 }
 
+void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n";
+    }
+
+    //BBS
+    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
+    m_select_machine_dlg->set_print_type(PrintFromType::FROM_SDCARD_VIEW);
+    m_select_machine_dlg->prepare(0);
+    m_select_machine_dlg->ShowModal();
+}
+
+void Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+{
+    if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
+    m_select_machine_dlg->update_print_required_data(config, model, plate_data_list, file_name);
+}
 
 void Plater::priv::on_action_send_to_printer(bool isall)
 {
@@ -10244,6 +10263,12 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
 
     return false;
 }
+
+void Plater::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+{
+    p->update_print_required_data(config, model, plate_data_list, file_name);
+}
+
 
 void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text)
 {

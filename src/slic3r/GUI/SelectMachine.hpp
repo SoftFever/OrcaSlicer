@@ -57,6 +57,11 @@ enum PrinterBindState {
     ALLOW_UNBIND
 };
 
+enum PrintFromType {
+    FROM_NORMAL,
+    FROM_SDCARD_VIEW,
+};
+
 class Material
 {
 public:
@@ -272,7 +277,9 @@ class SelectMachineDialog : public DPIDialog
 private:
     int                                 m_current_filament_id{0};
     int                                 m_print_plate_idx{0};
+    int                                 m_print_plate_total{0};
     int                                 m_timeout_count{0};
+    int                                 m_print_error_code;
     bool                                m_is_in_sending_mode{ false };
     bool                                m_ams_mapping_res{ false };
     bool                                m_ams_mapping_valid{ false };
@@ -280,22 +287,32 @@ private:
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
-    
+    std::string                         m_print_error_msg;
+    std::string                         m_print_error_extra;
     std::string                         m_printer_last_select;
     std::string                         m_print_info;
     wxString                            m_current_project_name;
     PrintDialogStatus                   m_print_status { PrintStatusInit };
-
     wxColour                            m_colour_def_color{wxColour(255, 255, 255)};
     wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
     StateColor                          m_btn_bg_enable;
-
+    
+    std::map<std::string, CheckBox *>   m_checkbox_list;
+    std::map<std::string, bool>         m_checkbox_state_list;
     std::vector<wxString>               m_bedtype_list;
+    std::vector<MachineObject*>         m_list;
+    std::vector<FilamentInfo>           m_filaments;
+    std::vector<FilamentInfo>           m_ams_mapping_result;
+    std::shared_ptr<BBLStatusBarSend>   m_status_bar;
+    wxObjectDataPtr<MachineListModel>   m_machine_model;
 
-    std::map<std::string, ::CheckBox *> m_checkbox_list;
-    std::map<std::string, bool> m_checkbox_state_list;
+    Slic3r::DynamicPrintConfig          m_required_data_config;
+    Slic3r::Model                       m_required_data_model; 
+    Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
+    std::string                         m_required_data_file_name;
 
 protected:
+    PrintFromType                       m_print_type{FROM_NORMAL};
     AmsMapingPopup                      m_mapping_popup{ nullptr };
     AmsMapingTipPopup                   m_mapping_tip_popup{ nullptr };
     AmsTutorialPopup                    m_mapping_tutorial_popup{ nullptr };
@@ -316,6 +333,8 @@ protected:
     ComboBox*                           m_comboBox_printer{ nullptr };
     ComboBox*                           m_comboBox_bed{ nullptr };
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
+    wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
+    wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };
     ThumbnailPanel*                     m_thumbnailPanel{ nullptr };
     wxWindow*                           select_bed{ nullptr };
     wxWindow*                           select_flow{ nullptr };
@@ -351,19 +370,7 @@ protected:
     std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_scrollable_view;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-
-    /* model */
-    wxObjectDataPtr<MachineListModel>   m_machine_model;
-    std::shared_ptr<BBLStatusBarSend>   m_status_bar;
-
-    /*error info*/
-    int                                 m_print_error_code;
-    std::string                         m_print_error_msg;
-    std::string                         m_print_error_extra;
-
-    std::vector<MachineObject*>         m_list;
-    std::vector<FilamentInfo>           m_filaments;
-    std::vector<FilamentInfo>           m_ams_mapping_result;     /* ams mapping data  */
+    wxHyperlinkCtrl*                    m_hyperlink{nullptr};
 public:
     SelectMachineDialog(Plater *plater = nullptr);
     ~SelectMachineDialog();
@@ -394,12 +401,16 @@ public:
     void on_cancel(wxCloseEvent& event);
     void show_errors(wxString& info);
     void on_ok_btn(wxCommandEvent& event);
-    void on_ok();
+    void connect_printer_mqtt();
+    void on_send_print();
     void clear_ip_address_config(wxCommandEvent& e);
     void on_refresh(wxCommandEvent& event);
     void on_set_finish_mapping(wxCommandEvent& evt);
     void on_print_job_cancel(wxCommandEvent& evt);
     void set_default();
+    void set_default_normal();
+    void set_default_from_sdcard();
+    void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
     void on_selection_changed(wxCommandEvent& event);
     void Enable_Refresh_Button(bool en);
@@ -417,10 +428,13 @@ public:
     bool is_same_printer_model();
     bool has_tips(MachineObject* obj);
     bool is_timeout();
+    void update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);
+    void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& ams_mapping_info);
 
+    PrintFromType get_print_type() {return m_print_type;};
     wxString    format_text(wxString &m_msg);
     wxWindow*   create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     wxWindow*   create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
@@ -449,10 +463,10 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_edit_name(wxCommandEvent &e);
 
-    MachineObject *m_info {nullptr};
-    wxStaticText* m_static_valid {nullptr};
-    ::TextInput* m_textCtr   {nullptr};
-    Button* m_button_confirm {nullptr};
+    Button*             m_button_confirm{nullptr};
+    TextInput*          m_textCtr{nullptr};
+    wxStaticText*       m_static_valid{nullptr};
+    MachineObject*      m_info{nullptr};
 };
 
 
@@ -466,11 +480,13 @@ public:
                    wxWindowID      winid = wxID_ANY,
                    const wxPoint & pos   = wxDefaultPosition,
                    const wxSize &  size  = wxDefaultSize);
+    ~ThumbnailPanel();
+
     void OnPaint(wxPaintEvent &event);
     void PaintBackground(wxDC &dc);
     void OnEraseBackground(wxEraseEvent &event);
     void set_thumbnail(wxImage img);
-    ~ThumbnailPanel();
+    
 };
 
 }} // namespace Slic3r::GUI

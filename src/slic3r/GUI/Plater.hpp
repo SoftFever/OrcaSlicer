@@ -91,6 +91,7 @@ wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
+wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
 
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -373,6 +374,7 @@ public:
     void redo_to(int selection);
     bool undo_redo_string_getter(const bool is_undo, int idx, const char** out_text);
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
+    void update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);
     bool search_string_getter(int idx, const char** label, const char** tooltip);
     // For the memory statistics.
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;

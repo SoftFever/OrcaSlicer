@@ -2,7 +2,7 @@
 #include "ImageGrid.h"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
-
+#include "Plater.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/Label.hpp"
@@ -466,7 +466,7 @@ void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
     } else if (action == 1) {
         if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
             if (index != -1) {
-                fs->FetchModel(index, [](std::string const & data) {
+                fs->FetchModel(index, [fs,index](std::string const & data) {
                     Slic3r::DynamicPrintConfig config;
                     Slic3r::Model              model;
                     Slic3r::PlateDataPtrs      plate_data_list;
@@ -475,6 +475,10 @@ void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
                     if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version))
                         return;
                     // TODO: print gcode 3mf
+                    auto &file = fs->GetFile(index);
+                    Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, from_u8(file.name).ToStdString());
+                    wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
+                    
                 });
             }
             return;
