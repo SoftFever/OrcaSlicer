@@ -1,6 +1,6 @@
 {
     "type": "filament",
-	"filament_id": "GFA05",
+	"filament_id": "GFBQ92",
     "setting_id": "GFSL99_01",
     "name": "BIQU Generic PLA Silk",
     "from": "system",
@@ -14,9 +14,6 @@
     ],
 	"filament_flow_ratio": [
       "0.98"
-  ],
-  "filament_max_volumetric_speed": [
-      "12"
   ],
   "slow_down_layer_time": [
       "8"
