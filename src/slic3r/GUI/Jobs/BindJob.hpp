@@ -19,6 +19,7 @@ class BindJob : public PlaterJob
     std::string         m_sec_link;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
+    bool                m_improved{false};
 
 protected:
     void on_exception(const std::exception_ptr &) override;
@@ -38,6 +39,7 @@ public:
     void finalize() override;
     void set_event_handle(wxWindow* hanle);
     void post_fail_event(int code, std::string info);
+    void set_improved(bool improved){m_improved = improved;};
 };
 
 wxDECLARE_EVENT(EVT_BIND_UPDATE_MESSAGE, wxCommandEvent);

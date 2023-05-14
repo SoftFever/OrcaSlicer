@@ -5,12 +5,15 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include "wx/evtloop.h"
-
+#include <wx/tokenzr.h>
+#include <wx/richmsgdlg.h>
+#include <wx/richtext/richtextctrl.h>
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "MainFrame.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "Widgets/WebView.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -191,6 +194,130 @@ wxString get_fail_reason(int code)
      m_sizer_status_text->Add(m_static_bitmap_show_error, 0, wxLEFT|wxALIGN_CENTER, FromDIP(2));
 
 
+     //agreement
+     wxWindow* m_panel_agreement = new wxWindow(this,wxID_ANY);
+     m_panel_agreement->SetBackgroundColour(*wxWHITE);
+     m_panel_agreement->SetMinSize(wxSize(FromDIP(450), -1));
+     m_panel_agreement->SetMaxSize(wxSize(FromDIP(450), -1));
+ 
+    
+     wxWrapSizer* sizer_privacy_agreement =  new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
+     wxWrapSizer* sizere_notice_agreement=  new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
+     wxBoxSizer* sizer_privacy_body = new wxBoxSizer(wxHORIZONTAL);
+     wxBoxSizer* sizere_notice_body = new wxBoxSizer(wxHORIZONTAL);
+
+     auto m_checkbox_privacy = new CheckBox(m_panel_agreement, wxID_ANY);
+     auto m_st_privacy_title = new Label(m_panel_agreement, _L("Read and accept"));
+     m_st_privacy_title->SetFont(Label::Body_13);
+     m_st_privacy_title->SetForegroundColour(wxColour(0x323A3D));
+
+     auto m_link_Terms_title = new Label(m_panel_agreement, _L("Terms and Conditions"));
+     m_link_Terms_title->SetFont(Label::Head_13);
+     m_link_Terms_title->SetMaxSize(wxSize(FromDIP(450), -1));
+     m_link_Terms_title->Wrap(FromDIP(450));
+     m_link_Terms_title->SetForegroundColour(wxColour(0x00AE42));
+     m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         wxString txt = _L("Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"));
+         confirm_dlg.update_text(txt);
+         confirm_dlg.CenterOnParent();
+         confirm_dlg.on_show();
+     });
+     m_link_Terms_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+     m_link_Terms_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+     auto m_st_and_title = new Label(m_panel_agreement, _L("and"));
+     m_st_and_title->SetFont(Label::Body_13);
+     m_st_and_title->SetForegroundColour(wxColour(0x323A3D));
+
+     auto m_link_privacy_title = new Label(m_panel_agreement, _L("Privacy Policy"));
+     m_link_privacy_title->SetFont(Label::Head_13);
+     m_link_privacy_title->SetMaxSize(wxSize(FromDIP(450), -1));
+     m_link_privacy_title->Wrap(FromDIP(450));
+     m_link_privacy_title->SetForegroundColour(wxColour(0x00AE42));
+     m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         std::string url;
+         std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
+
+         if (country_code == "CN") {
+             url = "https://www.bambulab.cn/policies/privacy";
+         }
+         else{
+             url = "https://www.bambulab.com/policies/privacy";
+         }
+         wxLaunchDefaultBrowser(url);
+     });
+     m_link_privacy_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND);});
+     m_link_privacy_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW);});
+
+     sizere_notice_agreement->Add(0, 0, 0, wxTOP, FromDIP(4));
+     sizer_privacy_agreement->Add(m_st_privacy_title, 0, wxALIGN_CENTER, 0);
+     sizer_privacy_agreement->Add(0, 0, 0, wxLEFT, FromDIP(5));
+     sizer_privacy_agreement->Add(m_link_Terms_title, 0, wxALIGN_CENTER, 0);
+     sizer_privacy_agreement->Add(m_st_and_title, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(5));
+     sizer_privacy_agreement->Add(m_link_privacy_title, 0, wxALIGN_CENTER, 0);
+
+     sizer_privacy_body->Add(m_checkbox_privacy, 0, wxALL, 0);
+     sizer_privacy_body->Add(0, 0, 0, wxLEFT, FromDIP(8));
+     sizer_privacy_body->Add(sizer_privacy_agreement, 1, wxEXPAND, 0);
+
+
+     wxString notice_title = _L("We ask for your help to improve everyone's printer");
+     wxString notice_link_title = _L("Statement about User Experience Improvement Program");
+
+     auto m_checkbox_notice = new CheckBox(m_panel_agreement, wxID_ANY);
+     auto m_st_notice_title = new Label(m_panel_agreement, notice_title);
+     m_st_notice_title->SetFont(Label::Body_13);
+     m_st_notice_title->SetForegroundColour(wxColour(0x323A3D));
+
+     auto m_link_notice_title = new Label(m_panel_agreement, notice_link_title);
+     m_link_notice_title->SetFont(Label::Head_13);
+     m_link_notice_title->SetMaxSize(wxSize(FromDIP(450), -1));
+     m_link_notice_title->Wrap(FromDIP(450));
+     m_link_notice_title->SetForegroundColour(wxColour(0x00AE42));
+     m_link_notice_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+     m_link_notice_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+     m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         wxString txt = _L("In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. %s follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training %s to be smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in  Privacy Policy. We will not collect any Personal Data by which an individual can be identified directly or indirectly, including without limitation names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy.");
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Statement on User Experience Improvement Plan"));
+
+         wxString model_id_text;
+
+         if (m_machine_info) {
+             model_id_text = m_machine_info->get_printer_type_display_str();
+         }
+         confirm_dlg.update_text(wxString::Format(txt, model_id_text, model_id_text));
+         confirm_dlg.CenterOnParent();
+         confirm_dlg.on_show();
+     });
+
+     sizere_notice_agreement->Add(0, 0, 0, wxTOP, FromDIP(4));
+     sizere_notice_agreement->Add(m_st_notice_title, 0, 0, wxALIGN_CENTER, 0);
+     sizere_notice_agreement->Add(0, 0, 0, wxLEFT, FromDIP(2));
+     sizere_notice_agreement->Add(m_link_notice_title, 0, 0, wxALIGN_CENTER, 0);
+
+     sizere_notice_body->Add(m_checkbox_notice, 0, wxALL, 0);
+     sizere_notice_body->Add(0, 0, 0, wxLEFT, FromDIP(8));
+     sizere_notice_body->Add(sizere_notice_agreement, 1, wxEXPAND, 0);
+
+     wxBoxSizer* sizer_agreement = new wxBoxSizer(wxVERTICAL);
+     sizer_agreement->Add(sizer_privacy_body, 1, wxEXPAND, 0);
+     sizer_agreement->Add(sizere_notice_body, 1, wxEXPAND, 0);
+     
+
+     m_checkbox_privacy->Bind(wxEVT_TOGGLEBUTTON, [this, m_checkbox_privacy](auto& e) {
+         m_allow_privacy = m_checkbox_privacy->GetValue();
+         m_button_bind->Enable(m_allow_privacy);
+         e.Skip();
+     });
+     m_checkbox_notice->Bind(wxEVT_TOGGLEBUTTON, [this, m_checkbox_notice](auto& e) {
+         m_allow_notice = m_checkbox_notice->GetValue();
+         e.Skip();
+     });
+
+     m_panel_agreement->SetSizer(sizer_agreement);
+     m_panel_agreement->Layout();
+
      //show bind failed info
      m_sw_bind_failed_info = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(450), FromDIP(300)), wxVSCROLL);
      m_sw_bind_failed_info->SetBackgroundColour(*wxWHITE);
@@ -283,14 +410,18 @@ wxString get_fail_reason(int code)
      wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
      m_button_bind = new Button(button_panel, _L("Confirm"));
-     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
+         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
      m_button_bind->SetBackgroundColor(btn_bg_green);
-     m_button_bind->SetBorderColor(wxColour(0, 174, 66));
+     m_button_bind->SetBorderColor(*wxWHITE);
      m_button_bind->SetTextColor(wxColour("#FFFFFE"));
      m_button_bind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetCornerRadius(FromDIP(12));
+     m_button_bind->Enable(false);
 
 
      StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
@@ -318,7 +449,10 @@ wxString get_fail_reason(int code)
 
      show_bind_failed_info(false);
 
+
      m_sizer_main->Add(m_sizer_status_text, 0, wxALIGN_CENTER, FromDIP(40));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
+     m_sizer_main->Add(m_panel_agreement, 0, wxALIGN_CENTER, 0);
      m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
      m_sizer_main->Add(m_sw_bind_failed_info, 0, wxALIGN_CENTER, 0);
      m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER, 0);
@@ -479,6 +613,7 @@ wxString get_fail_reason(int code)
 
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
+     m_bind_job->set_improved(m_allow_notice);
      m_bind_job->set_event_handle(this);
      m_bind_job->start();
  }
@@ -491,6 +626,8 @@ void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void BindMachineDialog::on_show(wxShowEvent &event)
 {
+    m_allow_privacy = false;
+    m_allow_notice  = false;
     m_result_code   = 0;
     m_result_extra  = "";
     m_result_info   = "";

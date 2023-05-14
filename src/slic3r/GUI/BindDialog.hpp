@@ -70,6 +70,8 @@ private:
     std::string     m_result_info;
     std::string     m_result_extra;
     bool            m_show_error_info_state = true;
+    bool            m_allow_privacy{false};
+    bool            m_allow_notice{false};
     int             m_result_code;
 
     MachineObject *                   m_machine_info{nullptr};
@@ -79,7 +81,8 @@ private:
 public:
     BindMachineDialog(Plater *plater = nullptr);
     ~BindMachineDialog();
-    void link_to_network_check();
+
+    void     link_to_network_check();
     void     show_bind_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void     on_cancel(wxCommandEvent& event);
     void     on_bind_fail(wxCommandEvent &event);

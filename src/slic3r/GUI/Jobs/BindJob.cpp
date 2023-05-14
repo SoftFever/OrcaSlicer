@@ -66,7 +66,7 @@ void BindJob::process()
     long offset = tz.GetOffset();
     std::string timezone = get_timezone_utc_hm(offset);
 
-    int result = m_agent->bind(m_dev_ip, m_dev_id, m_sec_link, timezone,
+    int result = m_agent->bind(m_dev_ip, m_dev_id, m_sec_link, timezone, m_improved,
         [this, &curr_percent, &msg, &result_code, &result_info](int stage, int code, std::string info) {
 
             result_code = code;
