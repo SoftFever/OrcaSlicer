@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 16:37+0200\n"
+"POT-Creation-Date: 2023-05-14 11:52+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,29 +17,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-msgid "Physical Printer"
-msgstr ""
-
-msgid "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate."
-msgstr ""
-
-msgid "On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."
-msgstr ""
-
-msgid "To use a custom CA file, please import your CA file into Certificate Store / Keychain."
-msgstr ""
-
-msgid "Send to print"
-msgstr ""
-
-msgid "Upload"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
 
 msgid "Supports Painting"
 msgstr ""
@@ -3197,6 +3174,9 @@ msgstr ""
 msgid "Retraction test"
 msgstr ""
 
+msgid "Orca Tolerance Test"
+msgstr ""
+
 msgid "Max flowrate"
 msgstr ""
 
@@ -4978,8 +4958,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -7066,10 +7046,10 @@ msgstr ""
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -8690,6 +8670,49 @@ msgstr ""
 msgid "mm/mm"
 msgstr ""
 
+msgid "Physical Printer"
+msgstr ""
+
+msgid "Print Host upload"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Could not get a valid Printer Host reference"
+msgstr ""
+
+msgid "Success!"
+msgstr ""
+
+msgid "Refresh Printers"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+
+msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid "3D Scene Operations\nDid you know how to control view and object/part selection with mouse and touchpanel in the 3D scene?"
 msgstr ""
@@ -8789,4 +8812,3 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid "Improve strength\nDid you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""
-

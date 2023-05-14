@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-29 20:13+0800\n"
+"POT-Creation-Date: 2023-05-14 11:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3258,6 +3258,12 @@ msgstr ""
 msgid "Pressure advance"
 msgstr ""
 
+msgid "Retraction test"
+msgstr ""
+
+msgid "Orca Tolerance Test"
+msgstr ""
+
 msgid "Max flowrate"
 msgstr ""
 
@@ -5160,9 +5166,6 @@ msgstr "G-code出力"
 msgid "Post-processing Scripts"
 msgstr ""
 
-msgid "Post-processing scripts"
-msgstr ""
-
 msgid "Frequent"
 msgstr "よく使う"
 
@@ -5291,6 +5294,12 @@ msgstr "フィラメント終了G-code"
 
 msgid "Printable space"
 msgstr "造形可能領域"
+
+msgid "Cooling Fan"
+msgstr ""
+
+msgid "Fan speed-up time"
+msgstr ""
 
 msgid "Extruder Clearance"
 msgstr "押出機クリアランス"
@@ -6591,8 +6600,8 @@ msgstr ""
 "how much width of the line without support from lower layer. 0% means "
 "forcing cooling for all outer wall no matter the overhang degree."
 
-msgid "Bridge direction"
-msgstr "ブリッジ方向"
+msgid "Bridge infill direction"
+msgstr ""
 
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
@@ -7143,14 +7152,6 @@ msgid ""
 "of line"
 msgstr "スパース インフィル パターンの角度です"
 
-msgid "Bridge infill direction"
-msgstr ""
-
-msgid ""
-"Angle for bridge infill pattern, which controls the start or main direction "
-"of line"
-msgstr ""
-
 msgid "Sparse infill density"
 msgstr "充填密度"
 
@@ -7295,6 +7296,14 @@ msgstr ""
 msgid "Travel speed of initial layer"
 msgstr ""
 
+msgid "Number of slow layers"
+msgstr ""
+
+msgid ""
+"The first few layers are printed slower than normal. The speed is gradually "
+"increased in a linear fashion over the specified number of layers."
+msgstr ""
+
 msgid "Initial layer nozzle temperature"
 msgstr "1層目のノズル温度"
 
@@ -7303,6 +7312,24 @@ msgstr "1層目でのノズル温度"
 
 msgid "Full fan speed at layer"
 msgstr "最大回転速度の積層"
+
+msgid ""
+"Fan speed will be ramped up linearly from zero at layer "
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+msgstr ""
+
+msgid "Support interface fan speed"
+msgstr ""
+
+msgid ""
+"This fan speed is enforced during all support interfaces, to be able to "
+"weaken their bonding with a high fan speed.\n"
+"Set to -1 to disable this override.\n"
+"Can only be overriden by disable_fan_first_layers."
+msgstr ""
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
@@ -7414,6 +7441,35 @@ msgstr "HRC"
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "パーツ補助冷却ファンがある場合有効にしてください"
+
+msgid ""
+"Start the fan this number of seconds earlier than its target start time (you "
+"can use fractional seconds). It assumes infinite acceleration for this time "
+"estimation, and will only take into account G1 and G0 moves (arc fitting is "
+"unsupported).\n"
+"It won't move fan comands from custom gcodes (they act as a sort of "
+"'barrier').\n"
+"It won't move fan comands into the start gcode if the 'only custom start "
+"gcode' is activated.\n"
+"Use 0 to deactivate."
+msgstr ""
+
+msgid "Only overhangs"
+msgstr ""
+
+msgid "Will only take into account the delay for the cooling of overhangs."
+msgstr ""
+
+msgid "Fan kick-start time"
+msgstr ""
+
+msgid ""
+"Emit a max fan speed command for this amount of seconds before reducing to "
+"target speed to kick-start the cooling fan.\n"
+"This is useful for fans where a low PWM/power may be insufficient to get the "
+"fan started spinning from a stop, or to get the fan up to speed faster.\n"
+"Set to 0 to deactivate."
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-codeスタイル"
@@ -7936,8 +7992,8 @@ msgstr ""
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
-"This amount can be specified in millimeters or as a percentage of the current "
-"extruder diameter. The default value for this parameter is 15%."
+"This amount can be specified in millimeters or as a percentage of the "
+"current extruder diameter. The default value for this parameter is 15%."
 msgstr ""
 
 msgid "Role base wipe speed"
@@ -8987,6 +9043,58 @@ msgid ""
 "end > start + step)"
 msgstr ""
 
+msgid "Start retraction length: "
+msgstr ""
+
+msgid "End retraction length: "
+msgstr ""
+
+msgid "mm/mm"
+msgstr ""
+
+msgid "Physical Printer"
+msgstr ""
+
+msgid "Print Host upload"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Could not get a valid Printer Host reference"
+msgstr ""
+
+msgid "Success!"
+msgstr ""
+
+msgid "Refresh Printers"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+
+msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -9225,6 +9333,9 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Bridge direction"
+#~ msgstr "ブリッジ方向"
 
 #~ msgid "Keep upper part"
 #~ msgstr "上の部分を残す"

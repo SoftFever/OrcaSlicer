@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 16:37+0200\n"
+"POT-Creation-Date: 2023-05-14 11:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -12,40 +12,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.1\n"
-
-#, fuzzy
-msgid "Physical Printer"
-msgstr "Printer"
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-
-#, fuzzy
-msgid "Send to print"
-msgstr "Send to printer"
-
-#, fuzzy
-msgid "Upload"
-msgstr "Unload"
-
-#, fuzzy
-msgid "Upload and Print"
-msgstr "Uploading"
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
 
 msgid "Supports Painting"
 msgstr "Support Painting"
@@ -3314,6 +3280,9 @@ msgstr ""
 msgid "Retraction test"
 msgstr ""
 
+msgid "Orca Tolerance Test"
+msgstr ""
+
 msgid "Max flowrate"
 msgstr ""
 
@@ -5118,13 +5087,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 
 msgid "Line width"
 msgstr "Line width"
@@ -7364,10 +7333,10 @@ msgstr "Full fan speed at layer"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -9103,6 +9072,50 @@ msgstr "Retraction Length"
 msgid "mm/mm"
 msgstr ""
 
+#, fuzzy
+msgid "Physical Printer"
+msgstr "Printer"
+
+msgid "Print Host upload"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Could not get a valid Printer Host reference"
+msgstr ""
+
+msgid "Success!"
+msgstr ""
+
+msgid "Refresh Printers"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+
+msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -9286,6 +9299,18 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#, fuzzy
+#~ msgid "Send to print"
+#~ msgstr "Send to printer"
+
+#, fuzzy
+#~ msgid "Upload"
+#~ msgstr "Unload"
+
+#, fuzzy
+#~ msgid "Upload and Print"
+#~ msgstr "Uploading"
 
 #~ msgid "Keep upper part"
 #~ msgstr "Keep upper part"

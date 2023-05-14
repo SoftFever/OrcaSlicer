@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-29 20:13+0800\n"
+"POT-Creation-Date: 2023-05-14 11:27+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -812,16 +812,16 @@ msgid "Load..."
 msgstr "加载..."
 
 msgid "Orca Cube"
-msgstr ""
+msgstr "Orca方块"
 
 msgid "3DBenchy"
-msgstr ""
+msgstr "小船"
 
 msgid "Autodesk FDM Test"
-msgstr ""
+msgstr "欧特克FDM测试"
 
 msgid "Voron Cube"
-msgstr ""
+msgstr "Voron方块"
 
 msgid "Cube"
 msgstr "立方体"
@@ -3239,6 +3239,12 @@ msgstr "流量"
 msgid "Pressure advance"
 msgstr "压力提前"
 
+msgid "Retraction test"
+msgstr "回抽测试"
+
+msgid "Orca Tolerance Test"
+msgstr "Orca误差测试"
+
 msgid "Max flowrate"
 msgstr "最大体积流量"
 
@@ -5119,9 +5125,6 @@ msgstr "G-code 输出"
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
 
-msgid "Post-processing scripts"
-msgstr ""
-
 msgid "Frequent"
 msgstr "常用"
 
@@ -5240,6 +5243,12 @@ msgstr "耗材丝结束G-code"
 
 msgid "Printable space"
 msgstr "可打印区域"
+
+msgid "Cooling Fan"
+msgstr "冷却风扇"
+
+msgid "Fan speed-up time"
+msgstr "风扇响应时间"
 
 msgid "Extruder Clearance"
 msgstr "挤出机避让空间"
@@ -6499,8 +6508,8 @@ msgstr ""
 "有下层支撑的线的宽度是多少。0%%意味着无论悬垂程度如何，都要对所有外壁强制冷"
 "却。"
 
-msgid "Bridge direction"
-msgstr "桥接方向"
+msgid "Bridge infill direction"
+msgstr "拉桥填充方向"
 
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
@@ -7039,14 +7048,6 @@ msgid ""
 "of line"
 msgstr "稀疏填充图案的角度，决定走线的开始或整体方向。"
 
-msgid "Bridge infill direction"
-msgstr "拉桥填充方向"
-
-msgid ""
-"Angle for bridge infill pattern, which controls the start or main direction "
-"of line"
-msgstr ""
-
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
 
@@ -7188,6 +7189,14 @@ msgstr "首层空驶速度"
 msgid "Travel speed of initial layer"
 msgstr "首层空驶速度"
 
+msgid "Number of slow layers"
+msgstr "慢速打印层数"
+
+msgid ""
+"The first few layers are printed slower than normal. The speed is gradually "
+"increased in a linear fashion over the specified number of layers."
+msgstr "减慢前几层的打印速度。打印速度会逐渐加速到满速"
+
 msgid "Initial layer nozzle temperature"
 msgstr "首层打印温度"
 
@@ -7196,6 +7205,27 @@ msgstr "打印首层时的喷嘴温度"
 
 msgid "Full fan speed at layer"
 msgstr "满速风扇在"
+
+msgid ""
+"Fan speed will be ramped up linearly from zero at layer "
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+msgstr ""
+"风扇速度将从“禁用第一层”的零线性上升到“全风扇速度层”的最大。如果低于“禁用风扇"
+"第一层”，则“全风扇速度第一层”将被忽略，在这种情况下，风扇将在“禁用风扇第一"
+"层”+1层以最大允许速度运行。"
+
+msgid "Support interface fan speed"
+msgstr "支撐接触面风扇"
+
+msgid ""
+"This fan speed is enforced during all support interfaces, to be able to "
+"weaken their bonding with a high fan speed.\n"
+"Set to -1 to disable this override.\n"
+"Can only be overriden by disable_fan_first_layers."
+msgstr "此风扇速度在所有支撑接触层打印期间强制执行"
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
@@ -7302,6 +7332,39 @@ msgstr "洛氏硬度"
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
+
+msgid ""
+"Start the fan this number of seconds earlier than its target start time (you "
+"can use fractional seconds). It assumes infinite acceleration for this time "
+"estimation, and will only take into account G1 and G0 moves (arc fitting is "
+"unsupported).\n"
+"It won't move fan comands from custom gcodes (they act as a sort of "
+"'barrier').\n"
+"It won't move fan comands into the start gcode if the 'only custom start "
+"gcode' is activated.\n"
+"Use 0 to deactivate."
+msgstr ""
+"把风扇启动指令往前移动指定时间以补偿风扇的启动时间。目前支支持G1 G0指令\n"
+"设为0以禁用此选项"
+
+msgid "Only overhangs"
+msgstr "仅悬垂"
+
+msgid "Will only take into account the delay for the cooling of overhangs."
+msgstr "仅对悬垂有效"
+
+msgid "Fan kick-start time"
+msgstr "风扇"
+
+msgid ""
+"Emit a max fan speed command for this amount of seconds before reducing to "
+"target speed to kick-start the cooling fan.\n"
+"This is useful for fans where a low PWM/power may be insufficient to get the "
+"fan started spinning from a stop, or to get the fan up to speed faster.\n"
+"Set to 0 to deactivate."
+msgstr ""
+"让风扇满速运行指定时间以帮助风扇顺利启动\n"
+"设为0禁用此选项"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -7812,8 +7875,8 @@ msgstr "接缝留空"
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
-"This amount can be specified in millimeters or as a percentage of the current "
-"extruder diameter. The default value for this parameter is 15%."
+"This amount can be specified in millimeters or as a percentage of the "
+"current extruder diameter. The default value for this parameter is 15%."
 msgstr ""
 
 msgid "Role base wipe speed"
@@ -8019,7 +8082,7 @@ msgid "The z gap between the bottom support interface and object"
 msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间隙"
 
 msgid "Support/raft base"
-msgstr ""
+msgstr "支撑/筏层主体"
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -8038,7 +8101,7 @@ msgid ""
 msgstr "使用圈形走线覆盖顶部接触面。默认关闭。"
 
 msgid "Support/raft interface"
-msgstr ""
+msgstr "支撑/筏层界面"
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -8719,21 +8782,6 @@ msgstr "支撑：正在生成多边形"
 msgid "Support: generate toolpath"
 msgstr "支撑：正在生成走线路径"
 
-msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
-
-msgid "Loading of a model file failed."
-msgstr "加载模型文件失败。"
-
-msgid "The supplied file couldn't be read because it's empty"
-msgstr "无法读取提供的文件，因为该文件为空。"
-
-msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
-msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
-
-msgid "Canceled"
-msgstr "已取消"
-
 #, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
 msgstr "支撑：正在生成层%d的多边形"
@@ -8836,7 +8884,7 @@ msgid "End volumetric speed: "
 msgstr "结束流量"
 
 msgid "step: "
-msgstr "流量步距"
+msgstr "步距"
 
 msgid ""
 "Please input valid values:\n"
@@ -8857,6 +8905,58 @@ msgid ""
 "Please input valid values:\n"
 "start > 10 step >= 0\n"
 "end > start + step)"
+msgstr ""
+
+msgid "Start retraction length: "
+msgstr "起始回抽长度"
+
+msgid "End retraction length: "
+msgstr "结束回抽长度"
+
+msgid "mm/mm"
+msgstr ""
+
+msgid "Physical Printer"
+msgstr "物理打印机"
+
+msgid "Print Host upload"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Could not get a valid Printer Host reference"
+msgstr ""
+
+msgid "Success!"
+msgstr ""
+
+msgid "Refresh Printers"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+
+msgid "Connection to printers connected via the print host failed."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -9104,8 +9204,26 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
-#~ msgid "Physical Printer"
-#~ msgstr "物理打印机"
+#~ msgid "Bridge direction"
+#~ msgstr "桥接方向"
+
+#~ msgid ""
+#~ "Unknown file format. Input file must have .stl, .obj, .amf(.xml) "
+#~ "extension."
+#~ msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
+
+#~ msgid "Loading of a model file failed."
+#~ msgstr "加载模型文件失败。"
+
+#~ msgid "The supplied file couldn't be read because it's empty"
+#~ msgstr "无法读取提供的文件，因为该文件为空。"
+
+#~ msgid ""
+#~ "Unknown file format. Input file must have .3mf or .zip.amf extension."
+#~ msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
+
+#~ msgid "Canceled"
+#~ msgstr "已取消"
 
 #~ msgid "Keep upper part"
 #~ msgstr "保留上半部分"

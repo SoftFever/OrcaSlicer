@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 16:37+0200\n"
+"POT-Creation-Date: 2023-05-14 11:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -12,46 +12,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.2.2\n"
-
-#, fuzzy
-msgid "Physical Printer"
-msgstr "Drucker"
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-"Die HTTPS-CA-Datei ist optional. Sie wird nur benötigt, wenn Sie HTTPS mit "
-"einem selbstsignierten Zertifikat verwenden."
-
-msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-"Auf diesem System verwendet %s HTTPS-Zertifikate aus dem "
-"Systemzertifikatspeicher oder dem Schlüsselbund."
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-"Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte Ihre "
-"CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
-
-#, fuzzy
-msgid "Send to print"
-msgstr "Zum Drucker senden"
-
-#, fuzzy
-msgid "Upload"
-msgstr "Entladen"
-
-msgid "Upload and Print"
-msgstr "Hochladen und Drucken"
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
-"Verwenden Sie bei Bedarf Schrägstriche (/) als Verzeichnistrennzeichen."
 
 msgid "Supports Painting"
 msgstr "Stützen aufmalen"
@@ -3480,6 +3440,9 @@ msgstr "Pressure advance"
 msgid "Retraction test"
 msgstr "Rückzugslängen Test"
 
+msgid "Orca Tolerance Test"
+msgstr ""
+
 msgid "Max flowrate"
 msgstr "Maximale Durchflussrate"
 
@@ -5458,13 +5421,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
-">\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
+"\"Timelapse Wischturm\" wählen."
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -7894,13 +7857,13 @@ msgstr "Volle Lüfterdrehzahl ab Schicht"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
-"Die Lüftergeschwindigkeit wird linear von Null bei der "
-"Schicht\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
+"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht"
+"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
 "\"full_fan_speed_layer\" erhöht. \"full_fan_speed_layer\" wird ignoriert, "
 "wenn es niedriger ist als \"close_fan_the_first_x_layers\",in diesem Fall "
 "läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\"+ 1 mit maximal "
@@ -9876,6 +9839,56 @@ msgstr "Ende Rückzugslänge"
 msgid "mm/mm"
 msgstr ""
 
+#, fuzzy
+msgid "Physical Printer"
+msgstr "Drucker"
+
+msgid "Print Host upload"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Could not get a valid Printer Host reference"
+msgstr ""
+
+msgid "Success!"
+msgstr ""
+
+msgid "Refresh Printers"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+"Die HTTPS-CA-Datei ist optional. Sie wird nur benötigt, wenn Sie HTTPS mit "
+"einem selbstsignierten Zertifikat verwenden."
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+"Auf diesem System verwendet %s HTTPS-Zertifikate aus dem "
+"Systemzertifikatspeicher oder dem Schlüsselbund."
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+"Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte Ihre "
+"CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
+
+msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -10148,6 +10161,21 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#, fuzzy
+#~ msgid "Send to print"
+#~ msgstr "Zum Drucker senden"
+
+#, fuzzy
+#~ msgid "Upload"
+#~ msgstr "Entladen"
+
+#~ msgid "Upload and Print"
+#~ msgstr "Hochladen und Drucken"
+
+#~ msgid "Use forward slashes ( / ) as a directory separator if needed."
+#~ msgstr ""
+#~ "Verwenden Sie bei Bedarf Schrägstriche (/) als Verzeichnistrennzeichen."
 
 #, fuzzy
 #~ msgid "Fan Speedup Time"
