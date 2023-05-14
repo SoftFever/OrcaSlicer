@@ -4,9 +4,20 @@ on:
     push:
       branches: 
        - main
+      paths:
+       - 'src/**'
+       - 'deps/**'
+       - '**/CMakeLists.txt'
+       - 'version.inc'
+
     pull_request:
       branches: 
        - main 
+      paths:
+       - 'src/**'
+       - 'deps/**'
+       - '**/CMakeLists.txt'
+       - 'version.inc'
     
 jobs:
   appimage-builder:
