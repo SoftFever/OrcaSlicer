@@ -3441,7 +3441,7 @@ msgid "Retraction test"
 msgstr "Rückzugslängen Test"
 
 msgid "Orca Tolerance Test"
-msgstr ""
+msgstr "Orca Toleranz Test"
 
 msgid "Max flowrate"
 msgstr "Maximale Durchflussrate"
@@ -5957,10 +5957,10 @@ msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Der Multiplikator sollte im Bereich [%.2f, %.2f] liegen."
 
 msgid "unloaded"
-msgstr "entladen wird"
+msgstr "entladen"
 
 msgid "loaded"
-msgstr "geladen wird"
+msgstr "geladen"
 
 msgid "Filament #"
 msgstr "Filament #"
@@ -9844,19 +9844,19 @@ msgid "Physical Printer"
 msgstr "Drucker"
 
 msgid "Print Host upload"
-msgstr ""
+msgstr "Hochladen zum Druck-Host"
 
 msgid "Test"
 msgstr ""
 
 msgid "Could not get a valid Printer Host reference"
-msgstr ""
+msgstr "Konnte keine gültige Referenz zum Druck-Host erhalten"
 
 msgid "Success!"
-msgstr ""
+msgstr "Erfolgreich!"
 
 msgid "Refresh Printers"
-msgstr ""
+msgstr "Drucker aktualisieren"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
@@ -9866,10 +9866,10 @@ msgstr ""
 "einem selbstsignierten Zertifikat verwenden."
 
 msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
-msgstr ""
+msgstr "Zertifikatdateien (*.crt, *.pem)|*.crt;*.pem|Alle Dateien|*.*"
 
 msgid "Open CA certificate file"
-msgstr ""
+msgstr "Öffnen Sie die CA-Zertifikatsdatei."
 
 #, c-format, boost-format
 msgid ""
@@ -9887,7 +9887,7 @@ msgstr ""
 "CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
 
 msgid "Connection to printers connected via the print host failed."
-msgstr ""
+msgstr "Die Verbindung zu den über den Druck-Host verbundenen Druckern ist fehlgeschlagen."
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
