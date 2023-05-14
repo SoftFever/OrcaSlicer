@@ -812,7 +812,7 @@ msgid "Load..."
 msgstr "加载..."
 
 msgid "Orca Cube"
-msgstr "Orca方块"
+msgstr "Orca逆方块"
 
 msgid "3DBenchy"
 msgstr "小船"
