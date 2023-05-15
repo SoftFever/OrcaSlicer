@@ -1450,6 +1450,10 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
 
     m_imgui->disabled_begin(has_connectors);
     m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
+    if (m_cut_to_parts) {
+        m_keep_upper = true;
+        m_keep_lower = true;
+    }
     m_imgui->disabled_end();
 
 #if 0
