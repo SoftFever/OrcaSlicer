@@ -2052,7 +2052,7 @@ void MainFrame::init_menubar_as_editor()
             size_t file_id = evt.GetId() - wxID_FILE1;
             wxString filename = m_recent_projects.GetHistoryFile(file_id);
                 open_recent_project(file_id, filename);
-            }, wxID_FILE1, wxID_FILE9);
+            }, wxID_FILE1, wxID_FILE1 + 49); // [5050, 5100)
 
         std::vector<std::string> recent_projects = wxGetApp().app_config->get_recent_projects();
         std::reverse(recent_projects.begin(), recent_projects.end());
