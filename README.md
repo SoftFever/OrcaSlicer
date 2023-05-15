@@ -1,8 +1,8 @@
 
-[![Build Win64](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_win.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_win.yml)
-[![Build Mac AppleSilicon](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_arm64.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_arm64.yml)
-[![Build Mac Intel](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml)
-[![Build Linux](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml/badge.svg?branch=SoftFever)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml)  
+[![Build Win64](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_win.yml/badge.svg)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_win.yml)
+[![Build Mac AppleSilicon](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_arm64.yml/badge.svg)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_arm64.yml)
+[![Build Mac Intel](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml/badge.svg)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml)
+[![Build Linux](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml/badge.svg)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml)
 
 # Orca Slicer  
 Orca Slicer is a fork of Bambu Studio. It was previously known as BambuStudio-SoftFever.  

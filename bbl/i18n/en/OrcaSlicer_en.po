@@ -9067,7 +9067,7 @@ msgid "Start retraction length: "
 msgstr ""
 
 msgid "End retraction length: "
-msgstr "Retraction Length"
+msgstr ""
 
 msgid "mm/mm"
 msgstr ""

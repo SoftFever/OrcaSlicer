@@ -9,6 +9,8 @@ on:
        - 'deps/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
+       - 'bbl/**'
+       - 'resources/**'
 
     pull_request:
       branches: 
@@ -18,6 +20,8 @@ on:
        - 'deps/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
+       - 'bbl/**'
+       - 'resources/**'
     
 jobs:
   build_osx_x86_64:
