@@ -386,6 +386,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopup.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
+    GUI/SingleChoiceDialog.hpp
+    GUI/SingleChoiceDialog.cpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp

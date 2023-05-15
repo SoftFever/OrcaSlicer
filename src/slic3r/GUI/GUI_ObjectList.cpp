@@ -21,6 +21,7 @@
 #include "NotificationManager.hpp"
 #include "MsgDialog.hpp"
 #include "Widgets/ProgressDialog.hpp"
+#include "SingleChoiceDialog.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
@@ -4940,7 +4941,8 @@ void ObjectList::change_part_type()
     }
 
     const wxString names[] = { _L("Part"), _L("Negative Part"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
-    auto new_type = ModelVolumeType(wxGetApp().GetSingleChoiceIndex(_L("Type:"), _L("Choose part type"), wxArrayString(5, names), int(type)));
+    SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), wxArrayString(5, names), int(type));
+    auto new_type = ModelVolumeType(dlg.GetSingleChoiceIndex());
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
         return;
