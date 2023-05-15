@@ -502,8 +502,6 @@ wxBitmap* get_default_extruder_color_icon(bool thin_icon/* = false*/)
 
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
-    static Slic3r::GUI::BitmapCache bmp_cache;
-
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps;
     std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
@@ -518,45 +516,64 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
      * and scale them in respect to em_unit value
      */
     const double em = Slic3r::GUI::wxGetApp().em_unit();
-    const int icon_width = lround((thin_icon ? 2 : 4.5) * em);
+    const int icon_width = lround((thin_icon ? 2 : 4.4) * em);
     const int icon_height = lround(2 * em);
 
     bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
 
     int index = 0;
-    wxClientDC cdc((wxWindow*)Slic3r::GUI::wxGetApp().mainframe);
-    wxMemoryDC dc(&cdc);
-    dc.SetFont(::Label::Body_12);
     for (const std::string &color : colors)
     {
         auto label = std::to_string(++index);
-        std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width) 
-                + "-i" + label;
-
-        wxBitmap* bitmap = bmp_cache.find(bitmap_key);
-        if (bitmap == nullptr) {
-            // Paint the color icon.
-            //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
-            // there is no neede to scale created solid bitmap
-            wxColor clr(color);
-            bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
-            dc.SelectObject(*bitmap);
-            dc.SetBackground(wxBrush(clr));
-            dc.Clear();
-            if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
-                dc.SetBrush(wxBrush(clr));
-                dc.SetPen(*wxGREY_PEN);
-                dc.DrawRectangle(0, 0, icon_width, icon_height);
-            }
-            auto size = dc.GetTextExtent(wxString(label));
-            dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
-            dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
-            dc.SelectObject(wxNullBitmap);
-        }
-        bmps.emplace_back(bitmap);
+        bmps.push_back(get_extruder_color_icon(color, label, icon_width, icon_height));
     }
 
     return bmps;
+}
+
+wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon_width, int icon_height)
+{
+    static Slic3r::GUI::BitmapCache bmp_cache;
+
+    std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width) + "-i" + label;
+
+    wxBitmap *bitmap = bmp_cache.find(bitmap_key);
+    if (bitmap == nullptr) {
+        // Paint the color icon.
+        // Slic3r::GUI::BitmapCache::parse_color(color, rgb);
+        // there is no neede to scale created solid bitmap
+        wxColor clr(color);
+        bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
+        wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
+        wxMemoryDC dc(&cdc);
+        dc.SetFont(::Label::Body_12);
+        dc.SelectObject(*bitmap);
+        if (clr.Alpha() == 0) {
+            int             size        = icon_height * 2;
+            static wxBitmap transparent = *Slic3r::GUI::BitmapCache().load_svg("transparent", size, size);
+            if (transparent.GetHeight() != size) transparent = *Slic3r::GUI::BitmapCache().load_svg("transparent", size, size);
+            wxPoint pt(0, 0);
+            while (pt.x < icon_width) {
+                dc.DrawBitmap(transparent, pt);
+                pt.x += size;
+            }
+            clr.SetRGB(0xffffff); // for text color
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        } else {
+            dc.SetBackground(wxBrush(clr));
+            dc.Clear();
+            dc.SetBrush(wxBrush(clr));
+        }
+        if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
+            dc.SetPen(*wxGREY_PEN);
+            dc.DrawRectangle(0, 0, icon_width, icon_height);
+        }
+        auto size = dc.GetTextExtent(wxString(label));
+        dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
+        dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
+        dc.SelectObject(wxNullBitmap);
+    }
+    return bitmap;
 }
 
 

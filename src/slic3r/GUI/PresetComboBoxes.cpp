@@ -391,20 +391,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             const_cast<Preset&>(*iter).is_visible = true;
             auto color = f.opt_string("filament_colour", 0u);
             auto name = f.opt_string("tray_name", 0u);
-            wxColour clr(color);
-            wxImage img(24, 16);
-            if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
-                img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
-                img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
-            } else {
-                img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
-            }
-            wxBitmap bmp(img);
-            wxMemoryDC dc(bmp);
-            dc.SetFont(Label::Body_10);
-            dc.SetTextForeground(different_color(clr));
-            auto size = dc.GetTextExtent(name);
-            dc.DrawText(name, bmp.GetWidth() / 2 - size.x / 2, bmp.GetHeight() / 2 - size.y / 2);
+            wxBitmap bmp(*get_extruder_color_icon(color, name, 24, 16));
             int item_id = Append(get_preset_name(*iter), bmp.ConvertToImage(), &m_first_ams_filament + (&f - &m_preset_bundle->filament_ams_list.front()));
             //validate_selection(id->value == selected); // can not select
         }
@@ -683,7 +670,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     // BBS
     if (m_type == Preset::TYPE_FILAMENT) {
         int em = wxGetApp().em_unit();
-        clr_picker = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
+        clr_picker = new wxBitmapButton(parent, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
         clr_picker->SetToolTip(_L("Click to pick filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
@@ -938,12 +925,7 @@ void PlaterPresetComboBox::update()
         //    filament_color.clear();
         // BBS
         wxColor clr(filament_color);
-        clr_picker->SetBackgroundColour(clr);
-        auto diff_clr = different_color(clr);
-        clr_picker->SetForegroundColour(diff_clr);
-        auto style = clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
-        style = clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE);
-        clr_picker->SetWindowStyle(style);
+        clr_picker->SetBitmap(*get_extruder_color_icons(true)[m_filament_idx]);
 #ifdef __WXOSX__
         clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
         clr_picker->Refresh();
