@@ -307,6 +307,8 @@ protected:
     ScalableBitmap  m_bitmap_editable_light;
     ScalableBitmap  m_bitmap_readonly;
     ScalableBitmap  m_bitmap_readonly_light;
+    ScalableBitmap  m_bitmap_transparent;
+
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
     bool            m_selected        = {false};

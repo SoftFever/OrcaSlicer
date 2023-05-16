@@ -30,7 +30,7 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
  {
     m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", FromDIP(12));
     m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", FromDIP(12));
-
+    m_transparent_mitem = ScalableBitmap(this, "transparent_material_item", FromDIP(32));
 
     m_material_coloul = mcolour;
     m_material_name = mname;
@@ -121,6 +121,7 @@ void MaterialItem::render(wxDC &dc)
     dc.SetFont(::Label::Body_13);
 
     auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    if (m_material_coloul.Alpha() == 0) {material_name_colour = wxColour(0x26, 0x2E, 0x30);}
     dc.SetTextForeground(material_name_colour);
 
     if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
@@ -134,6 +135,9 @@ void MaterialItem::render(wxDC &dc)
     // mapping num
     dc.SetFont(::Label::Body_10);
     dc.SetTextForeground(m_ams_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
+    if (m_ams_coloul.Alpha() == 0) {
+        dc.SetTextForeground(wxColour(0x26, 0x2E, 0x30));
+    }
 
     wxString mapping_txt = wxEmptyString;
     if (m_ams_name.empty()) {
@@ -148,6 +152,10 @@ void MaterialItem::render(wxDC &dc)
 
 void MaterialItem::doRender(wxDC &dc) 
 {
+    if (m_material_coloul.Alpha() == 0) {
+        dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
+    }
+
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(m_material_coloul));
@@ -181,7 +189,7 @@ void MaterialItem::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
     }
 #else
-    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
+    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE || m_ams_coloul.Alpha() == 0) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
@@ -194,7 +202,6 @@ void MaterialItem::doRender(wxDC &dc)
     }
 #endif
     //arrow
-
     if ( (m_ams_coloul.Red() > 160 && m_ams_coloul.Green() > 160 && m_ams_coloul.Blue() > 160) &&
         (m_ams_coloul.Red() < 180 && m_ams_coloul.Green() < 180 && m_ams_coloul.Blue() < 180)) {
         dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
@@ -535,6 +542,8 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
+
+    m_transparent_mapping_item = ScalableBitmap(this, "transparent_mapping_item", FromDIP(44));
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
 }
@@ -550,7 +559,7 @@ void MappingItem::send_event(int fliament_id)
     wxCommandEvent event(EVT_SET_FINISH_MAPPING);
     event.SetInt(m_tray_data.id);
 
-    wxString param = wxString::Format("%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), number, fliament_id);
+    wxString param = wxString::Format("%d|%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_coloul.Alpha(), number, fliament_id);
     event.SetString(param);
     event.SetEventObject(this->GetParent()->GetParent());
     wxPostEvent(this->GetParent()->GetParent()->GetParent(), event);
@@ -594,7 +603,7 @@ void MappingItem::render(wxDC &dc)
 
     auto txt_colour = m_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
     txt_colour      = m_unmatch ? wxColour(0xCE, 0xCE, 0xCE) : txt_colour;
-
+    if (m_coloul.Alpha() == 0) txt_colour = wxColour(0x26, 0x2E, 0x30);
     dc.SetTextForeground(txt_colour);
 
     /*if (dc.GetTextExtent(m_name).x > GetSize().x - 10) {
@@ -628,16 +637,14 @@ void MappingItem::doRender(wxDC &dc)
 {
     dc.SetPen(m_coloul);
     dc.SetBrush(wxBrush(m_coloul));
-    dc.DrawRectangle(0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
 
-//    if (m_coloul == *wxWHITE) {
-//        dc.SetPen(wxPen(wxColour(0xAC, 0xAC, 0xAC), 1));
-//#ifdef __APPLE__
-//        dc.DrawRectangle(1, 1, GetSize().x - 1, GetSize().y - 1);
-//#else
-//        dc.DrawRectangle(0, 0, tray_size.x, tray_size.y);
-//#endif // __APPLE__
-//    }
+    if (m_coloul.Alpha() == 0) {
+       dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
+    }
+    else {
+        dc.DrawRectangle(0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+    }
+
 
     wxColour side_colour = wxColour(0xE4E4E4);
 

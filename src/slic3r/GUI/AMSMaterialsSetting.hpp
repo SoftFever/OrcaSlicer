@@ -32,6 +32,8 @@ class ColorPicker : public wxWindow
 {
 public:
     wxBitmap        m_bitmap_border;
+    wxBitmap        m_bitmap_transparent;
+
     wxColour        m_colour;
     std::vector<wxColour>        m_cols;
     bool            m_selected{false};

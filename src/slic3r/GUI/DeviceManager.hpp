@@ -173,19 +173,19 @@ public:
 
     static wxColour decode_color(const std::string &color)
     {
-        std::array<int, 3> ret = {0, 0, 0};
+        std::array<int, 4> ret = {0, 0, 0, 0};
         const char *       c   = color.data();
         if (color.size() == 8) {
-            for (size_t j = 0; j < 3; ++j) {
+            for (size_t j = 0; j < 4; ++j) {
                 int digit1 = hex_digit_to_int(*c++);
                 int digit2 = hex_digit_to_int(*c++);
                 if (digit1 == -1 || digit2 == -1) break;
                 ret[j] = float(digit1 * 16 + digit2);
             }
         } else {
-            return wxColour(255, 255, 255);
+            return wxColour(255, 255, 255, 255);
         }
-        return wxColour(ret[0], ret[1], ret[2]);
+        return wxColour(ret[0], ret[1], ret[2], ret[3]);
     }
 
     std::string     id;

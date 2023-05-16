@@ -1899,11 +1899,7 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                         mapping_item["filamentId"] = it->filament_id;
                     }
                     //convert #RRGGBB to RRGGBBAA
-                    if (m_filaments[k].color.size() > 6) {
-                        mapping_item["sourceColor"] = m_filaments[k].color.substr(1, 6) + "FF";
-                    } else {
-                        mapping_item["sourceColor"]     = m_filaments[k].color;
-                    }
+                    mapping_item["sourceColor"]     = m_filaments[k].color;
                     mapping_item["targetColor"]     = m_ams_mapping_result[k].color;
                 }
             }
@@ -2445,7 +2441,7 @@ void SelectMachineDialog::on_send_print()
         json mapping_info_json = json::array();
         json item;
         if (m_filaments.size() > 0) {
-            item["sourceColor"] = m_filaments[0].color.substr(1, 6) + "FF";
+            item["sourceColor"] = m_filaments[0].color.substr(1, 8);
             item["filamentType"] = m_filaments[0].type;
             mapping_info_json.push_back(item);
             ams_mapping_info = mapping_info_json.dump();
@@ -2604,13 +2600,13 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 
     BOOST_LOG_TRIVIAL(info) << "The ams mapping selection result: data is " << selection_data;
 
-    if (selection_data_arr.size() == 5) {
+    if (selection_data_arr.size() == 6) {
          for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
-            if (m_ams_mapping_result[i].id == wxAtoi(selection_data_arr[4])) {
+            if (m_ams_mapping_result[i].id == wxAtoi(selection_data_arr[5])) {
                 m_ams_mapping_result[i].tray_id = evt.GetInt();
-				auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]));
-				auto color = wxString::Format("%sFF", ams_colour.GetAsString(wxC2S_HTML_SYNTAX).substr(1, ams_colour.GetAsString(wxC2S_HTML_SYNTAX).size()-1));
-			   m_ams_mapping_result[i].color = color.ToStdString();
+				auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
+				wxString color = wxString::Format("#%02X%02X%02X%02X", ams_colour.Red(), ams_colour.Green(), ams_colour.Blue(), ams_colour.Alpha());
+			    m_ams_mapping_result[i].color = color.ToStdString();
             }
             BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
          }
@@ -2620,8 +2616,8 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
             Material*        item = iter->second;
             MaterialItem *m  = item->item;
             if (item->id == m_current_filament_id) {
-                auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]));
-                m->set_ams_info(ams_colour, selection_data_arr[3]);
+                auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
+                m->set_ams_info(ams_colour, selection_data_arr[4]);
             }
             iter++;
         }
@@ -3443,11 +3439,11 @@ void SelectMachineDialog::set_default_normal()
 
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
-        auto          colour = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int)extruder);
-        unsigned char rgb[3];
-        bmcache.parse_color(colour, rgb);
+        auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
+        unsigned char rgb[4];
+        bmcache.parse_color4(colour, rgb);
 
-        auto          colour_rgb = wxColour((int)rgb[0], (int)rgb[1], (int)rgb[2]);
+        auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
             continue;
 
@@ -3507,7 +3503,7 @@ void SelectMachineDialog::set_default_normal()
             info.id = extruder;
             info.type = materials[extruder];
             info.brand = brands[extruder];
-            info.color = colour_rgb.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+            info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
             m_filaments.push_back(info);
         }
     }

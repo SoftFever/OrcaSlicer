@@ -644,7 +644,7 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
 void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 {
     unsigned int color_num  = event.GetInt();
-    set_color(wxColour(color_num>>16&0xFF, color_num>>8&0xFF, color_num&0xFF));
+    set_color(wxColour(color_num>>24&0xFF, color_num>>16&0xFF, color_num>>8&0xFF, color_num&0xFF));
 }
 
 void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event) 
@@ -929,7 +929,9 @@ ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*=
     SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
 
     Bind(wxEVT_PAINT, &ColorPicker::paintEvent, this);
+
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
+    m_bitmap_transparent = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
 }
 
 ColorPicker::~ColorPicker(){}
@@ -982,13 +984,19 @@ void ColorPicker::render(wxDC& dc)
 void ColorPicker::doRender(wxDC& dc)
 {
     wxSize     size = GetSize();
+    auto alpha = m_colour.Alpha();
 
     auto radius = m_show_full?size.x / 2:size.x / 2 - FromDIP(1);
     if (m_selected) radius -= FromDIP(1);
 
-    dc.SetPen(wxPen(m_colour));
-    dc.SetBrush(wxBrush(m_colour));
-    dc.DrawCircle(size.x / 2, size.x / 2, radius);
+    if (alpha == 0) {
+        dc.DrawBitmap(m_bitmap_transparent, 0, 0);
+    }
+    else {
+        dc.SetPen(wxPen(m_colour));
+        dc.SetBrush(wxBrush(m_colour));
+        dc.DrawCircle(size.x / 2, size.x / 2, radius);
+    }
 
     if (m_selected) {
         dc.SetPen(wxPen(m_colour));
@@ -1000,6 +1008,11 @@ void ColorPicker::doRender(wxDC& dc)
         dc.SetPen(wxPen(wxColour(0x6B6B6B)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawCircle(size.x / 2, size.x / 2, radius);
+
+        //transparent
+        if (alpha == 0) {
+            dc.DrawBitmap(m_bitmap_transparent, 0, 0);
+        }
 
         if (m_cols.size() > 1) {
             int left = FromDIP(0);
@@ -1096,7 +1109,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
             set_def_colour(cp->m_colour);
 
             wxCommandEvent evt(EVT_SELECTED_COLOR);
-            unsigned long g_col = ((cp->m_colour.Red() & 0xff) << 16) + ((cp->m_colour.Green() & 0xff) << 8) + (cp->m_colour.Blue() & 0xff);
+            unsigned long g_col = ((cp->m_colour.Red() & 0xff) << 24) + ((cp->m_colour.Green() & 0xff) << 16) + ((cp->m_colour.Blue() & 0xff) << 8) + (cp->m_colour.Alpha() & 0xff);
             evt.SetInt(g_col);
             wxPostEvent(GetParent(), evt);
         });
@@ -1183,7 +1196,7 @@ void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& event)
         m_custom_cp->SetBackgroundColor(picker_color);
         set_def_colour(picker_color);
         wxCommandEvent evt(EVT_SELECTED_COLOR);
-        unsigned long g_col = ((picker_color.Red() & 0xff) << 16) + ((picker_color.Green() & 0xff) << 8) + (picker_color.Blue() & 0xff);
+        unsigned long g_col = ((picker_color.Red() & 0xff) << 24) + ((picker_color.Green() & 0xff) << 16) + ((picker_color.Blue() & 0xff) << 8) + (picker_color.Alpha() & 0xff);
         evt.SetInt(g_col);
         wxPostEvent(GetParent(), evt);
     }
@@ -1218,7 +1231,7 @@ void ColorPickerPopup::set_ams_colours(std::vector<wxColour> ams)
             set_def_colour(cp->m_colour);
 
             wxCommandEvent evt(EVT_SELECTED_COLOR);
-            unsigned long g_col = ((cp->m_colour.Red() & 0xff) << 16) + ((cp->m_colour.Green() & 0xff) << 8) + (cp->m_colour.Blue() & 0xff);
+            unsigned long g_col = ((cp->m_colour.Red() & 0xff) << 24) + ((cp->m_colour.Green() & 0xff) << 16) + ((cp->m_colour.Blue() & 0xff) << 8) + (cp->m_colour.Alpha() & 0xff);
             evt.SetInt(g_col);
             wxPostEvent(GetParent(), evt);
         });

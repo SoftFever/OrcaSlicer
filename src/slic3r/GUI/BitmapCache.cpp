@@ -449,6 +449,7 @@ bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
             return false;
         rgb_out[i] = (unsigned char)(digit1 * 16 + digit2);
     }
+
     return true;
 }
 

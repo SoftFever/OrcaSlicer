@@ -75,6 +75,7 @@ public:
 
     ScalableBitmap m_arraw_bitmap_gray;
     ScalableBitmap m_arraw_bitmap_white;
+    ScalableBitmap m_transparent_mitem;
 
     bool m_selected {false};
     bool m_warning{false};
@@ -106,6 +107,7 @@ public:
     wxColour m_coloul;
     wxString m_name;
     TrayData m_tray_data;
+    ScalableBitmap m_transparent_mapping_item;
     bool     m_unmatch{false};
 
     void msw_rescale();

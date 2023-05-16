@@ -633,6 +633,7 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_bitmap_editable_light = ScalableBitmap(this, "ams_editable_light", 14);
     m_bitmap_readonly       = ScalableBitmap(this, "ams_readonly", 14);
     m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
+    m_bitmap_transparent    = ScalableBitmap(this, "transparent_ams_lib", FromDIP(68));
 
     m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_body->Add(m_sizer_edit, 0, wxALIGN_CENTER, 0);
@@ -723,9 +724,9 @@ void AMSLib::render(wxDC &dc)
         temp_text_colour = AMS_CONTROL_GRAY800;
     }
 
-    //if (!wxWindow::IsEnabled()) {
-        //temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
-    //}
+    if (tmp_lib_colour.Alpha() == 0) {
+        temp_text_colour = AMS_CONTROL_GRAY800;
+    }
 
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
@@ -829,9 +830,10 @@ void AMSLib::doRender(wxDC &dc)
         temp_bitmap_brand = m_bitmap_readonly;
     }
 
-    //if (!wxWindow::IsEnabled()) {
-        //tmp_lib_colour   = AMS_CONTROL_DISABLE_COLOUR;
-    //}
+    if (tmp_lib_colour.Alpha() == 0) {
+        temp_bitmap_third = m_bitmap_editable;
+        temp_bitmap_brand = m_bitmap_readonly;
+    }
 
     // selected
     if (m_selected) {
@@ -887,6 +889,12 @@ void AMSLib::doRender(wxDC &dc)
     int top = height - curr_height;
 
     if (curr_height >= FromDIP(6)) {
+
+        //transparent
+        auto alpha = m_info.material_colour.Alpha();
+        if (alpha == 0) {
+            dc.DrawBitmap(m_bitmap_transparent.bmp(),FromDIP(4), FromDIP(4));
+        }
 
         //gradient
         if (m_info.material_cols.size() > 1) {
