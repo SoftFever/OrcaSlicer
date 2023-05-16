@@ -740,7 +740,7 @@ static std::vector<std::string> s_Preset_print_options {
     "flush_into_infill", "flush_into_objects", "flush_into_support",
     // BBS
      "tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
-     "tree_support_branch_diameter",
+     "tree_support_branch_diameter","tree_support_brim_width",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", /*"adaptive_layer_height",*/
      "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
