@@ -1518,27 +1518,28 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     struct Color
     {
         std::string text;
-        unsigned char rgb[3];
+        unsigned char rgba[4];
 
         Color()
             : text("")
         {
-            rgb[0] = 255;
-            rgb[1] = 255;
-            rgb[2] = 255;
+            rgba[0] = 255;
+            rgba[1] = 255;
+            rgba[2] = 255;
+            rgba[3] = 255;
         }
 
-        void set(const std::string& text, unsigned char* rgb)
+        void set(const std::string& text, unsigned char* rgba)
         {
             this->text = text;
-            ::memcpy((void*)this->rgb, (const void*)rgb, 3 * sizeof(unsigned char));
+            ::memcpy((void*)this->rgba, (const void*)rgba, 4 * sizeof(unsigned char));
         }
     };
 
     if (config == nullptr)
         return;
 
-    unsigned char rgb[3];
+    unsigned char rgba[4];
     std::vector<Color> colors;
 
     if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA)
@@ -1546,9 +1547,9 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
         const std::string& txt_color = config->opt_string("material_colour").empty() ?
                                        print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value :
                                        config->opt_string("material_colour");
-        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb)) {
+        if (Slic3r::GUI::BitmapCache::parse_color4(txt_color, rgba)) {
             colors.resize(1);
-            colors[0].set(txt_color, rgb);
+            colors[0].set(txt_color, rgba);
         }
     }
     else
@@ -1564,8 +1565,8 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
         for (unsigned int i = 0; i < colors_count; ++i) {
             const std::string& txt_color = config->opt_string("filament_colour", i);
-            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
-                colors[i].set(txt_color, rgb);
+            if (Slic3r::GUI::BitmapCache::parse_color4(txt_color, rgba))
+                colors[i].set(txt_color, rgba);
         }
     }
 
@@ -1579,8 +1580,8 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
         const Color& color = colors[extruder_id];
         if (!color.text.empty()) {
-            for (int i = 0; i < 3; ++i) {
-                volume->color[i] = (float)color.rgb[i] * inv_255;
+            for (int i = 0; i < 4; ++i) {
+                volume->color[i] = (float)color.rgba[i] * inv_255;
             }
         }
     }

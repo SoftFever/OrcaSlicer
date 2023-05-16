@@ -486,16 +486,6 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
         if (m_type == Preset::TYPE_FILAMENT && !filament_rgb.empty())
         {
             // BBS
-#if 0
-            unsigned char rgb[3];
-            // Paint the color bars.
-            bitmap_cache().parse_color(filament_rgb, rgb);
-            bmps.emplace_back(bitmap_cache().mksolid(is_single_bar ? wide_icon_width : norm_icon_width, icon_height, rgb, false, 1, dark_mode));
-            if (!is_single_bar) {
-                bitmap_cache().parse_color(extruder_rgb, rgb);
-                bmps.emplace_back(bitmap_cache().mksolid(thin_icon_width, icon_height, rgb, false, 1, dark_mode));
-            }
-#endif
             // Paint a lock at the system presets.
             bmps.emplace_back(bitmap_cache().mkclear(space_icon_width, icon_height));
         }
@@ -920,10 +910,6 @@ void PlaterPresetComboBox::update()
     {
         //unsigned char rgb[3];
         filament_color = m_preset_bundle->project_config.opt_string("filament_colour", (unsigned int) m_filament_idx);
-        //if (!bitmap_cache().parse_color(filament_color, rgb))
-        //    // Extruder color is not defined.
-        //    filament_color.clear();
-        // BBS
         wxColor clr(filament_color);
         clr_picker->SetBitmap(*get_extruder_color_icons(true)[m_filament_idx]);
 #ifdef __WXOSX__
