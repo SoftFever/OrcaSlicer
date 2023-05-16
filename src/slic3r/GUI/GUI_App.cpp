@@ -2228,8 +2228,18 @@ bool GUI_App::OnInit()
     }
 }
 
+class wxBoostLog : public wxLog
+{
+    void DoLogText(const wxString &msg) {
+        
+        BOOST_LOG_TRIVIAL(warning) << msg.ToUTF8().data();
+    }
+};
+
 bool GUI_App::on_init_inner()
 {
+    wxLog::SetActiveTarget(new wxBoostLog());
+
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();
 #ifdef NDEBUG
