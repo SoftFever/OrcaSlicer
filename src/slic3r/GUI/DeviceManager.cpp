@@ -1415,8 +1415,9 @@ void MachineObject::parse_version_func()
             }
 
             is_support_remote_tunnel = true;
-            local_camera_proto       = (ota_version->second.sw_ver.compare("01.03.01.04") >= 0 
-                    || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.20.39") >= 0)) ? 2 : 0;
+            local_camera_proto       = (local_rtsp_url.empty() || local_rtsp_url == "disable") ? 0 
+                                        : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
+            file_proto = 2;
         }
     } else if (printer_type == "C11") {
         if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
@@ -2377,6 +2378,18 @@ int MachineObject::get_local_camera_proto()
     return local_camera_proto;
 }
 
+bool MachineObject::has_local_file_proto()
+{
+    parse_version_func();
+    return file_proto & 1;
+}
+
+bool MachineObject::has_remote_file_proto()
+{
+    parse_version_func();
+    return file_proto & 2;
+}
+
 int MachineObject::publish_json(std::string json_str, int qos)
 {
     if (is_lan_mode_printer()) {
@@ -2960,6 +2973,12 @@ int MachineObject::parse_json(std::string payload)
                                 else {
                                     camera_resolution = jj["ipcam"]["resolution"].get<std::string>();
                                 }
+                            }
+                            if (jj["ipcam"].contains("rtsp_url")) {
+                                local_rtsp_url = jj["ipcam"]["rtsp_url"].get<std::string>();
+                            }
+                            if (jj["ipcam"].contains("tutk_server")) {
+                                tutk_state = jj["ipcam"]["tutk_server"].get<std::string>();
                             }
                         }
                     }

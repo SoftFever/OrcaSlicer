@@ -635,6 +635,9 @@ public:
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
     int local_camera_proto = 0;
+    int file_proto = 0;
+    std::string local_rtsp_url;
+    std::string tutk_state;
     bool is_support_remote_tunnel{false};
 
     bool xcam_ai_monitoring{ false };
@@ -789,6 +792,8 @@ public:
     bool is_support_print_with_timelapse();
     bool is_camera_busy_off();
     int get_local_camera_proto();
+    bool has_local_file_proto();
+    bool has_remote_file_proto();
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;

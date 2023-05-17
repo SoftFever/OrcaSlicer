@@ -85,12 +85,14 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_passwd     = obj->get_access_code();
         m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
         m_device_busy    = obj->is_camera_busy_off();
+        m_tutk_state     = obj->tutk_state;
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
         m_lan_proto = 0;
         m_lan_ip.clear();
         m_lan_passwd.clear();
+        m_tutk_state.clear();
         m_remote_support = true;
         m_device_busy = false;
     }
@@ -157,7 +159,9 @@ void MediaPlayCtrl::Play()
         if (m_lan_proto == 1)
             m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
         else if (m_lan_proto == 2)
-            m_url = "bambu:///rtsps___" + m_lan_user +":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
+            m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
+        else if (m_lan_proto == 3)
+            m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
@@ -253,6 +257,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         m_failed_code = 0;
     }
 
+
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
@@ -262,8 +267,11 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["dev_ip"]         = m_lan_ip;
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
-        j["tunnel"]         = m_url.find("/local/") == std::string::npos ? "remote" : "local";
+        bool remote         = m_url.find("/local/") == wxString::npos;
+        j["tunnel"]         = remote ? "remote" : "local";
         j["code"]           = m_failed_code;
+        if (remote)
+            j["tutk_state"] = m_tutk_state;
         j["msg"]            = into_u8(msg);
         NetworkAgent *agent = wxGetApp().getAgent();
         if (agent)
@@ -271,6 +279,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         m_last_failed_codes.insert(m_failed_code);
     }
 
+    m_url.clear();
     ++m_failed_retry;
     if (m_failed_code != 0 && (!m_remote_support || m_lan_mode) && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
@@ -423,6 +432,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 
             m_failed_retry = 0;
             m_failed_code  = 0;
+            m_disable_lan = false;
             boost::unique_lock lock(m_mutex);
             m_tasks.push_back("<play>");
             m_cond.notify_all();
