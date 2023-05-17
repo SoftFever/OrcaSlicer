@@ -1761,6 +1761,9 @@ void GUI_App::restart_networking()
             plater_->get_notification_manager()->bbl_close_plugin_install_notification();
 
         if (app_config->get("sync_user_preset") == "true") { start_sync_user_preset(); }
+        if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
+            if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(m_agent); }
+        }
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
 }
