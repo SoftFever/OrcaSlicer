@@ -4,7 +4,7 @@
     "name": "Bambu PLA Sparkle @BBL P1P",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Bambu PLA Marble @base",
+    "inherits": "Bambu PLA Sparkle @base",
     "hot_plate_temp": [
         "65"
     ],
