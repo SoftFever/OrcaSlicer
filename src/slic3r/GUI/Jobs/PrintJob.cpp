@@ -253,6 +253,11 @@ void PrintJob::process()
     if (params.preset_name.empty()) {params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString();}
     if (params.project_name.empty()) {params.project_name = m_project_name;}
 
+    //Prevent string length from exceeding 100 bytes
+    if (params.project_name.size() >= 100) {
+        params.project_name = params.project_name.substr(0, 99);
+    }
+    
     wxString error_text;
     wxString msg_text;
 

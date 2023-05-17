@@ -2842,6 +2842,11 @@ void SelectMachineDialog::on_rename_enter()
         m_valid_type = NoValid;
     }
 
+    if (m_valid_type == Valid && new_file_name.size()  >= 100) {
+        info_line = _L("The name length exceeds the limit.");
+        m_valid_type = NoValid;
+    }
+
     if (m_valid_type != Valid) {
         MessageDialog msg_wingow(nullptr, info_line, "", wxICON_WARNING | wxOK);
         if (msg_wingow.ShowModal() == wxID_OK) {
