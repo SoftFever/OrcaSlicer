@@ -229,6 +229,7 @@ public:
     void update() override;
     void OnSelect(wxCommandEvent &evt) override;
     const Preset* get_selected_preset() { return m_selected_preset; }
+    std::string get_tray_name() { return m_tray_name; }
     bool is_tray_exist() { return m_filament_exist; }
 
 private:

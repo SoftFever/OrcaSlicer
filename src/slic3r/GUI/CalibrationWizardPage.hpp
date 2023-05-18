@@ -48,7 +48,7 @@ public:
         return next;
     }
 
-    wxBoxSizer* get_top_vsizer() { return m_top_sizer; }
+    wxBoxSizer* get_top_hsizer() { return m_top_sizer; }
     wxBoxSizer* get_content_vsizer() { return m_content_sizer; }
     wxBoxSizer* get_btn_hsizer() { return m_btn_sizer; }
     PageButton* get_prev_btn() { return m_btn_prev; }
@@ -56,11 +56,15 @@ public:
 
     void set_page_title(wxString title) { m_title->SetLabel(title); }
     void set_page_index(wxString index) { m_index->SetLabel(index); }
+    void set_highlight_step_text(wxString text);
 
 private:
     wxStaticText* m_title;
     wxStaticText* m_index;
     wxBoxSizer* m_top_sizer;
+    wxStaticText* m_preset_text;
+    wxStaticText* m_calibration_text;
+    wxStaticText* m_record_text;
     wxBoxSizer* m_content_sizer;
     wxBoxSizer* m_btn_sizer;
     PageButton* m_btn_prev;

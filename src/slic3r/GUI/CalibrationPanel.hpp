@@ -10,10 +10,10 @@ class CalibrationPanel : public wxPanel
 {
 public:
     CalibrationPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
-    ~CalibrationPanel() {};
+    ~CalibrationPanel();
     Tabbook* get_tabpanel() { return m_tabpanel; };
     void update_all();
-
+    bool Show(bool show);
 protected:
     void init_tabpanel();
     void init_timer();
@@ -21,7 +21,6 @@ protected:
 
 private:
     Tabbook*    m_tabpanel{ nullptr };
-    //SideTools* m_side_tools{ nullptr };
 
     CalibrationWizard* m_pa_panel{ nullptr };
     CalibrationWizard* m_flow_panel{ nullptr };

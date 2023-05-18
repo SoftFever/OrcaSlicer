@@ -47,6 +47,7 @@ public:
     static bool get_PA_calib_results(std::vector<PACalibResult> &pa_calib_results);
     static void emit_get_PA_calib_infos();
     static bool get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos);
+    static void set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_values);
 
     static void calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::string& error_message);
     static void emit_get_flow_ratio_calib_results();

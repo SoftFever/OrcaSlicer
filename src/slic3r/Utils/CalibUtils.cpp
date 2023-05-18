@@ -147,6 +147,19 @@ bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
     return pa_calib_infos.size() > 0;
 }
 
+void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_values)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr)
+        return;
+
+    obj_->command_set_pa_calibration(pa_calib_values);
+}
+
 void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::string& error_message)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();

@@ -50,7 +50,6 @@ void CalibrationPanel::init_timer()
 }
 
 void CalibrationPanel::on_timer(wxTimerEvent& event) {
-    // todo only update at CalibrationPanel
     update_all();
 }
 
@@ -71,6 +70,25 @@ void CalibrationPanel::update_all() {
         m_temp_panel->update_printer_selections();
         m_temp_panel->update_print_progress();
     }
+}
+
+bool CalibrationPanel::Show(bool show) {
+    if (show) {
+        m_refresh_timer->Stop();
+        m_refresh_timer->SetOwner(this);
+        m_refresh_timer->Start(REFRESH_INTERVAL);
+        wxPostEvent(this, wxTimerEvent());
+    }
+    else {
+        m_refresh_timer->Stop();
+    }
+    return wxPanel::Show(show);
+}
+
+CalibrationPanel::~CalibrationPanel() {
+    if (m_refresh_timer)
+        m_refresh_timer->Stop();
+    delete m_refresh_timer;
 }
 
 }}

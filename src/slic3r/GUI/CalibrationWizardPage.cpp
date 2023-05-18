@@ -74,7 +74,8 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
     m_title->Wrap(-1);
     m_title->SetFont(Label::Head_16);
     title_sizer->Add(m_title, 0, wxALL | wxEXPAND, 0);
-    title_sizer->Add(0, 0, 1, wxEXPAND, 0);
+
+    title_sizer->AddStretchSpacer();
 
     m_index = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_index->Wrap(-1);
@@ -83,11 +84,29 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
 
     page_sizer->Add(title_sizer, 0, wxEXPAND, 0);
 
-    page_sizer->Add(0, FromDIP(20), 0, wxEXPAND, 0);
+    page_sizer->AddSpacer(FromDIP(20));
 
-    m_top_sizer = new wxBoxSizer(wxVERTICAL);
-
+    m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_top_sizer->AddSpacer(FromDIP(180));
+    m_preset_text = new wxStaticText(this, wxID_ANY, _L("Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    m_preset_text->SetFont(::Label::Head_14);
+    m_top_sizer->Add(m_preset_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
+    auto line1 = new wxPanel(this, wxID_ANY, wxDefaultPosition, {FromDIP(250), 1});
+    line1->SetBackgroundColour(*wxBLACK);
+    m_top_sizer->Add(line1, 1, wxALIGN_CENTER, 0);
+    m_calibration_text = new wxStaticText(this, wxID_ANY, _L("Calibration"), wxDefaultPosition, wxDefaultSize, 0);
+    m_calibration_text->SetFont(::Label::Head_14);
+    m_top_sizer->Add(m_calibration_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
+    auto line2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, { FromDIP(250), 1});
+    line2->SetBackgroundColour(*wxBLACK);
+    m_top_sizer->Add(line2, 1, wxALIGN_CENTER, 0);
+    m_record_text = new wxStaticText(this, wxID_ANY, _L("Record"), wxDefaultPosition, wxDefaultSize, 0);
+    m_record_text->SetFont(::Label::Head_14);
+    m_top_sizer->Add(m_record_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
+    m_top_sizer->AddSpacer(FromDIP(180));
     page_sizer->Add(m_top_sizer, 0, wxEXPAND, 0);
+
+    page_sizer->AddSpacer(FromDIP(40));
 
     m_content_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -111,6 +130,18 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
 
     m_btn_prev->Bind(wxEVT_BUTTON, &CalibrationWizardPage::on_click_prev, this);
     m_btn_next->Bind(wxEVT_BUTTON, &CalibrationWizardPage::on_click_next, this);
+}
+
+void CalibrationWizardPage::set_highlight_step_text(wxString text) {
+    m_preset_text->SetForegroundColour(wxColour(181, 181, 181));
+    m_calibration_text->SetForegroundColour(wxColour(181, 181, 181));
+    m_record_text->SetForegroundColour(wxColour(181, 181, 181));
+    if(text == "Preset")
+        m_preset_text->SetForegroundColour(*wxBLACK);
+    if (text == "Calibration")
+        m_calibration_text->SetForegroundColour(*wxBLACK);
+    if (text == "Record")
+        m_record_text->SetForegroundColour(*wxBLACK);
 }
 
 void CalibrationWizardPage::on_click_prev(wxCommandEvent&)
