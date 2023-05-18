@@ -202,6 +202,7 @@ MonitorPanel::~MonitorPanel()
             auto title = m_tabpanel->GetPageText(m_tabpanel->GetSelection());
             m_media_file_panel->SwitchStorage(title == _L("SD Card"));
         }
+        page->SetFocus();
     }, m_tabpanel->GetId());
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);

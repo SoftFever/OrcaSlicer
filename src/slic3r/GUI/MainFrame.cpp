@@ -962,7 +962,6 @@ void MainFrame::init_tabpanel()
         else if (panel == m_monitor) {
             //monitor
         }
-
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
@@ -971,6 +970,9 @@ void MainFrame::init_tabpanel()
             m_topbar->DisableUndoRedoItems();
         }
 #endif
+
+        if (panel)
+            panel->SetFocus();
 
         /*switch (sel) {
         case TabPosition::tpHome:

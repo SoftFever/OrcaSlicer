@@ -261,7 +261,8 @@ public:
     {
         if (event.IsWindowChange()) {
             // change pages
-            AdvanceSelection(event.GetDirection());
+            //AdvanceSelection(event.GetDirection());
+            this->GetGrandParent()->HandleWindowEvent(event);
         }
         else {
             // we get this event in 3 cases
