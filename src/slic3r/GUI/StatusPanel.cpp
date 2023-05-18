@@ -685,8 +685,8 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
     box->SetBorderColor(box_border_colour);
     box->SetCornerRadius(5);
 
-    box->SetMinSize(wxSize(FromDIP(578), -1));
-    box->SetMaxSize(wxSize(FromDIP(578), -1));
+    box->SetMinSize(wxSize(FromDIP(586), -1));
+    box->SetMaxSize(wxSize(FromDIP(586), -1));
 
     wxBoxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_temp_ctrl   = create_temp_control(box);
@@ -1106,7 +1106,7 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     m_ams_control_box->SetBorderColor(box_border_colour);
     m_ams_control_box->SetCornerRadius(5);
 
-    m_ams_control_box->SetMinSize(wxSize(FromDIP(578), -1));
+    m_ams_control_box->SetMinSize(wxSize(FromDIP(586), -1));
     m_ams_control_box->SetBackgroundColour(*wxWHITE);
 #if !BBL_RELEASE_TO_PUBLIC
     m_ams_debug = new wxStaticText(m_ams_control_box, wxID_ANY, _L("Debug Info"), wxDefaultPosition, wxDefaultSize, 0);
