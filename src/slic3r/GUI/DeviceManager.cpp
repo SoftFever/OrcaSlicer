@@ -2373,7 +2373,7 @@ bool MachineObject::is_camera_busy_off()
 
 int MachineObject::get_local_camera_proto()
 {
-    if (!is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL)) return 0;
+    if (!is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL)) return 0;
     return local_camera_proto;
 }
 
