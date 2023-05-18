@@ -3366,7 +3366,8 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
 {
     if (obj) {
         if (m_camera_popup == nullptr)
-            m_camera_popup = std::make_shared<CameraPopup>(this, obj);
+            m_camera_popup = std::make_shared<CameraPopup>(this);
+        m_camera_popup->check_func_supported(obj);
         m_camera_popup->sync_vcamera_state(show_vcamera);
         m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
         m_camera_popup->Bind(EVT_SDCARD_ABSENT_HINT, [this](wxCommandEvent &e) {

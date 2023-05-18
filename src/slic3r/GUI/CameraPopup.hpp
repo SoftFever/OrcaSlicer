@@ -24,7 +24,7 @@ wxDECLARE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 class CameraPopup : public PopupWindow
 {
 public:
-    CameraPopup(wxWindow *parent, MachineObject* obj = nullptr);
+    CameraPopup(wxWindow *parent);
     virtual ~CameraPopup() {}
 
     // PopupWindow virtual methods are all overridden to log them
@@ -34,7 +34,7 @@ public:
     virtual bool Show(bool show = true) wxOVERRIDE;
 
     void sync_vcamera_state(bool show_vcamera);
-    void check_func_supported();
+    void check_func_supported(MachineObject* obj);
     void update(bool vcamera_streaming);
 
     enum CameraResolution
