@@ -153,7 +153,7 @@ MonitorPanel::~MonitorPanel()
     if (!dev) return;
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
 }
 
  void MonitorPanel::init_tabpanel()
@@ -315,7 +315,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
 
     Layout();
     Refresh();
@@ -459,9 +459,6 @@ void MonitorPanel::update_all()
         m_hms_panel->update(obj);
     }
 
-    auto cali_panel = static_cast<CalibrationPanel*>(wxGetApp().mainframe->m_calibration);
-    if(cali_panel)
-        cali_panel->update_obj(obj);
 #if !BBL_RELEASE_TO_PUBLIC
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);
@@ -490,7 +487,7 @@ bool MonitorPanel::Show(bool show)
                 dev->load_last_machine();
                 obj = dev->get_selected_machine();
                 if (obj) 
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
             } else {
                 obj->reset_update_time();
             }

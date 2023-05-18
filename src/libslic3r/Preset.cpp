@@ -1939,8 +1939,9 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 }
 
 //BBS: add project embedded preset logic
-void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project)
+void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project, Preset* _curr_preset)
 {
+    Preset curr_preset = _curr_preset ? *_curr_preset : m_edited_preset;
     //BBS: add lock logic for sync preset in background
     std::string final_inherits;
     lock();
@@ -1959,7 +1960,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             return;
         }
         // Overwriting an existing preset.
-        preset.config = std::move(m_edited_preset.config);
+        preset.config = std::move(curr_preset.config);
         // The newly saved preset will be activated -> make it visible.
         preset.is_visible = true;
         //TODO: remove the detach logic
@@ -1976,7 +1977,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         unlock();
     } else {
         // Creating a new preset.
-        Preset       &preset   = *m_presets.insert(it, m_edited_preset);
+        Preset       &preset   = *m_presets.insert(it, curr_preset);
         std::string  &inherits = preset.inherits();
         std::string   old_name = preset.name;
         preset.name = new_name;

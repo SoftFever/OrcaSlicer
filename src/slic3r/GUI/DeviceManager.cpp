@@ -1941,6 +1941,126 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
     }
 }
 
+int MachineObject::command_start_pa_calibration(const CalibDatas &pa_data)
+{
+    pa_calib_results.clear();
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "extrusion_cali";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
+            j["print"]["filaments"][i]["bed_temp"]             = pa_data.calib_datas[i].bed_temp;
+            j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
+            j["print"]["filaments"][i]["filament_id"]          = pa_data.calib_datas[i].filament_id;
+            j["print"]["filaments"][i]["setting_id"]           = pa_data.calib_datas[i].setting_id;
+            j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
+            j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(pa_data.calib_datas[i].max_volumetric_speed);
+        }
+
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
+int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values)
+{
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "extrusion_cali_set";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        for (int i = 0; i < pa_calib_values.size(); ++i) {
+            j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
+            j["print"]["filaments"][i]["filament_id"] = pa_calib_values[i].filament_id;
+            j["print"]["filaments"][i]["setting_id"]  = pa_calib_values[i].setting_id;
+            j["print"]["filaments"][i]["name"]        = pa_calib_values[i].name;
+            j["print"]["filaments"][i]["k_value"]     = std::to_string(pa_calib_values[i].k_value);
+            j["print"]["filaments"][i]["n_coef"]      = std::to_string(pa_calib_values[i].n_coef);
+        }
+
+        return this->publish_json(j.dump());
+    }
+
+    return -1;
+}
+
+int MachineObject::command_delete_pa_calibration(const PACalibResult& pa_calib)
+{
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "extrusion_cali_del";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["tray_id"]     = pa_calib.tray_id;
+        j["print"]["filament_id"] = pa_calib.filament_id;
+        j["print"]["setting_id"]  = pa_calib.setting_id;
+        j["print"]["name"]        = pa_calib.name;
+        j["print"]["k_value"]     = std::to_string(pa_calib.k_value);
+        j["print"]["n_coef"]      = std::to_string(pa_calib.n_coef);
+
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
+int MachineObject::command_get_pa_calibration_infos(const std::string& filament_id)
+{
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "extrusion_cali_get";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["sequence_id"] = filament_id;
+
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
+int MachineObject::command_get_pa_calibration_result()
+{
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "extrusion_cali_get_result";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
+int MachineObject::command_start_flow_ratio_calibration(const CalibDatas& calib_data)
+{
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "flowrate_cali";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        for (int i = 0; i < calib_data.calib_datas.size(); ++i) {
+            j["print"]["filaments"][i]["bed_temp"]             = calib_data.calib_datas[i].bed_temp;
+            j["print"]["filaments"][i]["tray_id"]              = calib_data.calib_datas[i].tray_id;
+            j["print"]["filaments"][i]["filament_id"]          = calib_data.calib_datas[i].filament_id;
+            j["print"]["filaments"][i]["setting_id"]           = calib_data.calib_datas[i].setting_id;
+            j["print"]["filaments"][i]["nozzle_temp"]          = calib_data.calib_datas[i].nozzle_temp;
+            j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(calib_data.calib_datas[i].max_volumetric_speed);
+        }
+
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
+int MachineObject::command_get_flow_ratio_calibration_result()
+{
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "flowrate_get_result";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
 int MachineObject::command_unload_filament()
 {
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")
@@ -3668,6 +3788,74 @@ int MachineObject::parse_json(std::string payload)
                     }
                     extrusion_cali_set_tray_id = curr_tray_id;
                     extrusion_cali_set_hold_start = std::chrono::system_clock::now();
+                }
+                else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
+                    if (jj["filaments"].is_array()) {
+                        try {
+                            pa_calib_tab.clear();
+                            for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
+                                PACalibResult pa_calib_result;
+                                pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
+                                pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                pa_calib_result.name        = (*it)["name"].get<std::string>();
+
+                                if ((*it)["k_value"].is_number_float())
+                                    pa_calib_result.k_value = (*it)["k_value"].get<float>();
+                                else if ((*it)["k_value"].is_string())
+                                    pa_calib_result.k_value = stof((*it)["k_value"].get<std::string>().c_str());
+
+                                if ((*it)["n_coef"].is_number_float())
+                                    pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
+                                else if ((*it)["n_coef"].is_string())
+                                    pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
+
+                                pa_calib_tab.push_back(pa_calib_result);
+                            }
+                        }
+                        catch (...) {
+
+                        }
+                    }
+                }
+                else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
+                    if (jj["filaments"].is_array()) {
+                        try {
+                            pa_calib_results.clear();
+                            for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
+                                PACalibResult pa_calib_result;
+                                pa_calib_result.tray_id     = (*it)["tray_id"].get<int>();
+                                pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
+                                pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                if ((*it)["k_value"].is_number_float())
+                                    pa_calib_result.k_value = (*it)["k_value"].get<float>();
+                                else if ((*it)["k_value"].is_string())
+                                    pa_calib_result.k_value = stof((*it)["k_value"].get<std::string>().c_str());
+
+                                if ((*it)["n_coef"].is_number_float())
+                                    pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
+                                else if ((*it)["n_coef"].is_string())
+                                    pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
+
+                                pa_calib_results.push_back(pa_calib_result);
+                            }
+                        } catch (...) {}
+                    }
+                }
+                else if (jj["command"].get<std::string>() == "flowrate_get_result") {
+                    if (jj["filaments"].is_array()) {
+                        try {
+                            flow_ratio_results.clear();
+                            for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
+                                FlowRatioCalibResult flow_ratio_calib_result;
+                                flow_ratio_calib_result.tray_id     = (*it)["tray_id"].get<int>();
+                                flow_ratio_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
+                                flow_ratio_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                flow_ratio_calib_result.flow_ratio  = stof((*it)["flow_ratio"].get<std::string>().c_str());
+
+                                flow_ratio_results.push_back(flow_ratio_calib_result);
+                            }
+                        } catch (...) {}
+                    }
                 }
             }
         }

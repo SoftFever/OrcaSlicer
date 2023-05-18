@@ -2925,7 +2925,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         obj->command_request_push_all();
         dev->set_selected_machine(m_printer_last_select, true);
         // Has changed machine unrecoverably
-        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
         update_select_layout(obj);
     } else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";

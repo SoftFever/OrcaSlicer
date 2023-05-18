@@ -2998,6 +2998,12 @@ void MainFrame::request_select_tab(TabPosition pos)
     wxQueueEvent(this, evt);
 }
 
+int MainFrame::get_calibration_curr_tab() {
+    if (m_calibration)
+        return m_calibration->get_tabpanel()->GetSelection();
+    return -1;
+}
+
 // Set a camera direction, zoom to all objects.
 void MainFrame::select_view(const std::string& direction)
 {

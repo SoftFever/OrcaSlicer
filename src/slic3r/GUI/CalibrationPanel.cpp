@@ -2,12 +2,12 @@
 #include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
+#define REFRESH_INTERVAL       1000
 CalibrationPanel::CalibrationPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
 
-    //init_bitmaps();
     init_tabpanel();
 
     wxBoxSizer* sizer_main = new wxBoxSizer(wxVERTICAL);
@@ -15,6 +15,9 @@ CalibrationPanel::CalibrationPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     SetSizerAndFit(sizer_main);
     Layout();
+
+    init_timer();
+    Bind(wxEVT_TIMER, &CalibrationPanel::on_timer, this);
 }
 
 void CalibrationPanel::init_tabpanel() {
@@ -25,8 +28,8 @@ void CalibrationPanel::init_tabpanel() {
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(*wxWHITE);
 
-    //m_pa_panel = new CalibrationWizard(m_tabpanel);
-    //m_tabpanel->AddPage(m_pa_panel, _L("Pressure Adavance"), "", true);
+    m_pa_panel = new PressureAdvanceWizard(m_tabpanel);
+    m_tabpanel->AddPage(m_pa_panel, _L("Pressure Adavance"), "", true);
 
     m_flow_panel = new FlowRateWizard(m_tabpanel);
     m_tabpanel->AddPage(m_flow_panel, _L("Flow Rate"), "", false);
@@ -35,39 +38,38 @@ void CalibrationPanel::init_tabpanel() {
     m_tabpanel->AddPage(m_volumetric_panel, _L("Max Volumetric Speed"), "", false);
 
     m_temp_panel = new TemperatureWizard(m_tabpanel);
-    m_tabpanel->AddPage(m_temp_panel, _L("Temperature"), "", true);
-
-    //m_vfa_panel = new CalibrationWizard(m_tabpanel);
-    //m_tabpanel->AddPage(m_vfa_panel, _L("VFA"), "", false);
-
-    //m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
-    //    CalibrationWizard* page = static_cast<CalibrationWizard*>(m_tabpanel->GetCurrentPage());
-    //    if (page->get_frist_page()) {
-    //        page->update_comboboxes();
-    //    }
-    //    }, m_tabpanel->GetId());
+    m_tabpanel->AddPage(m_temp_panel, _L("Temperature"), "", false);
 }
 
-void CalibrationPanel::update_obj(MachineObject* obj) {
-    if (obj) {
-        if (m_pa_panel)
-            m_pa_panel->update_obj(obj);
-        if (m_flow_panel) {
-            m_flow_panel->update_obj(obj);
-            m_flow_panel->update_ams(obj);
-        }
-        if (m_volumetric_panel) {
-            m_volumetric_panel->update_obj(obj);
-            m_volumetric_panel->update_ams(obj);
-        }
-        if (m_temp_panel) {
-            m_temp_panel->update_obj(obj);
-            m_temp_panel->update_ams(obj);
-            m_temp_panel->update_progress();
-        }
-        if (m_vfa_panel) {
-            m_vfa_panel->update_obj(obj);
-        }
+void CalibrationPanel::init_timer()
+{
+    m_refresh_timer = new wxTimer();
+    m_refresh_timer->SetOwner(this);
+    m_refresh_timer->Start(REFRESH_INTERVAL);
+    wxPostEvent(this, wxTimerEvent());
+}
+
+void CalibrationPanel::on_timer(wxTimerEvent& event) {
+    // todo only update at CalibrationPanel
+    update_all();
+}
+
+void CalibrationPanel::update_all() {
+    if (m_pa_panel) {
+        m_pa_panel->update_printer_selections();
+        m_pa_panel->update_print_progress();
+    }
+    if (m_flow_panel) {
+        m_flow_panel->update_printer_selections();
+        m_flow_panel->update_print_progress();
+    }
+    if (m_volumetric_panel) {
+        m_volumetric_panel->update_printer_selections();
+        m_volumetric_panel->update_print_progress();
+    }
+    if (m_temp_panel) {
+        m_temp_panel->update_printer_selections();
+        m_temp_panel->update_print_progress();
     }
 }
 

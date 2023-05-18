@@ -34,7 +34,7 @@ private:
 class CalibrationWizardPage : public wxPanel 
 {
 public:
-    CalibrationWizardPage(wxWindow* parent, bool has_split_line, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+    CalibrationWizardPage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~CalibrationWizardPage() {};
 
     CalibrationWizardPage* get_prev_page() { return m_prev_page; }
@@ -49,8 +49,8 @@ public:
     }
 
     wxBoxSizer* get_top_vsizer() { return m_top_sizer; }
-    wxBoxSizer* get_left_vsizer() { return m_left_sizer; }
-    wxBoxSizer* get_right_content_vsizer() { return m_right_content_sizer; }
+    wxBoxSizer* get_content_vsizer() { return m_content_sizer; }
+    wxBoxSizer* get_btn_hsizer() { return m_btn_sizer; }
     PageButton* get_prev_btn() { return m_btn_prev; }
     PageButton* get_next_btn() { return m_btn_next; }
 
@@ -58,14 +58,11 @@ public:
     void set_page_index(wxString index) { m_index->SetLabel(index); }
 
 private:
-    bool m_has_middle_line;
-
     wxStaticText* m_title;
     wxStaticText* m_index;
     wxBoxSizer* m_top_sizer;
-    wxBoxSizer* m_left_sizer;
-    wxBoxSizer* m_right_content_sizer;
-    wxBoxSizer* m_right_btn_sizer;
+    wxBoxSizer* m_content_sizer;
+    wxBoxSizer* m_btn_sizer;
     PageButton* m_btn_prev;
     PageButton* m_btn_next;
 

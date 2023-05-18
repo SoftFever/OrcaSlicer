@@ -12,14 +12,12 @@ public:
     CalibrationPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~CalibrationPanel() {};
     Tabbook* get_tabpanel() { return m_tabpanel; };
-    void update_obj(MachineObject* obj);
+    void update_all();
 
 protected:
-    void init_bitmaps();
     void init_tabpanel();
-
-    //void show_wizard();
-    //CalibrationWizard* get_current_wizard();
+    void init_timer();
+    void on_timer(wxTimerEvent& event);
 
 private:
     Tabbook*    m_tabpanel{ nullptr };
@@ -30,6 +28,8 @@ private:
     CalibrationWizard* m_volumetric_panel{ nullptr };
     TemperatureWizard* m_temp_panel{ nullptr };
     CalibrationWizard* m_vfa_panel{ nullptr };
+
+    wxTimer* m_refresh_timer = nullptr;
 };
 }} // namespace Slic3r::GUI
 

@@ -1967,7 +1967,7 @@ void GUI_App::init_networking_callbacks()
 
                     auto sel = this->m_device_manager->get_selected_machine();
                     if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                     }
                 }
             });
@@ -1991,7 +1991,7 @@ void GUI_App::init_networking_callbacks()
                 if (obj) {
                     obj->parse_json(msg);
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                     }
                 }
                 });

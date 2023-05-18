@@ -1,6 +1,6 @@
 #include "CalibrationWizardPage.hpp"
-#include "CalibrationWizard.hpp"
 #include "I18N.hpp"
+#include "Widgets/Label.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -11,12 +11,12 @@ PageButton::PageButton(wxWindow* parent, wxString text, ButtonType type)
     : m_type(type),
     Button(parent, text)
 {
-    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
@@ -59,9 +59,8 @@ PageButton::PageButton(wxWindow* parent, wxString text, ButtonType type)
     SetCornerRadius(FromDIP(12));
 }
 
-CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, bool has_split_line, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-    : m_has_middle_line(has_split_line),
-    wxPanel(parent, id, pos, size, style)
+CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+    : wxPanel(parent, id, pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -90,40 +89,21 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, bool has_split_li
 
     page_sizer->Add(m_top_sizer, 0, wxEXPAND, 0);
 
-    wxBoxSizer* horiz_sizer;
-    horiz_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_content_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_left_sizer = new wxBoxSizer(wxVERTICAL);
-    horiz_sizer->Add(m_left_sizer, 1, wxEXPAND, 0);
+    page_sizer->Add(m_content_sizer, 0, wxEXPAND, 0);
 
-    auto middle_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1, -1), wxTAB_TRAVERSAL);
-    middle_line->SetBackgroundColour(wxColour(0, 0, 0));
+    page_sizer->AddStretchSpacer();
 
-    horiz_sizer->Add(middle_line, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
-
-    if (!has_split_line) {
-        middle_line->Hide();
-    }
-
-    auto right_sizer = new wxBoxSizer(wxVERTICAL);
-
-    m_right_content_sizer = new wxBoxSizer(wxVERTICAL);
-
-    right_sizer->Add(m_right_content_sizer, 0, wxEXPAND, 0);
-
-    m_right_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_right_btn_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    m_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_btn_sizer->Add(0, 0, 1, wxEXPAND, 0);
     m_btn_prev = new PageButton(this, "Back", Back);
-    m_right_btn_sizer->Add(m_btn_prev, 0);
-    m_right_btn_sizer->AddSpacer(FromDIP(10));
+    m_btn_sizer->Add(m_btn_prev, 0);
+    m_btn_sizer->AddSpacer(FromDIP(10));
     m_btn_next = new PageButton(this, "Next", Next);
-    m_right_btn_sizer->Add(m_btn_next, 0);
+    m_btn_sizer->Add(m_btn_next, 0);
 
-    right_sizer->Add(m_right_btn_sizer, 0, wxEXPAND, 0);
-
-    horiz_sizer->Add(right_sizer, 1, wxEXPAND, 0);
-
-    page_sizer->Add(horiz_sizer, 1, wxEXPAND, 0);
+    page_sizer->Add(m_btn_sizer, 0, wxEXPAND, 0);
 
     this->SetSizer(page_sizer);
     this->Layout();

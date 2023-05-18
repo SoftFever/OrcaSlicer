@@ -1,16 +1,56 @@
 #ifndef slic3r_GUI_CalibrationWizard_hpp_
 #define slic3r_GUI_CalibrationWizard_hpp_
 
-#include "GUI_Utils.hpp"
 #include "DeviceManager.hpp"
 #include "CalibrationWizardPage.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/AMSControl.hpp"
+#include "AMSMaterialsSetting.hpp"
+#include "Widgets/ProgressBar.hpp"
 #include "SavePresetDialog.hpp"
+#include "PresetComboBoxes.hpp"
 #include "../slic3r/Utils/CalibUtils.hpp"
 
 namespace Slic3r { namespace GUI {
+
+wxDECLARE_EVENT(EVT_CALIBRATION_TRAY_SELECTION_CHANGED, SimpleEvent);
+
+enum FilamentSelectMode {
+    FSMCheckBoxMode,
+    FSMRadioMode
+};
+class FilamentComboBox : public wxPanel
+{
+public:
+    FilamentComboBox(wxWindow* parent, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    ~FilamentComboBox() {};
+
+    void set_select_mode(FilamentSelectMode mode);
+    FilamentSelectMode get_select_mode() { return m_mode; }
+    void load_tray_from_ams(int id, DynamicPrintConfig& tray);
+    void update_from_preset();
+    int get_tray_id() { return m_tray_id; }
+    CalibrateFilamentComboBox* GetComboBox() { return m_comboBox; }
+    CheckBox* GetCheckBox() { return m_checkBox; }
+    void SetCheckBox(CheckBox* cb) { m_checkBox = cb; }
+    wxRadioButton* GetRadioBox() { return m_radioBox; }
+    void SetRadioBox(wxRadioButton* btn) { m_radioBox = btn; }
+    virtual bool Show(bool show = true);
+    virtual bool Enable(bool enable);
+    virtual void SetValue(bool value);
+
+protected:
+    int m_tray_id;
+
+    CheckBox* m_checkBox{nullptr};
+    //RadioBox* m_radioBox;
+    wxRadioButton* m_radioBox{ nullptr };
+    CalibrateFilamentComboBox* m_comboBox{ nullptr };
+    FilamentSelectMode m_mode{ FSMRadioMode };
+};
+
+typedef std::vector<FilamentComboBox*> FilamentComboBoxList;
 
 class CalibrationWizard : public wxPanel {
 public:
@@ -19,70 +59,125 @@ public:
     CalibrationWizardPage* get_curr_page() { return m_curr_page; }
     CalibrationWizardPage* get_frist_page() { return m_first_page; }
     void show_page(CalibrationWizardPage* page);
-    void update_obj(MachineObject* rhs_obj) { obj = rhs_obj; }
+    void show_send_progress_bar(bool show);
+    void update_printer_selections();
     void update_ams(MachineObject* obj);
-    void update_progress();
+    void update_print_progress();
+    void update_filaments_from_preset();
 
 protected:
     virtual void create_pages() = 0;
-    virtual bool start_calibration(std::string tray_id) = 0;
-    virtual void save_calibration_result() {};
-    virtual void update_calibration_value() = 0;
+    virtual bool start_calibration(std::vector<int> tray_ids) = 0;
+    virtual bool save_calibration_result() = 0;
+    virtual bool recommend_input_value();
 
 protected:
-    wxPanel*  m_background_panel;
+    MachineObject* curr_obj{ nullptr };
+    std::vector<MachineObject*> obj_list{ nullptr };
+
+    wxScrolledWindow* m_scrolledWindow;
+    wxBoxSizer* m_all_pages_sizer;
+
+    CalibrationWizardPage* m_curr_page{ nullptr };
+    CalibrationWizardPage* m_first_page{ nullptr };
+
+    // preset panel
     wxPanel*  m_presets_panel;
-    AMSControl* m_ams_control;
+    wxPanel* m_select_ams_mode_panel;
+    //RadioBox* m_ams_radiobox;
+    //RadioBox* m_ext_spool_radiobox;
+    wxRadioButton* m_ams_radiobox;
+    wxRadioButton* m_ext_spool_radiobox;
+    bool m_filament_from_ext_spool{ false };
+    wxPanel* m_muilti_ams_panel;
+    std::vector<AMSItem*> m_ams_item_list;
+    wxPanel* m_filament_list_panel;
+    ScalableButton* m_ams_sync_button;
+    FilamentComboBoxList m_filament_comboBox_list;
+    wxPanel* m_virtual_panel;
+    FilamentComboBox* m_virtual_tray_comboBox;
     ComboBox* m_comboBox_printer;
-    ComboBox* m_comboBox_filament;
+    ComboBox* m_comboBox_nozzle_dia;
     ComboBox* m_comboBox_bed_type;
     ComboBox* m_comboBox_process;
+    Preset* m_printer_preset{nullptr};
+    Preset* m_filament_preset{ nullptr };
+    Preset* m_print_preset{ nullptr };
     wxStaticText* m_from_text;
     wxStaticText* m_to_text;
     wxStaticText* m_step_text;
     TextInput* m_from_value;
     TextInput* m_to_value;
     TextInput* m_step;
-    BBLStatusBarSend* m_progress_bar;
+    TextInput* m_nozzle_temp;
+    TextInput* m_bed_temp;
+    TextInput* m_max_volumetric_speed;
+    wxStaticText* m_filaments_incompatible_tips;
+    wxStaticText* m_bed_type_incompatible_tips;
+    wxPanel* m_send_progress_panel;
+    std::shared_ptr<BBLStatusBarSend> m_send_progress_bar;  // for send 
 
-    MachineObject* obj{ nullptr };
+    // print panel
+    wxPanel* m_print_panel;
+    wxStaticText* m_staticText_progress_percent;
+    wxStaticText* m_staticText_progress_left_time;
+    wxStaticText* m_staticText_layers;
+    ScalableButton* m_button_pause_resume;
+    ScalableButton* m_button_abort;
+    ProgressBar* m_print_gauge_progress; // for print
+    PageButton* m_btn_next;
+    PageButton* m_btn_recali;
 
-    CalibrationWizardPage* m_curr_page{ nullptr };
-    CalibrationWizardPage* m_first_page{ nullptr };
+    // save panel
+    wxPanel* m_save_panel;
+
 
     void add_presets_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);
-    void add_progress_bar_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);
-    void show_progress_bar(bool show);
-    wxString get_presets_incompatible() { return wxString(); }
+    void add_print_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);
+    void add_send_progress_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);
 
-    void on_select_printer(wxCommandEvent& evt);
-    void on_select_filament(wxCommandEvent& evt);
+    void reset_printing_values();
+    bool save_presets(const std::string& config_key, ConfigOption* config_value);
+    int get_bed_temp(DynamicPrintConfig* config);
+    FilamentSelectMode get_ams_select_mode() { if (!m_filament_comboBox_list.empty()) return m_filament_comboBox_list[0]->get_select_mode(); return FilamentSelectMode::FSMRadioMode; }
+    void set_ams_select_mode(FilamentSelectMode mode) { for (auto fcb : m_filament_comboBox_list) fcb->set_select_mode(mode); };
+    std::vector<int> get_selected_tray();
+    FilamentComboBoxList get_selected_filament_comboBox();
+
+    virtual void on_select_printer(wxCommandEvent& evt);
+    void on_select_nozzle(wxCommandEvent& evt);
+    void on_select_tray(SimpleEvent& evt);
     void on_select_bed_type(wxCommandEvent& evt);
-    void on_select_process(wxCommandEvent& evt);
     void on_click_btn_prev(IntEvent& event);
     void on_click_btn_next(IntEvent& event);
+    void on_subtask_abort(wxCommandEvent& event);
+    void on_subtask_pause_resume(wxCommandEvent& event);
+    void on_choose_ams(wxCommandEvent& event);
+    void on_choose_ext_spool(wxCommandEvent& event);
+    void on_update_ams_filament(bool dialog = true);
+    void on_switch_ams(std::string ams_id);
 
 private:
     void create_presets_panel();
-    void create_progress_bar();
+    void create_print_panel();
+    void create_save_panel();
+    void create_send_progress_bar();
 
-    void init_printer_selections();
-    void init_filaments_selections();
+    void init_presets_selections();
+    void init_nozzle_selections();
     void init_bed_type_selections();
     void init_process_selections();
-    void init_presets_selections();
 };
 
-class PressureAdvanceWizard : public CalibrationWizard{};
-
-class FlowRateWizard : public CalibrationWizard {
+class PressureAdvanceWizard : public CalibrationWizard{
 public:
-    FlowRateWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
-    ~FlowRateWizard() {};
+    PressureAdvanceWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+    ~PressureAdvanceWizard() {};
 protected:
     virtual void create_pages() override;
-    virtual bool start_calibration(std::string tray_id) override;
-    virtual void update_calibration_value() override;
+    virtual bool start_calibration(std::vector<int> tray_ids) override;
+    virtual bool save_calibration_result() override;
+    virtual bool recommend_input_value() override;
 private:
     // page 1
     CalibrationWizardPage* m_page1;
@@ -92,21 +187,44 @@ private:
 
     // page 3
     CalibrationWizardPage* m_page3;
+    TextInput* m_k_val;
+    TextInput* m_n_val;
+};
+
+class FlowRateWizard : public CalibrationWizard {
+public:
+    FlowRateWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+    ~FlowRateWizard() {};
+protected:
+    void create_low_end_pages();
+    void create_high_end_pages();
+    virtual void create_pages() override;
+    virtual bool start_calibration(std::vector<int> tray_ids) override;
+    virtual bool save_calibration_result() override;
+    virtual bool recommend_input_value() override;
+
+    virtual void on_select_printer(wxCommandEvent& evt) override;
+private:
+    // page 1
+    CalibrationWizardPage* m_page1{ nullptr };
+
+    // page 2
+    CalibrationWizardPage* m_page2{ nullptr };
+
+    // page 3
+    CalibrationWizardPage* m_page3{ nullptr };
+    CalibrationWizardPage* m_high_end_page3{ nullptr };
     ComboBox* m_optimal_block_coarse;
 
     // page 4
-    CalibrationWizardPage* m_page4;
-    AMSControl* m_readonly_ams_control;
-    TextInput* m_readonly_printer;
-    TextInput* m_readonly_filament;
-    TextInput* m_readonly_bed_type;
-    TextInput* m_readonly_process;
+    CalibrationWizardPage* m_page4{ nullptr };
+    //BBLStatusBarSend* m_progress_bar2;
 
     // page 5
-    CalibrationWizardPage* m_page5;
+    CalibrationWizardPage* m_page5{ nullptr };
     ComboBox* m_optimal_block_fine;
 
-    void create_readonly_presets_panel();
+    void on_fine_tune(wxCommandEvent&);
 };
 
 class MaxVolumetricSpeedWizard : public CalibrationWizard {
@@ -115,8 +233,9 @@ public:
     ~MaxVolumetricSpeedWizard() {};
 protected:
     virtual void create_pages() override;
-    virtual bool start_calibration(std::string tray_id) override;
-    virtual void update_calibration_value() override;
+    virtual bool start_calibration(std::vector<int> tray_ids) override;
+    virtual bool save_calibration_result() override;
+    virtual bool recommend_input_value() override;
 private:
     // page 1
     CalibrationWizardPage* m_page1;
@@ -135,9 +254,9 @@ public:
     ~TemperatureWizard() {};
 protected:
     virtual void create_pages() override;
-    virtual bool start_calibration(std::string tray_id) override;
-    virtual void save_calibration_result();
-    virtual void update_calibration_value() override;
+    virtual bool start_calibration(std::vector<int> tray_ids) override;
+    virtual bool save_calibration_result() override;
+    virtual bool recommend_input_value() override;
 private:
     // page 1
     CalibrationWizardPage* m_page1;
@@ -145,6 +264,9 @@ private:
     // page 2
     CalibrationWizardPage* m_page2;
     TextInput* m_optimal_temp;
+
+    // page 3
+    CalibrationWizardPage* m_page3;
 };
 
 class VFAWizard : public CalibrationWizard {};

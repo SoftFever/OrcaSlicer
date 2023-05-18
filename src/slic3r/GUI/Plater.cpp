@@ -1368,21 +1368,47 @@ void Sidebar::on_bed_type_change(BedType bed_type)
         m_bed_type_list->SetSelection(sel_idx);
 }
 
-void Sidebar::load_ams_list(std::string const &device, std::map<std::string, Ams *> const &list)
+void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
-    std::vector<DynamicPrintConfig> filament_ams_list;
+    std::map<int, DynamicPrintConfig> filament_ams_list;
+    
+    if (!obj) {
+        p->ams_list_device = device;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1% items") % filament_ams_list.size();
+        wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
+        for (auto c : p->combos_filament)
+            c->update();
+        return;
+    }
+
+    auto vt_tray = obj->vt_tray;
+    bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+    if (is_support_virtual_tray) {
+        DynamicPrintConfig vt_tray_config;
+        vt_tray_config.set_key_value("filament_id", new ConfigOptionStrings{ vt_tray.setting_id });
+        vt_tray_config.set_key_value("filament_type", new ConfigOptionStrings{ vt_tray.type });
+        vt_tray_config.set_key_value("tray_name", new ConfigOptionStrings{ std::string("Ext")});
+        vt_tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ "#" + vt_tray.color.substr(0, 8) });
+        vt_tray_config.set_key_value("filament_exist", new ConfigOptionBools{ vt_tray.is_exists });
+
+        filament_ams_list.emplace(VIRTUAL_TRAY_ID, std::move(vt_tray_config));
+    }
+
+    auto list = obj->amsList;
     for (auto ams : list) {
         char n = ams.first.front() - '0' + 'A';
         for (auto tray : ams.second->trayList) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__
                                     << boost::format(": ams %1% tray %2% id %3% color %4%") % ams.first % tray.first % tray.second->setting_id % tray.second->color;
             char t = tray.first.front() - '0' + '1';
-            DynamicPrintConfig ams;
-            ams.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
-            ams.set_key_value("filament_type", new ConfigOptionStrings{tray.second->type});
-            ams.set_key_value("tray_name", new ConfigOptionStrings{std::string(1, n) + std::string(1, t)});
-            ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 8)});
-            filament_ams_list.emplace_back(std::move(ams));
+            DynamicPrintConfig tray_config;
+            tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
+            tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.second->type});
+            tray_config.set_key_value("tray_name", new ConfigOptionStrings{std::string(1, n) + std::string(1, t)});
+            tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ "#" + tray.second->color.substr(0, 8) });
+            tray_config.set_key_value("filament_exist", new ConfigOptionBools{ tray.second->is_exists });
+
+            filament_ams_list.emplace(((n - 'A') * 4 + t - '1'), std::move(tray_config));
         }
     }
     p->ams_list_device = device;
@@ -1425,9 +1451,11 @@ void Sidebar::sync_ams_list()
     auto res = dlg.ShowModal();
     if (res == wxID_CANCEL) return;
     list2.resize(list.size());
-    for (int i = 0; i < list.size(); ++i) {
-        auto filament_id = list[i].opt_string("filament_id", 0u);
-        list[i].set_key_value("filament_changed", new ConfigOptionBool{res == wxID_YES || list2[i] != filament_id});
+    auto iter = list.begin();
+    for (int i = 0; i < list.size(); ++i, ++iter) {
+        auto & ams = iter->second;
+        auto filament_id = ams.opt_string("filament_id", 0u);
+        ams.set_key_value("filament_changed", new ConfigOptionBool{res == wxID_YES || list2[i] != filament_id});
         list2[i] = filament_id;
     }
     unsigned int unknowns = 0;
@@ -10294,18 +10322,12 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
 //BBS
 void Plater::send_calibration_job_finished(wxCommandEvent & evt)
 {
-    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    dev->set_selected_machine(evt.GetString().ToStdString());
-
-    p->hide_select_machine_dlg();
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpCalibration);
-    //jump to monitor and select device status panel
-    auto curr_calibration = p->main_frame->m_calibration;
-    if (curr_calibration) {
-        // todo select current tab
-        auto calibration_wizard = static_cast<CalibrationWizard*>(curr_calibration->get_tabpanel()->GetPage(curr_calibration->get_tabpanel()->GetSelection()));
-        calibration_wizard->show_page(calibration_wizard->get_curr_page()->get_next_page());
+    auto calibration_panel = p->main_frame->m_calibration;
+    if (calibration_panel) {
+        auto curr_wizard = static_cast<CalibrationWizard*>(calibration_panel->get_tabpanel()->GetPage(evt.GetInt()));
+        curr_wizard->show_send_progress_bar(false);
+        curr_wizard->show_page(curr_wizard->get_curr_page()->get_next_page());
     }
 }
 

@@ -308,6 +308,41 @@ public:
     static wxString get_hms_msg_level_str(HMSMessageLevel level);
 };
 
+class CalibDatas
+{
+public:
+    struct CalibData
+    {
+        int tray_id;
+        int bed_temp;
+        int nozzle_temp;
+        std::string filament_id;
+        std::string setting_id;
+        float max_volumetric_speed;
+    };
+   
+    std::vector<CalibData> calib_datas;
+};
+
+class PACalibResult
+{
+public:
+    int tray_id;
+    std::string filament_id;
+    std::string setting_id;
+    std::string name;
+    float       k_value;
+    float       n_coef;
+};
+
+class FlowRatioCalibResult
+{
+public:
+    int         tray_id;
+    std::string filament_id;
+    std::string setting_id;
+    float       flow_ratio;
+};
 
 #define UpgradeNoError          0
 #define UpgradeDownloadFailed   -1
@@ -608,6 +643,10 @@ public:
     int     total_layers = 0;
     bool    is_support_layer_num { false };
 
+    std::vector<PACalibResult> pa_calib_tab;
+    std::vector<PACalibResult> pa_calib_results;
+    std::vector<FlowRatioCalibResult> flow_ratio_results;
+
     std::vector<int> stage_list_info;
     int stage_curr = 0;
     int m_push_count = 0;
@@ -765,6 +804,17 @@ public:
     // calibration printer
     bool is_support_command_calibration();
     int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
+
+    // PA calibration
+    int command_start_pa_calibration(const CalibDatas& pa_data);
+    int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values);
+    int command_delete_pa_calibration(const PACalibResult& pa_calib);
+    int command_get_pa_calibration_infos(const std::string& filament_id = "");
+    int command_get_pa_calibration_result();
+
+    // flow ratio calibration
+    int command_start_flow_ratio_calibration(const CalibDatas& calib_data);
+    int command_get_flow_ratio_calibration_result();
 
     int command_unload_filament();
 

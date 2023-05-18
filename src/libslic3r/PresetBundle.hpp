@@ -86,6 +86,8 @@ public:
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
+    void set_calibrate_printer(std::string name);
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;
@@ -98,7 +100,10 @@ public:
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
     // BBS: ams
-    std::vector<DynamicPrintConfig> filament_ams_list;
+    std::map<int, DynamicPrintConfig> filament_ams_list;
+    // Calibrate
+    Preset const * calibrate_printer = nullptr;
+    std::set<Preset const *> calibrate_filaments;
 
     // The project configuration values are kept separated from the print/filament/printer preset,
     // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode,

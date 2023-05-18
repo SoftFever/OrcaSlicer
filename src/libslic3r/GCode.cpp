@@ -2705,7 +2705,7 @@ GCode::LayerResult GCode::process_layer(
 
     if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
         auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
-        gcode += writer().set_temperature(print.calib_params().start - offset);
+        gcode += writer().set_temperature(print.calib_params().end - offset);
     }
     else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
         auto _speed = print.calib_params().start + print_z * print.calib_params().step;
@@ -3694,7 +3694,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // calculate extrusion length per distance unit
-    auto _mm3_per_mm = path.mm3_per_mm * (m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio : 1);
+    auto _mm3_per_mm = path.mm3_per_mm * double(m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio.value : 1);
     double e_per_mm    = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));

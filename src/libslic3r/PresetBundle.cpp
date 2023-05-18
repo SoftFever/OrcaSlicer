@@ -255,6 +255,8 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
 
     this->load_selections(config, preferred_selection);
 
+    set_calibrate_printer("");
+
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
     return substitutions;
@@ -539,6 +541,9 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, For
     if (!errors_cummulative.empty()) throw Slic3r::RuntimeError(errors_cummulative);
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
+
+    set_calibrate_printer("");
+
     return PresetsConfigSubstitutions();
 }
 
@@ -605,6 +610,8 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &          
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
     //this->load_selections(config, PresetPreferences());
+
+    set_calibrate_printer("");
 
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
@@ -1441,7 +1448,8 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
 {
     std::vector<std::string> filament_presets;
     std::vector<std::string> filament_colors;
-    for (auto &ams : filament_ams_list) {
+    for (auto &entry : filament_ams_list) {
+        auto & ams = entry.second;
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
         auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
@@ -1476,6 +1484,29 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
     filament_color->values = filament_colors;
     update_multi_material_filament_presets();
     return filament_presets.size();
+}
+
+void PresetBundle::set_calibrate_printer(std::string name)
+{
+    if (name.empty()) {
+        calibrate_filaments.clear();
+        return;
+    }
+    if (!name.empty())
+        calibrate_printer = printers.find_preset(name);
+    const Preset &                printer_preset = calibrate_printer ? *calibrate_printer : printers.get_edited_preset();
+    const PresetWithVendorProfile active_printer = printers.get_preset_with_vendor_profile(printer_preset);
+    DynamicPrintConfig            config;
+    config.set_key_value("printer_preset", new ConfigOptionString(active_printer.preset.name));
+    const ConfigOption *opt = active_printer.preset.config.option("nozzle_diameter");
+    if (opt) config.set_key_value("num_extruders", new ConfigOptionInt((int) static_cast<const ConfigOptionFloats *>(opt)->values.size()));
+    calibrate_filaments.clear();
+    for (size_t i = filaments.num_default_presets(); i < filaments.size(); ++i) {
+        const Preset &                preset                          = filaments.m_presets[i];
+        const PresetWithVendorProfile this_preset_with_vendor_profile = filaments.get_preset_with_vendor_profile(preset);
+        bool                          is_compatible                   = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
+        if (is_compatible) calibrate_filaments.insert(&preset);
+    }
 }
 
 //BBS: check whether this is the only edited filament
