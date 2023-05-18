@@ -753,7 +753,7 @@ void SelectMachinePopup::update_user_devices()
                 dev->set_selected_machine("");
                 if (mobj) {
                     mobj->set_access_code("");
-                    mobj->set_user_access_code("");
+                    mobj->erase_user_access_code();
                 }
 
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);

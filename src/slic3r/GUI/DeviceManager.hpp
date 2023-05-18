@@ -418,11 +418,11 @@ public:
     void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !get_access_code().empty(); }
     std::string get_ftp_folder();
-    void set_access_code(std::string code);
     std::string get_access_code();
 
-    void set_user_access_code(std::string code);
-
+    void set_access_code(std::string code, bool only_refresh = true);
+    void set_user_access_code(std::string code, bool only_refresh = true);
+    void erase_user_access_code();
     std::string get_user_access_code();
     bool is_lan_mode_printer();
 

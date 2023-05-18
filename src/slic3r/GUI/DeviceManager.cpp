@@ -337,14 +337,6 @@ std::string MachineObject::get_ftp_folder()
     return DeviceManager::get_ftp_folder(printer_type);
 }
 
-void MachineObject::set_access_code(std::string code)
-{
-    this->access_code = code;
-    AppConfig *config = GUI::wxGetApp().app_config;
-    if (config && !code.empty()) {
-        GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
-    }
-}
 
 std::string MachineObject::get_access_code()
 {
@@ -353,12 +345,35 @@ std::string MachineObject::get_access_code()
     return get_user_access_code();
 }
 
-void MachineObject::set_user_access_code(std::string code)
+void MachineObject::set_access_code(std::string code, bool only_refresh)
 {
-    this->user_access_code = code;
+    this->access_code = code;
+    if (only_refresh) {
+        AppConfig* config = GUI::wxGetApp().app_config;
+        if (config && !code.empty()) {
+            GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
+        }
+    }
+}
+
+void MachineObject::erase_user_access_code()
+{
+    this->user_access_code = "";
     AppConfig* config = GUI::wxGetApp().app_config;
     if (config) {
-        GUI::wxGetApp().app_config->set_str("user_access_code", dev_id, code);
+        GUI::wxGetApp().app_config->erase("user_access_code", dev_id);
+        GUI::wxGetApp().app_config->save();
+    }
+}
+
+void MachineObject::set_user_access_code(std::string code, bool only_refresh)
+{
+    this->user_access_code = code;
+    if (only_refresh && !code.empty()) {
+        AppConfig* config = GUI::wxGetApp().app_config;
+        if (config) {
+            GUI::wxGetApp().app_config->set_str("user_access_code", dev_id, code);
+        }
     }
 }
 

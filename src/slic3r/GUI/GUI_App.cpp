@@ -1888,7 +1888,7 @@ void GUI_App::init_networking_callbacks()
                                 event.SetString(obj->dev_id);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
-                                obj->set_user_access_code("");
+                                obj->erase_user_access_code();
                                 m_device_manager->set_selected_machine("", true);
                                 wxString text;
                                 if (msg == "5") {
