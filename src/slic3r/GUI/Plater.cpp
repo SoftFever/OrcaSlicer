@@ -9371,6 +9371,26 @@ void Plater::export_gcode(bool prefer_removable)
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
         appconfig.update_last_output_dir(output_path.parent_path().string(), path_on_removable_media);
+
+        try {
+            json j;
+            auto printer_config = Slic3r::GUI::wxGetApp().preset_bundle->printers.get_edited_preset_with_vendor_profile().preset;
+            if (printer_config.is_system) {
+                j["printer_preset"] = printer_config.name;
+            } else {
+                j["printer_preset"] = printer_config.config.opt_string("inherits");
+            }
+
+            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+            if (preset_bundle) {
+                j["Gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+            }
+
+            NetworkAgent *agent = wxGetApp().getAgent();
+            if (agent) agent->track_event("printer_export_Gcode", j.dump());
+            
+        } catch (...) {}
+
     }
 }
 
@@ -10007,6 +10027,53 @@ void Plater::reslice()
     p->preview->reload_print(!clean_gcode_toolpaths);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, started slicing for plate %1%") % p->partplate_list.get_curr_plate_index();
+
+    try
+    {
+        json j;
+        auto printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset_with_vendor_profile().preset;
+        if (printer_preset.is_system) { 
+            j["printer_preset_name"] = printer_preset.name;
+        } else {
+            j["printer_preset_name"] = printer_preset.config.opt_string("inherits");
+        }
+
+        const t_config_enum_values *keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
+        if (keys_map) {
+            for (auto item : *keys_map) {
+                if (item.second == wxGetApp().preset_bundle->project_config.opt_enum<BedType>("curr_bed_type")) {
+                    j["curr_bed_type"] = item.first;
+                    break;
+                }
+            }
+        }
+        auto filament_presets = wxGetApp().preset_bundle->filament_presets;
+        for (int i = 0; i < filament_presets.size(); ++i) {
+            auto filament_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[i]);
+            if (filament_preset->is_system) {
+                j["filament_preset_" + std::to_string(i)] = filament_preset->name;
+            } else {
+                j["filament_preset_" + std::to_string(i)] = filament_preset->config.opt_string("inherits");
+            }
+            
+        }
+
+        auto print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
+        if (print_preset.is_system) {
+            j["print_preset"]  = print_preset.name;
+        } else {
+            j["print_preset"] = print_preset.config.opt_string("inherits");
+        }
+
+        NetworkAgent *agent = wxGetApp().getAgent();
+        if (agent) 
+            agent->track_event("slice_completed", j.dump());
+    }
+    catch (...)
+    {
+        return;
+    }
+
 }
 
 //BBS: add project slicing related logic
@@ -10124,6 +10191,35 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         upload_job.upload_data.group       = dlg.group();
 
         p->export_gcode(fs::path(), false, std::move(upload_job));
+
+        try {
+            json          j;
+            switch (dlg.post_action()) {
+            case PrintHostPostUploadAction::None: 
+                j["post_action"] = "Upload"; 
+                break;
+            case PrintHostPostUploadAction::StartPrint: 
+                j["post_action"] = "StartPrint"; 
+                break;
+            case PrintHostPostUploadAction::StartSimulation: 
+                j["post_action"] = "StartSimulation"; 
+                break;
+            }
+
+            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+            if (preset_bundle) { 
+                j["Gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle); 
+            }
+
+            if (physical_printer_config) { 
+                j["printer_preset"] = physical_printer_config->opt_string("inherits"); 
+            }
+
+            NetworkAgent *agent = wxGetApp().getAgent();
+            if (agent) agent->track_event("third_party_printer_job", j.dump());
+        } catch (...) {
+            return;
+        }
     }
 }
 int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
