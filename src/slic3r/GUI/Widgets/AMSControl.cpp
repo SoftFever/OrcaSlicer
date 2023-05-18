@@ -2142,7 +2142,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
 
     m_button_guide = new Button(m_amswin, _L("Guide"));
-    m_button_guide->SetFont(Label::Body_13);
+    if (wxGetApp().app_config->get("language") == "de_DE") m_button_guide->SetFont(Label::Body_9);
+    else m_button_guide->SetFont(Label::Body_13);
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
     m_button_guide->SetTextColor(btn_text_white);
@@ -2150,7 +2151,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_guide->SetBackgroundColor(btn_bg_white);
 
     m_button_retry = new Button(m_amswin, _L("Retry"));
-    m_button_retry->SetFont(Label::Body_13);
+    if (wxGetApp().app_config->get("language") == "de_DE") m_button_retry->SetFont(Label::Body_9);
+    else m_button_retry->SetFont(Label::Body_13);
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
     m_button_retry->SetTextColor(btn_text_white);
