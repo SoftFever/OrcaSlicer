@@ -505,7 +505,13 @@ void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
     else {
         wxDisplay display(this);
         auto      size = display.GetClientArea().GetSize();
-        m_frame->SetMaxSize(size + wxSize{16, 16});
+#ifdef __WXMSW__
+        HWND hWnd = m_frame->GetHandle();
+        RECT      borderThickness;
+        SetRectEmpty(&borderThickness);
+        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        m_frame->SetMaxSize(size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom});
+#endif //  __WXMSW__
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
@@ -530,16 +536,8 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
     return;
 #endif //  __WXMSW__
 
-    if (m_frame->IsMaximized()) {
-        m_frame->Restore();
-    }
-    else {
-        wxDisplay display(this);
-        auto      size = display.GetClientArea().GetSize();
-        m_frame->SetMaxSize(size + wxSize{16, 16});
-        m_normalRect = m_frame->GetRect();
-        m_frame->Maximize();
-    }
+    wxAuiToolBarEvent evt;
+    OnFullScreen(evt);
 }
 
 void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
