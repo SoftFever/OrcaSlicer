@@ -3751,7 +3751,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("get_recent_projects") == 0) {
                 if (mainframe) {
                     if (mainframe->m_webview) {
-                        mainframe->m_webview->SendRecentList(from_u8(sequence_id.value()));
+                        mainframe->m_webview->SendRecentList(INT_MAX);
                     }
                 }
             }

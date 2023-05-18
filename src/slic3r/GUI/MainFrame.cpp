@@ -2615,7 +2615,7 @@ void MainFrame::set_max_recent_count(int max)
         }
         wxGetApp().app_config->set_recent_projects(recent_projects);
         wxGetApp().app_config->save();
-        m_webview->SendRecentList("");
+        m_webview->SendRecentList(-1);
     }
 }
 
@@ -3082,7 +3082,7 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
         }
         wxGetApp().app_config->set_recent_projects(recent_projects);
         wxGetApp().app_config->save();
-        m_webview->SendRecentList("");
+        m_webview->SendRecentList(0);
     }
 }
 
@@ -3136,7 +3136,7 @@ inline void MainFrame::FileHistory::SetMaxFiles(int max)
         RemoveFileFromHistory(--numFiles);
 }
 
-void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
+void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int images)
 {
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
         boost::property_tree::wptree item;
@@ -3148,8 +3148,10 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
         if (!ec) {
             std::wstring time = wxDateTime(t).FormatISOCombined(' ').ToStdWstring();
             item.put(L"time", time);
-            auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
-            if (!thumbnail.empty()) item.put(L"image", thumbnail);
+            if (i <= images) {
+                auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
+                if (!thumbnail.empty()) item.put(L"image", thumbnail);
+            }
         } else {
             item.put(L"time", _L("File is missing"));
         }
@@ -3182,7 +3184,7 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
             }
             wxGetApp().app_config->set_recent_projects(recent_projects);
             wxGetApp().app_config->save();
-            m_webview->SendRecentList("");
+            m_webview->SendRecentList(-1);
         }
     }
 }
@@ -3206,7 +3208,7 @@ void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
     }
     wxGetApp().app_config->set_recent_projects(recent_projects);
     wxGetApp().app_config->save();
-    m_webview->SendRecentList("");
+    m_webview->SendRecentList(-1);
 }
 
 void MainFrame::load_url(wxString url)

@@ -93,7 +93,7 @@ public:
     void OnFreshLoginStatus(wxTimerEvent &event);
 
 public:
-    void SendRecentList(wxString const &sequence_id);
+    void SendRecentList(int images);
     void SendDesignStaffpick(NetworkAgent *agent);
     void SendLoginInfo();
     void ShowNetpluginTip();

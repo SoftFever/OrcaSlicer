@@ -414,12 +414,12 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         Slic3r::GUI::wxGetApp().get_login_info();
 }
 
-void WebViewPanel::SendRecentList(wxString const &sequence_id)
+void WebViewPanel::SendRecentList(int images)
 {
     boost::property_tree::wptree req;
     boost::property_tree::wptree data;
-    wxGetApp().mainframe->get_recent_projects(data);
-    req.put(L"sequence_id", sequence_id);
+    wxGetApp().mainframe->get_recent_projects(data, images);
+    req.put(L"sequence_id", "");
     req.put(L"command", L"get_recent_projects");
     req.put_child(L"response", data);
     std::wostringstream oss;
