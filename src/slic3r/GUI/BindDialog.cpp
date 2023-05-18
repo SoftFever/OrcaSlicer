@@ -209,7 +209,7 @@ wxString get_fail_reason(int code)
      auto m_checkbox_privacy = new CheckBox(m_panel_agreement, wxID_ANY);
      auto m_st_privacy_title = new Label(m_panel_agreement, _L("Read and accept"));
      m_st_privacy_title->SetFont(Label::Body_13);
-     m_st_privacy_title->SetForegroundColour(wxColour(0x323A3D));
+     m_st_privacy_title->SetForegroundColour(wxColour(38, 46, 48));
 
      auto m_link_Terms_title = new Label(m_panel_agreement, _L("Terms and Conditions"));
      m_link_Terms_title->SetFont(Label::Head_13);
@@ -218,7 +218,7 @@ wxString get_fail_reason(int code)
      m_link_Terms_title->SetForegroundColour(wxColour(0x00AE42));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
          wxString txt = _L("Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
-         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"));
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
          confirm_dlg.update_text(txt);
          confirm_dlg.CenterOnParent();
          confirm_dlg.on_show();
@@ -228,7 +228,7 @@ wxString get_fail_reason(int code)
 
      auto m_st_and_title = new Label(m_panel_agreement, _L("and"));
      m_st_and_title->SetFont(Label::Body_13);
-     m_st_and_title->SetForegroundColour(wxColour(0x323A3D));
+     m_st_and_title->SetForegroundColour(wxColour(38, 46, 48));
 
      auto m_link_privacy_title = new Label(m_panel_agreement, _L("Privacy Policy"));
      m_link_privacy_title->SetFont(Label::Head_13);
@@ -268,7 +268,7 @@ wxString get_fail_reason(int code)
      auto m_checkbox_notice = new CheckBox(m_panel_agreement, wxID_ANY);
      auto m_st_notice_title = new Label(m_panel_agreement, notice_title);
      m_st_notice_title->SetFont(Label::Body_13);
-     m_st_notice_title->SetForegroundColour(wxColour(0x323A3D));
+     m_st_notice_title->SetForegroundColour(wxColour(38, 46, 48));
 
      auto m_link_notice_title = new Label(m_panel_agreement, notice_link_title);
      m_link_notice_title->SetFont(Label::Head_13);
@@ -279,7 +279,7 @@ wxString get_fail_reason(int code)
      m_link_notice_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
      m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
          wxString txt = _L("In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. %s follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training %s to be smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in  Privacy Policy. We will not collect any Personal Data by which an individual can be identified directly or indirectly, including without limitation names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy.");
-         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Statement on User Experience Improvement Plan"));
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Statement on User Experience Improvement Plan"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
 
          wxString model_id_text;
 
