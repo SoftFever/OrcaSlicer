@@ -5,6 +5,10 @@
     "description": "Elegoo configurations",
     "machine_model_list": [
 		{
+            "name": "Elegoo Neptune",
+            "sub_path": "machine/Elegoo Neptune.json"
+        },
+		{
             "name": "Elegoo Neptune X",
             "sub_path": "machine/Elegoo Neptune X.json"
         },
@@ -47,6 +51,10 @@
             "sub_path": "process/fdm_process_elegoo_common.json"
         },
 		{
+            "name": "0.08mm Extra Fine @Elegoo Neptune",
+            "sub_path": "process/0.08mm Extra Fine @Elegoo Neptune.json"
+        },
+		{
             "name": "0.08mm Extra Fine @Elegoo NeptuneX",
             "sub_path": "process/0.08mm Extra Fine @Elegoo NeptuneX.json"
         },
@@ -77,6 +85,10 @@
 		{
             "name": "0.08mm Extra Fine @Elegoo Neptune3Max",
             "sub_path": "process/0.08mm Extra Fine @Elegoo Neptune3Max.json"
+        },
+		{
+            "name": "0.12mm Fine @Elegoo Neptune",
+            "sub_path": "process/0.12mm Fine @Elegoo Neptune.json"
         },
 		{
             "name": "0.12mm Fine @Elegoo NeptuneX",
@@ -111,6 +123,10 @@
             "sub_path": "process/0.12mm Fine @Elegoo Neptune3Max.json"
         },
 		{
+            "name": "0.16mm Optimal @Elegoo Neptune",
+            "sub_path": "process/0.16mm Optimal @Elegoo Neptune.json"
+        },
+		{
             "name": "0.16mm Optimal @Elegoo NeptuneX",
             "sub_path": "process/0.16mm Optimal @Elegoo NeptuneX.json"
         },
@@ -141,6 +157,10 @@
 		{
             "name": "0.16mm Optimal @Elegoo Neptune3Max",
             "sub_path": "process/0.16mm Optimal @Elegoo Neptune3Max.json"
+        },
+		{
+            "name": "0.20mm Standard @Elegoo Neptune",
+            "sub_path": "process/0.20mm Standard @Elegoo Neptune.json"
         },
 		{
             "name": "0.20mm Standard @Elegoo NeptuneX",
@@ -175,6 +195,10 @@
             "sub_path": "process/0.20mm Standard @Elegoo Neptune3Max.json"
         },
 		{
+            "name": "0.24mm Draft @Elegoo Neptune",
+            "sub_path": "process/0.24mm Draft @Elegoo Neptune.json"
+        },
+		{
             "name": "0.24mm Draft @Elegoo NeptuneX",
             "sub_path": "process/0.24mm Draft @Elegoo NeptuneX.json"
         },
@@ -205,6 +229,10 @@
 		{
             "name": "0.24mm Draft @Elegoo Neptune3Max",
             "sub_path": "process/0.24mm Draft @Elegoo Neptune3Max.json"
+        },
+		{
+            "name": "0.28mm Extra Draft @Elegoo Neptune",
+            "sub_path": "process/0.28mm Extra Draft @Elegoo Neptune.json"
         },
 		{
             "name": "0.28mm Extra Draft @Elegoo NeptuneX",
@@ -277,6 +305,10 @@
         {
             "name": "fdm_elegoo_common",
             "sub_path": "machine/fdm_elegoo_common.json"
+        },
+		{
+            "name": "Elegoo Neptune 0.4 nozzle",
+            "sub_path": "machine/Elegoo Neptune 0.4 nozzle.json"
         },
 		{
             "name": "Elegoo Neptune X 0.4 nozzle",

@@ -19,6 +19,7 @@
         "7"
     ],
     "compatible_printers": [
+		"Artillery Sidewinder X1 0.4 nozzle",
 		"Artillery Genius 0.4 nozzle",
 		"Artillery Sidewinder X2 0.4 nozzle",
 		"Artillery Hornet 0.4 nozzle"

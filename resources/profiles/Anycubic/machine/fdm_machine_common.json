@@ -131,7 +131,7 @@
     "change_filament_gcode": "",
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
-    "machine_pause_gcode": "M400 U1",
+    "machine_pause_gcode": "M400 U1\n",
     "wipe": [
         "1"
     ],

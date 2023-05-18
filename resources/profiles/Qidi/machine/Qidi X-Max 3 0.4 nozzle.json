@@ -103,7 +103,7 @@
 	"default_filament_profile": [
 		"Qidi Generic PLA"
 	],
-	"machine_start_gcode": "G28\nM190 S[hot_plate_temp_initial_layer]\nG28 Z\n;G29\nG0 X4 Y5 Z50 F6000\nM109 S[nozzle_temperature_initial_layer]\nM82\nG0 Z0.3 F600\nG92 E-36.45\nG1 Y120 E-27.45 F3000\nG1 X6 E-27.30\nG1 Y5 E-18.30\nG1 X8 E-18.15\nG1 Y120 E-9.15\nG1 X10 E-9\nG1 Y5 E0",
+	"machine_start_gcode": "G28\nM190 S[bed_temperature_initial_layer_single]\nG28 Z\n;G29\nG0 X4 Y5 Z50 F6000\nM109 S[nozzle_temperature_initial_layer]\nM82\nG0 Z0.3 F600\nG92 E-36.45\nG1 Y120 E-27.45 F3000\nG1 X6 E-27.30\nG1 Y5 E-18.30\nG1 X8 E-18.15\nG1 Y120 E-9.15\nG1 X10 E-9\nG1 Y5 E0",
 	"machine_end_gcode": "M104 S0\nM140 S0\nG92 E0\nG1 E-3 F1800\nG91\nG0 Z10 F600\nG90\nG0 X0 Y0 F12000\nG0 Z[printable_height] F600",
 	"scan_first_layer": "0"
 }

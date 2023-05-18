@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "fdm_machine_common",
     "printer_model": "FLSun V400",
-    "default_print_profile": "0.20mm Standard @FLSun",
+    "default_print_profile": "0.20mm Standard @FLSun V400",
     "gcode_flavor": "klipper",
     "nozzle_diameter": [
         "0.4"

@@ -504,7 +504,7 @@ std::string PresetBundle::get_hotend_model_for_printer_model(std::string model_n
             out = Slic3r::resources_dir() + "/profiles/" + vendor_name + "/" + hotend_stl;
     }
 
-    if (out.empty())
+    if (out.empty() ||!boost::filesystem::exists(boost::filesystem::path(out)))
         out = Slic3r::resources_dir() + "/profiles/hotend.stl";
 
     return out;

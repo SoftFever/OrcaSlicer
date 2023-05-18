@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Troodon 2.0 - Klipper",
+    "model_id": "Troodon2Klipper",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Vivedino",
+    "bed_model": "",
+    "bed_texture": "OrcaSlicer-Troodon2-Bed-Texture.png",
+    "hotend_model": "",
+    "default_materials": "Troodon Generic ABS;Troodon Generic PLA;Troodon Generic PLA-CF;Troodon Generic PETG;Troodon Generic TPU;Troodon Generic ASA;Troodon Generic PC;Troodon Generic PVA;Troodon Generic PA;Troodon Generic PA-CF"
+}

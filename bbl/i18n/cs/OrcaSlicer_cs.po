@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-29 20:13+0800\n"
+"POT-Creation-Date: 2023-05-14 11:27+0800\n"
 "PO-Revision-Date: 2023-03-31 22:48+0200\n"
 "Last-Translator: Momo <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3350,6 +3350,12 @@ msgstr "Průtok"
 msgid "Pressure advance"
 msgstr "Předstih tlaku"
 
+msgid "Retraction test"
+msgstr ""
+
+msgid "Orca Tolerance Test"
+msgstr ""
+
 msgid "Max flowrate"
 msgstr "Max. průtok"
 
@@ -5319,9 +5325,6 @@ msgstr "Výstup G-kódu"
 msgid "Post-processing Scripts"
 msgstr "Skripty Post-processing"
 
-msgid "Post-processing scripts"
-msgstr ""
-
 msgid "Frequent"
 msgstr "Časté"
 
@@ -5457,6 +5460,12 @@ msgstr ""
 
 msgid "Printable space"
 msgstr "Prostor pro tisk"
+
+msgid "Cooling Fan"
+msgstr ""
+
+msgid "Fan speed-up time"
+msgstr ""
 
 msgid "Extruder Clearance"
 msgstr "Vzdálenost extrudéru"
@@ -6812,8 +6821,8 @@ msgstr ""
 "jak velká šířka linky bez podpěry spodní vrstvy. 0% znamená vynucení "
 "chlazení pro celou vnější stěnu bez ohledu na míru převisu"
 
-msgid "Bridge direction"
-msgstr "Směr mostu"
+msgid "Bridge infill direction"
+msgstr "Směr výplně mostu"
 
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
@@ -7404,14 +7413,6 @@ msgid ""
 "of line"
 msgstr "Úhel pro vzor řídké výplně, který řídí začátek nebo hlavní směr linky"
 
-msgid "Bridge infill direction"
-msgstr "Směr výplně mostu"
-
-msgid ""
-"Angle for bridge infill pattern, which controls the start or main direction "
-"of line"
-msgstr "Úhel pro vzor výplně mostu, který řídí začátek nebo hlavní směr linky"
-
 msgid "Sparse infill density"
 msgstr "Hustota řídké výplně"
 
@@ -7565,6 +7566,14 @@ msgstr "Rychlost pohybu první vrstvy"
 msgid "Travel speed of initial layer"
 msgstr "Cestovní rychlost počáteční vrstvy"
 
+msgid "Number of slow layers"
+msgstr ""
+
+msgid ""
+"The first few layers are printed slower than normal. The speed is gradually "
+"increased in a linear fashion over the specified number of layers."
+msgstr ""
+
 msgid "Initial layer nozzle temperature"
 msgstr "Teplota trysky první vrstvy"
 
@@ -7573,6 +7582,24 @@ msgstr "Teplota trysky pro tisk první vrstvy při použití tohoto filamentu"
 
 msgid "Full fan speed at layer"
 msgstr "Maximální otáčky ventilátoru ve vrstvě"
+
+msgid ""
+"Fan speed will be ramped up linearly from zero at layer "
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+msgstr ""
+
+msgid "Support interface fan speed"
+msgstr ""
+
+msgid ""
+"This fan speed is enforced during all support interfaces, to be able to "
+"weaken their bonding with a high fan speed.\n"
+"Set to -1 to disable this override.\n"
+"Can only be overriden by disable_fan_first_layers."
+msgstr ""
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
@@ -7696,6 +7723,35 @@ msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Povolte tuto možnost, pokud má stroj pomocný chladicí ventilátor"
+
+msgid ""
+"Start the fan this number of seconds earlier than its target start time (you "
+"can use fractional seconds). It assumes infinite acceleration for this time "
+"estimation, and will only take into account G1 and G0 moves (arc fitting is "
+"unsupported).\n"
+"It won't move fan comands from custom gcodes (they act as a sort of "
+"'barrier').\n"
+"It won't move fan comands into the start gcode if the 'only custom start "
+"gcode' is activated.\n"
+"Use 0 to deactivate."
+msgstr ""
+
+msgid "Only overhangs"
+msgstr ""
+
+msgid "Will only take into account the delay for the cooling of overhangs."
+msgstr ""
+
+msgid "Fan kick-start time"
+msgstr ""
+
+msgid ""
+"Emit a max fan speed command for this amount of seconds before reducing to "
+"target speed to kick-start the cooling fan.\n"
+"This is useful for fans where a low PWM/power may be insufficient to get the "
+"fan started spinning from a stop, or to get the fan up to speed faster.\n"
+"Set to 0 to deactivate."
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "Druh G-code"
@@ -8252,8 +8308,8 @@ msgstr "Mezera švu"
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
-"This amount can be specified in millimeters or as a percentage of the current "
-"extruder diameter. The default value for this parameter is 15%."
+"This amount can be specified in millimeters or as a percentage of the "
+"current extruder diameter. The default value for this parameter is 15%."
 msgstr ""
 "Aby se snížila viditelnost švu při vytlačování s uzavřenou smyčkou, smyčka "
 "se přeruší a zkrátí o zadanou hodnotu.\n"
@@ -9388,6 +9444,58 @@ msgstr ""
 "start > 10 kroků >= 0\n"
 "konec > začátek + krok)"
 
+msgid "Start retraction length: "
+msgstr ""
+
+msgid "End retraction length: "
+msgstr ""
+
+msgid "mm/mm"
+msgstr ""
+
+msgid "Physical Printer"
+msgstr ""
+
+msgid "Print Host upload"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Could not get a valid Printer Host reference"
+msgstr ""
+
+msgid "Success!"
+msgstr ""
+
+msgid "Refresh Printers"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+
+msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -9652,6 +9760,15 @@ msgstr ""
 "Zlepšete pevnost\n"
 "Did jste, že ke zlepšení pevnosti modelu můžete použít více smyček na stěně "
 "a vyšší hustotu výplně?"
+
+#~ msgid "Bridge direction"
+#~ msgstr "Směr mostu"
+
+#~ msgid ""
+#~ "Angle for bridge infill pattern, which controls the start or main "
+#~ "direction of line"
+#~ msgstr ""
+#~ "Úhel pro vzor výplně mostu, který řídí začátek nebo hlavní směr linky"
 
 #~ msgid "Keep upper part"
 #~ msgstr "Zachovat horní část"
