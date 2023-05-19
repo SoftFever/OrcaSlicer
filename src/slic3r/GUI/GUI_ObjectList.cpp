@@ -1967,7 +1967,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
 
         Model model;
         try {
-            model = Model::read_from_file(input_file);
+            model = Model::read_from_file(input_file, nullptr, nullptr, LoadStrategy::LoadModel);
         }
         catch (std::exception& e) {
             auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
