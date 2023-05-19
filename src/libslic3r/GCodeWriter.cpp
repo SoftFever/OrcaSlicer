@@ -314,17 +314,19 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         Vec2d delta_no_z = { delta(0), delta(1) };
         //BBS: don'need slope travel because we don't know where is the source position the first time
         //BBS: Also don't need to do slope move or spiral lift if x-y distance is absolute zero
-        if (this->is_current_position_clear() && delta(2) > 0 && delta_no_z.norm() != 0.0f) {
-            double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
-            Vec2d ij_offset = radius * delta_no_z.normalized();
-            ij_offset = { -ij_offset(1), ij_offset(0) };
+        if (delta(2) > 0 && delta_no_z.norm() != 0.0f)    {
             //BBS: SpiralLift
-            if (m_to_lift_type == LiftType::SpiralLift) {
+            if (m_to_lift_type == LiftType::SpiralLift && this->is_current_position_clear()) {
                 //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
+                double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
+                Vec2d ij_offset = radius * delta_no_z.normalized();
+                ij_offset = { -ij_offset(1), ij_offset(0) };
                 slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
             }
             //BBS: LazyLift
-            else if (atan2(delta(2), delta_no_z.norm()) < GCodeWriter::slope_threshold) {
+            else if (m_to_lift_type == LiftType::LazyLift &&
+                this->is_current_position_clear() && 
+                atan2(delta(2), delta_no_z.norm()) < GCodeWriter::slope_threshold) {
                 //BBS: check whether we can make a travel like
                 //   _____
                 //  /       to make the z list early to avoid to hit some warping place when travel is long.
@@ -334,8 +336,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 w0.emit_xyz(slope_top_point);
                 w0.emit_f(this->config.travel_speed.value * 60.0);
                 //BBS
-                w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
+                w0.emit_comment(GCodeWriter::full_gcode_comment, "slope lift Z");
                 slop_move = w0.string();
+            }
+            else if (m_to_lift_type == LiftType::NormalLift) {
+                slop_move = _travel_to_z(target.z(), "normal lift Z");
             }
         }
 
@@ -595,7 +600,7 @@ std::string GCodeWriter::unretract()
 /*  If this method is called more than once before calling unlift(),
     it will not perform subsequent lifts, even if Z was raised manually
     (i.e. with travel_to_z()) and thus _lifted was reduced. */
-std::string GCodeWriter::lift(LiftType lift_type)
+std::string GCodeWriter::lift(LiftType lift_type, bool spiral_vase)
 {
     // check whether the above/below conditions are met
     double target_lift = 0;
@@ -605,12 +610,13 @@ std::string GCodeWriter::lift(LiftType lift_type)
     }
     // BBS
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {
-        if (lift_type == LiftType::LazyLift || lift_type == LiftType::SpiralLift) {
-            m_to_lift = target_lift;
-            m_to_lift_type = lift_type;
-        } else  {
+        if (spiral_vase) {
             m_lifted = target_lift;
             return this->_travel_to_z(m_pos(2) + target_lift, "lift Z");
+        }
+        else {
+            m_to_lift = target_lift;
+            m_to_lift_type = lift_type;
         }
     }
     return "";
@@ -681,6 +687,28 @@ std::string GCodeWriter::set_additional_fan(unsigned int speed)
     }
     gcode << "\n";
     return gcode.str();
+}
+
+void GCodeWriter::add_object_start_labels(std::string& gcode)
+{
+    if (!m_gcode_label_objects_start.empty()) {
+        gcode += m_gcode_label_objects_start;
+        m_gcode_label_objects_start = "";
+    }
+}
+
+void GCodeWriter::add_object_end_labels(std::string& gcode)
+{
+    if (!m_gcode_label_objects_end.empty()) {
+        gcode += m_gcode_label_objects_end;
+        m_gcode_label_objects_end = "";
+    }
+}
+
+void GCodeWriter::add_object_change_labels(std::string& gcode)
+{
+    add_object_end_labels(gcode);
+    add_object_start_labels(gcode);
 }
 
 void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {

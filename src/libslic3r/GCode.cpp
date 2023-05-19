@@ -78,8 +78,7 @@ namespace Slic3r {
 static const float g_min_purge_volume = 100.f;
 static const float g_purge_volume_one_time = 135.f;
 static const int g_max_flush_count = 4;
-
-bool GCode::gcode_label_objects = false;
+static const size_t g_max_label_object = 64;
 
 Vec2d travel_point_1;
 Vec2d travel_point_2;
@@ -410,6 +409,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 "Travel to a Wipe Tower");
             gcode += gcodegen.unretract();
         }
+
+        //BBS: if needed, write the gcode_label_objects_end then priming tower, if the retract, didn't did it.
+        gcodegen.m_writer.add_object_end_labels(gcode);
 
         double current_z = gcodegen.writer().get_position().z();
         if (z == -1.) // in case no specific z was provided, print at current_z pos
@@ -1505,6 +1507,27 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
     //BBS: total layer number
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
+    //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
+    if (print.extruders(true).size() == 1 &&                  //Don't support multi-color
+        print.num_object_instances() <= g_max_label_object) {  //Don't support too many objects on one plate
+        m_enable_label_object = true;
+        m_label_objects_ids.clear();
+        m_label_objects_ids.reserve(print.num_object_instances());
+        for (const PrintObject* print_object : print.objects())
+            for (const PrintInstance& print_instance : print_object->instances())
+                m_label_objects_ids.push_back(print_instance.model_instance->id().id);
+        std::sort(m_label_objects_ids.begin(), m_label_objects_ids.end());
+
+        std::string objects_id_list = "; model label id: ";
+        for (size_t id : m_label_objects_ids)
+            objects_id_list += (std::to_string(id) + (id != m_label_objects_ids.back() ? "," : "\n"));
+        file.writeln(objects_id_list);
+    }
+    else {
+        m_enable_label_object = false;
+        m_label_objects_ids.clear();
+    }
+
     file.write_format("; HEADER_BLOCK_END\n\n");
 
     //BBS: write global config at the beginning of gcode file because printer need these config information
@@ -1981,6 +2004,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: the last retraction
     // Write end commands to file.
     file.write(this->retract(false, true));
+
+    // if needed, write the gcode_label_objects_end
+    {
+        std::string gcode;
+        m_writer.add_object_change_labels(gcode);
+        file.write(gcode);
+    }
+
     file.write(m_writer.set_fan(0));
     //BBS: make sure the additional fan is closed when end
     file.write(m_writer.set_additional_fan(0));
@@ -2388,7 +2419,7 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
             const PrintObject *print_object = layers[layer_id].original_object;
             //const PrintObject *print_object = layers[layer_id].object();
             if (print_object)
-                out.emplace_back(object_by_extruder, layer_id, *print_object, single_object_instance_idx);
+                out.emplace_back(object_by_extruder, layer_id, *print_object, single_object_instance_idx, print_object->instances()[single_object_instance_idx].model_instance->id().id);
         }
     } else {
         // Create mapping from PrintObject* to ObjectByExtruder*.
@@ -2416,7 +2447,7 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
                 auto it = std::lower_bound(sorted.begin(), sorted.end(), key);
                 if (it != sorted.end() && it->first == &print_object)
                     // ObjectByExtruder for this PrintObject was found.
-                    out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance - print_object.instances().data());
+                    out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance - print_object.instances().data(), instance->model_instance->id().id);
             }
         }
     }
@@ -2692,7 +2723,7 @@ GCode::LayerResult GCode::process_layer(
     }
 
     // BBS: don't use lazy_raise when enable spiral vase
-    gcode += this->change_layer(print_z, !m_spiral_vase);  // this will increase m_layer_index
+    gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_change_gcode.value.empty()) {
@@ -3077,8 +3108,14 @@ GCode::LayerResult GCode::process_layer(
                 m_object_layer_over_raft = object_layer_over_raft;
                 if (m_config.reduce_crossing_wall)
                     m_avoid_crossing_perimeters.init_layer(*m_layer);
-                if (GCode::gcode_label_objects)
-                    gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
+                if (m_enable_label_object) {
+                    std::string start_str = std::string("; start printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
+                    if (print.is_BBL_Printer()) {
+                        start_str += ("M624 " + _encode_label_ids_to_base64({ instance_to_print.label_object_id }));
+                        start_str += "\n";
+                    }
+                    m_writer.set_object_start_str(start_str);
+                }
                 // When starting a new object, use the external motion planner for the first travel move.
                 const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
@@ -3164,8 +3201,16 @@ GCode::LayerResult GCode::process_layer(
                     // ironing
                     gcode += this->extrude_infill(print,by_region_specific, true);
                 }
-                if (GCode::gcode_label_objects)
-                    gcode += std::string("; stop printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
+                // Don't set m_gcode_label_objects_end if you don't had to write the m_gcode_label_objects_start.
+                if (!m_writer.empty_object_start_str()) {
+                    m_writer.set_object_start_str("");
+                } else if (m_enable_label_object) {
+                    std::string end_str = std::string("; stop printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
+                    if (print.is_BBL_Printer())
+                        end_str += "M625\n";
+                    m_writer.set_object_end_str(end_str);
+                }
+
             }
         }
     }
@@ -3268,7 +3313,7 @@ std::string GCode::preamble()
 }
 
 // called by GCode::process_layer()
-std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
+std::string GCode::change_layer(coordf_t print_z)
 {
     std::string gcode;
     if (m_layer_count > 0)
@@ -3283,16 +3328,19 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
         gcode += this->retract(false, false, ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto ? LiftType::SpiralLift : lift_type);
     }
 
-    if (!lazy_raise) {
+    m_writer.add_object_change_labels(gcode);
+
+    if (m_spiral_vase) {
+        //BBS: force to normal lift immediately in spiral vase mode
         std::ostringstream comment;
         comment << "move to next layer (" << m_layer_index << ")";
         gcode += m_writer.travel_to_z(z, comment.str());
-    } else {
+    }
+    else {
         //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
         m_need_change_layer_lift_z = true;
     }
 
-    // BBS
     m_nominal_z = print_z;
 
     // forget last wiping path as wiping after raising Z is pointless
@@ -3667,6 +3715,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         m_need_change_layer_lift_z = false;
     }
 
+    // if needed, write the gcode_label_objects_end then gcode_label_objects_start
+    // should be already done by travel_to, but just in case
+    m_writer.add_object_change_labels(gcode);
+
     // compensate retraction
     gcode += this->unretract();
     m_config.apply(m_calib_config);
@@ -3921,6 +3973,37 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     return gcode;
 }
 
+std::string encodeBase64(uint64_t value)
+{
+    //Always use big endian mode
+    uint8_t src[8];
+    for (size_t i = 0; i < 8; i++)
+        src[i] = (value >> (8 * i)) & 0xff;
+
+    std::string dest;
+    dest.resize(boost::beast::detail::base64::encoded_size(sizeof(src)));
+    dest.resize(boost::beast::detail::base64::encode(&dest[0], src, sizeof(src)));
+    return dest;
+}
+
+std::string GCode::_encode_label_ids_to_base64(std::vector<size_t> ids)
+{
+    assert(m_label_objects_ids.size() < 64);
+
+    uint64_t bitset = 0;
+    for (size_t id : ids) {
+        auto index = std::lower_bound(m_label_objects_ids.begin(), m_label_objects_ids.end(), id);
+        if (index != m_label_objects_ids.end() && *index == id)
+            bitset |= (1ull << (index - m_label_objects_ids.begin()));
+        else
+            throw Slic3r::LogicError("Unknown label object id!");
+    }
+    if (bitset == 0)
+        throw Slic3r::LogicError("Label object id error!");
+
+    return encodeBase64(bitset);
+}
+
 // This method accepts &point in print coordinates.
 std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
 {
@@ -3977,6 +4060,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         // Reset the wipe path when traveling, so one would not wipe along an old path.
         m_wipe.reset_path();
 
+    // if needed, write the gcode_label_objects_end then gcode_label_objects_start
+    m_writer.add_object_change_labels(gcode);
+
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
         for (size_t i = 1; i < travel.size(); ++ i) {
@@ -3992,6 +4078,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         }
         this->set_last_pos(travel.points.back());
     }
+
     return gcode;
 }
 
@@ -4147,9 +4234,8 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     gcode += m_writer.reset_e();
     //BBS
     if (m_writer.extruder()->retraction_length() > 0) {
-        // BBS: don't do lazy_lift when enable spiral vase
-        size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
+        // BBS: force to use normal lift for spiral vase mode
+        gcode += m_writer.lift(lift_type, m_spiral_vase != nullptr);
     }
 
     return gcode;

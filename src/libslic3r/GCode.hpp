@@ -322,7 +322,7 @@ private:
     void            set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::string     preamble();
     // BBS
-    std::string     change_layer(coordf_t print_z, bool lazy_raise = false);
+    std::string     change_layer(coordf_t print_z);
     std::string     extrude_entity(const ExtrusionEntity &entity, std::string description = "", double speed = -1.);
     std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1.);
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
@@ -370,8 +370,8 @@ private:
 
 	struct InstanceToPrint
 	{
-		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id) :
-			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id) {}
+		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id, size_t label_object_id) :
+			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id), label_object_id(label_object_id) {}
 
 		// Repository
 		ObjectByExtruder		&object_by_extruder;
@@ -380,6 +380,8 @@ private:
 		const PrintObject 		&print_object;
 		// Instance idx of the copy of a print object.
 		const size_t			 instance_id;
+        //BBS: Unique id to label object to support skiping during printing
+        const size_t             label_object_id;
 	};
 
 	std::vector<InstanceToPrint> sort_print_object_instances(
@@ -476,6 +478,10 @@ private:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
+    //BBS
+    bool m_enable_label_object;
+    std::vector<size_t> m_label_objects_ids;
+    std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
 
     bool m_silent_time_estimator_enabled;
 
@@ -488,8 +494,6 @@ private:
     coordf_t m_nominal_z;
     bool m_need_change_layer_lift_z = false;
     int m_start_gcode_filament = -1;
-
-    static bool gcode_label_objects;
 
     // BBS
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
