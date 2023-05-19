@@ -509,8 +509,6 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
     if (colors.empty())
         return bmps;
 
-    unsigned char rgb[3];
-
     /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
      * So set sizes for solid_colored icons used for filament preset
      * and scale them in respect to em_unit value
@@ -518,8 +516,6 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
     const double em = Slic3r::GUI::wxGetApp().em_unit();
     const int icon_width = lround((thin_icon ? 2 : 4.4) * em);
     const int icon_height = lround(2 * em);
-
-    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
 
     int index = 0;
     for (const std::string &color : colors)
@@ -544,8 +540,12 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         // there is no neede to scale created solid bitmap
         wxColor clr(color);
         bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
+#ifdef __WXOSX__
+        wxMemoryDC dc;
+#else
         wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
         wxMemoryDC dc(&cdc);
+#endif
         dc.SetFont(::Label::Body_12);
         dc.SelectObject(*bitmap);
         if (clr.Alpha() == 0) {
