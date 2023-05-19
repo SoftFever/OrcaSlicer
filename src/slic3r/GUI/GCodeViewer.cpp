@@ -103,6 +103,16 @@ static std::array<float, 4> decode_color(const std::string& color) {
             ret[j] = float(digit1 * 16 + digit2) * INV_255;
         }
     }
+    else if (color.size() == 9 && color.front() == '#') {
+        for (size_t j = 0; j < 4; ++j) {
+            int digit1 = hex_digit_to_int(*c++);
+            int digit2 = hex_digit_to_int(*c++);
+            if (digit1 == -1 || digit2 == -1)
+                break;
+
+            ret[j] = float(digit1 * 16 + digit2) * INV_255;
+        }
+    }
     return ret;
 }
 

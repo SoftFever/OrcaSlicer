@@ -430,6 +430,14 @@ wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsi
 
 bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
 {
+    if (scolor.size() == 9) {
+        unsigned char rgba[4];
+        parse_color4(scolor, rgba);
+        rgb_out[0] = rgba[0];
+        rgb_out[1] = rgba[1];
+        rgb_out[2] = rgba[2];
+        return true;
+    }
     rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
     if (scolor.size() != 7 || scolor.front() != '#')
         return false;
