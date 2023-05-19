@@ -1218,6 +1218,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
         m_spiral_vase_active = spiral_vase->value;
+
+    const ConfigOptionEnumGeneric *bed_type = config.option<ConfigOptionEnumGeneric>("curr_bed_type");
+    if (bed_type != nullptr) 
+        m_result.bed_type = (BedType)bed_type->value;
+
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)

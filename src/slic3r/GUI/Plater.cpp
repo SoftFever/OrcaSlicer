@@ -8172,8 +8172,6 @@ void Plater::load_gcode(const wxString& filename)
     p->get_current_canvas3D()->render();
     //p->notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode for gcode file.")));
 
-    current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
-
     wxBusyCursor wait;
 
     // process gcode
@@ -8189,6 +8187,16 @@ void Plater::load_gcode(const wxString& filename)
     }
     *current_result = std::move(processor.extract_result());
     //current_result->filename = filename;
+
+    BedType bed_type = current_result->bed_type;
+    if (bed_type != BedType::btCount) {
+        DynamicPrintConfig &proj_config = wxGetApp().preset_bundle->project_config;
+        proj_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+        on_bed_type_change(bed_type);
+    }
+
+    current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
+
     current_print.set_gcode_file_ready();
 
     // show results

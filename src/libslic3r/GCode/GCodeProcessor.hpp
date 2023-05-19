@@ -191,7 +191,7 @@ namespace Slic3r {
         //BBS
         std::vector<SliceWarning> warnings;
         int nozzle_hrc;
-
+        BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -218,6 +218,7 @@ namespace Slic3r {
             custom_gcode_per_print_z = other.custom_gcode_per_print_z;
             spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
+            bed_type = other.bed_type;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
