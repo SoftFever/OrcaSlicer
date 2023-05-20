@@ -131,7 +131,7 @@
   "bed_exclude_area": [
     "0x0"
   ],
-  "machine_start_gcode": "M104 S0\n M190 S0\n M98 P\"start_print.g\" A[first_layer_bed_temperature] B\"[filament_type]\" C[first_layer_temperature] D[nozzle_diameter] ",
+  "machine_start_gcode": "M104 S0\nM190 S0\nM98 P\"start_print.g\" A[first_layer_bed_temperature] B\"[filament_type]\" C[first_layer_temperature] D[nozzle_diameter] E{first_layer_print_min[0]} F{first_layer_print_max[0]} H{first_layer_print_min[1]} J{first_layer_print_max[1]}",
   "machine_end_gcode": "M0",
   "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
   "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
