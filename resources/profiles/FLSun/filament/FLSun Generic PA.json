@@ -16,6 +16,8 @@
         "12"
     ],
     "compatible_printers": [
-        "FLSun V400 0.4 nozzle"
+		"FLSun Q5 0.4 nozzle",
+		"FLSun QQ-S Pro 0.4 nozzle",
+		"FLSun V400 0.4 nozzle"
     ]
 }

@@ -6,7 +6,7 @@ on:
     paths:
       - doc/** # This includes all sub folders
     branches:
-      - PublishDocsToWiki # This can be changed to any branch of your preference
+      - main # This can be changed to any branch of your preference
 
 env:
   USER_TOKEN: ${{ secrets.GH_WIKI_PAT }} # This is the repository secret personal access token

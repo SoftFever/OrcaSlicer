@@ -1,12 +1,32 @@
 {
     "name": "Anycubic",
-    "version": "01.04.04.00",
+    "version": "01.05.00.00",
     "force_update": "0",
     "description": "Anycubic configurations",
     "machine_model_list": [
+	    {
+            "name": "Anycubic i3 Mega S",
+            "sub_path": "machine/Anycubic i3 Mega S.json"
+        },
+		{
+            "name": "Anycubic Chiron",
+            "sub_path": "machine/Anycubic Chiron.json"
+        },
+		{
+            "name": "Anycubic Vyper",
+            "sub_path": "machine/Anycubic Vyper.json"
+        },
+		{
+            "name": "Anycubic Kobra Max",
+            "sub_path": "machine/Anycubic Kobra Max.json"
+        },
         {
             "name": "Anycubic 4Max Pro",
             "sub_path": "machine/Anycubic 4Max Pro.json"
+        },
+		{
+            "name": "Anycubic 4Max Pro 2",
+            "sub_path": "machine/Anycubic 4Max Pro 2.json"
         }
     ],
     "process_list": [
@@ -14,9 +34,69 @@
             "name": "fdm_process_common",
             "sub_path": "process/fdm_process_common.json"
         },
+		{
+            "name": "0.15mm Optimal @Anycubic i3MegaS",
+            "sub_path": "process/0.15mm Optimal @Anycubic i3MegaS.json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Chiron",
+            "sub_path": "process/0.15mm Optimal @Anycubic Chiron.json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Vyper",
+            "sub_path": "process/0.15mm Optimal @Anycubic Vyper.json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic KobraMax",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraMax.json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic 4MaxPro2",
+            "sub_path": "process/0.15mm Optimal @Anycubic 4MaxPro2.json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic i3MegaS",
+            "sub_path": "process/0.20mm Standard @Anycubic i3MegaS.json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Chiron",
+            "sub_path": "process/0.20mm Standard @Anycubic Chiron.json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Vyper",
+            "sub_path": "process/0.20mm Standard @Anycubic Vyper.json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraMax",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraMax.json"
+        },
         {
-            "name": "0.20mm Standard @4MaxPro",
-            "sub_path": "process/0.20mm Standard @4MaxPro.json"
+            "name": "0.20mm Standard @Anycubic 4MaxPro",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro.json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic 4MaxPro2",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro2.json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic i3MegaS",
+            "sub_path": "process/0.30mm Draft @Anycubic i3MegaS.json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Chiron",
+            "sub_path": "process/0.30mm Draft @Anycubic Chiron.json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Vyper",
+            "sub_path": "process/0.30mm Draft @Anycubic Vyper.json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic KobraMax",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraMax.json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic 4MaxPro2",
+            "sub_path": "process/0.30mm Draft @Anycubic 4MaxPro2.json"
         }
     ],
     "filament_list": [
@@ -102,9 +182,29 @@
             "name": "fdm_machine_common",
             "sub_path": "machine/fdm_machine_common.json"
         },
+		{
+            "name": "Anycubic i3 Mega S 0.4 nozzle",
+            "sub_path": "machine/Anycubic i3 Mega S 0.4 nozzle.json"
+        },
+		{
+            "name": "Anycubic Chiron 0.4 nozzle",
+            "sub_path": "machine/Anycubic Chiron 0.4 nozzle.json"
+        },
+		{
+            "name": "Anycubic Vyper 0.4 nozzle",
+            "sub_path": "machine/Anycubic Vyper 0.4 nozzle.json"
+        },
+		{
+            "name": "Anycubic Kobra Max 0.4 nozzle",
+            "sub_path": "machine/Anycubic Kobra Max 0.4 nozzle.json"
+        },
         {
             "name": "Anycubic 4Max Pro 0.4 nozzle",
             "sub_path": "machine/Anycubic 4Max Pro 0.4 nozzle.json"
+        },
+		{
+            "name": "Anycubic 4Max Pro 2 0.4 nozzle",
+            "sub_path": "machine/Anycubic 4Max Pro 2 0.4 nozzle.json"
         }
     ]
 }
