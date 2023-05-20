@@ -3179,7 +3179,7 @@ msgid "Export G-code file"
 msgstr "G-Code als Datei exportieren"
 
 msgid "Send"
-msgstr "Aktuelle Platte senden"
+msgstr "Senden"
 
 msgid "Export plate sliced file"
 msgstr "Exportiere aktuelle Platte als STL Datei"
@@ -3191,7 +3191,7 @@ msgid "Print all"
 msgstr "Alle Platten drucken"
 
 msgid "Send all"
-msgstr "Alle Platten senden"
+msgstr "Sende alle"
 
 msgid "Keyboard Shortcuts"
 msgstr "Tastaturkürzel"
