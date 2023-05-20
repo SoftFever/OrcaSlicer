@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Raise3D Pro3 Plus",
+    "model_id": "Raise3D-Pro3-Plus",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Raise3D",
+    "bed_model": "raise3d_pro3plus_buildplate_model.stl",
+    "bed_texture": "raise3d_pro3plus_buildplate_texture.png",
+    "hotend_model": "",
+	"default_materials": "Raise3D Generic ASA;Raise3D Generic PETG;Raise3D Generic PLA;Raise3D Generic PVA;Raise3D Generic TPU"
+}
