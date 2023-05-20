@@ -8,5 +8,5 @@
     "bed_model": "BIQU_Hurakan_buildplate_model.stl",
     "bed_texture": "BIQU_Hurakan_buildplate_texture.png",
     "hotend_model": "Biqu_Hurakan_hotend.stl",
-    "default_materials": "BIQU Generic PLA;BIQU Generic PETG;BIQU Generic ABS"
+    "default_materials": "BIQU Generic PLA;BIQU Generic PETG;BIQU Generic ABS;"
 }

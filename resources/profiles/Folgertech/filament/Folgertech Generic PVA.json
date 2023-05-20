@@ -2,7 +2,7 @@
     "type": "filament",
 	"filament_id": "GFS99",
     "setting_id": "GFSS99",
-    "name": "BIQU Generic PVA",
+    "name": "Folgertech Generic PVA",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pva",
@@ -19,8 +19,11 @@
         "10"
     ],
     "compatible_printers": [
-	  "BIQU BX 0.4 nozzle",
-	  "BIQU B1 0.4 nozzle",
-	  "BIQU Hurakan 0.4 nozzle"
-     ]
+        "Folgertech FT-5 0.4 nozzle",
+        "Folgertech FT-5 0.6 nozzle",
+        "Folgertech FT-6 0.4 nozzle",
+        "Folgertech FT-6 0.6 nozzle",
+        "Folgertech i3 0.4 nozzle",
+        "Folgertech i3 0.6 nozzle"
+    ]
 }
