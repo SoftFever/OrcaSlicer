@@ -6304,7 +6304,7 @@ void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received import model id event\n" ;
     if (q != nullptr) {
-        q->import_model_id(evt.GetString().ToStdString());
+        q->import_model_id(evt.GetString());
     }
 }
 
@@ -7833,10 +7833,11 @@ int Plater::save_project(bool saveAs)
 }
 
 //BBS import model by model id
-void Plater::import_model_id(const std::string& download_info)
+void Plater::import_model_id(wxString download_info)
 {
-    std::string download_origin_url = wxGetApp().url_decode(download_info);
+    //std::string download_origin_url = wxGetApp().url_decode(download_info.ToStdString());
 
+    std::string download_origin_url = download_info.ToStdString();
     std::string download_url;
     std::string filename;
 
@@ -7847,7 +7848,6 @@ void Plater::import_model_id(const std::string& download_info)
 
             download_url = origin_array[0];
             filename = origin_array[1];
-
         }
         else if (!download_origin_url.empty()) {
 
@@ -7954,7 +7954,8 @@ void Plater::import_model_id(const std::string& download_info)
         }
 
         //target_path /= (boost::format("%1%_%2%.3mf") % filename % unique).str();
-        target_path /= filename.c_str();
+        target_path /= fs::path(wxString(filename));
+
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");
 
@@ -8006,6 +8007,7 @@ void Plater::import_model_id(const std::string& download_info)
     if (import_thread.joinable())
         import_thread.join();
 
+    dlg.Hide();
     dlg.Close();
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
@@ -8021,7 +8023,7 @@ void Plater::import_model_id(const std::string& download_info)
         }
 
         // show save new project
-        p->set_project_filename(wxString::FromUTF8(filename));
+        p->set_project_filename(wxString(filename));
     }
     else {
         wxMessageBox(msg);
@@ -8035,7 +8037,7 @@ void Plater::download_project(const wxString& project_id)
     return;
 }
 
-void Plater::request_model_download(std::string url)
+void Plater::request_model_download(wxString url)
 {
     wxCommandEvent* event = new wxCommandEvent(EVT_IMPORT_MODEL_ID);
     event->SetString(url);

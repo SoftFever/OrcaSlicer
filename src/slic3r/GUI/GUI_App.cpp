@@ -1006,7 +1006,6 @@ void GUI_App::post_init()
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
-
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
             %this->init_params->input_files.size() %this->init_params->input_gcode;
 
@@ -1027,7 +1026,7 @@ void GUI_App::post_init()
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("download_url %1%") % download_url;
 
            if (!download_url.empty()) {
-                request_model_download(download_url);
+                request_model_download(from_u8(download_url));
            }
  
         }
@@ -3897,7 +3896,7 @@ void GUI_App::handle_script_message(std::string msg)
     }
 }
 
-void GUI_App::request_model_download(std::string url)
+void GUI_App::request_model_download(wxString url)
 {
     if (plater_) {
         plater_->request_model_download(url);
