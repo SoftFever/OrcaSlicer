@@ -26,7 +26,7 @@ Flow LayerRegion::flow(FlowRole role, double layer_height) const
     return m_region->flow(*m_layer->object(), role, layer_height, m_layer->id() == 0);
 }
 
-Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge, float bridge_density) const
+Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge) const
 {
     const PrintRegion       &region         = this->region();
     const PrintRegionConfig &region_config  = region.config();
@@ -43,8 +43,6 @@ Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge, float bridge_d
         // The same way as other slicers: Use normal extrusions. Apply bridge_flow while maintaining the original spacing.
         bridge_flow = this->flow(role).with_flow_ratio(region_config.bridge_flow);
     }
-    bridge_density = boost::algorithm::clamp(bridge_density, 0.1f, 1.0f);
-    bridge_flow.set_spacing(bridge_flow.spacing() + bridge_flow.width() * ((1.0f / bridge_density) - 1.0f));
     return bridge_flow;
 
 }
@@ -245,7 +243,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 // Grown by 3mm.
                 //BBS: eliminate too narrow area to avoid generating bridge on top layer when wall loop is 1
                 //Polygons polys = offset(bridges[i].expolygon, bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
-                Polygons polys = offset2({ bridges[i].expolygon }, -scale_(nozzle_diameter * 0.1), bridge_margin + scale_((1.0 / this->region().config().bridge_density.get_abs_value(1.0) - 1.0)*nozzle_diameter/2.0), EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset2({ bridges[i].expolygon }, -scale_(nozzle_diameter * 0.1), bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
 				    BOOST_LOG_TRIVIAL(trace) << "Bridge did not fall into the source region!";
                 } else {
