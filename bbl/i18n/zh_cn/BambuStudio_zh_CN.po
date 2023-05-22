@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-19 15:18+0800\n"
-"PO-Revision-Date: 2023-04-16 12:40+0800\n"
+"POT-Creation-Date: 2023-05-22 15:23+0800\n"
+"PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -595,6 +595,9 @@ msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 msgid "Downloading Bambu Network Plug-in"
 msgstr "正在下载Bambu网络插件"
 
+msgid "Login information expired. Please login again."
+msgstr "登录信息过期。请重新登录。"
+
 msgid "Incorrect password"
 msgstr "访问码不正确"
 
@@ -672,9 +675,6 @@ msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用"
-
-msgid "Login information expired. Please login again."
-msgstr "登录信息过期。请重新登录。"
 
 msgid "Privacy Policy Update"
 msgstr "隐私协议更新"
@@ -1059,6 +1059,15 @@ msgstr "解锁"
 msgid "Lock"
 msgstr "锁定"
 
+msgid "Fill bed with copies"
+msgstr "铺满打印板"
+
+msgid "Fill the remaining area of bed with copies of the selected object"
+msgstr "用选定对象的副本填充床的剩余区域"
+
+msgid "Edit plate setitngs"
+msgstr "编辑盘设置"
+
 msgid "Name"
 msgstr "名称"
 
@@ -1349,14 +1358,17 @@ msgstr "自定义模板："
 msgid "Custom G-code:"
 msgstr "自定义G-code："
 
+msgid "Pause Print"
+msgstr "暂停打印"
+
+msgid "OK"
+msgstr "确认"
+
 msgid "Custom G-code"
 msgstr "自定义 G-code"
 
 msgid "Enter Custom G-code used on current layer:"
 msgstr "输入当前层上使用的自定义G-code："
-
-msgid "OK"
-msgstr "确认"
 
 msgid "Jump to Layer"
 msgstr "跳转到层"
@@ -1391,8 +1403,11 @@ msgstr "耗材丝"
 msgid "Change filament at the beginning of this layer."
 msgstr "在该层的起始位置更换耗材丝。"
 
-msgid "Delete Pause"
-msgstr "删除暂停"
+msgid "Edit Pause Print Message"
+msgstr "编辑暂停打印信息"
+
+msgid "Delete Pause Print"
+msgstr "删除暂停打印"
 
 msgid "Delete Custom Template"
 msgstr "删除自定义模板"
@@ -1556,6 +1571,15 @@ msgstr "自动朝向中..."
 msgid "Orienting"
 msgstr "自动朝向中..."
 
+msgid "Filling bed "
+msgstr "填充热床"
+
+msgid "Bed filling canceled."
+msgstr "填充热床已取消。"
+
+msgid "Bed filling done."
+msgstr "填充热床已完成。"
+
 msgid "Error! Unable to create thread!"
 msgstr "发生错误，无法创建线程。"
 
@@ -1568,52 +1592,51 @@ msgstr "登录中"
 msgid "Login failed"
 msgstr "登录失败"
 
-msgid "The region parameter is incorrrect"
-msgstr "区域设置不正确"
-
-msgid "Failure of printer login"
-msgstr "登录设备失败"
-
-msgid "Failed to get ticket"
-msgstr "获取Ticket失败"
-
-msgid "User authorization timeout"
-msgstr "用户鉴权超时"
-
-msgid "Failure of bind"
-msgstr "设备登录失败"
-
-msgid "Unknown Failure"
-msgstr "发生错误"
-
 msgid "Please check the printer network connection."
 msgstr "请检查打印机的网络连接。"
 
-msgid "Abnormal print file data. Please slice again"
+msgid "Abnormal print file data. Please slice again."
 msgstr "打印文件数据异常，请重新切片"
 
-msgid "Task canceled"
-msgstr "任务已取消"
+msgid "Task canceled."
+msgstr "任务已取消。"
 
-msgid "Upload task timed out. Please check the network problem and try again"
-msgstr "上传任务超时，请排查网络问题后重试"
+msgid "Upload task timed out. Please check the network status and try again."
+msgstr "上传任务超时，请排查网络状态后重试。"
 
 msgid "Cloud service connection failed. Please try again."
 msgstr "云服务连接失败，请重试"
 
-msgid "Print file not found, please slice again"
-msgstr "未找到打印文件，请重新切片"
+msgid "Print file not found. please slice again."
+msgstr "未找到打印文件，请重新切片。"
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again"
-msgstr "打印文件超过最大允许大小（1GB），请简化模型后重新切片"
+"model and slice again."
+msgstr "打印文件超过最大允许大小（1GB），请简化模型后重新切片。"
 
-msgid "Failed uploading print file"
-msgstr "打印任务上传失败"
+msgid "Failed to send the print job. Please try again."
+msgstr "无法发送打印任务，请重试。"
 
-msgid "Wrong Access code"
-msgstr "访问码错误"
+msgid "Failed to upload file to ftp. Please try again."
+msgstr ""
+
+msgid ""
+"Check the current status of the bambu server by clicking on the link above."
+msgstr ""
+
+msgid ""
+"The size of the print file is too large. Please adjust the file size and try "
+"again."
+msgstr ""
+
+msgid "Print file not found, Please slice it again and send it for printing."
+msgstr "未找到打印文件，请重新切片后再发送打印。"
+
+msgid ""
+"Failed to upload print file to FTP. Please check the network status and try "
+"again."
+msgstr ""
 
 msgid "Sending print job over LAN"
 msgstr "正在通过局域网发送打印任务"
@@ -1637,20 +1660,8 @@ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
 
-msgid "Failed to send the print job. Please try again."
-msgstr "无法发送打印任务，请重试。"
-
-msgid "Send to Printer failed. Please try again."
-msgstr "发送到打印机失败。请重试。"
-
-msgid "No space left on Printer SD card"
-msgstr "打印机SD卡上没有剩余空间"
-
 msgid "Sending gcode file over LAN"
 msgstr "通过局域网发送gcode文件"
-
-msgid "Sending gcode file through cloud service"
-msgstr "通过云服务发送gcode文件"
 
 msgid "Sending gcode file to sdcard"
 msgstr "发送gcode文件到sd卡"
@@ -1661,9 +1672,6 @@ msgstr "成功发送。即将关闭当前页面（%s秒）"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "需要插入SD卡后方可发送到打印机。"
-
-msgid "Please log out and login to the printer again."
-msgstr "请先退出登录然后再重新登录打印机。"
 
 msgid "Choose SLA archive:"
 msgstr ""
@@ -1852,8 +1860,11 @@ msgstr "请输入有效的数值 (K的范围为0~0.5, N的范围为0.6~2.0）"
 msgid "You need to select the material type and color first."
 msgstr "您需要先选择材料类型和颜色。"
 
-msgid "Other color"
-msgstr "其他颜色"
+msgid "Other Color"
+msgstr ""
+
+msgid "Custom Color"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量标定"
@@ -2858,8 +2869,7 @@ msgstr "尺寸："
 msgid ""
 "Conflicts of gcode paths have been found at layer %d. Please separate the "
 "conflicted objects farther (%s <-> %s)."
-msgstr "发现gcode路径在层%d处的冲突。请将有冲突的对象分离得更远(%s <-> "
-"%s)。"
+msgstr "发现gcode路径在层%d处的冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
 
 msgid "An object is layed over the boundary of plate."
 msgstr "检测到有对象放在盘的边界上。"
@@ -2970,6 +2980,9 @@ msgstr "准备"
 
 msgid "Preview"
 msgstr "预览"
+
+msgid "3D Models"
+msgstr "3D模型"
 
 msgid "Device"
 msgstr "设备"
@@ -3226,6 +3239,12 @@ msgstr "显示名称"
 msgid "Show object labels in 3D scene"
 msgstr "在3D场景中显示对象名称"
 
+msgid "Show &Overhang"
+msgstr "显示悬空(O)"
+
+msgid "Show object overhang highlight in 3D scene"
+msgstr "在3D场景中高亮显示对象的悬空"
+
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -3234,9 +3253,6 @@ msgstr "视图"
 
 msgid "Help"
 msgstr "帮助"
-
-msgid "3D Models"
-msgstr "3D模型"
 
 msgid "&Open G-code"
 msgstr "打开G-code"
@@ -3346,8 +3362,14 @@ msgstr "同步"
 msgid "Initialize failed (No Device)!"
 msgstr "初始化失败（没有设备）！"
 
+msgid "Initialize failed (Device connection not ready)!"
+msgstr "初始化失败（设备未连接）"
+
 msgid "Initialize failed (No Camera Device)!"
 msgstr "初始化失败（没有摄像头）"
+
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr "打印机正在下载，请等待下载结束。"
 
 msgid "Initializing..."
 msgstr "正在初始化……"
@@ -3360,9 +3382,6 @@ msgstr "初始化失败（不支持局域网模式的视频连接）"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "初始化失败（在局域网模式中不可访问）！"
-
-msgid "Printer is busy downloading, Please wait for the downloading to finish."
-msgstr "打印机正在下载，请等待下载结束。"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初始化失败（未找到打印机的局域网地址）！"
@@ -3448,6 +3467,9 @@ msgstr "录像"
 msgid "Switch to video files."
 msgstr "切换到视频文件列表"
 
+msgid "Switch to 3mf model files."
+msgstr ""
+
 msgid "Delete selected files from printer."
 msgstr "从打印机中输出选中的文件"
 
@@ -3479,20 +3501,23 @@ msgstr "连接失败 [%d]！"
 msgid "Loading file list..."
 msgstr "加载文件列表..."
 
-msgid "No files"
-msgstr "文件列表为空"
-
-msgid "Not accessible in LAN-only mode!"
-msgstr "在局域网模式中不可访问！"
-
-msgid "Missing LAN ip of printer!"
-msgstr "未找到打印机的局域网地址！"
+#, c-format, boost-format
+msgid "No files [%d]"
+msgstr "文件列表为空[%d]"
 
 #, c-format, boost-format
-msgid "You are going to delete %u files. Are you sure to continue?"
-msgstr "你正在删除%u个文件，你确定吗？"
+msgid ""
+"You are going to delete %u files from printer. Are you sure to continue?"
+msgstr ""
 
 msgid "Delete files"
+msgstr "删除文件"
+
+#, c-format, boost-format
+msgid "Do you want to delete the file '%s' from printer?"
+msgstr "你确定要从打印机中删除文件'%s'吗？"
+
+msgid "Delete file"
 msgstr "删除文件"
 
 #, c-format, boost-format
@@ -3559,6 +3584,9 @@ msgstr ""
 
 msgid "Layer: N/A"
 msgstr "层： N/A"
+
+msgid "Immediately score"
+msgstr ""
 
 msgid "Clear"
 msgstr "清除"
@@ -3635,6 +3663,12 @@ msgstr "前面还有%s个任务在云端切片队列中"
 msgid "Layer: %s"
 msgstr "层： %s"
 
+msgid "Please give a score for your favorite Bambu Market model."
+msgstr ""
+
+msgid "Score"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "层： %d/%d"
@@ -3679,9 +3713,6 @@ msgstr "无法连接服务器"
 
 msgid "Status"
 msgstr "设备状态"
-
-msgid "Media"
-msgstr "视频文件"
 
 msgid "Update"
 msgstr "固件更新"
@@ -4313,6 +4344,10 @@ msgid "Plate Settings"
 msgstr "盘参数设置"
 
 #, boost-format
+msgid "Number of currently selected parts: %1%\n"
+msgstr ""
+
+#, boost-format
 msgid "Part name: %1%\n"
 msgstr "零件名字：%1%\n"
 
@@ -4509,6 +4544,9 @@ msgstr "深色模式"
 msgid "Enable Dark mode"
 msgstr "启用深色模式"
 
+msgid "Develop mode"
+msgstr "开发者模式"
+
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
 
@@ -4545,11 +4583,8 @@ msgstr "其他"
 msgid "Mouse wheel reverses when zooming"
 msgstr "缩放时鼠标滚轮反转"
 
-msgid "Develop mode"
-msgstr "开发者模式"
-
-msgid "Dump video"
-msgstr "下载视频"
+msgid "Internal developer mode"
+msgstr "内部开发者模式"
 
 msgid "Log Level"
 msgstr ""
@@ -4641,11 +4676,17 @@ msgstr "跟随全局打印顺序"
 msgid "Print sequence"
 msgstr "打印顺序"
 
+msgid "Plate name"
+msgstr "盘名称"
+
 msgid "Same as Global Bed Type"
 msgstr "跟随全局打印板类型"
 
 msgid "Cool Plate"
-msgstr "低温打印板 / PLA打印板"
+msgstr "低温打印板"
+
+msgid "PLA Plate"
+msgstr "PLA打印板"
 
 msgid "Engineering Plate"
 msgstr "工程材料打印板"
@@ -4773,6 +4814,9 @@ msgstr "为“%1%”，添加“%2%”为一个新预设"
 msgid "Simply switch to \"%1%\""
 msgstr "直接切换到“%1%”"
 
+msgid "Task canceled"
+msgstr "任务已取消"
+
 msgid "Online"
 msgstr "在线"
 
@@ -4801,7 +4845,7 @@ msgid "Busy"
 msgstr "忙碌"
 
 msgid "Bambu Cool Plate"
-msgstr "低温打印板 / PLA打印板"
+msgstr "低温打印板"
 
 msgid "Bamabu Engineering Plate"
 msgstr "工程材料打印板"
@@ -4821,8 +4865,20 @@ msgstr "热床调平"
 msgid "Flow Calibration"
 msgstr "流量校准"
 
+msgid "Can't connect to the printer"
+msgstr "无法连接打印机"
+
 msgid "send completed"
 msgstr "发送完成"
+
+msgid "Error code"
+msgstr "错误码"
+
+msgid "Check the status of current system services"
+msgstr "请检查当前系统服务状态"
+
+msgid "Printer local connection failed, please try again."
+msgstr "打印机局域网连接失败，请重试。"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "未登录账号，仅显示局域网模式的打印机"
@@ -4940,6 +4996,17 @@ msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
 
+msgid "Abnormal print file data. Please slice again"
+msgstr "打印文件数据异常，请重新切片"
+
+msgid "The name length exceeds the limit."
+msgstr ""
+
+msgid ""
+"Extrusion compensation calibration is not supported when using Textured PEI "
+"Plate"
+msgstr ""
+
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
 
@@ -4958,11 +5025,85 @@ msgstr "打印机需要与Bambu Studio在同一个局域网内。"
 msgid "The printer does not support sending to printer SD card."
 msgstr "该打印机不支持发送到打印机SD卡。"
 
+msgid "Failed to create socket"
+msgstr ""
+
+msgid "Failed to connect socket"
+msgstr ""
+
+msgid "Failed to publish login request"
+msgstr ""
+
+msgid "Get ticket from device timeout"
+msgstr ""
+
+msgid "Get ticket from server timeout"
+msgstr ""
+
+msgid "Failed to post ticket to server"
+msgstr ""
+
+msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Receive login report timeout"
+msgstr ""
+
+msgid "Unknown Failure"
+msgstr "发生错误"
+
 msgid "Log in printer"
 msgstr "登录打印机"
 
 msgid "Would you like to log in this printer with current account?"
 msgstr "你想使用当前账号登录这台打印机吗?"
+
+msgid "Check the reason"
+msgstr ""
+
+msgid "Read and accept"
+msgstr ""
+
+msgid "Terms and Conditions"
+msgstr ""
+
+msgid ""
+"Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
+"device, please read the termsand conditions.By clicking to agree to use your "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgstr ""
+
+msgid "and"
+msgstr ""
+
+msgid "Privacy Policy"
+msgstr ""
+
+msgid "We ask for your help to improve everyone's printer"
+msgstr ""
+
+msgid "Statement about User Experience Improvement Program"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"In the 3D Printing community, we learn from each other's successes and "
+"failures to adjust our own slicing parameters and settings. %s follows the "
+"same principle and uses machine learning to improve its performance from the "
+"successes and failures of the vast number of prints by our users. We are "
+"training %s to be smarter by feeding them the real-world data. If you are "
+"willing, this service will access information from your error logs and usage "
+"logs, which may include information described in  Privacy Policy. We will "
+"not collect any Personal Data by which an individual can be identified "
+"directly or indirectly, including without limitation names, addresses, "
+"payment information, or phone numbers. By enabling this service, you agree "
+"to these terms and the statement about Privacy Policy."
+msgstr ""
+
+msgid "Statement on User Experience Improvement Plan"
+msgstr ""
 
 msgid "Log in successful."
 msgstr "登录成功。"
@@ -5046,8 +5187,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -5157,16 +5298,13 @@ msgstr "喷嘴"
 msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
 
-msgid "Cool plate"
+msgid "Cool Plate / PLA Plate"
 msgstr "低温打印板 / PLA打印板"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr "安装低温打印热床时的热床温度。0值表示这个耗材丝不支持低温打印热床"
-
-msgid "Engineering plate"
-msgstr "工程材料打印板"
 
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
@@ -5948,8 +6086,8 @@ msgid "Open G-code file:"
 msgstr "打开G-code文件："
 
 msgid ""
-"One object has empty initial layer and can't be printed. Please Cut the "
-"bottom or enable supports."
+"The following object(s) have empty initial layer and can't be printed. "
+"Please Cut the bottom or enable supports."
 msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
 
 #, boost-format
@@ -6493,6 +6631,12 @@ msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
 "pattern"
 msgstr "顶面只使用单层墙，从而更多的空间能够使用顶部填充图案"
+
+msgid "Only one wall on first layer"
+msgstr "首层仅单层墙"
+
+msgid "Use only one wall on the first layer of model"
+msgstr "在模型的首层仅生成单层墙"
 
 msgid "Slow down for overhang"
 msgstr "悬垂降速"
@@ -7154,6 +7298,9 @@ msgstr "最顶面"
 
 msgid "All solid layer"
 msgstr "所有实心层"
+
+msgid "Ironing Pattern"
+msgstr "熨烫模式"
 
 msgid "Ironing flow"
 msgstr "熨烫流量"
@@ -7886,6 +8033,12 @@ msgstr "树状支撑外墙层数"
 
 msgid "This setting specify the count of walls around tree support"
 msgstr "树状支撑外墙层数"
+
+msgid "Tree support brim width"
+msgstr "树状支撑裙边宽度"
+
+msgid "The brim width around tree support. 0 means auto."
+msgstr "围绕树状支撑的裙边宽度。0表示自动。"
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
@@ -8648,7 +8801,86 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
-#, c-format, boost-format
+#~ msgid "Delete Pause"
+#~ msgstr "删除暂停"
+
+#~ msgid "The region parameter is incorrrect"
+#~ msgstr "区域设置不正确"
+
+#~ msgid "Failure of printer login"
+#~ msgstr "登录设备失败"
+
+#~ msgid "Failed to get ticket"
+#~ msgstr "获取Ticket失败"
+
+#~ msgid "User authorization timeout"
+#~ msgstr "用户鉴权超时"
+
+#~ msgid "Failure of bind"
+#~ msgstr "设备登录失败"
+
+#~ msgid ""
+#~ "Upload task timed out. Please check the network problem and try again"
+#~ msgstr "上传任务超时，请排查网络问题后重试"
+
+#~ msgid "Print file not found, please slice again"
+#~ msgstr "未找到打印文件，请重新切片"
+
+#~ msgid ""
+#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
+#~ "the model and slice again"
+#~ msgstr "打印文件超过最大允许大小（1GB），请简化模型后重新切片"
+
+#~ msgid "Failed uploading print file"
+#~ msgstr "打印任务上传失败"
+
+#~ msgid "Wrong Access code"
+#~ msgstr "访问码错误"
+
+#~ msgid "Send to Printer failed. Please try again."
+#~ msgstr "发送到打印机失败。请重试。"
+
+#~ msgid "No space left on Printer SD card"
+#~ msgstr "打印机SD卡上没有剩余空间"
+
+#~ msgid "Sending gcode file through cloud service"
+#~ msgstr "通过云服务发送gcode文件"
+
+#~ msgid "Please log out and login to the printer again."
+#~ msgstr "请先退出登录然后再重新登录打印机。"
+
+#~ msgid "Other color"
+#~ msgstr "其他颜色"
+
+#~ msgid "No files"
+#~ msgstr "文件列表为空"
+
+#~ msgid "Not accessible in LAN-only mode!"
+#~ msgstr "在局域网模式中不可访问！"
+
+#~ msgid "Missing LAN ip of printer!"
+#~ msgstr "未找到打印机的局域网地址！"
+
+#~ msgid "You are going to delete %u files. Are you sure to continue?"
+#~ msgstr "你正在删除%u个文件，你确定吗？"
+
+#~ msgid "Media"
+#~ msgstr "视频文件"
+
+#~ msgid "Dump video"
+#~ msgstr "下载视频"
+
+#~ msgid "Cool plate"
+#~ msgstr "低温打印板 / PLA打印板"
+
+#~ msgid "Engineering plate"
+#~ msgstr "工程材料打印板"
+
+#~ msgid ""
+#~ "One object has empty initial layer and can't be printed. Please Cut the "
+#~ "bottom or enable supports."
+#~ msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
+
 #~ msgid ""
 #~ "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. "
 #~ "Please separate the conflicted objects farther (%s <-> %s)."
@@ -8659,7 +8891,6 @@ msgstr ""
 #~ msgid "ERROR:"
 #~ msgstr "错误："
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Conflicts of gcode paths have been found. Please separate the conflicted "
 #~ "objects farther (%s <-> %s)."
@@ -9221,9 +9452,6 @@ msgstr ""
 
 #~ msgid "Send and Print"
 #~ msgstr "发送并打印"
-
-#~ msgid "Can't connect to the printer"
-#~ msgstr "无法连接打印机"
 
 #~ msgid "Upgrade firmware"
 #~ msgstr "升级固件"
@@ -11677,9 +11905,6 @@ msgstr ""
 #~ msgid "has zero size and can't be arranged!"
 #~ msgstr "大小为0因此无法摆放！"
 
-#~ msgid "Filling bed "
-#~ msgstr "填充热床"
-
 #~ msgid "Searching for optimal orientation..."
 #~ msgstr "搜索最佳方向..."
 
@@ -12424,8 +12649,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

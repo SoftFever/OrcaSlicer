@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-19 15:18+0800\n"
+"POT-Creation-Date: 2023-05-22 15:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -601,6 +601,9 @@ msgstr "A BambuStudio kezeletlen kivételbe ütközött: %1%"
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Bambu Network bővítmény letöltése"
 
+msgid "Login information expired. Please login again."
+msgstr "A bejelentkezési adatok érvénytelenek. Kérjük, jelentkezz be újra."
+
 msgid "Incorrect password"
 msgstr "Helytelen jelszó"
 
@@ -686,9 +689,6 @@ msgid ""
 msgstr ""
 "A Bambu Studio ezen verziója túl régi és a legfrissebb verzióra kell "
 "frissíteni, mielőtt rendesen használható lenne"
-
-msgid "Login information expired. Please login again."
-msgstr "A bejelentkezési adatok érvénytelenek. Kérjük, jelentkezz be újra."
 
 msgid "Privacy Policy Update"
 msgstr ""
@@ -1075,6 +1075,15 @@ msgstr "Feloldás"
 msgid "Lock"
 msgstr "Lezárás"
 
+msgid "Fill bed with copies"
+msgstr ""
+
+msgid "Fill the remaining area of bed with copies of the selected object"
+msgstr ""
+
+msgid "Edit plate setitngs"
+msgstr ""
+
 msgid "Name"
 msgstr "Név"
 
@@ -1382,14 +1391,17 @@ msgstr ""
 msgid "Custom G-code:"
 msgstr ""
 
+msgid "Pause Print"
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
 msgid "Custom G-code"
 msgstr "Egyedi G-kód"
 
 msgid "Enter Custom G-code used on current layer:"
 msgstr "Add meg az aktuális rétegnél használandó egyedi G-kódot:"
-
-msgid "OK"
-msgstr "OK"
 
 msgid "Jump to Layer"
 msgstr "Ugrás a rétegre"
@@ -1424,7 +1436,10 @@ msgstr "Filament "
 msgid "Change filament at the beginning of this layer."
 msgstr ""
 
-msgid "Delete Pause"
+msgid "Edit Pause Print Message"
+msgstr ""
+
+msgid "Delete Pause Print"
 msgstr ""
 
 msgid "Delete Custom Template"
@@ -1600,6 +1615,15 @@ msgstr "Orientáció folyamatban..."
 msgid "Orienting"
 msgstr "Orientáció"
 
+msgid "Filling bed "
+msgstr ""
+
+msgid "Bed filling canceled."
+msgstr ""
+
+msgid "Bed filling done."
+msgstr ""
+
 msgid "Error! Unable to create thread!"
 msgstr "Hiba. Nem sikerült létrehozni a szálat."
 
@@ -1612,57 +1636,52 @@ msgstr "Bejelentkezés"
 msgid "Login failed"
 msgstr "Sikertelen bejelentkezés"
 
-msgid "The region parameter is incorrrect"
-msgstr "A régió paramétere helytelen"
-
-msgid "Failure of printer login"
-msgstr "Sikertelen bejelentkezés a nyomtatóra"
-
-msgid "Failed to get ticket"
-msgstr "Nem sikerült jegyet szerezni"
-
-msgid "User authorization timeout"
-msgstr "Felhasználó hitelesítési időtúllépés"
-
-msgid "Failure of bind"
-msgstr "Sikertelen párosítás"
-
-msgid "Unknown Failure"
-msgstr "Ismeretlen hiba"
-
 msgid "Please check the printer network connection."
 msgstr "Kérjük, ellenőrizd a nyomtató hálózati kapcsolatát."
 
-msgid "Abnormal print file data. Please slice again"
-msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
-
-msgid "Task canceled"
-msgstr "Feladat törölve"
-
-msgid "Upload task timed out. Please check the network problem and try again"
+msgid "Abnormal print file data. Please slice again."
 msgstr ""
-"A feltöltési folyamat időtúllépés miatt megszakadt. Kérjük, ellenőrizd a "
-"hálózati beállításokat és próbáld újra"
+
+msgid "Task canceled."
+msgstr ""
+
+msgid "Upload task timed out. Please check the network status and try again."
+msgstr ""
 
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 "A felhőszolgáltatáshoz való csatlakozás sikertelen. Kérjük, próbáld újra."
 
-msgid "Print file not found, please slice again"
-msgstr "A nyomtatási fájl nem található, kérjük, szeleteld újra"
+msgid "Print file not found. please slice again."
+msgstr ""
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again"
+"model and slice again."
 msgstr ""
-"A nyomtatási fájl mérete meghaladja a megengedett maximális méretet (1 GB). "
-"Kérjük, egyszerűsítsd a modellt és szeleteld újra"
 
-msgid "Failed uploading print file"
-msgstr "Sikertelen nyomtatási fájl feltöltés"
+msgid "Failed to send the print job. Please try again."
+msgstr "Nem sikerült elküldeni a nyomtatási feladatot. Kérlek próbáld újra."
 
-msgid "Wrong Access code"
-msgstr "Hibás hozzáférési kód"
+msgid "Failed to upload file to ftp. Please try again."
+msgstr ""
+
+msgid ""
+"Check the current status of the bambu server by clicking on the link above."
+msgstr ""
+
+msgid ""
+"The size of the print file is too large. Please adjust the file size and try "
+"again."
+msgstr ""
+
+msgid "Print file not found, Please slice it again and send it for printing."
+msgstr ""
+
+msgid ""
+"Failed to upload print file to FTP. Please check the network status and try "
+"again."
+msgstr ""
 
 msgid "Sending print job over LAN"
 msgstr "Nyomtatási munka küldése LAN-on keresztül"
@@ -1687,20 +1706,8 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "A LAN-on keresztüli nyomtatáshoz helyezz be egy SD kártyát."
 
-msgid "Failed to send the print job. Please try again."
-msgstr "Nem sikerült elküldeni a nyomtatási feladatot. Kérlek próbáld újra."
-
-msgid "Send to Printer failed. Please try again."
-msgstr "Nem sikerült elküldeni a nyomtatóra. Kérjük, próbáld újra."
-
-msgid "No space left on Printer SD card"
-msgstr ""
-
 msgid "Sending gcode file over LAN"
 msgstr "G-kód fájl küldése LAN-on keresztül"
-
-msgid "Sending gcode file through cloud service"
-msgstr "G-kód fájl küldése felhőszolgáltatáson keresztül"
 
 msgid "Sending gcode file to sdcard"
 msgstr "G-kód fájl küldése MicroSD-kártyára"
@@ -1711,9 +1718,6 @@ msgstr "Sikeresen elküldve. Az oldal bezárul %s mp-en belül"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "A nyomtatóra való küldés előtt be kell helyezned egy MicroSD-kártyát."
-
-msgid "Please log out and login to the printer again."
-msgstr "Kérjük, jelentkezz ki, majd jelentkezz be újra a nyomtatóba."
 
 msgid "Choose SLA archive:"
 msgstr ""
@@ -1912,7 +1916,10 @@ msgstr "Adj meg egy érvényes értéket (K 0-0,5, N 0,6-2,0 között)"
 msgid "You need to select the material type and color first."
 msgstr ""
 
-msgid "Other color"
+msgid "Other Color"
+msgstr ""
+
+msgid "Custom Color"
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -3077,6 +3084,9 @@ msgstr "Előkészítés"
 msgid "Preview"
 msgstr "Előnézet"
 
+msgid "3D Models"
+msgstr "3D modellek"
+
 msgid "Device"
 msgstr "Nyomtató"
 
@@ -3332,6 +3342,12 @@ msgstr "Címkék megjelenítése"
 msgid "Show object labels in 3D scene"
 msgstr "Objektumcímkék megjelenítése a 3D-térben"
 
+msgid "Show &Overhang"
+msgstr ""
+
+msgid "Show object overhang highlight in 3D scene"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Beállítások"
 
@@ -3340,9 +3356,6 @@ msgstr "Nézet"
 
 msgid "Help"
 msgstr "Segítség"
-
-msgid "3D Models"
-msgstr "3D modellek"
 
 msgid "&Open G-code"
 msgstr "&G-kód megnyitása"
@@ -3454,8 +3467,16 @@ msgstr "Szinkronizálás"
 msgid "Initialize failed (No Device)!"
 msgstr "Sikertelen inicializálás (Nincs eszköz)!"
 
+msgid "Initialize failed (Device connection not ready)!"
+msgstr ""
+
 msgid "Initialize failed (No Camera Device)!"
 msgstr "Sikertelen inicializálás (nem található kamera)!"
+
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr ""
+"A nyomtató a letöltéssel van elfoglalva; kérjük, várd meg, amíg a letöltés "
+"befejeződik."
 
 msgid "Initializing..."
 msgstr "Inicializálás…"
@@ -3468,11 +3489,6 @@ msgstr "Sikertelen inicializálás (nem támogatott LAN-módban)!"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "Sikertelen inicializálás (nem elérhető LAN-módban)!"
-
-msgid "Printer is busy downloading, Please wait for the downloading to finish."
-msgstr ""
-"A nyomtató a letöltéssel van elfoglalva; kérjük, várd meg, amíg a letöltés "
-"befejeződik."
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Az inicializálás sikertelen (hiányzó nyomtató LAN IP-cím)!"
@@ -3560,6 +3576,9 @@ msgstr "Videó"
 msgid "Switch to video files."
 msgstr "Váltás a videófájlokra."
 
+msgid "Switch to 3mf model files."
+msgstr ""
+
 msgid "Delete selected files from printer."
 msgstr "Kijelölt fájlok törlése a nyomtatóról."
 
@@ -3591,20 +3610,23 @@ msgstr "Csatlakozás sikertelen [%d]!"
 msgid "Loading file list..."
 msgstr "Fájllista betöltése..."
 
-msgid "No files"
-msgstr "Nincs fájl"
-
-msgid "Not accessible in LAN-only mode!"
-msgstr "Nem érhető el LAN módban!"
-
-msgid "Missing LAN ip of printer!"
-msgstr "Hiányzik a nyomtató LAN IP-címe!"
+#, c-format, boost-format
+msgid "No files [%d]"
+msgstr ""
 
 #, c-format, boost-format
-msgid "You are going to delete %u files. Are you sure to continue?"
+msgid ""
+"You are going to delete %u files from printer. Are you sure to continue?"
 msgstr ""
 
 msgid "Delete files"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to delete the file '%s' from printer?"
+msgstr ""
+
+msgid "Delete file"
 msgstr ""
 
 #, c-format, boost-format
@@ -3670,6 +3692,9 @@ msgid "0"
 msgstr "0"
 
 msgid "Layer: N/A"
+msgstr ""
+
+msgid "Immediately score"
 msgstr ""
 
 msgid "Clear"
@@ -3748,6 +3773,12 @@ msgstr ""
 msgid "Layer: %s"
 msgstr ""
 
+msgid "Please give a score for your favorite Bambu Market model."
+msgstr ""
+
+msgid "Score"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr ""
@@ -3794,9 +3825,6 @@ msgstr "Nem sikerült csatlakozni a szerverhez"
 
 msgid "Status"
 msgstr "Állapot"
-
-msgid "Media"
-msgstr "Média"
 
 msgid "Update"
 msgstr "Frissítés"
@@ -4470,6 +4498,10 @@ msgid "Plate Settings"
 msgstr ""
 
 #, boost-format
+msgid "Number of currently selected parts: %1%\n"
+msgstr ""
+
+#, boost-format
 msgid "Part name: %1%\n"
 msgstr "Tárgy név: %1%\n"
 
@@ -4672,6 +4704,9 @@ msgstr "Sötét mód"
 msgid "Enable Dark mode"
 msgstr "Sötét mód engedélyezése"
 
+msgid "Develop mode"
+msgstr "Fejlesztői mód"
+
 msgid "Home page and daily tips"
 msgstr "Kezdőoldal és napi tippek"
 
@@ -4708,11 +4743,8 @@ msgstr "Egyéb"
 msgid "Mouse wheel reverses when zooming"
 msgstr "Görgetési irány megfordítása nagyítás közben"
 
-msgid "Develop mode"
-msgstr "Fejlesztői mód"
-
-msgid "Dump video"
-msgstr "Dump video"
+msgid "Internal developer mode"
+msgstr ""
 
 msgid "Log Level"
 msgstr "Naplózási szint"
@@ -4804,11 +4836,17 @@ msgstr ""
 msgid "Print sequence"
 msgstr "Nyomtatás sorrendje"
 
+msgid "Plate name"
+msgstr ""
+
 msgid "Same as Global Bed Type"
 msgstr "Ugyanaz, mint a globális tálca típusa"
 
 msgid "Cool Plate"
 msgstr "Cool Plate"
+
+msgid "PLA Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Engineering Plate"
@@ -4936,6 +4974,9 @@ msgstr "Ehhez: \"%1%\", add hozzá \"%2%\"-t új beállításként"
 msgid "Simply switch to \"%1%\""
 msgstr "Csak válts a(z) \"%1%\"-ra"
 
+msgid "Task canceled"
+msgstr "Feladat törölve"
+
 msgid "Online"
 msgstr "Online"
 
@@ -4984,8 +5025,20 @@ msgstr "Asztalszintezés"
 msgid "Flow Calibration"
 msgstr "Anyagáramlás kalibráció"
 
+msgid "Can't connect to the printer"
+msgstr "Nem lehet csatlakozni a nyomtatóhoz"
+
 msgid "send completed"
 msgstr "küldés befejezve"
+
+msgid "Error code"
+msgstr ""
+
+msgid "Check the status of current system services"
+msgstr ""
+
+msgid "Printer local connection failed, please try again."
+msgstr ""
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr ""
@@ -5116,6 +5169,17 @@ msgstr ""
 msgid "Preparing print job"
 msgstr "Nyomtatási feladat előkészítése"
 
+msgid "Abnormal print file data. Please slice again"
+msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
+
+msgid "The name length exceeds the limit."
+msgstr ""
+
+msgid ""
+"Extrusion compensation calibration is not supported when using Textured PEI "
+"Plate"
+msgstr ""
+
 msgid "Modifying the device name"
 msgstr "Eszköz nevének módosítása"
 
@@ -5137,11 +5201,85 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr "A nyomtató nem támogatja a MicroSD kártyára küldést."
 
+msgid "Failed to create socket"
+msgstr ""
+
+msgid "Failed to connect socket"
+msgstr ""
+
+msgid "Failed to publish login request"
+msgstr ""
+
+msgid "Get ticket from device timeout"
+msgstr ""
+
+msgid "Get ticket from server timeout"
+msgstr ""
+
+msgid "Failed to post ticket to server"
+msgstr ""
+
+msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Receive login report timeout"
+msgstr ""
+
+msgid "Unknown Failure"
+msgstr "Ismeretlen hiba"
+
 msgid "Log in printer"
 msgstr "Bejelentkezés a nyomtatóra"
 
 msgid "Would you like to log in this printer with current account?"
 msgstr "Szeretnél bejelentkezni a nyomtatóra a jelenlegi fiókkal?"
+
+msgid "Check the reason"
+msgstr ""
+
+msgid "Read and accept"
+msgstr ""
+
+msgid "Terms and Conditions"
+msgstr ""
+
+msgid ""
+"Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
+"device, please read the termsand conditions.By clicking to agree to use your "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgstr ""
+
+msgid "and"
+msgstr ""
+
+msgid "Privacy Policy"
+msgstr ""
+
+msgid "We ask for your help to improve everyone's printer"
+msgstr ""
+
+msgid "Statement about User Experience Improvement Program"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"In the 3D Printing community, we learn from each other's successes and "
+"failures to adjust our own slicing parameters and settings. %s follows the "
+"same principle and uses machine learning to improve its performance from the "
+"successes and failures of the vast number of prints by our users. We are "
+"training %s to be smarter by feeding them the real-world data. If you are "
+"willing, this service will access information from your error logs and usage "
+"logs, which may include information described in  Privacy Policy. We will "
+"not collect any Personal Data by which an individual can be identified "
+"directly or indirectly, including without limitation names, addresses, "
+"payment information, or phone numbers. By enabling this service, you agree "
+"to these terms and the statement about Privacy Policy."
+msgstr ""
+
+msgid "Statement on User Experience Improvement Plan"
+msgstr ""
 
 msgid "Log in successful."
 msgstr "Sikeres bejelentkezés."
@@ -5349,8 +5487,8 @@ msgstr "Fúvóka"
 msgid "Nozzle temperature when printing"
 msgstr "Fúvóka hőmérséklete nyomtatáskor"
 
-msgid "Cool plate"
-msgstr "Cool plate"
+msgid "Cool Plate / PLA Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -5358,9 +5496,6 @@ msgid ""
 msgstr ""
 "Asztalhőmérséklet a hideg tálca használatával. A 0 érték azt jelenti, hogy a "
 "filament nem támogatja a Cool Plate-re történő nyomtatást"
-
-msgid "Engineering plate"
-msgstr "Engineering plate"
 
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
@@ -6187,11 +6322,9 @@ msgid "Open G-code file:"
 msgstr "G-kód fájl megnyitása:"
 
 msgid ""
-"One object has empty initial layer and can't be printed. Please Cut the "
-"bottom or enable supports."
+"The following object(s) have empty initial layer and can't be printed. "
+"Please Cut the bottom or enable supports."
 msgstr ""
-"Az egyik objektum üres kezdőréteggel rendelkezik, ezért nem nyomtatható. "
-"Kérjük, vágd le az alját, vagy engedélyezd a támaszokat."
 
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
@@ -6830,6 +6963,12 @@ msgid ""
 msgstr ""
 "Csak egy falat használ a sík felső felületeken, hogy több hely maradjon a "
 "felső kitöltési mintának"
+
+msgid "Only one wall on first layer"
+msgstr ""
+
+msgid "Use only one wall on the first layer of model"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "Lassítás túlnyúlásoknál"
@@ -7568,6 +7707,9 @@ msgstr "Legfelső felület"
 
 msgid "All solid layer"
 msgstr "Összes szilárd réteg"
+
+msgid "Ironing Pattern"
+msgstr ""
 
 msgid "Ironing flow"
 msgstr "Vasalás áramlási sebesség"
@@ -8375,6 +8517,12 @@ msgstr "Fa támasz falak száma"
 
 msgid "This setting specify the count of walls around tree support"
 msgstr "Ez a beállítás határozza meg a falak számát a fa támasz körül."
+
+msgid "Tree support brim width"
+msgstr ""
+
+msgid "The brim width around tree support. 0 means auto."
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Fúvóka hőmérséklete az első réteg után"
@@ -9190,6 +9338,80 @@ msgstr ""
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
 
+#~ msgid "The region parameter is incorrrect"
+#~ msgstr "A régió paramétere helytelen"
+
+#~ msgid "Failure of printer login"
+#~ msgstr "Sikertelen bejelentkezés a nyomtatóra"
+
+#~ msgid "Failed to get ticket"
+#~ msgstr "Nem sikerült jegyet szerezni"
+
+#~ msgid "User authorization timeout"
+#~ msgstr "Felhasználó hitelesítési időtúllépés"
+
+#~ msgid "Failure of bind"
+#~ msgstr "Sikertelen párosítás"
+
+#~ msgid ""
+#~ "Upload task timed out. Please check the network problem and try again"
+#~ msgstr ""
+#~ "A feltöltési folyamat időtúllépés miatt megszakadt. Kérjük, ellenőrizd a "
+#~ "hálózati beállításokat és próbáld újra"
+
+#~ msgid "Print file not found, please slice again"
+#~ msgstr "A nyomtatási fájl nem található, kérjük, szeleteld újra"
+
+#~ msgid ""
+#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
+#~ "the model and slice again"
+#~ msgstr ""
+#~ "A nyomtatási fájl mérete meghaladja a megengedett maximális méretet (1 "
+#~ "GB). Kérjük, egyszerűsítsd a modellt és szeleteld újra"
+
+#~ msgid "Failed uploading print file"
+#~ msgstr "Sikertelen nyomtatási fájl feltöltés"
+
+#~ msgid "Wrong Access code"
+#~ msgstr "Hibás hozzáférési kód"
+
+#~ msgid "Send to Printer failed. Please try again."
+#~ msgstr "Nem sikerült elküldeni a nyomtatóra. Kérjük, próbáld újra."
+
+#~ msgid "Sending gcode file through cloud service"
+#~ msgstr "G-kód fájl küldése felhőszolgáltatáson keresztül"
+
+#~ msgid "Please log out and login to the printer again."
+#~ msgstr "Kérjük, jelentkezz ki, majd jelentkezz be újra a nyomtatóba."
+
+#~ msgid "No files"
+#~ msgstr "Nincs fájl"
+
+#~ msgid "Not accessible in LAN-only mode!"
+#~ msgstr "Nem érhető el LAN módban!"
+
+#~ msgid "Missing LAN ip of printer!"
+#~ msgstr "Hiányzik a nyomtató LAN IP-címe!"
+
+#~ msgid "Media"
+#~ msgstr "Média"
+
+#~ msgid "Dump video"
+#~ msgstr "Dump video"
+
+#~ msgid "Cool plate"
+#~ msgstr "Cool plate"
+
+#~ msgid "Engineering plate"
+#~ msgstr "Engineering plate"
+
+#~ msgid ""
+#~ "One object has empty initial layer and can't be printed. Please Cut the "
+#~ "bottom or enable supports."
+#~ msgstr ""
+#~ "Az egyik objektum üres kezdőréteggel rendelkezik, ezért nem nyomtatható. "
+#~ "Kérjük, vágd le az alját, vagy engedélyezd a támaszokat."
+
 #~ msgid ""
 #~ "Please check the following infomation and click Confirm to continue "
 #~ "sending print:"
@@ -9343,9 +9565,6 @@ msgstr ""
 #~ msgstr ""
 #~ "A kalibrálás befejeződött. Kérjük, válaszd ki a tényezőket a bal oldali "
 #~ "ábra szerint, és add meg őket a beviteli mezőkben."
-
-#~ msgid "Can't connect to the printer"
-#~ msgstr "Nem lehet csatlakozni a nyomtatóhoz"
 
 #~ msgid ""
 #~ "Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the "

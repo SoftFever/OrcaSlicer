@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-19 15:18+0800\n"
+"POT-Creation-Date: 2023-05-22 15:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -603,6 +603,9 @@ msgstr "BambuStudio recibió una notificación de excepción no controlada: %1%.
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Descarga del complemento Bambu Network"
 
+msgid "Login information expired. Please login again."
+msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
+
 msgid "Incorrect password"
 msgstr "Contraseña incorrecta"
 
@@ -690,9 +693,6 @@ msgid ""
 msgstr ""
 "La versión de Bambu Studio es una versión demasiado antigua y necesita ser "
 "actualizada a la última versión antes de poder utilizarla con normalidad"
-
-msgid "Login information expired. Please login again."
-msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
 
 msgid "Privacy Policy Update"
 msgstr ""
@@ -1078,6 +1078,15 @@ msgstr "Desbloquear"
 msgid "Lock"
 msgstr "Bloquear"
 
+msgid "Fill bed with copies"
+msgstr ""
+
+msgid "Fill the remaining area of bed with copies of the selected object"
+msgstr ""
+
+msgid "Edit plate setitngs"
+msgstr ""
+
 msgid "Name"
 msgstr "Nombre"
 
@@ -1386,14 +1395,17 @@ msgstr ""
 msgid "Custom G-code:"
 msgstr ""
 
+msgid "Pause Print"
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
 msgid "Custom G-code"
 msgstr "Código G personalizado"
 
 msgid "Enter Custom G-code used on current layer:"
 msgstr "Introduzca el código G personalizado en la capa actual:"
-
-msgid "OK"
-msgstr "OK"
 
 msgid "Jump to Layer"
 msgstr "Saltar a la capa"
@@ -1428,7 +1440,10 @@ msgstr "FIlament"
 msgid "Change filament at the beginning of this layer."
 msgstr ""
 
-msgid "Delete Pause"
+msgid "Edit Pause Print Message"
+msgstr ""
+
+msgid "Delete Pause Print"
 msgstr ""
 
 msgid "Delete Custom Template"
@@ -1604,6 +1619,15 @@ msgstr "Orientando..."
 msgid "Orienting"
 msgstr "Orientando..."
 
+msgid "Filling bed "
+msgstr ""
+
+msgid "Bed filling canceled."
+msgstr ""
+
+msgid "Bed filling done."
+msgstr ""
+
 msgid "Error! Unable to create thread!"
 msgstr "¡Error! No se ha podido crear el proceso."
 
@@ -1616,59 +1640,53 @@ msgstr "Iniciando sesión"
 msgid "Login failed"
 msgstr "Fallo en el inicio de sesión"
 
-msgid "The region parameter is incorrrect"
-msgstr "El parámetro de región es incorrecto."
-
-msgid "Failure of printer login"
-msgstr "Fallo en el inicio de sesión de la impresora"
-
-msgid "Failed to get ticket"
-msgstr "No se ha podido conseguir el ticket"
-
-msgid "User authorization timeout"
-msgstr "Límite de tiempo de espera de la autorización del usuario"
-
-msgid "Failure of bind"
-msgstr "Fallo en la vinculación"
-
-msgid "Unknown Failure"
-msgstr "Error desconocido"
-
 msgid "Please check the printer network connection."
 msgstr "Por favor, comprueba la conexión de red de la impresora."
 
-msgid "Abnormal print file data. Please slice again"
-msgstr "Datos anormales del archivo de impresión. Por favor, procese de nuevo"
-
-msgid "Task canceled"
-msgstr "Tarea cancelada"
-
-msgid "Upload task timed out. Please check the network problem and try again"
+msgid "Abnormal print file data. Please slice again."
 msgstr ""
-"La tarea de carga ha terminado. Por favor, compruebe el problema de red e "
-"inténtelo de nuevo"
+
+msgid "Task canceled."
+msgstr ""
+
+msgid "Upload task timed out. Please check the network status and try again."
+msgstr ""
 
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 "Ha fallado la conexión con el servicio de la nube. Por favor, inténtelo de "
 "nuevo."
 
-msgid "Print file not found, please slice again"
+msgid "Print file not found. please slice again."
 msgstr ""
-"No se ha encontrado el archivo de impresión, por favor, vuelva a procesarlo"
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again"
+"model and slice again."
 msgstr ""
-"El archivo de impresión supera el tamaño máximo permitido (1GB). Por favor, "
-"simplifique el modelo y vuelva a procesarlo"
 
-msgid "Failed uploading print file"
-msgstr "Fallo al cargar el archivo de impresión"
+msgid "Failed to send the print job. Please try again."
+msgstr "No se pudo enviar la impresión. Vuelve a intentarlo."
 
-msgid "Wrong Access code"
-msgstr "Código de acceso incorrecto"
+msgid "Failed to upload file to ftp. Please try again."
+msgstr ""
+
+msgid ""
+"Check the current status of the bambu server by clicking on the link above."
+msgstr ""
+
+msgid ""
+"The size of the print file is too large. Please adjust the file size and try "
+"again."
+msgstr ""
+
+msgid "Print file not found, Please slice it again and send it for printing."
+msgstr ""
+
+msgid ""
+"Failed to upload print file to FTP. Please check the network status and try "
+"again."
+msgstr ""
 
 msgid "Sending print job over LAN"
 msgstr "Enviando el trabajo de impresión a través de la LAN"
@@ -1693,20 +1711,8 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Se debe insertar una tarjeta microSD antes de imprimir mediante LAN."
 
-msgid "Failed to send the print job. Please try again."
-msgstr "No se pudo enviar la impresión. Vuelve a intentarlo."
-
-msgid "Send to Printer failed. Please try again."
-msgstr "No se pudo enviar a la impresora. Vuelve a intentarlo."
-
-msgid "No space left on Printer SD card"
-msgstr ""
-
 msgid "Sending gcode file over LAN"
 msgstr "Envío de un archivo G-code a través de LAN"
-
-msgid "Sending gcode file through cloud service"
-msgstr "Envío de archivos G-code a través del servicio en la nube"
 
 msgid "Sending gcode file to sdcard"
 msgstr "Envío de un archivo G-code a la tarjeta microSD"
@@ -1717,9 +1723,6 @@ msgstr "Se ha enviado correctamente. Cerrar la página actual en %s s"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "Debe insertar una tarjeta microSD antes de enviar a la impresora."
-
-msgid "Please log out and login to the printer again."
-msgstr "Cierre sesión y vuelva a iniciarla en la impresora."
 
 msgid "Choose SLA archive:"
 msgstr ""
@@ -1918,7 +1921,10 @@ msgstr "Introduzca un valor válido (K en 0~0.5, N en 0.6~2.0)"
 msgid "You need to select the material type and color first."
 msgstr ""
 
-msgid "Other color"
+msgid "Other Color"
+msgstr ""
+
+msgid "Custom Color"
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -3099,6 +3105,9 @@ msgstr "Preparar"
 msgid "Preview"
 msgstr "Previsualización"
 
+msgid "3D Models"
+msgstr "Modelos 3D"
+
 msgid "Device"
 msgstr "Dispositivo"
 
@@ -3354,6 +3363,12 @@ msgstr "Mostrar y etiquetar"
 msgid "Show object labels in 3D scene"
 msgstr "Mostrar etiquetas de objetos en una escena 3D"
 
+msgid "Show &Overhang"
+msgstr ""
+
+msgid "Show object overhang highlight in 3D scene"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Preferencias"
 
@@ -3362,9 +3377,6 @@ msgstr "Vista"
 
 msgid "Help"
 msgstr "Ayuda"
-
-msgid "3D Models"
-msgstr "Modelos 3D"
 
 msgid "&Open G-code"
 msgstr "Abrir código G (&O)"
@@ -3476,9 +3488,15 @@ msgstr "Sincronización"
 msgid "Initialize failed (No Device)!"
 msgstr "¡Inicialización fallida (No hay dispositivo)!"
 
+msgid "Initialize failed (Device connection not ready)!"
+msgstr ""
+
 msgid "Initialize failed (No Camera Device)!"
 msgstr ""
 "¡Falló la inicialización (no se ha encontrado ningún dispositivo de cámara)!"
+
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr "La impresora está descargando; espere a que finalice la descarga."
 
 msgid "Initializing..."
 msgstr "Iniciando..."
@@ -3491,9 +3509,6 @@ msgstr "Error de inicialización (no es compatible con el modo solo LAN)."
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "Error de inicialización (no se puede acceder en modo LAN)."
-
-msgid "Printer is busy downloading, Please wait for the downloading to finish."
-msgstr "La impresora está descargando; espere a que finalice la descarga."
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "¡Fallo en la inicialización (falta la IP LAN de la impresora)!"
@@ -3581,6 +3596,9 @@ msgstr "Video"
 msgid "Switch to video files."
 msgstr "Cambia a archivos de vídeo."
 
+msgid "Switch to 3mf model files."
+msgstr ""
+
 msgid "Delete selected files from printer."
 msgstr "Delete selected files from printer."
 
@@ -3612,20 +3630,23 @@ msgstr "Error de conexión [%d]!"
 msgid "Loading file list..."
 msgstr "Cargando lista de archivos..."
 
-msgid "No files"
-msgstr "No hay archivos"
-
-msgid "Not accessible in LAN-only mode!"
-msgstr "¡No se puede acceder en modo solo LAN!"
-
-msgid "Missing LAN ip of printer!"
-msgstr "¡Falta la IP LAN de la impresora!"
+#, c-format, boost-format
+msgid "No files [%d]"
+msgstr ""
 
 #, c-format, boost-format
-msgid "You are going to delete %u files. Are you sure to continue?"
+msgid ""
+"You are going to delete %u files from printer. Are you sure to continue?"
 msgstr ""
 
 msgid "Delete files"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to delete the file '%s' from printer?"
+msgstr ""
+
+msgid "Delete file"
 msgstr ""
 
 #, c-format, boost-format
@@ -3691,6 +3712,9 @@ msgid "0"
 msgstr "0"
 
 msgid "Layer: N/A"
+msgstr ""
+
+msgid "Immediately score"
 msgstr ""
 
 msgid "Clear"
@@ -3770,6 +3794,12 @@ msgstr ""
 msgid "Layer: %s"
 msgstr ""
 
+msgid "Please give a score for your favorite Bambu Market model."
+msgstr ""
+
+msgid "Score"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr ""
@@ -3818,9 +3848,6 @@ msgstr "No se ha podido conectar con el servidor"
 
 msgid "Status"
 msgstr "Estado"
-
-msgid "Media"
-msgstr "Medios"
 
 msgid "Update"
 msgstr "Actualizar"
@@ -4501,6 +4528,10 @@ msgid "Plate Settings"
 msgstr ""
 
 #, boost-format
+msgid "Number of currently selected parts: %1%\n"
+msgstr ""
+
+#, boost-format
 msgid "Part name: %1%\n"
 msgstr "Nombre de la pieza: %1%\n"
 
@@ -4707,6 +4738,9 @@ msgstr "Modo oscuro"
 msgid "Enable Dark mode"
 msgstr "Activar modo oscuro"
 
+msgid "Develop mode"
+msgstr "Modo de desarrollo"
+
 msgid "Home page and daily tips"
 msgstr "Página de inicio y consejos diarios"
 
@@ -4743,11 +4777,8 @@ msgstr "Otro"
 msgid "Mouse wheel reverses when zooming"
 msgstr "La rueda del ratón se invierte al hacer zoom"
 
-msgid "Develop mode"
-msgstr "Modo de desarrollo"
-
-msgid "Dump video"
-msgstr "Volcar vídeo"
+msgid "Internal developer mode"
+msgstr ""
 
 msgid "Log Level"
 msgstr "Nivel de registro"
@@ -4839,11 +4870,17 @@ msgstr ""
 msgid "Print sequence"
 msgstr "Secuencia de impresión"
 
+msgid "Plate name"
+msgstr ""
+
 msgid "Same as Global Bed Type"
 msgstr "Igual que el tipo de cama global"
 
 msgid "Cool Plate"
 msgstr "Placa fría"
+
+msgid "PLA Plate"
+msgstr ""
 
 msgid "Engineering Plate"
 msgstr "Placa de ingeniería"
@@ -4976,6 +5013,9 @@ msgstr "Para \"%1%\", añada \"%2%\" como un nuevo preajuste"
 msgid "Simply switch to \"%1%\""
 msgstr "Simplemente cambia a \"%1%\""
 
+msgid "Task canceled"
+msgstr "Tarea cancelada"
+
 msgid "Online"
 msgstr "En línea"
 
@@ -5024,8 +5064,20 @@ msgstr "Nivelación de la cama"
 msgid "Flow Calibration"
 msgstr "Calibración del flujo"
 
+msgid "Can't connect to the printer"
+msgstr "No se puede conectar a la impresora"
+
 msgid "send completed"
 msgstr "envío completo"
+
+msgid "Error code"
+msgstr ""
+
+msgid "Check the status of current system services"
+msgstr ""
+
+msgid "Printer local connection failed, please try again."
+msgstr ""
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Sin cuenta de acceso, sólo se muestran las impresoras en modo LAN"
@@ -5156,6 +5208,17 @@ msgstr ""
 msgid "Preparing print job"
 msgstr "Preparando el trabajo de impresión"
 
+msgid "Abnormal print file data. Please slice again"
+msgstr "Datos anormales del archivo de impresión. Por favor, procese de nuevo"
+
+msgid "The name length exceeds the limit."
+msgstr ""
+
+msgid ""
+"Extrusion compensation calibration is not supported when using Textured PEI "
+"Plate"
+msgstr ""
+
 msgid "Modifying the device name"
 msgstr "Modificar el nombre del dispositivo"
 
@@ -5176,11 +5239,85 @@ msgstr "La impresora debe estar en la misma LAN que Bambu Studio."
 msgid "The printer does not support sending to printer SD card."
 msgstr "La impresora no admite el envío a la tarjeta MicroSD."
 
+msgid "Failed to create socket"
+msgstr ""
+
+msgid "Failed to connect socket"
+msgstr ""
+
+msgid "Failed to publish login request"
+msgstr ""
+
+msgid "Get ticket from device timeout"
+msgstr ""
+
+msgid "Get ticket from server timeout"
+msgstr ""
+
+msgid "Failed to post ticket to server"
+msgstr ""
+
+msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Receive login report timeout"
+msgstr ""
+
+msgid "Unknown Failure"
+msgstr "Error desconocido"
+
 msgid "Log in printer"
 msgstr "Iniciar sesión en la impresora"
 
 msgid "Would you like to log in this printer with current account?"
 msgstr "¿Desea iniciar sesión en esta impresora con la cuenta actual?"
+
+msgid "Check the reason"
+msgstr ""
+
+msgid "Read and accept"
+msgstr ""
+
+msgid "Terms and Conditions"
+msgstr ""
+
+msgid ""
+"Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
+"device, please read the termsand conditions.By clicking to agree to use your "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgstr ""
+
+msgid "and"
+msgstr ""
+
+msgid "Privacy Policy"
+msgstr ""
+
+msgid "We ask for your help to improve everyone's printer"
+msgstr ""
+
+msgid "Statement about User Experience Improvement Program"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"In the 3D Printing community, we learn from each other's successes and "
+"failures to adjust our own slicing parameters and settings. %s follows the "
+"same principle and uses machine learning to improve its performance from the "
+"successes and failures of the vast number of prints by our users. We are "
+"training %s to be smarter by feeding them the real-world data. If you are "
+"willing, this service will access information from your error logs and usage "
+"logs, which may include information described in  Privacy Policy. We will "
+"not collect any Personal Data by which an individual can be identified "
+"directly or indirectly, including without limitation names, addresses, "
+"payment information, or phone numbers. By enabling this service, you agree "
+"to these terms and the statement about Privacy Policy."
+msgstr ""
+
+msgid "Statement on User Experience Improvement Plan"
+msgstr ""
 
 msgid "Log in successful."
 msgstr "Inicio de sesión con éxito."
@@ -5393,8 +5530,8 @@ msgstr "Boquilla"
 msgid "Nozzle temperature when printing"
 msgstr "Temperatura de la boquilla al imprimir"
 
-msgid "Cool plate"
-msgstr "Placa fría"
+msgid "Cool Plate / PLA Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -5403,9 +5540,6 @@ msgstr ""
 "Esta es la temperatura de la cama cuando la placa fría está instalada. Un "
 "valor de 0 significa que el filamento no admite la impresión en la placa "
 "fría."
-
-msgid "Engineering plate"
-msgstr "Placa de ingeniería"
 
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
@@ -6237,11 +6371,9 @@ msgid "Open G-code file:"
 msgstr "Abrir archivo código G:"
 
 msgid ""
-"One object has empty initial layer and can't be printed. Please Cut the "
-"bottom or enable supports."
+"The following object(s) have empty initial layer and can't be printed. "
+"Please Cut the bottom or enable supports."
 msgstr ""
-"Un objeto tiene la capa inicial vacía y no se puede imprimir. Por favor, "
-"corte el fondo o habilite los soportes."
 
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
@@ -6885,6 +7017,12 @@ msgid ""
 msgstr ""
 "Sólo una pared en la superficies superiores, para dar más espacio a la placa "
 "de relleno superior"
+
+msgid "Only one wall on first layer"
+msgstr ""
+
+msgid "Use only one wall on the first layer of model"
+msgstr ""
 
 msgid "Slow down for overhang"
 msgstr "Disminución de velocidad de voladizo"
@@ -7631,6 +7769,9 @@ msgstr "Superficie superior"
 
 msgid "All solid layer"
 msgstr "Toda la capa sólida"
+
+msgid "Ironing Pattern"
+msgstr ""
 
 msgid "Ironing flow"
 msgstr "Flujo de planchado"
@@ -8440,6 +8581,12 @@ msgstr "Lazos de pared de soporte para arboles"
 msgid "This setting specify the count of walls around tree support"
 msgstr ""
 "Este ajuste especifica el número de muros alrededor del soporte del árbol"
+
+msgid "Tree support brim width"
+msgstr ""
+
+msgid "The brim width around tree support. 0 means auto."
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Temperatura de la boquilla después de la primera capa"
@@ -9263,6 +9410,82 @@ msgstr ""
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
 
+#~ msgid "The region parameter is incorrrect"
+#~ msgstr "El parámetro de región es incorrecto."
+
+#~ msgid "Failure of printer login"
+#~ msgstr "Fallo en el inicio de sesión de la impresora"
+
+#~ msgid "Failed to get ticket"
+#~ msgstr "No se ha podido conseguir el ticket"
+
+#~ msgid "User authorization timeout"
+#~ msgstr "Límite de tiempo de espera de la autorización del usuario"
+
+#~ msgid "Failure of bind"
+#~ msgstr "Fallo en la vinculación"
+
+#~ msgid ""
+#~ "Upload task timed out. Please check the network problem and try again"
+#~ msgstr ""
+#~ "La tarea de carga ha terminado. Por favor, compruebe el problema de red e "
+#~ "inténtelo de nuevo"
+
+#~ msgid "Print file not found, please slice again"
+#~ msgstr ""
+#~ "No se ha encontrado el archivo de impresión, por favor, vuelva a "
+#~ "procesarlo"
+
+#~ msgid ""
+#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
+#~ "the model and slice again"
+#~ msgstr ""
+#~ "El archivo de impresión supera el tamaño máximo permitido (1GB). Por "
+#~ "favor, simplifique el modelo y vuelva a procesarlo"
+
+#~ msgid "Failed uploading print file"
+#~ msgstr "Fallo al cargar el archivo de impresión"
+
+#~ msgid "Wrong Access code"
+#~ msgstr "Código de acceso incorrecto"
+
+#~ msgid "Send to Printer failed. Please try again."
+#~ msgstr "No se pudo enviar a la impresora. Vuelve a intentarlo."
+
+#~ msgid "Sending gcode file through cloud service"
+#~ msgstr "Envío de archivos G-code a través del servicio en la nube"
+
+#~ msgid "Please log out and login to the printer again."
+#~ msgstr "Cierre sesión y vuelva a iniciarla en la impresora."
+
+#~ msgid "No files"
+#~ msgstr "No hay archivos"
+
+#~ msgid "Not accessible in LAN-only mode!"
+#~ msgstr "¡No se puede acceder en modo solo LAN!"
+
+#~ msgid "Missing LAN ip of printer!"
+#~ msgstr "¡Falta la IP LAN de la impresora!"
+
+#~ msgid "Media"
+#~ msgstr "Medios"
+
+#~ msgid "Dump video"
+#~ msgstr "Volcar vídeo"
+
+#~ msgid "Cool plate"
+#~ msgstr "Placa fría"
+
+#~ msgid "Engineering plate"
+#~ msgstr "Placa de ingeniería"
+
+#~ msgid ""
+#~ "One object has empty initial layer and can't be printed. Please Cut the "
+#~ "bottom or enable supports."
+#~ msgstr ""
+#~ "Un objeto tiene la capa inicial vacía y no se puede imprimir. Por favor, "
+#~ "corte el fondo o habilite los soportes."
+
 #~ msgid ""
 #~ "Please check the following infomation and click Confirm to continue "
 #~ "sending print:"
@@ -9419,9 +9642,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Se completó la calibración. Seleccione los factores según la figura de la "
 #~ "izquierda y rellénelos en las casillas de entrada."
-
-#~ msgid "Can't connect to the printer"
-#~ msgstr "No se puede conectar a la impresora"
 
 #~ msgid ""
 #~ "Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the "
