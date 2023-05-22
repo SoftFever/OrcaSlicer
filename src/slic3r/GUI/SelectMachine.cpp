@@ -3767,7 +3767,7 @@ bool SelectMachineDialog::Show(bool show)
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (dev) {
             MachineObject* obj_ = dev->get_selected_machine();
-            if (obj_->connection_type() == "cloud") {
+            if (obj_ && obj_->connection_type() == "cloud" && m_print_type == FROM_SDCARD_VIEW) {
                 obj_->disconnect();
             }
         }
