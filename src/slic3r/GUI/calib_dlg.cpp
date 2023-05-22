@@ -46,7 +46,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 	m_rbExtruderType->SetSelection(0);
 	choice_sizer->Add(m_rbExtruderType, 0, wxALL, 5);
 	choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
-	wxString m_rbMethodChoices[] = { _L("PA Tower"), _L("PA Line") };
+	wxString m_rbMethodChoices[] = { _L("PA Tower"), _L("PA Line"), _L("PA Pattern") };
 	int m_rbMethodNChoices = sizeof(m_rbMethodChoices) / sizeof(wxString);
 	m_rbMethod = new wxRadioBox(this, wxID_ANY, _L("Method"), wxDefaultPosition, wxDefaultSize, m_rbMethodNChoices, m_rbMethodChoices, 2, wxRA_SPECIFY_COLS);
 	m_rbMethod->SetSelection(0);
@@ -141,7 +141,18 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
         msg_dlg.ShowModal();
         return;
     }
-    m_params.mode = m_rbMethod->GetSelection() == 0 ? CalibMode::Calib_PA_Tower : CalibMode::Calib_PA_Line;
+
+    switch (m_rbMethod->GetSelection()) {
+        case 1:
+            m_params.mode = CalibMode::Calib_PA_Line;
+            break;
+        case 2:
+            m_params.mode = CalibMode::Calib_PA_Pattern;
+            break;
+        default:
+            m_params.mode = CalibMode::Calib_PA_Tower;
+    }
+
     m_params.print_numbers = m_cbPrintNum->GetValue();
 
     m_plater->calib_pa(m_params);
@@ -151,39 +162,50 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
 void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) { 
     int selection = event.GetSelection();
     m_bDDE = selection == 0 ? true : false;
-    m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.1 : 1.0));
+
     m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
-    m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.002 : 0.02));
+    
+    if (m_rbMethod->GetSelection() == CalibMode::Calib_PA_Pattern) {
+        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.08));
+        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.015));
+    } else {
+        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.1 : 1.0));
+        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.002 : 0.02));
+    }
     event.Skip(); 
 }
 void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
     int selection = event.GetSelection();
-    m_params.mode = selection == 0 ? CalibMode::Calib_PA_Tower : CalibMode::Calib_PA_Line;
-    if (selection == 0) {
-        m_cbPrintNum->SetValue(false);
-        m_cbPrintNum->Enable(false);
-    }
-    else {
-        m_cbPrintNum->SetValue(true);
-        m_cbPrintNum->Enable(true);
+    switch (selection) {
+        case 1:
+            m_params.mode = CalibMode::Calib_PA_Line;
+            m_cbPrintNum->SetValue(true);
+            m_cbPrintNum->Enable(true);
+            break;
+        case 2:
+            m_params.mode = CalibMode::Calib_PA_Pattern;
+            m_cbPrintNum->SetValue(true);
+            m_cbPrintNum->Enable(false);
+            break;
+        default:
+            m_params.mode = CalibMode::Calib_PA_Tower;
+            m_cbPrintNum->SetValue(false);
+            m_cbPrintNum->Enable(false);
     }
 
     event.Skip(); 
 }
 
-
 void PA_Calibration_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     this->Refresh(); 
     Fit();
-
 }
 
 void PA_Calibration_Dlg::on_show(wxShowEvent& event) {
-    
-    if (m_rbMethod->GetSelection() == 0)
-        m_cbPrintNum->Enable(false);
-    else
+    if (m_rbMethod->GetSelection() == 1)
         m_cbPrintNum->Enable(true);
+    else
+        m_cbPrintNum->Enable(false);
 }
 
 // Temp Calib dlg
