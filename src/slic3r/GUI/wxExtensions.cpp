@@ -540,7 +540,7 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         // there is no neede to scale created solid bitmap
         wxColor clr(color);
         bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
-#ifdef __WXOSX__
+#ifndef __WXMSW__
         wxMemoryDC dc;
 #else
         wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);

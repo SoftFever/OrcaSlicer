@@ -4796,7 +4796,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by PBambuStudio.conf: %1%") % language;
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by BambuStudio.conf: %1%") % language;
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
@@ -4902,7 +4902,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 #ifdef __linux__
     // If we can't find this locale , try to use different one for the language
     // instead of just reporting that it is impossible to switch.
-    if (! wxLocale::IsAvailable(language_info->Language)) {
+    if (! wxLocale::IsAvailable(language_info->Language) && m_language_info_system) {
         std::string original_lang = into_u8(language_info->CanonicalName);
         language_info = linux_get_existing_locale_language(language_info, m_language_info_system);
         BOOST_LOG_TRIVIAL(trace) << boost::format("Can't switch language to %1% (missing locales). Using %2% instead.")

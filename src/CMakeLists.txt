@@ -246,6 +246,12 @@ else ()
         COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
         COMMENT "Symlinking the resources directory into the build tree"
         VERBATIM)
+    if (UNIX AND NOT APPLE)
+        add_custom_command(TARGET BambuStudio POST_BUILD
+            COMMAND ln -sfn "zh_cn" "${BIN_RESOURCES_DIR}/i18n/zh_CN"
+            COMMENT "Symlinking zh_CN language setting to zh_cn"
+            VERBATIM)
+    endif()
 endif ()
 
 # Slic3r binary install target. Default build type is release in case no CMAKE_BUILD_TYPE is provided.
