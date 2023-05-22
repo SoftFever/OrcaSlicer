@@ -1,0 +1,71 @@
+name: Bug Report
+description: File a bug report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, please check if the issue already exists (either open or closed) by using the search bar on the issues page. If it does, comment there. Even if it's closed, we can reopen it based on your comment.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Description of the bug
+      description: What happened? Please, enclose a screenshot whenever possible (even when you think the description is clear). What did you expect to happen?
+      placeholder: |
+        What is the problem?
+        What did you expect?
+        Paste or drop screenshots here 
+    validations:
+      required: true
+  - type: textarea
+    id: to_reproduce
+    attributes:
+      label: Project file & How to reproduce
+      description: "*Please* upload a ZIP archive containing the project file used when the problem arise. Please export it just before or after the problem occurs. Even if you did nothing and/or there is no object, export it! (We need the configurations in project file)."
+      placeholder: |
+        `File`->`Save project as...` then zip it & drop it here
+        Also, if needed include the steps to reproduce the bug:
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version of Bambu Studio are you running? You can see the full version in `Help` -> `About Bambu Studio`.
+      placeholder: e.g. Bambu Studio 1.6.2.4
+    validations:
+      required: true
+  - type: textarea
+    id: system_info
+    attributes:
+      label: System Information
+      description: Which OS version are you using? For the performance issue, please also show the CPU、Memory information; For the 3D Rendering issue, please also show the Display Card information.
+      placeholder: |
+        OS: Windows 7/8/10/11 ... , Ubuntu 22.04/Fedora 36 ... , macOS 10.15/11.1/12.3 ...
+        CPU: 11th gen intel r core tm i7-1185g7/amd ryzen 7 6800h/...
+        Memory: 32/16 GB...
+        Display Card: NVIDIA Quadro P400/...
+    validations:
+      required: true
+  - type: input
+    id: printer
+    attributes:
+      label: Printer model
+      description: Please, fill this in even when it seems irrelevant.
+      placeholder: Bambu Lab X1 Carbon
+    validations:
+      required: true
+  - type: textarea
+    id: app_from
+    attributes:
+      label: Where is the application from?
+      description: please confirm where is your Bambu Studio from
+      placeholder: |
+        e.g. Bambu Lab Official website, Bambu Lab github releases, OTA upgrading(popup box in Bambu Studio)
+        e.g. Built from source
+    validations:
+      required: true
+
