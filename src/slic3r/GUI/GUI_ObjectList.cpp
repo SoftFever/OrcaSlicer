@@ -3186,7 +3186,7 @@ void ObjectList::part_selection_changed()
                     for (auto item : sels) {
                         int                obj_idx = m_objects_model->GetObjectIdByItem(item);
                         const ModelObject *obj     = object(obj_idx);
-                        if (obj->is_cut()) {
+                        if (obj && obj->is_cut()) {
                             if (cut_objects.find(obj->cut_id) == cut_objects.end())
                                 cut_objects[obj->cut_id] = std::set<int>{obj_idx};
                             else

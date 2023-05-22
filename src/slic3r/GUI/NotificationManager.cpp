@@ -1633,7 +1633,10 @@ void NotificationManager::push_validate_error_notification(StringObjectException
 void NotificationManager::push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs)
 {
     std::vector<ObjectID> ids;
-    for (auto optr : objs) { ids.push_back(optr->id()); }
+    for (auto optr : objs) {
+        if (optr)
+            ids.push_back(optr->id());
+    }
 	auto callback = !objs.empty() ? [ids](wxEvtHandler *) {
 		auto & objects = wxGetApp().model().objects;
 		std::vector<ObjectVolumeID> ovs;
@@ -1650,7 +1653,10 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
     auto link     = callback ? _u8L("Jump to") : "";
     if (!objs.empty()) {
         link += " [";
-        for (auto obj : objs) { link += obj->name + ", "; }
+        for (auto obj : objs) {
+            if (obj)
+                link += obj->name + ", ";
+        }
         if (!objs.empty()) {
             link.pop_back();
             link.pop_back();
