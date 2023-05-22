@@ -389,7 +389,6 @@ public:
     void init_bind();
     void init_timer();
     void check_focus(wxWindow* window);
-    void link_to_network_check();
     void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void check_fcous_state(wxWindow* window);
     void popup_filament_backup();

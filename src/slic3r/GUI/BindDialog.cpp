@@ -39,7 +39,10 @@ wxString get_fail_reason(int code)
         return _L("Failed to post ticket to server");
 
     else if (code == BAMBU_NETWORK_ERR_BIND_PARSE_LOGIN_REPORT_FAILED)
-        return _L("Failed to parse login report reason");
+        return _L("Failed to parse login report reason"); 
+    
+    else if (code == BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED)
+        return _L("Failed to parse login report reason111");
 
     else if (code == BAMBU_NETWORK_ERR_BIND_RECEIVE_LOGIN_REPORT_TIMEOUT)
         return _L("Receive login report timeout");
@@ -331,7 +334,7 @@ wxString get_fail_reason(int code)
      m_link_network_state = new Label(m_sw_bind_failed_info, _L("Check the status of current system services"));
      m_link_network_state->SetForegroundColour(0x00AE42);
      m_link_network_state->SetFont(::Label::Body_12);
-     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {link_to_network_check(); });
+     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
      m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
      m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
 
@@ -486,33 +489,6 @@ wxString get_fail_reason(int code)
      this->Disconnect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDialog::on_update_message), NULL, this);
  }
 
- void BindMachineDialog::link_to_network_check()
- {
-     std::string url;
-     std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
-
-
-     if (country_code == "US") {
-         url = "https://status.bambulab.com";
-     }
-     else if (country_code == "CN") {
-         url = "https://status.bambulab.cn";
-     }
-     else if (country_code == "ENV_CN_DEV") {
-         url = "https://status.bambu-lab.com";
-     }
-     else if (country_code == "ENV_CN_QA") {
-         url = "https://status.bambu-lab.com";
-     }
-     else if (country_code == "ENV_CN_PRE") {
-         url = "https://status.bambu-lab.com";
-     }
-     else {
-         url = "https://status.bambu-lab.com";
-     }
-     wxLaunchDefaultBrowser(url);
- }
-
  void BindMachineDialog::show_bind_failed_info(bool show, int code, wxString description, wxString extra)
  {
      if (show) {
@@ -523,9 +499,9 @@ wxString get_fail_reason(int code)
              m_st_txt_error_desc->SetLabelText( wxGetApp().filter_string(m_result_info));
              m_st_txt_extra_info->SetLabelText( wxGetApp().filter_string(m_result_extra));
 
-             m_st_txt_error_code->Wrap(FromDIP(260));
-             m_st_txt_error_desc->Wrap(FromDIP(260));
-             m_st_txt_extra_info->Wrap(FromDIP(260));
+             m_st_txt_error_code->Wrap(FromDIP(330));
+             m_st_txt_error_desc->Wrap(FromDIP(330));
+             m_st_txt_extra_info->Wrap(FromDIP(330));
          }
          else {
              m_sw_bind_failed_info->Show(false);

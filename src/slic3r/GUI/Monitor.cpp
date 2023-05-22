@@ -171,7 +171,7 @@ MonitorPanel::~MonitorPanel()
     wxBoxSizer *sizer_boxh = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_boxv = new wxBoxSizer(wxHORIZONTAL);*/
 
-    m_connection_info = new Button(this, "Failed to connect to the printer");
+    m_connection_info = new Button(this, wxEmptyString);
     m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
     m_connection_info->SetBorderColor(wxColour(255, 111, 0));
     m_connection_info->SetTextColor(*wxWHITE);
@@ -181,18 +181,139 @@ MonitorPanel::~MonitorPanel()
     m_connection_info->SetMinSize(wxSize(FromDIP(-1), FromDIP(25)));
     m_connection_info->SetMaxSize(wxSize(FromDIP(-1), FromDIP(25)));
 
-    wxBoxSizer* connection_sizer = new wxBoxSizer(wxVERTICAL);
-    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    connection_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
-    m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
-    m_connection_info->SetSizer(connection_sizer);
-    m_connection_info->Layout();
-    connection_sizer->Fit(m_connection_info);
 
+    wxBoxSizer* connection_sizer_V = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* connection_sizer_H = new wxBoxSizer(wxHORIZONTAL);
+
+    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
+
+    m_more_err_open = ScalableBitmap(this, "monitir_err_open", 16);
+    m_more_err_close = ScalableBitmap(this, "monitir_err_close", 16);
+    m_more_button = new ScalableButton(m_connection_info, wxID_ANY, "monitir_err_open");
+    m_more_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_more_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+    m_more_button->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (!m_more_err_state) {
+            m_more_button->SetBitmap(m_more_err_close.bmp());
+            Freeze();
+            m_side_error_panel->Show();
+            m_more_err_state = true;
+            m_tabpanel->Refresh();
+            m_tabpanel->Layout();
+            Thaw();
+        }
+        else {
+            m_more_button->SetBitmap(m_more_err_open.bmp());
+            Freeze();
+            m_side_error_panel->Hide();
+            m_more_err_state = false;
+            m_tabpanel->Refresh();
+            m_tabpanel->Layout();
+            Thaw();
+        }
+        
+    });
+
+    connection_sizer_H->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+    connection_sizer_H->Add(m_more_button, 0, wxALIGN_CENTER | wxALL, 3);
+    connection_sizer_V->Add(connection_sizer_H, 0, wxALIGN_CENTER, 0);
+    
+    m_connection_info->SetSizer(connection_sizer_V);
+    m_connection_info->Layout();
+    connection_sizer_V->Fit(m_connection_info);
+
+    m_side_error_panel = new wxWindow(this,wxID_ANY);
+    m_side_error_panel->SetBackgroundColour(wxColour(255,232,214));
+    m_side_error_panel->SetMinSize(wxSize(-1, -1));
+    m_side_error_panel->SetMaxSize(wxSize(-1, -1));
+
+    m_side_error_panel->Hide();
+    m_more_button->Hide();
     m_connection_info->Hide();
+
+    wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
+    m_side_error_panel->SetSizer(sizer_print_failed_info);
+
+    wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
+
+    m_link_network_state = new Label(m_side_error_panel, _L("Check cloud service status"), wxALIGN_CENTER_HORIZONTAL|wxST_ELLIPSIZE_END);
+    m_link_network_state->SetMinSize(wxSize(FromDIP(220), -1));
+    m_link_network_state->SetMaxSize(wxSize(FromDIP(220), -1));
+    m_link_network_state->SetForegroundColour(0x00AE42);
+    m_link_network_state->SetFont(::Label::Body_12);
+    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
+    m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
+    m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
+
+    auto st_title_error_code = new wxStaticText(m_side_error_panel, wxID_ANY, _L("code"),wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto st_title_error_code_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
+    m_st_txt_error_code = new Label(m_side_error_panel, wxEmptyString);
+    st_title_error_code->SetForegroundColour(0x909090);
+    st_title_error_code_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_code->SetForegroundColour(0x909090);
+    st_title_error_code->SetFont(::Label::Body_12);
+    st_title_error_code_doc->SetFont(::Label::Body_12);
+    m_st_txt_error_code->SetFont(::Label::Body_12);
+    st_title_error_code->SetMinSize(wxSize(FromDIP(32), -1));
+    st_title_error_code->SetMaxSize(wxSize(FromDIP(32), -1));
+    m_st_txt_error_code->SetMinSize(wxSize(FromDIP(175), -1));
+    m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(175), -1));
+    sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
+    sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
+    sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
+
+
+    auto st_title_error_desc = new wxStaticText(m_side_error_panel, wxID_ANY, wxT("desc"),wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto st_title_error_desc_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
+    m_st_txt_error_desc = new Label(m_side_error_panel, wxEmptyString);
+    st_title_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc->SetFont(::Label::Body_12);
+    st_title_error_desc_doc->SetFont(::Label::Body_12);
+    m_st_txt_error_desc->SetFont(::Label::Body_12);
+    st_title_error_desc->SetMinSize(wxSize(FromDIP(32), -1));
+    st_title_error_desc->SetMaxSize(wxSize(FromDIP(32), -1));
+    m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(175), -1));
+    m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(175), -1));
+    sizer_error_desc->Add(st_title_error_desc, 0, wxALL, 0);
+    sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
+    sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
+
+    auto st_title_extra_info = new wxStaticText(m_side_error_panel, wxID_ANY, wxT("info"),wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto st_title_extra_info_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
+    m_st_txt_extra_info = new Label(m_side_error_panel, wxEmptyString);
+    st_title_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info_doc->SetForegroundColour(0x909090);
+    m_st_txt_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info->SetFont(::Label::Body_12);
+    st_title_extra_info_doc->SetFont(::Label::Body_12);
+    m_st_txt_extra_info->SetFont(::Label::Body_12);
+    st_title_extra_info->SetMinSize(wxSize(FromDIP(32), -1));
+    st_title_extra_info->SetMaxSize(wxSize(FromDIP(32), -1));
+    m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(175), -1));
+    m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(175), -1));
+    sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
+    sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
+    sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
+
+    sizer_print_failed_info->Add(m_link_network_state, 0, wxALIGN_CENTER, 3);
+    sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_error_desc, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
+
+    m_st_txt_error_desc->SetLabel("");
+    m_st_txt_error_desc->Wrap(FromDIP(170));
+
 
 
     sizer_side_tools->Add(m_connection_info, 0, wxEXPAND, 0);
+    sizer_side_tools->Add(m_side_error_panel, 0, wxEXPAND, 0);
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel             = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
@@ -221,6 +342,24 @@ MonitorPanel::~MonitorPanel()
 
     m_initialized = true;
     show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
+}
+
+void MonitorPanel::update_connect_err_info(int code, wxString desc, wxString info)
+{
+    m_st_txt_error_code->SetLabelText(wxString::Format("%d", code));
+    m_st_txt_error_desc->SetLabelText(desc);
+    m_st_txt_extra_info->SetLabelText(info);
+
+    m_st_txt_error_code->Wrap(FromDIP(175));
+    m_st_txt_error_desc->Wrap(FromDIP(175));
+    m_st_txt_extra_info->Wrap(FromDIP(175));
+
+    if (code == BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED) {
+        m_link_network_state->Hide();
+    }
+    else if(code == BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED){
+        m_link_network_state->Show();
+    }
 }
 
 void MonitorPanel::set_default()
@@ -544,29 +683,43 @@ void MonitorPanel::show_status(int status)
     BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
-        if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
+        if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER)) {
             m_hyperlink->SetLabel(_L("Failed to connect to the server"));
-            //m_connection_info->SetLabel(_L("Failed to connect to the server"));
-        else
+            update_connect_err_info(BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED,
+                _L("Failed to connect to cloud service"),
+                _L("Please click on the hyperlink above to view the cloud service status"));
+        }
+        else {
             m_hyperlink->SetLabel(_L("Failed to connect to the printer"));
-            //m_connection_info->SetLabel(_L("Failed to connect to the printer"));
-
+            update_connect_err_info(BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED, 
+                _L("Connection to printer failed"),
+                _L("Please check the network connection of the printer and Studio."));
+        }
+           
         m_hyperlink->Show();
         m_connection_info->SetLabel(wxEmptyString);
+        m_connection_info->SetBackgroundColor(0xFF6F00);
+        m_connection_info->SetBorderColor(0xFF6F00);
         m_connection_info->Show();
-        m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
-        m_connection_info->SetBorderColor(wxColour(255, 111, 0));
+        m_more_button->Show();
+
+
+
 #if !BBL_RELEASE_TO_PUBLIC
         m_upgrade_panel->update(nullptr);
 #endif
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
+        m_more_button->Hide();
+        m_side_error_panel->Hide();
     } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
         m_hyperlink->Hide();
         m_connection_info->SetLabel(_L("Connecting..."));
-        m_connection_info->SetBackgroundColor(wxColour(0, 174, 66));
-        m_connection_info->SetBorderColor(wxColour(0, 174, 66));
+        m_connection_info->SetBackgroundColor(0x00AE42);
+        m_connection_info->SetBorderColor(0x00AE42);
         m_connection_info->Show();
+        m_more_button->Hide();
+        m_side_error_panel->Hide();
     }
 
     Freeze();
@@ -581,6 +734,8 @@ void MonitorPanel::show_status(int status)
         set_default();
         m_side_tools->set_none_printer_mode();
         m_connection_info->Hide();
+        m_side_error_panel->Hide();
+        m_more_button->Hide();
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
 #if !BBL_RELEASE_TO_PUBLIC

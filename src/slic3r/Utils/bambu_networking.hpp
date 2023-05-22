@@ -35,8 +35,9 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_BIND_GET_PRINTER_TICKET_TIMEOUT    -1040 //timeout to get ticket from printer
 #define BAMBU_NETWORK_ERR_BIND_GET_CLOUD_TICKET_TIMEOUT      -1050 //timeout to get ticket from cloud server
 #define BAMBU_NETWORK_ERR_BIND_POST_TICKET_TO_CLOUD_FAILED   -1060 //failed to post ticket to cloud server
-#define BAMBU_NETWORK_ERR_BIND_PARSE_LOGIN_REPORT_FAILED     -1070 //failed to parse login report reason
-#define BAMBU_NETWORK_ERR_BIND_RECEIVE_LOGIN_REPORT_TIMEOUT  -1080 //timeout to receive login report
+#define BAMBU_NETWORK_ERR_BIND_PARSE_LOGIN_REPORT_FAILED     -1070 //failed to parse login report reason no error code
+#define BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED     -1080 //failed to parse login report reason has error code
+#define BAMBU_NETWORK_ERR_BIND_RECEIVE_LOGIN_REPORT_TIMEOUT  -1090 //timeout to receive login report
 
 //start_local_print_with_record  error
 #define BAMBU_NETWORK_ERR_PRINT_WR_REQUEST_PROJECT_ID_FAILED        -2010 //failed to request project id
@@ -75,6 +76,10 @@ namespace BBL {
 
 //start_send_gcode_to_sdcard error
 #define BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED                -5010 //failed to upload ftp
+
+//connection to printer failed
+#define BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED               -6010 //Connection to printer failed
+#define BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED                -6020 //Connection to server failed
 
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"

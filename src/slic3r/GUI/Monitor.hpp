@@ -84,6 +84,7 @@ private:
     UpgradePanel*       m_upgrade_panel;
     HMSPanel*           m_hms_panel;
     Button *            m_connection_info{nullptr};
+    wxWindow *          m_side_error_panel{nullptr};
     wxHyperlinkCtrl* m_hyperlink{nullptr};
 
 	/* side tools */
@@ -94,6 +95,10 @@ private:
     wxStaticBitmap* m_bitmap_wifi_signal;
     wxBoxSizer *    m_side_tools_sizer;
 
+    Label* m_link_network_state;
+    Label* m_st_txt_error_code;
+    Label* m_st_txt_error_desc;
+    Label* m_st_txt_extra_info;
 
     SelectMachinePopup m_select_machine;
 
@@ -104,6 +109,11 @@ private:
     wxBitmap m_signal_no_img;
     wxBitmap m_printer_img;
     wxBitmap m_arrow_img;
+
+    ScalableButton* m_more_button;
+    bool m_more_err_state{false};
+    ScalableBitmap m_more_err_open;
+    ScalableBitmap m_more_err_close;
 
     int last_wifi_signal = -1;
     wxTimer* m_refresh_timer = nullptr;
@@ -126,6 +136,7 @@ public:
 	void init_bitmap();
     void init_timer();
     void init_tabpanel();
+    void update_connect_err_info(int code, wxString desc, wxString info);
     Tabbook* get_tabpanel() { return m_tabpanel; };
     void set_default();
     wxWindow* create_side_tools();

@@ -1119,6 +1119,9 @@ wxWindow* PreferencesDialog::create_debug_page()
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
 
+
+    auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
+    auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_ftp");
     auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), page, _L("Internal developer mode"), 50, "internal_developer_mode");
 
     auto title_log_level = create_item_title(_L("Log Level"), page, _L("Log Level"));
@@ -1233,6 +1236,9 @@ wxWindow* PreferencesDialog::create_debug_page()
     });
 
 
+
+    bSizer->Add(enable_ssl_for_mqtt, 0, wxTOP, FromDIP(3));
+    bSizer->Add(enable_ssl_for_ftp, 0, wxTOP, FromDIP(3));
     bSizer->Add(item_internal_developer, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_log_level, 0, wxTOP| wxEXPAND, FromDIP(20));
     bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));

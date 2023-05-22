@@ -84,6 +84,8 @@ public:
     void hide_cancel_button();
     void change_button_label(wxString name);
 
+    void disable_cancel_button();
+    void enable_cancel_button();
 private:
     bool     m_show_error_info_state = false;
     bool     m_busy = false;

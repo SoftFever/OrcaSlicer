@@ -97,6 +97,7 @@ public:
     void set_project_name(std::string name);
     void on_check_ip_address_fail(std::function<void()> func);
     void on_check_ip_address_success(std::function<void()> func);
+    void connect_to_local_mqtt();
 };
 
 }} // namespace Slic3r::GUI

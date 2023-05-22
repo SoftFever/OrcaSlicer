@@ -1364,7 +1364,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_link_network_state = new Label(m_sw_print_failed_info, _L("Check the status of current system services"));
     m_link_network_state->SetForegroundColour(0x00AE42);
     m_link_network_state->SetFont(::Label::Body_12);
-    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {link_to_network_check();});
+    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check();});
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND);});
     m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW);});
 
@@ -1456,8 +1456,23 @@ void SelectMachineDialog::init_bind()
             on_send_print();
         }
         else if (e.GetInt() == -2) {
+            show_status(PrintDialogStatus::PrintStatusSendingCanceled);
+            prepare_mode();
             MessageDialog msg_wingow(nullptr, _L("Printer local connection failed, please try again."), "", wxAPPLY | wxOK);
             msg_wingow.ShowModal();
+        }
+        else if (e.GetInt() == 5) {
+            show_status(PrintDialogStatus::PrintStatusSendingCanceled);
+            prepare_mode();
+
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev) return;
+            ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
+            dlg.go_connect_printer(false);
+            dlg.set_machine_object(dev->get_selected_machine());
+            if (dlg.ShowModal() == wxID_OK) {
+                this->connect_printer_mqtt();
+            }
         }
     }); 
 
@@ -1483,33 +1498,6 @@ void SelectMachineDialog::check_focus(wxWindow* window)
     if (window == m_rename_input || window == m_rename_input->GetTextCtrl()) {
         on_rename_enter();
     }
-}
-
-void SelectMachineDialog::link_to_network_check()
-{
-    std::string url;
-    std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
-
-
-    if (country_code == "US") {
-        url = "https://status.bambulab.com";
-    }
-    else if (country_code == "CN") {
-        url = "https://status.bambulab.cn";
-    }
-    else if (country_code == "ENV_CN_DEV") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_QA") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_PRE") {
-        url = "https://status.bambu-lab.com";
-    }
-    else {
-        url = "https://status.bambu-lab.com";
-    }
-    wxLaunchDefaultBrowser(url);
 }
 
 void SelectMachineDialog::show_print_failed_info(bool show, int code, wxString description, wxString extra)
@@ -2388,7 +2376,15 @@ void SelectMachineDialog::connect_printer_mqtt()
     MachineObject* obj_ = dev->get_selected_machine();
 
     if (obj_->connection_type() == "cloud") {
+        show_status(PrintDialogStatus::PrintStatusSending);
+        m_status_bar->disable_cancel_button();
+        m_status_bar->set_status_text("Connecting to the printer. Unable to cancel during the connection process.");
+
+#if !BBL_RELEASE_TO_PUBLIC
+        obj_->connect(false, wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
+#else
         obj_->connect(false, obj_->local_use_ssl_for_mqtt);
+#endif
     }
     else {
         on_send_print();
@@ -2400,7 +2396,8 @@ void SelectMachineDialog::on_send_print()
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
     m_is_canceled = false;
     Enable_Send_Button(false);
-    if (m_is_in_sending_mode)
+
+    if (m_print_type == PrintFromType::FROM_NORMAL && m_is_in_sending_mode)
         return;
 
     int result = 0;
@@ -2444,6 +2441,7 @@ void SelectMachineDialog::on_send_print()
 
     // enter sending mode
     sending_mode();
+    m_status_bar->enable_cancel_button();
 
     // get ams_mapping_result
     std::string ams_mapping_array;
@@ -2502,8 +2500,14 @@ void SelectMachineDialog::on_send_print()
     m_print_job->m_dev_ip = obj_->dev_ip;
     m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
+    m_print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+#else
     m_print_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
     m_print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
+#endif
     m_print_job->connection_type = obj_->connection_type();
     m_print_job->cloud_print_only = obj_->is_cloud_print_only;
 
@@ -3801,7 +3805,10 @@ bool SelectMachineDialog::Show(bool show)
         if (dev) {
             MachineObject* obj_ = dev->get_selected_machine();
             if (obj_ && obj_->connection_type() == "cloud" && m_print_type == FROM_SDCARD_VIEW) {
-                obj_->disconnect();
+                if (obj_->is_connected()) {
+                    obj_->disconnect();
+                }
+                
             }
         }
     }

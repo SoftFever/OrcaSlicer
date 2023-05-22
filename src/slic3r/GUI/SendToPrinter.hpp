@@ -128,7 +128,6 @@ public:
     void stripWhiteSpace(std::string& str);
     void prepare_mode();
     void sending_mode();
-    void link_to_network_check();
     void reset_timeout();
     void update_user_printer();
     void update_show_status();

@@ -182,7 +182,7 @@ void PrintJob::process()
     params.password = m_access_code;
 
     // check access code and ip address
-    if (this->connection_type == "lan") {
+    if (this->connection_type == "lan" && m_print_type == "from_normal") {
         params.dev_id = m_dev_id;
         params.project_name = "verify_job";
         params.filename = job_data._temp_path.string();
@@ -494,5 +494,11 @@ void PrintJob::on_check_ip_address_success(std::function<void()> func)
 {
     m_enter_ip_address_fun_success = func;
 }
+
+void PrintJob::connect_to_local_mqtt()
+{
+    this->update_status(0, "1111111");
+}
+
 
 }} // namespace Slic3r::GUI

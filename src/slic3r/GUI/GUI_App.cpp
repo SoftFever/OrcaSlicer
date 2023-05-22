@@ -1934,6 +1934,10 @@ void GUI_App::init_networking_callbacks()
                                 event.SetInt(1);
                                 event.SetString(obj->dev_id);
                             }
+                            else if(msg == "5") {
+                                event.SetInt(5);
+                                event.SetString(obj->dev_id);
+                            }
                             else {
                                 event.SetInt(-2);
                                 event.SetString(obj->dev_id);
@@ -3241,6 +3245,33 @@ bool GUI_App::get_side_menu_popup_status()
 void GUI_App::set_side_menu_popup_status(bool status)
 {
     m_side_popup_status = status;
+}
+
+void GUI_App::link_to_network_check()
+{
+    std::string url;
+    std::string country_code = app_config->get_country_code();
+
+
+    if (country_code == "US") {
+        url = "https://status.bambulab.com";
+    }
+    else if (country_code == "CN") {
+        url = "https://status.bambulab.cn";
+    }
+    else if (country_code == "ENV_CN_DEV") {
+        url = "https://status.bambu-lab.com";
+    }
+    else if (country_code == "ENV_CN_QA") {
+        url = "https://status.bambu-lab.com";
+    }
+    else if (country_code == "ENV_CN_PRE") {
+        url = "https://status.bambu-lab.com";
+    }
+    else {
+        url = "https://status.bambu-lab.com";
+    }
+    wxLaunchDefaultBrowser(url);
 }
 
 bool GUI_App::tabs_as_menu() const

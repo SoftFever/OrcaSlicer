@@ -106,6 +106,18 @@ void BindJob::process()
 
     if (result < 0) {
         BOOST_LOG_TRIVIAL(trace) << "login: result = " << result;
+
+        int         error_code;
+        wxString    error_msg;
+        try
+        {
+            error_code = stoi(result_info);
+            result_info = wxGetApp().get_hms_query()->query_print_error_msg(error_code).ToStdString();
+        }
+        catch (...) {
+            ;
+        }
+
         post_fail_event(result_code, result_info);
         return;
     }

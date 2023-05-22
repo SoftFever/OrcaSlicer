@@ -83,7 +83,6 @@ public:
     BindMachineDialog(Plater *plater = nullptr);
     ~BindMachineDialog();
 
-    void     link_to_network_check();
     void     show_bind_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void     on_cancel(wxCommandEvent& event);
     void     on_bind_fail(wxCommandEvent &event);

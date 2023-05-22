@@ -1334,8 +1334,16 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_send_job = std::make_shared<SendJob>(m_status_bar, wxGetApp().plater(), m_obj->dev_id);
     m_send_job->m_dev_ip = ip.ToStdString();
     m_send_job->m_access_code = str_access_code.ToStdString();
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true"?true:false;
+    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true"?true:false;
+#else
+
     m_send_job->m_local_use_ssl_for_mqtt = m_obj->local_use_ssl_for_mqtt;
     m_send_job->m_local_use_ssl_for_ftp = m_obj->local_use_ssl_for_ftp;
+#endif
+
     m_send_job->connection_type = m_obj->connection_type();
     m_send_job->cloud_print_only = true;
     m_send_job->has_sdcard = m_obj->has_sdcard();

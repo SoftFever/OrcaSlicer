@@ -618,8 +618,15 @@ void CalibUtils::send_to_print(const std::string& dev_id, const std::string& sel
     print_job->m_dev_ip         = obj_->dev_ip;
     print_job->m_ftp_folder     = obj_->get_ftp_folder();
     print_job->m_access_code    = obj_->get_access_code();
+
+#if !BBL_RELEASE_TO_PUBLIC
+    print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
+    print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+#else
     print_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
     print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
+#endif
+
     print_job->connection_type  = obj_->connection_type();
     print_job->cloud_print_only = obj_->is_cloud_print_only;
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event());

@@ -383,7 +383,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_link_network_state = new Label(m_sw_print_failed_info, _L("Check the status of current system services"));
     m_link_network_state->SetForegroundColour(0x00AE42);
     m_link_network_state->SetFont(::Label::Body_12);
-    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {link_to_network_check(); });
+    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
     m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
 
@@ -591,33 +591,6 @@ void SendToPrinterDialog::sending_mode()
     }
 }
 
-void SendToPrinterDialog::link_to_network_check()
-{
-    std::string url;
-    std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
-
-
-    if (country_code == "US") {
-        url = "https://status.bambulab.com";
-    }
-    else if (country_code == "CN") {
-        url = "https://status.bambulab.cn";
-    }
-    else if (country_code == "ENV_CN_DEV") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_QA") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_PRE") {
-        url = "https://status.bambu-lab.com";
-    }
-    else {
-        url = "https://status.bambu-lab.com";
-    }
-    wxLaunchDefaultBrowser(url);
-}
-
 void SendToPrinterDialog::prepare(int print_plate_idx)
 {
     m_print_plate_idx = print_plate_idx;
@@ -793,6 +766,15 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_send_job->m_access_code       = obj_->get_access_code();
     m_send_job->m_local_use_ssl_for_ftp     = obj_->local_use_ssl_for_ftp;
     m_send_job->m_local_use_ssl_for_mqtt    = obj_->local_use_ssl_for_mqtt;
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
+    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+#else
+    m_send_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
+    m_send_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
+#endif
+
     m_send_job->connection_type     = obj_->connection_type();
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();
