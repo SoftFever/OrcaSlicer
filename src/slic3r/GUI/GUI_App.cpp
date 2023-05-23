@@ -1759,7 +1759,16 @@ void GUI_App::restart_networking()
         if (plater_)
             plater_->get_notification_manager()->bbl_close_plugin_install_notification();
 
-        if (app_config->get("sync_user_preset") == "true") { start_sync_user_preset(); }
+        if (m_agent->is_user_login()) {
+            remove_user_presets();
+            enable_user_preset_folder(true);
+            preset_bundle->load_user_presets(m_agent->get_user_id(), ForwardCompatibilitySubstitutionRule::Enable);
+            mainframe->update_side_preset_ui();
+        }
+
+        if (app_config->get("sync_user_preset") == "true") {
+            start_sync_user_preset();
+        }
         if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
             if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(m_agent); }
         }
@@ -2557,7 +2566,7 @@ bool GUI_App::on_init_inner()
     copy_network_if_available();
     on_init_network();
 
-    if (app_config->get("sync_user_preset") == "true" && m_agent && m_agent->is_user_login()) {
+    if (m_agent && m_agent->is_user_login()) {
         enable_user_preset_folder(true);
     } else {
         enable_user_preset_folder(false);
@@ -3674,6 +3683,11 @@ void GUI_App::request_user_logout()
         /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({}, {});
+        remove_user_presets();
+        enable_user_preset_folder(false);
+        preset_bundle->load_user_presets(DEFAULT_USER_FOLDER_NAME, ForwardCompatibilitySubstitutionRule::Enable);
+        mainframe->update_side_preset_ui();
+
         GUI::wxGetApp().stop_sync_user_preset();
     }
 }
@@ -4034,14 +4048,13 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         wxQueueEvent(this, evt);
     });
 
-
-
-    if (online_login)
-        GUI::wxGetApp().mainframe->show_sync_dialog();
-    else if (app_config->get("sync_user_preset") == "true") {
+    if (online_login) {
+        remove_user_presets();
         enable_user_preset_folder(true);
-    } else {
-        enable_user_preset_folder(false);
+        preset_bundle->load_user_presets(m_agent->get_user_id(), ForwardCompatibilitySubstitutionRule::Enable);
+        mainframe->update_side_preset_ui();
+
+        GUI::wxGetApp().mainframe->show_sync_dialog();
     }
 }
 
@@ -4472,23 +4485,12 @@ void GUI_App::sync_preset(Preset* preset)
     }
 }
 
-void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_dlg)
+void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
     if (!m_agent || !m_agent->is_user_login()) return;
 
-    if (load_immediately)
-        remove_user_presets();
-
-    enable_user_preset_folder(true);
-
     // has already start sync
-    if (enable_sync)
-        return;
-
-    if (load_immediately) {
-        preset_bundle->load_user_presets(m_agent->get_user_id(), ForwardCompatibilitySubstitutionRule::Enable);
-        mainframe->update_side_preset_ui();
-    }
+    if (enable_sync) return;
 
     ProgressFn progressFn;
     WasCancelledFn cancelFn;
@@ -4591,13 +4593,6 @@ void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_d
 
 void GUI_App::stop_sync_user_preset()
 {
-    if (!wxGetApp().m_is_closing)
-        remove_user_presets();
-    enable_user_preset_folder(false);
-
-    preset_bundle->load_user_presets(DEFAULT_USER_FOLDER_NAME, ForwardCompatibilitySubstitutionRule::Enable);
-    mainframe->update_side_preset_ui();
-
     if (!enable_sync)
         return;
 
