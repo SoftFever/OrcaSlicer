@@ -915,7 +915,7 @@ boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callba
     auto msg = oss.str();
     //OutputDebugStringA(msg.c_str());
     //OutputDebugStringA("\n");
-    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem::SendRequest: " << type << " msg: " << msg;
+    wxLogMessage("PrinterFileSystem::SendRequest: \n%s\n", msg);
     boost::unique_lock l(m_mutex);
     m_messages.push_back(msg);
     m_callbacks.push_back(callback);
@@ -1013,6 +1013,7 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
     json        root;
     //OutputDebugStringA(msg.c_str());
     //OutputDebugStringA("\n");
+    wxLogMessage("PrinterFileSystem::HandleResponse: \n%s\n", msg);
     std::istringstream iss(msg);
     int                cmd    = 0;
     int                seq    = -1;
