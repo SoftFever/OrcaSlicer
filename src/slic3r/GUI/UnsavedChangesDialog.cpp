@@ -1703,7 +1703,7 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
                                      const wxString& old_value_header, const wxString& new_value_header)
     : wxDialog(nullptr, wxID_ANY, option_name, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    wxGetApp().UpdateDarkUI(this);
+    SetBackgroundColour(*wxWHITE);
 
     int border = 10;
 
@@ -1774,6 +1774,8 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 
