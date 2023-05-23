@@ -487,6 +487,7 @@ public:
     std::chrono::system_clock::time_point last_extrusion_cali_start_time;
     int extrusion_cali_set_tray_id = -1;
     std::chrono::system_clock::time_point extrusion_cali_set_hold_start;
+    std::string  extrusion_cali_filament_name;
 
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();

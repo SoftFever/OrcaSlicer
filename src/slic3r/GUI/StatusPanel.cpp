@@ -2237,12 +2237,17 @@ void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is
         enable[ACTION_BTN_CALI] = false;
     }
     else {
-        if (obj->is_in_extrusion_cali()) {
-            enable[ACTION_BTN_LOAD] = false;
-            enable[ACTION_BTN_UNLOAD] = false;
+        if (obj->is_in_printing()) {
+            if (obj->is_in_extrusion_cali()) {
+                enable[ACTION_BTN_LOAD] = false;
+                enable[ACTION_BTN_UNLOAD] = false;
+                enable[ACTION_BTN_CALI] = true;
+            } else {
+                enable[ACTION_BTN_CALI] = false;
+            }
+        } else {
             enable[ACTION_BTN_CALI] = true;
-        } else
-            enable[ACTION_BTN_CALI] = false;
+        }
     }
 
     if (obj->is_in_printing() && !obj->can_resume()) {

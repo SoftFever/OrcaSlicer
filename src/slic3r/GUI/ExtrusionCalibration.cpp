@@ -675,6 +675,11 @@ void ExtrusionCalibration::update_combobox_filaments()
                         curr_selection = filament_index;
                     }
 
+                    if (filament_it->name == obj->extrusion_cali_filament_name && !obj->extrusion_cali_filament_name.empty())
+                    {
+                        curr_selection = filament_index;
+                    }
+
                     wxString filament_name = wxString::FromUTF8(filament_it->name);
                     filament_items.Add(filament_name);
                     break;
@@ -783,6 +788,11 @@ void ExtrusionCalibration::update_filament_info()
             wxString filament_name = wxString::FromUTF8(filament_it->name);
             if (filament_name.compare(m_comboBox_filament->GetValue()) == 0) {
                 m_filament_type = filament_it->name;
+
+                if (obj) {
+                    obj->extrusion_cali_filament_name = filament_it->name;
+                    BOOST_LOG_TRIVIAL(info) << "set extrusion cali filament name = " << obj->extrusion_cali_filament_name;
+                }
 
                 // update nozzle temperature
                 ConfigOption* opt_nozzle_temp = filament_it->config.option("nozzle_temperature");
