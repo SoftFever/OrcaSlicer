@@ -328,7 +328,7 @@ protected:
     wxBoxSizer*                         rename_sizer_h{ nullptr };
     Button*                             m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
-    Button*                             m_rename_button{nullptr};
+    ScalableButton *                    m_rename_button{nullptr};
     CheckBox*                           m_ams_check{ nullptr };
     ComboBox*                           m_comboBox_printer{ nullptr };
     ComboBox*                           m_comboBox_bed{ nullptr };
@@ -371,6 +371,17 @@ protected:
     wxScrolledWindow*                   m_scrollable_view;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};
+    ScalableBitmap *                    ams_editable{nullptr};
+    ScalableBitmap *                    ams_editable_light{nullptr};
+    wxStaticBitmap *                    timeimg{nullptr};
+    ScalableBitmap *                    print_time{nullptr};
+    wxStaticBitmap *                    weightimg{nullptr};
+    ScalableBitmap *                    print_weight{nullptr};
+    wxStaticBitmap *                    amsmapping_tip{nullptr};
+    ScalableBitmap *                    enable_ams_mapping{nullptr};
+    wxStaticBitmap *                    ams_tip{nullptr};
+    ScalableBitmap *                    enable_ams{nullptr};
+
 public:
     SelectMachineDialog(Plater *plater = nullptr);
     ~SelectMachineDialog();

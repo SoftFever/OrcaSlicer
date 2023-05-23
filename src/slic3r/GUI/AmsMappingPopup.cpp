@@ -52,7 +52,11 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
  MaterialItem::~MaterialItem() {}
 
-void MaterialItem::msw_rescale() {}
+void MaterialItem::msw_rescale() {
+    m_arraw_bitmap_gray  = ScalableBitmap(this, "drop_down", FromDIP(12));
+    m_arraw_bitmap_white = ScalableBitmap(this, "topbar_dropdown", FromDIP(12));
+    m_transparent_mitem  = ScalableBitmap(this, "transparent_material_item", FromDIP(32));
+}
 
 void MaterialItem::set_ams_info(wxColour col, wxString txt)
 {

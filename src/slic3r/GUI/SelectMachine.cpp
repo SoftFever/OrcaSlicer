@@ -1002,8 +1002,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, 0);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
-    m_rename_button = new Button(m_rename_normal_panel, "", "ams_editable", wxBORDER_NONE, FromDIP(10));
-    m_rename_button->SetBackgroundColor(*wxWHITE);
+    m_rename_button = new ScalableButton(m_rename_normal_panel, wxID_ANY, "ams_editable");
+    ams_editable    = new ScalableBitmap(this, "ams_editable", 13);
+    ams_editable_light    = new ScalableBitmap(this, "ams_editable_light", 13);
     m_rename_button->SetBackgroundColour(*wxWHITE);
 
     rename_sizer_h->Add(m_rename_text, 0, wxALIGN_CENTER, 0);
@@ -1094,14 +1095,16 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer *m_sizer_basic_weight = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_basic_time   = new wxBoxSizer(wxHORIZONTAL);
 
-    auto timeimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+    print_time   = new ScalableBitmap(this, "print-time", 18);
+    timeimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, print_time->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_weight->Add(timeimg, 1, wxEXPAND | wxALL, FromDIP(5));
     m_stext_time = new wxStaticText(m_scrollable_region, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
     m_sizer_basic_weight->Add(m_stext_time, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_weight, 0, wxALIGN_CENTER, 0);
     m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
-    auto weightimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+    print_weight   = new ScalableBitmap(this, "print-weight", 18);
+    weightimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, print_weight->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_time->Add(weightimg, 1, wxEXPAND | wxALL, FromDIP(5));
     m_stext_weight = new wxStaticText(m_scrollable_region, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, FromDIP(5));
@@ -1110,8 +1113,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer* m_sizer_material_area = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* m_sizer_material_tips = new wxBoxSizer(wxHORIZONTAL);
 
-
-    auto img_amsmapping_tip = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    enable_ams_mapping      = new ScalableBitmap(this, "enable_ams", 16);
+    auto img_amsmapping_tip = new wxStaticBitmap(m_scrollable_region, wxID_ANY, enable_ams_mapping->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     m_sizer_material_tips->Add(img_amsmapping_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {
@@ -1131,7 +1134,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_mapping_tutorial_popup.Dismiss();
         });
-
+    amsmapping_tip = img_amsmapping_tip;
 
     m_sizer_material = new wxGridSizer(0, 4, 0, FromDIP(5));
 
@@ -1582,7 +1585,8 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     text->Wrap(-1);
     sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
 
-    auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    enable_ams       = new ScalableBitmap(this, "enable_ams", 16);
+    auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, enable_ams->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     sizer_checkbox->Add(img_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto& e) {
@@ -1602,6 +1606,7 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_mapping_tip_popup.Dismiss();
         });
+    ams_tip = img_ams_tip;
 
     checkbox->SetSizer(sizer_checkbox);
     checkbox->Layout();
@@ -3243,11 +3248,33 @@ void SelectMachineDialog::Enable_Send_Button(bool en)
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
+    print_time->msw_rescale();
+    timeimg->SetBitmap(print_time->bmp());
+    print_weight->msw_rescale();
+    weightimg->SetBitmap(print_weight->bmp());
+    m_rename_button->msw_rescale();
+    ams_editable->msw_rescale();
+    ams_editable_light->msw_rescale();
+    enable_ams_mapping->msw_rescale();
+    amsmapping_tip->SetBitmap(enable_ams_mapping->bmp());
+    enable_ams->msw_rescale();
+    ams_tip->SetBitmap(enable_ams->bmp());
+
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetCornerRadius(FromDIP(12));
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetCornerRadius(FromDIP(12));
     m_status_bar->msw_rescale();
+
+    for (auto checkpire : m_checkbox_list) { 
+        checkpire.second->Rescale();
+    }
+    m_ams_check->Rescale();
+
+    for (auto material1 : m_materialList) { 
+        material1.second->item->msw_rescale();
+    }
+
     Fit();
     Refresh();
 }
@@ -3747,10 +3774,12 @@ void SelectMachineDialog::update_page_turn_state(bool show)
 void SelectMachineDialog::sys_color_changed()
 {
     if (wxGetApp(). dark_mode()) {
-        m_rename_button->SetIcon("ams_editable_light");
+        //rename_button->SetIcon("ams_editable_light");
+        m_rename_button->SetBitmap(ams_editable_light->bmp());
+
     }
     else {
-        m_rename_button->SetIcon("ams_editable");
+        m_rename_button->SetBitmap(ams_editable->bmp());
     }
     m_rename_button->Refresh();
 }
