@@ -2273,6 +2273,9 @@ class wxBoostLog : public wxLog
 bool GUI_App::on_init_inner()
 {
     wxLog::SetActiveTarget(new wxBoostLog());
+#if BBL_RELEASE_TO_PUBLIC
+    wxLog::SetLogLevel(wxLOG_Message);
+#endif
 
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();
