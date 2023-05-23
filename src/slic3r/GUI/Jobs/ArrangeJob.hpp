@@ -78,6 +78,16 @@ double bed_stride_y(const Plater* plater);
 
 arrangement::ArrangeParams get_arrange_params(Plater *p);
 
+arrangement::ArrangeParams init_arrange_params(const Plater &p);
+
+Points get_shrink_bedpts(const Plater& plater,const arrangement::ArrangeParams& params);
+
+void update_arrange_params(arrangement::ArrangeParams &params, const Plater &p, const arrangement::ArrangePolygons &selected);
+
+void update_selected_items_inflation(arrangement::ArrangePolygons &selected, const Plater &p, const arrangement::ArrangeParams &params);
+
+void update_unselected_items_inflation(arrangement::ArrangePolygons &unselected, const Plater &p, const arrangement::ArrangeParams &params);
+
 }} // namespace Slic3r::GUI
 
 #endif // ARRANGEJOB_HPP

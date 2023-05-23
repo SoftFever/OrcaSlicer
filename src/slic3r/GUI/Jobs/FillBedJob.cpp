@@ -23,6 +23,8 @@ void FillBedJob::prepare()
     m_unselected.clear();
     m_bedpts.clear();
 
+    params = init_arrange_params(*m_plater);
+
     m_object_idx = m_plater->get_selected_object_idx();
     if (m_object_idx == -1)
         return;
@@ -118,6 +120,8 @@ void FillBedJob::prepare()
     if (m_selected.empty()) return;
 
     //add the virtual object into unselect list if has
+    double scaled_exclusion_gap = scale_(1);
+    plate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
     plate_list.preprocess_exclude_areas(m_unselected);
 
     m_bedpts = get_bed_shape(*m_plater->config());
@@ -200,16 +204,16 @@ void FillBedJob::process()
     const GLCanvas3D::ArrangeSettings &settings =
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
 
-    arrangement::ArrangeParams params;
-    params.allow_rotations  = settings.enable_rotation;
-    params.min_obj_distance = scaled(settings.distance);
-    params.avoid_extrusion_cali_region = settings.avoid_extrusion_cali_region;
+    update_arrange_params(params, *m_plater, m_selected);
+    m_bedpts = get_shrink_bedpts(*m_plater, params);
+
     auto &partplate_list               = m_plater->get_partplate_list();
     auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer")) 
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
-
-    for (auto &ap : m_selected) { ap.inflation = params.min_obj_distance / 2; }
+    
+    update_selected_items_inflation(m_selected, *m_plater, params);
+    update_unselected_items_inflation(m_unselected, *m_plater, params);
 
     bool do_stop = false;
     params.stopcondition = [this, &do_stop]() {

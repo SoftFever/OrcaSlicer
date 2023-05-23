@@ -21,6 +21,8 @@ class FillBedJob : public PlaterJob
 
     Points m_bedpts;
 
+    arrangement::ArrangeParams params;
+
     int m_status_range = 0;
 
 protected:
