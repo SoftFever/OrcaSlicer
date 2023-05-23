@@ -241,7 +241,7 @@ void WebView::LoadUrl(wxWebView * webView, wxString const &url)
 
 bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 {
-    if (Slic3r::GUI::wxGetApp().get_mode() == Slic3r::comDevelop)
+    if (Slic3r::GUI::wxGetApp().app_config->get("internal_developer_mode") == "true")
         wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     try {
