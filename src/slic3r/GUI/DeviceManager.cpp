@@ -1448,6 +1448,8 @@ void MachineObject::parse_version_func()
             local_use_ssl_for_mqtt = true;
             local_use_ssl_for_ftp = true;
         }
+        is_support_remote_tunnel = true;
+        local_camera_proto       = 1;
     }
 }
 
