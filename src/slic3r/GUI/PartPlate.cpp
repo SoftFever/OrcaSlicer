@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <algorithm>
+#include <regex>
 #include <numeric>
 #include <vector>
 #include <string>
@@ -1600,18 +1601,20 @@ void PartPlate::set_plate_name(const std::string &name)
 {
     // compare if name equal to m_name, case sensitive
     if (boost::equals(m_name, name)) return;
-
+    m_name = name;
+    m_name.erase(remove_if(m_name.begin(), m_name.end(), ::isspace), m_name.end());
+    std::regex reg("[\\\\/:*?\"<>|]");
+    m_name= regex_replace(m_name, reg, "");
+    m_name_change = true;
     if (m_plater) {
         ObjectList *obj_list = wxGetApp().obj_list();
         if (obj_list) { 
-			obj_list->GetModel()->SetCurSelectedPlateFullNmae(m_plate_index, name);
+			obj_list->GetModel()->SetCurSelectedPlateFullNmae(m_plate_index, m_name);
 		}
     }
-    m_name = name;
-    m_name_change = true;
-    if (m_print != nullptr) 
-		m_print->set_plate_name(name);
 
+    if (m_print != nullptr) 
+		m_print->set_plate_name(m_name);
 }
 
 //get the print's object, result and index
