@@ -1876,7 +1876,7 @@ void MainFrame::on_sys_color_changed()
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
 
-#ifdef __APPLE__
+#ifndef __WINDOWS__
     wxGetApp().force_colors_update();
     wxGetApp().update_ui_from_settings();
 #endif //__APPLE__
@@ -1898,7 +1898,6 @@ void MainFrame::on_sys_color_changed()
     // update Plater
     wxGetApp().plater()->sys_color_changed();
     m_monitor->on_sys_color_changed();
-
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();
