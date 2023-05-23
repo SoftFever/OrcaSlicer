@@ -748,7 +748,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
     }
 
     // updates print order strings
-    if (sorted_instances.size() > 1) {
+    if (sorted_instances.size() > 0) {
         for (size_t i = 0; i < sorted_instances.size(); ++i) {
             size_t id = sorted_instances[i]->id().id;
             std::vector<Owner>::iterator it = std::find_if(owners.begin(), owners.end(), [id](const Owner& owner) {
@@ -7068,8 +7068,9 @@ void GLCanvas3D::_render_overlays()
     if (m_layers_editing.last_object_id >= 0 && m_layers_editing.object_max_z() > 0.0f)
         m_layers_editing.render_overlay(*this);
 
-    const ConfigOptionEnum<PrintSequence>* opt = dynamic_cast<const ConfigOptionEnum<PrintSequence>*>(m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence"));
-    bool sequential_print = opt != nullptr && (opt->value == PrintSequence::ByObject);
+	auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    auto curr_print_seq = curr_plate->get_real_print_seq();
+    bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
         const Print* print = fff_print();
