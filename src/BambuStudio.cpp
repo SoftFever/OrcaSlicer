@@ -3006,7 +3006,8 @@ extern "C" {
 #if BBL_RELEASE_TO_PUBLIC
         SET_DEFULTER_HANDLER();
 #else
-        AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
+        //AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
+        SET_DEFULTER_HANDLER();
 #endif
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
