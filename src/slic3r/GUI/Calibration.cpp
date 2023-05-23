@@ -214,7 +214,8 @@ wxWindow* CalibrationDialog::create_check_option(wxString title, wxWindow* paren
 void CalibrationDialog::update_cali(MachineObject *obj)
 {
     if (!obj) return;
-    if (obj->is_function_supported(PrinterFunction::FUNC_AI_MONITORING)) {
+    if (obj->is_function_supported(PrinterFunction::FUNC_AI_MONITORING)
+        && obj->is_function_supported(PrinterFunction::FUNC_LIDAR_CALIBRATION)) {
         select_xcam_cali->Show();
     } else {
         select_xcam_cali->Hide();

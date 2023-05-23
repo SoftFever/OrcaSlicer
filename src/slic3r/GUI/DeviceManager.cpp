@@ -2269,6 +2269,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
             return false;
         func_name = "FUNC_AI_MONITORING";
         break;
+    case FUNC_LIDAR_CALIBRATION:
+        func_name = "FUNC_LIDAR_CALIBRATION";
+        break;
     case FUNC_BUILDPLATE_MARKER_DETECT:
         parse_version_func();
         if (!is_xcam_buildplate_supported)
