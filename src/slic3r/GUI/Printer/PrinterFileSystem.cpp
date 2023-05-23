@@ -608,7 +608,7 @@ void PrinterFileSystem::DownloadNextFile()
             download->ofs.write((char const *) data, size);
             download->boost_md5.process_bytes(data, size);
             prog.size += size;
-            if (prog.size < prog.total) { return CONTINUE; }
+            if (prog.size < prog.total) { return 0; }
             download->ofs.close();
             int         result = 0;
             std::string md5    = resp["file_md5"];
@@ -620,7 +620,12 @@ void PrinterFileSystem::DownloadNextFile()
                 std::string str_md5;
                 const auto  char_digest = reinterpret_cast<const char *>(&digest[0]);
                 boost::algorithm::hex(char_digest, char_digest + sizeof(digest), std::back_inserter(str_md5));
-                if (!boost::iequals(str_md5, md5)) result = FILE_CHECK_ERR;
+                if (!boost::iequals(str_md5, md5)) {
+                    wxLogWarning("PrinterFileSystem::DownloadNextFile checksum error: %s != %s\n", str_md5, md5);
+                    boost::system::error_code ec;
+                    boost::filesystem::rename(download->local_path, download->local_path + ".tmp", ec);
+                    result = FILE_CHECK_ERR;
+                }
             } else {
                 result = FILE_SIZE_ERR;
             }
@@ -637,8 +642,10 @@ void PrinterFileSystem::DownloadNextFile()
                 int progress = data.size * 100 / data.total;
                 auto & file = m_file_list[download->index];
                 if (result == ERROR_CANCEL)
-                    file.flags &= ~FF_DOWNLOAD;
-                else if (file.progress != progress) {
+                    progress = -1, file.flags &= ~FF_DOWNLOAD;
+                else if (result != CONTINUE && result != SUCCESS)
+                    progress == -2;
+                if (file.progress != progress) {
                     file.progress = progress;
                     SendChangedEvent(EVT_DOWNLOAD, download->index, file.local_path, result);
                 }
@@ -713,7 +720,7 @@ bool PrinterFileSystem::ParseThumbnail(File &file, std::istream &is)
     }
     file.metadata.emplace("Title", model.model_info->model_name);
     file.metadata.emplace("Time", durationString(round(time)));
-    file.metadata.emplace("Weight", std::to_string(int(round(weight))));
+    file.metadata.emplace("Weight", std::to_string(int(round(weight))) + 'g');
     auto thumbnail = model.model_info->metadata_items["Thumbnail"];
     if (thumbnail.empty() && !plate_data_list.empty()) {
         thumbnail = plate_data_list.front()->thumbnail_file;
@@ -915,7 +922,7 @@ boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callba
     auto msg = oss.str();
     //OutputDebugStringA(msg.c_str());
     //OutputDebugStringA("\n");
-    wxLogMessage("PrinterFileSystem::SendRequest: \n%s\n", msg);
+    wxLogInfo("PrinterFileSystem::SendRequest >>>: \n%s\n", wxString::FromUTF8(msg));
     boost::unique_lock l(m_mutex);
     m_messages.push_back(msg);
     m_callbacks.push_back(callback);
@@ -1013,7 +1020,7 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
     json        root;
     //OutputDebugStringA(msg.c_str());
     //OutputDebugStringA("\n");
-    wxLogMessage("PrinterFileSystem::HandleResponse: \n%s\n", msg);
+    wxLogInfo("PrinterFileSystem::HandleResponse <<<: \n%s\n", wxString::FromUTF8(msg));
     std::istringstream iss(msg);
     int                cmd    = 0;
     int                seq    = -1;
@@ -1068,6 +1075,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     if (m_session.tunnel) {
         auto tunnel = m_session.tunnel;
         m_session.tunnel = nullptr;
+        wxLogMessage("PrinterFileSystem::Reconnect close");
         l.unlock();
         Bambu_Close(tunnel);
         Bambu_Destroy(tunnel);
@@ -1089,6 +1097,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
                 return;
             m_cond.wait(l);
         }
+        wxLogMessage("PrinterFileSystem::Reconnect Initializing");
         m_status = Status::Initializing;
         SendChangedEvent(EVT_STATUS_CHANGED, m_status);
         // wait for url
@@ -1098,10 +1107,13 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         std::string url = m_messages.front();
         m_messages.clear();
         if (url.size() < 2) {
+            wxLogMessage("PrinterFileSystem::Reconnect Initialize failed: %s", wxString::FromUTF8(url));
             m_last_error = atoi(url.c_str());
         } else {
+            wxLogMessage("PrinterFileSystem::Reconnect Initialized: %s", wxString::FromUTF8(url));
             l.unlock();
             m_status = Status::Connecting;
+            wxLogMessage("PrinterFileSystem::Reconnect Connecting");
             SendChangedEvent(EVT_STATUS_CHANGED, m_status);
             Bambu_Tunnel tunnel = nullptr;
             int ret = Bambu_Create(&tunnel, url.c_str());
@@ -1114,6 +1126,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;
+                wxLogMessage("PrinterFileSystem::Reconnect Connected");
                 break;
             }
             if (tunnel) {
@@ -1122,7 +1135,8 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             }
             m_last_error = ret;
         }
-        m_status     = Status::Failed;
+        wxLogMessage("PrinterFileSystem::Reconnect Failed");
+        m_status = Status::Failed;
         SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : 0);
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
     }

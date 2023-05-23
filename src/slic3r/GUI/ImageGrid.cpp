@@ -638,6 +638,7 @@ void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int ind
     // Draw thumbnail & buttons
     int h = m_content_rect.GetHeight() * 64 / 264;
     m_content_rect.SetHeight(m_content_rect.GetHeight() - h);
+    dc.DrawRectangle(pt, m_content_rect.GetSize()); // Fix translucent model thumbnail
     renderContent1(dc, pt, index, hit);
     m_content_rect.SetHeight(m_content_rect.GetHeight() + h);
     // Draw info bar

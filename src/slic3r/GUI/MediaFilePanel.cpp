@@ -267,12 +267,13 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             ScalableBitmap icon;
             wxString msg;
             int status = e.GetInt();
+            int extra = e.GetExtraLong();
             switch (status) {
             case PrinterFileSystem::Initializing: icon = m_bmp_loading; msg = _L("Initializing..."); break;
             case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
-            case PrinterFileSystem::Failed: icon = m_bmp_failed; if (e.GetExtraLong() != 1) msg = _L("Connect failed [%d]!"); break;
+            case PrinterFileSystem::Failed: icon = m_bmp_failed; if (extra != 1) msg = _L("Connect failed [%d]!"); break;
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
-            case PrinterFileSystem::ListReady: icon = m_bmp_empty; msg = _L("No files [%d]"); break;
+            case PrinterFileSystem::ListReady: icon = extra == 0 ? m_bmp_empty : m_bmp_failed; msg = extra == 0 ? _L("No files [%d]") : _L("Load failed [%d]"); break;
             }
             if (fs->GetCount() == 0 && !msg.empty())
                 m_image_grid->SetStatus(icon, msg);
@@ -449,15 +450,15 @@ void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
 {
     auto fs = m_image_grid->GetFileSystem();
     if (action == 0) {
-        if (fs->GetSelectCount() > 1) {
+        if (index == -1) {
             MessageDialog dlg(this, 
                 wxString::Format(_L("You are going to delete %u files from printer. Are you sure to continue?"), fs->GetSelectCount()), 
                 _L("Delete files"), wxYES_NO | wxICON_WARNING);
             if (dlg.ShowModal() != wxID_YES)
                 return;
-        } else if (index >= 0) {
+        } else {
             MessageDialog dlg(this, 
-                wxString::Format(_L("Do you want to delete the file '%s' from printer?"), fs->GetSelectCount()), 
+                wxString::Format(_L("Do you want to delete the file '%s' from printer?"), from_u8(fs->GetFile(index).name)), 
                 _L("Delete file"), wxYES_NO | wxICON_WARNING);
             if (dlg.ShowModal() != wxID_YES)
                 return;
