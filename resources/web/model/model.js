@@ -2,7 +2,7 @@ var ModelSwiper=null;
 var ProfileSwiper=null;
 
 function OnInit()
-{
+{	
 	console.log(" 页面加载完成 ");
 	//翻译页面
 	TranslatePage();
@@ -155,7 +155,6 @@ function HandleStudio(pVal)
 		ShowProjectInfo( null );
 	}	
 }
-
 
 function ShowProjectInfo( p3MF )
 {	
@@ -311,7 +310,7 @@ function ShowModelInfo( pModel )
 			$('#Model_Preview_Image  .swiper-pagination').show();	
 			
 			ModelSwiper = new Swiper('#Model_Preview_Image.swiper', {
-			loop:true,
+			loop:false,
 			spaceBetween: 8,
 			navigation: {
 				nextEl: '.swiper-button-next',
@@ -320,7 +319,6 @@ function ShowModelInfo( pModel )
 			autoplay: {
 				delay: 3000,
 				stopOnLastSlide: false,
-				disableOnInteraction: true,
 				disableOnInteraction: false
 			},
 			pagination: {
@@ -529,7 +527,7 @@ function ShowProfilelInfo( pProfile )
 			$('#Profile_Preview_Image  .swiper-pagination').show();					
 			
 			ProfileSwiper = new Swiper('#Profile_Preview_Image.swiper', {
-			loop:true,
+			loop:false,
 			spaceBetween: 8,
 			navigation: {
 				nextEl: '.swiper-button-next',
@@ -538,7 +536,6 @@ function ShowProfilelInfo( pProfile )
 			autoplay: {
 				delay: 3000,
 				stopOnLastSlide: false,
-				disableOnInteraction: true,
 				disableOnInteraction: false
 			},
 			pagination: {
