@@ -7,9 +7,9 @@
 
 namespace Slic3r {
 
-    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6), m_draw_numbers(true) {}
+    calib_pressure_advance_line::calib_pressure_advance_line(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6), m_draw_numbers(true) {}
 
-    std::string calib_pressure_advance::generate_test(double start_pa /*= 0*/, double step_pa /*= 0.002*/,
+    std::string calib_pressure_advance_line::generate_test(double start_pa /*= 0*/, double step_pa /*= 0.002*/,
                                                       int count /*= 10*/) {
       BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
       bool is_delta = false;
@@ -35,7 +35,7 @@ namespace Slic3r {
       return print_pa_lines(startx, starty, start_pa, step_pa, count);
     }
 
-    std::string calib_pressure_advance::move_to(Vec2d pt) {
+    std::string calib_pressure_advance_line::move_to(Vec2d pt) {
         std::stringstream gcode;
         gcode << mp_gcodegen->retract();
         gcode << mp_gcodegen->writer().travel_to_xyz(Vec3d(pt.x(), pt.y(), 0.2));
@@ -43,7 +43,7 @@ namespace Slic3r {
         return gcode.str();
     }
 
-    std::string calib_pressure_advance::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num) {
+    std::string calib_pressure_advance_line::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num) {
 
         auto& writer = mp_gcodegen->writer();
         Flow line_flow = Flow(m_line_width, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
@@ -94,7 +94,7 @@ namespace Slic3r {
     }
 
 
-    std::string calib_pressure_advance::draw_digit(double startx, double starty, char c) {
+    std::string calib_pressure_advance_line::draw_digit(double startx, double starty, char c) {
         auto& writer = mp_gcodegen->writer();
         std::stringstream gcode;
         const double lw = 0.48;
@@ -199,7 +199,7 @@ namespace Slic3r {
         return gcode.str();
     }
     // draw number
-    std::string calib_pressure_advance::draw_number(double startx, double starty, double value) {
+    std::string calib_pressure_advance_line::draw_number(double startx, double starty, double value) {
         double spacing = 3.0;
         auto sNumber = std::to_string(value);
         sNumber.erase(sNumber.find_last_not_of('0') + 1, std::string::npos);

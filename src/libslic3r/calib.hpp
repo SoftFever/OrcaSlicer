@@ -25,11 +25,11 @@ struct Calib_Params
     CalibMode mode;
 };
 
-class calib_pressure_advance
+class calib_pressure_advance_line
 {
 public:
-    calib_pressure_advance(GCode* gcodegen);
-    ~calib_pressure_advance() {}
+    calib_pressure_advance_line(GCode* gcodegen);
+    ~calib_pressure_advance_line() {}
 
     std::string generate_test(double start_pa = 0, double step_pa = 0.002, int count = 50);
     void set_speed(double fast = 100.0,double slow = 20.0) {
