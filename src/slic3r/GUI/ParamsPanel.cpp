@@ -706,7 +706,9 @@ void ParamsPanel::notify_object_config_changed()
 
 void ParamsPanel::switch_to_object_if_has_object_configs()
 {
-    if (m_has_object_config) m_mode_region->SetValue(true);
+    if (m_has_object_config)
+        m_mode_region->SetValue(true);
+    set_active_tab(nullptr);
 }
 
 void ParamsPanel::free_sizers()
