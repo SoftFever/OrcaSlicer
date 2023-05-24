@@ -1941,6 +1941,11 @@ static wxMenu* generate_help_menu()
         wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
         });
 
+    append_menu_item(helpMenu, wxID_ANY, _L("Report issue"), _L("Report issue"), [](wxCommandEvent &) {
+        std::string url = "https://github.com/bambulab/BambuStudio/issues/new/choose";
+        wxLaunchDefaultBrowser(url);
+    });
+
     // Report a bug
     //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of BambuStudio"),
     //    [](wxCommandEvent&) {
