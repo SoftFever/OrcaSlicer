@@ -198,6 +198,7 @@ typedef struct _cli_callback_mgr {
         m_data_ready = false;
         lck.unlock();
         m_condition.notify_one();
+        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
         BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc started.";
         while(1) {
             lck.lock();
@@ -266,7 +267,9 @@ typedef struct _cli_callback_mgr {
         m_thread = create_thread([this]{
                 this->thread_proc();
         });
+        m_condition.wait(lck, [this](){ return m_started; });
         lck.unlock();
+        m_condition.notify_one();
         BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start successfully.";
         return true;
     }
@@ -523,6 +526,8 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("Will use pipe %1%")%pipe_name;
 #if defined(__linux__) || defined(__LINUX__)
             g_cli_callback_mgr.start(pipe_name);
+            PrintBase::SlicingStatus slicing_status{1, "Start to load files"};
+            cli_status_callback(slicing_status);
 #endif
         }
     }
@@ -1391,7 +1396,7 @@ int CLI::run(int argc, char **argv)
     BOOST_LOG_TRIVIAL(info) << "will start transforms, commands count " << m_transforms.size() << "\n";
 #if defined(__linux__) || defined(__LINUX__)
     if (g_cli_callback_mgr.is_started()) {
-        PrintBase::SlicingStatus slicing_status{1, "Loading files finished"};
+        PrintBase::SlicingStatus slicing_status{2, "Loading files finished"};
         cli_status_callback(slicing_status);
     }
 #endif
