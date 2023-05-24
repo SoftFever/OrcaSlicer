@@ -535,7 +535,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
 
                     //check is it in the filament blacklist
-                    if(!is_virtual_tray()){
+                    if (!is_virtual_tray() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
                         bool in_blacklist = false;
                         std::string action;
                         std::string info;
