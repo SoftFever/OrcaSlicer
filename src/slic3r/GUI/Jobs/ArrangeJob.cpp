@@ -353,7 +353,7 @@ void ArrangeJob::prepare_partplate() {
         ModelObject* mo = model.objects[oidx];
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
-            bool in_plate = plate->contain_instance(oidx, inst_idx);
+            bool             in_plate = plate->contain_instance(oidx, inst_idx) || plate->intersect_instance(oidx, inst_idx);
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[inst_idx]);
 
             ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
