@@ -520,8 +520,8 @@ wxString get_fail_reason(int code)
              m_sw_bind_failed_info->Show(true);
 
              m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_result_code));
-             m_st_txt_error_desc->SetLabelText(m_result_info);
-             m_st_txt_extra_info->SetLabelText(m_result_extra);
+             m_st_txt_error_desc->SetLabelText( wxGetApp().filter_string(m_result_info));
+             m_st_txt_extra_info->SetLabelText( wxGetApp().filter_string(m_result_extra));
 
              m_st_txt_error_code->Wrap(FromDIP(260));
              m_st_txt_error_desc->Wrap(FromDIP(260));

@@ -5568,6 +5568,26 @@ void GUI_App::preset_deleted_from_cloud(std::string setting_id)
     need_delete_presets.erase(std::remove(need_delete_presets.begin(), need_delete_presets.end(), setting_id), need_delete_presets.end());
 }
 
+wxString GUI_App::filter_string(wxString str)
+{
+    std::string result = str.ToStdString();
+    std::string input = str.ToStdString();
+
+
+    std::regex domainRegex(R"(([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?))");
+    std::sregex_iterator it(input.begin(), input.end(), domainRegex);
+    std::sregex_iterator end;
+
+    while (it != end) {
+        std::smatch match = *it;
+        std::string domain = match.str();
+        result.replace(match.position(), domain.length(), "[***]");
+        ++it;
+    }
+
+    return result;
+}
+
 bool GUI_App::OnExceptionInMainLoop()
 {
     generic_exception_handle();

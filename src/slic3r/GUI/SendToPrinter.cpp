@@ -539,8 +539,8 @@ void SendToPrinterDialog::show_print_failed_info(bool show, int code, wxString d
             m_sw_print_failed_info->Show(true);
 
             m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_print_error_code));
-            m_st_txt_error_desc->SetLabelText(m_print_error_msg);
-            m_st_txt_extra_info->SetLabelText(m_print_error_extra);
+            m_st_txt_error_desc->SetLabelText( wxGetApp().filter_string(m_print_error_msg));
+            m_st_txt_extra_info->SetLabelText( wxGetApp().filter_string(m_print_error_extra));
 
             m_st_txt_error_code->Wrap(FromDIP(260));
             m_st_txt_error_desc->Wrap(FromDIP(260));
