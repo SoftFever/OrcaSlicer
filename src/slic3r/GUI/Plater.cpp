@@ -9557,6 +9557,55 @@ void Plater::export_core_3mf()
 }
 
 #define USE_CGAL_BOOLEAN 0
+// Following lambda generates a combined mesh for export with normals pointing outwards.
+TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, std::function<void(const std::string&)> notify_func)
+{
+    TriangleMesh mesh;
+
+    std::vector<csg::CSGPart> csgmesh;
+    csgmesh.reserve(2 * mo.volumes.size());
+    csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
+        csg::mpartsPositive | csg::mpartsNegative | csg::mpartsDoSplits);
+
+        if (csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }) == csgmesh.end()) {
+            try {
+#if USE_CGAL_BOOLEAN
+                auto meshPtr = csg::perform_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) });
+                mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*meshPtr);
+#else
+                MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{std::begin(csgmesh), std::end(csgmesh)});
+                mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
+#endif
+            } catch (...) {}
+        }
+
+    if (mesh.empty()) {
+        if (notify_func)
+            notify_func(_u8L("Unable to perform boolean operation on model meshes. "
+                "Only positive parts will be exported."));
+
+        for (const ModelVolume* v : mo.volumes)
+            if (v->is_model_part()) {
+                TriangleMesh vol_mesh(v->mesh());
+                vol_mesh.transform(v->get_matrix(), true);
+                mesh.merge(vol_mesh);
+            }
+    }
+
+    if (instance_id == -1) {
+        TriangleMesh vols_mesh(mesh);
+        mesh = TriangleMesh();
+        for (const ModelInstance* i : mo.instances) {
+            TriangleMesh m = vols_mesh;
+            m.transform(i->get_matrix(), true);
+            mesh.merge(m);
+        }
+    }
+    else if (0 <= instance_id && instance_id < int(mo.instances.size()))
+        mesh.transform(mo.instances[instance_id]->get_matrix(), true);
+    return mesh;
+}
+
 void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
@@ -9572,61 +9621,13 @@ void Plater::export_stl(bool extended, bool selection_only)
     if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
         return;
 
-    // Following lambda generates a combined mesh for export with normals pointing outwards.
-    auto mesh_to_export_fff = [this](const ModelObject& mo, int instance_id) {
-        TriangleMesh mesh;
-
-        std::vector<csg::CSGPart> csgmesh;
-        csgmesh.reserve(2 * mo.volumes.size());
-        csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
-                              csg::mpartsPositive | csg::mpartsNegative | csg::mpartsDoSplits);
-
-        if (csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }) == csgmesh.end()) {
-            try {
-#if USE_CGAL_BOOLEAN
-                auto meshPtr = csg::perform_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) });
-                mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*meshPtr);
-#else
-                MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{std::begin(csgmesh), std::end(csgmesh)});
-                mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
-#endif
-            } catch (...) {}
-        }
-
-        if (mesh.empty()) {
-            get_notification_manager()->push_plater_error_notification(
-                _u8L("Unable to perform boolean operation on model meshes. "
-                     "Only positive parts will be exported."));
-
-            for (const ModelVolume* v : mo.volumes)
-                if (v->is_model_part()) {
-                    TriangleMesh vol_mesh(v->mesh());
-                    vol_mesh.transform(v->get_matrix(), true);
-                    mesh.merge(vol_mesh);
-                }
-        }
-
-        if (instance_id == -1) {
-            TriangleMesh vols_mesh(mesh);
-            mesh = TriangleMesh();
-            for (const ModelInstance* i : mo.instances) {
-                TriangleMesh m = vols_mesh;
-                m.transform(i->get_matrix(), true);
-                mesh.merge(m);
-            }
-        }
-        else if (0 <= instance_id && instance_id < int(mo.instances.size()))
-            mesh.transform(mo.instances[instance_id]->get_matrix(), true);
-        return mesh;
-    };
-
     auto mesh_to_export_sla = [&, this](const ModelObject& mo, int instance_id) {
         TriangleMesh mesh;
 
         const SLAPrintObject *object = this->p->sla_print.get_print_object_by_model_object_id(mo.id());
 
         if (auto m = object->get_mesh_to_print(); m.empty())
-            mesh = mesh_to_export_fff(mo, instance_id);
+            mesh = combine_mesh_fff(mo, instance_id, [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); });
         else {
             const Transform3d mesh_trafo_inv = object->trafo().inverse();
             const bool is_left_handed = object->is_left_handed();
@@ -9690,8 +9691,9 @@ void Plater::export_stl(bool extended, bool selection_only)
     std::function<TriangleMesh(const ModelObject& mo, int instance_id)>
         mesh_to_export;
 
-    if (p->printer_technology == ptFFF )
-        mesh_to_export = mesh_to_export_fff;
+    if (p->printer_technology == ptFFF)
+        mesh_to_export = [this](const ModelObject& mo, int instance_id) {return Plater::combine_mesh_fff(mo, instance_id,
+            [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); }); };
     else
         mesh_to_export = mesh_to_export_sla;
 

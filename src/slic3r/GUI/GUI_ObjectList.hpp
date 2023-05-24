@@ -300,6 +300,7 @@ public:
     void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
 
+    void                boolean();    // BBS: Boolean Operation of parts
     wxDataViewItem      add_layer_root_item(const wxDataViewItem obj_item);
     wxDataViewItem      add_settings_item(wxDataViewItem parent_item, const DynamicPrintConfig* config);
 

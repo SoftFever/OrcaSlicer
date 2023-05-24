@@ -913,9 +913,9 @@ void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
 void MenuFactory::append_menu_item_merge_parts_to_single_part(wxMenu* menu)
 {
     menu->AppendSeparator();
-    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected parts to a single part"),
-        [](wxCommandEvent&) { obj_list()->merge_volumes(); }, "", menu,
-        []() { return true; }, m_parent);
+    append_menu_item(menu, wxID_ANY, _L("Mesh boolean"), _L("Mesh boolean operations including union and subtraction"),
+        [](wxCommandEvent&) { obj_list()->boolean/*merge_volumes*/(); }, "", menu,
+        []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
 }
 
 void MenuFactory::append_menu_items_mirror(wxMenu* menu)
@@ -1029,6 +1029,8 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_object_menu);
+    // merge to single part
+    append_menu_item_merge_parts_to_single_part(&m_object_menu);
     // Object Center
     append_menu_item_center(&m_object_menu);
     // Object Split

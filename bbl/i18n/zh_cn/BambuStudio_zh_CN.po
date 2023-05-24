@@ -924,6 +924,9 @@ msgstr "恢复到米"
 msgid "Assemble"
 msgstr "组合"
 
+msgid "Mesh boolean"
+msgstr "网格布尔操作"
+
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "组合所选对象为一个多零件对象"
 

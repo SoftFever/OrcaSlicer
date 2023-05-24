@@ -2895,6 +2895,45 @@ void ObjectList::layers_editing()
     Expand(layers_item);
 }
 
+// BBS: merge parts of a single object into one volume, similar to export_stl, but no need to export and then import
+void ObjectList::boolean()
+{
+    std::vector<int> obj_idxs, vol_idxs;
+    get_selection_indexes(obj_idxs, vol_idxs);
+    if (obj_idxs.empty() && vol_idxs.empty())
+        return;
+
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "boolean");
+
+    Model* model = (*m_objects)[0]->get_model();
+    ModelObject* new_object = model->add_object();
+    new_object->name = (*m_objects)[0]->name;
+    new_object->config.assign_config((*m_objects)[0]->config);
+    if (new_object->instances.empty())
+        new_object->add_instance();
+
+    ModelObject* object = (*m_objects)[obj_idxs.front()];
+    TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1);
+    ModelVolume* new_volume = new_object->add_volume(mesh);
+
+    // BBS: ensure on bed but no need to ensure locate in the center around origin
+    new_object->ensure_on_bed();
+    new_object->center_around_origin();
+    new_object->translate_instances(-new_object->origin_translation);
+    new_object->origin_translation = Vec3d::Zero();
+
+    // BBS: notify it before move
+    notify_instance_updated(m_objects->size() - 1);
+
+    // remove selected objects
+    remove();
+
+    // Add new object(UNION) to the object_list
+    add_object_to_list(m_objects->size() - 1);
+    select_item(m_objects_model->GetItemById(m_objects->size() - 1));
+    update_selections_on_canvas();
+}
+
 wxDataViewItem ObjectList::add_layer_root_item(const wxDataViewItem obj_item)
 {
     const int obj_idx = m_objects_model->GetIdByItem(obj_item);
