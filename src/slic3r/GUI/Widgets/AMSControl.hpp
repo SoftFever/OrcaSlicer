@@ -511,6 +511,7 @@ class AMSControl : public wxSimplebook
 public:
     AMSControl(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
+    void on_retry();
     void init_scaled_buttons();
 
 protected:

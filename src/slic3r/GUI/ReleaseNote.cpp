@@ -31,6 +31,7 @@ wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -521,6 +522,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
 SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
     :DPIFrame(parent, id, title, pos, size, style)
 {
+    m_button_style = btn_style;
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
@@ -578,6 +580,22 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
         this->on_hide();
     });
 
+    m_button_retry = new Button(this, _L("Retry"));
+    m_button_retry->SetBackgroundColor(btn_bg_green);
+    m_button_retry->SetBorderColor(*wxWHITE);
+    m_button_retry->SetTextColor(wxColour("#FFFFFE"));
+    m_button_retry->SetFont(Label::Body_12);
+    m_button_retry->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_retry->SetCornerRadius(FromDIP(12));
+
+    m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        this->on_hide();
+    });
+
     m_button_cancel = new Button(this, _L("Cancel"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
@@ -609,15 +627,22 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     if (btn_style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
         m_button_fn->Hide();
+        m_button_retry->Hide();
     } else if (btn_style == CONFIRM_AND_FUNC) {
         m_button_cancel->Hide();
         m_button_fn->Show();
+        m_button_retry->Hide();
+    } else if (btn_style == CONFIRM_AND_RETRY) {
+        m_button_retry->Show();
+        m_button_cancel->Hide();
     } else {
+        m_button_retry->Hide();
         m_button_cancel->Hide();
         m_button_fn->Hide();
     }
 
     sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_retry, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_fn, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
@@ -714,6 +739,8 @@ void SecondaryCheckDialog::on_hide()
 
 void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent)
 {
+    if (m_button_style == style && title == GetTitle() == title) return;
+
     SetTitle(title);
 
     event_parent = parent;
@@ -721,15 +748,24 @@ void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDial
     if (style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
         m_button_fn->Hide();
+        m_button_retry->Hide();
     }
     else if (style == CONFIRM_AND_FUNC) {
         m_button_cancel->Hide();
         m_button_fn->Show();
+        m_button_retry->Hide();
+    }
+    else if (style == CONFIRM_AND_RETRY) {
+        m_button_retry->Show();
+        m_button_cancel->Hide();
     }
     else {
+        m_button_retry->Hide();
         m_button_cancel->Hide();
         m_button_fn->Hide();
     }
+
+
     Layout();
 }
 

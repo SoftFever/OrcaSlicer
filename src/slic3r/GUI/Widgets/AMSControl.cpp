@@ -2302,6 +2302,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     EnterNoneAMSMode();
 }
 
+void AMSControl::on_retry()
+{
+    post_event(wxCommandEvent(EVT_AMS_RETRY));
+}
+
 void AMSControl::init_scaled_buttons()
 {
     m_button_extrusion_cali->SetMinSize(wxSize(-1, FromDIP(24)));

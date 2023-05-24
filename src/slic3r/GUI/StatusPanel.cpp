@@ -54,6 +54,14 @@ static wxColour PAGE_TITLE_FONT_COL  = wxColour(107, 107, 107);
 static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
 static wxColour TEXT_LIGHT_FONT_COL  = wxColour(107, 107, 107);
 
+static std::vector<std::string> message_containing_retry{
+    "0701 8004",
+    "0701 8005",
+    "0701 8006",
+    "0701 8006",
+    "0701 8007",
+};
+
 /* size */
 #define PAGE_TITLE_HEIGHT FromDIP(36)
 #define PAGE_TITLE_TEXT_WIDTH FromDIP(200)
@@ -1671,6 +1679,8 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
         m_staticline->Show();
         m_panel_error_txt->Show();
 
+        auto it = std::find(message_containing_retry.begin(), message_containing_retry.end(), print_error_str);
+
         BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
         if (m_print_error_dlg == nullptr) {
             m_print_error_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
@@ -1678,7 +1688,10 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
         if (print_error_str == "07FF 8007") {
             m_print_error_dlg->update_func_btn("Done");
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_FUNC, this);
-        } else {
+        }
+        else if (it != message_containing_retry.end()) {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RETRY, this);
+        }else {
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
         }
         m_print_error_dlg->update_text(msg);
@@ -1689,6 +1702,12 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             }
         });
         
+
+        m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_RETRY, [this, obj](wxCommandEvent& e) {
+            if (m_ams_control) {
+                m_ams_control->on_retry();
+            }
+            });
 
         m_print_error_dlg->on_show();
     }
