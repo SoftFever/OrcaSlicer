@@ -25,7 +25,12 @@ struct Calib_Params
     CalibMode mode;
 };
 
-class calib_pressure_advance_line
+class calib_pressure_advance {
+private:
+    std::string move_to(Vec2d pt);
+}
+
+class calib_pressure_advance_line: public calib_pressure_advance
 {
 public:
     calib_pressure_advance_line(GCode* gcodegen);
@@ -40,7 +45,6 @@ public:
     bool&    draw_numbers() { return m_draw_numbers; }
 
 private:
-    std::string move_to(Vec2d pt);
     std::string print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num);
     std::string draw_digit(double startx, double starty, char c);
     std::string draw_number(double startx, double starty, double value);

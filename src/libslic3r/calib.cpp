@@ -6,6 +6,13 @@
 #include <map>
 
 namespace Slic3r {
+    std::string calib_pressure_advance::move_to(Vec2d pt) {
+        std::stringstream gcode;
+        gcode << mp_gcodegen->retract();
+        gcode << mp_gcodegen->writer().travel_to_xyz(Vec3d(pt.x(), pt.y(), 0.2));
+        gcode << mp_gcodegen->unretract();
+        return gcode.str();
+    }
 
     calib_pressure_advance_line::calib_pressure_advance_line(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6), m_draw_numbers(true) {}
 
@@ -33,14 +40,6 @@ namespace Slic3r {
       }
 
       return print_pa_lines(startx, starty, start_pa, step_pa, count);
-    }
-
-    std::string calib_pressure_advance_line::move_to(Vec2d pt) {
-        std::stringstream gcode;
-        gcode << mp_gcodegen->retract();
-        gcode << mp_gcodegen->writer().travel_to_xyz(Vec3d(pt.x(), pt.y(), 0.2));
-        gcode << mp_gcodegen->unretract();
-        return gcode.str();
     }
 
     std::string calib_pressure_advance_line::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num) {
