@@ -1,6 +1,8 @@
 #ifndef _WIPE_TOWER_DIALOG_H_
 #define _WIPE_TOWER_DIALOG_H_
 
+#include "GUI_Utils.hpp"
+
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -62,7 +64,8 @@ private:
 
 
 
-class WipingDialog : public wxDialog {
+class WipingDialog : public Slic3r::GUI::DPIDialog
+{
 public:
     WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
         int extra_flush_volume, float flush_multiplier);
@@ -79,10 +82,13 @@ public:
         return m_panel_wiping->get_flush_multiplier();
     }
 
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+
 private:
     WipingPanel*  m_panel_wiping  = nullptr;
     std::vector<float> m_output_matrix;
     std::vector<float> m_output_extruders;
+    std::unordered_map<int, Button *> m_button_list;
 };
 
 #endif  // _WIPE_TOWER_DIALOG_H_

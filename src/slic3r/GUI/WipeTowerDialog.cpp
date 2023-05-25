@@ -8,6 +8,7 @@
 #include "MsgDialog.hpp"
 #include "Widgets/Button.hpp"
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
+#include "MainFrame.hpp"
 
 #include <wx/sizer.h>
 
@@ -108,6 +109,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
         btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        m_button_list[wxRESET] = calc_btn;
     }
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
@@ -119,6 +121,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        m_button_list[wxOK] = ok_btn;
     }
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
@@ -129,16 +132,41 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         cancel_btn->SetTextColor(cancel_btn_text);
         cancel_btn->SetId(wxID_CANCEL);
         btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        m_button_list[wxCANCEL] = cancel_btn;
     }
 
     return btn_sizer;
 
+}
+void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
+{
+    for (auto button_item : m_button_list) 
+    {
+        if (button_item.first == wxRESET) 
+        {
+            button_item.second->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
+            button_item.second->SetCornerRadius(FromDIP(12));
+        }
+        if (button_item.first == wxOK) {
+            button_item.second->SetMinSize(BTN_SIZE);
+            button_item.second->SetCornerRadius(FromDIP(12));
+        }
+        if (button_item.first == wxCANCEL) {
+            button_item.second->SetMinSize(BTN_SIZE);
+            button_item.second->SetCornerRadius(FromDIP(12));
+        }
+    }
 };
 
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
     int extra_flush_volume, float flush_multiplier)
-: wxDialog(parent, wxID_ANY, _(L("Flushing volumes for filament change")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
+    : DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe),
+                wxID_ANY,
+                _(L("Flushing volumes for filament change")),
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxDEFAULT_DIALOG_STYLE /* | wxRESIZE_BORDER*/)
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(MIN_WIPING_DIALOG_WIDTH, -1));
