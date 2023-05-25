@@ -37,6 +37,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
         TASK_CANCEL     = 0x1000
     };
 
+public:
     enum {
         SUCCESS             = 0,
         CONTINUE            = 1,
@@ -89,6 +90,7 @@ public:
         FF_THUMNAIL = 2,    // Thumbnail ready
         FF_DOWNLOAD = 4,    // Request download
         FF_DELETED = 8,     // Request delete
+        FF_FETCH_MODEL = 16,// Request model
     };
 
     struct File
@@ -133,7 +135,9 @@ public:
 
     void DownloadCancel(size_t index);
 
-    void FetchModel(size_t index, std::function<void(std::string const &)> callback);
+    void FetchModel(size_t index, std::function<void(int, std::string const &)> callback);
+
+    void FetchModelCancel();
 
     size_t GetCount() const;
 
@@ -256,6 +260,10 @@ private:
 
     void CancelRequest(boost::uint32_t seq);
 
+    void CancelRequests(std::vector<boost::uint32_t> const &seqs);
+
+    void CancelRequests2(std::vector<boost::uint32_t> const & seqs);
+
     void RecvMessageThread();
 
     void HandleResponse(boost::unique_lock<boost::mutex> &l, Bambu_Sample const &sample);
@@ -297,6 +305,7 @@ private:
     Session m_session;
     boost::uint32_t m_sequence = 0;
     boost::uint32_t m_download_seq = 0;
+    boost::uint32_t m_fetch_model_seq = 0;
     std::deque<std::string> m_messages;
     std::deque<callback_t2> m_callbacks;
     std::deque<callback_t2> m_notifies;

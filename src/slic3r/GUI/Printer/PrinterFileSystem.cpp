@@ -275,8 +275,10 @@ void PrinterFileSystem::DownloadCancel(size_t index)
         file.flags &= ~FF_DOWNLOAD;
 }
 
-void PrinterFileSystem::FetchModel(size_t index, std::function<void(std::string const &)> callback)
+void PrinterFileSystem::FetchModel(size_t index, std::function<void(int, std::string const &)> callback)
 {
+    if (m_task_flags & FF_FETCH_MODEL)
+        return;
     json req;
     json arr;
     if (index == (size_t) -1) return;
@@ -293,7 +295,8 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(std::string 
     }
     req["paths"] = arr;
     req["zip"] = true;
-    SendRequest<File>(
+    m_task_flags |= FF_FETCH_MODEL;
+    m_fetch_model_seq = SendRequest<File>(
         SUB_FILE, req,
         [](json const &resp, File &file, unsigned char const *data) -> int {
             // in work thread, continue recv
@@ -304,9 +307,16 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(std::string 
             }
             return 0;
         },
-        [callback](int, File const &file) {
-            callback(file.local_path);
+        [this, callback](int result, File const &file) {
+            m_task_flags &= ~FF_FETCH_MODEL;
+            callback(result, file.local_path);
         });
+}
+
+void PrinterFileSystem::FetchModelCancel()
+{
+    if ((m_task_flags & FF_FETCH_MODEL) == 0) return;
+    CancelRequests2({m_fetch_model_seq});
 }
 
 size_t PrinterFileSystem::GetCount() const
@@ -715,7 +725,7 @@ bool PrinterFileSystem::ParseThumbnail(File &file, std::istream &is)
     for (auto &plate : plate_data_list) {
         time += atof(plate->gcode_prediction.c_str());
         weight += atof(plate->gcode_weight.c_str());
-        if (!plate->thumbnail_file.empty())
+        if (!plate->gcode_file.empty() && !plate->thumbnail_file.empty())
             file.metadata.emplace("plate_thumbnail_" + std::to_string(plate->plate_index), plate->thumbnail_file);
     }
     file.metadata.emplace("Title", model.model_info->model_name);
@@ -937,33 +947,43 @@ void PrinterFileSystem::InstallNotify(int type, callback_t2 const &callback)
     m_notifies[type] = callback;
 }
 
-void PrinterFileSystem::CancelRequest(boost::uint32_t seq)
+void PrinterFileSystem::CancelRequest(boost::uint32_t seq) { CancelRequests({seq}); }
+
+void PrinterFileSystem::CancelRequests(std::vector<boost::uint32_t> const &seqs)
 {
     json req;
     json arr;
-    arr.push_back(seq);
+    for (auto seq : seqs)
+        arr.push_back(seq);
     req["tasks"] = arr;
     SendRequest(TASK_CANCEL, req, [this](int result, json const &resp, unsigned char const *) {
         if (result != 0) return;
         json tasks = resp["tasks"];
-        std::deque<callback_t2> callbacks;
-        boost::unique_lock      l(m_mutex);
-        for (auto &f : tasks) {
-            boost::uint32_t seq = f;
-            seq -= m_sequence;
-            if (size_t(seq) >= m_callbacks.size()) continue;
-            auto & c = m_callbacks[seq];
-            if (c == nullptr) continue;
-            callbacks.push_back(c);
-            m_callbacks[seq] = callback_t2();
-        }
-        while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
-            m_callbacks.pop_front();
-            ++m_sequence;
-        }
-        l.unlock();
-        for (auto &c : callbacks) c(ERROR_CANCEL, json(), nullptr);
+        std::vector<boost::uint32_t> seqs;
+        for (auto &f : tasks) seqs.push_back(f);
+        CancelRequests2(seqs);
     });
+}
+
+void PrinterFileSystem::CancelRequests2(std::vector<boost::uint32_t> const &seqs)
+{
+    std::deque<callback_t2> callbacks;
+    boost::unique_lock      l(m_mutex);
+    for (auto &f : seqs) {
+        boost::uint32_t seq = f;
+        seq -= m_sequence;
+        if (size_t(seq) >= m_callbacks.size()) continue;
+        auto &c = m_callbacks[seq];
+        if (c == nullptr) continue;
+        callbacks.push_back(c);
+        m_callbacks[seq] = callback_t2();
+    }
+    while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
+        m_callbacks.pop_front();
+        ++m_sequence;
+    }
+    l.unlock();
+    for (auto &c : callbacks) c(ERROR_CANCEL, json(), nullptr);
 }
 
 void PrinterFileSystem::RecvMessageThread()

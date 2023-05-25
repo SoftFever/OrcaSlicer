@@ -19,6 +19,7 @@ class WXDLLIMPEXP_FWD_CORE wxWindowDisabler;
 #define PROGRESSDIALOG_DEF_BK wxColour(255,255,255)
 #define PROGRESSDIALOG_GREY_700 wxColour(107,107,107)
 
+#define wxPD_NO_PROGRESS 0x0100
 
 namespace Slic3r { namespace GUI {
 
@@ -50,6 +51,8 @@ public:
     // false if the corresponding button is not shown.
     virtual bool WasCancelled() const;
     virtual bool WasSkipped() const;
+
+    virtual void OnCancel() {};
 
     // Must provide overload to avoid hiding it (and warnings about it)
     virtual void Update() wxOVERRIDE { wxDialog::Update(); }

@@ -8,6 +8,7 @@
 #include "Widgets/Label.hpp"
 #include "Printer/PrinterFileSystem.h"
 #include "MsgDialog.hpp"
+#include "Widgets/ProgressDialog.hpp"
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/bbs_3mf.hpp>
 
@@ -446,6 +447,15 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     }
 }
 
+struct MediaProgressDialog : ProgressDialog
+{
+    MediaProgressDialog(wxString title, wxWindow * parent, std::function<void()> cancel)
+        : ProgressDialog(title, "", 100, parent, wxPD_NO_PROGRESS | wxPD_APP_MODAL | wxPD_CAN_ABORT)
+        , m_cancel(cancel) {}
+    void OnCancel() override{m_cancel(); }
+    std::function<void()> m_cancel;
+};
+
 void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
 {
     auto fs = m_image_grid->GetFileSystem();
@@ -467,19 +477,30 @@ void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
     } else if (action == 1) {
         if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
             if (index != -1) {
-                fs->FetchModel(index, [fs,index](std::string const & data) {
+                auto dlg = new MediaProgressDialog(_L("Print"), this, [fs] { fs->FetchModelCancel(); });
+                dlg->Update(0, _L("Fetching model infomations ..."));
+                fs->FetchModel(index, [this, fs, dlg, index](int result, std::string const &data) {
+                    dlg->Destroy();
+                    if (result == PrinterFileSystem::ERROR_CANCEL)
+                        return;
+                    if (result != 0)
+                        MessageDialog(this, 
+                            _L("Failed to fetching model infomations from printer."), 
+                            _L("Error"), wxOK).ShowModal();
                     Slic3r::DynamicPrintConfig config;
                     Slic3r::Model              model;
                     Slic3r::PlateDataPtrs      plate_data_list;
                     Slic3r::Semver file_version;
                     std::istringstream is(data);
-                    if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version))
+                    if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version)) {
+                        MessageDialog(this, 
+                            _L("Failed to parse model infomations."), 
+                            _L("Error"), wxOK).ShowModal();
                         return;
-                    // TODO: print gcode 3mf
+                    }
                     auto &file = fs->GetFile(index);
                     Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, from_u8(file.name).ToStdString());
                     wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
-                    
                 });
             }
             return;
