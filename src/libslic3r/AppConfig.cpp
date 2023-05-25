@@ -204,6 +204,12 @@ void AppConfig::set_defaults()
     if (get("developer_mode").empty())
         set_bool("developer_mode", false);
 
+    if (get("enable_ssl_for_mqtt").empty())
+        set_bool("enable_ssl_for_mqtt", true);
+
+    if (get("enable_ssl_for_ftp").empty())
+        set_bool("enable_ssl_for_ftp", true);
+
     if (get("severity_level").empty())
         set("severity_level", "info");
 

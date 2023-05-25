@@ -1335,11 +1335,11 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_send_job->m_dev_ip = ip.ToStdString();
     m_send_job->m_access_code = str_access_code.ToStdString();
 
-#if !BBL_RELEASE_TO_PUBLIC
-    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true"?true:false;
-    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true"?true:false;
-#else
 
+#if !BBL_RELEASE_TO_PUBLIC
+    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
+    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+#else
     m_send_job->m_local_use_ssl_for_mqtt = m_obj->local_use_ssl_for_mqtt;
     m_send_job->m_local_use_ssl_for_ftp = m_obj->local_use_ssl_for_ftp;
 #endif

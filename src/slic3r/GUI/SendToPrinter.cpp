@@ -764,8 +764,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_send_job                      = std::make_shared<SendJob>(m_status_bar, m_plater, m_printer_last_select);
     m_send_job->m_dev_ip            = obj_->dev_ip;
     m_send_job->m_access_code       = obj_->get_access_code();
-    m_send_job->m_local_use_ssl_for_ftp     = obj_->local_use_ssl_for_ftp;
-    m_send_job->m_local_use_ssl_for_mqtt    = obj_->local_use_ssl_for_mqtt;
+
 
 #if !BBL_RELEASE_TO_PUBLIC
     m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;

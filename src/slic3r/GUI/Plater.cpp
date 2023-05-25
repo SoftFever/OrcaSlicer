@@ -7998,7 +7998,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
         //target_path /= (boost::format("%1%_%2%.3mf") % filename % unique).str();
-        target_path /= fs::path(wxString(filename));
+        target_path /= fs::path(wxString(filename).wc_str());
 
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");

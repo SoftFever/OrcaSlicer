@@ -1118,6 +1118,17 @@ std::string MachineObject::get_firmware_type_str()
     return "engineer";
 }
 
+std::string MachineObject::get_lifecycle_type_str()
+{
+    if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
+        return "engineer";
+    else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
+        return "product";
+
+    // return engineer by default;
+    return "engineer";
+}
+
 bool MachineObject::is_in_upgrading()
 {
     return upgrade_display_state == (int)UpgradingInProgress;
@@ -1406,15 +1417,6 @@ void MachineObject::parse_version_func()
                 is_support_ams_humidity                 = true;
             }
 
-            /*if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
-                local_use_ssl_for_mqtt = false;
-                local_use_ssl_for_ftp = true;
-            }
-            else {
-                local_use_ssl_for_mqtt = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
-                local_use_ssl_for_ftp = true;
-            }*/
-
             if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
                 local_use_ssl_for_mqtt = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
             }
@@ -1430,6 +1432,7 @@ void MachineObject::parse_version_func()
         is_cloud_print_only = true;
         if (ota_version != module_vers.end()) {
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
+            is_support_ai_monitoring = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
             is_support_remote_tunnel  = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
         }
         local_camera_proto = 1;
@@ -1440,14 +1443,6 @@ void MachineObject::parse_version_func()
     } else if (printer_type == "C12") {
         is_support_ai_monitoring = true;
         is_cloud_print_only = true;
-        if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
-            local_use_ssl_for_mqtt = false;
-            local_use_ssl_for_ftp = false;
-        }
-        else {
-            local_use_ssl_for_mqtt = true;
-            local_use_ssl_for_ftp = true;
-        }
         is_support_remote_tunnel = true;
         local_camera_proto       = 1;
     }
@@ -2312,7 +2307,7 @@ int MachineObject::connect(bool is_anonymous, bool use_openssl)
     }
     if (m_agent) {
         try {
-            return m_agent->connect_printer(dev_id, dev_ip, username, password);
+            return m_agent->connect_printer(dev_id, dev_ip, username, password, use_openssl);
         } catch (...) {
             ;
         }
@@ -2931,6 +2926,18 @@ int MachineObject::parse_json(std::string payload)
                                 firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
                             else if (jj["mess_production_state"].get<std::string>() == "product")
                                 firmware_type = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
+
+                    try {
+                        if (jj.contains("lifecycle")) {
+                            if (jj["lifecycle"].get<std::string>() == "engineer")
+                                lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER;
+                            else if (jj["lifecycle"].get<std::string>() == "product")
+                                lifecycle = PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION;
                         }
                     }
                     catch (...) {
@@ -4461,7 +4468,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                     }
                 } else {
                     it->second->reset();
-
 #if !BBL_RELEASE_TO_PUBLIC
                     it->second->connect(false, Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
 #else

@@ -32,7 +32,7 @@ typedef int (*func_refresh_connection)(void *agent);
 typedef int (*func_start_subscribe)(void *agent, std::string module);
 typedef int (*func_stop_subscribe)(void *agent, std::string module);
 typedef int (*func_send_message)(void *agent, std::string dev_id, std::string json_str, int qos);
-typedef int (*func_connect_printer)(void *agent, std::string dev_id, std::string dev_ip, std::string username, std::string password);
+typedef int (*func_connect_printer)(void *agent, std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
 typedef int (*func_disconnect_printer)(void *agent);
 typedef int (*func_send_message_to_printer)(void *agent, std::string dev_id, std::string json_str, int qos);
 typedef bool (*func_start_discovery)(void *agent, bool start, bool sending);
@@ -125,7 +125,7 @@ public:
     int start_subscribe(std::string module);
     int stop_subscribe(std::string module);
     int send_message(std::string dev_id, std::string json_str, int qos);
-    int connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password);
+    int connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
     int disconnect_printer();
     int send_message_to_printer(std::string dev_id, std::string json_str, int qos);
     bool start_discovery(bool start, bool sending);

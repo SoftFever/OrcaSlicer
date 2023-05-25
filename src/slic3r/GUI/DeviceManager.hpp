@@ -452,9 +452,8 @@ public:
     std::string dev_name;
     std::string dev_ip;
     std::string dev_id;
-    bool        local_use_ssl { false };
-    bool        local_use_ssl_for_mqtt { false };
-    bool        local_use_ssl_for_ftp { false };
+    bool        local_use_ssl_for_mqtt { true };
+    bool        local_use_ssl_for_ftp { true };
     float       nozzle_diameter { 0.0f };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
@@ -598,6 +597,7 @@ public:
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     int upgrade_display_hold_count = 0;
     PrinterFirmwareType       firmware_type; // engineer|production
+    PrinterFirmwareType       lifecycle;
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
@@ -614,6 +614,7 @@ public:
     std::vector<FirmwareInfo> firmware_list;
 
     std::string get_firmware_type_str();
+    std::string get_lifecycle_type_str();
     bool is_in_upgrading();
     bool is_upgrading_avalable();
     int get_upgrade_percent();

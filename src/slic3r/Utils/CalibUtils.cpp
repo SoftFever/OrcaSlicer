@@ -619,6 +619,7 @@ void CalibUtils::send_to_print(const std::string& dev_id, const std::string& sel
     print_job->m_ftp_folder     = obj_->get_ftp_folder();
     print_job->m_access_code    = obj_->get_access_code();
 
+
 #if !BBL_RELEASE_TO_PUBLIC
     print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
     print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;

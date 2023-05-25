@@ -683,14 +683,14 @@ int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos
     return ret;
 }
 
-int NetworkAgent::connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password)
+int NetworkAgent::connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl)
 {
     int ret = 0;
     if (network_agent && connect_printer_ptr) {
-        ret = connect_printer_ptr(network_agent, dev_id, dev_ip, username, password);
+        ret = connect_printer_ptr(network_agent, dev_id, dev_ip, username, password, use_ssl);
         if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, dev_ip=%4%, username=%5%, password=%6%")
-                %network_agent %ret %dev_id %dev_ip %username %password;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << (boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, dev_ip=%4%, username=%5%, password=%6%")
+                % network_agent % ret % dev_id % dev_ip % username % password).str();
     }
     return ret;
 }

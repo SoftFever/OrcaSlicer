@@ -41,8 +41,8 @@ public:
 	std::string task_ams_mapping;
 	std::string connection_type;
 
-    bool        m_local_use_ssl_for_ftp{false};
-    bool        m_local_use_ssl_for_mqtt{false};
+    bool        m_local_use_ssl_for_ftp{true};
+    bool        m_local_use_ssl_for_mqtt{true};
     bool        cloud_print_only { false };
     bool        has_sdcard { false };
     bool        task_use_ams { true };
