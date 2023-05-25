@@ -514,6 +514,8 @@ void TextCtrl::BUILD() {
     if (m_opt.is_code) // BBS
         temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
+
+    temp->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 	wxGetApp().UpdateDarkUI(temp);
 
     if (! m_opt.multiline && !wxOSX)
