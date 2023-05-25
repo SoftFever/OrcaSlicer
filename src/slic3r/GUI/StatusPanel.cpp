@@ -2842,7 +2842,7 @@ void StatusPanel::on_ams_unload(SimpleEvent &event)
 
 void StatusPanel::on_ams_filament_backup(SimpleEvent& event)
 {
-    if (obj /*&& obj->filam_bak.size() > 0*/) {
+    if (obj && obj->filam_bak.size() > 0) {
         AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
         m_replace_material_popup->update_machine_obj(obj);
         m_replace_material_popup->ShowModal();
@@ -2968,12 +2968,14 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         k_val = wxString::Format("%.3f", tray_it->second->k);
                         n_val = wxString::Format("%.3f", tray_it->second->n);
                         wxColor color = AmsTray::decode_color(tray_it->second->color);
-                        m_filament_setting_dlg->set_color(color);
+                        //m_filament_setting_dlg->set_color(color);
 
                         std::vector<wxColour> cols;
                         for (auto col : tray_it->second->cols) {
                             cols.push_back( AmsTray::decode_color(col));
                         }
+
+                        m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
 
                         if (m_filament_setting_dlg->ams_filament_id.empty()) {
                             m_filament_setting_dlg->set_empty_color(color);
@@ -2982,7 +2984,6 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                             m_filament_setting_dlg->set_color(color);
                         }
 
-                        m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
                         m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
                         if (!m_filament_setting_dlg->m_is_third) {
                             sn_number = tray_it->second->uuid;

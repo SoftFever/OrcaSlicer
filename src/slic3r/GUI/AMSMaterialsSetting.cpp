@@ -671,7 +671,7 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
     }
 
     wxPoint img_pos = m_clr_picker->ClientToScreen(wxPoint(0, 0));
-    wxPoint popup_pos(img_pos.x + FromDIP(50), img_pos.y);
+    wxPoint popup_pos(img_pos.x - m_color_picker_popup.GetSize().x - FromDIP(95), img_pos.y - FromDIP(65));
     m_color_picker_popup.Position(popup_pos, wxSize(0, 0));
     m_color_picker_popup.set_ams_colours(ams_colors);
     m_color_picker_popup.set_def_colour(m_clr_picker->m_colour);

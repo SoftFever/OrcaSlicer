@@ -123,6 +123,7 @@ public:
     wxColour       m_brand_colour;
     std::string    m_filament_type;
     ColorPickerPopup m_color_picker_popup;
+    ColorPicker *       m_clr_picker;
 
 protected:
     void create_panel_normal(wxWindow* parent);
@@ -153,7 +154,6 @@ protected:
     Button *            m_button_confirm;
     wxStaticText*       m_tip_readonly;
     Button *            m_button_close;
-    ColorPicker *       m_clr_picker;
     wxColourData *      m_clrData;
 
     wxPanel *           m_panel_kn;
