@@ -38,7 +38,8 @@ public:
     std::vector<wxColour>        m_cols;
     bool            m_selected{false};
     bool            m_show_full{false};
-    
+    bool            m_is_empty{false};
+
     ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~ColorPicker();
 
@@ -47,6 +48,7 @@ public:
     void set_colors(std::vector<wxColour>  cols);
     void set_selected(bool sel) {m_selected = sel;Refresh();};
     void set_show_full(bool full) {m_show_full = full;Refresh();};
+    void is_empty(bool empty) {m_is_empty = empty;};
 
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
@@ -101,6 +103,7 @@ public:
     void post_select_event();
     void msw_rescale();
     void set_color(wxColour color);
+    void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
 
     void on_picker_color(wxCommandEvent& color);

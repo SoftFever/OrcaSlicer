@@ -631,6 +631,13 @@ void AMSMaterialsSetting::on_select_close(wxCommandEvent &event)
 void AMSMaterialsSetting::set_color(wxColour color)
 {
     //m_clrData->SetColour(color);
+    m_clr_picker->is_empty(false);
+    m_clr_picker->set_color(color);
+}
+
+void AMSMaterialsSetting::set_empty_color(wxColour color)
+{
+    m_clr_picker->is_empty(true);
     m_clr_picker->set_color(color);
 }
 
@@ -1031,6 +1038,13 @@ void ColorPicker::doRender(wxDC& dc)
             }
             dc.DrawBitmap(m_bitmap_border, wxPoint(0, 0));
         }
+    }
+
+    if (m_is_empty) {
+        dc.SetTextForeground(*wxBLACK);
+        auto tsize = dc.GetTextExtent("?");
+        auto pot = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2);
+        dc.DrawText("?", pot);
     }
 }
 

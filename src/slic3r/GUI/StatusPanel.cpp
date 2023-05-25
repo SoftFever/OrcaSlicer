@@ -2975,7 +2975,12 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                             cols.push_back( AmsTray::decode_color(col));
                         }
 
-                        m_filament_setting_dlg->set_colors(cols);
+                        if (m_filament_setting_dlg->ams_filament_id.empty()) {
+                            m_filament_setting_dlg->set_empty_color(color);
+                        }
+                        else {
+                            m_filament_setting_dlg->set_color(color);
+                        }
 
                         m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
                         m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
@@ -3014,8 +3019,16 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             k_val = wxString::Format("%.3f", obj->vt_tray.k);
             n_val = wxString::Format("%.3f", obj->vt_tray.n);
             wxColor color = AmsTray::decode_color(obj->vt_tray.color);
-            m_filament_setting_dlg->set_color(color);
             m_filament_setting_dlg->ams_filament_id = obj->vt_tray.setting_id;
+
+
+            if (m_filament_setting_dlg->ams_filament_id.empty()) {
+                m_filament_setting_dlg->set_empty_color(color);
+            }
+            else {
+                m_filament_setting_dlg->set_color(color);
+            }
+            
             m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_tray.tag_uid);
             if (!m_filament_setting_dlg->m_is_third) {
                 sn_number = obj->vt_tray.uuid;

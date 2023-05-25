@@ -736,10 +736,10 @@ void AMSLib::render(wxDC &dc)
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
 
-        if (m_info.material_name.empty() &&  m_info.material_state != AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
+        if (m_info.material_name.empty() /*&&  m_info.material_state != AMSCanType::AMS_CAN_TYPE_VIRTUAL*/) {
             auto tsize = dc.GetMultiLineTextExtent("?");
             auto pot = wxPoint(0, 0);
-            if (m_show_kn) {
+            if (m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
                 pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9));
             } else {
                 pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
