@@ -598,7 +598,7 @@ void Camera::update_zenit()
     m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0))); }
 
 void Camera::update_target() {
-    auto temptarget = get_position() + m_distance * get_dir_forward();
+    Vec3d temptarget = get_position() + m_distance * get_dir_forward();
     if (!(temptarget-m_target).isApprox(Vec3d::Zero())){
         m_target = temptarget;
     }      
