@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 15:23+0800\n"
+"POT-Creation-Date: 2023-05-25 12:20+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3122,6 +3122,9 @@ msgstr "Visa Konfigurations Mapp"
 msgid "Show Tip of the Day"
 msgstr "Visa dagens tips"
 
+msgid "Report issue"
+msgstr ""
+
 msgid "Check for Update"
 msgstr "Sök efter Uppdatering"
 
@@ -4445,6 +4448,11 @@ msgid ""
 msgstr ""
 "Filen %s har skickats till skrivarens lagringsutrymme och kan visas på "
 "skrivaren."
+
+msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -8964,6 +8972,21 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 
 msgid "Canceled"
+msgstr ""
+
+msgid "load_obj: failed to parse"
+msgstr ""
+
+msgid "The file contains polygons with more than 4 vertices."
+msgstr ""
+
+msgid "The file contains polygons with less than 2 vertices."
+msgstr ""
+
+msgid "The file contains invalid vertex index."
+msgstr ""
+
+msgid "This OBJ file couldn't be read because it's empty."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]

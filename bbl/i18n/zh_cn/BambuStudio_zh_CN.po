@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 15:23+0800\n"
+"POT-Creation-Date: 2023-05-25 12:20+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1231,7 +1231,7 @@ msgid "Negative Part"
 msgstr "负零件"
 
 msgid "Modifier"
-msgstr "修改器  Modifier"
+msgstr "修改器"
 
 msgid "Support Blocker"
 msgstr "支撑去除器"
@@ -3041,6 +3041,9 @@ msgstr "打开配置文件夹"
 msgid "Show Tip of the Day"
 msgstr "展示每日小贴士"
 
+msgid "Report issue"
+msgstr ""
+
 msgid "Check for Update"
 msgstr "检查新版本"
 
@@ -3664,7 +3667,7 @@ msgid "Layer: %s"
 msgstr "层： %s"
 
 msgid "Please give a score for your favorite Bambu Market model."
-msgstr ""
+msgstr "请为您喜欢的 Bambu 商城模型打分。"
 
 msgid "Score"
 msgstr ""
@@ -4322,6 +4325,11 @@ msgid ""
 msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上浏览。"
 
 msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -4345,7 +4353,7 @@ msgstr "盘参数设置"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
-msgstr ""
+msgstr "当前选择的零件数量: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5000,12 +5008,12 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "打印文件数据异常，请重新切片"
 
 msgid "The name length exceeds the limit."
-msgstr ""
+msgstr "名称长度超过限制。"
 
 msgid ""
 "Extrusion compensation calibration is not supported when using Textured PEI "
 "Plate"
-msgstr ""
+msgstr "使用带纹理的PEI板时不支持挤出补偿校准"
 
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
@@ -5187,8 +5195,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8555,6 +8563,21 @@ msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .am
 
 msgid "Canceled"
 msgstr "已取消"
+
+msgid "load_obj: failed to parse"
+msgstr "加载对象：无法分析"
+
+msgid "The file contains polygons with more than 4 vertices."
+msgstr "该文件包含顶点超过4个的多边形。"
+
+msgid "The file contains polygons with less than 2 vertices."
+msgstr "该文件包含顶点少于2个的多边形。"
+
+msgid "The file contains invalid vertex index."
+msgstr "文件包含无效的顶点索引。"
+
+msgid "This OBJ file couldn't be read because it's empty."
+msgstr "无法读取此OBJ文件，因为它是空的。"
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -12649,8 +12672,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
