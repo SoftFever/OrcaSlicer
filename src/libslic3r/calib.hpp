@@ -10,6 +10,7 @@ class GCode;
 enum class CalibMode : int {
     Calib_None = 0,
     Calib_PA_Line,
+    Calib_PA_Pattern,
     Calib_PA_Tower,
     Calib_Temp_Tower,
     Calib_Vol_speed_Tower,
@@ -27,6 +28,7 @@ struct Calib_Params
 
 class calib_pressure_advance {
 private:
+    std::string move_to(Ved3d pt);
     std::string move_to(Vec2d pt);
 }
 
@@ -55,5 +57,18 @@ private:
     double m_slow_speed, m_fast_speed;
     double m_line_width;
     bool   m_draw_numbers;
+};
+
+class calib_pressure_advance_pattern: public calib_pressure_advance
+{
+    public:
+        calib_pressure_advance_pattern(GCode* gcodegen);
+        ~calib_pressure_advance_pattern() {}
+
+        std::string generate_test(double start_pa = 0, double end_pa = 0.08, double step_pa = 0.005);
+    private:
+        std::string move_to(Vec2d pt);
+    private:
+        Gcode* mp_gcodegen;
 };
 } // namespace Slic3r
