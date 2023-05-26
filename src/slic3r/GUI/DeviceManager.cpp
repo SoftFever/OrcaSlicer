@@ -1415,6 +1415,8 @@ void MachineObject::parse_version_func()
             }
 
             is_support_remote_tunnel = true;
+            is_support_tunnel_mqtt   =  (ota_version->second.sw_ver.compare("01.04.01.04") >= 0
+                    || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.20.30") >= 0));
             local_camera_proto       = (local_rtsp_url.empty() || local_rtsp_url == "disable") ? 0 
                                         : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
             file_proto = 2;
@@ -2235,6 +2237,7 @@ bool MachineObject::is_connecting()
 void MachineObject::set_online_state(bool on_off)
 {
     m_is_online = on_off;
+    if (!on_off) m_active_state = NotActive;
 }
 
 bool MachineObject::is_info_ready()
@@ -2428,6 +2431,7 @@ int MachineObject::parse_json(std::string payload)
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
+    if (m_active_state == NotActive) m_active_state = SequenceNotValid;
 
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();
@@ -2441,6 +2445,24 @@ int MachineObject::parse_json(std::string payload)
         }
 
         if (j_pre.contains("print")) {
+            if (j_pre["print"].contains("sequence_id") && j_pre["print"]["command"] == "push_status") {
+                if (j_pre["print"]["sequence_id"].is_string()) {
+                    std::string str_seq = j_pre["print"]["sequence_id"].get<std::string>();
+                    try {
+                        int sequence_id = stoi(str_seq);
+                        if (sequence_id != print_sequence_id + 1 && m_active_state >= SequenceValid) {
+                            wxLogWarning("parse_json: print_sequence_id gap, %d -> %d %s", print_sequence_id, sequence_id, wxString::FromUTF8(payload));
+                            BOOST_LOG_TRIVIAL(warning) << "parse_json: print_sequence_id gap, " << print_sequence_id << " -> " << sequence_id;
+                            if (sequence_id - print_sequence_id < 0 && sequence_id - print_sequence_id > -20)
+                                return 0;
+                        }
+                        print_sequence_id = sequence_id;
+                        if (m_active_state == SequenceNotValid) m_active_state = SequenceValid; // Have init print_sequence_id
+                    } catch (...) {
+                        return 0;
+                    }
+                }
+            }
             if (j_pre["print"].contains("command")) {
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
@@ -2472,7 +2494,7 @@ int MachineObject::parse_json(std::string payload)
         }
 
         if (!restored_json) {
-            j = json::parse(payload);
+            j = j_pre;
         }
 
         BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", playload=" << j.dump(4);
@@ -3738,6 +3760,14 @@ int MachineObject::parse_json(std::string payload)
         }
         catch (...)  {}
 
+        if (m_active_state == SequenceValid) {
+            m_active_state = UpdateToDate;
+            parse_version_func();
+            if (is_support_tunnel_mqtt && connection_type() != "lan") {
+                m_agent->start_subscribe("tunnel");
+            }
+        }
+
         parse_state_changed_event();
     }
     catch (...) {
@@ -4205,6 +4235,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
     // disconnect last
     auto last_selected = my_machine_list.find(selected_machine);
     if (last_selected != my_machine_list.end()) {
+        last_selected->second->m_active_state = MachineObject::NotActive;
         if (last_selected->second->connection_type() == "lan") {
             if (last_selected->second->is_connecting() && !need_disconnect)
                 return false;
