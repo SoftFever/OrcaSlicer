@@ -1,11 +1,12 @@
 {
   "type": "machine",
   "setting_id": "GM001",
-  "name": "BIQU Hurakan 0.4 nozzle",
+  "name": "BIQU Hurakan (0.4 nozzle)",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
   "printer_model": "BIQU Hurakan",
+  "default_print_profile": "0.20mm Standard @BIQU Hurakan (0.4 nozzle)",
   "nozzle_diameter": [
     "0.4"
   ],
