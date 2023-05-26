@@ -1440,6 +1440,7 @@ void MachineObject::parse_version_func()
         }
     } else if (printer_type == "C12") {
         is_support_ai_monitoring = true;
+        is_cloud_print_only = true;
         if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
             local_use_ssl_for_mqtt = false;
             local_use_ssl_for_ftp = false;
