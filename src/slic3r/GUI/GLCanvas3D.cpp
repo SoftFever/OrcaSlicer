@@ -5654,7 +5654,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             curr_color[2] = vol->color[2];
             curr_color[3] = vol->color[3];
 
-            shader->set_uniform("uniform_color", curr_color);
+            std::array<float, 4> new_color = adjust_color_for_rendering(curr_color);
+            shader->set_uniform("uniform_color", new_color);
             shader->set_uniform("volume_world_matrix", vol->world_matrix());
             //BBS set all volume to orange
             //shader->set_uniform("uniform_color", orange);
