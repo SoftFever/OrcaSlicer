@@ -1972,7 +1972,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         catch (std::exception& e) {
             auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
             show_error(parent, msg);
-            exit(1);
+            return;
         }
 
         if (from_galery)
