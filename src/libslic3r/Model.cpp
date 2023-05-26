@@ -1969,6 +1969,16 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
 
     for (size_t i = 0; i < object->instances.size(); ++i) {
         auto& obj_instance = object->instances[i];
+
+        Geometry::Transformation instance_transformation_copy = obj_instance->get_transformation();
+        instance_transformation_copy.set_offset(Vec3d(0, 0, 0));
+        if (object->volumes.size() == 1) {
+            instance_transformation_copy.set_offset(-object->volumes[0]->get_offset());
+        }
+
+        if (i == src_instance_idx && object->volumes.size() == 1)
+            invalidate_translations(object, obj_instance);
+
         const Vec3d offset = obj_instance->get_offset();
         const double rot_z = obj_instance->get_rotation().z();
 
@@ -1998,6 +2008,13 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
         }
 
         obj_instance->set_rotation(rotation);
+
+        // update the assemble matrix
+        const Transform3d &assemble_matrix = obj_instance->get_assemble_transformation().get_matrix();
+        const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+        Transform3d new_instance_inverse_matrix = instance_inverse_matrix * obj_instance->get_transformation().get_matrix(true).inverse();
+        Transform3d new_assemble_transform = assemble_matrix * new_instance_inverse_matrix;
+        obj_instance->set_assemble_from_transform(new_assemble_transform);
     }
 }
 
@@ -2077,16 +2094,12 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     }
     else {
         if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper->volumes.size() > 0) {
-            invalidate_translations(upper, instances[instance]);
-
             reset_instance_transformation(upper, instance, cut_matrix, attributes.has(ModelObjectCutAttribute::PlaceOnCutUpper),
                                           attributes.has(ModelObjectCutAttribute::FlipUpper), local_displace);
 
             res.push_back(upper);
         }
         if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower->volumes.size() > 0) {
-            invalidate_translations(lower, instances[instance]);
-
             reset_instance_transformation(lower, instance, cut_matrix, attributes.has(ModelObjectCutAttribute::PlaceOnCutLower),
                                           attributes.has(ModelObjectCutAttribute::PlaceOnCutLower) ? true : attributes.has(ModelObjectCutAttribute::FlipLower));
 
@@ -2095,8 +2108,6 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
 
         if (attributes.has(ModelObjectCutAttribute::CreateDowels) && !dowels.empty()) {
             for (auto dowel : dowels) {
-                invalidate_translations(dowel, instances[instance]);
-
                 reset_instance_transformation(dowel, instance, Transform3d::Identity(), false, false, local_dowels_displace);
 
                 local_dowels_displace += dowel->full_raw_mesh_bounding_box().size().cwiseProduct(Vec3d(-1.5, -1.5, 0.0));
@@ -2310,9 +2321,15 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
             {
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
+                
                 //BBS: add assemble_view related logic
-                model_instance->set_assemble_transformation(model_instance->get_transformation());
-                model_instance->set_offset_to_assembly(new_vol->get_offset());
+                Geometry::Transformation instance_transformation_copy = model_instance->get_transformation();
+                instance_transformation_copy.set_offset(-new_vol->get_offset());
+                const Transform3d &assemble_matrix = model_instance->get_assemble_transformation().get_matrix();
+                const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+                Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix(true).inverse();
+                Transform3d new_assemble_transform      = assemble_matrix * new_instance_inverse_matrix;
+                model_instance->set_assemble_from_transform(new_assemble_transform);
             }
 
             new_vol->set_offset(Vec3d::Zero());
