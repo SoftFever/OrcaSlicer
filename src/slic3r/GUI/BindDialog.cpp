@@ -195,7 +195,7 @@ wxString get_fail_reason(int code)
 
 
      //agreement
-     wxWindow* m_panel_agreement = new wxWindow(this,wxID_ANY);
+     m_panel_agreement = new wxWindow(this,wxID_ANY);
      m_panel_agreement->SetBackgroundColour(*wxWHITE);
      m_panel_agreement->SetMinSize(wxSize(FromDIP(450), -1));
      m_panel_agreement->SetMaxSize(wxSize(FromDIP(450), -1));
@@ -613,7 +613,14 @@ wxString get_fail_reason(int code)
 
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
-     m_bind_job->set_improved(m_allow_notice);
+
+     if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+         m_bind_job->set_improved(false);
+     }
+     else {
+         m_bind_job->set_improved(m_allow_notice);
+     }
+
      m_bind_job->set_event_handle(this);
      m_bind_job->start();
  }
@@ -622,6 +629,21 @@ void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
     m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
+}
+
+void BindMachineDialog::update_machine_info(MachineObject* info)
+{
+    m_machine_info = info;
+    if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+        m_button_bind->Enable(true);
+        m_panel_agreement->Hide();
+    }
+    else {
+        m_button_bind->Enable(false);
+        m_panel_agreement->Show();
+    }
+    Layout();
+    Fit();
 }
 
 void BindMachineDialog::on_show(wxShowEvent &event)

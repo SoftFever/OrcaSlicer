@@ -46,6 +46,7 @@ struct MemoryStruct
 class BindMachineDialog : public DPIDialog
 {
 private:
+    wxWindow*      m_panel_agreement;
     wxStaticText * m_printer_name;
     wxStaticText * m_user_name;
     StaticBox *   m_panel_left;
@@ -90,7 +91,7 @@ public:
     void     on_bind_success(wxCommandEvent &event);
     void     on_bind_printer(wxCommandEvent &event);
     void     on_dpi_changed(const wxRect &suggested_rect) override;
-    void     update_machine_info(MachineObject *info) { m_machine_info = info; };
+    void     update_machine_info(MachineObject *info);
     void     on_show(wxShowEvent &event);
     void     on_close(wxCloseEvent& event);
     void     on_destroy();
