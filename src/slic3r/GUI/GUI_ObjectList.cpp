@@ -5617,10 +5617,10 @@ void ObjectList::reload_all_plates(bool notify_partplate)
 
     m_prevent_canvas_selection_update = false;
 
-    // update printable states on canvas
-    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
     // update scene
     wxGetApp().plater()->update();
+    // update printable states on canvas
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 }
 
 void ObjectList::on_plate_selected(int plate_index)
