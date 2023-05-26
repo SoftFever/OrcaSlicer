@@ -1741,6 +1741,10 @@ void SelectMachineDialog::prepare_mode()
         Layout();
         Fit();
     }
+
+    for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
+        it->second->item->enable();
+    }
 }
 
 void SelectMachineDialog::sending_mode()
@@ -1753,6 +1757,10 @@ void SelectMachineDialog::sending_mode()
         m_simplebook->SetSelection(1);
         Layout();
         Fit();
+    }
+
+    for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
+        it->second->item->disable();
     }
 }
 
@@ -3294,10 +3302,6 @@ void SelectMachineDialog::set_default()
         m_button_refresh->Show(false);
         m_rename_normal_panel->Show(false);
         m_hyperlink->Show(false);
-
-        /* DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-         if (!dev_manager) return;
-         MachineObject* obj_ = dev_manager->get_selected_machine();*/
     }
 
     //project name

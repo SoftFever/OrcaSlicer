@@ -62,6 +62,22 @@ void MaterialItem::set_ams_info(wxColour col, wxString txt)
     if (need_refresh) { Refresh();}
 }
 
+void MaterialItem::disable()
+{
+    if (IsEnabled()) {
+        this->Disable();
+        Refresh();
+    }
+}
+
+void MaterialItem::enable()
+{
+    if (!IsEnabled()) {
+        this->Enable();
+        Refresh();
+    }
+}
+
 void MaterialItem::on_selected()
 {
     if (!m_selected) {
@@ -118,16 +134,26 @@ void MaterialItem::render(wxDC &dc)
     doRender(dc);
 #endif
 
+    auto mcolor = m_material_coloul;
+    auto acolor = m_ams_coloul;
+    if (!IsEnabled()) {
+        mcolor = wxColour(0x90, 0x90, 0x90);
+        acolor = wxColour(0x90, 0x90, 0x90);
+    }
+    else {
+        mcolor = m_material_coloul;
+        acolor = m_ams_coloul;
+    }
+
     // materials name
     dc.SetFont(::Label::Body_13);
 
-    auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
-    if (m_material_coloul.Alpha() == 0) {material_name_colour = wxColour(0x26, 0x2E, 0x30);}
+    auto material_name_colour = mcolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    if (mcolor.Alpha() == 0) {material_name_colour = wxColour(0x26, 0x2E, 0x30);}
     dc.SetTextForeground(material_name_colour);
 
     if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
         dc.SetFont(::Label::Body_10);
-
     }
 
     auto material_txt_size = dc.GetTextExtent(m_material_name);
@@ -135,8 +161,8 @@ void MaterialItem::render(wxDC &dc)
 
     // mapping num
     dc.SetFont(::Label::Body_10);
-    dc.SetTextForeground(m_ams_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
-    if (m_ams_coloul.Alpha() == 0) {
+    dc.SetTextForeground(acolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
+    if (acolor.Alpha() == 0) {
         dc.SetTextForeground(wxColour(0x26, 0x2E, 0x30));
     }
 
@@ -153,32 +179,44 @@ void MaterialItem::render(wxDC &dc)
 
 void MaterialItem::doRender(wxDC &dc) 
 {
-    if (m_material_coloul.Alpha() == 0) {
+    auto mcolor = m_material_coloul;
+    auto acolor = m_ams_coloul;
+
+    if (mcolor.Alpha() == 0) {
         dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
+    }
+
+    if (!IsEnabled()) {
+        mcolor = wxColour(0x90, 0x90, 0x90);
+        acolor = wxColour(0x90, 0x90, 0x90);
+    }
+    else {
+        mcolor = m_material_coloul;
+        acolor = m_ams_coloul;
     }
 
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(m_material_coloul));
+    dc.SetBrush(wxBrush(mcolor));
     dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(18), 5);
     
     //bottom
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(wxColour(m_ams_coloul)));
+    dc.SetBrush(wxBrush(wxColour(acolor)));
     dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
 
     ////middle
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(m_material_coloul));
+    dc.SetBrush(wxBrush(mcolor));
     dc.DrawRectangle(FromDIP(1), FromDIP(11), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(m_ams_coloul));
+    dc.SetBrush(wxBrush(acolor));
     dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
     ////border
 #if __APPLE__
-    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
+    if (mcolor == *wxWHITE || acolor == *wxWHITE) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
@@ -190,7 +228,7 @@ void MaterialItem::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
     }
 #else
-    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE || m_ams_coloul.Alpha() == 0) {
+    if (mcolor == *wxWHITE || acolor == *wxWHITE || acolor.Alpha() == 0) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
@@ -203,8 +241,8 @@ void MaterialItem::doRender(wxDC &dc)
     }
 #endif
     //arrow
-    if ( (m_ams_coloul.Red() > 160 && m_ams_coloul.Green() > 160 && m_ams_coloul.Blue() > 160) &&
-        (m_ams_coloul.Red() < 180 && m_ams_coloul.Green() < 180 && m_ams_coloul.Blue() < 180)) {
+    if ( (acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
+        (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
         dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
     }
     else {
@@ -602,7 +640,7 @@ void MappingItem::render(wxDC &dc)
     // materials name
     dc.SetFont(::Label::Head_13);
 
-    auto txt_colour = m_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    auto txt_colour = m_coloul.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
     txt_colour      = m_unmatch ? wxColour(0xCE, 0xCE, 0xCE) : txt_colour;
     if (m_coloul.Alpha() == 0) txt_colour = wxColour(0x26, 0x2E, 0x30);
     dc.SetTextForeground(txt_colour);
@@ -1477,7 +1515,7 @@ void AmsRMGroup::doRender(wxDC& dc)
         //draw tray
         dc.SetFont(::Label::Body_12);
         auto text_size = dc.GetTextExtent(tray_name);
-        dc.SetTextForeground(tray_color.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x262E30));
+        dc.SetTextForeground(tray_color.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x262E30));
         dc.DrawText(tray_name, x_center - text_size.x / 2, size.y - y_center - text_size.y / 2);
 
         //draw split line

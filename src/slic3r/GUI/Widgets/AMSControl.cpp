@@ -719,7 +719,7 @@ void AMSLib::render(wxDC &dc)
     auto tmp_lib_colour  = m_info.material_colour;
     auto temp_text_colour = AMS_CONTROL_GRAY800;
 
-    if (tmp_lib_colour.GetLuminance() < 0.5) {
+    if (tmp_lib_colour.GetLuminance() < 0.6) {
         temp_text_colour = AMS_CONTROL_WHITE_COLOUR;
     } else {
         temp_text_colour = AMS_CONTROL_GRAY800;
@@ -822,7 +822,7 @@ void AMSLib::doRender(wxDC &dc)
     dc.SetBrush(wxBrush(AMS_CONTROL_DEF_LIB_BK_COLOUR));
     dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
 
-    if (tmp_lib_colour.GetLuminance() < 0.5) {
+    if (tmp_lib_colour.GetLuminance() < 0.6) {
         temp_bitmap_third = m_bitmap_editable_light;
         temp_bitmap_brand = m_bitmap_readonly_light;
     } else {

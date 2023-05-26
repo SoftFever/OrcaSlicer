@@ -83,6 +83,8 @@ public:
     void msw_rescale();
     void set_ams_info(wxColour col, wxString txt);
 
+    void disable();
+    void enable();
     void on_normal();
     void on_selected();
     void on_warning();
