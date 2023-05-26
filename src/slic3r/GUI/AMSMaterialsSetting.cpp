@@ -523,7 +523,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         nozzle_temp_max.ToLong(&nozzle_temp_max_int);
         wxColour color = m_clr_picker->m_colour;
         char col_buf[10];
-        sprintf(col_buf, "%02X%02X%02XFF", (int)color.Red(), (int)color.Green(), (int)color.Blue());
+        sprintf(col_buf, "%02X%02X%02X%02X", (int)color.Red(), (int)color.Green(), (int)color.Blue(), (int)color.Alpha());
         ams_filament_id = "";
         ams_setting_id = "";
 
@@ -1165,6 +1165,14 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
         SetCursor(wxCURSOR_ARROW);
     });
 
+    m_ts_bitmap_custom = ScalableBitmap(this, "ts_custom_color_picker", 25);
+    m_ts_stbitmap_custom = new wxStaticBitmap(m_custom_cp, wxID_ANY, m_ts_bitmap_custom.bmp());
+
+    auto sizer_custom = new wxBoxSizer(wxVERTICAL);
+    m_custom_cp->SetSizer(sizer_custom);
+    sizer_custom->Add(m_ts_stbitmap_custom, 0, wxEXPAND, 0);
+    m_custom_cp->Layout();
+
     m_clrData = new wxColourData();
     m_clrData->SetChooseFull(true);
     m_clrData->SetChooseAlpha(false);
@@ -1207,7 +1215,15 @@ void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& event)
             m_clrData->GetColour().Blue(),
             254
         );
-        m_custom_cp->SetBackgroundColor(picker_color);
+
+        if (picker_color.Alpha() == 0) {
+             m_ts_stbitmap_custom->Show();
+        }
+        else {
+            m_ts_stbitmap_custom->Hide();
+            m_custom_cp->SetBackgroundColor(picker_color);
+        }
+
         set_def_colour(picker_color);
         wxCommandEvent evt(EVT_SELECTED_COLOR);
         unsigned long g_col = ((picker_color.Red() & 0xff) << 24) + ((picker_color.Green() & 0xff) << 16) + ((picker_color.Blue() & 0xff) << 8) + (picker_color.Alpha() & 0xff);
@@ -1272,7 +1288,13 @@ void ColorPickerPopup::set_def_colour(wxColour col)
         }
     }
 
-    m_custom_cp->SetBackgroundColor(m_def_col);
+    if (m_def_col.Alpha() == 0) {
+        m_ts_stbitmap_custom->Show();
+    }
+    else {
+        m_ts_stbitmap_custom->Hide();
+        m_custom_cp->SetBackgroundColor(m_def_col);
+    }
 
     Dismiss();
 }
