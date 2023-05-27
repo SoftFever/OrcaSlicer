@@ -13,8 +13,8 @@
       "; filament start gcode\n{if (bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S255\n{elsif (bed_temperature[current_extruder] >30)||(bed_temperature_initial_layer[current_extruder] >30)}M106 P3 S180\n{endif}"
     ],
     "compatible_printers": [
-	  "BIQU BX 0.4 nozzle",
-	  "BIQU B1 0.4 nozzle",
-	  "BIQU Hurakan 0.4 nozzle"
+	  "BIQU BX (0.4 nozzle)",
+	  "BIQU B1 (0.4 nozzle)",
+	  "BIQU Hurakan (0.4 nozzle)"
     ]
 }
