@@ -1,6 +1,7 @@
 #pragma once
 #define calib_pressure_advance_dd
 
+#include <math.h>
 #include <string>
 #include "Point.hpp"
 namespace Slic3r {
@@ -66,9 +67,24 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
         ~calib_pressure_advance_pattern() {}
 
         std::string generate_test(double start_pa = 0, double end_pa = 0.08, double step_pa = 0.005);
+
+        double to_radians(degrees) { return degrees * (M_PI / 180); }
+        
+        double line_width() { return mp_gcodegen->config().nozzle_diameter.get_at(0) * m_line_ratio / 100; };
+        double line_width_anchor() { return mp_gcodegen->config().nozzle_diameter.get_at(0) * m_anchor_layer_line_ratio / 100; };
+        
+        // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
+        double line_spacing() { return line_width() - mp_gcodegen->config().layer_height.value * (1 - M_PI / 4); };
+        double line_spacing_anchor() { return line_width_anchor() - mp_gcodegen->config().initial_layer_print_height.value * (1 - M_PI / 4); };
+        double line_spacing_angle() { return line_spacing() / sin(to_radians(m_corner_angle) / 2); };
     private:
         std::string move_to(Vec2d pt);
     private:
         Gcode* mp_gcodegen;
+        int m_anchor_layer_line_ratio;
+        double m_line_ratio;
+        int m_pattern_spacing;
+        int m_wall_count;
+        double m_wall_side_length;
 };
 } // namespace Slic3r
