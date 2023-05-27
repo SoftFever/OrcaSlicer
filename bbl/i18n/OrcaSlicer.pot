@@ -18,6 +18,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid "Maximum speed of X axis"
+msgstr ""
+
+msgid "Maximum speed of Y axis"
+msgstr ""
+
+msgid "Maximum speed of Z axis"
+msgstr ""
+
+msgid "Maximum speed of E axis"
+msgstr ""
+
 msgid "Supports Painting"
 msgstr ""
 
