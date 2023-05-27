@@ -1435,7 +1435,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
-    def->label = L("Length of the infill anchor");
+    def->label = L("Sparse infill anchor length");
     def->category = L("Strength");
     def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
                      "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Slic3r tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
