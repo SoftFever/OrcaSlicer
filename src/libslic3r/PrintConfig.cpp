@@ -1434,6 +1434,55 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Lightning"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
+    auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
+    def->label = L("Length of the infill anchor");
+    def->category = L("Strength");
+    def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
+                     "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Slic3r tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
+                     "shorter than infill_anchor_max is found, the infill line is connected to a perimeter segment at just one side "
+                     "and the length of the perimeter segment taken is limited to this parameter, but no longer than anchor_length_max. "
+                     "\nSet this parameter to zero to disable anchoring perimeters connected to a single infill line.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "sparse_infill_line_width";
+    def->max_literal = 1000;
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    def->enum_values.push_back("0");
+    def->enum_values.push_back("1");
+    def->enum_values.push_back("2");
+    def->enum_values.push_back("5");
+    def->enum_values.push_back("10");
+    def->enum_values.push_back("1000");
+    def->enum_labels.push_back(L("0 (no open anchors)"));
+    def->enum_labels.push_back("1 mm");
+    def->enum_labels.push_back("2 mm");
+    def->enum_labels.push_back("5 mm");
+    def->enum_labels.push_back("10 mm");
+    def->enum_labels.push_back(L("1000 (unlimited)"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(400, true));
+
+    def = this->add("infill_anchor_max", coFloatOrPercent);
+    def->label = L("Maximum length of the infill anchor");
+    def->category = L("Strength");
+    def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
+                     "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Slic3r tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
+                     "shorter than this parameter is found, the infill line is connected to a perimeter segment at just one side "
+                     "and the length of the perimeter segment taken is limited to infill_anchor, but no longer than this parameter. "
+                     "\nIf set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.");
+    def->sidetext    = def_infill_anchor_min->sidetext;
+    def->ratio_over  = def_infill_anchor_min->ratio_over;
+    def->gui_type    = def_infill_anchor_min->gui_type;
+    def->enum_values = def_infill_anchor_min->enum_values;
+    def->max_literal = def_infill_anchor_min->max_literal;
+    def->enum_labels.push_back(L("0 (Simple connect)"));
+    def->enum_labels.push_back("1 mm");
+    def->enum_labels.push_back("2 mm");
+    def->enum_labels.push_back("5 mm");
+    def->enum_labels.push_back("10 mm");
+    def->enum_labels.push_back(L("1000 (unlimited)"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(20, false));
+    
     def = this->add("outer_wall_acceleration", coFloat);
     def->label = L("Outer wall");
     def->tooltip = L("Acceleration of outer walls");

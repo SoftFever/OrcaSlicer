@@ -831,6 +831,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bottom_surface_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_pattern"
+            || opt_key == "infill_anchor"
+            || opt_key == "infill_anchor_max"
             || opt_key == "top_surface_line_width"
             || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);
