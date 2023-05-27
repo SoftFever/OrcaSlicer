@@ -1776,6 +1776,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("max_print_height",new ConfigOptionInt(m_config.printable_height));
         m_placeholder_parser.set("z_offset", new ConfigOptionFloat(0.0f));
         m_placeholder_parser.set("plate_name", new ConfigOptionString(print.get_plate_name()));
+        m_placeholder_parser.set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
