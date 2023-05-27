@@ -347,7 +347,7 @@ void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
             end = 230;
             break;
         case tPETG:
-            start = 260;
+            start = 250;
             end = 230;
             break;
         case tTPU:
