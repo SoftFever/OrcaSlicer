@@ -17,8 +17,8 @@ enum class CalibMode : int {
     Calib_Vol_speed_Tower,
     Calib_VFA_Tower,
     Calib_Retraction_tower
-
 };
+
 struct Calib_Params
 {
     Calib_Params();
@@ -27,10 +27,18 @@ struct Calib_Params
     CalibMode mode;
 };
 
-class calib_pressure_advance {
+class calib_pressure_advance
+{
+public:
+    enum class DrawDigitMode {
+        Horizontal = 0,
+        Vertical
+    };
 private:
     std::string move_to(Ved3d pt);
     std::string move_to(Vec2d pt);
+    std::string draw_digit(double startx, double starty, char c, calib_pressure_advance::DrawDigitMode mode);
+    std::string draw_number(double startx, double starty, double value, calib_pressure_advance::DrawDigitMode mode);
 }
 
 class calib_pressure_advance_line: public calib_pressure_advance
@@ -49,8 +57,6 @@ public:
 
 private:
     std::string print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num);
-    std::string draw_digit(double startx, double starty, char c);
-    std::string draw_number(double startx, double starty, double value);
 private:
     GCode* mp_gcodegen;
     double m_length_short, m_length_long;
