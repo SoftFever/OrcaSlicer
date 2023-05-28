@@ -4811,6 +4811,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                         {"zh_TW", wxString::FromUTF8("\xE4\xB8\xAD\xE6\x96\x87\x28\xE7\xB9\x81\xE9\xAB\x94\x29")},
                         {"de", wxString::FromUTF8("Deutsch")},
                         {"cs", wxString::FromUTF8("Czech")},
+                        {"pt_BR", wxString::FromUTF8("Portuguese (Brazilian)")},
                         {"nl", wxString::FromUTF8("Nederlands")},
                         {"sv", wxString::FromUTF8("\x53\x76\x65\x6e\x73\x6b\x61")}, //Svenska
                         {"en", wxString::FromUTF8("English")},
