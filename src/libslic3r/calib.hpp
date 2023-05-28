@@ -91,10 +91,12 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
         std::string move_to(Vec2d pt);
     private:
         Gcode* mp_gcodegen;
-        int m_anchor_layer_line_ratio;
-        double m_line_ratio;
-        int m_pattern_spacing;
-        int m_wall_count;
-        double m_wall_side_length;
+        int m_anchor_layer_line_ratio {140};
+        int m_anchor_perimeters {4};
+        int m_corner_angle {90};
+        double m_line_ratio {112.5};
+        int m_pattern_spacing {2};
+        int m_wall_count {3};
+        double m_wall_side_length {30.0};
 };
 } // namespace Slic3r
