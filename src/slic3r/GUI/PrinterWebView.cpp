@@ -30,6 +30,8 @@ PrinterWebView::PrinterWebView(wxWindow *parent)
         return;
     }
 
+    Bind(wxEVT_WEBVIEW_ERROR, &PrinterWebView::OnError, this);
+
     SetSizer(topsizer);
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
@@ -81,6 +83,38 @@ void PrinterWebView::UpdateState() {
 void PrinterWebView::OnClose(wxCloseEvent& evt)
 {
     this->Hide();
+}
+
+void PrinterWebView::OnError(wxWebViewEvent &evt)
+{
+    auto e = "unknown error";
+    switch (evt.GetInt()) {
+      case wxWEBVIEW_NAV_ERR_CONNECTION:
+        e = "wxWEBVIEW_NAV_ERR_CONNECTION";
+        break;
+      case wxWEBVIEW_NAV_ERR_CERTIFICATE:
+        e = "wxWEBVIEW_NAV_ERR_CERTIFICATE";
+        break;
+      case wxWEBVIEW_NAV_ERR_AUTH:
+        e = "wxWEBVIEW_NAV_ERR_AUTH";
+        break;
+      case wxWEBVIEW_NAV_ERR_SECURITY:
+        e = "wxWEBVIEW_NAV_ERR_SECURITY";
+        break;
+      case wxWEBVIEW_NAV_ERR_NOT_FOUND:
+        e = "wxWEBVIEW_NAV_ERR_NOT_FOUND";
+        break;
+      case wxWEBVIEW_NAV_ERR_REQUEST:
+        e = "wxWEBVIEW_NAV_ERR_REQUEST";
+        break;
+      case wxWEBVIEW_NAV_ERR_USER_CANCELLED:
+        e = "wxWEBVIEW_NAV_ERR_USER_CANCELLED";
+        break;
+      case wxWEBVIEW_NAV_ERR_OTHER:
+        e = "wxWEBVIEW_NAV_ERR_OTHER";
+        break;
+      }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": error loading page %1% %2% %3% %4%") %evt.GetURL() %evt.GetTarget() %e %evt.GetString();
 }
 
 
