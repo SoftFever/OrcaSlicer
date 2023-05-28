@@ -39,6 +39,9 @@ private:
     std::string move_to(Vec2d pt);
     std::string draw_digit(double startx, double starty, char c, calib_pressure_advance::DrawDigitMode mode);
     std::string draw_number(double startx, double starty, double value, calib_pressure_advance::DrawDigitMode mode);
+private:
+    int m_max_number_length {5};
+    double m_number_spacing {3.0};
 }
 
 class calib_pressure_advance_line: public calib_pressure_advance

@@ -159,7 +159,6 @@ namespace Slic3r {
     }
 
     std::string calib_pressure_advance::draw_number(double startx, double starty, double value, calib_pressure_advance::DrawDigitMode mode) {
-        double spacing = 3.0;
         auto sNumber = std::to_string(value);
         sNumber.erase(sNumber.find_last_not_of('0') + 1, std::string::npos);
         sNumber.erase(sNumber.find_last_not_of('.') + 1, std::string::npos);
@@ -167,10 +166,9 @@ namespace Slic3r {
         gcode << mp_gcodegen->writer().set_speed(3600);
 
         for (int i = 0; i < sNumber.length(); ++i) {
-            if (i > 5)
+            if (i > m_max_number_length)
                 break;
-            gcode << draw_digit(startx + i * spacing, starty, sNumber[i], mode);
-
+            gcode << draw_digit(startx + i * m_number_spacing, starty, sNumber[i], mode);
         }
 
         return gcode.str();
