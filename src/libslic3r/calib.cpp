@@ -20,6 +20,14 @@ namespace Slic3r {
         return calib_pressure_advance::move_to(Vec3d(pt.x(), pt.y(), 0.2));
     }
 
+    std::string convert_number_to_string(double num) {
+        auto sNumber = std::to_string(value);
+        sNumber.erase(sNumber.find_last_not_of('0') + 1, std::string::npos);
+        sNumber.erase(sNumber.find_last_not_of('.') + 1, std::string::npos);
+
+        return sNumber;
+    }
+
     std::string calib_pressure_advance::draw_digit(double startx, double starty, char c, calib_pressure_advance::DrawDigitMode mode) {
         auto& writer = mp_gcodegen->writer();
         std::stringstream gcode;
@@ -159,9 +167,7 @@ namespace Slic3r {
     }
 
     std::string calib_pressure_advance::draw_number(double startx, double starty, double value, calib_pressure_advance::DrawDigitMode mode) {
-        auto sNumber = std::to_string(value);
-        sNumber.erase(sNumber.find_last_not_of('0') + 1, std::string::npos);
-        sNumber.erase(sNumber.find_last_not_of('.') + 1, std::string::npos);
+        auto sNumber = convert_number_to_string(value);
         std::stringstream gcode;
         gcode << mp_gcodegen->writer().set_speed(3600);
 
