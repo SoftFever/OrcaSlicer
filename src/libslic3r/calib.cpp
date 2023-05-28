@@ -33,7 +33,7 @@ namespace Slic3r {
         std::stringstream gcode;
         const double lw = 0.48;
         Flow line_flow = Flow(lw, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
-        const double len = 2;
+        const double len = m_digit_len;
         const double gap = lw / 2.0;
         const double e = line_flow.mm3_per_mm() / 2.40528; // filament_mm/extrusion_mm
         const auto dE = e * len;
@@ -209,7 +209,6 @@ namespace Slic3r {
     }
 
     std::string calib_pressure_advance_line::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num) {
-
         auto& writer = mp_gcodegen->writer();
         Flow line_flow = Flow(m_line_width, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
         Flow thin_line_flow = Flow(0.44, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
@@ -264,7 +263,19 @@ namespace Slic3r {
 
 
 
+    double max_numbering_height(double start_pa, double step_pa, int count) {
+        int max_length = 0;
 
+        for (int i = 0; i < count; i += 2) {
+            std::string sNumber = convert_number_to_string(start_pa + (i * step_pa));
+
+            if (sNumber.length > max_length) { max_length = sNumber.length; }
+        }
+
+        max_length = std::min(max_characters, m_max_number_length);
+
+        return (max_length * m_digit_len) + ((max_length - 1) * m_number_spacing);
     }
+
     Calib_Params::Calib_Params() : mode(CalibMode::Calib_None) {}
 } // namespace Slic3r
