@@ -4,9 +4,9 @@
     "model_id": "V-Cast",
     "nozzle_diameter": "0.4;0.6",
     "machine_tech": "FFF",
-    "family": "RatRig_V-Cast",
-    "bed_model": "ratrig-vcast-bed.stl",
-    "bed_texture": "ratrig_logo.svg",
+    "family": "RatRig",
+    "bed_model": "ratrig_vcast_buildplate_model.stl",
+    "bed_texture": "ratrig_vseries_buildplate_texture.svg",
     "hotend_model": "",
     "default_materials": "RatRig Generic ABS;RatRig Generic PLA;RatRig Generic PLA-CF;RatRig Generic PETG;RatRig Generic TPU;RatRig Generic ASA;RatRig Generic PC;RatRig Generic PVA;RatRig Generic PA;RatRig Generic PA-CF"
 }

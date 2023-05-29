@@ -1,12 +1,12 @@
 {
     "name": "TwoTrees",
-    "version": "01.05.01",
+    "version": "01.06.00.00",
     "force_update": "1",
     "description": "TwoTrees configurations",
     "machine_model_list": [
         {
-            "name": "TwoTrees SP-5 Klipper",
-            "sub_path": "machine/TwoTrees SP-5 Klipper.json"
+            "name": "TwoTrees SP-5 (Klipper)",
+            "sub_path": "machine/TwoTrees SP-5 (Klipper).json"
         }
     ],
     "process_list": [
@@ -15,28 +15,28 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "0.08mm Extra Fine @TwoTrees",
-            "sub_path": "process/0.08mm Extra Fine @TwoTrees.json"
+            "name": "0.08mm Extra Fine @TwoTrees SP-5 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @TwoTrees SP-5 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.12mm Fine @TwoTrees",
-            "sub_path": "process/0.12mm Fine @TwoTrees.json"
+            "name": "0.12mm Fine @TwoTrees SP-5 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.12mm Fine @TwoTrees SP-5 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.15mm Optimal @TwoTrees",
-            "sub_path": "process/0.15mm Optimal @TwoTrees.json"
+            "name": "0.15mm Optimal @TwoTrees SP-5 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @TwoTrees SP-5 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @TwoTrees",
-            "sub_path": "process/0.20mm Standard @TwoTrees.json"
+            "name": "0.20mm Standard @TwoTrees SP-5 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @TwoTrees SP-5 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.24mm Draft @TwoTrees",
-            "sub_path": "process/0.24mm Draft @TwoTrees.json"
+            "name": "0.24mm Draft @TwoTrees SP-5 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @TwoTrees SP-5 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.28mm Extra Draft @TwoTrees",
-            "sub_path": "process/0.28mm Extra Draft @TwoTrees.json"
+            "name": "0.28mm Extra Draft @TwoTrees SP-5 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @TwoTrees SP-5 (Klipper) (0.4 nozzle).json"
         }
     ],
     "filament_list": [
@@ -127,8 +127,8 @@
             "sub_path": "machine/fdm_klipper_common.json"
         },
         {
-            "name": "TwoTrees SP-5 Klipper 0.4 nozzle",
-            "sub_path": "machine/TwoTrees SP-5 Klipper 0.4 nozzle.json"
+            "name": "TwoTrees SP-5 (Klipper) (0.4 nozzle)",
+            "sub_path": "machine/TwoTrees SP-5 (Klipper) (0.4 nozzle).json"
         }
     ]
 }

@@ -13,11 +13,11 @@
         "14"
     ],
     "compatible_printers": [
-        "Raise3D Pro3 0.4 nozzle (Dual)",
-		"Raise3D Pro3 0.4 nozzle (Left)",
-		"Raise3D Pro3 0.4 nozzle (Right)",
-  	  	"Raise3D Pro3 Plus 0.4 nozzle (Dual)",
-		"Raise3D Pro3 Plus 0.4 nozzle (Left)",
-		"Raise3D Pro3 Plus 0.4 nozzle (Right)"
+        "Raise3D Pro3 (0.4 nozzle) (Dual)",
+		"Raise3D Pro3 (0.4 nozzle) (Left)",
+		"Raise3D Pro3 (0.4 nozzle) (Right)",
+  	  	"Raise3D Pro3 Plus (0.4 nozzle) (Dual)",
+		"Raise3D Pro3 Plus (0.4 nozzle) (Left)",
+		"Raise3D Pro3 Plus (0.4 nozzle) (Right)"
     ]
 }

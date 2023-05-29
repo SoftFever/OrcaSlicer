@@ -1,16 +1,16 @@
 {
     "name": "Vivedino",
-    "version": "01.05.01.02",
+    "version": "01.06.00.00",
     "force_update": "0",
     "description": "Vivedino configurations",
     "machine_model_list": [
         {
-            "name": "Troodon 2.0 - RRF",
-            "sub_path": "machine/Troodon2RRF.json"
+            "name": "Vivedino Troodon 2 (RRF)",
+            "sub_path": "machine/Vivedino Troodon 2 (RRF).json"
         },
         {
-            "name": "Troodon 2.0 - Klipper",
-            "sub_path": "machine/Troodon2Klipper.json"
+            "name": "Vivedino Troodon 2 (Klipper)",
+            "sub_path": "machine/Vivedino Troodon 2 (Klipper).json"
         }
     ],
     "process_list": [
@@ -27,28 +27,52 @@
             "sub_path": "process/fdm_process_rrf_common.json"
         },
         {
-            "name": "0.08mm Extra Fine @Troodon2",
-            "sub_path": "process/0.08mm Extra Fine @Troodon2.json"
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.12mm Fine @Troodon2",
-            "sub_path": "process/0.12mm Fine @Troodon2.json"
+            "name": "0.12mm Fine @Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
         },
         {
-            "name": "0.15mm Optimal @Troodon2",
-            "sub_path": "process/0.15mm Optimal @Troodon2.json"
+            "name": "0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @Troodon2",
-            "sub_path": "process/0.20mm Standard @Troodon2.json"
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
         },
         {
-            "name": "0.24mm Draft @Troodon2",
-            "sub_path": "process/0.24mm Draft @Troodon2.json"
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "0.28mm Extra Draft @Troodon2",
-            "sub_path": "process/0.28mm Extra Draft @Troodon2.json"
+            "name": "0.20mm Standard @Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
+        },
+		{
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
         }
     ],
     "filament_list": [
@@ -89,44 +113,44 @@
             "sub_path": "filament/fdm_filament_pa.json"
         },
         {
-            "name": "Troodon Generic PLA",
-            "sub_path": "filament/Troodon Generic PLA.json"
+            "name": "Vivedino Generic PLA",
+            "sub_path": "filament/Vivedino Generic PLA.json"
         },
         {
-            "name": "Troodon Generic PLA-CF",
-            "sub_path": "filament/Troodon Generic PLA-CF.json"
+            "name": "Vivedino Generic PLA-CF",
+            "sub_path": "filament/Vivedino Generic PLA-CF.json"
         },
         {
-            "name": "Troodon Generic PETG",
-            "sub_path": "filament/Troodon Generic PETG.json"
+            "name": "Vivedino Generic PETG",
+            "sub_path": "filament/Vivedino Generic PETG.json"
         },
         {
-            "name": "Troodon Generic ABS",
-            "sub_path": "filament/Troodon Generic ABS.json"
+            "name": "Vivedino Generic ABS",
+            "sub_path": "filament/Vivedino Generic ABS.json"
         },
         {
-            "name": "Troodon Generic TPU",
-            "sub_path": "filament/Troodon Generic TPU.json"
+            "name": "Vivedino Generic TPU",
+            "sub_path": "filament/Vivedino Generic TPU.json"
         },
         {
-            "name": "Troodon Generic ASA",
-            "sub_path": "filament/Troodon Generic ASA.json"
+            "name": "Vivedino Generic ASA",
+            "sub_path": "filament/Vivedino Generic ASA.json"
         },
         {
-            "name": "Troodon Generic PC",
-            "sub_path": "filament/Troodon Generic PC.json"
+            "name": "Vivedino Generic PC",
+            "sub_path": "filament/Vivedino Generic PC.json"
         },
         {
-            "name": "Troodon Generic PVA",
-            "sub_path": "filament/Troodon Generic PVA.json"
+            "name": "Vivedino Generic PVA",
+            "sub_path": "filament/Vivedino Generic PVA.json"
         },
         {
-            "name": "Troodon Generic PA",
-            "sub_path": "filament/Troodon Generic PA.json"
+            "name": "Vivedino Generic PA",
+            "sub_path": "filament/Vivedino Generic PA.json"
         },
         {
-            "name": "Troodon Generic PA-CF",
-            "sub_path": "filament/Troodon Generic PA-CF.json"
+            "name": "Vivedino Generic PA-CF",
+            "sub_path": "filament/Vivedino Generic PA-CF.json"
         }
     ],
     "machine_list": [
@@ -143,12 +167,12 @@
             "sub_path": "machine/fdm_rrf_common.json"
         },
         {
-            "name": "Troodon 2.0 Klipper 0.4 nozzle",
-            "sub_path": "machine/Troodon 2.0 Klipper 0.4 nozzle.json"
+            "name": "Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
         },
         {
-            "name": "Troodon 2.0 RRF 0.4 nozzle",
-            "sub_path": "machine/Troodon 2.0 RRF 0.4 nozzle.json"
+            "name": " Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
         }
     ]
 }

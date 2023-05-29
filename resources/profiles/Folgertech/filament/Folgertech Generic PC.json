@@ -13,11 +13,11 @@
         "0.94"
     ],
     "compatible_printers": [
-        "Folgertech FT-5 0.4 nozzle",
-        "Folgertech FT-5 0.6 nozzle",
-        "Folgertech FT-6 0.4 nozzle",
-        "Folgertech FT-6 0.6 nozzle",
-        "Folgertech i3 0.4 nozzle",
-        "Folgertech i3 0.6 nozzle"
+        "Folgertech FT-5 (0.4 nozzle)",
+        "Folgertech FT-5 (0.6 nozzle)",
+        "Folgertech FT-6 (0.4 nozzle)",
+        "Folgertech FT-6 (0.6 nozzle)",
+        "Folgertech i3 (0.4 nozzle)",
+        "Folgertech i3 (0.6 nozzle)"
         ]
 }

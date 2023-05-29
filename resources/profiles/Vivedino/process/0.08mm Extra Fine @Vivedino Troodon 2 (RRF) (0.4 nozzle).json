@@ -1,0 +1,14 @@
+{
+    "type": "process",
+    "setting_id": "GP004",
+    "name": "0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_rrf_common",
+    "layer_height": "0.08",
+    "bottom_shell_layers": "7",
+    "top_shell_layers": "9",
+    "compatible_printers": [
+      "Vivedino Troodon 2 (RRF) (0.4 nozzle)"
+    ]
+}

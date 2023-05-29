@@ -40,6 +40,6 @@
         "; filament start gcode\n"
     ],
 	"compatible_printers": [
-		"UltiMaker 2 0.4 nozzle"
+		"UltiMaker 2 (0.4 nozzle)"
 	]
 }

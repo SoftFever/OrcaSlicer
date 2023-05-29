@@ -1,0 +1,21 @@
+{
+  "type": "machine",
+  "setting_id": "GM002",
+  "name": "Vzbot 330 AWD (0.5 nozzle)",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "Vzbot 330 AWD",
+  "default_print_profile": "0.20mm Standard @Vzbot 330 AWD (0.5 nozzle)",
+  "nozzle_diameter": [
+    "0.5"
+  ],
+  "printer_variant": "0.5",
+  "printable_area": [
+    "0x0",
+    "330x0",
+    "330x330",
+    "0x330"
+  ],
+  "printable_height": "400"
+}

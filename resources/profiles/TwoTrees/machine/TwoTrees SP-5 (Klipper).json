@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "TwoTrees SP-5 (Klipper)",
+    "model_id": "TwoTrees_SP-5_Klipper",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "TwoTrees",
+    "bed_model": "SP-twotrees_sp5_buildplate_model.stl",
+    "bed_texture": "twotrees_sp5_buildplate_texture.png",
+    "hotend_model": "",
+    "default_materials": "TwoTrees Generic ABS;TwoTrees Generic PLA;TwoTrees Generic PLA-CF;TwoTrees Generic PETG;TwoTrees Generic TPU;TwoTrees Generic ASA;TwoTrees Generic PC;TwoTrees Generic PVA;TwoTrees Generic PA;TwoTrees Generic PA-CF"
+}

@@ -1,7 +1,7 @@
 {
     "name": "Voxelab",
     "url": "",
-    "version": "01.00.00.00",
+    "version": "01.01.00.00",
     "force_update": "0",
     "description": "Voxelab configurations",
     "machine_model_list": [
@@ -16,12 +16,12 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "0.16mm Optimal @Voxelab AquilaX2",
-            "sub_path": "process/0.16mm Optimal @Voxelab AquilaX2.json"
+            "name": "0.16mm Optimal @Voxelab AquilaX2 (0.4 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Voxelab AquilaX2 (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @Voxelab AquilaX2",
-            "sub_path": "process/0.20mm Standard @Voxelab AquilaX2.json"
+            "name": "0.20mm Standard @Voxelab AquilaX2 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Voxelab AquilaX2 (0.4 nozzle).json"
         }
     ],
     "filament_list": [
@@ -60,8 +60,8 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
         {
-            "name": "Voxelab Aquila X2 0.4 nozzle",
-            "sub_path": "machine/Voxelab Aquila X2 0.4 nozzle.json"
+            "name": "Voxelab Aquila X2 (0.4 nozzle)",
+            "sub_path": "machine/Voxelab Aquila X2 (0.4 nozzle).json"
         }
     ]
 }

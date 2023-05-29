@@ -5,7 +5,7 @@
     "description": "My configurations",
     "machine_model_list": [
         {
-            "name": "Generic Klipper Printer",
+            "name": "Generaic Klipper Printer",
             "sub_path": "machine/MyKlipper.json"
         },
         {
@@ -27,52 +27,52 @@
             "sub_path": "process/fdm_process_marlin_common.json"
         },
         {
-            "name": "0.08mm Extra Fine @MyKlipper",
-            "sub_path": "process/0.08mm Extra Fine @MyKlipper.json"
+            "name": "0.08mm Extra Fine @MyKlipper (0.4 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @MyKlipper (0.4 nozzle).json"
         },
         {
-            "name": "0.12mm Fine @MyKlipper",
-            "sub_path": "process/0.12mm Fine @MyKlipper.json"
+            "name": "0.12mm Fine @MyKlipper (0.4 nozzle)",
+            "sub_path": "process/0.12mm Fine @MyKlipper (0.4 nozzle).json"
         },
         {
-            "name": "0.15mm Optimal @MyKlipper",
-            "sub_path": "process/0.15mm Optimal @MyKlipper.json"
+            "name": "0.15mm Optimal @MyKlipper (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @MyKlipper (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @MyKlipper",
-            "sub_path": "process/0.20mm Standard @MyKlipper.json"
+            "name": "0.20mm Standard @MyKlipper (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @MyKlipper (0.4 nozzle).json"
         },
         {
-            "name": "0.24mm Draft @MyKlipper",
-            "sub_path": "process/0.24mm Draft @MyKlipper.json"
+            "name": "0.24mm Draft @MyKlipper (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @MyKlipper (0.4 nozzle).json"
         },
         {
-            "name": "0.28mm Extra Draft @MyKlipper",
-            "sub_path": "process/0.28mm Extra Draft @MyKlipper.json"
+            "name": "0.28mm Extra Draft @MyKlipper (0.4 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @MyKlipper (0.4 nozzle).json"
         },
         {
-            "name": "0.08mm Extra Fine @MyMarlin",
-            "sub_path": "process/0.08mm Extra Fine @MyMarlin.json"
+            "name": "0.08mm Extra Fine @MyMarlin (0.4 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @MyMarlin (0.4 nozzle).json"
         },
         {
-            "name": "0.12mm Fine @MyMarlin",
-            "sub_path": "process/0.12mm Fine @MyMarlin.json"
+            "name": "0.12mm Fine @MyMarlin (0.4 nozzle)",
+            "sub_path": "process/0.12mm Fine @MyMarlin (0.4 nozzle).json"
         },
         {
-            "name": "0.15mm Optimal @MyMarlin",
-            "sub_path": "process/0.15mm Optimal @MyMarlin.json"
+            "name": "0.15mm Optimal @MyMarlin (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @MyMarlin (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @MyMarlin",
-            "sub_path": "process/0.20mm Standard @MyMarlin.json"
+            "name": "0.20mm Standard @MyMarlin (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @MyMarlin (0.4 nozzle).json"
         },
         {
-            "name": "0.24mm Draft @MyMarlin",
-            "sub_path": "process/0.24mm Draft @MyMarlin.json"
+            "name": "0.24mm Draft @MyMarlin (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @MyMarlin (0.4 nozzle).json"
         },
         {
-            "name": "0.28mm Extra Draft @MyMarlin",
-            "sub_path": "process/0.28mm Extra Draft @MyMarlin.json"
+            "name": "0.28mm Extra Draft @MyMarlin (0.4 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @MyMarlin (0.4 nozzle).json"
         }
     ],
     "filament_list": [
@@ -163,12 +163,12 @@
             "sub_path": "machine/fdm_klipper_common.json"
         },
         {
-            "name": "MyKlipper 0.4 nozzle",
-            "sub_path": "machine/MyKlipper 0.4 nozzle.json"
+            "name": "MyKlipper (0.4 nozzle)",
+            "sub_path": "machine/MyKlipper (0.4 nozzle).json"
         },
         {
-            "name": "MyMarlin 0.4 nozzle",
-            "sub_path": "machine/MyMarlin 0.4 nozzle.json"
+            "name": "MyMarlin (0.4 nozzle)",
+            "sub_path": "machine/MyMarlin (0.4 nozzle).json"
         }
     ]
 }

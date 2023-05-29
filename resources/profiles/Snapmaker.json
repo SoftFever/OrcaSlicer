@@ -1,6 +1,6 @@
 {
     "name": "Snapmaker",
-    "version": "01.05.04.01",
+    "version": "01.07.00.00",
     "force_update": "0",
     "description": "Snapmaker configurations",
     "machine_model_list": [
@@ -11,6 +11,10 @@
         {
             "name": "Snapmaker A350",
             "sub_path": "machine/Snapmaker A350.json"
+        },
+		{
+            "name": "Snapmaker Artisan",
+            "sub_path": "machine/Snapmaker Artisan.json"
         },
         {
             "name": "Snapmaker J1",
@@ -23,16 +27,36 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "0.20mm Standard @Snapmaker",
-            "sub_path": "process/0.20mm Standard @Snapmaker.json"
+            "name": "0.20mm Standard @Snapmaker A250 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A250 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker A350 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A350 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker Artisan (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker Artisan (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm 0.4 Standard @Snapmaker J1",
-            "sub_path": "process/0.20mm 0.4 Standard @Snapmaker J1.json"
+            "name": "0.20mm 0.4 Standard @Snapmaker J1 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker J1 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker A250 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A250 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker A350 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A350 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm 0.6 Standard @Snapmaker Artisan (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker Artisan (0.6 nozzle).json"
         },
         {
-            "name": "0.20mm 0.6 Standard @Snapmaker J1",
-            "sub_path": "process/0.20mm 0.6 Standard @Snapmaker J1.json"
+            "name": "0.20mm 0.6 Standard @Snapmaker J1 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker J1 (0.6 nozzle).json"
         }
     ],
     "filament_list": [
@@ -159,20 +183,36 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
         {
-            "name": "Snapmaker A250 0.4 nozzle",
-            "sub_path": "machine/Snapmaker A250 0.4 nozzle.json"
+            "name": "Snapmaker A250 (0.4 nozzle)",
+            "sub_path": "machine/Snapmaker A250 (0.4 nozzle).json"
         },
         {
-            "name": "Snapmaker A350 0.4 nozzle",
-            "sub_path": "machine/Snapmaker A350 0.4 nozzle.json"
+            "name": "Snapmaker A350 (0.4 nozzle)",
+            "sub_path": "machine/Snapmaker A350 (0.4 nozzle).json"
+        },
+		{
+            "name": "Snapmaker Artisan (0.4 nozzle)",
+            "sub_path": "machine/Snapmaker Artisan (0.4 nozzle).json"
         },
         {
-            "name": "Snapmaker J1 0.4 nozzle",
-            "sub_path": "machine/Snapmaker J1 0.4 nozzle.json"
+            "name": "Snapmaker J1 (0.4 nozzle)",
+            "sub_path": "machine/Snapmaker J1 (0.4 nozzle).json"
+        },
+		{
+            "name": "Snapmaker A250 (0.6 nozzle)",
+            "sub_path": "machine/Snapmaker A250 (0.6 nozzle).json"
         },
         {
-            "name": "Snapmaker J1 0.6 nozzle",
-            "sub_path": "machine/Snapmaker J1 0.6 nozzle.json"
+            "name": "Snapmaker A350 (0.6 nozzle)",
+            "sub_path": "machine/Snapmaker A350 (0.6 nozzle).json"
+        },
+		{
+            "name": "Snapmaker Artisan (0.6 nozzle)",
+            "sub_path": "machine/Snapmaker Artisan (0.6 nozzle).json"
+        },
+        {
+            "name": "Snapmaker J1 (0.6 nozzle)",
+            "sub_path": "machine/Snapmaker J1 (0.6 nozzle).json"
         }
     ]
 }

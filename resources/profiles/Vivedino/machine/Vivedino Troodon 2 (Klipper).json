@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Vivedino Troodon 2 (Klipper)",
+    "model_id": "Troodon2Klipper",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Vivedino",
+    "bed_model": "",
+    "bed_texture": "vivedino_troodon2_buildplate_texture.png",
+    "hotend_model": "",
+    "default_materials": "Vivedino Generic ABS;Vivedino Generic PLA;Vivedino Generic PLA-CF;Vivedino Generic PETG;Vivedino Generic TPU;Vivedino Generic ASA;Vivedino Generic PC;Vivedino Generic PVA;Vivedino Generic PA;Vivedino Generic PA-CF"
+}

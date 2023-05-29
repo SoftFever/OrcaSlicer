@@ -4,9 +4,9 @@
     "model_id": "Voron2_Trident_250",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
-    "family": "VoronDesign",
+    "family": "Voron",
     "bed_model": "",
-    "bed_texture": "voron_logo.png",
+    "bed_texture": "voron_gen2_buildplate_texture.png",
     "hotend_model": "",
     "default_materials": "Voron Generic ABS;Voron Generic PLA;Voron Generic PLA-CF;Voron Generic PETG;Voron Generic TPU;Voron Generic ASA;Voron Generic PC;Voron Generic PVA;Voron Generic PA;Voron Generic PA-CF"
 }

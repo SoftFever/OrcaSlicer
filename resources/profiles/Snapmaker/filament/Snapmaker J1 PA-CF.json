@@ -19,7 +19,7 @@
         "8"
     ],
     "compatible_printers": [
-        "Snapmaker J1 0.4 nozzle",
-        "Snapmaker J1 0.6 nozzle" 
+        "Snapmaker J1 (0.4 nozzle)",
+        "Snapmaker J1 (0.6 nozzle)" 
     ]
 }

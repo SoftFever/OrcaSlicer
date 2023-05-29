@@ -4,9 +4,9 @@
     "model_id": "V-Core_3_400",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
-    "family": "RatRig_V-Core",
-    "bed_model": "ratrig-vcore-bed-400.stl",
-    "bed_texture": "ratrig_logo.svg",
+    "family": "RatRig",
+    "bed_model": "ratrig_vcore400_buildplate_model.stl",
+    "bed_texture": "ratrig_vseries_buildplate_texture.svg",
     "hotend_model": "",
     "default_materials": "RatRig Generic ABS;RatRig Generic PLA;RatRig Generic PLA-CF;RatRig Generic PETG;RatRig Generic TPU;RatRig Generic ASA;RatRig Generic PC;RatRig Generic PVA;RatRig Generic PA;RatRig Generic PA-CF"
 }

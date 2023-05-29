@@ -1,6 +1,6 @@
 {
     "name": "Artillery",
-    "version": "01.04.04.00",
+    "version": "01.05.00.00",
     "force_update": "0",
     "description": "Artillery configurations",
     "machine_model_list": [
@@ -27,44 +27,44 @@
             "sub_path": "process/fdm_process_common.json"
         },
 		{
-            "name": "0.16mm Optimal @Artillery X1",
-            "sub_path": "process/0.16mm Optimal @Artillery X1.json"
+            "name": "0.16mm Optimal @Artillery X1 (0.4 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Artillery X1 (0.4 nozzle).json"
         },
 		{
-            "name": "0.15mm Optimal @Artillery Genius",
-            "sub_path": "process/0.15mm Optimal @Artillery Genius.json"
+            "name": "0.15mm Optimal @Artillery Genius (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Artillery Genius (0.4 nozzle).json"
         },
 		{
-            "name": "0.16mm Optimal @Artillery Hornet",
-            "sub_path": "process/0.16mm Optimal @Artillery Hornet.json"
+            "name": "0.16mm Optimal @Artillery Hornet (0.4 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Artillery Hornet (0.4 nozzle).json"
         },
 		{
-            "name": "0.20mm Standard @Artillery X1",
-            "sub_path": "process/0.20mm Standard @Artillery X1.json"
+            "name": "0.20mm Standard @Artillery X1 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Artillery X1 (0.4 nozzle).json"
         },
 		{
-            "name": "0.20mm Standard @Artillery Genius",
-            "sub_path": "process/0.20mm Standard @Artillery Genius.json"
+            "name": "0.20mm Standard @Artillery Genius (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Artillery Genius (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @Artillery X2",
-            "sub_path": "process/0.20mm Standard @Artillery X2.json"
+            "name": "0.20mm Standard @Artillery X2 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Artillery X2 (0.4 nozzle).json"
         },
 		{
-            "name": "0.20mm Standard @Artillery Hornet",
-            "sub_path": "process/0.20mm Standard @Artillery Hornet.json"
+            "name": "0.20mm Standard @Artillery Hornet (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Artillery Hornet (0.4 nozzle).json"
         },
 		{
-            "name": "0.24mm Draft @Artillery X1",
-            "sub_path": "process/0.24mm Draft @Artillery X1.json"
+            "name": "0.24mm Draft @Artillery X1 (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @Artillery X1 (0.4 nozzle).json"
         },
 		{
-            "name": "0.25mm Draft @Artillery Genius",
-            "sub_path": "process/0.25mm Draft @Artillery Genius.json"
+            "name": "0.25mm Draft @Artillery Genius (0.4 nozzle)",
+            "sub_path": "process/0.25mm Draft @Artillery Genius (0.4 nozzle).json"
         },
 		{
-            "name": "0.24mm Draft @Artillery Hornet",
-            "sub_path": "process/0.24mm Draft @Artillery Hornet.json"
+            "name": "0.24mm Draft @Artillery Hornet (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @Artillery Hornet (0.4 nozzle).json"
         }
     ],
     "filament_list": [
@@ -123,20 +123,20 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
 		{
-            "name": "Artillery Sidewinder X1 0.4 nozzle",
-            "sub_path": "machine/Artillery Sidewinder X1 0.4 nozzle.json"
+            "name": "Artillery Sidewinder X1 (0.4 nozzle)",
+            "sub_path": "machine/Artillery Sidewinder X1 (0.4 nozzle).json"
         },
 		{
-            "name": "Artillery Genius 0.4 nozzle",
-            "sub_path": "machine/Artillery Genius 0.4 nozzle.json"
+            "name": "Artillery Genius (0.4 nozzle)",
+            "sub_path": "machine/Artillery Genius (0.4 nozzle).json"
         },
         {
-            "name": "Artillery Sidewinder X2 0.4 nozzle",
-            "sub_path": "machine/Artillery Sidewinder X2 0.4 nozzle.json"
+            "name": "Artillery Sidewinder X2 (0.4 nozzle)",
+            "sub_path": "machine/Artillery Sidewinder X2 (0.4 nozzle).json"
         },
 		{
-            "name": "Artillery Hornet 0.4 nozzle",
-            "sub_path": "machine/Artillery Hornet 0.4 nozzle.json"
+            "name": "Artillery Hornet (0.4 nozzle)",
+            "sub_path": "machine/Artillery Hornet (0.4 nozzle).json"
         }
     ]
 }

@@ -1,0 +1,14 @@
+{
+    "type": "process",
+    "setting_id": "GP004",
+    "name": "0.20mm Standard @Vzbot 330 AWD (0.5 nozzle)",
+    "from": "system",
+    "inherits": "fdm_process_Vzbot_common_0.5_nozzle",
+    "instantiation": "true",
+    "layer_height": "0.2",
+    "bottom_shell_layers": "3",
+    "top_shell_layers": "4",
+	"compatible_printers": [
+	  "Vzbot 330 AWD (0.5 nozzle)"
+    ]
+}

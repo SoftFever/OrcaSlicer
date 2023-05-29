@@ -1,7 +1,7 @@
 {
     "name": "Raise3D",
     "url": "",
-    "version": "01.00.00.00",
+    "version": "01.01.00.00",
     "force_update": "0",
     "description": "Raise3D configurations",
     "machine_model_list": [
@@ -20,28 +20,28 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "0.10mm Fine @Raise3D Pro3",
-            "sub_path": "process/0.10mm Fine @Raise3D Pro3.json"
+            "name": "0.10mm Fine @Raise3D Pro3 (0.4 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro3 (0.4 nozzle).json"
         },
         {
-            "name": "0.10mm Fine @Raise3D Pro3Plus",
-            "sub_path": "process/0.10mm Fine @Raise3D Pro3Plus.json"
+            "name": "0.10mm Fine @Raise3D Pro3Plus (0.4 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro3Plus (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @Raise3D Pro3",
-            "sub_path": "process/0.20mm Standard @Raise3D Pro3.json"
+            "name": "0.20mm Standard @Raise3D Pro3 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro3 (0.4 nozzle).json"
         },
         {
-            "name": "0.20mm Standard @Raise3D Pro3Plus",
-            "sub_path": "process/0.20mm Standard @Raise3D Pro3Plus.json"
+            "name": "0.20mm Standard @Raise3D Pro3Plus (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro3Plus (0.4 nozzle).json"
         },
         {
-            "name": "0.25mm Draft @Raise3D Pro3",
-            "sub_path": "process/0.25mm Draft @Raise3D Pro3.json"
+            "name": "0.25mm Draft @Raise3D Pro3 (0.4 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro3 (0.4 nozzle).json"
         },
         {
-            "name": "0.25mm Draft @Raise3D Pro3Plus",
-            "sub_path": "process/0.25mm Draft @Raise3D Pro3Plus.json"
+            "name": "0.25mm Draft @Raise3D Pro3Plus (0.4 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro3Plus (0.4 nozzle).json"
         }
     ],
     "filament_list": [
@@ -96,28 +96,28 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
         {
-            "name": "Raise3D Pro3 0.4 nozzle (Dual)",
-            "sub_path": "machine/Raise3D Pro3 0.4 nozzle (Dual).json"
+            "name": "Raise3D Pro3 (0.4 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro3 (0.4 nozzle) (Dual).json"
         },
         {
-            "name": "Raise3D Pro3 0.4 nozzle (Left)",
-            "sub_path": "machine/Raise3D Pro3 0.4 nozzle (Left).json"
+            "name": "Raise3D Pro3 (0.4 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro3 (0.4 nozzle) (Left).json"
         },
         {
-            "name": "Raise3D Pro3 0.4 nozzle (Right)",
-            "sub_path": "machine/Raise3D Pro3 0.4 nozzle (Right).json"
+            "name": "Raise3D Pro3 (0.4 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro3 (0.4 nozzle) (Right).json"
         },
         {
-            "name": "Raise3D Pro3 Plus 0.4 nozzle (Dual)",
-            "sub_path": "machine/Raise3D Pro3 Plus 0.4 nozzle (Dual).json"
+            "name": "Raise3D Pro3 Plus (0.4 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro3 Plus (0.4 nozzle) (Dual).json"
         },
         {
-            "name": "Raise3D Pro3 Plus 0.4 nozzle (Left)",
-            "sub_path": "machine/Raise3D Pro3 Plus 0.4 nozzle (Left).json"
+            "name": "Raise3D Pro3 Plus (0.4 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro3 Plus (0.4 nozzle) (Left).json"
         },
         {
-            "name": "Raise3D Pro3 Plus 0.4 nozzle (Right)",
-            "sub_path": "machine/Raise3D Pro3 Plus 0.4 nozzle (Right).json"
+            "name": "Raise3D Pro3 Plus (0.4 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro3 Plus (0.4 nozzle) (Right).json"
         }
     ]
 }

@@ -5,9 +5,9 @@
     "nozzle_diameter": "0.4;0.6",
     "machine_tech": "FFF",
     "family": "Folgertech",
-    "bed_model": "folgertech_FT6_buildplate_model.stl",
-    "bed_texture": "Folgertech_FT6_buildplate_texture.png",
-    "hotend_model": "hotend.stl",
+    "bed_model": "folgertech_ft6_buildplate_model.stl",
+    "bed_texture": "folgertech_ft6_buildplate_texture.png",
+    "hotend_model": "folgertech_hotend_model.stl",
 	"extruders_count": "2",
     "default_materials": "Folgertech Generic PLA;Folgertech Generic PETG;Folgertech Generic ABS;Folgertech Generic TPU;"
 }

@@ -5,8 +5,8 @@
     "nozzle_diameter": "0.4;0,6",
     "machine_tech": "FFF",
     "family": "Snapmaker",
-    "bed_model": "",
-    "bed_texture": "j1_texture.svg",
+    "bed_model": "snapmaker_j1_buildplate_model.stl",
+    "bed_texture": "snapmaker_j1_buildplate_texture.png",
     "hotend_model": "",
     "default_materials": "Snapmaker J1 ABS;Snapmaker J1 PLA;Snapmaker J1 PLA-CF;Snapmaker J1 PETG;Snapmaker J1 TPU;Snapmaker J1 ASA;Snapmaker J1 PC;Snapmaker J1 PVA;Snapmaker J1 PA;Snapmaker J1 PA-CF"
 }
