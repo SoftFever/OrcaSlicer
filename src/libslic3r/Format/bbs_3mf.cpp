@@ -1594,6 +1594,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, m_object_importers.size()),
                 [this, &mutex, &object_load_result](const tbb::blocked_range<size_t>& importer_range) {
+                    CNumericLocalesSetter locales_setter;
                     for (size_t object_index = importer_range.begin(); object_index < importer_range.end(); ++ object_index) {
                         bool result = m_object_importers[object_index]->extract_object_model();
                         {
