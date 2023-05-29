@@ -4345,14 +4345,18 @@ bool PartPlateList::is_all_slice_results_valid() const
 //check whether all plates's slice result valid for print
 bool PartPlateList::is_all_slice_results_ready_for_print() const
 {
-	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
-	{
-		if (!m_plate_list[i]->is_slice_result_ready_for_print()
-			&& m_plate_list[i]->has_printable_instances()
-			)
-			return false;
+	bool res = false;
+
+	for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
+		if (!m_plate_list[i]->empty() && !m_plate_list[i]->is_slice_result_valid()) { 
+			return false; 
+		}
+		if (m_plate_list[i]->is_slice_result_ready_for_print() && m_plate_list[i]->has_printable_instances()) { 
+			res = true; 
+		}
 	}
-	return true;
+
+	return res;
 }
 
 
