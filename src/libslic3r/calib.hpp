@@ -79,7 +79,7 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
 
         std::string generate_test(double start_pa = 0, double end_pa = 0.08, double step_pa = 0.005);
 
-        double to_radians(degrees) { return degrees * (M_PI / 180); }
+        double to_radians(double degrees) { return degrees * (M_PI / 180); }
         
         double line_width() { return mp_gcodegen->config().nozzle_diameter.get_at(0) * m_line_ratio / 100; };
         double line_width_anchor() { return mp_gcodegen->config().nozzle_diameter.get_at(0) * m_anchor_layer_line_ratio / 100; };
@@ -89,12 +89,17 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
         double line_spacing_anchor() { return line_width_anchor() - mp_gcodegen->config().initial_layer_print_height.value * (1 - M_PI / 4); };
         double line_spacing_angle() { return line_spacing() / sin(to_radians(m_corner_angle) / 2); };
 
+        double object_size_x(int num_patterns);
+        double object_size_y(double start_pa, double step_pa, int num_patterns);
+
         double max_numbering_height();
+        double pattern_shift();
     private:
         Gcode* mp_gcodegen;
         int m_anchor_layer_line_ratio {140};
         int m_anchor_perimeters {4};
         int m_corner_angle {90};
+        double m_glyph_padding_vertical = 1;
         double m_line_ratio {112.5};
         int m_pattern_spacing {2};
         int m_wall_count {3};

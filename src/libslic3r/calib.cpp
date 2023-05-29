@@ -261,7 +261,20 @@ namespace Slic3r {
         }
 
 
+    double object_size_x(int num_patterns) {
+        return num_patterns * ((m_wall_count - 1) * line_spacing_angle()) +
+            (num_patterns - 1) * (m_pattern_spacing + line_width()) +
+            cos(to_radians(m_corner_angle) / 2) * m_wall_side_length +
+            line_spacing_anchor() * m_anchor_perimeters
+        ;
+    }
 
+    double object_size_y(double start_pa, double step_pa, int num_patterns) {
+        return 2 * sin(to_radians(m_corner_angle) / 2) * m_wall_side_length +
+            max_numbering_height(start_pa, step_pa, num_patterns) +
+            m_glyph_padding_vertical * 2 +
+            line_width_anchor()
+    }
 
     double max_numbering_height(double start_pa, double step_pa, int count) {
         int max_length = 0;
