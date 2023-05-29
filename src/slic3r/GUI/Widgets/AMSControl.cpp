@@ -2381,7 +2381,7 @@ void AMSControl::EnterNoneAMSMode(bool support_vt_load)
     m_extruder->no_ams_mode(true);
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
-    m_button_retry->Hide();
+    //m_button_retry->Hide();
     if (support_vt_load) {
         m_button_extruder_feed->Show();
         m_button_extruder_back->Show();
