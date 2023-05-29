@@ -835,7 +835,13 @@ void PerimeterGenerator::process_classic()
 
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
     double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
-    for (const Surface &surface : this->slices->surfaces) {
+    //BBS: reorder the surface to reduce the travel time
+    ExPolygons surface_exp;
+    for (const Surface &surface : this->slices->surfaces)
+        surface_exp.push_back(surface.expolygon);
+    std::vector<size_t> surface_order = chain_expolygons(surface_exp);
+    for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
+        const Surface &surface = this->slices->surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         //BBS: set the topmost and bottom most layer to be one wall

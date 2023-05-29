@@ -1057,6 +1057,16 @@ void chain_and_reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_pat
 	reorder_extrusion_paths(extrusion_paths, chain_extrusion_paths(extrusion_paths, start_near));
 }
 
+std::vector<size_t> chain_expolygons(const ExPolygons &input_exploy) {
+	Points points;
+	for (const ExPolygon &exploy : input_exploy) {
+		BoundingBox bbox;
+		bbox = get_extents(exploy);
+		points.push_back(bbox.center());
+	}
+	return chain_points(points);
+}
+
 std::vector<size_t> chain_points(const Points &points, Point *start_near)
 {
 	auto segment_end_point = [&points](size_t idx, bool /* first_point */) -> const Point& { return points[idx]; };
