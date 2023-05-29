@@ -1142,7 +1142,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
     for (const SupportLayer* layer : m_object->support_layers()) {
-        if (layer->overhang_areas.empty() && blockers[layer->id()].empty())
+        if (layer->overhang_areas.empty() && (blockers.size()<=layer->id() || blockers[layer->id()].empty()))
             continue;
 
         SVG svg(format("SVG/overhang_areas_%s.svg", layer->print_z), m_object->bounding_box());
@@ -1981,6 +1981,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
+    bool on_buildplate_only = config.support_on_build_plate_only.value;
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
@@ -2113,7 +2114,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         }
                         area.emplace_back(ExPolygon(circle));
                         // merge overhang to get a smoother interface surface
-                        if (top_interface_layers > 0 && node.support_roof_layers_below > 0) {
+                        // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
+                        if (top_interface_layers > 0 && node.support_roof_layers_below > 0 && !on_buildplate_only) {
                             ExPolygons overhang_expanded;
                             if (node.overhang->contour.size() > 100 || node.overhang->holes.size()>1)
                                 overhang_expanded.emplace_back(*node.overhang);
