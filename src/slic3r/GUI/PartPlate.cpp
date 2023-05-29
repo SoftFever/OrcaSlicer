@@ -1282,6 +1282,13 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 			plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
 		}
 
+		// layer range
+        for (auto layer_range : mo->layer_config_ranges) {
+            if (layer_range.second.has("extruder")) {
+				plate_extruders.push_back(layer_range.second.option("extruder")->getInt());
+			}
+		}
+
 		bool obj_support = false;
 		const ConfigOption* obj_support_opt = mo->config.option("enable_support");
         const ConfigOption *obj_raft_opt    = mo->config.option("raft_layers");

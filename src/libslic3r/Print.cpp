@@ -295,6 +295,12 @@ std::vector<unsigned int> Print::object_extruders() const
                 extruders.push_back(extruder - 1);
             }
         }
+
+        // layer range
+        for (auto layer_range : mo->layer_config_ranges) {
+            if (layer_range.second.has("extruder"))
+                extruders.push_back(layer_range.second.option("extruder")->getInt() - 1);
+        }
     }
 #endif
     sort_remove_duplicates(extruders);
