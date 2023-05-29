@@ -28,11 +28,6 @@
 
 namespace Slic3r {
 
-//BBS: 0% of sparse_infill_line_width, no anchor at the start of sparse infill
-float Fill::infill_anchor = 400;
-//BBS: 20mm
-float Fill::infill_anchor_max = 20;
-
 Fill* Fill::new_from_type(const InfillPattern type)
 {
     switch (type) {

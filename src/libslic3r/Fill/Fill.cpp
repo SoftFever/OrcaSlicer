@@ -190,8 +190,12 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					// so that internall infill will be aligned over all layers of the current region.
 		            params.spacing = layerm.region().flow(*layer.object(), frInfill, layer.object()->config().layer_height, false).spacing();
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
-				    params.anchor_length = float(Fill::infill_anchor * 0.01 * params.spacing);
-					params.anchor_length_max = Fill::infill_anchor_max;
+					params.anchor_length = float(region_config.sparse_infill_anchor);
+					if (region_config.sparse_infill_anchor.percent)
+						params.anchor_length = float(params.anchor_length * 0.01 * params.spacing);
+					params.anchor_length_max = float(region_config.sparse_infill_anchor_max);
+					if (region_config.sparse_infill_anchor_max.percent)
+						params.anchor_length_max = float(params.anchor_length_max * 0.01 * params.spacing);
 					params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
 				}
 
