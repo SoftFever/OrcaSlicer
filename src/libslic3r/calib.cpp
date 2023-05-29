@@ -268,9 +268,63 @@ namespace Slic3r {
         return gcode.str();
     }
 
+    calib_pressure_advance_pattern::calib_pressure_advance_pattern(GCode* gcodegen) : mp_gcodegen(gcodegen) { }
 
+    std::string calib_pressure_advance_pattern::generate_test(double start_pa, double end_pa, double step_pa) {
+        BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
+        
+        bool is_delta = is_delta();
+        if (is_delta) {
+            delta_scale_bed_ext(bed_ext);
         }
 
+        const auto &w = bed_ext.size().x();
+        const auto &h = bed_ext.size().y();
+        const auto center_x = w / 2;
+        const auto center_y = h / 2;
+
+        int num_patterns = std::ceil((end_pa - start_pa) / step_pa + 1);
+        num_patterns = std::min(num_patterns, int((h - 10) / m_space_y));
+
+        auto object_size_x = object_size_x(num_patterns);
+        auto object_size_y = object_size_y(start_pa, step_pa, num_patterns);
+
+        auto glyph_start_x = 
+            center_x -
+            object_size_x / 2 +
+            (((m_wall_count - 1) / 2) * line_spacing_angle() - 2)
+        ;
+
+        auto pattern_shift =
+            center_x -
+            object_size_x / 2 -
+            glyph_start_x +
+            m_glyph_padding_horizontal
+        ;
+        if (pattern_shift > 0) {
+            pattern_shift += (line_width_anchor() / 2);
+        } else {
+            pattern_shift = 0;
+        }
+
+        auto start_x = center_x - (object_size_x + pattern_shift) / 2;
+        auto start_y = center_y - object_size_y / 2;
+
+        if (is_delta) {
+            delta_modify_start(start_x, start_y, num_patterns);
+        }
+
+        return print_pa_pattern(start_x, start_y, start_pa, step_pa, num_patterns);
+    }
+
+    std::string calib_pressure_advance_pattern::print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num) {
+        auto& writer = mp_gcodegen->writer();
+        // TODO set test parameters
+
+        std::stringstream gcode;
+
+        gcode << move_to(Vec2d(start_x, start_y, mp_gcodegen->config().initial_layer_print_height.value));
+    }
 
     double object_size_x(int num_patterns) {
         return num_patterns * ((m_wall_count - 1) * line_spacing_angle()) +
