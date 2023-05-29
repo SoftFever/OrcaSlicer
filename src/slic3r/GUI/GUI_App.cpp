@@ -4537,8 +4537,9 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         [this, progressFn, cancelFn, finishFn] {
             // get setting list, update setting list
             std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-            m_agent->get_setting_list(version, progressFn, cancelFn);
-            finishFn();
+            int ret = m_agent->get_setting_list(version, progressFn, cancelFn);
+            if (ret == 0)
+                finishFn();
 
             int count = 0, sync_count = 0;
             std::vector<Preset> presets_to_sync;
