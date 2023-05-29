@@ -189,9 +189,12 @@ public:
 
         this->Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
         {
-            update_dark_config();
-            on_sys_color_changed();
-            event.Skip();
+#ifndef __WINDOWS__
+                update_dark_config();
+                on_sys_color_changed();
+                event.Skip();
+#endif // __WINDOWS__
+                
         });
 
         if (std::is_same<wxDialog, P>::value) {
