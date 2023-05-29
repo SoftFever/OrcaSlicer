@@ -180,15 +180,27 @@ namespace Slic3r {
         return gcode.str();
     }
 
+    bool calib_pressure_advance::is_delta() {
+        return mp_gcodegen->config().printable_area.values.size() > 4;
+    }
+
+    void calib_pressure_advance::delta_scale_bed_ext(BoundingBoxf& bed_ext) {
+        bed_ext.scale(1.0f / 1.41421f);
+    }
+
+    void calib_pressure_advance::delta_modify_start(double& start_x, double& start_y, int count) {
+        startx = -startx;
+        starty = -(count * m_space_y) / 2;
+    }
+
     calib_pressure_advance_line::calib_pressure_advance_line(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6), m_draw_numbers(true) {}
 
     std::string calib_pressure_advance_line::generate_test(double start_pa /*= 0*/, double step_pa /*= 0.002*/,
                                                       int count /*= 10*/) {
       BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
-      bool is_delta = false;
-      if (mp_gcodegen->config().printable_area.values.size() > 4) {
-        is_delta = true;
-        bed_ext.scale(1.0f / 1.41421f);
+      const bool is_delta = is_delta();
+      if (is_delta) {
+        delta_scale_bed_ext(bed_ext);
       }
 
       auto bed_sizes = mp_gcodegen->config().printable_area.values;
@@ -201,8 +213,7 @@ namespace Slic3r {
       auto startx = (w - m_length_short * 2 - m_length_long - 20) / 2;
       auto starty = (h - count * m_space_y) / 2;
       if (is_delta) {
-        startx = -startx;
-        starty = -(count * m_space_y) / 2;
+        delta_modify_start(startx, starty, count);
       }
 
       return print_pa_lines(startx, starty, start_pa, step_pa, count);

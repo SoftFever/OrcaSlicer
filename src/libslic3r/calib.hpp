@@ -40,7 +40,11 @@ private:
     std::string convert_number_to_string(double num);
     std::string draw_digit(double startx, double starty, char c, calib_pressure_advance::DrawDigitMode mode);
     std::string draw_number(double startx, double starty, double value, calib_pressure_advance::DrawDigitMode mode);
+    bool is_delta();
+    void delta_scale_bed_ext(BoundingBoxf& bed_ext);
+    void delta_modify_start(double start_x, double start_y, int count);
 private:
+    GCode* mp_gcodegen;
     double m_digit_len {2};
     int m_max_number_length {5};
     double m_number_spacing {3.0};
@@ -63,7 +67,6 @@ public:
 private:
     std::string print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num);
 private:
-    GCode* mp_gcodegen;
     double m_length_short, m_length_long;
     double m_space_y;
     double m_slow_speed, m_fast_speed;
@@ -95,11 +98,11 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
         double max_numbering_height();
         double pattern_shift();
     private:
-        Gcode* mp_gcodegen;
         int m_anchor_layer_line_ratio {140};
         int m_anchor_perimeters {4};
         int m_corner_angle {90};
-        double m_glyph_padding_vertical = 1;
+        double m_glyph_padding_horizontal {1};
+        double m_glyph_padding_vertical {1};
         double m_line_ratio {112.5};
         int m_pattern_spacing {2};
         int m_wall_count {3};
