@@ -60,6 +60,19 @@ static std::vector<std::string> message_containing_retry{
     "0701 8006",
     "0701 8006",
     "0701 8007",
+    "0700 8012",
+    "0701 8012",
+    "0702 8012",
+    "0703 8012",
+    "07FF 8003",
+    "07FF 8004",
+    "07FF 8005",
+    "07FF 8006",
+    "07FF 8007",
+    "07FF 8010",
+    "07FF 8011",
+    "07FF 8012",
+    "07FF 8013",
 };
 
 /* size */
@@ -1732,8 +1745,8 @@ void StatusPanel::update_error_message()
 
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
             if (!error_msg.IsEmpty()) {
-                auto time = wxDateTime::Now();
-                auto show_time = time.Format("%H%M%S");
+                wxDateTime now = wxDateTime::Now();
+                wxString show_time = now.Format("%H:%M:%S");
                 error_msg = wxString::Format("%s[%s %s]",
                     error_msg,
                     print_error_str, show_time);
@@ -2267,6 +2280,17 @@ void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is
 
     if (!obj->is_filament_at_extruder()) {
         enable[ACTION_BTN_UNLOAD] = false;
+    }
+    
+    if (obj->ams_exist_bits == 0) {
+        if (obj->is_in_printing() && !obj->can_resume()) {
+            enable[ACTION_BTN_LOAD] = false;
+            enable[ACTION_BTN_UNLOAD] = false;
+        }
+        else {
+            enable[ACTION_BTN_LOAD] = true;
+            enable[ACTION_BTN_UNLOAD] = true;
+        }
     }
 
 //    if (obj->m_tray_now == "255") {

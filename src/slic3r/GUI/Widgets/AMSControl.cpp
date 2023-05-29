@@ -2519,8 +2519,8 @@ void AMSControl::UpdateStepCtrl(bool is_extrusion)
 
     wxString VT_TRAY_LOAD_STEP_STRING[VT_LOAD_STEP_COUNT] = {
         _L("Heat the nozzle"),
-        _L("Feed new filament from external spool"),
-        _L("Confirm whether the filament has been extruded"),
+        _L("Push new filament into the extruder"),
+        _L("Grab new filament"),
         _L("Purge old filament"),
     };
 
