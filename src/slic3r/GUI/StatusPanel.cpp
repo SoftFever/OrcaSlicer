@@ -2871,7 +2871,7 @@ void StatusPanel::on_ams_unload(SimpleEvent &event)
 
 void StatusPanel::on_ams_filament_backup(SimpleEvent& event)
 {
-    if (obj && obj->filam_bak.size() > 0) {
+    if (obj) {
         AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
         m_replace_material_popup->update_machine_obj(obj);
         m_replace_material_popup->ShowModal();
