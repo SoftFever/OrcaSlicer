@@ -35,6 +35,13 @@ namespace Slic3r {
         Flow line_flow = Flow(lw, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
         const double len = m_digit_len;
         const double gap = lw / 2.0;
+
+        /* 
+        filament diameter = 1.75
+        area of a circle = PI * radius^2
+        (1.75 / 2)^2 * PI = 2.40528
+        */
+        
         const double e = line_flow.mm3_per_mm() / 2.40528; // filament_mm/extrusion_mm
         const auto dE = e * len;
         const auto two_dE = dE * 2;
@@ -353,6 +360,33 @@ namespace Slic3r {
         max_length = std::min(max_characters, m_max_number_length);
 
         return (max_length * m_digit_len) + ((max_length - 1) * m_number_spacing);
+    }
+
+    double get_distance(double cur_x, double cur_y, double to_x, double to_y) {
+        return std::hypot((to_x - cur_x), (to_y - cur_y));
+    }
+
+    std::string draw_line(double to_x, double to_y, double line_width, double layer_height, std::string comment = std::string()) {
+        std::stringstream gcode;
+        auto& config = mp_gcodegen.config();
+        auto& writer = mp_gcodegen.writer();
+
+        Flow line_flow = Flow(line_width, layer_height, config.nozzle_diameter.get_at(0));
+        const double filament_area = M_PI * std::pow(config.filament_diameter.value / 2, 2);
+        const double e_per_mm = line_flow.mm3_per_mm() / filament_area * config.print_flow_ratio;
+
+        Point last_pos = mp_gcodegen.last_pos();
+        const double length = get_distance(last_pos.x(), last_pos.y(), to_x, to_y);
+        
+        auto dE = e_per_mm * length;
+
+        if (comment.empty()) {
+            gcode << writer.extrude_to_xy(Vec2d(to_x, to_y), dE);
+        } else {
+            gcode << writer.extrude_to_xy(Vec2d(to_x, to_y), dE, comment);
+        }
+
+        return gcode.str();
     }
 
     Calib_Params::Calib_Params() : mode(CalibMode::Calib_None) {}

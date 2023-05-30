@@ -94,7 +94,9 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
         double object_size_y(double start_pa, double step_pa, int num_patterns);
 
         double max_numbering_height();
-        double pattern_shift();
+
+        double get_distance(double cur_x, double cur_y, double to_x, double to_y);
+        std::string draw_line(double to_x, double to_y, double line_width, double layer_height, std::string comment = std::string());
     private:
         int m_anchor_layer_line_ratio {140};
         int m_anchor_perimeters {4};
