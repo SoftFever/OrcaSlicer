@@ -339,12 +339,8 @@ public:
 
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
     ProjectPanel*         m_project{ nullptr };
-<<<<<<< HEAD   (88f268 FIX: wipe tower is not generated with different filament lay)
 
-=======
     CalibrationPanel*     m_calibration{ nullptr };
-    DebugToolDialog*      m_debug_tool_dlg{ nullptr };
->>>>>>> CHANGE (cbac2c NEW: add calibration)
     WebViewPanel*         m_webview { nullptr };
     wxLogWindow*          m_log_window { nullptr };
     // BBS
