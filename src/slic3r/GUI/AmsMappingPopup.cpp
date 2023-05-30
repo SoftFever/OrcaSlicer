@@ -1192,7 +1192,7 @@ void AmsReplaceMaterialDialog::create()
     label_title->SetForegroundColour(0x00AE42);
     auto label_txt = new Label(this, _L("When the current material run out,the printer will continue to print in the following order."));
     label_txt->SetFont(Label::Body_13);
-    label_txt->SetForegroundColour(0x323A3D);
+    label_txt->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
     label_txt->SetMinSize(wxSize(FromDIP(380), -1));
     label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
     label_txt->Wrap(FromDIP(380));

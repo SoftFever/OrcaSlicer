@@ -32,7 +32,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_button_play->SetCanFocus(false);
 
     m_label_status = new Label(this, "");
-    m_label_status->SetForegroundColour(wxColour("#2C2C2E"));
+    m_label_status->SetForegroundColour(wxColour("#323A3C"));
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
