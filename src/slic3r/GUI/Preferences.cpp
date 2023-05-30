@@ -104,7 +104,8 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
-
+    auto language = app_config->get(param);
+    m_current_language_selected = -1;
     std::vector<wxString>::iterator iter;
     for (size_t i = 0; i < vlist.size(); ++i) {
         auto language_name = vlist[i]->Description;
@@ -137,10 +138,19 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\x69\x74\x61\x6c\x69\x61\x6e\x6f");
         }
 
-        if (app_config->get(param) == vlist[i]->CanonicalName) {
+        if (language == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
         }
         combobox->Append(language_name);
+    }
+    if (m_current_language_selected == -1 && language.size() >= 5) {
+        language = language.substr(0, 2);
+        for (size_t i = 0; i < vlist.size(); ++i) {
+            if (vlist[i]->CanonicalName.StartsWith(language)) {
+                m_current_language_selected = i;
+                break;
+            }
+        }
     }
     combobox->SetSelection(m_current_language_selected);
 
