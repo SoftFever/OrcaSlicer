@@ -32,7 +32,7 @@ namespace Slic3r {
         auto& writer = mp_gcodegen->writer();
         std::stringstream gcode;
         const double lw = 0.48;
-        Flow line_flow = Flow(lw, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
+        Flow line_flow = Flow(lw, 0.2, m_nozzle_diameter);
         const double len = m_digit_len;
         const double gap = lw / 2.0;
 
@@ -228,8 +228,8 @@ namespace Slic3r {
 
     std::string calib_pressure_advance_line::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num) {
         auto& writer = mp_gcodegen->writer();
-        Flow line_flow = Flow(m_line_width, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
-        Flow thin_line_flow = Flow(0.44, 0.2, mp_gcodegen->config().nozzle_diameter.get_at(0));
+        Flow line_flow = Flow(m_line_width, 0.2, m_nozzle_diameter);
+        Flow thin_line_flow = Flow(0.44, 0.2, m_nozzle_diameter);
         const double e_calib = line_flow.mm3_per_mm() / 2.40528; // filament_mm/extrusion_mm
         const double e = thin_line_flow.mm3_per_mm() / 2.40528; // filament_mm/extrusion_mm
 
@@ -371,7 +371,7 @@ namespace Slic3r {
         auto& config = mp_gcodegen.config();
         auto& writer = mp_gcodegen.writer();
 
-        Flow line_flow = Flow(line_width, layer_height, config.nozzle_diameter.get_at(0));
+        Flow line_flow = Flow(line_width, layer_height, m_nozzle_diameter);
         const double filament_area = M_PI * std::pow(config.filament_diameter.value / 2, 2);
         const double e_per_mm = line_flow.mm3_per_mm() / filament_area * config.print_flow_ratio;
 

@@ -33,6 +33,10 @@ public:
         Horizontal = 0,
         Vertical
     };
+
+    void set_nozzle_diameter() {
+        m_nozzle_diameter = mp_gcodegen->config().nozzle_diameter.get_at(0);
+    }
 private:
     std::string move_to(Vec2d pt, std::string comment = std::string());
     std::string convert_number_to_string(double num);
@@ -44,6 +48,7 @@ private:
 private:
     GCode* mp_gcodegen;
     double m_digit_len {2};
+    double m_nozzle_diameter;
     int m_max_number_length {5};
     double m_number_spacing {3.0};
 }
@@ -82,8 +87,8 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
 
         double to_radians(double degrees) { return degrees * (M_PI / 180); }
         
-        double line_width() { return mp_gcodegen->config().nozzle_diameter.get_at(0) * m_line_ratio / 100; };
-        double line_width_anchor() { return mp_gcodegen->config().nozzle_diameter.get_at(0) * m_anchor_layer_line_ratio / 100; };
+        double line_width() { return m_nozzle_diameter * m_line_ratio / 100; };
+        double line_width_anchor() { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
         
         // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
         double line_spacing() { return line_width() - mp_gcodegen->config().layer_height.value * (1 - M_PI / 4); };
