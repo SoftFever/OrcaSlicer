@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-27 18:30+0800\n"
+"POT-Creation-Date: 2023-05-30 05:30+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril\n"
@@ -16,18 +16,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.3.1\n"
-
-msgid "Maximum speed of X axis"
-msgstr "Vitesse maximale de l'axe X"
-
-msgid "Maximum speed of Y axis"
-msgstr "Vitesse maximale de l'axe Y"
-
-msgid "Maximum speed of Z axis"
-msgstr "Vitesse maximale de l'axe Z"
-
-msgid "Maximum speed of E axis"
-msgstr "Vitesse maximale de l'extrudeur"
 
 msgid "Supports Painting"
 msgstr "Peindre les supports"
@@ -7038,6 +7026,7 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Seuil de surplomb"
 
+#, fuzzy, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
@@ -7602,9 +7591,10 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Rétrécissement"
 
+#, fuzzy, c-format, boost-format
 msgid ""
-"Enter the shrinkage percentage that the filament will get after cooling (94% "
-"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"Enter the shrinkage percentage that the filament will get after cooling "
+"(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -7845,6 +7835,7 @@ msgstr "Le paramètre max_accel_to_decel de Klipper sera ajusté automatiquement
 msgid "accel_to_decel"
 msgstr "Ajuster l’accélération à la décélération"
 
+#, fuzzy, c-format, boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr ""
 "Le paramètre max_accel_to_decel de Klipper sera ajusté à ce pourcentage "
@@ -9512,6 +9503,7 @@ msgstr ""
 msgid "invalid value "
 msgstr "valeur invalide "
 
+#, fuzzy, c-format, boost-format
 msgid " doesn't work at 100%% density "
 msgstr " ne fonctionne pas à 100% de densité "
 
@@ -10225,3 +10217,15 @@ msgstr ""
 "Améliorer la résistance\n"
 "Saviez-vous que vous pouvez utiliser plus de parois et une densité de "
 "remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#~ msgid "Maximum speed of X axis"
+#~ msgstr "Vitesse maximale de l'axe X"
+
+#~ msgid "Maximum speed of Y axis"
+#~ msgstr "Vitesse maximale de l'axe Y"
+
+#~ msgid "Maximum speed of Z axis"
+#~ msgstr "Vitesse maximale de l'axe Z"
+
+#~ msgid "Maximum speed of E axis"
+#~ msgstr "Vitesse maximale de l'extrudeur"
