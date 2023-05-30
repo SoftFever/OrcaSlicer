@@ -416,6 +416,7 @@ protected:
     bool     m_selected          = {false};
     bool     m_show_humidity     = {false};
     int      m_humidity          = {0};
+    ScalableBitmap* m_ts_bitmap_cube;
 
     void         paintEvent(wxPaintEvent &evt);
     void         render(wxDC &dc);

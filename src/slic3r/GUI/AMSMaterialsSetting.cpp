@@ -1168,6 +1168,14 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     m_ts_bitmap_custom = ScalableBitmap(this, "ts_custom_color_picker", 25);
     m_ts_stbitmap_custom = new wxStaticBitmap(m_custom_cp, wxID_ANY, m_ts_bitmap_custom.bmp());
 
+    m_ts_stbitmap_custom->Bind(wxEVT_LEFT_DOWN, &ColorPickerPopup::on_custom_clr_picker, this);
+    m_ts_stbitmap_custom->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+        SetCursor(wxCURSOR_HAND);
+        });
+    m_ts_stbitmap_custom->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
+        SetCursor(wxCURSOR_ARROW);
+        });
+
     auto sizer_custom = new wxBoxSizer(wxVERTICAL);
     m_custom_cp->SetSizer(sizer_custom);
     sizer_custom->Add(m_ts_stbitmap_custom, 0, wxEXPAND, 0);

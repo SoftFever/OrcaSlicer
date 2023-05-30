@@ -1341,6 +1341,7 @@ void AMSItem::Update(AMSinfo amsinfo)
 
 void AMSItem::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
+    m_ts_bitmap_cube = new ScalableBitmap(this, "ts_bitmap_cube", 14);
     wxWindow::Create(parent, id, pos, size);
     SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
     HideHumidity();
@@ -1461,7 +1462,13 @@ void AMSItem::doRender(wxDC &dc)
             dc.DrawRoundedRectangle(left - 1, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2 - 1, AMS_ITEM_CUBE_SIZE.x + 2, AMS_ITEM_CUBE_SIZE.y + 2, 2);
 
         }else {
-            dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
+            if (iter->material_colour.Alpha() == 0) {
+                dc.DrawBitmap(m_ts_bitmap_cube->bmp(),left,(size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+            }
+            else {
+                dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
+            }
+            
         }
 
         
