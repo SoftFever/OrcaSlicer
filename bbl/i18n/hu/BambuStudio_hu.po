@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-25 12:20+0800\n"
+"POT-Creation-Date: 2023-06-07 09:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -598,6 +598,9 @@ msgstr "Kritikus hiba"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "A BambuStudio kezeletlen kivételbe ütközött: %1%"
 
+msgid "Untitled"
+msgstr "Névtelen"
+
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Bambu Network bővítmény letöltése"
 
@@ -1063,12 +1066,6 @@ msgstr "Filament beállítása a kiválasztott tárgyakhoz"
 msgid "current"
 msgstr "jelenlegi"
 
-msgid "Set Unprintable"
-msgstr "Beállítás nyomtathatatlannak"
-
-msgid "Set Printable"
-msgstr "Beállítás nyomtathatónak"
-
 msgid "Unlock"
 msgstr "Feloldás"
 
@@ -1081,8 +1078,8 @@ msgstr ""
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
-msgid "Edit plate setitngs"
-msgstr ""
+msgid "Edit plate settings"
+msgstr "A lemezbeállítások módosítása"
 
 msgid "Name"
 msgstr "Név"
@@ -1143,6 +1140,9 @@ msgstr "Fájl betöltése"
 
 msgid "Error!"
 msgstr "Hiba!"
+
+msgid "Failed to get the model data in the current file."
+msgstr ""
 
 msgid "Generic"
 msgstr "Általános"
@@ -1325,15 +1325,6 @@ msgstr "a több cellás másolás nem támogatott"
 msgid "Outside"
 msgstr "Kívül"
 
-msgid "Auto"
-msgstr "Auto"
-
-msgid "Manual"
-msgstr "Manuális"
-
-msgid "No-brim"
-msgstr "Nincs perem"
-
 msgid " "
 msgstr ""
 
@@ -1348,6 +1339,21 @@ msgstr "Kitöltési sűrűség (%)"
 
 msgid "Auto Brim"
 msgstr "Automatikus perem"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
+msgid "No-brim"
+msgstr "Nincs perem"
 
 msgid "Outer wall speed"
 msgstr "Külső fal sebessége"
@@ -1528,10 +1534,10 @@ msgstr "Új filament betöltése az extruderbe"
 msgid "Purge old filament"
 msgstr "Régi filament kiöblítése"
 
-msgid "Feed new filament from external spool"
+msgid "Push new filament into the extruder"
 msgstr ""
 
-msgid "Confirm whether the filament has been extruded"
+msgid "Grab new filament"
 msgstr ""
 
 msgid ""
@@ -2080,7 +2086,15 @@ msgstr "Nyomtatás az AMS-ben lévő filamentekkel"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Nyomtatás külső tartón lévő filamenttel"
 
-msgid "Filaments replace"
+msgid "Filaments Auto refill"
+msgstr ""
+
+msgid "Auto refill"
+msgstr ""
+
+msgid ""
+"When the current material run out, the printer will continue to print in the "
+"following order."
 msgstr ""
 
 msgid "Group"
@@ -3496,8 +3510,8 @@ msgstr "Sikertelen inicializálás (nem elérhető LAN-módban)!"
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Az inicializálás sikertelen (hiányzó nyomtató LAN IP-cím)!"
 
-msgid "Initialize failed (Not supported by printer)!"
-msgstr "Az inicializálás sikertelen (a nyomtató nem támogatja)!"
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3618,6 +3632,10 @@ msgid "No files [%d]"
 msgstr ""
 
 #, c-format, boost-format
+msgid "Load failed [%d]"
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
 "You are going to delete %u files from printer. Are you sure to continue?"
 msgstr ""
@@ -3630,6 +3648,15 @@ msgid "Do you want to delete the file '%s' from printer?"
 msgstr ""
 
 msgid "Delete file"
+msgstr ""
+
+msgid "Fetching model infomations ..."
+msgstr ""
+
+msgid "Failed to fetching model infomations from printer."
+msgstr ""
+
+msgid "Failed to parse model infomations."
 msgstr ""
 
 #, c-format, boost-format
@@ -3826,6 +3853,12 @@ msgstr "MicroSD kártya nélkül nem indítható."
 msgid "Failed to connect to the server"
 msgstr "Nem sikerült csatlakozni a szerverhez"
 
+msgid "Check cloud service status"
+msgstr ""
+
+msgid "code"
+msgstr ""
+
 msgid "Status"
 msgstr "Állapot"
 
@@ -3835,8 +3868,20 @@ msgstr "Frissítés"
 msgid "HMS"
 msgstr "HMS"
 
+msgid "Failed to connect to cloud service"
+msgstr ""
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr ""
+
 msgid "Failed to connect to the printer"
 msgstr "Nem sikerült csatlakozni a nyomtatóhoz"
+
+msgid "Connection to printer failed"
+msgstr ""
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr ""
 
 msgid "Don't show again"
 msgstr "Ne mutasd újra"
@@ -3954,6 +3999,9 @@ msgstr "Figyelem:"
 
 msgid "Export successfully."
 msgstr "Sikeresen exportálva"
+
+msgid "Serious warning:"
+msgstr ""
 
 msgid " (Repair)"
 msgstr " (Javítás)"
@@ -4144,16 +4192,10 @@ msgid "There are no compatible filaments, and sync is not performed."
 msgstr "Nincs kompatibilis filament és nem történt szinkronizálás."
 
 msgid ""
-"There are some unknown filaments mapped to generic preset. Please update "
-"Bambu Studio or restart Bambu Studio to check if there is an update to "
-"system presets."
+"There are some unknown or uncompatible filaments mapped to generic preset. "
+"Please update Bambu Studio or restart Bambu Studio to check if there is an "
+"update to system presets."
 msgstr ""
-"Van néhány ismeretlen filament, amelyekhez általános beállítások vannak "
-"hozzárendelve. Kérjük, frissítsd a Bambu Studiót vagy indítsd újra, hogy "
-"letöltsd az esetlegesen elérhető frissített rendszerbeállításokat."
-
-msgid "Untitled"
-msgstr "Névtelen"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4715,6 +4757,9 @@ msgstr "Sötét mód engedélyezése"
 msgid "Develop mode"
 msgstr "Fejlesztői mód"
 
+msgid "Skip AMS blacklist check"
+msgstr ""
+
 msgid "Home page and daily tips"
 msgstr "Kezdőoldal és napi tippek"
 
@@ -4750,6 +4795,12 @@ msgstr "Egyéb"
 
 msgid "Mouse wheel reverses when zooming"
 msgstr "Görgetési irány megfordítása nagyítás közben"
+
+msgid "Enable SSL(MQTT)"
+msgstr ""
+
+msgid "Enable SSL(FTP)"
+msgstr ""
 
 msgid "Internal developer mode"
 msgstr ""
@@ -4838,6 +4889,9 @@ msgstr "Anyagok hozzáadása/eltávolítása"
 msgid "Add/Remove printers"
 msgstr "Nyomtatók hozzáadása/eltávolítása"
 
+msgid "Incompatible"
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr ""
 
@@ -4847,23 +4901,11 @@ msgstr "Nyomtatás sorrendje"
 msgid "Plate name"
 msgstr ""
 
-msgid "Same as Global Bed Type"
-msgstr "Ugyanaz, mint a globális tálca típusa"
-
-msgid "Cool Plate"
-msgstr "Cool Plate"
-
-msgid "PLA Plate"
+msgid "Same as Global Plate Type"
 msgstr ""
 
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
-
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
-
-msgid "Textured PEI Plate"
-msgstr "Textured PEI Plate"
+msgid "Same as Global Bed Type"
+msgstr "Ugyanaz, mint a globális tálca típusa"
 
 msgid "By Layer"
 msgstr ""
@@ -5014,6 +5056,9 @@ msgstr "Elfoglalt"
 
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
+
+msgid "PLA Plate"
+msgstr ""
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
@@ -5183,11 +5228,6 @@ msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
 msgid "The name length exceeds the limit."
 msgstr ""
 
-msgid ""
-"Extrusion compensation calibration is not supported when using Textured PEI "
-"Plate"
-msgstr ""
-
 msgid "Modifying the device name"
 msgstr "Eszköz nevének módosítása"
 
@@ -5228,6 +5268,9 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -5505,12 +5548,18 @@ msgstr ""
 "Asztalhőmérséklet a hideg tálca használatával. A 0 érték azt jelenti, hogy a "
 "filament nem támogatja a Cool Plate-re történő nyomtatást"
 
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
+
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Asztalhőmérséklet a mérnöki tálca használatával. A 0 érték azt jelenti, hogy "
 "a filament nem támogatja az Engineering Plate-re történő nyomtatást"
+
+msgid "High Temp Plate"
+msgstr "High Temp Plate"
 
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
@@ -5519,6 +5568,9 @@ msgstr ""
 "Asztalhőmérséklet a magas hőmérsékletű tálca használatával. A 0 érték azt "
 "jelenti, hogy a filament nem támogatja a High Temp Plate-re történő "
 "nyomtatást"
+
+msgid "Textured PEI Plate"
+msgstr "Textured PEI Plate"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -7006,15 +7058,6 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
-msgid "Outer brim only"
-msgstr ""
-
-msgid "Inner brim only"
-msgstr ""
-
-msgid "Outer and inner brim"
-msgstr ""
-
 msgid "Brim-object gap"
 msgstr "Perem-tárgy közötti rés"
 
@@ -7296,6 +7339,12 @@ msgstr ""
 "kódban. Az ajánlott értéktartomány 0,95 és 1,05 között van. Ennek az "
 "értéknek a változtatásával szép sík felületet kaphatsz, ha úgy tapasztalod, "
 "hogy túl sok vagy kevés az anyagáramlás."
+
+msgid "Object flow ratio"
+msgstr ""
+
+msgid "The flow ratio set by object, the meaning is the same as flow ratio."
+msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
@@ -7673,6 +7722,44 @@ msgstr ""
 "Több réteg ritkás kitöltésének automatikus kombinálása a nyomtatási idő "
 "csökkentése érdekében. A fal továbbra is az eredeti rétegmagassággal kerül "
 "kinyomtatásra."
+
+msgid "Length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than infill_anchor_max is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to this parameter, but no longer than anchor_length_max. "
+"Set this parameter to zero to disable anchoring perimeters connected to a "
+"single infill line."
+msgstr ""
+
+msgid "0 (no open anchors)"
+msgstr ""
+
+msgid "1000 (unlimited)"
+msgstr ""
+
+msgid "Maximum length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than this parameter is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to infill_anchor, but no longer than this parameter. Set "
+"this parameter to zero to disable anchoring."
+msgstr ""
+
+msgid "0 (not anchored)"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "Filament a belső ritkás kitöltésekhez."
@@ -8331,6 +8418,12 @@ msgid ""
 msgstr ""
 "Csak olyan kritikus területekhez generál támasztékot, mint például egy farok "
 "vagy egyéb kiálló részek."
+
+msgid "Remove small overhangs"
+msgstr ""
+
+msgid "Remove small overhangs that possibly need no supports."
+msgstr ""
 
 msgid "Top Z distance"
 msgstr "Z távolság"
@@ -9360,6 +9453,30 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "Set Unprintable"
+#~ msgstr "Beállítás nyomtathatatlannak"
+
+#~ msgid "Set Printable"
+#~ msgstr "Beállítás nyomtathatónak"
+
+#~ msgid "Manual"
+#~ msgstr "Manuális"
+
+#~ msgid "Initialize failed (Not supported by printer)!"
+#~ msgstr "Az inicializálás sikertelen (a nyomtató nem támogatja)!"
+
+#~ msgid ""
+#~ "There are some unknown filaments mapped to generic preset. Please update "
+#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
+#~ "system presets."
+#~ msgstr ""
+#~ "Van néhány ismeretlen filament, amelyekhez általános beállítások vannak "
+#~ "hozzárendelve. Kérjük, frissítsd a Bambu Studiót vagy indítsd újra, hogy "
+#~ "letöltsd az esetlegesen elérhető frissített rendszerbeállításokat."
+
+#~ msgid "Cool Plate"
+#~ msgstr "Cool Plate"
 
 #~ msgid "The region parameter is incorrrect"
 #~ msgstr "A régió paramétere helytelen"

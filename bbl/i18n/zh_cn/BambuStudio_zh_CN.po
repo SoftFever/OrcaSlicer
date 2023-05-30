@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-25 12:20+0800\n"
+"POT-Creation-Date: 2023-06-07 09:30+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -592,6 +592,9 @@ msgstr "严重错误"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 
+msgid "Untitled"
+msgstr "未命名"
+
 msgid "Downloading Bambu Network Plug-in"
 msgstr "正在下载Bambu网络插件"
 
@@ -1047,12 +1050,6 @@ msgstr "设置所选项的耗材丝"
 msgid "current"
 msgstr "当前"
 
-msgid "Set Unprintable"
-msgstr "设置不可打印"
-
-msgid "Set Printable"
-msgstr "设置可打印"
-
 msgid "Unlock"
 msgstr "解锁"
 
@@ -1065,7 +1062,7 @@ msgstr "铺满打印板"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "用选定对象的副本填充床的剩余区域"
 
-msgid "Edit plate setitngs"
+msgid "Edit plate settings"
 msgstr "编辑盘设置"
 
 msgid "Name"
@@ -1121,6 +1118,9 @@ msgstr "载入文件中"
 
 msgid "Error!"
 msgstr "错误！"
+
+msgid "Failed to get the model data in the current file."
+msgstr ""
 
 msgid "Generic"
 msgstr "通用"
@@ -1292,15 +1292,6 @@ msgstr "不支持多个单元格的复制"
 msgid "Outside"
 msgstr "盘外"
 
-msgid "Auto"
-msgstr "自动"
-
-msgid "Manual"
-msgstr "手动"
-
-msgid "No-brim"
-msgstr "无brim"
-
 msgid " "
 msgstr " "
 
@@ -1315,6 +1306,21 @@ msgstr "填充密度(%)"
 
 msgid "Auto Brim"
 msgstr "自动Brim"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Outer brim only"
+msgstr "仅外侧"
+
+msgid "Inner brim only"
+msgstr "仅内侧"
+
+msgid "Outer and inner brim"
+msgstr "内侧和外侧"
+
+msgid "No-brim"
+msgstr "无brim"
 
 msgid "Outer wall speed"
 msgstr "外墙速度"
@@ -1493,11 +1499,11 @@ msgstr "送出新的耗材丝到挤出机"
 msgid "Purge old filament"
 msgstr "冲刷旧耗材丝"
 
-msgid "Feed new filament from external spool"
-msgstr "从外部料盘送入新的耗材丝"
+msgid "Push new filament into the extruder"
+msgstr ""
 
-msgid "Confirm whether the filament has been extruded"
-msgstr "确认耗材丝是否已被挤出"
+msgid "Grab new filament"
+msgstr ""
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -2011,7 +2017,15 @@ msgstr "采用AMS里的材料打印"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "采用挂载在机箱背部的材料打印"
 
-msgid "Filaments replace"
+msgid "Filaments Auto refill"
+msgstr ""
+
+msgid "Auto refill"
+msgstr ""
+
+msgid ""
+"When the current material run out, the printer will continue to print in the "
+"following order."
 msgstr ""
 
 msgid "Group"
@@ -3243,10 +3257,10 @@ msgid "Show object labels in 3D scene"
 msgstr "在3D场景中显示对象名称"
 
 msgid "Show &Overhang"
-msgstr "显示悬空(O)"
+msgstr "显示悬空高亮"
 
 msgid "Show object overhang highlight in 3D scene"
-msgstr "在3D场景中高亮显示对象的悬空"
+msgstr "在3D场景中显示悬空高亮"
 
 msgid "Preferences"
 msgstr "偏好设置"
@@ -3389,8 +3403,8 @@ msgstr "初始化失败（在局域网模式中不可访问）！"
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初始化失败（未找到打印机的局域网地址）！"
 
-msgid "Initialize failed (Not supported by printer)!"
-msgstr "初始化失败（打印机不支持该功能）！"
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3509,6 +3523,10 @@ msgid "No files [%d]"
 msgstr "文件列表为空[%d]"
 
 #, c-format, boost-format
+msgid "Load failed [%d]"
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
 "You are going to delete %u files from printer. Are you sure to continue?"
 msgstr ""
@@ -3522,6 +3540,15 @@ msgstr "你确定要从打印机中删除文件'%s'吗？"
 
 msgid "Delete file"
 msgstr "删除文件"
+
+msgid "Fetching model infomations ..."
+msgstr ""
+
+msgid "Failed to fetching model infomations from printer."
+msgstr ""
+
+msgid "Failed to parse model infomations."
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3714,6 +3741,12 @@ msgstr "没有SD卡无法开始任务"
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
 
+msgid "Check cloud service status"
+msgstr ""
+
+msgid "code"
+msgstr ""
+
 msgid "Status"
 msgstr "设备状态"
 
@@ -3723,8 +3756,20 @@ msgstr "固件更新"
 msgid "HMS"
 msgstr ""
 
+msgid "Failed to connect to cloud service"
+msgstr ""
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr ""
+
 msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
+
+msgid "Connection to printer failed"
+msgstr ""
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr ""
 
 msgid "Don't show again"
 msgstr "不再显示"
@@ -3839,6 +3884,9 @@ msgstr "警告："
 
 msgid "Export successfully."
 msgstr "发送成功."
+
+msgid "Serious warning:"
+msgstr ""
 
 msgid " (Repair)"
 msgstr "（修复）"
@@ -4018,15 +4066,10 @@ msgid "There are no compatible filaments, and sync is not performed."
 msgstr "没有如任何兼容的材料，同步操作未执行。"
 
 msgid ""
-"There are some unknown filaments mapped to generic preset. Please update "
-"Bambu Studio or restart Bambu Studio to check if there is an update to "
-"system presets."
+"There are some unknown or uncompatible filaments mapped to generic preset. "
+"Please update Bambu Studio or restart Bambu Studio to check if there is an "
+"update to system presets."
 msgstr ""
-"有一些未知型号的材料，映射到通用预设。请更新或者重启 Bambu Studio，以检查系统"
-"预设有没有更新。"
-
-msgid "Untitled"
-msgstr "未命名"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4555,6 +4598,9 @@ msgstr "启用深色模式"
 msgid "Develop mode"
 msgstr "开发者模式"
 
+msgid "Skip AMS blacklist check"
+msgstr ""
+
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
 
@@ -4590,6 +4636,12 @@ msgstr "其他"
 
 msgid "Mouse wheel reverses when zooming"
 msgstr "缩放时鼠标滚轮反转"
+
+msgid "Enable SSL(MQTT)"
+msgstr ""
+
+msgid "Enable SSL(FTP)"
+msgstr ""
 
 msgid "Internal developer mode"
 msgstr "内部开发者模式"
@@ -4678,6 +4730,9 @@ msgstr "添加/删除材料"
 msgid "Add/Remove printers"
 msgstr "添加/删除打印机"
 
+msgid "Incompatible"
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "跟随全局打印顺序"
 
@@ -4687,23 +4742,11 @@ msgstr "打印顺序"
 msgid "Plate name"
 msgstr "盘名称"
 
+msgid "Same as Global Plate Type"
+msgstr ""
+
 msgid "Same as Global Bed Type"
 msgstr "跟随全局打印板类型"
-
-msgid "Cool Plate"
-msgstr "低温打印板"
-
-msgid "PLA Plate"
-msgstr "PLA打印板"
-
-msgid "Engineering Plate"
-msgstr "工程材料打印板"
-
-msgid "High Temp Plate"
-msgstr "高温打印板"
-
-msgid "Textured PEI Plate"
-msgstr "纹理PEI打印板"
 
 msgid "By Layer"
 msgstr "逐层"
@@ -4854,6 +4897,9 @@ msgstr "忙碌"
 
 msgid "Bambu Cool Plate"
 msgstr "低温打印板"
+
+msgid "PLA Plate"
+msgstr "PLA打印板"
 
 msgid "Bamabu Engineering Plate"
 msgstr "工程材料打印板"
@@ -5010,11 +5056,6 @@ msgstr "打印文件数据异常，请重新切片"
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
 
-msgid ""
-"Extrusion compensation calibration is not supported when using Textured PEI "
-"Plate"
-msgstr "使用带纹理的PEI板时不支持挤出补偿校准"
-
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
 
@@ -5052,6 +5093,9 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -5314,15 +5358,24 @@ msgid ""
 "does not support to print on the Cool Plate"
 msgstr "安装低温打印热床时的热床温度。0值表示这个耗材丝不支持低温打印热床"
 
+msgid "Engineering Plate"
+msgstr "工程材料打印板"
+
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr "安装工程材料热床时的热床温度。0值表示这个耗材丝不支持工程材料热床"
 
+msgid "High Temp Plate"
+msgstr "高温打印板"
+
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
+
+msgid "Textured PEI Plate"
+msgstr "纹理PEI打印板"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -6673,15 +6726,6 @@ msgid ""
 msgstr ""
 "该参数控制在模型的外侧和/或内侧生成brim。自动是指自动分析和计算边框的宽度。"
 
-msgid "Outer brim only"
-msgstr "仅外侧"
-
-msgid "Inner brim only"
-msgstr "仅内侧"
-
-msgid "Outer and inner brim"
-msgstr "内侧和外侧"
-
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
 
@@ -6941,6 +6985,12 @@ msgstr ""
 "材料经过融化后凝固可能会产生体积差异。这个设置会等比例改变所有挤出走线的挤出"
 "量。推荐的范围为0.95到1.05。发现大平层模型的顶面有轻微的缺料或多料时，或许可"
 "以尝试微调这个参数。"
+
+msgid "Object flow ratio"
+msgstr ""
+
+msgid "The flow ratio set by object, the meaning is the same as flow ratio."
+msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "当线宽设置为0时走线的默认线宽"
@@ -7265,6 +7315,44 @@ msgid ""
 "reduce time. Wall is still printed with original layer height."
 msgstr ""
 "自动合并若干层稀疏填充一起打印以可缩短时间。内外墙依然保持原始层高打印。"
+
+msgid "Length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than infill_anchor_max is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to this parameter, but no longer than anchor_length_max. "
+"Set this parameter to zero to disable anchoring perimeters connected to a "
+"single infill line."
+msgstr ""
+
+msgid "0 (no open anchors)"
+msgstr "0 (无锚线)"
+
+msgid "1000 (unlimited)"
+msgstr "1000（无限制）"
+
+msgid "Maximum length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than this parameter is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to infill_anchor, but no longer than this parameter. Set "
+"this parameter to zero to disable anchoring."
+msgstr ""
+
+msgid "0 (not anchored)"
+msgstr "0（无）"
 
 msgid "Filament to print internal sparse infill."
 msgstr "打印内部稀疏填充的耗材丝"
@@ -8829,6 +8917,43 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Set Unprintable"
+#~ msgstr "设置不可打印"
+
+#~ msgid "Set Printable"
+#~ msgstr "设置可打印"
+
+#~ msgid "Edit plate setitngs"
+#~ msgstr "编辑盘设置"
+
+#~ msgid "Manual"
+#~ msgstr "手动"
+
+#~ msgid "Feed new filament from external spool"
+#~ msgstr "从外部料盘送入新的耗材丝"
+
+#~ msgid "Confirm whether the filament has been extruded"
+#~ msgstr "确认耗材丝是否已被挤出"
+
+#~ msgid "Initialize failed (Not supported by printer)!"
+#~ msgstr "初始化失败（打印机不支持该功能）！"
+
+#~ msgid ""
+#~ "There are some unknown filaments mapped to generic preset. Please update "
+#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
+#~ "system presets."
+#~ msgstr ""
+#~ "有一些未知型号的材料，映射到通用预设。请更新或者重启 Bambu Studio，以检查"
+#~ "系统预设有没有更新。"
+
+#~ msgid "Cool Plate"
+#~ msgstr "低温打印板"
+
+#~ msgid ""
+#~ "Extrusion compensation calibration is not supported when using Textured "
+#~ "PEI Plate"
+#~ msgstr "使用带纹理的PEI板时不支持挤出补偿校准"
 
 #~ msgid "Delete Pause"
 #~ msgstr "删除暂停"
@@ -11824,23 +11949,14 @@ msgstr ""
 #~ msgid "Sparse infill anchor length"
 #~ msgstr "稀疏填充锚线长度"
 
-#~ msgid "0 (no open anchors)"
-#~ msgstr "0 (无锚线)"
-
 #~ msgid "5 mm"
 #~ msgstr "5 mm"
 
 #~ msgid "10 mm"
 #~ msgstr "10 mm"
 
-#~ msgid "1000 (unlimited)"
-#~ msgstr "1000（无限制）"
-
 #~ msgid "Maximum length of the infill anchor"
 #~ msgstr "填充锚线的最大长度"
-
-#~ msgid "0 (not anchored)"
-#~ msgstr "0（无）"
 
 #~ msgid "Name of parent profile"
 #~ msgstr "父配置名称"

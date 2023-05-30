@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-25 12:20+0800\n"
+"POT-Creation-Date: 2023-06-07 09:30+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -583,6 +583,9 @@ msgstr "重大なエラー"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "異常がありました: %1%"
 
+msgid "Untitled"
+msgstr "名称未設定"
+
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Bambuネットワークプラグインをダウンロード"
 
@@ -1043,12 +1046,6 @@ msgstr "選択した項目のフィラメントを設定"
 msgid "current"
 msgstr "現在"
 
-msgid "Set Unprintable"
-msgstr "造形不可に設定"
-
-msgid "Set Printable"
-msgstr "造形可能に設定"
-
 msgid "Unlock"
 msgstr "ロック解除"
 
@@ -1061,8 +1058,8 @@ msgstr ""
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
-msgid "Edit plate setitngs"
-msgstr ""
+msgid "Edit plate settings"
+msgstr "ボード設定の編集"
 
 msgid "Name"
 msgstr "名称"
@@ -1117,6 +1114,9 @@ msgstr "ファイルを読み込み中"
 
 msgid "Error!"
 msgstr "エラー！"
+
+msgid "Failed to get the model data in the current file."
+msgstr ""
 
 msgid "Generic"
 msgstr "一般"
@@ -1289,15 +1289,6 @@ msgstr "複数のセルのコピーには対応していません。"
 msgid "Outside"
 msgstr "外側"
 
-msgid "Auto"
-msgstr "自動"
-
-msgid "Manual"
-msgstr "手動"
-
-msgid "No-brim"
-msgstr "ブリム無し"
-
 msgid " "
 msgstr ""
 
@@ -1312,6 +1303,21 @@ msgstr "インフィル密度 (%)"
 
 msgid "Auto Brim"
 msgstr "オートブリム"
+
+msgid "Auto"
+msgstr "自動"
+
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
+msgid "No-brim"
+msgstr "ブリム無し"
 
 msgid "Outer wall speed"
 msgstr "外壁造形速度"
@@ -1492,10 +1498,10 @@ msgstr "フィラメントを押出機に押入れる"
 msgid "Purge old filament"
 msgstr "古いフィラメントを排出"
 
-msgid "Feed new filament from external spool"
+msgid "Push new filament into the extruder"
 msgstr ""
 
-msgid "Confirm whether the filament has been extruded"
+msgid "Grab new filament"
 msgstr ""
 
 msgid ""
@@ -2019,7 +2025,15 @@ msgstr "AMSのフィラメントで造形します"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "外部スプールホルダーのフィラメントで造形します"
 
-msgid "Filaments replace"
+msgid "Filaments Auto refill"
+msgstr ""
+
+msgid "Auto refill"
+msgstr ""
+
+msgid ""
+"When the current material run out, the printer will continue to print in the "
+"following order."
 msgstr ""
 
 msgid "Group"
@@ -3389,8 +3403,8 @@ msgstr "初期化失敗 (ローカルモードではアクセスできません)
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初期化失敗 (プリンターIP無効)"
 
-msgid "Initialize failed (Not supported by printer)!"
-msgstr "初期化失敗 (プリンターがサポートしません)"
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3508,6 +3522,10 @@ msgid "No files [%d]"
 msgstr ""
 
 #, c-format, boost-format
+msgid "Load failed [%d]"
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
 "You are going to delete %u files from printer. Are you sure to continue?"
 msgstr ""
@@ -3520,6 +3538,15 @@ msgid "Do you want to delete the file '%s' from printer?"
 msgstr ""
 
 msgid "Delete file"
+msgstr ""
+
+msgid "Fetching model infomations ..."
+msgstr ""
+
+msgid "Failed to fetching model infomations from printer."
+msgstr ""
+
+msgid "Failed to parse model infomations."
 msgstr ""
 
 #, c-format, boost-format
@@ -3715,6 +3742,12 @@ msgstr "起動するのにSDカードが必要です。"
 msgid "Failed to connect to the server"
 msgstr "サーバーに接続できませんでした"
 
+msgid "Check cloud service status"
+msgstr ""
+
+msgid "code"
+msgstr ""
+
 msgid "Status"
 msgstr "デバイス状態"
 
@@ -3724,8 +3757,20 @@ msgstr "更新"
 msgid "HMS"
 msgstr "HMS"
 
+msgid "Failed to connect to cloud service"
+msgstr ""
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr ""
+
 msgid "Failed to connect to the printer"
 msgstr "プリンターへ接続できませんでした"
+
+msgid "Connection to printer failed"
+msgstr ""
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr ""
 
 msgid "Don't show again"
 msgstr "次回から表示しない"
@@ -3840,6 +3885,9 @@ msgstr "警告"
 
 msgid "Export successfully."
 msgstr "エクスポートが成功しました。"
+
+msgid "Serious warning:"
+msgstr ""
 
 msgid " (Repair)"
 msgstr " (修復)"
@@ -4025,13 +4073,10 @@ msgid "There are no compatible filaments, and sync is not performed."
 msgstr "適用できるフィラメントがありません、同期を行えません"
 
 msgid ""
-"There are some unknown filaments mapped to generic preset. Please update "
-"Bambu Studio or restart Bambu Studio to check if there is an update to "
-"system presets."
-msgstr "不明なフィラメントがあります、Bambu Studioを更新してください。"
-
-msgid "Untitled"
-msgstr "名称未設定"
+"There are some unknown or uncompatible filaments mapped to generic preset. "
+"Please update Bambu Studio or restart Bambu Studio to check if there is an "
+"update to system presets."
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4572,6 +4617,9 @@ msgstr "ダークモードを有効"
 msgid "Develop mode"
 msgstr "開発者モード"
 
+msgid "Skip AMS blacklist check"
+msgstr ""
+
 msgid "Home page and daily tips"
 msgstr "ホームページとヒント"
 
@@ -4607,6 +4655,12 @@ msgstr "その他"
 
 msgid "Mouse wheel reverses when zooming"
 msgstr "ズーム中にスクロール方向を反転させる"
+
+msgid "Enable SSL(MQTT)"
+msgstr ""
+
+msgid "Enable SSL(FTP)"
+msgstr ""
 
 msgid "Internal developer mode"
 msgstr ""
@@ -4695,6 +4749,9 @@ msgstr "素材を追加/削除"
 msgid "Add/Remove printers"
 msgstr "プリンターを追加/削除"
 
+msgid "Incompatible"
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr ""
 
@@ -4704,23 +4761,11 @@ msgstr "造形シーケンス"
 msgid "Plate name"
 msgstr ""
 
-msgid "Same as Global Bed Type"
-msgstr "全般設定の「ベッドタイプ」と同様"
-
-msgid "Cool Plate"
-msgstr "常温プレート"
-
-msgid "PLA Plate"
+msgid "Same as Global Plate Type"
 msgstr ""
 
-msgid "Engineering Plate"
-msgstr "エンジニアリングプレート"
-
-msgid "High Temp Plate"
-msgstr "高温プレート"
-
-msgid "Textured PEI Plate"
-msgstr "PEIプレート"
+msgid "Same as Global Bed Type"
+msgstr "全般設定の「ベッドタイプ」と同様"
 
 msgid "By Layer"
 msgstr ""
@@ -4872,6 +4917,9 @@ msgstr "ビジー状態"
 msgid "Bambu Cool Plate"
 msgstr "Bambu 常温プレート"
 
+msgid "PLA Plate"
+msgstr ""
+
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu エンジニアリングプレート"
 
@@ -5019,11 +5067,6 @@ msgstr "ファイルに異常があります、もう一度スライスしてく
 msgid "The name length exceeds the limit."
 msgstr ""
 
-msgid ""
-"Extrusion compensation calibration is not supported when using Textured PEI "
-"Plate"
-msgstr ""
-
 msgid "Modifying the device name"
 msgstr "デバイス名を変更"
 
@@ -5062,6 +5105,9 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -5324,6 +5370,9 @@ msgstr ""
 "常温プレートが装着時のベッド温度です。値が0の場合、フィラメントが常温プレート"
 "に使用できない意味です。"
 
+msgid "Engineering Plate"
+msgstr "エンジニアリングプレート"
+
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -5331,12 +5380,18 @@ msgstr ""
 "エンジニアリングプレートが装着時のベッド温度です。値が0の場合、フィラメントが"
 "エンジニアリングプレートに使用できない意味です。"
 
+msgid "High Temp Plate"
+msgstr "高温プレート"
+
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
 "高温プレートが装着時のベッド温度です。値が0の場合、フィラメントが高温プレート"
 "に使用できない意味です。"
+
+msgid "Textured PEI Plate"
+msgstr "PEIプレート"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -6733,15 +6788,6 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
-msgid "Outer brim only"
-msgstr ""
-
-msgid "Inner brim only"
-msgstr ""
-
-msgid "Outer and inner brim"
-msgstr ""
-
 msgid "Brim-object gap"
 msgstr "ブリムとオブジェクトの間隔"
 
@@ -7005,6 +7051,12 @@ msgid ""
 msgstr ""
 "フィラメントは温度により体積が変わります。この設定で押出流量を比例的に調整し"
 "ます。 0.95 ～ 1.05の間で設定していください。"
+
+msgid "Object flow ratio"
+msgstr ""
+
+msgid "The flow ratio set by object, the meaning is the same as flow ratio."
+msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "線幅が0に設定された時のデフォルト線幅"
@@ -7346,6 +7398,44 @@ msgid ""
 msgstr ""
 "複数層のスパース インフィルをまとめて造形し、時間短縮に効きます。壁面はこの設"
 "定に影響されません"
+
+msgid "Length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than infill_anchor_max is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to this parameter, but no longer than anchor_length_max. "
+"Set this parameter to zero to disable anchoring perimeters connected to a "
+"single infill line."
+msgstr ""
+
+msgid "0 (no open anchors)"
+msgstr ""
+
+msgid "1000 (unlimited)"
+msgstr ""
+
+msgid "Maximum length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than this parameter is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to infill_anchor, but no longer than this parameter. Set "
+"this parameter to zero to disable anchoring."
+msgstr ""
+
+msgid "0 (not anchored)"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "スパース インフィルを造形時使用するフィラメントです。"
@@ -7954,6 +8044,12 @@ msgid ""
 "Only create support for critical regions including sharp tail, cantilever, "
 "etc."
 msgstr "造形しにくい部分だけサポートを生成します、例えば細長いしっぽ、ハリなど"
+
+msgid "Remove small overhangs"
+msgstr ""
+
+msgid "Remove small overhangs that possibly need no supports."
+msgstr ""
 
 msgid "Top Z distance"
 msgstr "トップ面とのZ間隔"
@@ -8911,6 +9007,27 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Set Unprintable"
+#~ msgstr "造形不可に設定"
+
+#~ msgid "Set Printable"
+#~ msgstr "造形可能に設定"
+
+#~ msgid "Manual"
+#~ msgstr "手動"
+
+#~ msgid "Initialize failed (Not supported by printer)!"
+#~ msgstr "初期化失敗 (プリンターがサポートしません)"
+
+#~ msgid ""
+#~ "There are some unknown filaments mapped to generic preset. Please update "
+#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
+#~ "system presets."
+#~ msgstr "不明なフィラメントがあります、Bambu Studioを更新してください。"
+
+#~ msgid "Cool Plate"
+#~ msgstr "常温プレート"
 
 #~ msgid "The region parameter is incorrrect"
 #~ msgstr "地域が正しくありません"

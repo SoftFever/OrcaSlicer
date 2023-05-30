@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-25 12:20+0800\n"
+"POT-Creation-Date: 2023-06-07 09:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -586,6 +586,9 @@ msgstr ""
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
+msgid "Untitled"
+msgstr ""
+
 msgid "Downloading Bambu Network Plug-in"
 msgstr ""
 
@@ -1040,12 +1043,6 @@ msgstr ""
 msgid "current"
 msgstr ""
 
-msgid "Set Unprintable"
-msgstr ""
-
-msgid "Set Printable"
-msgstr ""
-
 msgid "Unlock"
 msgstr ""
 
@@ -1058,7 +1055,7 @@ msgstr ""
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
-msgid "Edit plate setitngs"
+msgid "Edit plate settings"
 msgstr ""
 
 msgid "Name"
@@ -1116,6 +1113,9 @@ msgid "Loading file"
 msgstr ""
 
 msgid "Error!"
+msgstr ""
+
+msgid "Failed to get the model data in the current file."
 msgstr ""
 
 msgid "Generic"
@@ -1287,15 +1287,6 @@ msgstr ""
 msgid "Outside"
 msgstr ""
 
-msgid "Auto"
-msgstr ""
-
-msgid "Manual"
-msgstr ""
-
-msgid "No-brim"
-msgstr ""
-
 msgid " "
 msgstr ""
 
@@ -1309,6 +1300,21 @@ msgid "Infill density(%)"
 msgstr ""
 
 msgid "Auto Brim"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
+msgid "No-brim"
 msgstr ""
 
 msgid "Outer wall speed"
@@ -1488,10 +1494,10 @@ msgstr ""
 msgid "Purge old filament"
 msgstr ""
 
-msgid "Feed new filament from external spool"
+msgid "Push new filament into the extruder"
 msgstr ""
 
-msgid "Confirm whether the filament has been extruded"
+msgid "Grab new filament"
 msgstr ""
 
 msgid ""
@@ -1985,7 +1991,15 @@ msgstr ""
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr ""
 
-msgid "Filaments replace"
+msgid "Filaments Auto refill"
+msgstr ""
+
+msgid "Auto refill"
+msgstr ""
+
+msgid ""
+"When the current material run out, the printer will continue to print in the "
+"following order."
 msgstr ""
 
 msgid "Group"
@@ -3296,7 +3310,7 @@ msgstr ""
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr ""
 
-msgid "Initialize failed (Not supported by printer)!"
+msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3413,6 +3427,10 @@ msgid "No files [%d]"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid "Load failed [%d]"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid ""
 "You are going to delete %u files from printer. Are you sure to continue?"
 msgstr ""
@@ -3425,6 +3443,15 @@ msgid "Do you want to delete the file '%s' from printer?"
 msgstr ""
 
 msgid "Delete file"
+msgstr ""
+
+msgid "Fetching model infomations ..."
+msgstr ""
+
+msgid "Failed to fetching model infomations from printer."
+msgstr ""
+
+msgid "Failed to parse model infomations."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3614,6 +3641,12 @@ msgstr ""
 msgid "Failed to connect to the server"
 msgstr ""
 
+msgid "Check cloud service status"
+msgstr ""
+
+msgid "code"
+msgstr ""
+
 msgid "Status"
 msgstr ""
 
@@ -3623,7 +3656,19 @@ msgstr ""
 msgid "HMS"
 msgstr ""
 
+msgid "Failed to connect to cloud service"
+msgstr ""
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr ""
+
 msgid "Failed to connect to the printer"
+msgstr ""
+
+msgid "Connection to printer failed"
+msgstr ""
+
+msgid "Please check the network connection of the printer and Studio."
 msgstr ""
 
 msgid "Don't show again"
@@ -3741,6 +3786,9 @@ msgid "Warning:"
 msgstr ""
 
 msgid "Export successfully."
+msgstr ""
+
+msgid "Serious warning:"
 msgstr ""
 
 msgid " (Repair)"
@@ -3921,12 +3969,9 @@ msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 
 msgid ""
-"There are some unknown filaments mapped to generic preset. Please update "
-"Bambu Studio or restart Bambu Studio to check if there is an update to "
-"system presets."
-msgstr ""
-
-msgid "Untitled"
+"There are some unknown or uncompatible filaments mapped to generic preset. "
+"Please update Bambu Studio or restart Bambu Studio to check if there is an "
+"update to system presets."
 msgstr ""
 
 #, possible-boost-format
@@ -4440,6 +4485,9 @@ msgstr ""
 msgid "Develop mode"
 msgstr ""
 
+msgid "Skip AMS blacklist check"
+msgstr ""
+
 msgid "Home page and daily tips"
 msgstr ""
 
@@ -4474,6 +4522,12 @@ msgid "Other"
 msgstr ""
 
 msgid "Mouse wheel reverses when zooming"
+msgstr ""
+
+msgid "Enable SSL(MQTT)"
+msgstr ""
+
+msgid "Enable SSL(FTP)"
 msgstr ""
 
 msgid "Internal developer mode"
@@ -4563,6 +4617,9 @@ msgstr ""
 msgid "Add/Remove printers"
 msgstr ""
 
+msgid "Incompatible"
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr ""
 
@@ -4572,22 +4629,10 @@ msgstr ""
 msgid "Plate name"
 msgstr ""
 
+msgid "Same as Global Plate Type"
+msgstr ""
+
 msgid "Same as Global Bed Type"
-msgstr ""
-
-msgid "Cool Plate"
-msgstr ""
-
-msgid "PLA Plate"
-msgstr ""
-
-msgid "Engineering Plate"
-msgstr ""
-
-msgid "High Temp Plate"
-msgstr ""
-
-msgid "Textured PEI Plate"
 msgstr ""
 
 msgid "By Layer"
@@ -4740,6 +4785,9 @@ msgstr ""
 msgid "Bambu Cool Plate"
 msgstr ""
 
+msgid "PLA Plate"
+msgstr ""
+
 msgid "Bamabu Engineering Plate"
 msgstr ""
 
@@ -4884,11 +4932,6 @@ msgstr ""
 msgid "The name length exceeds the limit."
 msgstr ""
 
-msgid ""
-"Extrusion compensation calibration is not supported when using Textured PEI "
-"Plate"
-msgstr ""
-
 msgid "Modifying the device name"
 msgstr ""
 
@@ -4926,6 +4969,9 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -5171,14 +5217,23 @@ msgid ""
 "does not support to print on the Cool Plate"
 msgstr ""
 
+msgid "Engineering Plate"
+msgstr ""
+
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 
+msgid "High Temp Plate"
+msgstr ""
+
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
+msgstr ""
+
+msgid "Textured PEI Plate"
 msgstr ""
 
 msgid ""
@@ -6497,15 +6552,6 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
-msgid "Outer brim only"
-msgstr ""
-
-msgid "Inner brim only"
-msgstr ""
-
-msgid "Outer and inner brim"
-msgstr ""
-
 msgid "Brim-object gap"
 msgstr ""
 
@@ -6748,6 +6794,12 @@ msgid ""
 "filament in gcode proportionally. Recommended value range is between 0.95 "
 "and 1.05. Maybe you can tune this value to get nice flat surface when there "
 "has slight overflow or underflow"
+msgstr ""
+
+msgid "Object flow ratio"
+msgstr ""
+
+msgid "The flow ratio set by object, the meaning is the same as flow ratio."
 msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
@@ -7064,6 +7116,44 @@ msgstr ""
 msgid ""
 "Automatically Combine sparse infill of several layers to print together to "
 "reduce time. Wall is still printed with original layer height."
+msgstr ""
+
+msgid "Length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than infill_anchor_max is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to this parameter, but no longer than anchor_length_max. "
+"Set this parameter to zero to disable anchoring perimeters connected to a "
+"single infill line."
+msgstr ""
+
+msgid "0 (no open anchors)"
+msgstr ""
+
+msgid "1000 (unlimited)"
+msgstr ""
+
+msgid "Maximum length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than this parameter is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to infill_anchor, but no longer than this parameter. Set "
+"this parameter to zero to disable anchoring."
+msgstr ""
+
+msgid "0 (not anchored)"
 msgstr ""
 
 msgid "Filament to print internal sparse infill."
@@ -7630,6 +7720,12 @@ msgstr ""
 msgid ""
 "Only create support for critical regions including sharp tail, cantilever, "
 "etc."
+msgstr ""
+
+msgid "Remove small overhangs"
+msgstr ""
+
+msgid "Remove small overhangs that possibly need no supports."
 msgstr ""
 
 msgid "Top Z distance"

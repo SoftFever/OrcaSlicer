@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-25 12:20+0800\n"
+"POT-Creation-Date: 2023-06-07 09:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -596,6 +596,9 @@ msgstr "Kritischer Fehler"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio hat eine unbehandelte Ausnahme erhalten: %1%"
 
+msgid "Untitled"
+msgstr "Unbenannt"
+
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Herunterladen des Bambu-Netzwerk-Plugins"
 
@@ -1065,12 +1068,6 @@ msgstr "Filament für ausgewählte Elemente festlegen"
 msgid "current"
 msgstr "Ausgewählt"
 
-msgid "Set Unprintable"
-msgstr "Undruckbar machen"
-
-msgid "Set Printable"
-msgstr "Druckbar machen"
-
 msgid "Unlock"
 msgstr "Entsperren"
 
@@ -1083,8 +1080,8 @@ msgstr ""
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
-msgid "Edit plate setitngs"
-msgstr ""
+msgid "Edit plate settings"
+msgstr "Platteneinstellungen bearbeiten"
 
 msgid "Name"
 msgstr "Name"
@@ -1154,6 +1151,9 @@ msgstr "Lade Datei"
 
 msgid "Error!"
 msgstr "Fehler!"
+
+msgid "Failed to get the model data in the current file."
+msgstr ""
 
 msgid "Generic"
 msgstr "Generisch"
@@ -1334,15 +1334,6 @@ msgstr "Das Kopieren mehrerer Zellen wird nicht unterstützt"
 msgid "Outside"
 msgstr "Aussenseite"
 
-msgid "Auto"
-msgstr "Automatisch"
-
-msgid "Manual"
-msgstr "Manuell"
-
-msgid "No-brim"
-msgstr "Keine Umrandung"
-
 msgid " "
 msgstr ""
 
@@ -1357,6 +1348,21 @@ msgstr "Füllungdichte(%)"
 
 msgid "Auto Brim"
 msgstr "Automatische Umrandung"
+
+msgid "Auto"
+msgstr "Automatisch"
+
+msgid "Outer brim only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
+msgstr ""
+
+msgid "No-brim"
+msgstr "Keine Umrandung"
 
 msgid "Outer wall speed"
 msgstr "Geschwindigkeit Außenwand"
@@ -1539,10 +1545,10 @@ msgstr "Neues Filament in den Extruder schieben"
 msgid "Purge old filament"
 msgstr "Altes Filament entfernen"
 
-msgid "Feed new filament from external spool"
+msgid "Push new filament into the extruder"
 msgstr ""
 
-msgid "Confirm whether the filament has been extruded"
+msgid "Grab new filament"
 msgstr ""
 
 msgid ""
@@ -2092,7 +2098,15 @@ msgstr "Mit Filament aus dem AMS drucken"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Drucken mit Filament von einer externen Spule"
 
-msgid "Filaments replace"
+msgid "Filaments Auto refill"
+msgstr ""
+
+msgid "Auto refill"
+msgstr ""
+
+msgid ""
+"When the current material run out, the printer will continue to print in the "
+"following order."
 msgstr ""
 
 msgid "Group"
@@ -3528,8 +3542,8 @@ msgstr "Initialisierung fehlgeschlagen (Kein Zugriff im reinen LAN-Modus)!"
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialisierung fehlgeschlagen (Fehlende LAN IP des Druckers)!"
 
-msgid "Initialize failed (Not supported by printer)!"
-msgstr "Initialisierung fehlgeschlagen (wird vom Drucker nicht unterstützt)!"
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3650,6 +3664,10 @@ msgid "No files [%d]"
 msgstr ""
 
 #, c-format, boost-format
+msgid "Load failed [%d]"
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
 "You are going to delete %u files from printer. Are you sure to continue?"
 msgstr ""
@@ -3662,6 +3680,15 @@ msgid "Do you want to delete the file '%s' from printer?"
 msgstr ""
 
 msgid "Delete file"
+msgstr ""
+
+msgid "Fetching model infomations ..."
+msgstr ""
+
+msgid "Failed to fetching model infomations from printer."
+msgstr ""
+
+msgid "Failed to parse model infomations."
 msgstr ""
 
 #, c-format, boost-format
@@ -3863,6 +3890,12 @@ msgstr "Kann ohne MicroSD-Karte nicht gestartet werden."
 msgid "Failed to connect to the server"
 msgstr "Verbindung zum Server fehlgeschlagen"
 
+msgid "Check cloud service status"
+msgstr ""
+
+msgid "code"
+msgstr ""
+
 msgid "Status"
 msgstr "Status"
 
@@ -3872,8 +3905,20 @@ msgstr "Update"
 msgid "HMS"
 msgstr "HMS"
 
+msgid "Failed to connect to cloud service"
+msgstr ""
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr ""
+
 msgid "Failed to connect to the printer"
 msgstr "Verbindung zum Drucker fehlgeschlagen"
+
+msgid "Connection to printer failed"
+msgstr ""
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr ""
 
 msgid "Don't show again"
 msgstr "Nicht erneut anzeigen"
@@ -3991,6 +4036,9 @@ msgstr "Warnung:"
 
 msgid "Export successfully."
 msgstr "Erfolgreich exportiert"
+
+msgid "Serious warning:"
+msgstr ""
 
 msgid " (Repair)"
 msgstr " (Reparatur)"
@@ -4183,16 +4231,10 @@ msgstr ""
 "ausgeführt."
 
 msgid ""
-"There are some unknown filaments mapped to generic preset. Please update "
-"Bambu Studio or restart Bambu Studio to check if there is an update to "
-"system presets."
+"There are some unknown or uncompatible filaments mapped to generic preset. "
+"Please update Bambu Studio or restart Bambu Studio to check if there is an "
+"update to system presets."
 msgstr ""
-"Es gibt einige unbekannte Filamente, die generischen Profilen zugewiesen "
-"sind. Bitte aktualisieren Sie Bambu Studio oder starten Sie Bambu Studio "
-"neu, um zu prüfen, ob es ein Update der Systemvorgaben gibt."
-
-msgid "Untitled"
-msgstr "Unbenannt"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4765,6 +4807,9 @@ msgstr "Dunklen Modus aktivieren"
 msgid "Develop mode"
 msgstr "Entwicklermodus"
 
+msgid "Skip AMS blacklist check"
+msgstr ""
+
 msgid "Home page and daily tips"
 msgstr "Startseite und tägliche Tipps"
 
@@ -4800,6 +4845,12 @@ msgstr "Sonstige"
 
 msgid "Mouse wheel reverses when zooming"
 msgstr "Scrollrichtung beim Zoomen umkehren"
+
+msgid "Enable SSL(MQTT)"
+msgstr ""
+
+msgid "Enable SSL(FTP)"
+msgstr ""
 
 msgid "Internal developer mode"
 msgstr ""
@@ -4888,6 +4939,9 @@ msgstr "Materialien hinzufügen/entfernen"
 msgid "Add/Remove printers"
 msgstr "Drucker hinzufügen/entfernen"
 
+msgid "Incompatible"
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr ""
 
@@ -4897,23 +4951,11 @@ msgstr "Druckreihenfolge"
 msgid "Plate name"
 msgstr ""
 
-msgid "Same as Global Bed Type"
-msgstr "Entspricht dem allgemeinen Bettyp"
-
-msgid "Cool Plate"
-msgstr "kalte Druckplatte"
-
-msgid "PLA Plate"
+msgid "Same as Global Plate Type"
 msgstr ""
 
-msgid "Engineering Plate"
-msgstr "Technische Druckplatte"
-
-msgid "High Temp Plate"
-msgstr "Hochtemperaturdruckplatte"
-
-msgid "Textured PEI Plate"
-msgstr "Texturierte PEI-Platte"
+msgid "Same as Global Bed Type"
+msgstr "Entspricht dem allgemeinen Bettyp"
 
 msgid "By Layer"
 msgstr ""
@@ -5069,6 +5111,9 @@ msgstr "Beschäftigt"
 
 msgid "Bambu Cool Plate"
 msgstr "Bambu Kalte-Druckplatte"
+
+msgid "PLA Plate"
+msgstr ""
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Technische-Druckplatte"
@@ -5241,11 +5286,6 @@ msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
 msgid "The name length exceeds the limit."
 msgstr ""
 
-msgid ""
-"Extrusion compensation calibration is not supported when using Textured PEI "
-"Plate"
-msgstr ""
-
 msgid "Modifying the device name"
 msgstr "Den Gerätenamen ändern"
 
@@ -5286,6 +5326,9 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
+msgstr ""
+
+msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -5573,6 +5616,9 @@ msgstr ""
 "Wert von 0 bedeutet, dass das Filament auf der kalten Druckplatte nicht "
 "unterstützt."
 
+msgid "Engineering Plate"
+msgstr "Technische Druckplatte"
+
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -5581,6 +5627,9 @@ msgstr ""
 "wird. Ein Wert von 0 bedeutet, dass das Filament auf der technischen "
 "Druckplatte nicht unterstützt wird."
 
+msgid "High Temp Plate"
+msgstr "Hochtemperaturdruckplatte"
+
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
@@ -5588,6 +5637,9 @@ msgstr ""
 "Dies ist die Betttemperatur, wenn die Hochtemperatur-Druckplatte installiert "
 "ist. Ein Wert von 0 bedeutet, dass das Filament auf der Hochtemperatur-"
 "Druckplatte nicht unterstützt wird."
+
+msgid "Textured PEI Plate"
+msgstr "Texturierte PEI-Platte"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -7088,15 +7140,6 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
-msgid "Outer brim only"
-msgstr ""
-
-msgid "Inner brim only"
-msgstr ""
-
-msgid "Outer and inner brim"
-msgstr ""
-
 msgid "Brim-object gap"
 msgstr "Lücke zwischen Rand und Objekt"
 
@@ -7382,6 +7425,12 @@ msgstr ""
 "empfohlene Wertebereich liegt zwischen 0,95 und 1,05. Sie können diesen Wert "
 "anpassen, um eine schöne flache Oberfläche zu erhalten, wenn es eine leichte "
 "Über- oder Unterextrusion gibt."
+
+msgid "Object flow ratio"
+msgstr ""
+
+msgid "The flow ratio set by object, the meaning is the same as flow ratio."
+msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "Standardlinienbreite für Linienbreiten, die auf 0 gesetzt sind"
@@ -7758,6 +7807,44 @@ msgstr ""
 "Kombinieren Sie automatisch die Füllung von mehreren Schichten, um diese "
 "gemeinsam zu drucken und Zeit zu sparen. Die Wand wird weiterhin mit der "
 "ursprünglichen Schichthöhe gedruckt."
+
+msgid "Length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than infill_anchor_max is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to this parameter, but no longer than anchor_length_max. "
+"Set this parameter to zero to disable anchoring perimeters connected to a "
+"single infill line."
+msgstr ""
+
+msgid "0 (no open anchors)"
+msgstr ""
+
+msgid "1000 (unlimited)"
+msgstr ""
+
+msgid "Maximum length of sparse infill anchor"
+msgstr ""
+
+msgid ""
+"Connect a sparse infill line to an internal perimeter with a short segment "
+"of an additional perimeter. If expressed as percentage (example: 15%) it is "
+"calculated over sparse infill line width. Slicer tries to connect two close "
+"infill lines to a short perimeter segment. If no such perimeter segment "
+"shorter than this parameter is found, the infill line is connected to a "
+"perimeter segment at just one side and the length of the perimeter segment "
+"taken is limited to infill_anchor, but no longer than this parameter. Set "
+"this parameter to zero to disable anchoring."
+msgstr ""
+
+msgid "0 (not anchored)"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "Filament für den Druck der inneren Füllung."
@@ -8419,6 +8506,12 @@ msgid ""
 msgstr ""
 "Erstelle nur Stützstrukturen für kritische Bereiche, z. B. für steile "
 "Kanten, Ausragungen, usw."
+
+msgid "Remove small overhangs"
+msgstr ""
+
+msgid "Remove small overhangs that possibly need no supports."
+msgstr ""
 
 msgid "Top Z distance"
 msgstr "Oberer Z-Abstand"
@@ -9468,6 +9561,31 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid "Set Unprintable"
+#~ msgstr "Undruckbar machen"
+
+#~ msgid "Set Printable"
+#~ msgstr "Druckbar machen"
+
+#~ msgid "Manual"
+#~ msgstr "Manuell"
+
+#~ msgid "Initialize failed (Not supported by printer)!"
+#~ msgstr ""
+#~ "Initialisierung fehlgeschlagen (wird vom Drucker nicht unterstützt)!"
+
+#~ msgid ""
+#~ "There are some unknown filaments mapped to generic preset. Please update "
+#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
+#~ "system presets."
+#~ msgstr ""
+#~ "Es gibt einige unbekannte Filamente, die generischen Profilen zugewiesen "
+#~ "sind. Bitte aktualisieren Sie Bambu Studio oder starten Sie Bambu Studio "
+#~ "neu, um zu prüfen, ob es ein Update der Systemvorgaben gibt."
+
+#~ msgid "Cool Plate"
+#~ msgstr "kalte Druckplatte"
 
 #~ msgid "The region parameter is incorrrect"
 #~ msgstr "Der Regionsparameter ist falsch."
