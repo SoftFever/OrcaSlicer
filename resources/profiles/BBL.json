@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.06.00.06",
+    "version": "01.06.00.08",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -900,6 +900,46 @@
         {
             "name": "Bambu Support For PA/PET @BBL X1C",
             "sub_path": "filament/Bambu Support For PA PET @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Aero @base",
+            "sub_path": "filament/Bambu PLA Aero @base.json"
+        },
+        {
+            "name": "Bambu PLA Aero @BBL X1",
+            "sub_path": "filament/Bambu PLA Aero @BBL X1.json"
+        },
+        {
+            "name": "Bambu PLA Aero @BBL X1C",
+            "sub_path": "filament/Bambu PLA Aero @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Aero @BBL P1P",
+            "sub_path": "filament/P1P/Bambu PLA Aero @BBL P1P.json"
+        },
+        {
+            "name": "Bambu ASA @base",
+            "sub_path": "filament/Bambu ASA @base.json"
+        },
+        {
+            "name": "Bambu ASA @BBL X1 0.2 nozzle",
+            "sub_path": "filament/Bambu ASA @BBL X1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA @BBL X1 0.6 nozzle",
+            "sub_path": "filament/Bambu ASA @BBL X1 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA @BBL X1C",
+            "sub_path": "filament/Bambu ASA @BBL X1C.json"
+        },
+        {
+            "name": "Bambu ASA @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu ASA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA @BBL X1C 0.4 nozzle",
+            "sub_path": "filament/Bambu ASA @BBL X1C 0.4 nozzle.json"
         }
     ],
     "machine_list": [
