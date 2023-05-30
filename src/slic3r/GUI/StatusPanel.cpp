@@ -2467,32 +2467,33 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_button_abort->SetBitmap_("print_control_stop_disable");
                 m_button_pause_resume->Enable(false);
                 m_button_pause_resume->SetBitmap_("print_control_resume_disable");
-                if (!m_print_finish && obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-                    m_print_finish = true;
-                    m_button_market_scoring->Show();
-                    int job_id = obj->get_modeltask()->job_id;
-                    if (wxGetApp().app_config->get("not_show_score_dialog") != "1" && rated_model_id.find(job_id) == rated_model_id.end()) {
-                        MessageDialog dlg(this, _L("Please give a score for your favorite Bambu Market model."),
-                                          wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
-                        dlg.show_dsa_button();
-                        int  old_design_id = obj->get_modeltask()->design_id;
-                        auto res = dlg.ShowModal();
-                        if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
-                        if (res == wxID_YES) { 
-                            market_model_scoring_page(old_design_id);
+                bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
+                if (is_market_task) { 
+                    m_button_market_scoring->Show(); 
+                    if (!m_print_finish && IsShownOnScreen()) {
+                        m_print_finish = true;
+                        int job_id = obj->get_modeltask()->job_id;
+                        if (wxGetApp().app_config->get("not_show_score_dialog") != "1" && rated_model_id.find(job_id) == rated_model_id.end()) {
+                            MessageDialog dlg(this, _L("Please give a score for your favorite Bambu Market model."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"),
+                                              wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+                            dlg.show_dsa_button();
+                            int  old_design_id = obj->get_modeltask()->design_id;
+                            auto res           = dlg.ShowModal();
+                            if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
+                            if (res == wxID_YES) { market_model_scoring_page(old_design_id); }
+                            rated_model_id.insert(job_id);
                         }
-                        rated_model_id.insert(job_id);
                     }
-                } else if (obj->get_modeltask() && obj->get_modeltask()->design_id <= 0) {
+                } else {
                     m_button_market_scoring->Hide();
                 }
             } else {
                 m_button_abort->Enable(true);
                 m_button_abort->SetBitmap_("print_control_stop");
                 m_button_pause_resume->Enable(true);
+                m_button_market_scoring->Hide();
                 if (m_print_finish) { 
                     m_print_finish = false;
-                    m_button_market_scoring->Hide();
                 }
             }
             // update printing stage
