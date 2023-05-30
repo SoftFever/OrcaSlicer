@@ -207,7 +207,10 @@ void MediaPlayCtrl::Play()
             }
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
             CallAfter([this, m, url] {
-                if (m != m_machine) return;
+                if (m != m_machine) {
+                    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
+                    return;
+                }
                 m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {

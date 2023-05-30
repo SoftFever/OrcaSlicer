@@ -248,8 +248,6 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         });
     }
 
-
-
     //m_export_to_file = new Button( this, wxT("Export To File"), "");
     //m_import_from_file = new Button( this, wxT("Import From File") );
 
@@ -393,14 +391,10 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_print_object) {
-        if (m_staticline_print_object)
-            m_left_sizer->Add( m_staticline_print_object, 0, wxEXPAND );
         m_left_sizer->Add( m_tab_print_object, 0, wxEXPAND );
     }
 
     if (m_tab_print_part) {
-        if (m_staticline_print_part)
-            m_left_sizer->Add( m_staticline_print_part, 0, wxEXPAND );
         m_left_sizer->Add( m_tab_print_part, 0, wxEXPAND );
     }
 
@@ -409,8 +403,6 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_filament) {
-        if (m_staticline_filament)
-            m_left_sizer->Add(m_staticline_filament, 0, wxEXPAND);
         //m_filament_sizer = new wxBoxSizer( wxVERTICAL );
         //m_filament_sizer->Add( m_tab_filament, 1, wxEXPAND | wxALL, 5 );
        // m_left_sizer->Add( m_filament_sizer, 1, wxEXPAND, 5 );
@@ -418,8 +410,6 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_printer) {
-        if (m_staticline_printer)
-            m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND );
         //m_printer_sizer = new wxBoxSizer( wxVERTICAL );
         //m_printer_sizer->Add( m_tab_printer, 1, wxEXPAND | wxALL, 5 );
         m_left_sizer->Add( m_tab_printer, 0, wxEXPAND );
