@@ -150,6 +150,9 @@ protected:
     wxStaticText *      m_title_temperature;
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
+    ScalableBitmap *    degree;
+    wxStaticBitmap *    bitmap_max_degree;
+    wxStaticBitmap *    bitmap_min_degree;
     Button *            m_button_reset;
     Button *            m_button_confirm;
     wxStaticText*       m_tip_readonly;

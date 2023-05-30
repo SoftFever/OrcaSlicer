@@ -184,8 +184,9 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_input_nozzle_min->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
 
-    auto bitmap_max_degree = new wxStaticBitmap(parent, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
-    auto bitmap_min_degree = new wxStaticBitmap(parent, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
+    degree            = new ScalableBitmap(parent, "degree", 16);
+    bitmap_max_degree = new wxStaticBitmap(parent, -1, degree->bmp(), wxDefaultPosition, wxDefaultSize);
+    bitmap_min_degree = new wxStaticBitmap(parent, -1, degree->bmp(), wxDefaultPosition, wxDefaultSize);
 
     sizer_tempinput->Add(m_input_nozzle_max, 1, wxALIGN_CENTER, 0);
     sizer_tempinput->Add(bitmap_min_degree, 0, wxALIGN_CENTER, 0);
@@ -194,7 +195,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     sizer_tempinput->Add(bitmap_max_degree, 0, wxALIGN_CENTER, 0);
 
     wxBoxSizer* sizer_temp_txt = new wxBoxSizer(wxHORIZONTAL);
-    auto        m_title_max = new wxStaticText(parent, wxID_ANY, _L("max"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
+    auto m_title_max = new wxStaticText(parent, wxID_ANY, _L("max"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
     m_title_max->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_max->SetFont(::Label::Body_13);
     auto m_title_min = new wxStaticText(parent, wxID_ANY, _L("min"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
@@ -925,7 +926,22 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     m_filament_selection = evt.GetSelection();
 }
 
-void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }
+void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
+{ 
+    m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    //m_clr_picker->msw_rescale();
+    degree->msw_rescale();
+    bitmap_max_degree->SetBitmap(degree->bmp());
+    bitmap_min_degree->SetBitmap(degree->bmp());
+    m_button_reset->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+    m_button_reset->SetCornerRadius(FromDIP(12));
+    m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+    m_button_confirm->SetCornerRadius(FromDIP(12));
+    m_button_close->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+    m_button_close->SetCornerRadius(FromDIP(12));
+    this->Refresh(); 
+}
 
 ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
 {
@@ -993,7 +1009,7 @@ void ColorPicker::doRender(wxDC& dc)
     wxSize     size = GetSize();
     auto alpha = m_colour.Alpha();
 
-    auto radius = m_show_full?size.x / 2:size.x / 2 - FromDIP(1);
+    auto radius = m_show_full ? size.x / 2 - FromDIP(1) : size.x / 2;
     if (m_selected) radius -= FromDIP(1);
 
     if (alpha == 0) {
@@ -1002,19 +1018,19 @@ void ColorPicker::doRender(wxDC& dc)
     else {
         dc.SetPen(wxPen(m_colour));
         dc.SetBrush(wxBrush(m_colour));
-        dc.DrawCircle(size.x / 2, size.x / 2, radius);
+        dc.DrawCircle(size.x / 2, size.y / 2, radius);
     }
 
     if (m_selected) {
         dc.SetPen(wxPen(m_colour));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawCircle(size.x / 2, size.x / 2, size.x / 2);
+        dc.DrawCircle(size.x / 2, size.y / 2, size.x / 2);
     }
 
     if (m_show_full) {
         dc.SetPen(wxPen(wxColour(0x6B6B6B)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawCircle(size.x / 2, size.x / 2, radius);
+        dc.DrawCircle(size.x / 2, size.y / 2, radius);
 
         //transparent
         if (alpha == 0) {
