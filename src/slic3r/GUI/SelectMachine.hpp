@@ -305,7 +305,7 @@ private:
     StateColor                          m_btn_bg_enable;
     
     std::map<std::string, CheckBox *>   m_checkbox_list;
-    std::map<std::string, bool>         m_checkbox_state_list;
+    //std::map<std::string, bool>         m_checkbox_state_list;
     std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
@@ -440,7 +440,7 @@ public:
     void update_priner_status_msg(wxString msg, bool is_warning = false);
     void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
     void update_print_error_info(int code, std::string msg, std::string extra);
-    void set_flow_calibration_state(bool state);
+    //void set_flow_calibration_state(bool state);
     bool is_show_timelapse();
     bool is_same_printer_model();
     bool has_tips(MachineObject* obj);
