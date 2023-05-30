@@ -7696,6 +7696,7 @@ int Plater::new_project(bool skip_confirm, bool silent)
     //get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     //p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     reset(transfer_preset_changes);
+    reset_project_dirty_after_save();
     reset_project_dirty_initial_presets();
     wxGetApp().update_saved_preset_from_current_preset();
     update_project_dirty_from_presets();
@@ -7871,7 +7872,7 @@ int Plater::save_project(bool saveAs)
     up_to_date(true, true);
 
     wxGetApp().update_saved_preset_from_current_preset();
-    p->dirty_state.reset_after_save();
+    reset_project_dirty_after_save();
     return wxID_YES;
 }
 
