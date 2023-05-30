@@ -34,8 +34,7 @@ public:
         Vertical
     };
 private:
-    std::string move_to(Ved3d pt);
-    std::string move_to(Vec2d pt);
+    std::string move_to(Vec2d pt, std::string comment = std::string());
     std::string convert_number_to_string(double num);
     std::string draw_digit(double startx, double starty, char c, calib_pressure_advance::DrawDigitMode mode);
     std::string draw_number(double startx, double starty, double value, calib_pressure_advance::DrawDigitMode mode);
