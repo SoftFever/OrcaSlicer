@@ -531,8 +531,8 @@ Sidebar::Sidebar(Plater *parent)
         p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"), LB_PROPAGATE_MOUSE_EVENT);
 
         p->m_printer_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-            auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
-            wizard_t->run(ConfigWizard::RR_USER, ConfigWizard::SP_CUSTOM);
+            //auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
+            //wizard_t->run(ConfigWizard::RR_USER, ConfigWizard::SP_CUSTOM);
             });
 
 
