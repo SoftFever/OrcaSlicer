@@ -456,7 +456,7 @@ struct MediaProgressDialog : ProgressDialog
     std::function<void()> m_cancel;
 };
 
-void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
+void MediaFilePanel::doAction(size_t index, int action)
 {
     auto fs = m_image_grid->GetFileSystem();
     if (action == 0) {
@@ -502,8 +502,8 @@ void Slic3r::GUI::MediaFilePanel::doAction(size_t index, int action)
                     Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, from_u8(file.name).ToStdString());
                     wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
                 });
+                return;
             }
-            return;
         }
         if (index != -1) {
             auto &file = fs->GetFile(index);

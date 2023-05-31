@@ -68,6 +68,8 @@ int ComboBox::GetSelection() const { return drop.GetSelection(); }
 
 void ComboBox::SetSelection(int n)
 {
+    if (n == drop.selection)
+        return;
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
     if (drop.selection >= 0)

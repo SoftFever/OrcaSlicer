@@ -95,6 +95,7 @@ void TextInput::SetLabel(const wxString& label)
 
 void TextInput::SetIcon(const wxBitmap &icon)
 {
+    this->icon = ScalableBitmap();
     this->icon.bmp() = icon;
     Rescale();
 }
