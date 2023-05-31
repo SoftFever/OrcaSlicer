@@ -2968,7 +2968,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
         }
     }
-    #if 0
+    #if 1
     // delete nodes with no children (means either it's a single layer nodes, or the branch has been deleted but not completely)
     for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--){
         auto layer_contact_nodes = contact_nodes[layer_nr];
@@ -3343,12 +3343,14 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                 Point candidate = overhang_bounds.center();
                 if (!overhang_part.contains(candidate))
                     move_inside_expoly(overhang_part, candidate);
-                Node *contact_node     = new Node(candidate, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, true, Node::NO_PARENT, print_z,
-                                              height, z_distance_top);
-                contact_node->type = ePolygon;
-                contact_node->overhang = &overhang_part;
-                curr_nodes.emplace_back(contact_node);
-                continue;
+                if (!(config.support_on_build_plate_only && is_inside_ex(m_ts_data->m_layer_outlines_below[layer_nr], candidate))) {
+                    Node* contact_node = new Node(candidate, -z_distance_top_layers, layer_nr, support_roof_layers + z_distance_top_layers, true, Node::NO_PARENT, print_z,
+                        height, z_distance_top);
+                    contact_node->type = ePolygon;
+                    contact_node->overhang = &overhang_part;
+                    curr_nodes.emplace_back(contact_node);
+                    continue;
+                }
             }
 
             overhang_bounds.inflated(half_overhang_distance);
