@@ -228,7 +228,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
-            osteps.emplace_back(posSimplifyPath);
+            osteps.emplace_back(posSimplifyWall);
+            osteps.emplace_back(posSimplifyInfill);
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
         }
@@ -1682,8 +1683,10 @@ void Print::process(bool use_cache)
             obj->simplify_extrusion_path();
         }
         else {
-            if (obj->set_started(posSimplifyPath))
-                obj->set_done(posSimplifyPath);
+            if (obj->set_started(posSimplifyWall))
+                obj->set_done(posSimplifyWall);
+            if (obj->set_started(posSimplifyInfill))
+                obj->set_done(posSimplifyInfill);
             if (obj->set_started(posSimplifySupportPath))
                 obj->set_done(posSimplifySupportPath);
         }

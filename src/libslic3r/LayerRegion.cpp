@@ -526,13 +526,6 @@ void LayerRegion::export_region_fill_surfaces_to_svg_debug(const char *name) con
     this->export_region_fill_surfaces_to_svg(debug_out_path("LayerRegion-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
 }
 
-//BBS
-void LayerRegion::simplify_extrusion_entity()
-{
-    simplify_entity_collection(&perimeters);
-    simplify_entity_collection(&fills);
-}
-
 void LayerRegion::simplify_entity_collection(ExtrusionEntityCollection* entity_collection)
 {
     for (size_t i = 0; i < entity_collection->entities.size(); i++) {

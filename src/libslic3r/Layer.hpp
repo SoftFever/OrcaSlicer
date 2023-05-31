@@ -95,7 +95,8 @@ public:
     // Is there any valid extrusion assigned to this LayerRegion?
     bool    has_extrusions() const { return ! this->perimeters.entities.empty() || ! this->fills.entities.empty(); }
     //BBS
-    void    simplify_extrusion_entity();
+    void    simplify_infill_extrusion_entity() { simplify_entity_collection(&fills); }
+    void    simplify_wall_extrusion_entity() { simplify_entity_collection(&perimeters); }
 private:
     void    simplify_entity_collection(ExtrusionEntityCollection* entity_collection);
     void    simplify_path(ExtrusionPath* path);
@@ -190,7 +191,8 @@ public:
     virtual bool            has_extrusions() const { for (auto layerm : m_regions) if (layerm->has_extrusions()) return true; return false; }
 
     //BBS
-    void simplify_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_extrusion_entity();}
+    void simplify_wall_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_wall_extrusion_entity();}
+    void simplify_infill_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_infill_extrusion_entity(); }
     //BBS: this function calculate the maximum void grid area of sparse infill of this layer. Just estimated value
     coordf_t get_sparse_infill_max_void_area();
 

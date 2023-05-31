@@ -87,8 +87,9 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath,
+    posInfill, posIroning, posSupportMaterial,
     // BBS
+    posSimplifyWall, posSimplifyInfill, posSimplifySupportPath,
     posDetectOverhangsForLift,
     posCount,
 };
