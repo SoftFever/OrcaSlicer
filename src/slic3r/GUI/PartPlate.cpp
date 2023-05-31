@@ -1609,7 +1609,7 @@ void PartPlate::set_plate_name(const std::string &name)
     // compare if name equal to m_name, case sensitive
     if (boost::equals(m_name, name)) return;
     m_name = name;
-    m_name.erase(remove_if(m_name.begin(), m_name.end(), ::isspace), m_name.end());
+    
     std::regex reg("[\\\\/:*?\"<>|]");
     m_name= regex_replace(m_name, reg, "");
     m_name_change = true;
