@@ -1050,7 +1050,7 @@ void GUI_App::post_init()
                 plater_->select_view_3D("3D");
                 wxArrayString input_files;
                 for (auto & file : this->init_params->input_files) {
-                    input_files.push_back(file);
+                    input_files.push_back(wxString::FromUTF8(file));
                 }
                 this->plater()->set_project_filename(_L("Untitled"));
                 this->plater()->load_files(input_files);
