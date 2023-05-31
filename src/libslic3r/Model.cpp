@@ -3381,19 +3381,18 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     //BBS: add materials related information
     ModelVolume *volume = NULL;
-    for (size_t i = 0; i < object->volumes.size(); ++ i) {
-        if (object->volumes[i]->is_model_part())
-        {
+    for (size_t i = 0; i < object->volumes.size(); ++i) {
+        if (object->volumes[i]->is_model_part()) {
             volume = object->volumes[i];
-            break;
+            if (!volume) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
+                return;
+            }
+            auto ve = object->volumes[i]->get_extruders();
+            ret.extrude_ids.insert(ret.extrude_ids.end(), ve.begin(), ve.end());
         }
     }
-    if (!volume)
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
-        return;
-    }
-    ret.extrude_ids = volume->get_extruders();
+
     // get per-object support extruders
     auto op = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
     bool is_support_enabled = op && op->getBool();
