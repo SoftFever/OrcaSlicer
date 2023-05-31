@@ -103,6 +103,7 @@ public:
         m_extrusion_multiplier(0.98),
         m_height_layer(0.2),
         m_height_first_layer(0.25),
+        m_speed_first_layer(30),
 
         m_anchor_perimeters(4),
         m_anchor_layer_line_ratio(140),
@@ -151,6 +152,7 @@ private:
     double m_extrusion_multiplier;
     double m_height_layer;
     double m_height_first_layer;
+    double m_speed_first_layer;
     
     int m_anchor_perimeters;
     int m_anchor_layer_line_ratio;

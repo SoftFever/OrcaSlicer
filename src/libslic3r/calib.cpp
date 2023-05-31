@@ -391,26 +391,25 @@ std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, std
 
 std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, double size_x, double size_y)
 {
-    auto& config = mp_gcodegen->config();
-    auto& writer = mp_gcodegen->writer();
+    const auto& config = mp_gcodegen->config();
+    const auto& writer = mp_gcodegen->writer();
     std::stringstream gcode;
 
     double x = min_x;
     double y = min_y;
-    double max_x = min_x + size_x;
-    double max_y = min_y + size_y;
+    
+    const double max_x = min_x + size_x;
+    const double max_y = min_y + size_y;
 
-    double layer_height;
-    if (mp_gcodegen.m_layer_index <= 0) {
-        layer_height = config.initial_layer_print_height.value;
-    } else {
-        layer_height = config.layer_height.value;
-    }
+    int num_perimeters = m_anchor_perimeters;
+    const double layer_height = m_height_first_layer;
+    const double line_width = m_nozzle_diameter * m_anchor_layer_line_ratio / 100;
+    const double speed = m_speed_first_layer * 60;
 
-    double spacing = line_width_anchor() - layer_height * (1 - M_PI / 4);
+    const double spacing = line_width - layer_height * (1 - M_PI / 4);
 
     // if number of perims exceeds size of box, reduce it to max
-    int max_perimeters =
+    const int max_perimeters =
         std::min(
             // this is the equivalent of number of perims for concentric fill
             std::floor(size_x * std::sin(to_radians(45))) / (spacing / std::sin(to_radians(45))),
@@ -418,9 +417,9 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
         )
     ;
 
-    int num_perimeters = std::min(config.num_perimeters, max_perimeters);
+    num_perimeters = std::min(num_perimeters, max_perimeters);
 
-    gcode << move_to(Vec2d(min_x, min_y));
+    gcode << move_to(Vec2d(min_x, min_y), "Move to box start");
 
     for (int i = 0; i < num_perimeters; ++i) {
         if (i != 0) { // after first perimeter, step inwards to start next perimeter
@@ -428,9 +427,18 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
             y += spacing;
             gcode << move_to(Vec2d(x, y), "Step inwards to print next perimeter");
         }
-        // draw line up
-        y += size_y - (i * spacing) * 2;
-        gcode << writer.extrude_to_xy(Vec2d(x, y), );
+
+        y += size_y - i * spacing * 2;
+        gcode << draw_line(x, y, "Draw perimeter (up)");
+
+        x += size_x - i * spacing * 2;
+        gcode << draw_line(x, y, "Draw perimeter (right)");
+
+        y -= size_y - i * spacing * 2;
+        gcode << draw_line(x, y, "Draw perimeter (down)");
+
+        x -= size_x - i * spacing * 2;
+        gcode << draw_line(x, y, "Draw perimeter (left)");        
     }
 
     return gcode.str();
