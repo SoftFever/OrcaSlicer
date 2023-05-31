@@ -47,7 +47,7 @@ private:
     void delta_modify_start(double start_x, double start_y, int count);
 private:
     GCode* mp_gcodegen;
-    double m_digit_len {2};
+    double m_digit_segment_len {2};
     double m_nozzle_diameter;
     int m_max_number_length {5};
     double m_number_spacing {3.0};
@@ -85,27 +85,30 @@ class calib_pressure_advance_pattern: public calib_pressure_advance
 
         std::string generate_test(double start_pa = 0, double end_pa = 0.08, double step_pa = 0.005);
 
-        double to_radians(double degrees) { return degrees * (M_PI / 180); }
+        double to_radians(double degrees) { return degrees * M_PI / 180; }
         
         double line_width() { return m_nozzle_diameter * m_line_ratio / 100; };
         double line_width_anchor() { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
         
         // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
-        double line_spacing() { return line_width() - mp_gcodegen->config().layer_height.value * (1 - M_PI / 4); };
-        double line_spacing_anchor() { return line_width_anchor() - mp_gcodegen->config().initial_layer_print_height.value * (1 - M_PI / 4); };
+        double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
+        double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
         double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
 
         double object_size_x(int num_patterns);
         double object_size_y(double start_pa, double step_pa, int num_patterns);
 
-        double max_numbering_height();
+        double max_numbering_height(double start_pa, double step_pa, int num_patterns);
 
         double get_distance(double cur_x, double cur_y, double to_x, double to_y);
-        std::string draw_line(double to_x, double to_y, double line_width, double layer_height, std::string comment = std::string());
+        std::string draw_line(double to_x, double to_y, std::string comment = std::string());
     private:
         int m_anchor_layer_line_ratio {140};
         int m_anchor_perimeters {4};
         int m_corner_angle {90};
+        double m_extrusion_multiplier {0.98};
+        double m_height_first_layer {0.25};
+        double m_height_layer {0.2};
         double m_glyph_padding_horizontal {1};
         double m_glyph_padding_vertical {1};
         double m_line_ratio {112.5};

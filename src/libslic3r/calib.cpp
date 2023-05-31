@@ -21,7 +21,7 @@ namespace Slic3r {
     }
 
     std::string convert_number_to_string(double num) {
-        auto sNumber = std::to_string(value);
+        auto sNumber = std::to_string(num);
         sNumber.erase(sNumber.find_last_not_of('0') + 1, std::string::npos);
         sNumber.erase(sNumber.find_last_not_of('.') + 1, std::string::npos);
 
@@ -33,7 +33,7 @@ namespace Slic3r {
         std::stringstream gcode;
         const double lw = 0.48;
         Flow line_flow = Flow(lw, 0.2, m_nozzle_diameter);
-        const double len = m_digit_len;
+        const double len = m_digit_segment_len;
         const double gap = lw / 2.0;
 
         /* 
@@ -280,8 +280,7 @@ namespace Slic3r {
     std::string calib_pressure_advance_pattern::generate_test(double start_pa, double end_pa, double step_pa) {
         BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
         
-        bool is_delta = is_delta();
-        if (is_delta) {
+        if (is_delta()) {
             delta_scale_bed_ext(bed_ext);
         }
 
@@ -317,7 +316,7 @@ namespace Slic3r {
         auto start_x = center_x - (object_size_x + pattern_shift) / 2;
         auto start_y = center_y - object_size_y / 2;
 
-        if (is_delta) {
+        if (is_delta()) {
             delta_modify_start(start_x, start_y, num_patterns);
         }
 
@@ -348,36 +347,36 @@ namespace Slic3r {
             line_width_anchor()
     }
 
-    double max_numbering_height(double start_pa, double step_pa, int count) {
-        int max_length = 0;
+    double max_numbering_height(double start_pa, double step_pa, int num_patterns) {
+        int most_characters = 0;
 
-        for (int i = 0; i < count; i += 2) {
+        // note: only every other number is printed
+        for (int i = 0; i < num_patterns; i += 2) {
             std::string sNumber = convert_number_to_string(start_pa + (i * step_pa));
 
-            if (sNumber.length > max_length) { max_length = sNumber.length; }
+            if (sNumber.length > most_characters) { most_characters = sNumber.length; }
         }
 
-        max_length = std::min(max_characters, m_max_number_length);
+        most_characters = std::min(most_characters, m_max_number_length);
 
-        return (max_length * m_digit_len) + ((max_length - 1) * m_number_spacing);
+        return (most_characters * m_digit_segment_len) + ((most_characters - 1) * m_number_spacing);
     }
 
     double get_distance(double cur_x, double cur_y, double to_x, double to_y) {
         return std::hypot((to_x - cur_x), (to_y - cur_y));
     }
 
-    std::string draw_line(double to_x, double to_y, double line_width, double layer_height, std::string comment = std::string()) {
+    std::string draw_line(double to_x, double to_y, std::string comment = std::string()) {
         std::stringstream gcode;
         auto& config = mp_gcodegen.config();
         auto& writer = mp_gcodegen.writer();
 
-        Flow line_flow = Flow(line_width, layer_height, m_nozzle_diameter);
+        Flow line_flow = Flow(line_width(), m_height_layer, m_nozzle_diameter);
         const double filament_area = M_PI * std::pow(config.filament_diameter.value / 2, 2);
-        const double e_per_mm = line_flow.mm3_per_mm() / filament_area * config.print_flow_ratio;
+        const double e_per_mm = line_flow.mm3_per_mm() / filament_area * m_extrusion_multiplier;
 
         Point last_pos = mp_gcodegen.last_pos();
         const double length = get_distance(last_pos.x(), last_pos.y(), to_x, to_y);
-        
         auto dE = e_per_mm * length;
 
         if (comment.empty()) {
