@@ -72,6 +72,27 @@ bool does_bound_a_volume(const CGALMesh &mesh);
 bool empty(const CGALMesh &mesh);
 }
 
+namespace mcut {
+struct McutMesh;
+struct McutMeshDeleter
+{
+    void operator()(McutMesh *ptr);
+};
+using McutMeshPtr = std::unique_ptr<McutMesh, McutMeshDeleter>;
+bool empty(const McutMesh &mesh);
+
+McutMeshPtr  triangle_mesh_to_mcut(const indexed_triangle_set &M);
+TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh);
+
+// do boolean and save result to srcMesh
+void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
+
+std::vector<TriangleMesh> make_boolean(const McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
+
+// do boolean and convert result to TriangleMesh
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts);
+} // namespace mcut
+
 } // namespace MeshBoolean
 } // namespace Slic3r
 #endif // libslic3r_MeshBoolean_hpp_

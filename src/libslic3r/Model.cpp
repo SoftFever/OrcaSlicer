@@ -1053,6 +1053,28 @@ void ModelObject::assign_new_unique_ids_recursive()
 // BBS: production extension
 int ModelObject::get_backup_id() const { return m_model ? get_model()->get_object_backup_id(*this) : -1; }
 
+// BBS: Boolean Operations impl. - MusangKing
+bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boolean_opts)
+{
+    // merge meshes into single volume instead of multi-parts object
+    if (this->volumes.size() != 1) {
+        // we can't merge meshes if there's not just one volume
+        return false;
+    }
+    std::vector<TriangleMesh> new_meshes;
+
+    const TriangleMesh &cut_mesh = cut_object->mesh();
+    MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
+
+    this->clear_volumes();
+    int i = 1;
+    for (TriangleMesh &mesh : new_meshes) {
+        ModelVolume *vol = this->add_volume(mesh);
+        vol->name        = this->name + "_" + std::to_string(i++);
+    }
+    return true;
+}
+
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {
     ModelVolume* v = new ModelVolume(this, mesh);

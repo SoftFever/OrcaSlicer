@@ -9535,6 +9535,7 @@ void Plater::export_core_3mf()
     export_3mf(path_u8, SaveStrategy::Silence);
 }
 
+#define USE_CGAL_BOOLEAN 0
 void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
@@ -9561,8 +9562,13 @@ void Plater::export_stl(bool extended, bool selection_only)
 
         if (csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }) == csgmesh.end()) {
             try {
+#if USE_CGAL_BOOLEAN
                 auto meshPtr = csg::perform_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) });
                 mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*meshPtr);
+#else
+                MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{std::begin(csgmesh), std::end(csgmesh)});
+                mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
+#endif
             } catch (...) {}
         }
 

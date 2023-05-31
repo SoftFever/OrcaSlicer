@@ -23,6 +23,8 @@
 #include <CGAL/property_map.h>
 #include <CGAL/boost/graph/copy_face_graph.h>
 #include <CGAL/boost/graph/Face_filtered_graph.h>
+// BBS: for boolean using mcut
+#include "mcut/include/mcut/mcut.h"
 
 namespace Slic3r {
 namespace MeshBoolean {
@@ -470,5 +472,318 @@ CGALMeshPtr clone(const CGALMesh &m)
 }
 
 } // namespace cgal
+
+
+namespace mcut {
+/* BBS: MusangKing
+ * mcut mesh array format for Boolean Opts calculation
+ */
+struct McutMesh
+{
+    // variables for mesh data in a format suited for mcut
+    std::vector<uint32_t> faceSizesArray;
+    std::vector<uint32_t> faceIndicesArray;
+    std::vector<double>   vertexCoordsArray;
+};
+void McutMeshDeleter::operator()(McutMesh *ptr) { delete ptr; }
+
+bool empty(const McutMesh &mesh) { return mesh.vertexCoordsArray.empty() || mesh.faceIndicesArray.empty(); }
+void triangle_mesh_to_mcut(const TriangleMesh &src_mesh, McutMesh &srcMesh, const Transform3d &src_nm = Transform3d::Identity())
+{
+    // vertices precision convention and copy
+    srcMesh.vertexCoordsArray.reserve(src_mesh.its.vertices.size() * 3);
+    for (int i = 0; i < src_mesh.its.vertices.size(); ++i) {
+        const Vec3d v = src_nm * src_mesh.its.vertices[i].cast<double>();
+        srcMesh.vertexCoordsArray.push_back(v[0]);
+        srcMesh.vertexCoordsArray.push_back(v[1]);
+        srcMesh.vertexCoordsArray.push_back(v[2]);
+    }
+
+    // faces copy
+    srcMesh.faceIndicesArray.reserve(src_mesh.its.indices.size() * 3);
+    srcMesh.faceSizesArray.reserve(src_mesh.its.indices.size());
+    for (int i = 0; i < src_mesh.its.indices.size(); ++i) {
+        const int &f0 = src_mesh.its.indices[i][0];
+        const int &f1 = src_mesh.its.indices[i][1];
+        const int &f2 = src_mesh.its.indices[i][2];
+        srcMesh.faceIndicesArray.push_back(f0);
+        srcMesh.faceIndicesArray.push_back(f1);
+        srcMesh.faceIndicesArray.push_back(f2);
+
+        srcMesh.faceSizesArray.push_back((uint32_t) 3);
+    }
+}
+
+McutMeshPtr triangle_mesh_to_mcut(const indexed_triangle_set &M)
+{
+    std::unique_ptr<McutMesh, McutMeshDeleter> out(new McutMesh{});
+    TriangleMesh                               trimesh(M);
+    triangle_mesh_to_mcut(trimesh, *out.get());
+    return out;
+}
+
+TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh)
+{
+    uint32_t ccVertexCount = mcutmesh.vertexCoordsArray.size() / 3;
+    auto    &ccVertices    = mcutmesh.vertexCoordsArray;
+    auto    &ccFaceIndices = mcutmesh.faceIndicesArray;
+    auto    &faceSizes     = mcutmesh.faceSizesArray;
+    uint32_t ccFaceCount   = faceSizes.size();
+    // rearrange vertices/faces and save into result mesh
+    std::vector<Vec3f> vertices(ccVertexCount);
+    for (uint32_t i = 0; i < ccVertexCount; i++) {
+        vertices[i][0] = (float) ccVertices[(uint64_t) i * 3 + 0];
+        vertices[i][1] = (float) ccVertices[(uint64_t) i * 3 + 1];
+        vertices[i][2] = (float) ccVertices[(uint64_t) i * 3 + 2];
+    }
+
+    // output faces
+    int faceVertexOffsetBase = 0;
+
+    // for each face in CC
+    std::vector<Vec3i> faces(ccFaceCount);
+    for (uint32_t f = 0; f < ccFaceCount; ++f) {
+        int faceSize = faceSizes.at(f);
+
+        // for each vertex in face
+        for (int v = 0; v < faceSize; v++) { faces[f][v] = ccFaceIndices[(uint64_t) faceVertexOffsetBase + v]; }
+        faceVertexOffsetBase += faceSize;
+    }
+
+    TriangleMesh out(vertices, faces);
+    return out;
+}
+
+void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts)
+{
+    // create context
+    McContext context = MC_NULL_HANDLE;
+    McResult  err     = mcCreateContext(&context, static_cast<McFlags>(MC_DEBUG));
+
+    // We can either let MCUT compute all possible meshes (including patches etc.), or we can
+    // constrain the library to compute exactly the boolean op mesh we want. This 'constrained' case
+    // is done with the following flags.
+    // NOTE#1: you can extend these flags by bitwise ORing with additional flags (see `McDispatchFlags' in mcut.h)
+    // NOTE#2: below order of columns MATTERS
+    const std::map<std::string, McFlags> booleanOpts = {
+        {"A_NOT_B", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
+        {"B_NOT_A", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
+        {"UNION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
+        {"INTERSECTION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
+    };
+
+    std::map<std::string, McFlags>::const_iterator it          = booleanOpts.find(boolean_opts);
+    McFlags                                        boolOpFlags = it->second;
+
+    if (srcMesh.vertexCoordsArray.empty() && (boolean_opts == "UNION" || boolean_opts == "B_NOT_A")) {
+        srcMesh = cutMesh;
+        return;
+    }
+
+    err = mcDispatch(context,
+                     MC_DISPATCH_VERTEX_ARRAY_DOUBLE |          // vertices are in array of doubles
+                         MC_DISPATCH_ENFORCE_GENERAL_POSITION | // perturb if necessary
+                         boolOpFlags,                           // filter flags which specify the type of output we want
+                     // source mesh
+                     reinterpret_cast<const void *>(srcMesh.vertexCoordsArray.data()), reinterpret_cast<const uint32_t *>(srcMesh.faceIndicesArray.data()),
+                     srcMesh.faceSizesArray.data(), static_cast<uint32_t>(srcMesh.vertexCoordsArray.size() / 3), static_cast<uint32_t>(srcMesh.faceSizesArray.size()),
+                     // cut mesh
+                     reinterpret_cast<const void *>(cutMesh.vertexCoordsArray.data()), cutMesh.faceIndicesArray.data(), cutMesh.faceSizesArray.data(),
+                     static_cast<uint32_t>(cutMesh.vertexCoordsArray.size() / 3), static_cast<uint32_t>(cutMesh.faceSizesArray.size()));
+
+    // query the number of available connected component
+    uint32_t numConnComps;
+    err = mcGetConnectedComponents(context, MC_CONNECTED_COMPONENT_TYPE_FRAGMENT, 0, NULL, &numConnComps);
+
+    std::vector<McConnectedComponent> connectedComponents(numConnComps, MC_NULL_HANDLE);
+    err = mcGetConnectedComponents(context, MC_CONNECTED_COMPONENT_TYPE_FRAGMENT, (uint32_t) connectedComponents.size(), connectedComponents.data(), NULL);
+
+    McutMesh outMesh;
+    int N_vertices = 0;
+    // traversal of all connected components
+    for (int n = 0; n < numConnComps; ++n) {
+        // query the data of each connected component from MCUT
+        McConnectedComponent connComp = connectedComponents[n];
+
+        // query the vertices
+        McSize numBytes                  = 0;
+        err                               = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_VERTEX_DOUBLE, 0, NULL, &numBytes);
+        uint32_t            ccVertexCount = (uint32_t) (numBytes / (sizeof(double) * 3));
+        std::vector<double> ccVertices((uint64_t) ccVertexCount * 3u, 0);
+        err = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_VERTEX_DOUBLE, numBytes, (void *) ccVertices.data(), NULL);
+
+        // query the faces
+        numBytes = 0;
+        err      = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION, 0, NULL, &numBytes);
+        std::vector<uint32_t> ccFaceIndices(numBytes / sizeof(uint32_t), 0);
+        err = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION, numBytes, ccFaceIndices.data(), NULL);
+        std::vector<uint32_t> faceSizes(ccFaceIndices.size() / 3, 3);
+
+        const uint32_t ccFaceCount = static_cast<uint32_t>(faceSizes.size());
+
+        // Here we show, how to know when connected components, pertain particular boolean operations.
+        McPatchLocation patchLocation = (McPatchLocation) 0;
+        err                           = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_PATCH_LOCATION, sizeof(McPatchLocation), &patchLocation, NULL);
+
+        McFragmentLocation fragmentLocation = (McFragmentLocation) 0;
+        err = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_FRAGMENT_LOCATION, sizeof(McFragmentLocation), &fragmentLocation, NULL);
+
+        outMesh.vertexCoordsArray.insert(outMesh.vertexCoordsArray.end(), ccVertices.begin(), ccVertices.end());
+
+        // add offset to face index
+        for (size_t i = 0; i < ccFaceIndices.size(); i++) {
+            ccFaceIndices[i] += N_vertices;
+        }
+
+        int faceVertexOffsetBase = 0;
+
+        // for each face in CC
+        std::vector<Vec3i> faces(ccFaceCount);
+        for (uint32_t f = 0; f < ccFaceCount; ++f) {
+            bool reverseWindingOrder = (fragmentLocation == MC_FRAGMENT_LOCATION_BELOW) && (patchLocation == MC_PATCH_LOCATION_OUTSIDE);
+            int  faceSize            = faceSizes.at(f);
+            if (reverseWindingOrder) {
+                std::vector<uint32_t> faceIndex(faceSize);
+                // for each vertex in face
+                for (int v = faceSize - 1; v >= 0; v--) { faceIndex[v] = ccFaceIndices[(uint64_t) faceVertexOffsetBase + v]; }
+                std::copy(faceIndex.begin(), faceIndex.end(), ccFaceIndices.begin() + faceVertexOffsetBase);
+            }
+            faceVertexOffsetBase += faceSize;
+        }
+
+        outMesh.faceIndicesArray.insert(outMesh.faceIndicesArray.end(), ccFaceIndices.begin(), ccFaceIndices.end());
+        outMesh.faceSizesArray.insert(outMesh.faceSizesArray.end(), faceSizes.begin(), faceSizes.end());
+
+        N_vertices += ccVertexCount;
+    }
+
+    // free connected component data
+    err = mcReleaseConnectedComponents(context, (uint32_t) connectedComponents.size(), connectedComponents.data());
+
+    // destroy context
+    err = mcReleaseContext(context);
+
+    srcMesh = outMesh;
+}
+
+/* BBS: Musang King
+ * mcut for Mesh Boolean which provides C-style syntax API
+ */
+std::vector<TriangleMesh> make_boolean(const McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts)
+{
+    // create context
+    McContext context = MC_NULL_HANDLE;
+    McResult  err     = mcCreateContext(&context, static_cast<McFlags>(MC_DEBUG));
+
+    // We can either let MCUT compute all possible meshes (including patches etc.), or we can
+    // constrain the library to compute exactly the boolean op mesh we want. This 'constrained' case
+    // is done with the following flags.
+    // NOTE#1: you can extend these flags by bitwise ORing with additional flags (see `McDispatchFlags' in mcut.h)
+    // NOTE#2: below order of columns MATTERS
+    const std::map<std::string, McFlags> booleanOpts = {
+        {"A_NOT_B", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
+        {"B_NOT_A", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
+        {"UNION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
+        {"INTERSECTION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
+    };
+
+    std::map<std::string, McFlags>::const_iterator it          = booleanOpts.find(boolean_opts);
+    McFlags                                        boolOpFlags = it->second;
+
+    err = mcDispatch(context,
+                     MC_DISPATCH_VERTEX_ARRAY_DOUBLE |          // vertices are in array of doubles
+                         MC_DISPATCH_ENFORCE_GENERAL_POSITION | // perturb if necessary
+                         boolOpFlags,                           // filter flags which specify the type of output we want
+                     // source mesh
+                     reinterpret_cast<const void *>(srcMesh.vertexCoordsArray.data()), reinterpret_cast<const uint32_t *>(srcMesh.faceIndicesArray.data()),
+                     srcMesh.faceSizesArray.data(), static_cast<uint32_t>(srcMesh.vertexCoordsArray.size() / 3), static_cast<uint32_t>(srcMesh.faceSizesArray.size()),
+                     // cut mesh
+                     reinterpret_cast<const void *>(cutMesh.vertexCoordsArray.data()), cutMesh.faceIndicesArray.data(), cutMesh.faceSizesArray.data(),
+                     static_cast<uint32_t>(cutMesh.vertexCoordsArray.size() / 3), static_cast<uint32_t>(cutMesh.faceSizesArray.size()));
+
+    // query the number of available connected component
+    uint32_t numConnComps;
+    err = mcGetConnectedComponents(context, MC_CONNECTED_COMPONENT_TYPE_FRAGMENT, 0, NULL, &numConnComps);
+
+    std::vector<McConnectedComponent> connectedComponents(numConnComps, MC_NULL_HANDLE);
+    err = mcGetConnectedComponents(context, MC_CONNECTED_COMPONENT_TYPE_FRAGMENT, (uint32_t) connectedComponents.size(), connectedComponents.data(), NULL);
+
+    std::vector<TriangleMesh> outs;
+    // traversal of all connected components
+    for (int n = 0; n < numConnComps; ++n) {
+        // query the data of each connected component from MCUT
+        McConnectedComponent connComp = connectedComponents[n];
+
+        // query the vertices
+        McSize numBytes                   = 0;
+        err                               = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_VERTEX_DOUBLE, 0, NULL, &numBytes);
+        uint32_t            ccVertexCount = (uint32_t) (numBytes / (sizeof(double) * 3));
+        std::vector<double> ccVertices((uint64_t) ccVertexCount * 3u, 0);
+        err = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_VERTEX_DOUBLE, numBytes, (void *) ccVertices.data(), NULL);
+
+        // query the faces
+        numBytes = 0;
+        err      = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION, 0, NULL, &numBytes);
+        std::vector<uint32_t> ccFaceIndices(numBytes / sizeof(uint32_t), 0);
+        err = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION, numBytes, ccFaceIndices.data(), NULL);
+        std::vector<uint32_t> faceSizes(ccFaceIndices.size() / 3, 3);
+
+        const uint32_t ccFaceCount = static_cast<uint32_t>(faceSizes.size());
+
+        // Here we show, how to know when connected components, pertain particular boolean operations.
+        McPatchLocation patchLocation = (McPatchLocation) 0;
+        err                           = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_PATCH_LOCATION, sizeof(McPatchLocation), &patchLocation, NULL);
+
+        McFragmentLocation fragmentLocation = (McFragmentLocation) 0;
+        err = mcGetConnectedComponentData(context, connComp, MC_CONNECTED_COMPONENT_DATA_FRAGMENT_LOCATION, sizeof(McFragmentLocation), &fragmentLocation, NULL);
+
+        // rearrange vertices/faces and save into result mesh
+        std::vector<Vec3f> vertices(ccVertexCount);
+        for (uint32_t i = 0; i < ccVertexCount; ++i) {
+            vertices[i][0] = (float) ccVertices[(uint64_t) i * 3 + 0];
+            vertices[i][1] = (float) ccVertices[(uint64_t) i * 3 + 1];
+            vertices[i][2] = (float) ccVertices[(uint64_t) i * 3 + 2];
+        }
+
+        // output faces
+        int faceVertexOffsetBase = 0;
+
+        // for each face in CC
+        std::vector<Vec3i> faces(ccFaceCount);
+        for (uint32_t f = 0; f < ccFaceCount; ++f) {
+            bool reverseWindingOrder = (fragmentLocation == MC_FRAGMENT_LOCATION_BELOW) && (patchLocation == MC_PATCH_LOCATION_OUTSIDE);
+            int  faceSize            = faceSizes.at(f);
+
+            // for each vertex in face
+            for (int v = (reverseWindingOrder ? (faceSize - 1) : 0); (reverseWindingOrder ? (v >= 0) : (v < faceSize)); v += (reverseWindingOrder ? -1 : 1)) {
+                faces[f][v] = ccFaceIndices[(uint64_t) faceVertexOffsetBase + v];
+            }
+            faceVertexOffsetBase += faceSize;
+        }
+
+        TriangleMesh out(vertices, faces);
+        outs.emplace_back(out);
+    }
+
+    // free connected component data
+    err = mcReleaseConnectedComponents(context, (uint32_t) connectedComponents.size(), connectedComponents.data());
+
+    // destroy context
+    err = mcReleaseContext(context);
+
+    return outs;
+}
+
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts)
+{
+    McutMesh srcMesh, cutMesh;
+    triangle_mesh_to_mcut(src_mesh, srcMesh);
+    triangle_mesh_to_mcut(cut_mesh, cutMesh);
+    dst_mesh = make_boolean(srcMesh, cutMesh, boolean_opts);
+}
+
+} // namespace mcut
+
+
 } // namespace MeshBoolean
 } // namespace Slic3r
