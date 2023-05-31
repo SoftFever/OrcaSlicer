@@ -3331,7 +3331,11 @@ void ObjectList::part_selection_changed()
     Sidebar& panel = wxGetApp().sidebar();
     panel.Freeze();
 
-    //wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
+
+    const ItemType type = m_objects_model->GetItemType(item);
+    if (!(type & itLayer)) {
+        wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
+    }
     // BBS
     //wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
