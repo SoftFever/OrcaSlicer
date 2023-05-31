@@ -726,6 +726,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;
     const bool support_critical_regions_only = config.support_critical_regions_only.value;
+    const bool config_remove_small_overhangs = config.support_remove_small_overhang.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(6));
     const double length_thresh_well_supported = scale_(6);
@@ -1043,7 +1044,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     auto blockers  = m_object->slice_support_blockers();
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
-    if (is_auto(stype) && g_config_remove_small_overhangs) {
+    if (is_auto(stype) && config_remove_small_overhangs) {
         if (blockers.size() < m_object->layer_count())
             blockers.resize(m_object->layer_count());
         for (auto& cluster : overhangClusters) {

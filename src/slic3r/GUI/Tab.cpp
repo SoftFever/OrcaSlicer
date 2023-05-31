@@ -1950,6 +1950,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_threshold_angle", "support#threshold-angle");
         optgroup->append_single_option_line("support_on_build_plate_only");
         optgroup->append_single_option_line("support_critical_regions_only");
+        optgroup->append_single_option_line("support_remove_small_overhang");
         //optgroup->append_single_option_line("enforce_support_layers");
 
         optgroup = page->new_optgroup(L("Raft"), L"param_raft");

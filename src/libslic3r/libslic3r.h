@@ -90,7 +90,6 @@ static constexpr bool RELATIVE_E_AXIS = 1;
 
 //BBS: some global const config which user can not change, but developer can
 static constexpr bool g_config_support_sharp_tails = true;
-static constexpr bool g_config_remove_small_overhangs = true;
 static constexpr float g_config_tree_support_collision_resolution = 0.2;
 
 // Write slices as SVG images into out directory during the 2D processing of the slices.

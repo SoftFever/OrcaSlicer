@@ -7864,6 +7864,12 @@ msgid ""
 "etc."
 msgstr "仅对关键区域生成支撑，包括尖尾、悬臂等。"
 
+msgid "Remove small overhangs"
+msgstr "移除小悬空"
+
+msgid "Remove small overhangs that possibly need no supports."
+msgstr "移除可能并不需要支撑的小悬空。"
+
 msgid "Top Z distance"
 msgstr "顶部Z距离"
 

@@ -597,6 +597,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                     "bridge_no_support", "max_bridge_length", "support_top_z_distance", "support_bottom_z_distance",
                      //BBS: add more support params to dependent of enable_support
                     "support_type", "support_on_build_plate_only", "support_critical_regions_only",
+                    "support_remove_small_overhang",
                     "support_object_xy_distance"/*, "independent_support_layer_height"*/})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));

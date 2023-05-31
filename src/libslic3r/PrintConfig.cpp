@@ -2566,6 +2566,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("support_remove_small_overhang", coBool);
+    def->label = L("Remove small overhangs");
+    def->category = L("Support");
+    def->tooltip = L("Remove small overhangs that possibly need no supports.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     // BBS: change type to common float.
     // It may be rounded to mulitple layer height when independent_support_layer_height is false.
     def = this->add("support_top_z_distance", coFloat);
@@ -4025,7 +4032,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
 #endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
-        , "support_sharp_tails","remove_small_overhangs", "support_with_sheath",
+        , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
