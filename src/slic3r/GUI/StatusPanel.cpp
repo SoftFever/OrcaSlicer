@@ -1683,9 +1683,9 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             error_info_reset();
         }
         if (m_print_error_dlg != nullptr) {
-            if (m_print_error_dlg->IsShown()) {
+            /*if (m_print_error_dlg->IsShown()) {
                 m_print_error_dlg->on_hide();
-            }
+            }*/
         }
     } else {
         m_error_text->SetLabel(msg);
