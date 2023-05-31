@@ -643,7 +643,7 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_bitmap_editable_light = ScalableBitmap(this, "ams_editable_light", 14);
     m_bitmap_readonly       = ScalableBitmap(this, "ams_readonly", 14);
     m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
-    m_bitmap_transparent    = ScalableBitmap(this, "transparent_ams_lib", FromDIP(68));
+    m_bitmap_transparent    = ScalableBitmap(this, "transparent_ams_lib", 68);
 
     m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_body->Add(m_sizer_edit, 0, wxALIGN_CENTER, 0);
@@ -1021,6 +1021,11 @@ void AMSLib::UnSelected()
 }
 
 bool AMSLib::Enable(bool enable) { return wxWindow::Enable(enable); }
+
+void AMSLib::msw_rescale()
+{
+    m_bitmap_transparent.msw_rescale();
+}
 
 /*************************************************
 Description:AMSRoad
@@ -1766,6 +1771,11 @@ void AmsCans::msw_rescale()
         Canrefreshs *refresh = m_can_refresh_list[i];
         refresh->canrefresh->msw_rescale(); 
     }
+
+    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
+        CanLibs* lib = m_can_lib_list[i];
+        lib->canLib->msw_rescale();
+    }
 }
 
 void AmsCans::show_sn_value(bool show)
@@ -2508,6 +2518,7 @@ void AMSControl::msw_rescale()
     m_button_ams_setting->SetMinSize(wxSize(FromDIP(25), FromDIP(24)));
     m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_vams_lib->msw_rescale();
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
