@@ -38,6 +38,7 @@ public:
     void load_url(wxString& url);
     void UpdateState();
     void OnClose(wxCloseEvent& evt);
+    void OnError(wxWebViewEvent& evt);
 
 private:
 
