@@ -456,7 +456,10 @@ void PrintJob::process()
             msg_text = send_print_failed_str;
         }
 
-        this->show_error_info(msg_text, 0, "", "");
+        if (result != BAMBU_NETWORK_ERR_CANCELED) {
+            this->show_error_info(msg_text, 0, "", "");
+        }
+        
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
 
     } else {
