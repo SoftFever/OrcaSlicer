@@ -2012,12 +2012,17 @@ void GUI_App::init_app_config()
 
     if (data_dir().empty()) {
         boost::filesystem::path data_dir_path;
-        #ifndef __linux__
+        //check if there is a "configuration" directory next to the resources
+        if (boost::filesystem::exists(boost::filesystem::path{ resources_dir() } / ".." / "configuration")) {
+            data_dir_path = (boost::filesystem::path{ resources_dir() } / ".." / "configuration").string();
+            set_data_dir((boost::filesystem::path{ resources_dir() } / ".." / "configuration").string());
+        } else {
+#ifndef __linux__
             std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
             //BBS create folder if not exists
             data_dir_path = boost::filesystem::path(data_dir);
             set_data_dir(data_dir);
-        #else
+#else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/prusa3d/PrusaSlicer/issues/2911
             wxString dir;
@@ -2025,7 +2030,8 @@ void GUI_App::init_app_config()
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
             set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
             data_dir_path = boost::filesystem::path(data_dir());
-        #endif
+#endif
+        }
         if (!boost::filesystem::exists(data_dir_path)){
             auto older_data_dir = data_dir_path.parent_path() / "BambuStudio-SoftFever";
             if(boost::filesystem::exists(older_data_dir)){
