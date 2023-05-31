@@ -500,6 +500,7 @@ public:
     int m_active_state = 0; // 0 - not active, 1 - active but print_sequence_id not valid, 1 - active but no update-to-date state, 2 - update-to-date
     bool is_support_tunnel_mqtt = false;
     int print_sequence_id = 0;
+    bool is_tunnel_mqtt = false;
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0

@@ -1868,9 +1868,11 @@ void GUI_App::init_networking_callbacks()
             GUI::wxGetApp().CallAfter([this, dev_id] {
                 if (m_is_closing)
                     return;
+                bool tunnel = boost::algorithm::starts_with(dev_id, "tunnel/");
                 /* request_pushing */
-                MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                MachineObject* obj = m_device_manager->get_my_machine(tunnel ? dev_id.substr(7) : dev_id);
                 if (obj) {
+                    obj->is_tunnel_mqtt = tunnel;
                     obj->command_request_push_all();
                     obj->command_get_version();
                 }
