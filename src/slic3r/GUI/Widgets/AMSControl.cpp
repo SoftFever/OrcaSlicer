@@ -1997,20 +1997,24 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extrusion_cali->SetBorderColor(btn_bd_green);
     m_button_extrusion_cali->SetTextColor(btn_text_green);
     m_button_extrusion_cali->SetFont(Label::Body_13);
+    if (wxGetApp().app_config->get("language") == "de_DE") m_button_extrusion_cali->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extrusion_cali->SetFont(Label::Body_9);
 
     m_button_extruder_feed = new Button(m_button_area, _L("Load Filament"));
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
     m_button_extruder_feed->SetTextColor(btn_text_green);
     m_button_extruder_feed->SetFont(Label::Body_13);
-    if (wxGetApp().app_config->get("language") == "de_FR") m_button_extruder_feed->SetFont(Label::Body_11);
+    if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_feed->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_feed->SetFont(Label::Body_9);
 
     m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetTextColor(btn_text_white);
     m_button_extruder_back->SetFont(Label::Body_13);
-    if (wxGetApp().app_config->get("language") == "de_FR") m_button_extruder_back->SetFont(Label::Body_11);
+    if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_back->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_back->SetFont(Label::Body_9);
 
     m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_button_area->Add(m_button_extrusion_cali, 0, wxLEFT, FromDIP(5));
@@ -2182,10 +2186,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
 
     m_button_guide = new Button(m_amswin, _L("Guide"));
-    auto a = wxGetApp().app_config->get("language");
+    m_button_guide->SetFont(Label::Body_13);
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_guide->SetFont(Label::Body_9);
-    if (wxGetApp().app_config->get("language") == "de_FR") m_button_guide->SetFont(Label::Body_9);
-    else m_button_guide->SetFont(Label::Body_13);
+    if (wxGetApp().app_config->get("language") == "fr_FR") m_button_guide->SetFont(Label::Body_9);
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
     m_button_guide->SetTextColor(btn_text_white);
@@ -2193,9 +2196,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_guide->SetBackgroundColor(btn_bg_white);
 
     m_button_retry = new Button(m_amswin, _L("Retry"));
+    m_button_retry->SetFont(Label::Body_13);
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_retry->SetFont(Label::Body_9);
-    if (wxGetApp().app_config->get("language") == "de_FR") m_button_retry->SetFont(Label::Body_9);
-    else m_button_retry->SetFont(Label::Body_13);
+    if (wxGetApp().app_config->get("language") == "fr_FR") m_button_retry->SetFont(Label::Body_9);
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
     m_button_retry->SetTextColor(btn_text_white);
