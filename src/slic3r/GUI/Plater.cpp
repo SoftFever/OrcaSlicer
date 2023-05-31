@@ -622,11 +622,8 @@ Sidebar::Sidebar(Plater *parent)
         m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(30)}, 0, nullptr, wxCB_READONLY);
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
-            for (auto item : *bed_type_def->enum_keys_map) {
-                if (item.first == "Default Plate")
-                    continue;
-
-                m_bed_type_list->AppendString(_L(item.first));
+            for (auto item : bed_type_def->enum_labels) {
+                m_bed_type_list->AppendString(_L(item));
             }
         }
 

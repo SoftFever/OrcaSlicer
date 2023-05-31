@@ -594,7 +594,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
-    def->enum_labels.emplace_back(L("Cool Plate"));
+    def->enum_labels.emplace_back(L("Cool Plate / PLA Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));

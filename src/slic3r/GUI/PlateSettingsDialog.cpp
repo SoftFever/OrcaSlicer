@@ -129,17 +129,11 @@ void PlateSettingsDialog::sync_print_seq(int print_seq)
 wxString PlateSettingsDialog::to_bed_type_name(BedType bed_type) {
     switch (bed_type) {
     case btDefault:
-        return _L("Same as Global Bed Type");
-    case btPC:
-        return _L("Cool Plate") + " / " + _L("PLA Plate");
-    case btEP:
-        return _L("Engineering Plate");
-    case btPEI:
-        return _L("High Temp Plate");
-    case btPTE:
-        return _L("Textured PEI Plate");
-    default:
-        return _L("Same as Global Bed Type");
+        return _L("Same as Global Plate Type");
+    default: {
+        const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
+        return _(bed_type_def->enum_labels[size_t(bed_type) - 1]);
+        }
     }
     return _L("Same as Global Bed Type");
 }
