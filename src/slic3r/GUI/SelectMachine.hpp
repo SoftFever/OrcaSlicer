@@ -238,6 +238,12 @@ private:
 #define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(370), FromDIP(64))
 
 
+enum PrintPageMode {
+    PrintPageModePrepare = 0,
+    PrintPageModeSending,
+    PrintPageModeFinish
+};
+
 enum PrintDialogStatus {
     PrintStatusInit = 0,
     PrintStatusNoUserLogin,
@@ -287,6 +293,7 @@ private:
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
+    PrintPageMode                       m_print_page_mode{PrintPageMode::PrintPageModePrepare};
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
     std::string                         m_printer_last_select;

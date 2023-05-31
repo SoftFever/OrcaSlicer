@@ -1735,8 +1735,11 @@ void SelectMachineDialog::prepare_mode()
         Fit();
     }
 
-    for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
-        it->second->item->enable();
+    if (m_print_page_mode != PrintPageModePrepare) {
+        m_print_page_mode = PrintPageModePrepare;
+        for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
+            it->second->item->enable();
+        }
     }
 }
 
@@ -1752,13 +1755,18 @@ void SelectMachineDialog::sending_mode()
         Fit();
     }
 
-    for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
-        it->second->item->disable();
+    
+    if (m_print_page_mode != PrintPageModeSending) {
+        m_print_page_mode = PrintPageModeSending;
+        for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
+            it->second->item->disable();
+        }
     }
 }
 
 void SelectMachineDialog::finish_mode()
 {
+    m_print_page_mode = PrintPageModeFinish;
     m_is_in_sending_mode = false;
     m_simplebook->SetSelection(2);
     Layout();
