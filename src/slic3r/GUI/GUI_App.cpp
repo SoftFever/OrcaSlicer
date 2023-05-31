@@ -2253,9 +2253,16 @@ bool GUI_App::OnInit()
 
 class wxBoostLog : public wxLog
 {
-    void DoLogText(const wxString &msg) {
+    void DoLogText(const wxString &msg) override {
         
         BOOST_LOG_TRIVIAL(warning) << msg.ToUTF8().data();
+    }
+    ~wxBoostLog() override
+    {
+        // This is a hack. Prevent thread logs from going to wxGuiLog on app quit.
+        auto t = wxLog::SetActiveTarget(this);
+        wxLog::FlushActive();
+        wxLog::SetActiveTarget(t);
     }
 };
 

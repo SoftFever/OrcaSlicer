@@ -475,10 +475,9 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
 // currently unused events
 void DropDown::sendDropDownEvent()
 {
-    selection = hover_item;
     wxCommandEvent event(wxEVT_COMBOBOX, GetId());
     event.SetEventObject(this);
-    event.SetInt(selection);
+    event.SetInt(hover_item);
     event.SetString(GetValue());
     GetEventHandler()->ProcessEvent(event);
 }
