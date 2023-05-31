@@ -436,18 +436,17 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
     return gcode.str();
 }
 
+std::string CalibPressureAdvancePattern::print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num_patterns)
+{
+    auto& writer = mp_gcodegen->writer();
+    std::stringstream gcode;
 
-        Point last_pos = mp_gcodegen.last_pos();
-        const double length = get_distance(last_pos.x(), last_pos.y(), to_x, to_y);
-        auto dE = e_per_mm * length;
+    gcode << writer.travel_to_z(mp_gcodegen.config().initial_layer_print_height.value, "Move to start layer height");
+    gcode << move_to(Vec2d(start_x, start_y), "Move to start position");
 
-        if (comment.empty()) {
-            gcode << writer.extrude_to_xy(Vec2d(to_x, to_y), dE);
-        } else {
-            gcode << writer.extrude_to_xy(Vec2d(to_x, to_y), dE, comment);
-        }
+    writer.set_pressure_advance(0.0);
 
-        return gcode.str();
-    }
+    // create anchor and line numbering frame
 
+}
 } // namespace Slic3r
