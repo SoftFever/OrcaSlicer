@@ -206,7 +206,7 @@ void CalibPressureAdvance::delta_scale_bed_ext(BoundingBoxf& bed_ext)
 void CalibPressureAdvance::delta_modify_start(double& start_x, double& start_y, int count)
 {
     startx = -startx;
-    starty = -(count * m_space_y) / 2;
+    starty = -(count * m_space_y) / 2; // TODO fix for pattern
 }
 
 std::string CalibPressureAdvanceLine::generate_test(double start_pa /*= 0*/, double step_pa /*= 0.002*/, int count /*= 10*/)
@@ -302,7 +302,23 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
         delta_modify_start(start_x, start_y, num_patterns);
     }
 
-    return print_pa_pattern(start_x, start_y, start_pa, step_pa, num_patterns);
+    CalibPressureAdvancePattern::PatternConfig pattern_config(
+        start_pa,
+        step_pa,
+        num_patterns,
+
+        center_x,
+        center_y,
+        start_x,
+        start_y,
+
+        print_size_x(num_patterns, center_x),
+        frame_size_y(),
+
+        glyph_end_x(num_patterns, center_x)
+    );
+
+    return print_pa_pattern(pattern_config);
 }
 
 double CalibPressureAdvancePattern::get_distance(double cur_x, double cur_y, double to_x, double to_y)
@@ -349,6 +365,26 @@ double CalibPressureAdvancePattern::glyph_start_x(int num_patterns, double cente
         center_x -
         object_size_x(num_patterns) / 2 +
         (((m_wall_count - 1) / 2) * line_spacing_angle() - 2)
+    ;
+}
+
+double CalibPressureAdvancePattern::glyph_end_x(int num_patterns, double center_x)
+{
+    return
+        center_x -
+        object_size_x(num_patterns) / 2 +
+        (num_patterns - 1) * (m_pattern_spacing + line_width()) +
+        (num_patterns - 1) * ((m_wall_count - 1) * line_spacing_angle()) +
+        4
+    ;
+}
+
+double CalibPressureAdvancePattern::glyph_tab_max_x(int num_patterns, double center_x)
+{
+    return
+        glyph_end_x(num_patterns, center_x) +
+        m_glyph_padding_horizontal +
+        line_width_anchor() / 2
     ;
 }
 
@@ -445,17 +481,22 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
     return gcode.str();
 }
 
-std::string CalibPressureAdvancePattern::print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num_patterns)
-{
+std::string CalibPressureAdvancePattern::print_pa_pattern(PatternConfig& config)
+{   
     const auto& writer = mp_gcodegen->writer();
     std::stringstream gcode;
 
     gcode << writer.travel_to_z(m_height_first_layer, "Move to start layer height");
-    gcode << move_to(Vec2d(start_x, start_y), "Move to start position");
+    gcode << move_to(Vec2d(pattern_config.pattern_start_x, pattern_config.pattern_start_y), "Move to start position");
 
-    writer.set_pressure_advance(start_pa);
+    writer.set_pressure_advance(config.start_pa);
 
     // create anchor and line numbering frame
-
+    gcode << draw_box(
+        config.pattern_start_x,
+        config.pattern_start_y,
+        config.print_size_x,
+        config.frame_size_y
+    );
 }
 } // namespace Slic3r

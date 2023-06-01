@@ -145,6 +145,9 @@ private:
     double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
 
     double glyph_start_x(int num_patterns, double center_x);
+    double glyph_end_x(int num_patterns, double center_x);
+    double glyph_tab_max_x(int num_patterns, double center_x);
+
     double pattern_shift(int num_patterns, double center_x);
     double print_size_x(int num_patterns, double center_x) { return object_size_x(num_patterns) + pattern_shift(num_patterns, center_x); };
     double print_size_y(double start_pa, double step_pa, int num_patterns) { return object_size_y(start_pa, step_pa, num_patterns); };
@@ -156,6 +159,55 @@ private:
     std::string draw_box(double min_x, double min_y, double size_x, double size_y);
 
     std::string print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num_patterns);
+
+    struct PatternConfig {
+        PatternConfig(
+            double start_pa,
+            double step_pa,
+            int num_patterns,
+
+            double center_x,
+            double center_y,
+            double pattern_start_x,
+            double pattern_start_y,
+
+            double print_size_x,
+            double frame_size_y,
+
+            double glyph_end_x,
+            double glyph_tab_max_x
+        ) :
+            start_pa(start_pa),
+            step_pa(step_pa),
+            num_patterns(num_patterns),
+
+            center_x(center_x),
+            center_y(center_y),
+            pattern_start_x(pattern_start_x),
+            pattern_start_y(pattern_start_y),
+
+            print_size_x(print_size_x),
+            frame_size_y(frame_size_y),
+
+            glyph_end_x(glyph_end_x),
+            glyph_tab_max_x(glyph_tab_max_x)
+        { };
+
+        double start_pa;
+        double step_pa;
+        int num_patterns;
+        
+        double center_x;
+        double center_y;
+        double pattern_start_x;
+        double pattern_start_y;
+
+        double print_size_x;
+        double frame_size_y;
+
+        double glyph_end_x;
+        double glyph_tab_max_x;
+    };
 
     double m_line_ratio;
     double m_extrusion_multiplier;
