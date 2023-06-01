@@ -361,7 +361,8 @@ void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
 void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
 {
     evt.Skip();
-    BOOST_LOG_TRIVIAL(info) << "ImageGrid::changedEvent: " << evt.GetEventType() << " index: " << evt.GetInt() << " name: " << evt.GetString() << " extra: " << evt.GetExtraLong();
+    BOOST_LOG_TRIVIAL(debug) << "ImageGrid::changedEvent: " << evt.GetEventType() << " index: " << evt.GetInt() 
+            << " name: " << evt.GetString().ToUTF8().data() << " extra: " << evt.GetExtraLong();
     if (evt.GetEventType() == EVT_FILE_CHANGED) {
         if (evt.GetInt() == -1)
             m_file_sys->DownloadCheckFiles(wxGetApp().app_config->get("download_path"));
@@ -369,6 +370,8 @@ void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
     }
     else if (evt.GetEventType() == EVT_MODE_CHANGED)
         UpdateFileSystem();
+    //else if (evt.GetEventType() == EVT_THUMBNAIL)
+    //    RefreshRect(itemRect(evt.GetInt()), false);
     else
         Refresh();
 }

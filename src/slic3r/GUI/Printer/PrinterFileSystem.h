@@ -91,6 +91,7 @@ public:
         FF_DOWNLOAD = 4,    // Request download
         FF_DELETED = 8,     // Request delete
         FF_FETCH_MODEL = 16,// Request model
+        FF_THUMNAIL_RETRY    = 0x100,  // Thumbnail need retry
     };
 
     struct File

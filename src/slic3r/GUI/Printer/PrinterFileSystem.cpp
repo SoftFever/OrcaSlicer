@@ -654,7 +654,7 @@ void PrinterFileSystem::DownloadNextFile()
                 if (result == ERROR_CANCEL)
                     progress = -1, file.flags &= ~FF_DOWNLOAD;
                 else if (result != CONTINUE && result != SUCCESS)
-                    progress == -2;
+                    progress = -2;
                 if (file.progress != progress) {
                     file.progress = progress;
                     SendChangedEvent(EVT_DOWNLOAD, download->index, file.local_path, result);
@@ -669,7 +669,8 @@ enum ThumbnailType
     OldThumbnail = 0,
     VideoThumbnail = 1,
     ModelMetadata = 2,
-    ModelThumbnail = 3
+    ModelThumbnail = 3,
+    FinishThumbnail
 };
 
 void PrinterFileSystem::UpdateFocusThumbnail()
@@ -684,12 +685,20 @@ void PrinterFileSystem::UpdateFocusThumbnail()
     for (; start < end; ++start) {
         auto &file = GetFile(start);
         if ((file.flags & FF_THUMNAIL) == 0) {
+            if (m_file_type == F_MODEL) {
+                const_cast<File &>(file).metadata.emplace("Time", "...");
+                const_cast<File &>(file).metadata.emplace("Weight", "...");
+            }
             if (file.path.empty())
                 names.push_back({file.name, "", 0, 0, FF_THUMNAIL});
             else
                 paths.push_back({"", file.path});
             if (names.size() >= 5 || paths.size() >= 5)
                 break;
+            if ((file.flags & FF_THUMNAIL_RETRY) != 0) {
+                const_cast<File&>(file).flags &= ~FF_THUMNAIL_RETRY;
+                break;
+            }
         }
     }
     if (names.empty() && paths.empty())
@@ -758,40 +767,75 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                 arr.push_back(file.path + "#Metadata/project_settings.config");
             }
             req["zip"] = true;
-        } else {
+        } else { // ModelThumbnail, FinishThumbnail
+            std::vector<std::string> fails;
             for (auto &file : *files) {
-                auto thumbnail = file.metadata["Thumbnail"];
-                if (!thumbnail.empty())
-                    arr.push_back(file.path + "#" + thumbnail);
+                if ((file.flags & FF_THUMNAIL) != 0)
+                    fails.push_back(file.path);
+            }
+            for (auto &path : fails) {
+                auto iter = std::find_if(m_file_list.begin(), m_file_list.end(), [&path](auto &f) { return f.path == path; });
+                if (iter != m_file_list.end()) {
+                    if (type == ModelThumbnail) iter->metadata.clear();
+                    iter->flags |= fails.size() == 1 ? FF_THUMNAIL : FF_THUMNAIL_RETRY;
+                }
+            }
+            if (type == ModelThumbnail) {
+                for (auto &file : *files) {
+                    auto thumbnail = file.metadata["Thumbnail"];
+                    if (!thumbnail.empty())
+                        arr.push_back(file.path + "#" + thumbnail);
+                }
+            }
+            if (arr.empty()) {
+                UpdateFocusThumbnail();
+                return;
             }
         }
         req["paths"] = arr;
     }
     SendRequest<File>(
-        SUB_FILE, req, [type](json const &resp, File &file, unsigned char const *data) -> int {
+        SUB_FILE, req, [type, files](json const &resp, File &file, unsigned char const *data) -> int {
             // in work thread, continue recv
             // receive data
             wxString        mimetype  = resp.value("mimetype", "");
             std::string     thumbnail = resp.value("thumbnail", "");
             std::string     path      = resp.value("path", "");
-            boost::uint32_t size      = resp["size"];
-            file.name                 = thumbnail;
-            file.path                 = path;
-            if (size > 0) {
-                if (type == ModelMetadata) {
-                    file.local_path = std::string((char *) data, size);
-                    ParseThumbnail(file);
-                } else {
-                    if (mimetype.empty()) {
-                        if (!path.empty()) thumbnail = path;
-                        auto n = thumbnail.find_last_of('.');
-                        if (n != std::string::npos)
-                            mimetype = "image/" + thumbnail.substr(n + 1);
-                    }
-                    wxMemoryInputStream mis(data, size);
-                    file.thumbnail = wxImage(mis, mimetype);
-                }
+            boost::uint32_t size      = resp.value("size", 0);
+            bool            cont      = resp.value("continue", false);
+            if (size == 0) {
+                file.name = thumbnail;
+                file.path = path;
+                return FILE_SIZE_ERR;
             }
+            auto n = file.path.find_last_of('#');
+            auto path2 = n == std::string::npos ? path : path.substr(0, n);
+            auto iter = std::find_if(files->begin(), files->end(), [&path2](auto &f) { return f.path == path2; });
+            if (cont) {
+                if (iter != files->end())
+                    iter->local_path += std::string((char *) data, size);
+                return 0;
+            }
+            if (type == ModelMetadata) {
+                file.local_path = iter->local_path + std::string((char *) data, size);
+                ParseThumbnail(file);
+            } else {
+                if (mimetype.empty()) {
+                    if (!path.empty()) thumbnail = path;
+                    auto n = thumbnail.find_last_of('.');
+                    if (n != std::string::npos)
+                        mimetype = "image/" + thumbnail.substr(n + 1);
+                }
+                if (iter != files->end() && !iter->local_path.empty()) {
+                    iter->local_path += std::string((char *) data, size);
+                    data = reinterpret_cast<unsigned char const *>(iter->local_path.c_str());
+                    size = iter->local_path.size();
+                }
+                wxMemoryInputStream mis(data, size);
+                file.thumbnail = wxImage(mis, mimetype);
+            }
+            file.name = thumbnail;
+            file.path = path;
             return 0;
         },
         [this, files, type](int result, File const &file) {
@@ -803,17 +847,15 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                                        std::find_if(m_file_list.begin(), m_file_list.end(), [&path](auto &f) { return f.path == path; });
             if (iter != m_file_list.end()) {
                 if (type == ModelMetadata) {
-                    if (!file.metadata.empty()) {
-                        iter->metadata = file.metadata;
-                        int index       = iter - m_file_list.begin();
-                        SendChangedEvent(EVT_THUMBNAIL, index, file.name);
-                        auto iter = std::find_if(files->begin(), files->end(), [&path](auto &f) { return f.path == path; });
-                        if (iter != files->end())
-                            iter->metadata = file.metadata;
-                    }
+                    iter->metadata = file.metadata;
                     auto thumbnail = iter->metadata["Thumbnail"];
                     if (thumbnail.empty())
                         iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
+                    int index       = iter - m_file_list.begin();
+                    SendChangedEvent(EVT_THUMBNAIL, index, file.name);
+                    auto iter = std::find_if(files->begin(), files->end(), [&path](auto &f) { return f.path == path; });
+                    if (iter != files->end())
+                        iter->metadata = file.metadata;
                 } else {
                     iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
                     if (file.thumbnail.IsOk()) {
@@ -823,12 +865,8 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                     }
                 }
             }
-            if (result != CONTINUE) {
-                if (type == ModelMetadata)
-                    UpdateFocusThumbnail2(files, ModelThumbnail);
-                else 
-                    UpdateFocusThumbnail();
-            }
+            if (result != CONTINUE)
+                UpdateFocusThumbnail2(files, type == ModelMetadata ? ModelThumbnail : FinishThumbnail);
         });
 }
 
