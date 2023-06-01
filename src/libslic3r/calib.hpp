@@ -108,9 +108,9 @@ public:
         m_anchor_perimeters(4),
         m_anchor_layer_line_ratio(140),
 
+        m_prime_zone_buffer(10.0),
         m_wall_count(3),
         m_wall_side_length(30.0),
-
         m_corner_angle(90),
         m_pattern_spacing(2),
         
@@ -142,6 +142,15 @@ private:
 
     double object_size_x(int num_patterns);
     double object_size_y(double start_pa, double step_pa, int num_patterns);
+    double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
+
+    double glyph_start_x(int num_patterns, double center_x);
+    double pattern_shift(int num_patterns, double center_x);
+    double print_size_x(int num_patterns, double center_x) { return object_size_x(num_patterns) + pattern_shift(num_patterns, center_x); };
+    double print_size_y(double start_pa, double step_pa, int num_patterns) { return object_size_y(start_pa, step_pa, num_patterns); };
+
+    double pattern_start_x(int num_patterns, double center_x) { return center_x - (object_size_x(num_patterns) + pattern_shift(num_patterns, center_x)) / 2; };
+    double pattern_start_y(double start_pa, double step_pa, int num_patterns, double center_y) { return center_y - object_size_y(start_pa, step_pa, num_patterns) / 2; };
 
     std::string draw_line(double to_x, double to_y, std::string comment = std::string());
     std::string draw_box(double min_x, double min_y, double size_x, double size_y);
@@ -157,9 +166,9 @@ private:
     int m_anchor_perimeters;
     int m_anchor_layer_line_ratio;
     
+    double m_prime_zone_buffer;
     int m_wall_count;
     double m_wall_side_length;
-    
     int m_corner_angle;
     int m_pattern_spacing;
 

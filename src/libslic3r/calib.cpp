@@ -293,33 +293,10 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
     const auto center_x = w / 2;
     const auto center_y = h / 2;
 
-    int num_patterns = std::ceil((end_pa - start_pa) / step_pa + 1);
-    num_patterns = std::min(num_patterns, int((h - 10) / m_space_y));
-    // TODO: fix m_space_y above
+    const int num_patterns = std::ceil((end_pa - start_pa) / step_pa + 1);
 
-    auto object_size_x = object_size_x(num_patterns);
-    auto object_size_y = object_size_y(start_pa, step_pa, num_patterns);
-
-    auto glyph_start_x = 
-        center_x -
-        object_size_x / 2 +
-        (((m_wall_count - 1) / 2) * line_spacing_angle() - 2)
-    ;
-
-    auto pattern_shift =
-        center_x -
-        object_size_x / 2 -
-        glyph_start_x +
-        m_glyph_padding_horizontal
-    ;
-    if (pattern_shift > 0) {
-        pattern_shift += (line_width_anchor() / 2);
-    } else {
-        pattern_shift = 0;
-    }
-
-    auto start_x = center_x - (object_size_x + pattern_shift) / 2;
-    auto start_y = center_y - object_size_y / 2;
+    auto start_x = pattern_start_x(num_patterns, center_x);
+    auto start_y = pattern_start_y(start_pa, step_pa, num_patterns, center_y);
 
     if (is_delta()) {
         delta_modify_start(start_x, start_y, num_patterns);
@@ -364,6 +341,30 @@ double CalibPressureAdvancePattern::object_size_y(double start_pa, double step_p
         max_numbering_height(start_pa, step_pa, num_patterns) +
         m_glyph_padding_vertical * 2 +
         line_width_anchor()
+}
+
+double CalibPressureAdvancePattern::glyph_start_x(int num_patterns, double center_x)
+{
+    return
+        center_x -
+        object_size_x(num_patterns) / 2 +
+        (((m_wall_count - 1) / 2) * line_spacing_angle() - 2)
+    ;
+}
+
+double CalibPressureAdvancePattern::pattern_shift(int num_patterns, double center_x)
+{
+    auto shift =
+        center_x -
+        object_size_x(num_patterns) / 2 -
+        glyph_start_x(num_patterns, center_x) +
+        m_glyph_padding_horizontal
+    ;
+
+    if (shift > 0) {
+        return shift + line_width_anchor() / 2;
+    }
+    return 0;
 }
 
 std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, std::string comment = std::string())
@@ -446,13 +447,13 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
 
 std::string CalibPressureAdvancePattern::print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num_patterns)
 {
-    auto& writer = mp_gcodegen->writer();
+    const auto& writer = mp_gcodegen->writer();
     std::stringstream gcode;
 
-    gcode << writer.travel_to_z(mp_gcodegen.config().initial_layer_print_height.value, "Move to start layer height");
+    gcode << writer.travel_to_z(m_height_first_layer, "Move to start layer height");
     gcode << move_to(Vec2d(start_x, start_y), "Move to start position");
 
-    writer.set_pressure_advance(0.0);
+    writer.set_pressure_advance(start_pa);
 
     // create anchor and line numbering frame
 
