@@ -113,6 +113,7 @@ public:
         m_wall_side_length(30.0),
         m_corner_angle(90),
         m_pattern_spacing(2),
+        m_encroachment(1. / 3.),
         
         m_glyph_padding_horizontal(1),
         m_glyph_padding_vertical(1)
@@ -223,6 +224,7 @@ private:
     double m_wall_side_length;
     int m_corner_angle;
     int m_pattern_spacing;
+    double m_encroachment;
 
     double m_glyph_padding_horizontal;
     double m_glyph_padding_vertical;
