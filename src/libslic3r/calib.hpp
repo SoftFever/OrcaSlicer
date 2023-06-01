@@ -127,39 +127,6 @@ public:
     );
 
 private:
-    double to_radians(double degrees) { return degrees * M_PI / 180; }
-    double get_distance(double cur_x, double cur_y, double to_x, double to_y);
-    
-    double line_width() { return m_nozzle_diameter * m_line_ratio / 100; };
-    double line_width_anchor() { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
-    
-    // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
-    double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
-    double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
-    double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
-
-    double max_numbering_height(double start_pa, double step_pa, int num_patterns);
-
-    double object_size_x(int num_patterns);
-    double object_size_y(double start_pa, double step_pa, int num_patterns);
-    double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
-
-    double glyph_start_x(int num_patterns, double center_x);
-    double glyph_end_x(int num_patterns, double center_x);
-    double glyph_tab_max_x(int num_patterns, double center_x);
-
-    double pattern_shift(int num_patterns, double center_x);
-    double print_size_x(int num_patterns, double center_x) { return object_size_x(num_patterns) + pattern_shift(num_patterns, center_x); };
-    double print_size_y(double start_pa, double step_pa, int num_patterns) { return object_size_y(start_pa, step_pa, num_patterns); };
-
-    double pattern_start_x(int num_patterns, double center_x) { return center_x - (object_size_x(num_patterns) + pattern_shift(num_patterns, center_x)) / 2; };
-    double pattern_start_y(double start_pa, double step_pa, int num_patterns, double center_y) { return center_y - object_size_y(start_pa, step_pa, num_patterns) / 2; };
-
-    std::string draw_line(double to_x, double to_y, std::string comment = std::string());
-    std::string draw_box(double min_x, double min_y, double size_x, double size_y);
-
-    std::string print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num_patterns);
-
     struct PatternConfig {
         PatternConfig(
             double start_pa,
@@ -208,6 +175,39 @@ private:
         double glyph_end_x;
         double glyph_tab_max_x;
     };
+
+    double to_radians(double degrees) { return degrees * M_PI / 180; }
+    double get_distance(double cur_x, double cur_y, double to_x, double to_y);
+    
+    double line_width() { return m_nozzle_diameter * m_line_ratio / 100; };
+    double line_width_anchor() { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
+    
+    // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
+    double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
+    double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
+    double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
+
+    double max_numbering_height(double start_pa, double step_pa, int num_patterns);
+
+    double object_size_x(int num_patterns);
+    double object_size_y(double start_pa, double step_pa, int num_patterns);
+    double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
+
+    double glyph_start_x(int num_patterns, double center_x);
+    double glyph_end_x(int num_patterns, double center_x);
+    double glyph_tab_max_x(int num_patterns, double center_x);
+
+    double pattern_shift(int num_patterns, double center_x);
+    double print_size_x(int num_patterns, double center_x) { return object_size_x(num_patterns) + pattern_shift(num_patterns, center_x); };
+    double print_size_y(double start_pa, double step_pa, int num_patterns) { return object_size_y(start_pa, step_pa, num_patterns); };
+
+    double pattern_start_x(int num_patterns, double center_x) { return center_x - (object_size_x(num_patterns) + pattern_shift(num_patterns, center_x)) / 2; };
+    double pattern_start_y(double start_pa, double step_pa, int num_patterns, double center_y) { return center_y - object_size_y(start_pa, step_pa, num_patterns) / 2; };
+
+    std::string draw_line(double to_x, double to_y, std::string comment = std::string());
+    std::string draw_box(double min_x, double min_y, double size_x, double size_y);
+
+    std::string print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num_patterns);
 
     double m_line_ratio;
     double m_extrusion_multiplier;
