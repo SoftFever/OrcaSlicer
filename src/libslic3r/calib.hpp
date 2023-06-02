@@ -179,17 +179,7 @@ private:
     };
 
     struct PatternSettings {
-        PatternSettings(const CalibPressureAdvancePattern* cpap) :
-            anchor_line_width(cpap->line_width_anchor()),
-            anchor_perimeters(cpap->m_anchor_perimeters),
-            extrusion_multiplier(cpap->m_extrusion_multiplier),
-            first_layer_height(cpap->m_height_first_layer),
-            first_layer_speed(cpap->speed_adjust(cpap->m_speed_first_layer)),
-            layer_height(cpap->m_height_layer),
-            line_width(cpap->line_width()),
-            perim_speed(cpap->speed_adjust(cpap->m_speed_perimeter))
-            { }
-        ;
+        PatternSettings();
 
         double anchor_line_width;
         int anchor_perimeters;
@@ -202,14 +192,7 @@ private:
     };
 
     struct DrawLineOptArgs {
-        DrawLineOptArgs(PatternSettings* ps) :
-            extrusion_multiplier(ps->extrusion_multiplier),
-            height(ps->layer_height),
-            line_width(ps->line_width),
-            speed(ps->perim_speed),
-            comment("Print line")
-            { }
-        ;
+        DrawLineOptArgs();
 
         double extrusion_multiplier;
         double height;
@@ -219,14 +202,7 @@ private:
     };
 
     struct DrawBoxOptArgs {
-        DrawBoxOptArgs(const PatternSettings* ps) :
-            is_filled(false),
-            num_perimeters(ps->anchor_perimeters),
-            height(ps->first_layer_height),
-            line_width(ps->anchor_line_width),
-            speed(ps->first_layer_speed)
-            { }
-        ;
+        DrawBoxOptArgs();
 
         bool is_filled;
         int num_perimeters;
@@ -267,7 +243,7 @@ private:
     std::string draw_line(double to_x, double to_y, std::string comment = std::string());
     std::string draw_box(double min_x, double min_y, double size_x, double size_y);
 
-    std::string print_pa_pattern(double start_x, double start_y, double start_pa, double step_pa, int num_patterns);
+    std::string print_pa_pattern(PatternCalc& calc);
 
     double m_line_ratio;
     double m_extrusion_multiplier;

@@ -302,7 +302,7 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
         delta_modify_start(start_x, start_y, num_patterns);
     }
 
-    CalibPressureAdvancePattern::PatternConfig pattern_config(
+    CalibPressureAdvancePattern::PatternCalc pattern_calc(
         start_pa,
         step_pa,
         num_patterns,
@@ -318,7 +318,40 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
         glyph_end_x(num_patterns, center_x)
     );
 
-    return print_pa_pattern(pattern_config);
+    return print_pa_pattern(pattern_calc);
+}
+
+CalibPressureAdvancePattern::PatternSettings() {
+    const CalibPressureAdvancePattern cpap;
+
+    anchor_line_width = cpap.line_width_anchor();
+    anchor_perimeters = cpap.m_anchor_perimeters;
+    extrusion_multiplier = cpap.m_extrusion_multiplier;
+    first_layer_height = cpap.m_height_first_layer;
+    first_layer_speed = cpap.speed_adjust(cpap.m_speed_first_layer);
+    layer_height = cpap.m_height_layer;
+    line_width = cpap.line_width();
+    perim_speed = cpap.speed_adjust(cpap.m_speed_perimeter;
+}
+
+CalibPressureAdvancePattern::DrawLineOptArgs() {
+    PatternSettings ps;
+
+    extrusion_multiplier = ps.extrusion_multiplier;
+    height = ps.layer_height;
+    line_width = ps.line_width;
+    speed = ps.perim_speed;
+    comment = "Print line";
+}
+
+CalibPressureAdvancePattern::DrawBoxOptArgs() {
+    PatternSettings ps;
+
+    is_filled = false;
+    num_perimeters = ps.anchor_perimeters;
+    height = ps.first_layer_height;
+    line_width = ps.anchor_line_width;
+    speed = ps.first_layer_spee;
 }
 
 double CalibPressureAdvancePattern::get_distance(double cur_x, double cur_y, double to_x, double to_y)
