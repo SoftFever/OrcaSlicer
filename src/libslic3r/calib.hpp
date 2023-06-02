@@ -104,6 +104,7 @@ public:
         m_height_layer(0.2),
         m_height_first_layer(0.25),
         m_speed_first_layer(30),
+        m_speed_perimeter(100),
 
         m_anchor_perimeters(4),
         m_anchor_layer_line_ratio(140),
@@ -128,8 +129,8 @@ public:
     );
 
 private:
-    struct PatternConfig {
-        PatternConfig(
+    struct PatternCalc {
+        PatternCalc(
             double start_pa,
             double step_pa,
             int num_patterns,
@@ -177,11 +178,69 @@ private:
         double glyph_tab_max_x;
     };
 
-    double to_radians(double degrees) { return degrees * M_PI / 180; }
+    struct PatternSettings {
+        PatternSettings(const CalibPressureAdvancePattern* cpap) :
+            anchor_line_width(cpap->line_width_anchor()),
+            anchor_perimeters(cpap->m_anchor_perimeters),
+            extrusion_multiplier(cpap->m_extrusion_multiplier),
+            first_layer_height(cpap->m_height_first_layer),
+            first_layer_speed(cpap->speed_adjust(cpap->m_speed_first_layer)),
+            layer_height(cpap->m_height_layer),
+            line_width(cpap->line_width()),
+            perim_speed(cpap->speed_adjust(cpap->m_speed_perimeter))
+            { }
+        ;
+
+        double anchor_line_width;
+        int anchor_perimeters;
+        double extrusion_multiplier;
+        double first_layer_height;
+        int first_layer_speed;
+        double layer_height;
+        double line_width;
+        int perim_speed;
+    };
+
+    struct DrawLineOptArgs {
+        DrawLineOptArgs(PatternSettings* ps) :
+            extrusion_multiplier(ps->extrusion_multiplier),
+            height(ps->layer_height),
+            line_width(ps->line_width),
+            speed(ps->perim_speed),
+            comment("Print line")
+            { }
+        ;
+
+        double extrusion_multiplier;
+        double height;
+        double line_width;
+        int speed;
+        std::string comment;
+    };
+
+    struct DrawBoxOptArgs {
+        DrawBoxOptArgs(const PatternSettings* ps) :
+            is_filled(false),
+            num_perimeters(ps->anchor_perimeters),
+            height(ps->first_layer_height),
+            line_width(ps->anchor_line_width),
+            speed(ps->first_layer_speed)
+            { }
+        ;
+
+        bool is_filled;
+        int num_perimeters;
+        double height;
+        double line_width;
+        double speed;
+    };
+
+    double speed_adjust(int speed) const { return speed * 60; };
+    double to_radians(double degrees) { return degrees * M_PI / 180; };
     double get_distance(double cur_x, double cur_y, double to_x, double to_y);
     
-    double line_width() { return m_nozzle_diameter * m_line_ratio / 100; };
-    double line_width_anchor() { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
+    double line_width() const { return m_nozzle_diameter * m_line_ratio / 100; };
+    double line_width_anchor() const { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
     
     // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
     double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
@@ -215,6 +274,7 @@ private:
     double m_height_layer;
     double m_height_first_layer;
     double m_speed_first_layer;
+    double m_speed_perimeter;
     
     int m_anchor_perimeters;
     int m_anchor_layer_line_ratio;
