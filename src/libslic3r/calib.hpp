@@ -183,6 +183,7 @@ private:
 
         double anchor_line_width;
         int anchor_perimeters;
+        double encroachment;
         double extrusion_multiplier;
         double first_layer_height;
         int first_layer_speed;

@@ -326,6 +326,7 @@ CalibPressureAdvancePattern::PatternSettings() {
 
     anchor_line_width = cpap.line_width_anchor();
     anchor_perimeters = cpap.m_anchor_perimeters;
+    encroachment = cpap.m_encroachment;
     extrusion_multiplier = cpap.m_extrusion_multiplier;
     first_layer_height = cpap.m_height_first_layer;
     first_layer_speed = cpap.speed_adjust(cpap.m_speed_first_layer);
@@ -436,47 +437,37 @@ double CalibPressureAdvancePattern::pattern_shift(int num_patterns, double cente
     return 0;
 }
 
-std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, std::string comment = std::string())
+std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, DrawLineOptArgs opt_args = DrawLineOptArgs())
 {
     std::stringstream gcode;
     auto& config = mp_gcodegen.config();
     auto& writer = mp_gcodegen.writer();
 
-    Flow line_flow = Flow(line_width(), m_height_layer, m_nozzle_diameter);
+    Flow line_flow = Flow(opt_args.line_width, opt_args.height, m_nozzle_diameter);
     const double filament_area = M_PI * std::pow(config.filament_diameter.value / 2, 2);
-    const double e_per_mm = line_flow.mm3_per_mm() / filament_area * m_extrusion_multiplier;
+    const double e_per_mm = line_flow.mm3_per_mm() / filament_area * opt_args.extrusion_multiplier;
 
     Point last_pos = mp_gcodegen.last_pos();
     const double length = get_distance(last_pos.x(), last_pos.y(), to_x, to_y);
     auto dE = e_per_mm * length;
 
-    if (comment.empty()) {
-        gcode << writer.extrude_to_xy(Vec2d(to_x, to_y), dE);
-    } else {
-        gcode << writer.extrude_to_xy(Vec2d(to_x, to_y), dE, comment);
-    }
+    // TODO: set speed? save current and reset after line?
+    gcode << writer.extrude_to_xy(Vec2d(to_x, to_y), dE, opt_args.comment);
 
     return gcode.str();
 }
 
-std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, double size_x, double size_y)
+std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args = DrawBoxOptArgs())
 {
-    const auto& config = mp_gcodegen->config();
     const auto& writer = mp_gcodegen->writer();
     std::stringstream gcode;
 
     double x = min_x;
     double y = min_y;
-    
     const double max_x = min_x + size_x;
     const double max_y = min_y + size_y;
 
-    int num_perimeters = m_anchor_perimeters;
-    const double layer_height = m_height_first_layer;
-    const double line_width = m_nozzle_diameter * m_anchor_layer_line_ratio / 100;
-    const double speed = m_speed_first_layer * 60;
-
-    const double spacing = line_width - layer_height * (1 - M_PI / 4);
+    const double spacing = opt_args.line_width - opt_args.height * (1 - M_PI / 4);
 
     // if number of perims exceeds size of box, reduce it to max
     const int max_perimeters =
@@ -487,11 +478,16 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
         )
     ;
 
-    num_perimeters = std::min(num_perimeters, max_perimeters);
+    opt_args.num_perimeters = std::min(opt_args.num_perimeters, max_perimeters);
 
     gcode << move_to(Vec2d(min_x, min_y), "Move to box start");
 
-    for (int i = 0; i < num_perimeters; ++i) {
+    DrawLineOptArgs line_opt_args();
+    line_opt_args.height = opt_args.height;
+    line_opt_args.line_width = opt_args.line_width;
+    line_opt_args.speed = opt_args.speed;
+
+    for (int i = 0; i < opt_args.num_perimeters; ++i) {
         if (i != 0) { // after first perimeter, step inwards to start next perimeter
             x += spacing;
             y += spacing;
@@ -499,16 +495,148 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
         }
 
         y += size_y - i * spacing * 2;
-        gcode << draw_line(x, y, "Draw perimeter (up)");
+        line_opt_args.comment = "Draw perimeter (up)";
+        gcode << draw_line(x, y, line_opt_args);
 
         x += size_x - i * spacing * 2;
-        gcode << draw_line(x, y, "Draw perimeter (right)");
+        line_opt_args.comment = "Draw perimeter (right)";
+        gcode << draw_line(x, y, line_opt_args);
 
         y -= size_y - i * spacing * 2;
-        gcode << draw_line(x, y, "Draw perimeter (down)");
+        line_opt_args.comment = "Draw perimeter (down)";
+        gcode << draw_line(x, y, line_opt_args);
 
         x -= size_x - i * spacing * 2;
-        gcode << draw_line(x, y, "Draw perimeter (left)");        
+        line_opt_args.comment = "Draw perimeter (left)";
+        gcode << draw_line(x, y, line_opt_args);
+    }
+
+    if (!opt_args.is_filled) {
+        return gcode.str();
+    }
+
+    // create box infill
+    const spacing_45 = spacing / std::sin(to_radians(45));
+    const PatternSettings basic_settings;
+
+    const bound_modifier =
+        (spacing * (opt_args.num_perimeters - 1)) +
+        (opt_args.line_width * (1 - basic_settings.en))
+    ;
+    const double x_min_bound = min_x + bound_modifier;
+    const double x_max_bound = max_x - bound_modifier;
+    const double y_min_bound = min_y + bound_modifier;
+    const double y_max_bound = max_y - bound_modifier;
+    const int x_count = std::floor((x_max_bound - x_min_bound) / spacing_45);
+    const int y_count = std::floor((y_max_bound - y_min_bound) / spacing_45);
+
+    double x_remainder = (x_max_bound - x_min_bound) % spacing_45;
+    double y_remainder = (y_max_bound - y_min_bound) % spacing_45;
+
+    double x = x_min_bound;
+    double y = y_min_bound;
+
+    line_opt_args.comment = "Fill";
+
+    gcode << move_to(Vec2d(x, y), "Move to fill start");
+
+    // this isn't the most robust way, but less expensive than finding line intersections
+    for (int i = 0; i < x_count + y_count + (x_remainder + y_remainder >= spacing_45 ? 1 : 0); ++i) {
+        if (i < std::min(x_count, y_count)) {
+            if (i % 2 == 0) {
+                x += spacing_45;
+                y = y_min_bound;
+                gcode << move_to(Vec2d(x, y)); // step right
+
+                y += x - x_min_bound;
+                x = x_min_bound;
+                gcode << draw_line(x, y, line_opt_args); // print up/left
+            } else {
+                y += spacing_45;
+                x = x_min_bound;
+                gcode << move_to(Vec2d(x, y)); // step up
+
+                x += y - y_min_bound;
+                y = y_min_bound;
+                gcode << draw_line(x, y, line_opt_args); // print down/right
+            }
+        } else if (i < std::max(x_count, y_count)) {
+            if (x_count > y_count) {
+                // box is wider than tall
+                if (i % 2 == 0) {
+                    x += spacing_45;
+                    y = y_min_bound;
+                    gcode << move_to(Vec2d(x, y)); // step right
+
+                    x -= y_max_bound - y_min_bound;
+                    y = y_max_bound;
+                    gcode << draw_line(x, y, line_opt_args); // print up/left
+                } else {
+                    if (i == y_count) {
+                        x += spacing_45 - y_remainder;
+                        y_remainder = 0;
+                    } else {
+                        x += spacing_45;
+                    }
+                    y = y_max_bound;
+                    gcode << move_to(Vec2d(x, y)); // step right
+                    
+                    x += y_max_bound - y_min_bound;
+                    y = y_min_bound;
+                    gcode << draw_line(x, y, line_opt_args); // print down/right
+                }
+            } else {
+                // box is taller than wide
+                if (i % 2 == 0) {
+                    x = x_max_bound;
+                    if (i == x_count) {
+                        y += spacing_45 - x_remainder;
+                        x_remainder = 0;
+                    } else {
+                        y += spacing_45;
+                    }
+                    gcode << move_to(Vec2d(x, y)); // step up
+
+                    x = x_min_bound;
+                    y += x_max_bound - x_min_bound;
+                    gcode << draw_line(x, y, line_opt_args); // print up/left
+                } else {
+                    x = x_min_bound;
+                    y += spacing_45;
+                    gcode << move_to(Vec2d(x, y)); // step up
+
+                    x = x_max_bound;
+                    y -= x_max_bound - x_min_bound;
+                    gcode << draw_line(x, y, line_opt_args); // print down/right
+                }
+            }
+        } else {
+            if (i % 2 == 0) {
+                x = x_max_bound;
+                if (i == x_count) {
+                    y += spacing_45 - x_remainder;
+                } else {
+                    y += spacing_45;
+                }
+                gcode << move_to(Vec2d(x, y)); // step up
+
+                x -= y_max_bound - y;
+                y = y_max_bound;
+                gcode << draw_line(x, y, line_opt_args); // print up/left
+            } else {
+                if (i == y_count) {
+                    x += spacing_45 - y_remainder;
+                } else {
+                    x += spacing_45;
+                }
+                y = y_max_bound;
+                gcode << move_to(Vec2d(x, y)); // step right
+
+                y -= x_max_bound - x;
+                x = x_max_bound;
+                gcode << draw_line(x, y, line_opt_args); // print down/right
+            }
+        }
     }
 
     return gcode.str();
