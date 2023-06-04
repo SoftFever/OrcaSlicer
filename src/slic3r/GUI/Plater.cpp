@@ -8101,14 +8101,13 @@ std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3& bbox, const double& cut_
 }
 
 void Plater::calib_pa(const Calib_Params& params) {
-    
     const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    if (params.mode == CalibMode::Calib_PA_Line) {
+
+    if (params.mode == CalibMode::Calib_PA_Line || params.mode == CalibMode::Calib_PA_Pattern) {
         add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
-    }
-    else {
+    } else {
         add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
         auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
         auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -8152,8 +8151,6 @@ void Plater::calib_pa(const Calib_Params& params) {
             p->view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
     p->background_process.fff_print()->set_calib_params(params);
-
-
 }
 
 void Plater::calib_flowrate(int pass) {
