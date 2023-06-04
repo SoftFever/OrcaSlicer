@@ -28,15 +28,7 @@ struct Calib_Params
 
 class CalibPressureAdvance {
 protected:
-    CalibPressureAdvance(GCode* gcodegen) :
-        mp_gcodegen(gcodegen),
-        m_digit_segment_len(2),
-        m_max_number_length(5),
-        m_number_spacing(3.0)
-        { 
-            m_nozzle_diameter = gcodegen->config().nozzle_diameter.get_at(0);
-        }
-    ;
+    CalibPressureAdvance(GCode* gcodegen);
     ~CalibPressureAdvance() { };
 
     enum class DrawDigitMode {

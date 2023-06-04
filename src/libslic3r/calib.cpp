@@ -8,6 +8,16 @@
 namespace Slic3r {
 Calib_Params::Calib_Params() : mode(CalibMode::Calib_None) { }
 
+CalibPressureAdvance::CalibPressureAdvance(GCode* gcodegen) :
+    mp_gcodegen(gcodegen),
+    m_digit_segment_len(2),
+    m_max_number_length(5),
+    m_number_spacing(3.0)
+    { 
+        m_nozzle_diameter = gcodegen->config().nozzle_diameter.get_at(0);
+    }
+;
+
 std::string CalibPressureAdvance::move_to(Vec2d pt, std::string comment = std::string())
 {
     std::stringstream gcode;
