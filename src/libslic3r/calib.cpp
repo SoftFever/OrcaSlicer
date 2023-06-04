@@ -315,7 +315,8 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
         print_size_x(num_patterns, center_x),
         frame_size_y(),
 
-        glyph_end_x(num_patterns, center_x)
+        glyph_end_x(num_patterns, center_x),
+        glyph_tab_max_x(num_patterns, center_x)
     );
 
     return print_pa_pattern(pattern_calc);
@@ -642,22 +643,139 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
     return gcode.str();
 }
 
-std::string CalibPressureAdvancePattern::print_pa_pattern(PatternConfig& config)
+std::string CalibPressureAdvancePattern::print_pa_pattern(PatternCalc& calc)
 {   
     const auto& writer = mp_gcodegen->writer();
     std::stringstream gcode;
 
-    gcode << writer.travel_to_z(m_height_first_layer, "Move to start layer height");
-    gcode << move_to(Vec2d(pattern_config.pattern_start_x, pattern_config.pattern_start_y), "Move to start position");
+    const DrawLineOptArgs draw_line_basic_settings;
+    DrawLineOptArgs draw_line_opt_args;
+    const DrawBoxOptArgs draw_box_basic_settings;
+    DrawBoxOptArgs draw_box_opt_args;
 
-    writer.set_pressure_advance(config.start_pa);
+    gcode << writer.travel_to_z(m_height_first_layer, "Move to start layer height");
+    gcode << move_to(Vec2d(calc.pattern_start_x, calc.pattern_start_y), "Move to start position");
+
+    writer.set_pressure_advance(calc.start_pa);
 
     // create anchor and line numbering frame
     gcode << draw_box(
-        config.pattern_start_x,
-        config.pattern_start_y,
-        config.print_size_x,
-        config.frame_size_y
+        calc.pattern_start_x,
+        calc.pattern_start_y,
+        calc.print_size_x,
+        calc.frame_size_y,
+        draw_box_basic_settings
     );
+
+    // create tab for numbers
+    draw_box_opt_args = draw_box_basic_settings;
+    draw_box_opt_args.is_filled = true;
+    gcode << draw_box(
+        calc.pattern_start_x,
+        calc.pattern_start_y + calc.frame_size_y + line_spacing_anchor(),
+        glyph_tab_max_x(calc.num_patterns, calc.center_x) - calc.pattern_start_x,
+        max_numbering_height(calc.start_pa, calc.step_pa, calc.num_patterns) + line_spacing_anchor() + m_glyph_padding_vertical * 2,
+        draw_box_opt_args
+    );
+
+    // draw pressure advance pattern
+    for (int i = 0; i < m_num_layers; ++i) {
+        if (i == 1) {
+            // TODO?
+            // set new fan speed after first layer
+        }
+
+        gcode << writer().travel_to_z(m_height_first_layer + i * m_height_layer, "Move to layer height");
+
+        // line numbering
+        if (i == 1) {
+            gcode << writer.set_pressure_advance(calc.start_pa);
+
+            // glyph on every other line
+            for (int j = 0; j < calc.num_patterns; j += 2) {
+                double current_glyph_start_x =
+                    calc.pattern_start_x +
+                    (j * (m_pattern_spacing + line_width())) +
+                    (j * ((m_wall_count - 1) * line_spacing_angle())) // this aligns glyph starts with first pattern perim
+                ;
+                // shift glyph center to middle of pattern walls. m_digit_segment_len = half of x width of glyph
+                current_glyph_start_x +=
+                    (((m_wall_count - 1) / 2) * line_spacing_angle()) - m_digit_segment_len
+                ;
+                current_glyph_start_x += pattern_shift(calc.num_patterns, calc.center_x);
+
+                gcode << draw_number(
+                    current_glyph_start_x,
+                    calc.pattern_start_y + calc.frame_size_y + m_glyph_padding_vertical + line_width(),
+                    calc.start_pa + (j * calc.step_pa),
+                    DrawDigitMode::Vertical
+                );
+            }
+        }
+
+        double to_x = calc.pattern_start_x + pattern_shift(calc.num_patterns, calc.center_x);
+        double to_y = calc.pattern_start_y;
+        double side_length = m_wall_side_length;
+
+        if (i == 0) {
+            // shrink first layer to fit inside frame
+            double shrink =
+                (
+                    line_spacing_anchor() * (m_anchor_perimeters - 1) +
+                    (line_width_anchor() * (1 - m_encroachment))
+                ) / std::sin(to_radians(m_corner_angle) / 2)
+            ;
+            side_length = m_wall_side_length - shrink;
+            to_x += shrink + std::sin(to_radians(90) - to_radians(m_corner_angle) / 2);
+            to_y +=
+                line_spacing_anchor() * (m_anchor_perimeters - 1) +
+                (line_width_anchor() * (1 - m_encroachment))
+            ;
+        }
+
+        double initial_x = to_x;
+        double initial_y = to_y;
+
+        gcode << move_to(Vec2d(to_x, to_y), "Move to pattern start");
+
+        for (int j = 0; j < calc.num_patterns; ++j) {
+            // increment pressure advance
+            writer.set_pressure_advance(calc.start_pa + (j * calc.step_pa));
+
+            for (int k = 0; k < m_wall_count; ++k) {
+                to_x += std::cos(to_radians(m_corner_angle) / 2) * side_length;
+                to_y += std::sin(to_radians(m_corner_angle) / 2) * side_length;
+                
+                draw_line_opt_args = draw_line_basic_settings;
+                draw_line_opt_args.height = i == 0 ? m_height_first_layer : m_height_layer;
+                draw_line_opt_args.speed = i == 0 ? m_speed_first_layer : m_speed_perimeter;
+                draw_line_opt_args.comment = "Print pattern wall";
+                
+                gcode << draw_line(to_x, to_y, draw_line_opt_args);
+
+                to_y = initial_y;
+                if (k != m_wall_count - 1) {
+                    // perimeters not done yet. move to next perimeter
+                    to_x += line_spacing_angle();
+                    gcode << move_to(Vec2d(to_x, to_y), "Move to start next pattern wall");
+                } else if (j != calc.num_patterns - 1) {
+                    // patterns not done yet. move to next pattern
+                    to_x += m_pattern_spacing + line_width();
+                    gcode << move_to(Vec2d(to_x, to_y), "Move to next pattern");
+                } else if (i != m_num_layers - 1) {
+                    // layers not done yet. move back to start
+                    to_x = initial_x;
+                    gcode << move_to(Vec2d(to_x, to_y), "Move back to start position");
+                } else {
+                    // everything done
+                }
+            }
+        }
+    }
+
+    // set pressure advance back to start value
+    writer.set_pressure_advance(calc.start_pa);
+
+    return gcode.str();
 }
 } // namespace Slic3r

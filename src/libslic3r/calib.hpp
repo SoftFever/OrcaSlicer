@@ -101,6 +101,7 @@ public:
 
         m_line_ratio(112.5),
         m_extrusion_multiplier(0.98),
+        m_num_layers(4),
         m_height_layer(0.2),
         m_height_first_layer(0.25),
         m_speed_first_layer(30),
@@ -241,13 +242,14 @@ private:
     double pattern_start_x(int num_patterns, double center_x) { return center_x - (object_size_x(num_patterns) + pattern_shift(num_patterns, center_x)) / 2; };
     double pattern_start_y(double start_pa, double step_pa, int num_patterns, double center_y) { return center_y - object_size_y(start_pa, step_pa, num_patterns) / 2; };
 
-    std::string draw_line(double to_x, double to_y, std::string comment = std::string());
-    std::string draw_box(double min_x, double min_y, double size_x, double size_y);
+    std::string draw_line(double to_x, double to_y, DrawLineOptArgs opt_args = DrawLineOptArgs());
+    std::string draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args = DrawBoxOptArgs());
 
     std::string print_pa_pattern(PatternCalc& calc);
 
     double m_line_ratio;
     double m_extrusion_multiplier;
+    int m_num_layers;
     double m_height_layer;
     double m_height_first_layer;
     double m_speed_first_layer;
