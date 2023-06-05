@@ -194,7 +194,7 @@ void MediaPlayCtrl::Play()
     if (!m_remote_support) { // not support tutk
         Stop(m_lan_ip.empty() 
             ? _L("Initialize failed (Missing LAN ip of printer)!") 
-            : _L("Initialize failed (Not supported by printer)!"));
+            : _L("Initialize failed (Not supported on the current printer version)!"));
         return;
     }
 

@@ -413,6 +413,11 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     m_waiting_enable = false;
+    if (!m_local_support && !m_remote_support) {
+        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
+        fs->SetUrl("0");
+        return;
+    }
     if ((m_lan_mode || !m_remote_support) && m_local_support && !m_lan_ip.empty()) {
         std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         fs->SetUrl(url);
