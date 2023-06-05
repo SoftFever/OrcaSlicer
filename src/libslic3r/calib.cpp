@@ -401,7 +401,7 @@ double CalibPressureAdvancePattern::object_size_y(double start_pa, double step_p
     return 2 * std::sin(to_radians(m_corner_angle) / 2) * m_wall_side_length +
         max_numbering_height(start_pa, step_pa, num_patterns) +
         m_glyph_padding_vertical * 2 +
-        line_width_anchor()
+        line_width_anchor();
 }
 
 double CalibPressureAdvancePattern::glyph_start_x(int num_patterns, double center_x)
@@ -448,14 +448,14 @@ double CalibPressureAdvancePattern::pattern_shift(int num_patterns, double cente
     return 0;
 }
 
-std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, DrawLineOptArgs opt_args = DrawLineOptArgs())
+std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, DrawLineOptArgs opt_args)
 {
     std::stringstream gcode;
-    auto& config = mp_gcodegen.config();
-    auto& writer = mp_gcodegen.writer();
+    auto& config = mp_gcodegen->config();
+    auto& writer = mp_gcodegen->writer();
 
     Flow line_flow = Flow(opt_args.line_width, opt_args.height, m_nozzle_diameter);
-    const double filament_area = M_PI * std::pow(config.filament_diameter.value / 2, 2);
+    const double filament_area = M_PI * std::pow(config.filament_diameter.get_at(0) / 2, 2);
     const double e_per_mm = line_flow.mm3_per_mm() / filament_area * opt_args.extrusion_multiplier;
 
     Point last_pos = mp_gcodegen.last_pos();
