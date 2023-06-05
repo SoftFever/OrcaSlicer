@@ -44,7 +44,6 @@ protected:
     
     bool is_delta();
     void delta_scale_bed_ext(BoundingBoxf& bed_ext);
-    void delta_modify_start(double start_x, double start_y, int count);
 
     GCode* mp_gcodegen;
     double m_nozzle_diameter;
@@ -77,6 +76,7 @@ public:
     bool& draw_numbers() { return m_draw_numbers; }
 
 private:
+    void delta_modify_start(double& startx, double& starty, int count);
     std::string print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num);
 
     double m_length_short, m_length_long;
@@ -185,7 +185,7 @@ private:
         int perim_speed;
     };
 
-    struct DrawLineOptArgs {
+    struct DrawLineOptArgs : PatternSettings {
         DrawLineOptArgs();
 
         double extrusion_multiplier;
@@ -195,7 +195,7 @@ private:
         std::string comment;
     };
 
-    struct DrawBoxOptArgs {
+    struct DrawBoxOptArgs : PatternSettings {
         DrawBoxOptArgs();
 
         bool is_filled;
@@ -204,6 +204,8 @@ private:
         double line_width;
         double speed;
     };
+
+    void delta_modify_start(PatternCalc& pc);
 
     double speed_adjust(int speed) const { return speed * 60; };
     double to_radians(double degrees) { return degrees * M_PI / 180; };

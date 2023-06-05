@@ -1,5 +1,4 @@
 #include "calib.hpp"
-#include "Point.hpp"
 #include "PrintConfig.hpp"
 #include "GCodeWriter.hpp"
 #include "GCode.hpp"
@@ -213,12 +212,6 @@ void CalibPressureAdvance::delta_scale_bed_ext(BoundingBoxf& bed_ext)
     bed_ext.scale(1.0f / 1.41421f);
 }
 
-void CalibPressureAdvance::delta_modify_start(double& start_x, double& start_y, int count)
-{
-    startx = -startx;
-    starty = -(count * m_space_y) / 2; // TODO fix for pattern
-}
-
 std::string CalibPressureAdvanceLine::generate_test(double start_pa /*= 0*/, double step_pa /*= 0.002*/, int count /*= 10*/)
 {
     BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
@@ -241,6 +234,12 @@ std::string CalibPressureAdvanceLine::generate_test(double start_pa /*= 0*/, dou
     }
 
     return print_pa_lines(startx, starty, start_pa, step_pa, count);
+}
+
+void CalibPressureAdvanceLine::delta_modify_start(double& startx, double& starty, int count)
+{
+    startx = -startx;
+    starty = -(count * m_space_y) / 2;
 }
 
 std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num)
@@ -308,10 +307,6 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
     auto start_x = pattern_start_x(num_patterns, center_x);
     auto start_y = pattern_start_y(start_pa, step_pa, num_patterns, center_y);
 
-    if (is_delta()) {
-        delta_modify_start(start_x, start_y, num_patterns);
-    }
-
     CalibPressureAdvancePattern::PatternCalc pattern_calc(
         start_pa,
         step_pa,
@@ -328,6 +323,10 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
         glyph_end_x(num_patterns, center_x),
         glyph_tab_max_x(num_patterns, center_x)
     );
+
+    if (is_delta()) {
+        delta_modify_start(pattern_calc);
+    }
 
     return print_pa_pattern(pattern_calc);
 }
@@ -348,23 +347,25 @@ CalibPressureAdvancePattern::PatternSettings::PatternSettings() {
 }
 
 CalibPressureAdvancePattern::DrawLineOptArgs::DrawLineOptArgs() {
-    PatternSettings ps;
-
-    extrusion_multiplier = ps.extrusion_multiplier;
-    height = ps.layer_height;
-    line_width = ps.line_width;
-    speed = ps.perim_speed;
+    extrusion_multiplier = PatternSettings::extrusion_multiplier;
+    height = PatternSettings::layer_height;
+    line_width = PatternSettings::line_width;
+    speed = PatternSettings::perim_speed;
     comment = "Print line";
 }
 
 CalibPressureAdvancePattern::DrawBoxOptArgs::DrawBoxOptArgs() {
-    PatternSettings ps;
-
     is_filled = false;
-    num_perimeters = ps.anchor_perimeters;
-    height = ps.first_layer_height;
-    line_width = ps.anchor_line_width;
-    speed = ps.first_layer_speed;
+    num_perimeters = PatternSettings::anchor_perimeters;
+    height = PatternSettings::first_layer_height;
+    line_width = PatternSettings::anchor_line_width;
+    speed = PatternSettings::first_layer_speed;
+}
+
+void CalibPressureAdvancePattern::delta_modify_start(PatternCalc& pc)
+{
+    pc.pattern_start_x = -pc.pattern_start_x;
+    pc.pattern_start_y = -(frame_size_y() / 2);
 }
 
 double CalibPressureAdvancePattern::get_distance(double cur_x, double cur_y, double to_x, double to_y)

@@ -1882,9 +1882,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         auto params = print.calib_params();
 
-        switch (print.calib_params().mode) {
-            case CalibMode::Calib_PA_Line:
-                calib_pressure_advance_line pa_test(this);
+        if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
+                CalibPressureAdvanceLine pa_test(this);
 
                 double filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
                 Flow pattern_line = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
@@ -1895,11 +1894,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 pa_test.draw_numbers() = print.calib_params().print_numbers;
                 
                 gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
-                break;
-            case CalibMode::Calib_PA_Pattern:
-                calib_pressure_advance_pattern pa_test(this);
+        } else if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
+                CalibPressureAdvancePattern pa_test(this);
                 gcode += pa_test.generate_test(params.start, params.end, params.step);
-                break;
         }
 
         file.write(gcode);
