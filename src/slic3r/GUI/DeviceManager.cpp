@@ -718,68 +718,6 @@ static float calc_color_distance(wxColour c1, wxColour c2)
     return DeltaE76(lab[0][0], lab[0][1], lab[0][2], lab[1][0], lab[1][1], lab[1][2]);
 }
 
-/* use common colors to calc a threshold */
-static float calc_threshold()
-{
-    //common colors from https://www.ebaomonthly.com/window/photo/lesson/colorList.htm
-
-    const int common_color_num = 32;
-    wxColour colors[common_color_num] = {
-        wxColour(255, 0, 0),
-        wxColour(255, 36, 0),
-        wxColour(255, 77, 0),
-        wxColour(255, 165, 0),
-        wxColour(255, 191, 0),
-        wxColour(255, 215, 0),
-        wxColour(255, 255, 0),
-        wxColour(204, 255, 0),
-        wxColour(102, 255, 0),
-        wxColour(0, 255, 0),
-
-        wxColour(0, 255, 255),
-        wxColour(0, 127, 255),
-        wxColour(0, 0, 255),
-        wxColour(127, 255, 212),
-        wxColour(224, 255, 255),
-        wxColour(240, 248, 245),
-        wxColour(48, 213, 200),
-        wxColour(100, 149, 237),
-        wxColour(0, 51, 153),
-        wxColour(65, 105, 225),
-
-        wxColour(0, 51, 102),
-        wxColour(42, 82, 190),
-        wxColour(0, 71, 171),
-        wxColour(30, 144, 255),
-        wxColour(0, 47, 167),
-        wxColour(0, 0, 128),
-        wxColour(94, 134, 193),
-        wxColour(204, 204, 255),
-        wxColour(8, 37, 103),
-        wxColour(139, 0, 255),
-
-        wxColour(227, 38, 54),
-        wxColour(255, 0, 255)
-    };
-
-    float min_val = INT_MAX;
-    int a = -1;
-    int b = -1;
-    for (int i = 0; i < common_color_num; i++) {
-        for (int j = i+1; j < common_color_num; j++) {
-            float distance = calc_color_distance(colors[i], colors[j]);
-            if (min_val > distance) {
-                min_val = distance;
-                a = i;
-                b = j;
-            }
-        }
-    }
-    BOOST_LOG_TRIVIAL(trace) << "min_distance = " << min_val << ", a = " << a << ", b = " << b;
-
-    return min_val;
-}
-
 int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo>& result, std::vector<int> exclude_id)
 {
     if (filaments.empty())
@@ -884,11 +822,14 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             DisValue val;
             val.tray_id = tray->second.id;
             wxColour c = wxColour(filaments[i].color);
-            val.distance = calc_color_distance(c, AmsTray::decode_color(tray->second.color));
+            wxColour tray_c = AmsTray::decode_color(tray->second.color);
+            val.distance = calc_color_distance(c, tray_c);
             if (filaments[i].type != tray->second.type) {
                 val.distance = 999999;
                 val.is_type_match = false;
             } else {
+                if (c.Alpha() != tray_c.Alpha())
+                    val.distance = 999999;
                 val.is_type_match = true;
             }
             ::sprintf(buffer, "  %6.0f", val.distance);
