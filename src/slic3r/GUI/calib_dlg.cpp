@@ -164,14 +164,19 @@ void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) {
     m_bDDE = selection == 0 ? true : false;
 
     m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
-    
-    if (m_rbMethod->GetSelection() == CalibMode::Calib_PA_Pattern) {
+
+    if(!m_bDDE) {
+        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
+        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.02));
+    } else if (m_rbMethod->GetSelection() == 2) {
+        // pattern method
         m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.08));
         m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.015));
     } else {
-        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.1 : 1.0));
-        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.002 : 0.02));
+        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.1));
+        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
     }
+
     event.Skip(); 
 }
 void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
