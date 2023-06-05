@@ -1799,15 +1799,6 @@ wxString ObjectGridTable::convert_filament_string(int index, wxString& filament_
     return result_str;
 }
 
-static wxString brim_choices[] =
-{
-    L("Auto"),
-    L("Manual"),
-    L("No-brim"),
-    //L("Inner brim only"),
-    //L("Outer and inner brim")
-};
-
 void ObjectGridTable::init_cols(ObjectGrid *object_grid)
 {
     const float font_size = 1.5f * wxGetApp().em_unit();
@@ -1839,7 +1830,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     col = new ObjectGridCol(coEnum, "extruder", ObjectGridTable::category_all, false, false, true, true, wxALIGN_CENTRE);
     col->size = 128;
     //the spec now guarantees vectors store their elements contiguously
-    col->choices = &m_panel->m_filaments_name[0];
+    col->choices.assign(m_panel->m_filaments_name.begin(), m_panel->m_filaments_name.end());
     col->choice_count = m_panel->m_filaments_count;
     m_col_data.push_back(col);
 
@@ -1886,8 +1877,12 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     //Bed Adhesion
     col               = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
-    col->choices = brim_choices;
-    col->choice_count = WXSIZEOF(brim_choices);
+    col->choices.Add(_L("Auto"));
+    col->choices.Add(_L("Outer brim only"));
+    col->choices.Add(_L("Inner brim only"));
+    col->choices.Add(_L("Outer and inner brim"));
+    col->choices.Add(_L("No-brim"));
+    col->choice_count = col->choices.size();
     m_col_data.push_back(col);
 
     //reset icon for Bed Adhesion
@@ -2240,11 +2235,11 @@ void ObjectGridTable::update_row_properties()
                             break;
                         case coEnum:
                             if (col == ObjectGridTable::col_filaments) {
-                                GridCellFilamentsEditor *filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_panel->m_color_bitmaps);
+                                GridCellFilamentsEditor *filament_editor = new GridCellFilamentsEditor(grid_col->choices, false, &m_panel->m_color_bitmaps);
                                 grid_table->SetCellEditor(row, col, filament_editor);
                                 grid_table->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
                             } else {
-                                GridCellChoiceEditor *combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
+                                GridCellChoiceEditor *combo_editor = new GridCellChoiceEditor(grid_col->choices);
                                 grid_table->SetCellEditor(row, col, combo_editor);
                                 grid_table->SetCellRenderer(row, col, new wxGridCellChoiceRenderer());
                                 //new wxGridCellChoiceEditor(grid_col->choice_count, grid_col->choices));
@@ -2966,7 +2961,7 @@ void ObjectTablePanel::load_data()
                     case coEnum:
                         if (col == ObjectGridTable::col_filaments) {
                             if (grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) {
-                                GridCellFilamentsEditor* filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_color_bitmaps);
+                                GridCellFilamentsEditor* filament_editor = new GridCellFilamentsEditor(grid_col->choices, false, &m_color_bitmaps);
                                 m_object_grid->SetCellEditor(row, col, filament_editor);
                                 m_object_grid->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
                             }
@@ -2979,7 +2974,7 @@ void ObjectTablePanel::load_data()
                             }
                         }
                         else {
-                            GridCellChoiceEditor* combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
+                            GridCellChoiceEditor* combo_editor = new GridCellChoiceEditor(grid_col->choices);
                             m_object_grid->SetCellEditor(row, col, combo_editor);
                             m_object_grid->SetCellRenderer(row, col, new wxGridCellChoiceRenderer());
                         }

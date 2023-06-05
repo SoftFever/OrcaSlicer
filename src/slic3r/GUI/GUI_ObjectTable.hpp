@@ -416,7 +416,7 @@ public:
         bool                 b_icon;
         bool                 b_editable;
         bool                 b_from_config;
-        wxString             *choices;
+        wxArrayString        choices;
         int                  choice_count;
         int                  horizontal_align;
 
@@ -427,13 +427,11 @@ public:
                 size = 32;
             else
                 size = -1;
-            choices = nullptr;
             choice_count = 0;
         }
 
         ~ObjectGridCol()
         {
-            choices = nullptr;
         }
     };
     ObjectGridTable(ObjectTablePanel* panel): m_panel(panel) { }
