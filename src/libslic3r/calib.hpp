@@ -49,7 +49,7 @@ protected:
     GCode* mp_gcodegen;
     double m_nozzle_diameter;
     double m_digit_segment_len;
-    int m_max_number_length;
+    std::string::size_type m_max_number_length;
     double m_number_spacing;
 };
 
