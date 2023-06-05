@@ -171,7 +171,7 @@ void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) {
     } else if (m_rbMethod->GetSelection() == 2) {
         // pattern method
         m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.08));
-        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.015));
+        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.005));
     } else {
         m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.1));
         m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
