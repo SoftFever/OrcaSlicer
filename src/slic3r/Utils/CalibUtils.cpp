@@ -634,8 +634,8 @@ void CalibUtils::send_to_print(const std::string& dev_id, const std::string& sel
 
 
 #if !BBL_RELEASE_TO_PUBLIC
-    print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
-    print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+    print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+    print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
 #else
     print_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
     print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;

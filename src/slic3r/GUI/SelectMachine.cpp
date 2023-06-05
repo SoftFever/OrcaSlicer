@@ -2511,8 +2511,8 @@ void SelectMachineDialog::on_send_print()
     m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
 #if !BBL_RELEASE_TO_PUBLIC
-    m_print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
-    m_print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+    m_print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+    m_print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
 #else
     m_print_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
     m_print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
@@ -2521,12 +2521,21 @@ void SelectMachineDialog::on_send_print()
     m_print_job->cloud_print_only = obj_->is_cloud_print_only;
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
+        BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_normal";
         m_print_job->m_print_type = "from_normal";
         m_print_job->set_project_name(m_current_project_name.utf8_string());
     }
     else if(m_print_type == PrintFromType::FROM_SDCARD_VIEW){
+        BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_sdcard_view";
         m_print_job->m_print_type = "from_sdcard_view";
         m_print_job->connection_type = "lan";
+
+        try {
+            m_print_job->m_print_from_sdc_plate_idx = m_required_data_plate_data_list[m_print_plate_idx]->plate_index + 1;
+        }
+        catch (...) {}
+        BOOST_LOG_TRIVIAL(info) << "print_job: m_print_plate_idx =" << m_print_job->m_print_from_sdc_plate_idx;
+
         auto input_str_arr = wxGetApp().split_str(m_required_data_file_name,".gcode.3mf");
         if (input_str_arr.size() > 1) {
             m_print_job->set_project_name(input_str_arr[0]);
@@ -2678,9 +2687,15 @@ bool  SelectMachineDialog::is_timeout()
 
 void SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
 {
+    m_required_data_plate_data_list.clear();
     m_required_data_config = config;
     m_required_data_model = model;
-    m_required_data_plate_data_list = plate_data_list;
+    //m_required_data_plate_data_list = plate_data_list;
+    for (auto i = 0; i < plate_data_list.size(); i++) {
+        if (!plate_data_list[i]->gcode_file.empty()) {
+            m_required_data_plate_data_list.push_back(plate_data_list[i]);
+        }
+    }
     m_required_data_file_name = file_name;
 }
 

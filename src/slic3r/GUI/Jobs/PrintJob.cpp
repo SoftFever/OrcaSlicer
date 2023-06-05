@@ -156,16 +156,22 @@ void PrintJob::process()
     // task name
     std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
     int curr_plate_idx = 0;
-    if (plate_data.is_valid)
-        curr_plate_idx = plate_data.cur_plate_index;
-    if (job_data.plate_idx >= 0)
-        curr_plate_idx = job_data.plate_idx + 1;
-    else if (job_data.plate_idx == PLATE_CURRENT_IDX)
-        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
-    else if (job_data.plate_idx == PLATE_ALL_IDX)
-        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
-    else
-        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+
+    if (m_print_type == "from_normal") {
+        if (plate_data.is_valid)
+            curr_plate_idx = plate_data.cur_plate_index;
+        if (job_data.plate_idx >= 0)
+            curr_plate_idx = job_data.plate_idx + 1;
+        else if (job_data.plate_idx == PLATE_CURRENT_IDX)
+            curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+        else if (job_data.plate_idx == PLATE_ALL_IDX)
+            curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+        else
+            curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+    }
+    else if(m_print_type == "from_sdcard_view") {
+        curr_plate_idx = m_print_from_sdc_plate_idx;
+    }
 
     PartPlate* curr_plate = m_plater->get_partplate_list().get_curr_plate();
     if (curr_plate) {
@@ -255,7 +261,7 @@ void PrintJob::process()
     }
     
 
-    if (params.preset_name.empty()) {params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString();}
+    if (params.preset_name.empty()) { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
 
     //Prevent string length from exceeding 100 bytes
