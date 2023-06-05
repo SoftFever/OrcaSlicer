@@ -778,11 +778,21 @@ void AMSLib::render(wxDC &dc)
                 auto line_top_tsize    = dc.GetMultiLineTextExtent(line_top);
                 auto line_bottom_tsize = dc.GetMultiLineTextExtent(line_bottom);
 
-                auto pot_top = wxPoint((libsize.x - line_top_tsize.x) / 2, (libsize.y - line_top_tsize.y) / 2 - line_top_tsize.y + FromDIP(6));
-                dc.DrawText(line_top, pot_top);
+                if (!m_show_kn) {
+                    auto pot_top = wxPoint((libsize.x - line_top_tsize.x) / 2, (libsize.y - line_top_tsize.y) / 2 - line_top_tsize.y + FromDIP(6));
+                    dc.DrawText(line_top, pot_top);
 
-                auto pot_bottom = wxPoint((libsize.x - line_bottom_tsize.x) / 2, (libsize.y - line_bottom_tsize.y) / 2 + FromDIP(6));
-                dc.DrawText(line_bottom, pot_bottom);
+                    auto pot_bottom = wxPoint((libsize.x - line_bottom_tsize.x) / 2, (libsize.y - line_bottom_tsize.y) / 2 + FromDIP(4));
+                    dc.DrawText(line_bottom, pot_bottom);
+                }
+                else {
+                    auto pot_top = wxPoint((libsize.x - line_top_tsize.x) / 2, (libsize.y - line_top_tsize.y) / 2 - line_top_tsize.y - FromDIP(6));
+                    dc.DrawText(line_top, pot_top);
+
+                    auto pot_bottom = wxPoint((libsize.x - line_bottom_tsize.x) / 2, (libsize.y - line_bottom_tsize.y) / 2 - FromDIP(8));
+                    dc.DrawText(line_bottom, pot_bottom);
+                }
+               
 
             } else {
                 auto pot = wxPoint(0, 0);
