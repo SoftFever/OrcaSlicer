@@ -4300,18 +4300,20 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                 columns_offsets.push_back({ std::to_string(it->first + 1), offsets[0] });
 
                 char buf[64];
+                double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1.0;
                 if (show_detailed_statistics_page) {
-                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[1] });
 
-                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m_all_plates[i], flushed_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m_all_plates[i], flushed_filaments_g_all_plates[i] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[2] });
 
-                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i] + flushed_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i] + flushed_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (model_used_filaments_m_all_plates[i] + flushed_filaments_m_all_plates[i]),
+                              (model_used_filaments_g_all_plates[i] + flushed_filaments_g_all_plates[i]) / unit_conver);
                     columns_offsets.push_back({ buf, offsets[3] });
                 }
                 else {
-                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[2] });
                 }
 
@@ -4932,7 +4934,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                     columns_offsets.push_back({ std::to_string(extruder_idx + 1), offsets[0] });
 
                     char buf[64];
-                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[0] , model_used_filaments_g[0]);
+                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[0], model_used_filaments_g[0] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[2] });
 
                     append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false);
@@ -4966,19 +4968,20 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
                         char buf[64];
                         if (show_flushed_filaments) {
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
                             columns_offsets.push_back({ buf, offsets[1] });
 
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i] / unit_conver);
                             columns_offsets.push_back({ buf, offsets[2] });
 
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i] + flushed_filaments_m[i], model_used_filaments_g[i] + flushed_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (model_used_filaments_m[i] + flushed_filaments_m[i]),
+                                      (model_used_filaments_g[i] + flushed_filaments_g[i]) / unit_conver);
                             columns_offsets.push_back({ buf, offsets[3] });
                         }
                         else {
                             char buf[64];
-                            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
-                            columns_offsets.push_back({ buf, offsets[2] });
+                            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
+                            columns_offsets.push_back({buf, offsets[2]});
                         }
 
                         append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, filament_visible, [this, extruder_idx]() {
@@ -5027,20 +5030,20 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             std::vector<std::pair<std::string, float>> columns_offsets;
             columns_offsets.push_back({ _u8L("Total"), offsets[0] });
             if (!show_flushed_filaments) {
-                ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", total_model_used_filament_m, total_model_used_filament_g);
+                ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[2] });
 
                 append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
             }
             else {
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g);
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[1] });
 
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_flushed_filament_m, total_flushed_filament_g);
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_flushed_filament_m, total_flushed_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[2] });
 
                 bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (total_model_used_filament_m + total_flushed_filament_m) * 1000 / /*1000*/koef, (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m + total_flushed_filament_m, (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
                 columns_offsets.push_back({ buf, offsets[3] });
 
                 append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
