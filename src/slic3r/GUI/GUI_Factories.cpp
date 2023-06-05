@@ -1585,11 +1585,16 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
         }
     }
 
-    wxString menu_text = all_printable ? _L("Set Unprintable") : _L("Set Printable");
-    append_menu_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
+    wxString menu_text = _L("Printable");
+    wxMenuItem* menu_item_set_printable = append_menu_check_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
         Selection& selection = plater()->canvas3D()->get_selection();
         selection.set_printable(!all_printable);
-        }, "", nullptr, []() { return true; }, m_parent);
+        }, menu);
+    m_parent->Bind(wxEVT_UPDATE_UI, [all_printable](wxUpdateUIEvent& evt) {
+        evt.Check(all_printable);
+        plater()->set_current_canvas_as_dirty();
+
+        }, menu_item_set_printable->GetId());
 }
 
 void MenuFactory::append_menu_item_locked(wxMenu* menu)
