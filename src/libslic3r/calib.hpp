@@ -32,8 +32,8 @@ protected:
     ~CalibPressureAdvance() { };
 
     enum class DrawDigitMode {
-        Horizontal = 0,
-        Vertical
+        Left_To_Right = 0,
+        Bottom_To_Top
     };
 
     std::string move_to(Vec2d pt, std::string comment = std::string());

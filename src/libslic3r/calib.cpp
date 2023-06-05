@@ -66,7 +66,7 @@ std::string CalibPressureAdvance::draw_digit(double startx, double starty, char 
     Vec2d gap_p0_toward_p3, gap_p2_toward_p3;
     Vec2d dot_direction;
 
-    if (mode == CalibPressureAdvance::DrawDigitMode::Vertical) {
+    if (mode == CalibPressureAdvance::DrawDigitMode::Bottom_To_Top) {
         //  1-------2-------5
         //  |       |       |
         //  |       |       |
@@ -284,7 +284,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), e * 7);
 
         for (int i = 0; i < num; i += 2) {
-            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa);
+            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa, DrawDigitMode::Left_To_Right);
         }
     }
     return gcode.str();
@@ -718,7 +718,7 @@ std::string CalibPressureAdvancePattern::print_pa_pattern(PatternCalc& calc)
                     current_glyph_start_x,
                     calc.pattern_start_y + calc.frame_size_y + m_glyph_padding_vertical + line_width(),
                     calc.start_pa + (j * calc.step_pa),
-                    DrawDigitMode::Vertical
+                    DrawDigitMode::Bottom_To_Top
                 );
             }
         }
