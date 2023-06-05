@@ -308,26 +308,28 @@ public:
     static wxString get_hms_msg_level_str(HMSMessageLevel level);
 };
 
-class CalibDatas
+class X1CCalibInfos
 {
 public:
-    struct CalibData
+    struct X1CCalibInfo
     {
         int tray_id;
         int bed_temp;
         int nozzle_temp;
+        float nozzle_diameter;
         std::string filament_id;
         std::string setting_id;
         float max_volumetric_speed;
     };
    
-    std::vector<CalibData> calib_datas;
+    std::vector<X1CCalibInfo> calib_datas;
 };
 
 class PACalibResult
 {
 public:
     int tray_id;
+    float       nozzle_diameter;
     std::string filament_id;
     std::string setting_id;
     std::string name;
@@ -335,10 +337,19 @@ public:
     float       n_coef;
 };
 
+struct PACalibIndexInfo
+{
+    int         tray_id;
+    int         index;
+    float       nozzle_diameter;
+    std::string filament_id;
+};
+
 class FlowRatioCalibResult
 {
 public:
     int         tray_id;
+    float       nozzle_diameter;
     std::string filament_id;
     std::string setting_id;
     float       flow_ratio;
@@ -806,14 +817,15 @@ public:
     int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
 
     // PA calibration
-    int command_start_pa_calibration(const CalibDatas& pa_data);
+    int command_start_pa_calibration(const X1CCalibInfos& pa_data);
     int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values);
-    int command_delete_pa_calibration(const PACalibResult& pa_calib);
-    int command_get_pa_calibration_infos(const std::string& filament_id = "");
+    int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
+    int command_get_pa_calibration_tab(const std::string& filament_id = "");
     int command_get_pa_calibration_result();
+    int commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info);
 
     // flow ratio calibration
-    int command_start_flow_ratio_calibration(const CalibDatas& calib_data);
+    int command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data);
     int command_get_flow_ratio_calibration_result();
 
     int command_unload_filament();

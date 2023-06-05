@@ -1618,11 +1618,13 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
         for (int tray_id : tray_ids) {
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id = tray_id;
+            calib_info.nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
+            calib_info.filament_id = m_filament_preset->filament_id;
             calib_info.setting_id = m_filament_preset->setting_id;
             calib_info.bed_temp = bed_temp;
             calib_info.nozzle_temp = nozzle_temp;
             calib_info.max_volumetric_speed = max_volumetric_speed;
-            calib_infos.calib_infos.push_back(calib_info);
+            calib_infos.calib_datas.push_back(calib_info);
         }
         std::string error_message;
         CalibUtils::calib_PA(calib_infos, error_message);
@@ -2064,11 +2066,13 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
         for (int tray_id : tray_ids) {
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id = tray_id;
+            calib_info.nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
+            calib_info.filament_id = m_filament_preset->filament_id;
             calib_info.setting_id = m_filament_preset->setting_id;
             calib_info.bed_temp = bed_temp;
             calib_info.nozzle_temp = nozzle_temp;
             calib_info.max_volumetric_speed = max_volumetric_speed;
-            calib_infos.calib_infos.push_back(calib_info);
+            calib_infos.calib_datas.push_back(calib_info);
         }
         std::string error_message;
         CalibUtils::calib_flowrate_X1C(calib_infos, error_message);

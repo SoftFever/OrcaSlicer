@@ -77,20 +77,8 @@ void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, std::string& error_m
     if (obj_ == nullptr)
         return;
 
-    CalibDatas pa_datas;
-    for (auto calib_info : calib_infos.calib_infos) {
-        CalibDatas::CalibData pa_calib;
-        pa_calib.tray_id = calib_info.tray_id;
-        pa_calib.setting_id = calib_info.setting_id;
-        pa_calib.bed_temp = calib_info.bed_temp;
-        pa_calib.nozzle_temp = calib_info.nozzle_temp;
-        pa_calib.max_volumetric_speed = calib_info.max_volumetric_speed;
-
-        pa_datas.calib_datas.push_back(pa_calib);
-    }
-
-    if (pa_datas.calib_datas.size() > 0)
-        obj_->command_start_pa_calibration(pa_datas);
+    if (calib_infos.calib_datas.size() > 0)
+        obj_->command_start_pa_calibration(calib_infos);
 }
 
 void CalibUtils::emit_get_PA_calib_results()
@@ -130,7 +118,7 @@ void CalibUtils::emit_get_PA_calib_infos()
     if (obj_ == nullptr)
         return;
 
-    obj_->command_get_pa_calibration_infos();
+    obj_->command_get_pa_calibration_tab();
 }
 
 bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
@@ -160,6 +148,32 @@ void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_
     obj_->command_set_pa_calibration(pa_calib_values);
 }
 
+void CalibUtils::select_PA_calib_result(const PACalibIndexInfo& pa_calib_info)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr)
+        return;
+
+    obj_->commnad_select_pa_calibration(pa_calib_info);
+}
+
+void CalibUtils::delete_PA_calib_result(const PACalibIndexInfo& pa_calib_info)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr)
+        return;
+
+    obj_->command_delete_pa_calibration(pa_calib_info);
+}
+
 void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::string& error_message)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -170,20 +184,8 @@ void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::strin
     if (obj_ == nullptr)
         return;
 
-    CalibDatas calib_datas;
-    for (auto calib_info : calib_infos.calib_infos) {
-        CalibDatas::CalibData pa_calib;
-        pa_calib.tray_id              = calib_info.tray_id;
-        pa_calib.setting_id           = calib_info.setting_id;
-        pa_calib.bed_temp             = calib_info.bed_temp;
-        pa_calib.nozzle_temp          = calib_info.nozzle_temp;
-        pa_calib.max_volumetric_speed = calib_info.max_volumetric_speed;
-
-        calib_datas.calib_datas.push_back(pa_calib);
-    }
-
-    if (calib_datas.calib_datas.size() > 0)
-        obj_->command_start_flow_ratio_calibration(calib_datas);
+    if (calib_infos.calib_datas.size() > 0)
+        obj_->command_start_flow_ratio_calibration(calib_infos);
 }
 
 void CalibUtils::emit_get_flow_ratio_calib_results()

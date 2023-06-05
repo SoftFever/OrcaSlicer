@@ -1874,17 +1874,18 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
     }
 }
 
-int MachineObject::command_start_pa_calibration(const CalibDatas &pa_data)
+int MachineObject::command_start_pa_calibration(const X1CCalibInfos& pa_data)
 {
     pa_calib_results.clear();
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
         json j;
         j["print"]["command"]     = "extrusion_cali";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["nozzle_diameter"] = std::to_string(pa_data.calib_datas[0].nozzle_diameter);
 
         for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
-            j["print"]["filaments"][i]["bed_temp"]             = pa_data.calib_datas[i].bed_temp;
             j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
+            j["print"]["filaments"][i]["bed_temp"]             = pa_data.calib_datas[i].bed_temp;
             j["print"]["filaments"][i]["filament_id"]          = pa_data.calib_datas[i].filament_id;
             j["print"]["filaments"][i]["setting_id"]           = pa_data.calib_datas[i].setting_id;
             j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
@@ -1918,31 +1919,29 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& 
     return -1;
 }
 
-int MachineObject::command_delete_pa_calibration(const PACalibResult& pa_calib)
+int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_calib)
 {
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
         json j;
         j["print"]["command"]     = "extrusion_cali_del";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["tray_id"]     = pa_calib.tray_id;
+        j["print"]["tray_id"]     = pa_calib.tray_id; // no need
         j["print"]["filament_id"] = pa_calib.filament_id;
-        j["print"]["setting_id"]  = pa_calib.setting_id;
-        j["print"]["name"]        = pa_calib.name;
-        j["print"]["k_value"]     = std::to_string(pa_calib.k_value);
-        j["print"]["n_coef"]      = std::to_string(pa_calib.n_coef);
+        j["print"]["index"]       = pa_calib.index;
+        j["print"]["nozzle_diameter"] = std::to_string(pa_calib.nozzle_diameter);
 
         return this->publish_json(j.dump());
     }
     return -1;
 }
 
-int MachineObject::command_get_pa_calibration_infos(const std::string& filament_id)
+int MachineObject::command_get_pa_calibration_tab(const std::string &filament_id)
 {
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
         json j;
         j["print"]["command"]     = "extrusion_cali_get";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["sequence_id"] = filament_id;
+        j["print"]["filament_id"] = filament_id;
 
         return this->publish_json(j.dump());
     }
@@ -1961,7 +1960,23 @@ int MachineObject::command_get_pa_calibration_result()
     return -1;
 }
 
-int MachineObject::command_start_flow_ratio_calibration(const CalibDatas& calib_data)
+int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info)
+{
+    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+        json j;
+        j["print"]["command"]     = "extrusion_cali_sel";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["tray_id"]     = pa_calib_info.tray_id;
+        j["print"]["index"]       = pa_calib_info.index;
+        j["print"]["filament_id"] = pa_calib_info.filament_id;
+        j["print"]["nozzle_diameter"] = std::to_string(pa_calib_info.nozzle_diameter);
+
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
+int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data)
 {
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
         json j;
@@ -1969,8 +1984,9 @@ int MachineObject::command_start_flow_ratio_calibration(const CalibDatas& calib_
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
         for (int i = 0; i < calib_data.calib_datas.size(); ++i) {
-            j["print"]["filaments"][i]["bed_temp"]             = calib_data.calib_datas[i].bed_temp;
             j["print"]["filaments"][i]["tray_id"]              = calib_data.calib_datas[i].tray_id;
+            j["print"]["filaments"][i]["nozzle_diameter"]      = std::to_string(calib_data.calib_datas[i].nozzle_diameter);
+            j["print"]["filaments"][i]["bed_temp"]             = calib_data.calib_datas[i].bed_temp;
             j["print"]["filaments"][i]["filament_id"]          = calib_data.calib_datas[i].filament_id;
             j["print"]["filaments"][i]["setting_id"]           = calib_data.calib_datas[i].setting_id;
             j["print"]["filaments"][i]["nozzle_temp"]          = calib_data.calib_datas[i].nozzle_temp;
@@ -3753,6 +3769,8 @@ int MachineObject::parse_json(std::string payload)
                                 pa_calib_result.tray_id     = (*it)["tray_id"].get<int>();
                                 pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
                                 pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                pa_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+
                                 if ((*it)["k_value"].is_number_float())
                                     pa_calib_result.k_value = (*it)["k_value"].get<float>();
                                 else if ((*it)["k_value"].is_string())
@@ -3777,6 +3795,7 @@ int MachineObject::parse_json(std::string payload)
                                 flow_ratio_calib_result.tray_id     = (*it)["tray_id"].get<int>();
                                 flow_ratio_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
                                 flow_ratio_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
+                                flow_ratio_calib_result.nozzle_diameter = stof((*it)["nozzle_diameter"].get<std::string>().c_str());
                                 flow_ratio_calib_result.flow_ratio  = stof((*it)["flow_ratio"].get<std::string>().c_str());
 
                                 flow_ratio_results.push_back(flow_ratio_calib_result);
