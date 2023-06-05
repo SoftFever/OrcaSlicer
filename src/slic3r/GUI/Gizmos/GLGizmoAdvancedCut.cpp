@@ -1297,7 +1297,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     bool         imperial_units    = wxGetApp().app_config->get("use_inches") == "1";
     unsigned int current_active_id = ImGui::GetActiveID();
 
-    Vec3d rotation = {Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2))};
+    Vec3d rotation = {Geometry::rad2deg(m_buffered_rotation(0)), Geometry::rad2deg(m_buffered_rotation(1)), Geometry::rad2deg(m_buffered_rotation(2))};
     char  buf[3][64];
     float buf_size[3];
     float vec_max = 0, unit_size = 0;
