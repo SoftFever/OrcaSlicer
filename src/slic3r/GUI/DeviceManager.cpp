@@ -1385,6 +1385,8 @@ void MachineObject::parse_version_func()
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
             is_support_ai_monitoring = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
             is_support_remote_tunnel  = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
+            is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.03.50.01") >= 0 ||
+                                      (esp32_version != module_vers.end() && esp32_version->second.sw_ver.compare("01.05.15.00") >= 0));
         }
         local_camera_proto = 1;
 
@@ -3925,7 +3927,7 @@ int MachineObject::parse_json(std::string payload)
         }
         catch (...)  {}
 
-        if (m_active_state == Active) {
+        if (m_active_state == Active && !module_vers.empty() && check_version_valid()) {
             m_active_state = UpdateToDate;
             parse_version_func();
             if (is_support_tunnel_mqtt && connection_type() != "lan") {
