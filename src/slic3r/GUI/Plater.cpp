@@ -3702,9 +3702,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         if (!silence) wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().make_preferred().string());
         // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
     }
-
     // automatic selection of added objects
-    if (!obj_idxs.empty() && view3D != nullptr && !load_config) {
+    if (!obj_idxs.empty() && view3D != nullptr && load_config) {
         // update printable state for new volumes on canvas3D
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 

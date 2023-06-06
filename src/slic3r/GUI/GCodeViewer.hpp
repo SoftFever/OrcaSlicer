@@ -734,7 +734,13 @@ public:
 
     //BBS
     ConflictResultOpt m_conflict_result;
-
+    bool   GetGcodeGenOk()
+    {
+        if (m_roles.empty())
+            return false;
+        else
+            return true;
+    }
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };

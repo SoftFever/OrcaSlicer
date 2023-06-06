@@ -1152,6 +1152,9 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
         for (auto item : m_tools.m_tool_visibles) item = true;
     }
 
+    for (int i = 0; i < m_tools.m_tool_colors.size(); i++) {
+        m_tools.m_tool_colors[i] = adjust_color_for_rendering(m_tools.m_tool_colors[i],  GLCanvas3D::ECanvasType::CanvasPreview);
+    }
     // ensure there are enough colors defined
     while (m_tools.m_tool_colors.size() < std::max(size_t(1), gcode_result.extruders_count)) {
         m_tools.m_tool_colors.push_back(decode_color("#FF8000"));
@@ -3263,7 +3266,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                 color = { 0.5f, 0.5f, 0.5f, 1.0f };
             else {
                 color = m_tools.m_tool_colors[path.cp_color_id];
-                color = adjust_color_for_rendering(color);
+                color = adjust_color_for_rendering(color, GLCanvas3D::ECanvasType::CanvasPreview);
             }
             break;
         }
@@ -3873,6 +3876,10 @@ void GCodeViewer::render_toolpaths()
     ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
+            if (path.color[3] < 1.0) {
+                glsafe(::glEnable(GL_BLEND));
+                glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+            }
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(! path.sizes.empty());
             assert(! path.offsets.empty());
@@ -3881,6 +3888,9 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_triangles_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+            if (path.color[3] < 1.0) {
+                glsafe(::glDisable(GL_BLEND));
+            }
         }
     };
 
@@ -4159,6 +4169,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<float> filament_densities = gcode_result_list.front()->filament_densities;
     std::vector<Color> filament_colors = decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()));
 
+    for (int i = 0; i < filament_colors.size(); i++) { 
+        filament_colors[i] = adjust_color_for_rendering(filament_colors[i], GLCanvas3D::ECanvasType::CanvasPreview);
+    }
+
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
     float window_padding = 4.0f * m_scale;
     const float icon_size = ImGui::GetTextLineHeight() * 0.7;
@@ -4409,21 +4423,21 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         default:
         case EItemType::Rect: {
             draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+                                     ImGui::GetColorU32({color[0], color[1], color[2], color[3]}));
             break;
         }
         case EItemType::Circle: {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-            draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+            draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({color[0], color[1], color[2], color[3]}), 16);
             break;
         }
         case EItemType::Hexagon: {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({color[0], color[1], color[2], color[3]}), 6);
             break;
         }
         case EItemType::Line: {
-            draw_list->AddLine({ pos.x + 1, pos.y + icon_size + 2 }, { pos.x + icon_size - 1, pos.y + 4 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
+            draw_list->AddLine({pos.x + 1, pos.y + icon_size + 2}, {pos.x + icon_size - 1, pos.y + 4}, ImGui::GetColorU32({color[0], color[1], color[2], color[3]}), 3.0f);
             break;
         case EItemType::None:
             break;

@@ -31,7 +31,9 @@
     #define glcheck()
 #endif // HAS_GLSAFE
 extern std::vector<std::array<float, 4>> get_extruders_colors();
-extern std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4>& colors);
+extern float FullyTransparentMaterialThreshold;
+extern float FullTransparentModdifiedToFixAlpha;
+extern std::array<float, 4>              adjust_color_for_rendering(const std::array<float, 4> &colors, int whichView=0);
 
 
 namespace Slic3r {
@@ -558,6 +560,7 @@ public:
     virtual void render(bool with_outline = false) const;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
+    bool                              IsTransparent();
 
 private:
     std::vector<std::array<float, 4>> m_colors;

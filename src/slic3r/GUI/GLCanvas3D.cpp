@@ -1888,32 +1888,34 @@ void GLCanvas3D::render(bool only_init)
         _render_selection();
         if (!no_partplate)
             _render_bed(!camera.is_looking_downward(), show_axes);
-        //BBS: add outline logic
-        _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
-        if (!no_partplate)
+        if (!no_partplate) //BBS: add outline logic
             _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id);
+        _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
     }
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview && m_render_preview) {
-        //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
-        //BBS: GUI refactor: add canvas size as parameters
-        _render_gcode(cnv_size.get_width(), cnv_size.get_height());
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
         _render_platelist(!camera.is_looking_downward(), only_current, true, hover_id);
+        // BBS: add outline logic
+        if (m_gcode_viewer.GetGcodeGenOk()==false) { 
+            _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
+        }
+        // BBS: GUI refactor: add canvas size as parameters
+        _render_gcode(cnv_size.get_width(), cnv_size.get_height());
     }
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         //_render_bed(!camera.is_looking_downward(), show_axes);
-        //BBS: add outline logic
-        _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
         _render_plane();
         //BBS: add outline logic insteadof selection under assemble view
         //_render_selection();
+        // BBS: add outline logic
+        _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
     }
 
     _render_sequential_clearance();

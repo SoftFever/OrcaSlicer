@@ -71,28 +71,45 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 // BBS
 std::vector<std::array<float, 4>> get_extruders_colors()
 {
-    unsigned char                     rgb_color[3] = {};
-    std::vector<std::string>          colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    unsigned char                     rgba_color[4] = {};
+    std::vector<std::string>          colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
     std::vector<std::array<float, 4>> colors_out(colors.size());
-    for (const std::string& color : colors) {
-        Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-        size_t color_idx = &color - &colors.front();
-        colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+    for (const std::string &color : colors) {
+        Slic3r::GUI::BitmapCache::parse_color4(color, rgba_color);
+        size_t color_idx      = &color - &colors.front();
+        colors_out[color_idx] = {
+            float(rgba_color[0]) / 255.f,
+            float(rgba_color[1]) / 255.f,
+            float(rgba_color[2]) / 255.f,
+            float(rgba_color[3]) / 255.f,
+        };
     }
 
     return colors_out;
 }
-
-std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4>& colors)
+float FullyTransparentMaterialThreshold  = 0.1f;
+float FullTransparentModdifiedToFixAlpha = 0.3f;
+std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colors, int whichView)
 {
-    if ((colors[0] < 0.1) && (colors[1] < 0.1) && (colors[2] < 0.1))
-    {
-        std::array<float, 4> new_color;
-        new_color[0] = 0.1;
-        new_color[1] = 0.1;
-        new_color[2] = 0.1;
-        new_color[3] = colors[3];
-        return new_color;
+    if (whichView == (int) Slic3r::GUI::GLCanvas3D::ECanvasType::CanvasView3D ||
+        whichView == (int) Slic3r::GUI::GLCanvas3D::ECanvasType::CanvasAssembleView) { 
+        if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
+                std::array<float, 4> new_color;
+                new_color[0] = 1;
+                new_color[1] = 1;
+                new_color[2] = 1;
+                new_color[3] = FullTransparentModdifiedToFixAlpha;
+                return new_color;
+            }
+    } else {
+        if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
+            std::array<float, 4> new_color;
+            new_color[0] = 1;
+            new_color[1] = 1;
+            new_color[2] = 1;
+            new_color[3] = 0.05f;
+            return new_color;
+        }
     }
 
     return colors;
@@ -514,8 +531,13 @@ void GLVolume::set_render_color()
         }
     }
 
-    if (force_transparent)
-        render_color[3] = color[3];
+    if (force_transparent) {
+        if (color[3] < FullyTransparentMaterialThreshold) {
+            render_color[3] = FullTransparentModdifiedToFixAlpha;
+        } else {
+            render_color[3] = color[3];
+        }
+    }
 
     //BBS set unprintable color
     if (!printable) {
@@ -1017,10 +1039,19 @@ void GLWipeTowerVolume::render(bool with_outline) const
         }
         this->iva_per_colors[i].render();
     }
-
+    
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
+}
+
+bool GLWipeTowerVolume::IsTransparent() { 
+    for (size_t i = 0; i < m_colors.size(); i++) {
+        if (m_colors[i][3] < 1.0f) { 
+            return true;
+        }
+    }
+    return false; 
 }
 
 std::vector<int> GLVolumeCollection::load_object(
@@ -1211,8 +1242,12 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     for (unsigned int i = 0; i < (unsigned int)volumes.size(); ++i) {
         GLVolume* volume = volumes[i];
         bool is_transparent = (volume->render_color[3] < 1.0f);
-        if (((type == GLVolumeCollection::ERenderType::Opaque && !is_transparent) ||
-             (type == GLVolumeCollection::ERenderType::Transparent && is_transparent) ||
+        auto tempGlwipeTowerVolume = dynamic_cast<GLWipeTowerVolume *>(volume);
+        if (tempGlwipeTowerVolume) { 
+            is_transparent = tempGlwipeTowerVolume->IsTransparent();
+        }
+        if (((type == GLVolumeCollection::ERenderType::Opaque && !is_transparent) || 
+            (type == GLVolumeCollection::ERenderType::Transparent && is_transparent) ||
              type == GLVolumeCollection::ERenderType::All) &&
             (! filter_func || filter_func(*volume)))
             list.emplace_back(std::make_pair(volume, std::make_pair(i, 0.0)));
