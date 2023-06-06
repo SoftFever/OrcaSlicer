@@ -3565,6 +3565,18 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
 }
 
 
+void ObjectList::add_objects_to_list(std::vector<size_t> obj_idxs, bool call_selection_changed, bool notify_partplate, bool do_info_update)
+{
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
+    for (const size_t idx : obj_idxs) {
+        add_object_to_list(idx, call_selection_changed, notify_partplate, do_info_update);
+    }
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
+}
 
 void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed, bool notify_partplate, bool do_info_update)
 {
@@ -3807,10 +3819,16 @@ void ObjectList::update_lock_icons_for_model()
 
 void ObjectList::delete_all_objects_from_list()
 {
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
     m_prevent_list_events = true;
     reload_all_plates();
     m_prevent_list_events = false;
     part_selection_changed();
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
 }
 
 void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)

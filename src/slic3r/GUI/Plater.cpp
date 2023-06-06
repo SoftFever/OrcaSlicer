@@ -3863,9 +3863,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     //}
 
     notification_manager->close_notification_of_type(NotificationType::UpdatedItemsInfo);
-    for (const size_t idx : obj_idxs) {
-        wxGetApp().obj_list()->add_object_to_list(idx);
-    }
+    wxGetApp().obj_list()->add_objects_to_list(obj_idxs);
 
     update();
     // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
