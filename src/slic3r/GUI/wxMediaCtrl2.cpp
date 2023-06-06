@@ -9,6 +9,13 @@
 
 #ifdef __LINUX__
 #include "Printer/gstbambusrc.h"
+#include <gst/gst.h> // main gstreamer header
+class WXDLLIMPEXP_MEDIA
+    wxGStreamerMediaBackend : public wxMediaBackendCommonBase
+{
+public:
+    GstElement *m_playbin; // GStreamer media element
+};
 #endif
 
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
@@ -30,6 +37,10 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
     wxMediaCtrl::Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
 #ifdef __LINUX__
     /* Register only after we have created the wxMediaCtrl, since only then are we guaranteed to have fired up Gstreamer's plugin registry. */
+    auto playbin = reinterpret_cast<wxGStreamerMediaBackend *>(m_imp)->m_playbin;
+    g_object_set (G_OBJECT (playbin),
+                  "audio-sink", NULL,
+                   NULL);
     gstbambusrc_register();
     Bind(wxEVT_MEDIA_LOADED, [this](auto & e) {
         m_loaded = true;
