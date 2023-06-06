@@ -4198,6 +4198,7 @@ void Plater::priv::reset(bool apply_presets_change)
 
     if (view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
+    view3D->get_canvas3d()->reset_all_gizmos();
 
     reset_gcode_toolpaths();
     //BBS: update gcode to current partplate's

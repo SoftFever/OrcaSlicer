@@ -70,6 +70,7 @@ public:
         Scale,
         Flatten,
         Cut,
+        MeshBoolean,
         FdmSupports,
         Seam,
         // BBS
