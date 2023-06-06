@@ -8067,7 +8067,7 @@ void Plater::import_model_id(wxString download_info)
         p->set_project_filename(wxString(filename));
     }
     else {
-        wxMessageBox(msg);
+        if (!msg.empty()) wxMessageBox(msg);
         return;
     }
 }
