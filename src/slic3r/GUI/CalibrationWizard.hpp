@@ -75,8 +75,21 @@ protected:
     virtual bool start_calibration(std::vector<int> tray_ids) = 0;
     virtual bool save_calibration_result() = 0;
     virtual bool recommend_input_value();
+    virtual void set_save_name() {};
     virtual void request_calib_result() {};
     virtual void change_ams_select_mode() {};
+    virtual void init_bitmaps();
+
+private:
+    ScalableBitmap m_bitmap_pause;
+    ScalableBitmap m_bitmap_pause_hover;
+    ScalableBitmap m_bitmap_resume;
+    ScalableBitmap m_bitmap_resume_hover;
+    ScalableBitmap m_bitmap_pause_disable;
+    ScalableBitmap m_bitmap_resume_disable;
+    ScalableBitmap m_bitmap_abort;
+    ScalableBitmap m_bitmap_abort_hover;
+    ScalableBitmap m_bitmap_abort_disable;
 
 protected:
     MachineObject* curr_obj{ nullptr };
@@ -187,6 +200,7 @@ protected:
     virtual bool recommend_input_value() override;
     virtual void request_calib_result() override;
     virtual void change_ams_select_mode() override;
+    virtual void init_bitmaps() override;
 
     void sync_save_page_data();
     void switch_pages(SimpleEvent& evt);
@@ -202,9 +216,11 @@ private:
 
     // print page
     CalibrationWizardPage* m_page2{ nullptr };
+    wxStaticBitmap* m_print_picture;
 
     // save page
     CalibrationWizardPage* m_page3{ nullptr };
+    wxStaticBitmap* m_record_picture;
     wxPanel* m_low_end_save_panel;
     TextInput* m_k_val;
     TextInput* m_n_val;
@@ -227,8 +243,10 @@ protected:
     virtual bool start_calibration(std::vector<int> tray_ids) override;
     virtual bool save_calibration_result() override;
     virtual bool recommend_input_value() override;
+    virtual void set_save_name() override;
     virtual void request_calib_result() override;
     virtual void change_ams_select_mode() override;
+    virtual void init_bitmaps() override;
 
     void sync_save_page_data();
     void switch_pages(SimpleEvent& evt);
@@ -238,13 +256,16 @@ private:
 
     // print page
     CalibrationWizardPage* m_page2{ nullptr };
+    wxStaticBitmap* m_print_picture;
 
     // page 3
     CalibrationWizardPage* m_low_end_page3{ nullptr };
+    wxStaticBitmap* m_low_record_picture1;
     ComboBox* m_optimal_block_coarse;
     wxStaticText* m_coarse_calc_result_text;
     float m_coarse_calc_result;
     CheckBox* m_checkBox_skip_calibration;
+    TextInput* m_save_name_input1;
 
     CalibrationWizardPage* m_high_end_page3{ nullptr };
     std::vector<FlowRatioCalibResult> m_calib_results;
@@ -253,12 +274,15 @@ private:
 
     // page 4
     CalibrationWizardPage* m_low_end_page4{ nullptr };
+    wxStaticBitmap* m_low_print_picture2;
 
     // save page
     CalibrationWizardPage* m_low_end_page5{ nullptr };
+    wxStaticBitmap* m_low_record_picture2;
     ComboBox* m_optimal_block_fine;
     wxStaticText* m_fine_calc_result_text;
     float m_fine_calc_result;
+    TextInput* m_save_name_input2;
     std::string m_save_name;
 
     void reset_print_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);
@@ -276,18 +300,23 @@ protected:
     virtual bool start_calibration(std::vector<int> tray_ids) override;
     virtual bool save_calibration_result() override;
     virtual bool recommend_input_value() override;
+    virtual void set_save_name() override;
+    virtual void init_bitmaps() override;
 private:
     // preset page
     CalibrationWizardPage* m_page1;
 
     // print page
     CalibrationWizardPage* m_page2;
+    wxStaticBitmap* m_print_picture;
 
     // save page
     CalibrationWizardPage* m_page3;
+    wxStaticBitmap* m_record_picture;
     TextInput* m_optimal_max_speed;
     wxStaticText* m_calc_result_text;
     float m_calc_result;
+    TextInput* m_save_name_input;
     std::string m_save_name;
 };
 
@@ -301,16 +330,21 @@ protected:
     virtual bool start_calibration(std::vector<int> tray_ids) override;
     virtual bool save_calibration_result() override;
     virtual bool recommend_input_value() override;
+    virtual void set_save_name() override;
+    virtual void init_bitmaps() override;
 private:
     // preset page
     CalibrationWizardPage* m_page1;
 
     // print page
     CalibrationWizardPage* m_page2;
+    wxStaticBitmap* m_print_picture;
 
     // save page
     CalibrationWizardPage* m_page3;
+    wxStaticBitmap* m_record_picture;
     TextInput* m_optimal_temp;
+    TextInput* m_save_name_input;
     std::string m_save_name;
 };
 

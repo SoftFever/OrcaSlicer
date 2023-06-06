@@ -6,6 +6,8 @@
 
 namespace Slic3r { namespace GUI {
 
+//#define CALIBRATION_DEBUG
+
 #define CALIBRATION_COMBOX_SIZE            wxSize(FromDIP(500), FromDIP(24))
 #define CALIBRATION_FILAMENT_COMBOX_SIZE   wxSize(FromDIP(250), FromDIP(24))
 #define CALIBRATION_OPTIMAL_INPUT_SIZE     wxSize(FromDIP(300), FromDIP(24))
@@ -132,11 +134,13 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, wxWindowID id, const wxPo
     this->Layout();
     main_sizer->Fit(this);
 
+    init_bitmaps();
+
     Bind(EVT_CALIBRATIONPAGE_PREV, &CalibrationWizard::on_click_btn_prev, this);
     Bind(EVT_CALIBRATIONPAGE_NEXT, &CalibrationWizard::on_click_btn_next, this);
     Bind(EVT_CALIBRATION_TRAY_SELECTION_CHANGED, &CalibrationWizard::on_select_tray, this);
 
-#if 0 /*debug*/
+#ifdef CALIBRATION_DEBUG
     this->Bind(wxEVT_CHAR_HOOK, [this](auto& evt) {
         const int keyCode = evt.GetKeyCode();
         switch (keyCode)
@@ -163,6 +167,17 @@ void CalibrationWizard::create_send_progress_bar(CalibrationWizardPage* page, wx
     sizer->Add(m_send_progress_panel, 0, wxEXPAND, 0);
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
     m_send_progress_bar = std::shared_ptr<BBLStatusBarSend>(new BBLStatusBarSend(m_send_progress_panel));
+    m_send_progress_bar->set_cancel_callback_fina([this]() {
+        BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
+        if (CalibUtils::print_job) {
+            if (CalibUtils::print_job->is_running()) {
+                BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+                CalibUtils::print_job->cancel();
+            }
+            CalibUtils::print_job->join();
+        }
+        show_send_progress_bar(false);
+        });
     panel_sizer->Add(m_send_progress_bar->get_panel(), 0, wxEXPAND, 0);
     m_send_progress_panel->Hide();
 
@@ -497,7 +512,6 @@ void CalibrationWizard::create_print_panel(CalibrationWizardPage* page, wxBoxSiz
     m_btn_recali = page->get_prev_btn();
     m_btn_recali->SetLabel(_L("Re-Calibrate"));
     m_btn_recali->SetButtonType(ButtonType::Recalibrate);
-    m_btn_recali->Hide();
 
     m_btn_next = page->get_next_btn();
     m_btn_next->SetLabel(_L("Next"));
@@ -586,28 +600,28 @@ void CalibrationWizard::create_print_panel(CalibrationWizardPage* page, wxBoxSiz
 
     m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
-            m_button_pause_resume->SetBitmap_("print_control_pause_hover");
+            m_button_pause_resume->SetBitmap(m_bitmap_pause_hover.bmp());
         }
 
         if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
-            m_button_pause_resume->SetBitmap_("print_control_resume_hover");
+            m_button_pause_resume->SetBitmap(m_bitmap_resume_hover.bmp());
         }
         });
     m_button_pause_resume->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
         if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
-            m_button_pause_resume->SetBitmap_("print_control_pause");
+            m_button_pause_resume->SetBitmap(m_bitmap_pause.bmp());
         }
 
         if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
-            m_button_pause_resume->SetBitmap_("print_control_resume");
+            m_button_pause_resume->SetBitmap(m_bitmap_resume.bmp());
         }
         });
     m_button_pause_resume->Bind(wxEVT_BUTTON, &CalibrationWizard::on_subtask_pause_resume, this);
     m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
-        m_button_abort->SetBitmap_("print_control_stop_hover");
+        m_button_abort->SetBitmap(m_bitmap_abort_hover.bmp());
         });
     m_button_abort->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
-        m_button_abort->SetBitmap_("print_control_stop"); }
+        m_button_abort->SetBitmap(m_bitmap_abort.bmp()); }
     );
     m_button_abort->Bind(wxEVT_BUTTON, &CalibrationWizard::on_subtask_abort, this);
 }
@@ -722,8 +736,11 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
 
         if (!m_printer_preset || !m_filament_preset || !m_print_preset) {
             wxString tips;
-            if (!m_printer_preset || !m_print_preset) {
+            if (!m_printer_preset) {
                 tips = _L("Please select a printer and nozzle for calibration.");
+            }
+            else if (!m_print_preset) {
+                tips = _L("No print preset");
             }
             else {
                 tips = _L("Please select filament for calibration.");
@@ -743,17 +760,6 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
 
         std::vector<int> tray_ids = get_selected_tray();
         if (start_calibration(tray_ids)) {
-            m_send_progress_bar->set_cancel_callback_fina([this]() {
-                BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-                if (CalibUtils::print_job) {
-                    if (CalibUtils::print_job->is_running()) {
-                        BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-                        CalibUtils::print_job->cancel();
-                    }
-                    CalibUtils::print_job->join();
-                }
-                show_send_progress_bar(false);
-                });
         }
         break;
     }
@@ -812,10 +818,10 @@ void CalibrationWizard::update_print_progress()
         || curr_obj->is_in_calibration()) {// vs curr_obj->is_in_extrusion_cali() ?
         reset_printing_values();
     }
-    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH") {// todo analyze every status
+    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH") {
         if (curr_obj->is_in_prepare() || curr_obj->print_status == "SLICING") {
             reset_printing_values();
-            m_btn_recali->Hide();
+            //m_btn_recali->Hide();
 
             wxString prepare_text;
             if (curr_obj->is_in_prepare())
@@ -846,26 +852,29 @@ void CalibrationWizard::update_print_progress()
         }
         else {
             if (curr_obj->can_resume()) {
-                m_button_pause_resume->SetBitmap_("print_control_resume");
+                m_button_pause_resume->SetBitmap(m_bitmap_resume.bmp());
                 if (m_button_pause_resume->GetToolTipText() != _L("Resume")) { m_button_pause_resume->SetToolTip(_L("Resume")); }
             }
             else {
-                m_button_pause_resume->SetBitmap_("print_control_pause");
+                m_button_pause_resume->SetBitmap(m_bitmap_pause.bmp());
                 if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
             }
 
             if (curr_obj->print_status == "FINISH") {// curr_obj->is_extrusion_cali_finished() also can get in
                 m_button_abort->Enable(false);
-                m_button_abort->SetBitmap_("print_control_stop_disable");
+                m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());
                 m_button_pause_resume->Enable(false);
-                m_button_pause_resume->SetBitmap_("print_control_resume_disable");
+                m_button_pause_resume->SetBitmap(m_bitmap_resume_disable.bmp());
                 m_btn_next->Enable(true);
             }
             else {
                 m_button_abort->Enable(true);
-                m_button_abort->SetBitmap_("print_control_stop");
+                m_button_abort->SetBitmap(m_bitmap_abort.bmp());
                 m_button_pause_resume->Enable(true);
                 m_btn_next->Enable(false);
+#ifdef CALIBRATION_DEBUG
+                m_btn_next->Enable(true);
+#endif
             }
 
             // update printing stage
@@ -916,13 +925,16 @@ void CalibrationWizard::update_print_progress()
 void CalibrationWizard::reset_printing_values()
 {
     m_button_pause_resume->Enable(false);
-    m_button_pause_resume->SetBitmap_("print_control_pause_disable");
+    m_button_pause_resume->SetBitmap(m_bitmap_pause_disable.bmp());
 
     m_button_abort->Enable(false);
-    m_button_abort->SetBitmap_("print_control_stop_disable");
+    m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());
 
     m_btn_recali->Show();
     m_btn_next->Enable(false);
+#ifdef CALIBRATION_DEBUG
+    m_btn_next->Enable(true);
+#endif
 
     m_staticText_profile_value->SetLabelText(wxEmptyString);
     m_staticText_profile_value->Hide();
@@ -1026,7 +1038,7 @@ FilamentComboBoxList CalibrationWizard::get_selected_filament_comboBox()
 
 void CalibrationWizard::update_printer_selections()
 {
-    if (!m_presets_panel->IsShownOnScreen()) // todo while calibration is start, switch printer on Device tab should not change calibration::curr_obj
+    if (!m_presets_panel->IsShown()) // todo while calibration is start, switch printer on Device tab should not change calibration::curr_obj
         return;
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -1113,10 +1125,8 @@ void CalibrationWizard::init_bed_type_selections()
     if (curr_obj) {
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
-            for (auto item : *bed_type_def->enum_keys_map) {
-                if (item.first == "Default Plate")
-                    continue;
-                m_comboBox_bed_type->AppendString(_L(item.first));
+            for (auto item : bed_type_def->enum_labels) {
+                m_comboBox_bed_type->AppendString(_L(item));
             }
             m_comboBox_bed_type->SetSelection(curr_selection);
         }
@@ -1314,6 +1324,7 @@ void CalibrationWizard::on_select_tray(SimpleEvent& evt) {
         Layout();
     }
 
+    set_save_name();
     recommend_input_value();
 }
 
@@ -1495,17 +1506,31 @@ bool CalibrationWizard::save_presets(const std::string& config_key, ConfigOption
     return true;
 }
 
+void CalibrationWizard::init_bitmaps()
+{
+    m_bitmap_pause = ScalableBitmap(this, "print_control_pause", 18);
+    m_bitmap_pause_hover = ScalableBitmap(this, "print_control_pause_hover", 18);
+    m_bitmap_resume = ScalableBitmap(this, "print_control_resume", 18);
+    m_bitmap_resume_hover = ScalableBitmap(this, "print_control_resume_hover", 18);
+    m_bitmap_pause_disable = ScalableBitmap(this, "print_control_pause_disable", 18);
+    m_bitmap_resume_disable = ScalableBitmap(this, "print_control_resume_disable", 18);
+    m_bitmap_abort = ScalableBitmap(this, "print_control_stop", 18);
+    m_bitmap_abort_hover = ScalableBitmap(this, "print_control_stop_hover", 18);
+    m_bitmap_abort_disable = ScalableBitmap(this, "print_control_stop_disable", 18);
+}
+
 PressureAdvanceWizard::PressureAdvanceWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizard(parent, id, pos, size, style)
 {
     create_pages();
-
+    init_bitmaps();
     set_ams_select_mode(FSMCheckBoxMode);
 
     Bind(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES, &PressureAdvanceWizard::switch_pages, this);
-    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto&) {
+    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto& e) {
         if (is_high_end_type(curr_obj))
             request_calib_result(); // todo evaluate which ways : timer or button event
+        e.Skip();
         });
 }
 
@@ -1528,8 +1553,8 @@ void PressureAdvanceWizard::create_save_panel_content(wxBoxSizer* sizer)
 
         low_end_sizer->AddSpacer(FromDIP(20));
 
-        auto page3_bitmap = new wxStaticBitmap(m_low_end_save_panel, wxID_ANY, create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-        low_end_sizer->Add(page3_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+        m_record_picture = new wxStaticBitmap(m_low_end_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+        low_end_sizer->Add(m_record_picture, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
         low_end_sizer->AddSpacer(FromDIP(20));
 
@@ -1642,8 +1667,8 @@ void PressureAdvanceWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-    page2_content_sizer->Add(page2_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    m_print_picture = new wxStaticBitmap(m_page2, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    page2_content_sizer->Add(m_print_picture, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page2_content_sizer->AddSpacer(FromDIP(20));
 
     create_print_panel(m_page2, page2_content_sizer);
@@ -1781,7 +1806,7 @@ void PressureAdvanceWizard::switch_pages(SimpleEvent& evt) {
             m_low_end_save_panel->Hide();
             m_high_end_save_panel->Show();
 
-            sync_save_page_data(); //debug
+            sync_save_page_data(); // CALIBRATION_DEBUG
         }
         else
         {
@@ -1833,12 +1858,13 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
         }
         std::string error_message;
         CalibUtils::calib_PA(calib_infos, error_message);
-        show_page(get_curr_page()->get_next_page());
-
-        if (error_message.empty())
-            return true;
-        else
+        if (!error_message.empty()) {
+            MessageDialog msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
             return false;
+        }
+        show_page(get_curr_page()->get_next_page());
+        return true;
     }
     else {
         curr_obj->command_start_extrusion_cali(tray_ids[0], nozzle_temp, bed_temp, max_volumetric_speed, m_filament_preset->setting_id);
@@ -1947,17 +1973,30 @@ bool PressureAdvanceWizard::recommend_input_value()
     return CalibrationWizard::recommend_input_value();
 }
 
+void PressureAdvanceWizard::init_bitmaps()
+{
+    m_print_picture->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400));
+    m_record_picture->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400));
+}
+
 FlowRateWizard::FlowRateWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizard(parent, id, pos, size, style)
 {
     create_pages();
-
+    init_bitmaps();
     Bind(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES, &FlowRateWizard::switch_pages, this);
-    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto&) {
-        request_calib_result();
-        });
 }
 
+void FlowRateWizard::set_save_name() {
+    if (m_filament_preset) {
+        m_save_name = m_filament_preset->alias + "-Calibrated";
+    }
+    else { m_save_name = ""; }
+    if (!is_high_end_type(curr_obj)) {
+        m_save_name_input1->GetTextCtrl()->SetValue(m_save_name);
+        m_save_name_input2->GetTextCtrl()->SetValue(m_save_name);
+    }
+}
 
 void FlowRateWizard::create_save_panel_content(wxBoxSizer* sizer)
 {
@@ -1967,10 +2006,10 @@ void FlowRateWizard::create_save_panel_content(wxBoxSizer* sizer)
     sizer->Add(complete_text, 0, 0, 0);
     sizer->AddSpacer(FromDIP(20));
 
-    auto page5_bitmap = new wxStaticBitmap(m_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    page5_bitmap->SetMinSize(wxSize(560, 450));
-    page5_bitmap->SetBackgroundColour(*wxBLACK);
-    sizer->Add(page5_bitmap, 0, wxALIGN_CENTER, 0);
+    m_low_record_picture2 = new wxStaticBitmap(m_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    m_low_record_picture2->SetMinSize(wxSize(560, 450));
+    m_low_record_picture2->SetBackgroundColour(*wxBLACK);
+    sizer->Add(m_low_record_picture2, 0, wxALIGN_CENTER, 0);
 
     sizer->AddSpacer(FromDIP(20));
 
@@ -1997,11 +2036,11 @@ void FlowRateWizard::create_save_panel_content(wxBoxSizer* sizer)
     save_text->SetFont(Label::Head_14);
     sizer->Add(save_text, 0, 0, 0);
 
-    auto save_name_input = new TextInput(m_save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
-    sizer->Add(save_name_input, 0, 0, 0);
-    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
-        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
-            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+    m_save_name_input2 = new TextInput(m_save_panel, m_save_name, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    sizer->Add(m_save_name_input2, 0, 0, 0);
+    m_save_name_input2->GetTextCtrl()->Bind(wxEVT_TEXT, [this](auto& e) {
+        if (!m_save_name_input2->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = m_save_name_input2->GetTextCtrl()->GetValue().ToStdString();
         else
             m_save_name = "";
         });
@@ -2022,10 +2061,10 @@ void FlowRateWizard::create_low_end_pages() {
     page3_content_sizer->Add(page3_description, 0, 0, 0);
     page3_content_sizer->AddSpacer(FromDIP(20));
 
-    auto page3_bitmap = new wxStaticBitmap(m_low_end_page3, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    page3_bitmap->SetMinSize(wxSize(560, 450)); 
-    page3_bitmap->SetBackgroundColour(*wxBLACK); 
-    page3_content_sizer->Add(page3_bitmap, 0, 0, 0);
+    m_low_record_picture1 = new wxStaticBitmap(m_low_end_page3, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    m_low_record_picture1->SetMinSize(wxSize(560, 450));
+    m_low_record_picture1->SetBackgroundColour(*wxBLACK);
+    page3_content_sizer->Add(m_low_record_picture1, 0, 0, 0);
 
     page3_content_sizer->AddSpacer(FromDIP(20));
 
@@ -2073,11 +2112,11 @@ void FlowRateWizard::create_low_end_pages() {
     save_text->SetFont(Label::Head_14);
     save_sizer->Add(save_text, 0, 0, 0);
 
-    auto save_name_input = new TextInput(save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
-    save_sizer->Add(save_name_input, 0, 0, 0);
-    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
-        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
-            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+    m_save_name_input1 = new TextInput(save_panel, m_save_name, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    save_sizer->Add(m_save_name_input1, 0, 0, 0);
+    m_save_name_input1->GetTextCtrl()->Bind(wxEVT_TEXT, [this](auto& e) {
+        if (!m_save_name_input1->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = m_save_name_input1->GetTextCtrl()->GetValue().ToStdString();
         else
             m_save_name = "";
         });
@@ -2117,8 +2156,8 @@ void FlowRateWizard::create_low_end_pages() {
     m_low_end_page4->set_highlight_step_text("Calibration");
 
     auto page4_content_sizer = m_low_end_page4->get_content_vsizer();
-    auto page4_bitmap = new wxStaticBitmap(m_low_end_page4, wxID_ANY, create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-    page4_content_sizer->Add(page4_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    m_low_print_picture2 = new wxStaticBitmap(m_low_end_page4, wxID_ANY, create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
+    page4_content_sizer->Add(m_low_print_picture2, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page4_content_sizer->AddSpacer(FromDIP(20));
     m_all_pages_sizer->Add(m_low_end_page4, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -2188,6 +2227,12 @@ void FlowRateWizard::create_high_end_pages() {
     // link page
     m_page2->chain(m_high_end_page3);
     show_page(m_curr_page);
+
+    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto& e) {
+        if (is_high_end_type(curr_obj))
+            request_calib_result(); // todo evaluate which ways : timer or button event
+        e.Skip();
+        });
 }
 
 void FlowRateWizard::create_pages()
@@ -2246,8 +2291,8 @@ void FlowRateWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("flow_rate_calibration", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-    page2_content_sizer->Add(page2_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    m_print_picture = new wxStaticBitmap(m_page2, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    page2_content_sizer->Add(m_print_picture, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page2_content_sizer->AddSpacer(FromDIP(20));
 
     create_print_panel(m_page2, page2_content_sizer);
@@ -2339,7 +2384,7 @@ void FlowRateWizard::switch_pages(SimpleEvent& evt) {
 
             create_high_end_pages();
 
-            sync_save_page_data(); // debug
+            sync_save_page_data(); // CALIBRATION_DEBUG
         }
         else
         {
@@ -2397,11 +2442,13 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
         }
         std::string error_message;
         CalibUtils::calib_flowrate_X1C(calib_infos, error_message);
-        show_page(get_curr_page()->get_next_page());
-        if (error_message.empty())
-            return true;
-        else
+        if (!error_message.empty()) {
+            MessageDialog msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
             return false;
+        }
+        show_page(get_curr_page()->get_next_page());
+        return true;
     }
     else {
         int pass = -1;
@@ -2423,6 +2470,11 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
 
         std::string error_message;
         CalibUtils::calib_flowrate(pass, calib_info, error_message);
+        if (!error_message.empty()) {
+            MessageDialog msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return false;
+        }
         show_send_progress_bar(true);
         return true;
     }
@@ -2524,17 +2576,35 @@ void FlowRateWizard::on_fine_tune(wxCommandEvent& e) {
     e.Skip();
 }
 
+void FlowRateWizard::init_bitmaps()
+{
+    m_print_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration", nullptr, 400));
+    m_low_record_picture1->SetMinSize(wxSize(560, 450));
+    m_low_record_picture1->SetBackgroundColour(*wxBLACK);
+    m_low_print_picture2->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400));
+    m_low_record_picture2->SetMinSize(wxSize(560, 450));
+    m_low_record_picture2->SetBackgroundColour(*wxBLACK);
+}
+
 MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizard(parent, id, pos, size, style) 
 {
     create_pages();
-
+    init_bitmaps();
     m_optimal_max_speed->GetTextCtrl()->Bind(wxEVT_TEXT, [this](auto& e) {
         if (!m_optimal_max_speed->GetTextCtrl()->GetValue().IsEmpty()) {
             m_calc_result = stof(m_optimal_max_speed->GetTextCtrl()->GetValue().ToStdString()); // todo determine to select an object or input target value directly
             m_calc_result_text->SetLabel(wxString::Format(_L("max volumetric speed : %s "), std::to_string(m_calc_result)));
         }
         });
+}
+
+void MaxVolumetricSpeedWizard::set_save_name() {
+    if (m_filament_preset) {
+        m_save_name = m_filament_preset->alias + "-Calibrated";
+    }
+    else { m_save_name = ""; }
+    m_save_name_input->GetTextCtrl()->SetValue(m_save_name);
 }
 
 void MaxVolumetricSpeedWizard::create_save_panel_content(wxBoxSizer* sizer)
@@ -2546,10 +2616,8 @@ void MaxVolumetricSpeedWizard::create_save_panel_content(wxBoxSizer* sizer)
 
     sizer->AddSpacer(FromDIP(20));
 
-    auto page3_bitmap = new wxStaticBitmap(m_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    page3_bitmap->SetMinSize(wxSize(500, 400));
-    page3_bitmap->SetBackgroundColour(*wxBLACK);
-    sizer->Add(page3_bitmap, 0, wxALIGN_CENTER, 0);
+    m_record_picture = new wxStaticBitmap(m_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    sizer->Add(m_record_picture, 0, wxALIGN_CENTER, 0);
 
     sizer->AddSpacer(FromDIP(20));
 
@@ -2572,11 +2640,11 @@ void MaxVolumetricSpeedWizard::create_save_panel_content(wxBoxSizer* sizer)
     save_text->SetFont(Label::Head_14);
     sizer->Add(save_text, 0, 0, 0);
 
-    auto save_name_input = new TextInput(m_save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
-    sizer->Add(save_name_input, 0, 0, 0);
-    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
-        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
-            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+    m_save_name_input = new TextInput(m_save_panel, m_save_name, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    sizer->Add(m_save_name_input, 0, 0, 0);
+    m_save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this](auto& e) {
+        if (!m_save_name_input->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = m_save_name_input->GetTextCtrl()->GetValue().ToStdString();
         else
             m_save_name = "";
         });
@@ -2661,8 +2729,8 @@ void MaxVolumetricSpeedWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("max_volumetric_speed_calibration", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-    page2_content_sizer->Add(page2_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    m_print_picture = new wxStaticBitmap(m_page2, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    page2_content_sizer->Add(m_print_picture, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page2_content_sizer->AddSpacer(FromDIP(20));
 
     create_print_panel(m_page2, page2_content_sizer);
@@ -2695,8 +2763,8 @@ bool MaxVolumetricSpeedWizard::start_calibration(std::vector<int> tray_ids)
     m_step->GetTextCtrl()->GetValue().ToDouble(&params.step);
     params.mode = CalibMode::Calib_Vol_speed_Tower;
 
-    if (params.start <= 0 || params.step <= 0 || params.end < (params.start + params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nFrom > 0 \Step >= 0\nTo > From + Step"), wxEmptyString, wxICON_WARNING | wxOK);
+    if (params.start <= 0 || params.step <= 0 || params.end < (params.start + params.step) || params.end > 60) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nFrom > 0\nTo < 60\nStep >= 0\nTo > From + Step"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
@@ -2713,6 +2781,11 @@ bool MaxVolumetricSpeedWizard::start_calibration(std::vector<int> tray_ids)
 
     std::string error_message;
     CalibUtils::calib_max_vol_speed(calib_info, error_message);
+    if (!error_message.empty()) {
+        MessageDialog msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
     show_send_progress_bar(true);
     return true;
 }
@@ -2750,11 +2823,28 @@ bool MaxVolumetricSpeedWizard::recommend_input_value()
     }
 }
 
+void MaxVolumetricSpeedWizard::init_bitmaps()
+{
+    m_print_picture->SetBitmap(create_scaled_bitmap("max_volumetric_speed_calibration", nullptr, 400));
+    m_record_picture->SetMinSize(wxSize(500, 400));
+    m_record_picture->SetBackgroundColour(*wxBLACK);
+}
+
 TemperatureWizard::TemperatureWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizard(parent, id, pos, size, style)
 {
     create_pages();
+    init_bitmaps();
 }
+
+void TemperatureWizard::set_save_name() {
+    if (m_filament_preset) {
+        m_save_name = m_filament_preset->alias + "-Calibrated";
+    }
+    else { m_save_name = ""; }
+    m_save_name_input->GetTextCtrl()->SetValue(m_save_name);
+}
+
 
 void TemperatureWizard::create_save_panel_content(wxBoxSizer* sizer)
 {
@@ -2764,8 +2854,8 @@ void TemperatureWizard::create_save_panel_content(wxBoxSizer* sizer)
     sizer->Add(complete_text, 0, 0, 0);
     sizer->AddSpacer(FromDIP(20));
 
-    auto page3_picture_description = new wxStaticBitmap(m_save_panel, wxID_ANY, create_scaled_bitmap("temperature_record", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-    sizer->Add(page3_picture_description, 0, wxALIGN_CENTER, 0);
+    m_record_picture = new wxStaticBitmap(m_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    sizer->Add(m_record_picture, 0, wxALIGN_CENTER, 0);
     sizer->AddSpacer(FromDIP(20));
 
     auto optimal_temp_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Optimal Temp"), wxDefaultPosition, wxDefaultSize, 0);
@@ -2784,11 +2874,11 @@ void TemperatureWizard::create_save_panel_content(wxBoxSizer* sizer)
     save_text->SetFont(Label::Head_14);
     sizer->Add(save_text, 0, 0, 0);
 
-    auto save_name_input = new TextInput(m_save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
-    sizer->Add(save_name_input, 0, 0, 0);
-    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
-        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
-            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+    m_save_name_input = new TextInput(m_save_panel, m_save_name, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    sizer->Add(m_save_name_input, 0, 0, 0);
+    m_save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this](auto& e) {
+        if (!m_save_name_input->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = m_save_name_input->GetTextCtrl()->GetValue().ToStdString();
         else
             m_save_name = "";
         });
@@ -2817,8 +2907,8 @@ void TemperatureWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_picture_description = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("temperature_calibration", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-    page2_content_sizer->Add(page2_picture_description, 0, wxALIGN_CENTER, 0);
+    m_print_picture = new wxStaticBitmap(m_page2, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    page2_content_sizer->Add(m_print_picture, 0, wxALIGN_CENTER, 0);
     page2_content_sizer->AddSpacer(FromDIP(20));
 
     create_print_panel(m_page2, page2_content_sizer);
@@ -2874,7 +2964,6 @@ bool TemperatureWizard::start_calibration(std::vector<int> tray_ids)
         msg_dlg.ShowModal();
         return false;
     }
-
     show_send_progress_bar(true);
     return true;
 }
@@ -2941,6 +3030,12 @@ bool TemperatureWizard::recommend_input_value()
 
         return true;
     }
+}
+
+void TemperatureWizard::init_bitmaps()
+{
+    m_record_picture->SetBitmap(create_scaled_bitmap("temperature_record", nullptr, 400));
+    m_print_picture->SetBitmap(create_scaled_bitmap("temperature_calibration", nullptr, 400));
 }
 
 }}
