@@ -500,7 +500,8 @@ void MediaFilePanel::doAction(size_t index, int action)
                     Slic3r::PlateDataPtrs      plate_data_list;
                     Slic3r::Semver file_version;
                     std::istringstream is(data);
-                    if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version)) {
+                    if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version)
+                            || plate_data_list.empty()) {
                         MessageDialog(this, 
                             _L("Failed to parse model infomations."), 
                             _L("Error"), wxOK).ShowModal();
@@ -523,8 +524,8 @@ void MediaFilePanel::doAction(size_t index, int action)
         }
         if (index != -1) {
             auto &file = fs->GetFile(index);
-            if (file.IsDownload() && file.progress >= -1) {
-                if (file.progress >= 100) {
+            if (file.IsDownload() && file.DownloadProgress() >= -1) {
+                if (!file.local_path.empty()) {
                     if (!fs->DownloadCheckFile(index)) {
                         MessageDialog(this, 
                             wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
@@ -549,8 +550,8 @@ void MediaFilePanel::doAction(size_t index, int action)
     } else if (action == 2) {
         if (index != -1) {
             auto &file = fs->GetFile(index);
-            if (file.IsDownload() && file.progress >= -1) {
-                if (file.progress >= 100) {
+            if (file.IsDownload() && file.DownloadProgress() >= -1) {
+                if (!file.local_path.empty()) {
                     if (!fs->DownloadCheckFile(index)) {
                         MessageDialog(this, 
                             wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
@@ -558,12 +559,7 @@ void MediaFilePanel::doAction(size_t index, int action)
                         Refresh();
                         return;
                     }
-#ifdef __WIN32__
-                    wxExecute(L"explorer.exe /select," + from_u8(file.local_path));
-#elif __APPLE__
-                    openFolderForFile(from_u8(file.local_path));
-#else
-#endif
+                    desktop_open_any_folder(file.local_path);
                 } else if (fs->GetFileType() == PrinterFileSystem::F_MODEL) {
                     fs->DownloadCancel(index);
                 }

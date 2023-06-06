@@ -259,7 +259,7 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
     if (!m_selecting) {
         wxRect hover_rect{0, m_content_rect.GetHeight() - 40, m_content_rect.GetWidth(), 40};
         auto & file = m_file_sys->GetFile(index);
-        int    btn  = file.IsDownload() && file.progress >= 0 ? 3 : 2;
+        int    btn  = file.IsDownload() && file.DownloadProgress() >= 0 ? 3 : 2;
         if (m_file_sys->GetFileType() == PrinterFileSystem::F_MODEL) {
             btn = 3;
             hover_rect.y -= 64;
@@ -598,21 +598,22 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
         int      states = 0;
         // Draw download progress
         if (file.IsDownload()) {
-            if (file.progress == -1) {
+            int progress = file.DownloadProgress();
+            if (progress == -1) {
                 secondAction = _L("Cancel");
                 nonHoverText = _L("Download waiting...");
-            } else if (file.progress < 0) {
+            } else if (progress < 0) {
                 secondAction = _L("Retry");
                 nonHoverText = _L("Download failed");
                 states       = StateColor::Checked;
-            } else if (file.progress >= 100) {
+            } else if (progress >= 100) {
                 secondAction = _L("Play");
                 thirdAction  = _L("Open Folder");
                 nonHoverText = _L("Download finished");
             } else {
                 secondAction = _L("Cancel");
-                nonHoverText = wxString::Format(_L("Downloading %d%%..."), file.progress);
-                thirdAction  = wxString::Format(L"%d%%...", file.progress);
+                nonHoverText = wxString::Format(_L("Downloading %d%%..."), progress);
+                thirdAction  = wxString::Format(L"%d%%...", progress);
             }
         }
         if (m_file_sys->GetFileType() == PrinterFileSystem::F_MODEL) {

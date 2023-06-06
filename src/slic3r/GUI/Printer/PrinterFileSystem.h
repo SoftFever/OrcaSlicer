@@ -94,6 +94,15 @@ public:
         FF_THUMNAIL_RETRY    = 0x100,  // Thumbnail need retry
     };
 
+    struct Progress
+    {
+        wxInt64 size  = 0;
+        wxInt64 total = 0;
+        int     progress = 0;
+    };
+
+    struct Download;
+
     struct File
     {
         std::string name;
@@ -102,12 +111,13 @@ public:
         boost::uint64_t size = 0;
         int         flags = 0;
         wxBitmap    thumbnail;
-        int         progress = -1; // -1: waiting
+        std::shared_ptr<Download> download;
         std::string local_path;
         std::map<std::string, std::string> metadata;
 
         bool IsSelect() const { return flags & FF_SELECT; }
         bool IsDownload() const { return flags & FF_DOWNLOAD; }
+        int DownloadProgress() const;
         std::string Title() const;
         std::string Metadata(std::string const &key, std::string const &dflt) const;
 
@@ -117,12 +127,6 @@ public:
     struct Void {};
 
     typedef std::vector<File> FileList;
-
-    struct Progress
-    {
-        wxInt64 size;
-        wxInt64 total;
-    };
 
     void ListAllFiles();
 
@@ -194,9 +198,9 @@ private:
 
     void UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>> files, int type);
 
-    void FileRemoved(size_t index, std::string const &name, bool by_path);
+    void FileRemoved(std::pair<FileType, std::string> type, size_t index, std::string const &name, bool by_path);
 
-    size_t FindFile(size_t index, std::string const &name, bool by_path);
+    std::pair<FileList &, size_t> FindFile(std::pair<FileType, std::string> type, size_t index, std::string const &name, bool by_path);
 
     void SendChangedEvent(wxEventType type, size_t index = (size_t)-1, std::string const &str = {}, long extra = 0);
 
@@ -207,12 +211,12 @@ private:
 
     typedef std::function<void(int, json const & resp)> callback_t;
 
-    typedef std::function<void(int, json const &resp, unsigned char const *data)> callback_t2;
+    typedef std::function<int(int, json const &resp, unsigned char const *data)> callback_t2;
 
     template <typename T>
     boost::uint32_t SendRequest(int type, json const& req, Translator<T> const& translator, Callback<T> const& callback)
     {
-        auto c = [translator, callback, this](int result, json const &resp, unsigned char const *data)
+        auto c = [translator, callback, this](int result, json const &resp, unsigned char const *data) -> int
         {
             T t;
             if (result == 0 || result == CONTINUE) {
@@ -225,6 +229,7 @@ private:
                 }
             }
             PostCallback<T>(callback, result, t);
+            return result;
         };
         return SendRequest(type, req, c);
     }
@@ -234,7 +239,7 @@ private:
     template<typename T>
     void InstallNotify(int type, Translator<T> const& translator, Applier<T> const& applier)
     {
-        auto c = [translator, applier, this](int result, json const &resp, unsigned char const *data)
+        auto c = [translator, applier, this](int result, json const &resp, unsigned char const *data) -> int
         {
             T t;
             if (result == 0 || result == CONTINUE) {
@@ -251,6 +256,7 @@ private:
                     applier(t);
                 }, 0, t);
             }
+            return result;
         };
         InstallNotify(type, c);
     }
