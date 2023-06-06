@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Anycubic 4Max Pro 2",
     "model_id": "Anycubic-4Max-Pro-2",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Anycubic",
     "bed_model": "anycubic_4maxpro2_buildplate_model.stl",

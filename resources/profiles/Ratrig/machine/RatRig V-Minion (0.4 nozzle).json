@@ -10,11 +10,13 @@
   "nozzle_diameter": [
     "0.4"
   ],
+  "printer_variant": "0.4",
   "printable_area": [
     "0x0",
     "180x0",
     "180x180",
     "0x180"
   ],
+  "default_print_profile": "0.20mm Standard @RatRig V-Minion (0.4 nozzle)",
   "printable_height": "180"
 }

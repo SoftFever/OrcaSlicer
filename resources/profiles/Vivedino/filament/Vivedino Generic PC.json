@@ -14,6 +14,12 @@
     ],
 	"compatible_printers": [
         "Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
-        "Vivedino Troodon 2 (RRF) (0.4 nozzle)"
+		"Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+		"Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+		"Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+        "Vivedino Troodon 2 (RRF) (0.4 nozzle)",
+		"Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+		"Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+		"Vivedino Troodon 2 (RRF) (0.8 nozzle)"
 	]
 }

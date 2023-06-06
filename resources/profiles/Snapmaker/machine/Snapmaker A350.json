@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Snapmaker A350",
     "model_id": "SnapmakerA350",
-    "nozzle_diameter": "0.4;0.6",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Snapmaker",
     "bed_model": "snapmaker_a350_buildplate_model.stl",

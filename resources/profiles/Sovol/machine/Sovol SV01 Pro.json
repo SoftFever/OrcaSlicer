@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Sovol SV01 Pro",
     "model_id": "Sovol-SV01-Pro",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Sovol",
     "bed_model": "sovol_sv01pro_buildplate_model.stl",

@@ -1,3 +1,4 @@
+
 {
     "type": "machine",
     "setting_id": "GM003",
@@ -14,6 +15,7 @@
 	"nozzle_diameter": [
 		"0.4"
 	],
+	"printer_variant": "0.4",
 	"printable_area": [
 		"99.6195x8.71557",
 		"98.4808x17.3648",

@@ -1,0 +1,21 @@
+{
+  "type": "machine",
+  "setting_id": "GM001",
+  "name": "Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "Vivedino Troodon 2 (Klipper)",
+  "default_print_profile": "0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+  "nozzle_diameter": [
+    "0.6"
+  ],
+  "printer_variant": "0.6",
+  "printable_area": [
+    "0x0",
+    "350x0",
+    "350x350",
+    "0x350"
+  ],
+  "printable_height": "330"
+}

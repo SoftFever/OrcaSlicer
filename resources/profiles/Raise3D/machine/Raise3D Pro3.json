@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Raise3D Pro3",
     "model_id": "Raise3D-Pro3",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Raise3D",
     "bed_model": "raise3d_pro3_buildplate_model.stl",

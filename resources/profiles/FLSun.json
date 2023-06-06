@@ -1,6 +1,6 @@
 {
     "name": "FLSun",
-    "version": "01.07.00.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "FLSun configurations",
     "machine_model_list": [
@@ -65,6 +65,138 @@
 		{
             "name": "0.30mm Extra Draft @FLSun QQSPro (0.4 nozzle)",
             "sub_path": "process/0.30mm Extra Draft @FLSun QQSPro (0.4 nozzle).json"
+        },
+		{
+            "name": "0.08mm Fine @FLSun Q5 (0.5 nozzle)",
+            "sub_path": "process/0.08mm Fine @FLSun Q5 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.08mm Fine @FLSun QQSPro (0.5 nozzle)",
+            "sub_path": "process/0.08mm Fine @FLSun QQSPro (0.5 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @FLSun Q5 (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @FLSun Q5 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @FLSun QQSPro (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @FLSun QQSPro (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun Q5 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun Q5 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun QQSPro (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun QQSPro (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @FLSun V400 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun V400 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @FLSun Q5 (0.5 nozzle)",
+            "sub_path": "process/0.24mm Draft @FLSun Q5 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @FLSun QQSPro (0.5 nozzle)",
+            "sub_path": "process/0.24mm Draft @FLSun QQSPro (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @FLSun Q5 (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @FLSun Q5 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @FLSun QQSPro (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @FLSun QQSPro (0.5 nozzle).json"
+        },
+		{
+            "name": "0.08mm Fine @FLSun Q5 (0.6 nozzle)",
+            "sub_path": "process/0.08mm Fine @FLSun Q5 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.08mm Fine @FLSun QQSPro (0.6 nozzle)",
+            "sub_path": "process/0.08mm Fine @FLSun QQSPro (0.6 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @FLSun Q5 (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @FLSun Q5 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @FLSun QQSPro (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @FLSun QQSPro (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun Q5 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun Q5 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun QQSPro (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun QQSPro (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @FLSun V400 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun V400 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @FLSun Q5 (0.6 nozzle)",
+            "sub_path": "process/0.24mm Draft @FLSun Q5 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @FLSun QQSPro (0.6 nozzle)",
+            "sub_path": "process/0.24mm Draft @FLSun QQSPro (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @FLSun Q5 (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @FLSun Q5 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @FLSun QQSPro (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @FLSun QQSPro (0.6 nozzle).json"
+        },
+		{
+            "name": "0.08mm Fine @FLSun Q5 (0.8 nozzle)",
+            "sub_path": "process/0.08mm Fine @FLSun Q5 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.08mm Fine @FLSun QQSPro (0.8 nozzle)",
+            "sub_path": "process/0.08mm Fine @FLSun QQSPro (0.8 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @FLSun Q5 (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @FLSun Q5 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @FLSun QQSPro (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @FLSun QQSPro (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun Q5 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun Q5 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @FLSun QQSPro (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun QQSPro (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @FLSun V400 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @FLSun V400 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @FLSun Q5 (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @FLSun Q5 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @FLSun QQSPro (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @FLSun QQSPro (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @FLSun Q5 (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @FLSun Q5 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @FLSun QQSPro (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @FLSun QQSPro (0.8 nozzle).json"
         }
     ],
     "filament_list": [
@@ -155,12 +287,48 @@
             "sub_path": "machine/FLSun Q5 (0.4 nozzle).json"
         },
 		{
+            "name": "FLSun Q5 (0.5 nozzle)",
+            "sub_path": "machine/FLSun Q5 (0.5 nozzle).json"
+        },
+		{
+            "name": "FLSun Q5 (0.6 nozzle)",
+            "sub_path": "machine/FLSun Q5 (0.6 nozzle).json"
+        },
+		{
+            "name": "FLSun Q5 (0.8 nozzle)",
+            "sub_path": "machine/FLSun Q5 (0.8 nozzle).json"
+        },
+		{
             "name": "FLSun QQ-S Pro (0.4 nozzle)",
             "sub_path": "machine/FLSun QQ-S Pro (0.4 nozzle).json"
+        },
+		{
+            "name": "FLSun QQ-S Pro (0.5 nozzle)",
+            "sub_path": "machine/FLSun QQ-S Pro (0.5 nozzle).json"
+        },
+		{
+            "name": "FLSun QQ-S Pro (0.6 nozzle)",
+            "sub_path": "machine/FLSun QQ-S Pro (0.6 nozzle).json"
+        },
+		{
+            "name": "FLSun QQ-S Pro (0.8 nozzle)",
+            "sub_path": "machine/FLSun QQ-S Pro (0.8 nozzle).json"
         },
         {
             "name": "FLSun V400 (0.4 nozzle)",
             "sub_path": "machine/FLSun V400 (0.4 nozzle).json"
+        },
+        {
+            "name": "FLSun V400 (0.5 nozzle)",
+            "sub_path": "machine/FLSun V400 (0.5 nozzle).json"
+        },
+        {
+            "name": "FLSun V400 (0.6 nozzle)",
+            "sub_path": "machine/FLSun V400 (0.6 nozzle).json"
+        },
+        {
+            "name": "FLSun V400 (0.8 nozzle)",
+            "sub_path": "machine/FLSun V400 (0.8 nozzle).json"
         }
     ]
 }

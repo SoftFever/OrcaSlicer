@@ -1,0 +1,22 @@
+{
+  "type": "machine",
+  "setting_id": "GM005",
+  "name": "RatRig V-Minion (0.8 nozzle)",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "RatRig V-Minion",
+  "default_print_profile": "0.20mm Standard @RatRig V-Minion (0.8 nozzle)",
+  "nozzle_diameter": [
+    "0.8"
+  ],
+  "printer_variant": "0.8",
+  "printable_area": [
+    "0x0",
+    "180x0",
+    "180x180",
+    "0x180"
+  ],
+  "default_print_profile": "0.20mm Standard @RatRig V-Minion (0.8 nozzle)",
+  "printable_height": "180"
+}

@@ -1,6 +1,6 @@
 {
     "name": "Vzbot",
-    "version": "01.06.00.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "Vzbot configurations",
     "machine_model_list": [
@@ -181,7 +181,63 @@
         {
             "name": "0.28mm Extra Draft @Vzbot 330 AWD (0.6 nozzle)",
             "sub_path": "process/0.28mm Extra Draft @Vzbot 330 AWD (0.6 nozzle).json"
-        }		
+        },
+		{
+            "name": "fdm_process_common_0.8_nozzle",
+            "sub_path": "process/fdm_process_common_0.8_nozzle.json"
+        },
+        {
+            "name": "fdm_process_Vzbot_common_0.8_nozzle",
+            "sub_path": "process/fdm_process_Vzbot_common_0.8_nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Vzbot 235 AWD (0.8 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vzbot 235 AWD (0.8 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @Vzbot 330 AWD (0.8 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vzbot 330 AWD (0.8 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Vzbot 235 AWD (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vzbot 235 AWD (0.8 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Vzbot 330 AWD (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vzbot 330 AWD (0.8 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @Vzbot 235 AWD (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vzbot 235 AWD (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Vzbot 330 AWD (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vzbot 330 AWD (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vzbot 235 AWD (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vzbot 235 AWD (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Vzbot 330 AWD (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vzbot 330 AWD (0.8 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vzbot 235 AWD (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vzbot 235 AWD (0.8 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @Vzbot 330 AWD (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vzbot 330 AWD (0.8 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Vzbot 235 AWD (0.8 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vzbot 235 AWD (0.8 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Vzbot 330 AWD (0.8 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vzbot 330 AWD (0.8 nozzle).json"
+        }			
     ],
     "filament_list": [
         {
@@ -282,6 +338,10 @@
             "name": "Vzbot 235 AWD (0.6 nozzle)",
             "sub_path": "machine/Vzbot 235 AWD (0.6 nozzle).json"
         },
+		{
+            "name": "Vzbot 235 AWD (0.8 nozzle)",
+            "sub_path": "machine/Vzbot 235 AWD (0.8 nozzle).json"
+        },
         {
             "name": "Vzbot 330 AWD (0.4 nozzle)",
             "sub_path": "machine/Vzbot 330 AWD (0.4 nozzle).json"
@@ -293,6 +353,10 @@
 		{
             "name": "Vzbot 330 AWD (0.6 nozzle)",
             "sub_path": "machine/Vzbot 330 AWD (0.6 nozzle).json"
+        },
+		{
+            "name": "Vzbot 330 AWD (0.8 nozzle)",
+            "sub_path": "machine/Vzbot 330 AWD (0.8 nozzle).json"
         }
 	]
 }

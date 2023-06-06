@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "FLSun Q5",
     "model_id": "FLSun-Q5",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "FLSun",
     "bed_model": "flsun_q5_buildplate_model.stl",

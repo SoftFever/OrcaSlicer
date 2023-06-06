@@ -22,6 +22,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
+	"printer_variant": "0.4",
     "bed_exclude_area": [
       "0x0"
     ],

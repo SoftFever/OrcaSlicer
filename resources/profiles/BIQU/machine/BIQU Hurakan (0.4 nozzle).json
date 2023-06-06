@@ -10,6 +10,7 @@
   "nozzle_diameter": [
     "0.4"
   ],
+  "printer_variant": "0.4",
   "printable_area": [
     "0x0",
     "220x0",
@@ -98,7 +99,6 @@
   "extruder_clearance_height_to_lid": "350",
   "printer_settings_id": "",
   "printer_technology": "FFF",
-  "printer_variant": "0.4",
   "retraction_minimum_travel": [
     "1"
   ],

@@ -1,0 +1,21 @@
+{
+  "type": "machine",
+  "setting_id": "GM001",
+  "name": "SecKit SK-Tank (0.8 nozzle)",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "SecKit SK-Tank",
+  "default_print_profile": "0.20mm Standard @SecKit SKTank (0.8 nozzle)",
+  "nozzle_diameter": [
+    "0.8"
+  ],
+  "printer_variant": "0.8",
+  "printable_area": [
+    "0x0",
+    "350x0",
+    "350x350",
+    "0x350"
+  ],
+  "printable_height": "400"
+}

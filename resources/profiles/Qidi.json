@@ -1,6 +1,6 @@
 {
     "name": "Qidi",
-    "version": "01.01.00.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
@@ -157,6 +157,366 @@
         {
             "name": "0.30mm Extra Draft @Qidi XMax3 (0.4 nozzle)",
             "sub_path": "process/0.30mm Extra Draft @Qidi XMax3 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XMPlus (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XMax (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XMax (0.5 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XCFPro (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XCFPro (0.5 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XSmart3 (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XSmart3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XPlus3 (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XMax3 (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XMax3 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XPlus (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XMax (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax (0.5 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XCFPro (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XCFPro (0.5 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XSmart3 (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XSmart3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XPlus3 (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XMax3 (0.5 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax3 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XPlus (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XMax (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XMax (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XCFPro (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XCFPro (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XSmart3 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XSmart3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XPlus3 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XMax3 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XMax3 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XPlus (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XMax (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XMax (0.5 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XCFPro (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XCFPro (0.5 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XSmart3 (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XSmart3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XPlus3 (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XMax3 (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XMax3 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XPlus (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XMax (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XCFPro (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XCFPro (0.5 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XSmart3 (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XSmart3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XPlus3 (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XMax3 (0.5 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax3 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XMPlus (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XMax (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XMax (0.6 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XCFPro (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XCFPro (0.6 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XSmart3 (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XSmart3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XPlus3 (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XMax3 (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XMax3 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XPlus (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XMax (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax (0.6 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XCFPro (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XCFPro (0.6 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XSmart3 (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XSmart3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XPlus3 (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XMax3 (0.6 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax3 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XPlus (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XMax (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XMax (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XCFPro (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XCFPro (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XSmart3 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XSmart3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XPlus3 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XMax3 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XMax3 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XPlus (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XMax (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XMax (0.6 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XCFPro (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XCFPro (0.6 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XSmart3 (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XSmart3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XPlus3 (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XMax3 (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XMax3 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XPlus (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XMax (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XCFPro (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XCFPro (0.6 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XSmart3 (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XSmart3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XPlus3 (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XMax3 (0.6 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax3 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XMPlus (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XMax (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XMax (0.8 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Qidi XCFPro (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XCFPro (0.8 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XSmart3 (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XSmart3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XPlus3 (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XPlus3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Qidi XMax3 (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Qidi XMax3 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XPlus (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XMax (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax (0.8 nozzle).json"
+        },
+		{
+            "name": "0.16mm Optimal @Qidi XCFPro (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XCFPro (0.8 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XSmart3 (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XSmart3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XPlus3 (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XPlus3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.16mm Optimal @Qidi XMax3 (0.8 nozzle)",
+            "sub_path": "process/0.16mm Optimal @Qidi XMax3 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XPlus (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XMax (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XMax (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Qidi XCFPro (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XCFPro (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XSmart3 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XSmart3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XPlus3 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XPlus3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Qidi XMax3 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Qidi XMax3 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XPlus (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XMax (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XMax (0.8 nozzle).json"
+        },
+		{
+            "name": "0.25mm Draft @Qidi XCFPro (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XCFPro (0.8 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XSmart3 (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XSmart3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XPlus3 (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XPlus3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Qidi XMax3 (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Qidi XMax3 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XPlus (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XMax (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Extra Draft @Qidi XCFPro (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XCFPro (0.8 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XSmart3 (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XSmart3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XPlus3 (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XPlus3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.30mm Extra Draft @Qidi XMax3 (0.8 nozzle)",
+            "sub_path": "process/0.30mm Extra Draft @Qidi XMax3 (0.8 nozzle).json"
         }
     ],
     "filament_list": [
@@ -259,24 +619,96 @@
             "sub_path": "machine/Qidi X-Plus (0.4 nozzle).json"
         },
 		{
+            "name": "Qidi X-Plus (0.5 nozzle)",
+            "sub_path": "machine/Qidi X-Plus (0.5 nozzle).json"
+        },
+		{
+            "name": "Qidi X-Plus (0.6 nozzle)",
+            "sub_path": "machine/Qidi X-Plus (0.6 nozzle).json"
+        },
+		{
+            "name": "Qidi X-Plus (0.8 nozzle)",
+            "sub_path": "machine/Qidi X-Plus (0.8 nozzle).json"
+        },
+		{
             "name": "Qidi X-Max (0.4 nozzle)",
             "sub_path": "machine/Qidi X-Max (0.4 nozzle).json"
         },
 		{
+            "name": "Qidi X-Max (0.5 nozzle)",
+            "sub_path": "machine/Qidi X-Max (0.5 nozzle).json"
+        },
+		{
+            "name": "Qidi X-Max (0.6 nozzle)",
+            "sub_path": "machine/Qidi X-Max (0.6 nozzle).json"
+        },
+		{
+            "name": "Qidi X-Max (0.8 nozzle)",
+            "sub_path": "machine/Qidi X-Max (0.8 nozzle).json"
+        },
+		{
             "name": "Qidi X-CF Pro (0.4 nozzle)",
             "sub_path": "machine/Qidi X-CF Pro (0.4 nozzle).json"
+        },
+		{
+            "name": "Qidi X-CF Pro (0.5 nozzle)",
+            "sub_path": "machine/Qidi X-CF Pro (0.5 nozzle).json"
+        },
+		{
+            "name": "Qidi X-CF Pro (0.6 nozzle)",
+            "sub_path": "machine/Qidi X-CF Pro (0.6 nozzle).json"
+        },
+		{
+            "name": "Qidi X-CF Pro (0.8 nozzle)",
+            "sub_path": "machine/Qidi X-CF Pro (0.8 nozzle).json"
         },
         {
             "name": "Qidi X-Smart 3 (0.4 nozzle)",
             "sub_path": "machine/Qidi X-Smart 3 (0.4 nozzle).json"
         },
         {
+            "name": "Qidi X-Smart 3 (0.5 nozzle)",
+            "sub_path": "machine/Qidi X-Smart 3 (0.5 nozzle).json"
+        },
+        {
+            "name": "Qidi X-Smart 3 (0.6 nozzle)",
+            "sub_path": "machine/Qidi X-Smart 3 (0.6 nozzle).json"
+        },
+        {
+            "name": "Qidi X-Smart 3 (0.8 nozzle)",
+            "sub_path": "machine/Qidi X-Smart 3 (0.8 nozzle).json"
+        },
+        {
             "name": "Qidi X-Plus 3 (0.4 nozzle)",
             "sub_path": "machine/Qidi X-Plus 3 (0.4 nozzle).json"
         },
         {
+            "name": "Qidi X-Plus 3 (0.5 nozzle)",
+            "sub_path": "machine/Qidi X-Plus 3 (0.5 nozzle).json"
+        },
+        {
+            "name": "Qidi X-Plus 3 (0.6 nozzle)",
+            "sub_path": "machine/Qidi X-Plus 3 (0.6 nozzle).json"
+        },
+        {
+            "name": "Qidi X-Plus 3 (0.8 nozzle)",
+            "sub_path": "machine/Qidi X-Plus 3 (0.8 nozzle).json"
+        },
+        {
             "name": "Qidi X-Max 3 (0.4 nozzle)",
             "sub_path": "machine/Qidi X-Max 3 (0.4 nozzle).json"
+        },
+        {
+            "name": "Qidi X-Max 3 (0.5 nozzle)",
+            "sub_path": "machine/Qidi X-Max 3 (0.5 nozzle).json"
+        },
+        {
+            "name": "Qidi X-Max 3 (0.6 nozzle)",
+            "sub_path": "machine/Qidi X-Max 3 (0.6 nozzle).json"
+        },
+        {
+            "name": "Qidi X-Max 3 (0.8 nozzle)",
+            "sub_path": "machine/Qidi X-Max 3 (0.8 nozzle).json"
         }
     ]
 }

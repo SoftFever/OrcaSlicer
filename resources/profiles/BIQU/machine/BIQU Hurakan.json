@@ -2,11 +2,11 @@
     "type": "machine_model",
     "name": "BIQU Hurakan",
     "model_id": "Hurakan",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "BIQU",
     "bed_model": "biqu_hurakan_buildplate_model.stl",
     "bed_texture": "biqu_hurakan_buildplate_texture.png",
     "hotend_model": "biqu_hurakan_hotend.stl",
-    "default_materials": "BIQU Generic PLA;BIQU Generic PETG;BIQU Generic ABS"
+    "default_materials": "BIQU Generic ABS;BIQU Generic ASA;BIQU Generic PA;BIQU Generic PA-CF;BIQU Generic PC;BIQU Generic PETG;BIQU Generic PETG-CF;BIQU Generic PLA Silk;BIQU Generic PLA;BIQU Generic PLA-CF;BIQU Generic PVA;BIQU Generic TPU"
 }

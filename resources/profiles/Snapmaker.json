@@ -1,6 +1,6 @@
 {
     "name": "Snapmaker",
-    "version": "01.07.00.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "Snapmaker configurations",
     "machine_model_list": [
@@ -42,6 +42,22 @@
             "name": "0.20mm 0.4 Standard @Snapmaker J1 (0.4 nozzle)",
             "sub_path": "process/0.20mm Standard @Snapmaker J1 (0.4 nozzle).json"
         },
+        {
+            "name": "0.20mm Standard @Snapmaker A250 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A250 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker A350 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A350 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker Artisan (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker Artisan (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm 0.5 Standard @Snapmaker J1 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker J1 (0.5 nozzle).json"
+        },
 		{
             "name": "0.20mm Standard @Snapmaker A250 (0.6 nozzle)",
             "sub_path": "process/0.20mm Standard @Snapmaker A250 (0.6 nozzle).json"
@@ -57,6 +73,22 @@
         {
             "name": "0.20mm 0.6 Standard @Snapmaker J1 (0.6 nozzle)",
             "sub_path": "process/0.20mm Standard @Snapmaker J1 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Snapmaker A250 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A250 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker A350 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker A350 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Snapmaker Artisan (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker Artisan (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm 0.8 Standard @Snapmaker J1 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Snapmaker J1 (0.8 nozzle).json"
         }
     ],
     "filament_list": [
@@ -199,6 +231,22 @@
             "sub_path": "machine/Snapmaker J1 (0.4 nozzle).json"
         },
 		{
+            "name": "Snapmaker A250 (0.5 nozzle)",
+            "sub_path": "machine/Snapmaker A250 (0.5 nozzle).json"
+        },
+        {
+            "name": "Snapmaker A350 (0.5 nozzle)",
+            "sub_path": "machine/Snapmaker A350 (0.5 nozzle).json"
+        },
+		{
+            "name": "Snapmaker Artisan (0.5 nozzle)",
+            "sub_path": "machine/Snapmaker Artisan (0.5 nozzle).json"
+        },
+        {
+            "name": "Snapmaker J1 (0.5 nozzle)",
+            "sub_path": "machine/Snapmaker J1 (0.5 nozzle).json"
+        },
+		{
             "name": "Snapmaker A250 (0.6 nozzle)",
             "sub_path": "machine/Snapmaker A250 (0.6 nozzle).json"
         },
@@ -213,6 +261,22 @@
         {
             "name": "Snapmaker J1 (0.6 nozzle)",
             "sub_path": "machine/Snapmaker J1 (0.6 nozzle).json"
+        },
+		{
+            "name": "Snapmaker A250 (0.8 nozzle)",
+            "sub_path": "machine/Snapmaker A250 (0.8 nozzle).json"
+        },
+        {
+            "name": "Snapmaker A350 (0.8 nozzle)",
+            "sub_path": "machine/Snapmaker A350 (0.8 nozzle).json"
+        },
+		{
+            "name": "Snapmaker Artisan (0.8 nozzle)",
+            "sub_path": "machine/Snapmaker Artisan (0.8 nozzle).json"
+        },
+        {
+            "name": "Snapmaker J1 (0.8 nozzle)",
+            "sub_path": "machine/Snapmaker J1 (0.8 nozzle).json"
         }
     ]
 }

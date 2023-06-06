@@ -1,0 +1,119 @@
+{
+	"type": "machine",
+	"setting_id": "GM001",
+	"name": "Snapmaker Artisan (0.8 nozzle)",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_machine_common",
+	"printer_model": "Snapmaker Artisan",
+	"default_print_profile": "0.20mm Standard @Snapmaker Artisan (0.8 nozzle)",
+	"nozzle_diameter": [
+		"0.8"
+	],
+	"printer_variant": "0.8",
+	"printable_area": [
+		"0x0",
+		"400x0",
+		"400x400",
+		"0x400"
+	],
+	"printable_height": "400",
+	"nozzle_type": "hardened_steel",
+	"auxiliary_fan": "0",
+	"machine_max_acceleration_e": [
+		"10000",
+		"10000"
+	],
+	"machine_max_acceleration_extruding": [
+		"1000",
+		"1250"
+	],
+	"machine_max_acceleration_retracting": [
+		"1000",
+		"1250"
+	],
+	"machine_max_acceleration_travel": [
+		"1500",
+		"1250"
+	],
+	"machine_max_acceleration_x": [
+		"9000",
+		"9000"
+	],
+	"machine_max_acceleration_y": [
+		"9000",
+		"9000"
+	],
+	"machine_max_acceleration_z": [
+		"100",
+		"100"
+	],
+	"machine_max_speed_e": [
+		"299792458000",
+		"299792458000"
+	],
+	"machine_max_speed_x": [
+		"299792458000",
+		"299792458000"
+	],
+	"machine_max_speed_y": [
+		"299792458000",
+		"299792458000"
+	],
+	"machine_max_speed_z": [
+		"299792458000",
+		"299792458000"
+	],
+	"machine_max_jerk_e": [
+		"5",
+		"5"
+	],
+	"machine_max_jerk_x": [
+		"20",
+		"20"
+	],
+	"machine_max_jerk_y": [
+		"20",
+		"20"
+	],
+	"machine_max_jerk_z": [
+		"0.4",
+		"0.4"
+	],
+	"max_layer_height": [
+		"0.3"
+	],
+	"min_layer_height": [
+		"0.07"
+	],
+	"printer_settings_id": "Snapmaker",
+	"retraction_minimum_travel": [
+		"1"
+	],
+	"retract_before_wipe": [
+		"0%"
+	],
+	"retraction_length": [
+		"0.5"
+	],
+	"retract_length_toolchange": [
+		"4"
+	],
+	"retraction_speed": [
+		"25"
+	],
+	"deretraction_speed": [
+		"30"
+	],
+	"single_extruder_multi_material": "1",
+	"change_filament_gcode": "",
+	"machine_pause_gcode": "",
+	"default_filament_profile": [
+		"Snapmaker Generic PLA"
+	],
+	"machine_start_gcode": "G28 ;Home\nG1 Z15.0 F6000 ;Move the platform down 15mm\n;Prime the extruder\nG92 E0\nG1 F200 E3\nG92 E0",
+	"machine_end_gcode": "M104 S0\nM140 S0\n;Retract the filament\nG92 E1\nG1 E-1 F300\nG28 X0 Y0\nM84",
+	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0.0\n;[layer_z]\n\n",
+	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
+	"scan_first_layer": "0"
+}

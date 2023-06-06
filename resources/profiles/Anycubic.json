@@ -1,6 +1,6 @@
 {
     "name": "Anycubic",
-    "version": "01.07.00.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "Anycubic configurations",
     "machine_model_list": [
@@ -15,6 +15,10 @@
 		{
             "name": "Anycubic Vyper",
             "sub_path": "machine/Anycubic Vyper.json"
+        },
+		{
+            "name": "Anycubic Kobra Plus",
+            "sub_path": "machine/Anycubic Kobra Plus.json"
         },
 		{
             "name": "Anycubic Kobra Max",
@@ -47,6 +51,10 @@
             "sub_path": "process/0.15mm Optimal @Anycubic Vyper (0.4 nozzle).json"
         },
 		{
+            "name": "0.15mm Optimal @Anycubic KobraPlus (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraPlus (0.4 nozzle).json"
+        },
+		{
             "name": "0.15mm Optimal @Anycubic KobraMax (0.4 nozzle)",
             "sub_path": "process/0.15mm Optimal @Anycubic KobraMax (0.4 nozzle).json"
         },
@@ -65,6 +73,10 @@
 		{
             "name": "0.20mm Standard @Anycubic Vyper (0.4 nozzle)",
             "sub_path": "process/0.20mm Standard @Anycubic Vyper (0.4 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraPlus (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraPlus (0.4 nozzle).json"
         },
 		{
             "name": "0.20mm Standard @Anycubic KobraMax (0.4 nozzle)",
@@ -91,12 +103,244 @@
             "sub_path": "process/0.30mm Draft @Anycubic Vyper (0.4 nozzle).json"
         },
 		{
+            "name": "0.30mm Draft @Anycubic KobraPlus (0.4 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraPlus (0.4 nozzle).json"
+        },
+		{
             "name": "0.30mm Draft @Anycubic KobraMax (0.4 nozzle)",
             "sub_path": "process/0.30mm Draft @Anycubic KobraMax (0.4 nozzle).json"
         },
 		{
             "name": "0.30mm Draft @Anycubic 4MaxPro2 (0.4 nozzle)",
             "sub_path": "process/0.30mm Draft @Anycubic 4MaxPro2 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic i3MegaS (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic i3MegaS (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Chiron (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic Chiron (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Vyper (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic Vyper (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic KobraPlus (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic KobraMax (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraMax (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic 4MaxPro2 (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic 4MaxPro2 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic i3MegaS (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic i3MegaS (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Chiron (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic Chiron (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Vyper (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic Vyper (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraPlus (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraMax (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraMax (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Anycubic 4MaxPro (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic 4MaxPro2 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro2 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic i3MegaS (0.5 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic i3MegaS (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Chiron (0.5 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic Chiron (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Vyper (0.5 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic Vyper (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic KobraPlus (0.5 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraPlus (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic KobraMax (0.5 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraMax (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic 4MaxPro2 (0.5 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic 4MaxPro2 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic i3MegaS (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic i3MegaS (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Chiron (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic Chiron (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Vyper (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic Vyper (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic KobraPlus (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic KobraMax (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraMax (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic 4MaxPro2 (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic 4MaxPro2 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic i3MegaS (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic i3MegaS (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Chiron (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic Chiron (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Vyper (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic Vyper (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraPlus (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraMax (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraMax (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Anycubic 4MaxPro (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic 4MaxPro2 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro2 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic i3MegaS (0.6 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic i3MegaS (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Chiron (0.6 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic Chiron (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Vyper (0.6 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic Vyper (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic KobraPlus (0.6 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraPlus (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic KobraMax (0.6 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraMax (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic 4MaxPro2 (0.6 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic 4MaxPro2 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic i3MegaS (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic i3MegaS (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Chiron (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic Chiron (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic Vyper (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic Vyper (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic KobraPlus (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic KobraMax (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic KobraMax (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Anycubic 4MaxPro2 (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Anycubic 4MaxPro2 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic i3MegaS (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic i3MegaS (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Chiron (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic Chiron (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic Vyper (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic Vyper (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraPlus (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic KobraMax (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic KobraMax (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Anycubic 4MaxPro (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anycubic 4MaxPro2 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro2 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic i3MegaS (0.8 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic i3MegaS (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Chiron (0.8 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic Chiron (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic Vyper (0.8 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic Vyper (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic KobraPlus (0.8 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraPlus (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic KobraMax (0.8 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic KobraMax (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Draft @Anycubic 4MaxPro2 (0.8 nozzle)",
+            "sub_path": "process/0.30mm Draft @Anycubic 4MaxPro2 (0.8 nozzle).json"
         }
     ],
     "filament_list": [
@@ -187,24 +431,112 @@
             "sub_path": "machine/Anycubic i3 Mega S (0.4 nozzle).json"
         },
 		{
+            "name": "Anycubic i3 Mega S (0.5 nozzle)",
+            "sub_path": "machine/Anycubic i3 Mega S (0.5 nozzle).json"
+        },
+				{
+            "name": "Anycubic i3 Mega S (0.6 nozzle)",
+            "sub_path": "machine/Anycubic i3 Mega S (0.6 nozzle).json"
+        },
+		{
+            "name": "Anycubic i3 Mega S (0.8 nozzle)",
+            "sub_path": "machine/Anycubic i3 Mega S (0.8 nozzle).json"
+        },
+		{
             "name": "Anycubic Chiron (0.4 nozzle)",
             "sub_path": "machine/Anycubic Chiron (0.4 nozzle).json"
+        },
+		{
+            "name": "Anycubic Chiron (0.5 nozzle)",
+            "sub_path": "machine/Anycubic Chiron (0.5 nozzle).json"
+        },
+		{
+            "name": "Anycubic Chiron (0.6 nozzle)",
+            "sub_path": "machine/Anycubic Chiron (0.6 nozzle).json"
+        },
+		{
+            "name": "Anycubic Chiron (0.8 nozzle)",
+            "sub_path": "machine/Anycubic Chiron (0.8 nozzle).json"
         },
 		{
             "name": "Anycubic Vyper (0.4 nozzle)",
             "sub_path": "machine/Anycubic Vyper (0.4 nozzle).json"
         },
 		{
+            "name": "Anycubic Vyper (0.5 nozzle)",
+            "sub_path": "machine/Anycubic Vyper (0.5 nozzle).json"
+        },
+		{
+            "name": "Anycubic Vyper (0.6 nozzle)",
+            "sub_path": "machine/Anycubic Vyper (0.6 nozzle).json"
+        },
+		{
+            "name": "Anycubic Vyper (0.8 nozzle)",
+            "sub_path": "machine/Anycubic Vyper (0.8 nozzle).json"
+        },
+		{
+            "name": "Anycubic Kobra Plus (0.4 nozzle)",
+            "sub_path": "machine/Anycubic Kobra Plus (0.4 nozzle).json"
+        },
+		{
+            "name": "Anycubic Kobra Plus (0.5 nozzle)",
+            "sub_path": "machine/Anycubic Kobra Plus (0.5 nozzle).json"
+        },
+		{
+            "name": "Anycubic Kobra Plus (0.6 nozzle)",
+            "sub_path": "machine/Anycubic Kobra Plus (0.6 nozzle).json"
+        },
+		{
+            "name": "Anycubic Kobra Plus (0.8 nozzle)",
+            "sub_path": "machine/Anycubic Kobra Plus (0.8 nozzle).json"
+        },
+		{
             "name": "Anycubic Kobra Max (0.4 nozzle)",
             "sub_path": "machine/Anycubic Kobra Max (0.4 nozzle).json"
+        },
+		{
+            "name": "Anycubic Kobra Max (0.5 nozzle)",
+            "sub_path": "machine/Anycubic Kobra Max (0.5 nozzle).json"
+        },
+		{
+            "name": "Anycubic Kobra Max (0.6 nozzle)",
+            "sub_path": "machine/Anycubic Kobra Max (0.6 nozzle).json"
+        },
+		{
+            "name": "Anycubic Kobra Max (0.8 nozzle)",
+            "sub_path": "machine/Anycubic Kobra Max (0.8 nozzle).json"
         },
         {
             "name": "Anycubic 4Max Pro (0.4 nozzle)",
             "sub_path": "machine/Anycubic 4Max Pro (0.4 nozzle).json"
         },
+	    {
+            "name": "Anycubic 4Max Pro (0.5 nozzle)",
+            "sub_path": "machine/Anycubic 4Max Pro (0.5 nozzle).json"
+        },
+	    {
+            "name": "Anycubic 4Max Pro (0.6 nozzle)",
+            "sub_path": "machine/Anycubic 4Max Pro (0.6 nozzle).json"
+        },
+		{
+            "name": "Anycubic 4Max Pro (0.8 nozzle)",
+            "sub_path": "machine/Anycubic 4Max Pro (0.8 nozzle).json"
+        },
 		{
             "name": "Anycubic 4Max Pro 2 (0.4 nozzle)",
             "sub_path": "machine/Anycubic 4Max Pro 2 (0.4 nozzle).json"
+        },
+		{
+            "name": "Anycubic 4Max Pro 2 (0.5 nozzle)",
+            "sub_path": "machine/Anycubic 4Max Pro 2 (0.5 nozzle).json"
+        },
+		{
+            "name": "Anycubic 4Max Pro 2 (0.6 nozzle)",
+            "sub_path": "machine/Anycubic 4Max Pro 2 (0.6 nozzle).json"
+        },
+		{
+            "name": "Anycubic 4Max Pro 2 (0.8 nozzle)",
+            "sub_path": "machine/Anycubic 4Max Pro 2 (0.8 nozzle).json"
         }
     ]
 }

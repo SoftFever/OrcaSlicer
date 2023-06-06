@@ -1,6 +1,6 @@
 {
     "name": "Vivedino",
-    "version": "01.06.00.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "Vivedino configurations",
     "machine_model_list": [
@@ -73,6 +73,150 @@
 		{
             "name": "0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.4 nozzle)",
             "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.5 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (RRF) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (RRF) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (RRF) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.5 nozzle).json"
+        },
+		{
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.5 nozzle).json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.6 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (RRF) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (RRF) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (RRF) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.6 nozzle).json"
+        },
+		{
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.6 nozzle).json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.8 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (RRF) (0.8 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @Vivedino Troodon 2 (Klipper) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Vivedino Troodon 2 (RRF) (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (RRF) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Vivedino Troodon 2 (Klipper) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (RRF) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Vivedino Troodon 2 (Klipper) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vivedino Troodon 2 (RRF) (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (RRF) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Vivedino Troodon 2 (Klipper) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (RRF) (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (RRF) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @Vivedino Troodon 2 (Klipper) (0.8 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.8 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (RRF) (0.8 nozzle).json"
+        },
+		{
+            "name": "0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @Vivedino Troodon 2 (Klipper) (0.8 nozzle).json"
         }
     ],
     "filament_list": [
@@ -171,8 +315,32 @@
             "sub_path": "machine/Vivedino Troodon 2 (Klipper) (0.4 nozzle).json"
         },
         {
+            "name": "Vivedino Troodon 2 (Klipper) (0.5 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (Klipper) (0.5 nozzle).json"
+        },
+        {
+            "name": "Vivedino Troodon 2 (Klipper) (0.6 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (Klipper) (0.6 nozzle).json"
+        },
+        {
+            "name": "Vivedino Troodon 2 (Klipper) (0.8 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (Klipper) (0.8 nozzle).json"
+        },
+        {
             "name": " Vivedino Troodon 2 (RRF) (0.4 nozzle)",
             "sub_path": "machine/Vivedino Troodon 2 (RRF) (0.4 nozzle).json"
+        },
+        {
+            "name": " Vivedino Troodon 2 (RRF) (0.5 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (RRF) (0.5 nozzle).json"
+        },
+        {
+            "name": " Vivedino Troodon 2 (RRF) (0.6 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (RRF) (0.6 nozzle).json"
+        },
+        {
+            "name": " Vivedino Troodon 2 (RRF) (0.8 nozzle)",
+            "sub_path": "machine/Vivedino Troodon 2 (RRF) (0.8 nozzle).json"
         }
     ]
 }

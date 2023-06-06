@@ -16,6 +16,9 @@
         "8"
     ],
     "compatible_printers": [
-      "Anker M5 (0.4 nozzle)"
+      "Anker M5 (0.4 nozzle)",
+	  "Anker M5 (0.5 nozzle)",
+	  "Anker M5 (0.6 nozzle)",
+	  "Anker M5 (0.8 nozzle)"
     ]
 }

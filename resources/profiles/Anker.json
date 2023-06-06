@@ -1,6 +1,6 @@
 {
     "name": "Anker",
-    "version": "01.05.00.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "Anker configurations",
     "machine_model_list": [
@@ -17,6 +17,18 @@
         {
             "name": "0.20mm Standard @Anker M5 (0.4 nozzle)",
             "sub_path": "process/0.20mm Standard @Anker M5 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Anker M5 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anker M5 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anker M5 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anker M5 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Anker M5 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Anker M5 (0.8 nozzle).json"
         }
     ],
     "filament_list": [
@@ -105,6 +117,18 @@
         {
             "name": "Anker M5 (0.4 nozzle)",
             "sub_path": "machine/Anker M5 (0.4 nozzle).json"
+        },
+	    {
+            "name": "Anker M5 (0.5 nozzle)",
+            "sub_path": "machine/Anker M5 (0.5 nozzle).json"
+        },
+		{
+            "name": "Anker M5 (0.6 nozzle)",
+            "sub_path": "machine/Anker M5 (0.6 nozzle).json"
+        },
+		{
+            "name": "Anker M5 (0.8 nozzle)",
+            "sub_path": "machine/Anker M5 (0.8 nozzle).json"
         }
     ]
 }

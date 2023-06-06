@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Folgertech FT-6",
     "model_id": "FT-6",
-    "nozzle_diameter": "0.4;0.6",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Folgertech",
     "bed_model": "folgertech_ft6_buildplate_model.stl",

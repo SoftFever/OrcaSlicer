@@ -3,7 +3,7 @@
     "name": "SecKit SK-Tank",
     "model_id": "SecKit-SK-Tank",
     "url": "https://seckit3dp.design",
-    "nozzle_diameter": "0.4",
+    "nozzle_diameter": "0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "SecKit",
     "bed_model": "seckit_sktank_buildplate_model.stl",

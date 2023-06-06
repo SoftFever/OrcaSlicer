@@ -1,6 +1,6 @@
 {
     "name": "SecKit",
-    "version": "01.05.04.00",
+    "version": "01.09.00.00",
     "force_update": "0",
     "description": "SecKit configurations",
     "machine_model_list": [
@@ -77,6 +77,174 @@
 		{
             "name": "0.30mm Fast @SecKit Go3 (0.4 nozzle)",
             "sub_path": "process/0.30mm Fast @SecKit Go3 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.08mm Extra Fine @SecKit SKTank (0.5 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @SecKit SKTank (0.5 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @SecKit Go3 (0.5 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @SecKit SKTank (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @SecKit SKTank (0.5 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @SecKit Go3 (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @SecKit SKTank (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @SecKit SKTank (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @SecKit Go3 (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @SecKit SKTank (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @SecKit SKTank (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @SecKit Go3 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @SecKit SKTank (0.5 nozzle)",
+            "sub_path": "process/0.24mm Draft @SecKit SKTank (0.5 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @SecKit Go3 (0.5 nozzle)",
+            "sub_path": "process/0.24mm Draft @SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @SecKit SKTank (0.5 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @SecKit SKTank (0.5 nozzle).json"
+        },
+		{
+            "name": "0.28mm Extra Draft @SecKit Go3 (0.5 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.30mm Fast @SecKit SKTank (0.5 nozzle)",
+            "sub_path": "process/0.30mm Fast @SecKit SKTank (0.5 nozzle).json"
+        },
+		{
+            "name": "0.30mm Fast @SecKit Go3 (0.5 nozzle)",
+            "sub_path": "process/0.30mm Fast @SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.08mm Extra Fine @SecKit SKTank (0.6 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @SecKit SKTank (0.6 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @SecKit Go3 (0.6 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @SecKit SKTank (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @SecKit SKTank (0.6 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @SecKit Go3 (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @SecKit SKTank (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @SecKit SKTank (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @SecKit Go3 (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @SecKit SKTank (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @SecKit SKTank (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @SecKit Go3 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @SecKit SKTank (0.6 nozzle)",
+            "sub_path": "process/0.24mm Draft @SecKit SKTank (0.6 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @SecKit Go3 (0.6 nozzle)",
+            "sub_path": "process/0.24mm Draft @SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @SecKit SKTank (0.6 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @SecKit SKTank (0.6 nozzle).json"
+        },
+		{
+            "name": "0.28mm Extra Draft @SecKit Go3 (0.6 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.30mm Fast @SecKit SKTank (0.6 nozzle)",
+            "sub_path": "process/0.30mm Fast @SecKit SKTank (0.6 nozzle).json"
+        },
+		{
+            "name": "0.30mm Fast @SecKit Go3 (0.6 nozzle)",
+            "sub_path": "process/0.30mm Fast @SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.08mm Extra Fine @SecKit SKTank (0.8 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @SecKit SKTank (0.8 nozzle).json"
+        },
+		{
+            "name": "0.08mm Extra Fine @SecKit Go3 (0.8 nozzle)",
+            "sub_path": "process/0.08mm Extra Fine @SecKit Go3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.12mm Fine @SecKit SKTank (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @SecKit SKTank (0.8 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @SecKit Go3 (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @SecKit Go3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.15mm Optimal @SecKit SKTank (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @SecKit SKTank (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @SecKit Go3 (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @SecKit Go3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @SecKit SKTank (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @SecKit SKTank (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @SecKit Go3 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @SecKit Go3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.24mm Draft @SecKit SKTank (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @SecKit SKTank (0.8 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @SecKit Go3 (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @SecKit Go3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.28mm Extra Draft @SecKit SKTank (0.8 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @SecKit SKTank (0.8 nozzle).json"
+        },
+		{
+            "name": "0.28mm Extra Draft @SecKit Go3 (0.8 nozzle)",
+            "sub_path": "process/0.28mm Extra Draft @SecKit Go3 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.30mm Fast @SecKit SKTank (0.8 nozzle)",
+            "sub_path": "process/0.30mm Fast @SecKit SKTank (0.8 nozzle).json"
+        },
+		{
+            "name": "0.30mm Fast @SecKit Go3 (0.8 nozzle)",
+            "sub_path": "process/0.30mm Fast @SecKit Go3 (0.8 nozzle).json"
         }
     ],
     "filament_list": [
@@ -171,8 +339,32 @@
             "sub_path": "machine/SecKit SK-Tank (0.4 nozzle).json"
         },
         {
+            "name": "SecKit SK-Tank (0.5 nozzle)",
+            "sub_path": "machine/SecKit SK-Tank (0.5 nozzle).json"
+        },
+        {
+            "name": "SecKit SK-Tank (0.6 nozzle)",
+            "sub_path": "machine/SecKit SK-Tank (0.6 nozzle).json"
+        },
+        {
+            "name": "SecKit SK-Tank (0.8 nozzle)",
+            "sub_path": "machine/SecKit SK-Tank (0.8 nozzle).json"
+        },
+        {
             "name": "SecKit Go3 (0.4 nozzle)",
             "sub_path": "machine/SecKit Go3 (0.4 nozzle).json"
+        },
+        {
+            "name": "SecKit Go3 (0.5 nozzle)",
+            "sub_path": "machine/SecKit Go3 (0.5 nozzle).json"
+        },
+        {
+            "name": "SecKit Go3 (0.6 nozzle)",
+            "sub_path": "machine/SecKit Go3 (0.6 nozzle).json"
+        },
+        {
+            "name": "SecKit Go3 (0.8 nozzle)",
+            "sub_path": "machine/SecKit Go3 (0.8 nozzle).json"
         }
 	]
 }

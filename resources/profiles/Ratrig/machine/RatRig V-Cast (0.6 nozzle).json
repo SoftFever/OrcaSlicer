@@ -17,5 +17,6 @@
     "300x300",
     "0x300"
   ],
+  "default_print_profile": "0.20mm Standard @RatRig V-Cast (0.6 nozzle)",
   "printable_height": "250"
 }

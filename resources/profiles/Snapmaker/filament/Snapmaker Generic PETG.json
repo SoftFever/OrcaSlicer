@@ -53,10 +53,16 @@
     ],
     "compatible_printers": [
       "Snapmaker A250 (0.4 nozzle)",
+	  "Snapmaker A250 (0.5 nozzle)",
 	  "Snapmaker A250 (0.6 nozzle)",
+	  "Snapmaker A250 (0.8 nozzle)",
       "Snapmaker A350 (0.4 nozzle)",
+	  "Snapmaker A350 (0.5 nozzle)",
 	  "Snapmaker A350 (0.6 nozzle)",
+	  "Snapmaker A350 (0.8 nozzle)",
 	  "Snapmaker Artisan (0.4 nozzle)",
-	  "Snapmaker Artisan (0.6 nozzle)"
+	  "Snapmaker Artisan (0.5 nozzle)",
+	  "Snapmaker Artisan (0.6 nozzle)",
+	  "Snapmaker Artisan (0.8 nozzle)"
     ]
 }
