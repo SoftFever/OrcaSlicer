@@ -218,7 +218,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 #ifndef __WIN32__
         });
 #endif
-        webView->EnableContextMenu(false);
+        webView->EnableContextMenu(true);
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed. Use fake web view.";
         webView = new FakeWebView;
