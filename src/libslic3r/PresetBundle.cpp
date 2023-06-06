@@ -1462,10 +1462,14 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
         auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
-            auto filament_type = "Generic " + ams.opt_string("filament_type", 0u);
-            iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system
-                    && boost::algorithm::starts_with(f.name, filament_type);
-            });
+            auto filament_type = ams.opt_string("filament_type", 0u);
+            if (!filament_type.empty()) {
+                filament_type = "Generic " + filament_type;
+                iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
+                    return f.is_compatible && f.is_system
+                        && boost::algorithm::starts_with(f.name, filament_type);
+                });
+            }
             if (iter == filaments.end())
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system; });
             if (iter == filaments.end())
