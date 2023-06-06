@@ -2503,14 +2503,16 @@ int MachineObject::parse_json(std::string payload)
                     std::string str_seq = j_pre["print"]["sequence_id"].get<std::string>();
                     try {
                         int sequence_id = stoi(str_seq);
-                        if (sequence_id != print_sequence_id + 1 && m_active_state >= SequenceValid) {
+                        if (j_pre["print"]["msg"].get<int>() == 0) { // all message
+                            if (m_active_state == SequenceNotValid) m_active_state = SequenceValid; // Have init print_sequence_id
+                            print_sequence_id = sequence_id;
+                        } else if (sequence_id != print_sequence_id + 1 && m_active_state >= SequenceValid) {
                             wxLogWarning("parse_json: print_sequence_id gap, %d -> %d %s", print_sequence_id, sequence_id, wxString::FromUTF8(payload));
-                            BOOST_LOG_TRIVIAL(warning) << "parse_json: print_sequence_id gap, " << print_sequence_id << " -> " << sequence_id;
-                            if (sequence_id - print_sequence_id < 0 && sequence_id - print_sequence_id > -20)
-                                return 0;
+                            if (m_active_state == SequenceValid) m_active_state = SequenceNotValid;
+                            GUI::wxGetApp().CallAfter([this] { this->command_request_push_all(); });
+                        } else if (m_active_state >= SequenceValid) {
+                            print_sequence_id = sequence_id;
                         }
-                        print_sequence_id = sequence_id;
-                        if (m_active_state == SequenceNotValid) m_active_state = SequenceValid; // Have init print_sequence_id
                     } catch (...) {
                         return 0;
                     }
