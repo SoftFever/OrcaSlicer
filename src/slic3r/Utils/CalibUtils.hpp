@@ -1,6 +1,7 @@
 #pragma once
 #include "libslic3r/Calib.hpp"
 #include "../GUI/DeviceManager.hpp"
+#include "../GUI/Jobs/PrintJob.hpp"
 
 namespace Slic3r {
 
@@ -26,6 +27,7 @@ class CalibUtils
 {
 public:
     CalibUtils(){};
+    static std::shared_ptr<PrintJob> print_job;
     static void calib_PA(const X1CCalibInfos& calib_infos, std::string& error_message);
     static void emit_get_PA_calib_results();
     static bool get_PA_calib_results(std::vector<PACalibResult> &pa_calib_results);

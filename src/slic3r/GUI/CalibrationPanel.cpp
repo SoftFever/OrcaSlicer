@@ -2,7 +2,9 @@
 #include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
+
 #define REFRESH_INTERVAL       1000
+
 CalibrationPanel::CalibrationPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
 {
@@ -39,6 +41,15 @@ void CalibrationPanel::init_tabpanel() {
 
     m_temp_panel = new TemperatureWizard(m_tabpanel);
     m_tabpanel->AddPage(m_temp_panel, _L("Temperature"), "", false);
+
+    for (int i = 0; i < 4; i++)
+        m_tabpanel->SetPageImage(i, "");
+
+    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent&) {
+        wxCommandEvent e (EVT_CALIBRATION_TAB_CHANGED);
+        e.SetEventObject(m_tabpanel->GetCurrentPage());
+        wxPostEvent(m_tabpanel->GetCurrentPage(), e);
+        }, m_tabpanel->GetId());
 }
 
 void CalibrationPanel::init_timer()
@@ -54,19 +65,19 @@ void CalibrationPanel::on_timer(wxTimerEvent& event) {
 }
 
 void CalibrationPanel::update_all() {
-    if (m_pa_panel) {
+    if (m_pa_panel && m_pa_panel->IsShown()) {
         m_pa_panel->update_printer_selections();
         m_pa_panel->update_print_progress();
     }
-    if (m_flow_panel) {
+    if (m_flow_panel && m_flow_panel->IsShown()) {
         m_flow_panel->update_printer_selections();
         m_flow_panel->update_print_progress();
     }
-    if (m_volumetric_panel) {
+    if (m_volumetric_panel && m_volumetric_panel->IsShown()) {
         m_volumetric_panel->update_printer_selections();
         m_volumetric_panel->update_print_progress();
     }
-    if (m_temp_panel) {
+    if (m_temp_panel && m_temp_panel->IsShown()) {
         m_temp_panel->update_printer_selections();
         m_temp_panel->update_print_progress();
     }

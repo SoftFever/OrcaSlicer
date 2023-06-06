@@ -4,18 +4,28 @@
 #include "MsgDialog.hpp"
 #include "../../libslic3r/Calib.hpp"
 
+namespace Slic3r { namespace GUI {
+
 #define CALIBRATION_COMBOX_SIZE            wxSize(FromDIP(500), FromDIP(24))
-#define CALIBRATION_FILAMENT_COMBOX_SIZE        wxSize(FromDIP(250), FromDIP(24))
+#define CALIBRATION_FILAMENT_COMBOX_SIZE   wxSize(FromDIP(250), FromDIP(24))
 #define CALIBRATION_OPTIMAL_INPUT_SIZE     wxSize(FromDIP(300), FromDIP(24))
 #define CALIBRATION_FROM_TO_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define CALIBRATION_FGSIZER_HGAP           FromDIP(50)
 #define CALIBRATION_TEXT_MAX_LENGTH        FromDIP(90) + CALIBRATION_FGSIZER_HGAP + 2 * CALIBRATION_FILAMENT_COMBOX_SIZE.x
 static const wxString NA_STR = _L("N/A");
 
-namespace Slic3r { namespace GUI {
-
 wxDEFINE_EVENT(EVT_CALIBRATION_TRAY_SELECTION_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES, SimpleEvent);
+wxDEFINE_EVENT(EVT_CALIBRATION_TAB_CHANGED, wxCommandEvent);
+
+static bool is_high_end_type(MachineObject* obj) {
+    if (obj->printer_type == "BL-P001" || obj->printer_type == "BL-P002")
+        return true;
+    else if (obj->printer_type == "C11" || obj->printer_type == "C12")
+        return false;
+
+    return false;
+}
 
 FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, wxID_ANY, pos, size, wxTAB_TRAVERSAL)
@@ -46,33 +56,45 @@ void FilamentComboBox::set_select_mode(FilamentSelectMode mode)
 
 void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
 {
-    m_tray_id = id;
     m_comboBox->load_tray(tray);
+
+    m_tray_id = id;
     m_tray_name = m_comboBox->get_tray_name();
+    m_is_bbl_filamnet = MachineObject::is_bbl_filament(m_comboBox->get_tag_uid());
     Enable(m_comboBox->is_tray_exist());
+    if (m_comboBox->is_tray_exist()) {
+        if (!m_comboBox->is_compatible_with_printer())
+            SetValue(false);
+        if (m_radioBox)
+            m_radioBox->Enable(m_comboBox->is_compatible_with_printer());
+        if (m_checkBox)
+            m_checkBox->Enable(m_comboBox->is_compatible_with_printer());
+    }
 }
 
 void FilamentComboBox::update_from_preset() { m_comboBox->update(); }
 
 bool FilamentComboBox::Show(bool show)
 {
-    bool result = wxPanel::Show(show);
+    bool result = true;
     if (m_radioBox && m_mode == FSMRadioMode)
         result = result && m_radioBox->Show(show);
     if (m_checkBox && m_mode == FSMCheckBoxMode)
         result = result && m_checkBox->Show(show);
+    result = result && wxPanel::Show(show);
     return result;
 }
 
 bool FilamentComboBox::Enable(bool enable) {
-    bool result = wxPanel::Enable(enable);
+    if (!enable)
+        SetValue(false);
+    
+    bool result = true;
     if (m_radioBox)
         result = result && m_radioBox->Enable(enable);
-    if (m_checkBox) {
-        if (!enable)
-            m_checkBox->SetValue(false);
+    if (m_checkBox)
         result = result && m_checkBox->Enable(enable);
-    }
+    result = result && wxPanel::Enable(enable);
     return result;
 }
 
@@ -104,32 +126,16 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, wxWindowID id, const wxPo
     m_scrolledWindow->Layout();
     m_all_pages_sizer->Fit(m_scrolledWindow);
 
-    create_presets_panel();
-    init_presets_selections();
-
-    create_send_progress_bar();
-
-    create_print_panel();
-
     main_sizer->Add(m_scrolledWindow, 1, wxEXPAND | wxALL, FromDIP(10));
 
     this->SetSizer(main_sizer);
     this->Layout();
     main_sizer->Fit(this);
 
-    m_comboBox_printer->Bind(wxEVT_COMBOBOX, &CalibrationWizard::on_select_printer, this);
-    m_comboBox_nozzle_dia->Bind(wxEVT_COMBOBOX, &CalibrationWizard::on_select_nozzle, this);
-    m_comboBox_bed_type->Bind(wxEVT_COMBOBOX, &CalibrationWizard::on_select_bed_type, this);
-    m_button_pause_resume->Bind(wxEVT_BUTTON, &CalibrationWizard::on_subtask_pause_resume, this);
-    m_button_abort->Bind(wxEVT_BUTTON, &CalibrationWizard::on_subtask_abort, this);
-    m_ams_sync_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-        on_update_ams_filament();
-        });
-    m_ams_radiobox->Bind(wxEVT_RADIOBUTTON, &CalibrationWizard::on_choose_ams, this);
-    m_ext_spool_radiobox->Bind(wxEVT_RADIOBUTTON, &CalibrationWizard::on_choose_ext_spool, this);
     Bind(EVT_CALIBRATIONPAGE_PREV, &CalibrationWizard::on_click_btn_prev, this);
     Bind(EVT_CALIBRATIONPAGE_NEXT, &CalibrationWizard::on_click_btn_next, this);
     Bind(EVT_CALIBRATION_TRAY_SELECTION_CHANGED, &CalibrationWizard::on_select_tray, this);
+
 #if 0 /*debug*/
     this->Bind(wxEVT_CHAR_HOOK, [this](auto& evt) {
         const int keyCode = evt.GetKeyCode();
@@ -151,11 +157,26 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, wxWindowID id, const wxPo
 #endif
 }
 
-void CalibrationWizard::create_presets_panel()
+void CalibrationWizard::create_send_progress_bar(CalibrationWizardPage* page, wxBoxSizer* sizer)
+{
+    m_send_progress_panel = new wxPanel(page);
+    sizer->Add(m_send_progress_panel, 0, wxEXPAND, 0);
+    auto panel_sizer = new wxBoxSizer(wxVERTICAL);
+    m_send_progress_bar = std::shared_ptr<BBLStatusBarSend>(new BBLStatusBarSend(m_send_progress_panel));
+    panel_sizer->Add(m_send_progress_bar->get_panel(), 0, wxEXPAND, 0);
+    m_send_progress_panel->Hide();
+
+    m_send_progress_panel->SetSizer(panel_sizer);
+    m_send_progress_panel->Layout();
+    panel_sizer->Fit(m_send_progress_panel);
+}
+
+void CalibrationWizard::create_presets_panel(CalibrationWizardPage* page, wxBoxSizer* sizer, bool need_custom_range)
 {
     const int PRESET_GAP = FromDIP(25);
 
-    m_presets_panel = new wxPanel(m_scrolledWindow);
+    m_presets_panel = new wxPanel(page);
+    sizer->Add(m_presets_panel, 0, wxEXPAND, 0);
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
     auto printer_combo_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("Printer"), wxDefaultPosition, wxDefaultSize, 0);
@@ -311,71 +332,120 @@ void CalibrationWizard::create_presets_panel()
         panel_sizer->Add(m_virtual_panel, 0);
     }// Hide
 
+    m_filaments_incompatible_tips = new wxStaticText(m_presets_panel, wxID_ANY, _L(""));
+    m_filaments_incompatible_tips->SetFont(Label::Body_13);
+    m_filaments_incompatible_tips->SetForegroundColour(wxColour(230, 92, 92));
+    m_filaments_incompatible_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    m_filaments_incompatible_tips->Hide();
+    panel_sizer->Add(m_filaments_incompatible_tips, 0, wxEXPAND);
+
+    m_bed_type_incompatible_tips = new wxStaticText(m_presets_panel, wxID_ANY, _L(""));
+    m_bed_type_incompatible_tips->SetFont(Label::Body_13);
+    m_bed_type_incompatible_tips->SetForegroundColour(wxColour(230, 92, 92));
+    m_bed_type_incompatible_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    m_bed_type_incompatible_tips->Hide();
+    panel_sizer->Add(m_bed_type_incompatible_tips, 0, wxEXPAND);
+
     panel_sizer->AddSpacer(PRESET_GAP);
 
+    if (need_custom_range) {
+        wxBoxSizer* horiz_sizer;
+        horiz_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxBoxSizer* horiz_sizer;
-    horiz_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxBoxSizer* from_sizer;
+        from_sizer = new wxBoxSizer(wxVERTICAL);
+        m_from_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("From"), wxDefaultPosition, wxDefaultSize, 0);
+        m_from_text->Wrap(-1);
+        m_from_text->SetFont(::Label::Body_14);
+        from_sizer->Add(m_from_text, 0, wxALL, 0);
+        m_from_value = new TextInput(m_presets_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
+        m_from_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        from_sizer->Add(m_from_value, 0, wxALL, 0);
+        horiz_sizer->Add(from_sizer, 0, wxEXPAND, 0);
 
-    wxBoxSizer* from_sizer;
-    from_sizer = new wxBoxSizer(wxVERTICAL);
-    m_from_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("From"), wxDefaultPosition, wxDefaultSize, 0);
-    m_from_text->Wrap(-1);
-    m_from_text->SetFont(::Label::Body_14);
-    from_sizer->Add(m_from_text, 0, wxALL, 0);
-    m_from_value = new TextInput(m_presets_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
-    m_from_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    from_sizer->Add(m_from_value, 0, wxALL, 0);
-    horiz_sizer->Add(from_sizer, 0, wxEXPAND, 0);
+        horiz_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
 
-    horiz_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
+        wxBoxSizer* to_sizer;
+        to_sizer = new wxBoxSizer(wxVERTICAL);
+        m_to_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("To"), wxDefaultPosition, wxDefaultSize, 0);
+        m_to_text->Wrap(-1);
+        m_to_text->SetFont(::Label::Body_14);
+        to_sizer->Add(m_to_text, 0, wxALL, 0);
+        m_to_value = new TextInput(m_presets_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
+        m_to_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        to_sizer->Add(m_to_value, 0, wxALL, 0);
+        horiz_sizer->Add(to_sizer, 0, wxEXPAND, 0);
 
-    wxBoxSizer* to_sizer;
-    to_sizer = new wxBoxSizer(wxVERTICAL);
-    m_to_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("To"), wxDefaultPosition, wxDefaultSize, 0);
-    m_to_text->Wrap(-1);
-    m_to_text->SetFont(::Label::Body_14);
-    to_sizer->Add(m_to_text, 0, wxALL, 0);
-    m_to_value = new TextInput(m_presets_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
-    m_to_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    to_sizer->Add(m_to_value, 0, wxALL, 0);
-    horiz_sizer->Add(to_sizer, 0, wxEXPAND, 0);
+        horiz_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
 
-    horiz_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
+        wxBoxSizer* step_sizer;
+        step_sizer = new wxBoxSizer(wxVERTICAL);
+        m_step_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("Step"), wxDefaultPosition, wxDefaultSize, 0);
+        m_step_text->Wrap(-1);
+        m_step_text->SetFont(::Label::Body_14);
+        step_sizer->Add(m_step_text, 0, wxALL, 0);
+        m_step = new TextInput(m_presets_panel, "5", _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
+        m_step->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        step_sizer->Add(m_step, 0, wxALL, 0);
+        horiz_sizer->Add(step_sizer, 0, wxEXPAND, 0);
+        panel_sizer->Add(horiz_sizer, 0, wxEXPAND, 0);
 
-    wxBoxSizer* step_sizer;
-    step_sizer = new wxBoxSizer(wxVERTICAL);
-    m_step_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("Step"), wxDefaultPosition, wxDefaultSize, 0);
-    m_step_text->Wrap(-1);
-    m_step_text->SetFont(::Label::Body_14);
-    step_sizer->Add(m_step_text, 0, wxALL, 0);
-    m_step = new TextInput(m_presets_panel, "5", _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
-    m_step->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    step_sizer->Add(m_step, 0, wxALL, 0);
-    horiz_sizer->Add(step_sizer, 0, wxEXPAND, 0);
-    panel_sizer->Add(horiz_sizer, 0, wxEXPAND, 0);
+        panel_sizer->AddSpacer(PRESET_GAP);
+    }
+    else {
+        m_from_text = nullptr;
+        m_to_text = nullptr;
+        m_from_value = nullptr;
+        m_to_value = nullptr;
+        m_step_text = nullptr;
+        m_step = nullptr;
+    }
 
-    panel_sizer->AddSpacer(PRESET_GAP * 6);
+    auto printing_param_panel = new wxPanel(m_presets_panel);
+    printing_param_panel->SetBackgroundColour(wxColour(217, 217, 217));
+    printing_param_panel->SetMinSize(wxSize(CALIBRATION_TEXT_MAX_LENGTH * 1.7f, -1));
+    auto printing_param_sizer = new wxBoxSizer(wxVERTICAL);
+    printing_param_panel->SetSizer(printing_param_sizer);
+
+    printing_param_sizer->AddSpacer(FromDIP(10));
+
+    auto preset_panel_tips = new wxStaticText(printing_param_panel, wxID_ANY, _L("A test model will be printed. Please clear the build plate and place it back to the hot bed before calibration."));
+    preset_panel_tips->SetFont(Label::Body_14);
+    preset_panel_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH * 1.5f);
+    printing_param_sizer->Add(preset_panel_tips, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+
+    printing_param_sizer->AddSpacer(FromDIP(10));
+
+    auto printing_param_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Printing Parameters"));
+    printing_param_text->SetFont(Label::Head_12);
+    printing_param_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    printing_param_sizer->Add(printing_param_text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
     auto info_sizer = new wxFlexGridSizer(0, 3, 0, FromDIP(10));
     info_sizer->SetFlexibleDirection(wxBOTH);
     info_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
     auto nozzle_temp_sizer = new wxBoxSizer(wxVERTICAL);
-    auto nozzle_temp_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("Nozzle temperature"));
-    m_nozzle_temp = new TextInput(m_presets_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    auto nozzle_temp_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Nozzle temperature"));
+    nozzle_temp_text->SetFont(Label::Body_12);
+    m_nozzle_temp = new TextInput(printing_param_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    m_nozzle_temp->SetBorderWidth(0);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
     nozzle_temp_sizer->Add(m_nozzle_temp, 0, wxEXPAND);
 
     auto bed_temp_sizer = new wxBoxSizer(wxVERTICAL);
-    auto bed_temp_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("Bed temperature"));
-    m_bed_temp = new TextInput(m_presets_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    auto bed_temp_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Bed temperature"));
+    bed_temp_text->SetFont(Label::Body_12);
+    m_bed_temp = new TextInput(printing_param_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    m_bed_temp->SetBorderWidth(0);
     bed_temp_sizer->Add(bed_temp_text, 0, wxALIGN_LEFT);
     bed_temp_sizer->Add(m_bed_temp, 0, wxEXPAND);
 
     auto max_flow_sizer = new wxBoxSizer(wxVERTICAL);
-    auto max_flow_text = new wxStaticText(m_presets_panel, wxID_ANY, _L("Max volumetric speed"));
-    m_max_volumetric_speed = new TextInput(m_presets_panel, wxEmptyString, _L("mm\u00B3"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    auto max_flow_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Max volumetric speed"));
+    max_flow_text->SetFont(Label::Body_12);
+    m_max_volumetric_speed = new TextInput(printing_param_panel, wxEmptyString, _L("mm\u00B3"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    m_max_volumetric_speed->SetBorderWidth(0);
     max_flow_sizer->Add(max_flow_text, 0, wxALIGN_LEFT);
     max_flow_sizer->Add(m_max_volumetric_speed, 0, wxEXPAND);
 
@@ -386,32 +456,68 @@ void CalibrationWizard::create_presets_panel()
     info_sizer->Add(nozzle_temp_sizer);
     info_sizer->Add(bed_temp_sizer);
     info_sizer->Add(max_flow_sizer);
-    panel_sizer->Add(info_sizer, 0, wxEXPAND);
+    printing_param_sizer->Add(info_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
-    m_filaments_incompatible_tips = new wxStaticText(m_presets_panel, wxID_ANY, _L("filaments incompatible, please select same type of material"));
-    m_filaments_incompatible_tips->SetFont(Label::Body_13);
-    m_filaments_incompatible_tips->SetForegroundColour(wxColour(230, 92, 92));
-    m_filaments_incompatible_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    m_filaments_incompatible_tips->Hide();
-    panel_sizer->Add(m_filaments_incompatible_tips, 0, wxEXPAND);
+    printing_param_sizer->AddSpacer(FromDIP(10));
 
-    m_bed_type_incompatible_tips = new wxStaticText(m_presets_panel, wxID_ANY, _L("filaments incompatible, please select same type of material"));
-    m_bed_type_incompatible_tips->SetFont(Label::Body_13);
-    m_bed_type_incompatible_tips->SetForegroundColour(wxColour(230, 92, 92));
-    m_bed_type_incompatible_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    m_bed_type_incompatible_tips->Hide();
-    panel_sizer->Add(m_bed_type_incompatible_tips, 0, wxEXPAND);
+    panel_sizer->Add(printing_param_panel, 0);
 
     m_presets_panel->SetSizer(panel_sizer);
     m_presets_panel->Layout();
     panel_sizer->Fit(m_presets_panel);
+
+    init_presets_selections();
+
+    auto page_prev_btn = page->get_prev_btn();
+    page_prev_btn->Hide();
+
+    auto page_next_btn = page->get_next_btn();
+    page_next_btn->SetLabel(_L("Calibrate"));
+    page_next_btn->SetButtonType(ButtonType::Calibrate);
+
+    create_send_progress_bar(page, sizer);
+
+    m_comboBox_printer->Bind(wxEVT_COMBOBOX, &CalibrationWizard::on_select_printer, this);
+    m_comboBox_nozzle_dia->Bind(wxEVT_COMBOBOX, &CalibrationWizard::on_select_nozzle, this);
+    Bind(EVT_CALIBRATION_TAB_CHANGED, &CalibrationWizard::on_select_nozzle, this);
+    m_comboBox_bed_type->Bind(wxEVT_COMBOBOX, &CalibrationWizard::on_select_bed_type, this);
+    m_ams_sync_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        on_update_ams_filament();
+        });
+    m_ams_radiobox->Bind(wxEVT_RADIOBUTTON, &CalibrationWizard::on_choose_ams, this);
+    m_ext_spool_radiobox->Bind(wxEVT_RADIOBUTTON, &CalibrationWizard::on_choose_ext_spool, this);
 }
 
-void CalibrationWizard::create_print_panel() {
-    m_print_panel = new wxPanel(m_scrolledWindow);
+void CalibrationWizard::create_print_panel(CalibrationWizardPage* page, wxBoxSizer* sizer) 
+{
+    m_print_panel = new wxPanel(page);
     m_print_panel->SetSize({ FromDIP(600),-1 });
     m_print_panel->SetMinSize({ FromDIP(600),-1 });
+
+    m_btn_recali = page->get_prev_btn();
+    m_btn_recali->SetLabel(_L("Re-Calibrate"));
+    m_btn_recali->SetButtonType(ButtonType::Recalibrate);
+    m_btn_recali->Hide();
+
+    m_btn_next = page->get_next_btn();
+    m_btn_next->SetLabel(_L("Next"));
+    m_btn_next->SetButtonType(ButtonType::Next);
+
+    sizer->Add(m_print_panel, 0, wxALIGN_CENTER, 0);
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
+
+
+    m_staticText_profile_value = new wxStaticText(m_print_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_staticText_profile_value->Wrap(-1);
+    m_staticText_profile_value->SetFont(Label::Body_14);
+    m_staticText_profile_value->SetForegroundColour(0x6B6B6B);
+
+
+    m_printing_stage_value = new wxStaticText(m_print_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_printing_stage_value->SetFont(Label::Body_14);
+    m_printing_stage_value->Wrap(-1);
+    m_printing_stage_value->SetForegroundColour(wxColour(0, 174, 66));
+
 
     wxPanel* panel_text = new wxPanel(m_print_panel);
     panel_text->SetBackgroundColour(*wxWHITE);
@@ -440,6 +546,7 @@ void CalibrationWizard::create_print_panel() {
 
     panel_text->SetSizer(text_sizer);
 
+
     auto panel_progressbar = new wxPanel(m_print_panel, wxID_ANY);
     panel_progressbar->SetBackgroundColour(*wxWHITE);
     auto progressbar_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -451,6 +558,32 @@ void CalibrationWizard::create_print_panel() {
     m_print_gauge_progress->SetMinSize(wxSize(FromDIP(400), -1));
 
     m_button_pause_resume = new ScalableButton(panel_progressbar, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+
+    m_button_abort = new ScalableButton(panel_progressbar, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_button_abort->SetToolTip(_L("Stop"));
+
+    progressbar_sizer->Add(m_print_gauge_progress, 1, wxALIGN_CENTER_VERTICAL, 0);
+    progressbar_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+    progressbar_sizer->Add(m_button_pause_resume, 0, wxALL, FromDIP(5));
+    progressbar_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+    progressbar_sizer->Add(m_button_abort, 0, wxALL, FromDIP(5));
+
+    panel_progressbar->SetSizer(progressbar_sizer);
+
+    panel_sizer->AddSpacer(FromDIP(15));
+    panel_sizer->Add(m_staticText_profile_value, 0, wxEXPAND | wxTOP, FromDIP(5));
+    panel_sizer->Add(m_printing_stage_value, 0, wxEXPAND | wxTOP, FromDIP(5));
+    panel_sizer->Add(panel_text, 0, wxEXPAND, 0);
+    panel_sizer->Add(panel_progressbar, 0, wxEXPAND, 0);
+    panel_sizer->AddSpacer(FromDIP(15));
+
+    m_print_panel->SetSizer(panel_sizer);
+
+    m_print_panel->SetSizer(panel_sizer);
+    m_print_panel->Layout();
+    panel_sizer->Fit(m_print_panel);
+
+
     m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
             m_button_pause_resume->SetBitmap_("print_control_pause_hover");
@@ -469,67 +602,30 @@ void CalibrationWizard::create_print_panel() {
             m_button_pause_resume->SetBitmap_("print_control_resume");
         }
         });
-
-    m_button_abort = new ScalableButton(panel_progressbar, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
-    m_button_abort->SetToolTip(_L("Stop"));
+    m_button_pause_resume->Bind(wxEVT_BUTTON, &CalibrationWizard::on_subtask_pause_resume, this);
     m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         m_button_abort->SetBitmap_("print_control_stop_hover");
         });
     m_button_abort->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
         m_button_abort->SetBitmap_("print_control_stop"); }
     );
-
-    progressbar_sizer->Add(m_print_gauge_progress, 1, wxALIGN_CENTER_VERTICAL, 0);
-    progressbar_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
-    progressbar_sizer->Add(m_button_pause_resume, 0, wxALL, FromDIP(5));
-    progressbar_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
-    progressbar_sizer->Add(m_button_abort, 0, wxALL, FromDIP(5));
-
-    panel_progressbar->SetSizer(progressbar_sizer);
-
-    panel_sizer->AddSpacer(FromDIP(15));
-    panel_sizer->Add(panel_text, 0, wxEXPAND, 0);
-    panel_sizer->Add(panel_progressbar, 0, wxEXPAND, 0);
-    panel_sizer->AddSpacer(FromDIP(15));
-
-    m_print_panel->SetSizer(panel_sizer);
-
-    m_print_panel->SetSizer(panel_sizer);
-    m_print_panel->Layout();
-    panel_sizer->Fit(m_print_panel);
+    m_button_abort->Bind(wxEVT_BUTTON, &CalibrationWizard::on_subtask_abort, this);
 }
 
-void CalibrationWizard::create_send_progress_bar()
-{
-    m_send_progress_panel = new wxPanel(m_scrolledWindow);
+void CalibrationWizard::create_save_panel(CalibrationWizardPage* page, wxBoxSizer* sizer) {
+    m_save_panel = new wxPanel(page);
+    sizer->Add(m_save_panel, 0, wxALIGN_CENTER, 0);
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
-    m_send_progress_bar = std::shared_ptr<BBLStatusBarSend>(new BBLStatusBarSend(m_send_progress_panel));
-    panel_sizer->Add(m_send_progress_bar->get_panel(), 0, wxEXPAND, 0);
-    m_send_progress_panel->Hide();
+    m_save_panel->SetSizer(panel_sizer);
 
-    m_send_progress_panel->SetSizer(panel_sizer);
-    m_send_progress_panel->Layout();
-    panel_sizer->Fit(m_send_progress_panel);
-}
+    create_save_panel_content(panel_sizer);
 
-void CalibrationWizard::add_presets_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer)
-{
-    m_presets_panel->Reparent(page);
-    sizer->Add(m_presets_panel, 0, wxEXPAND, 0);
-}
+    auto page_prev_btn = page->get_prev_btn();
+    page_prev_btn->Hide();
 
-void CalibrationWizard::add_print_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer)
-{
-    m_btn_recali = page->get_prev_btn();
-    m_btn_next = page->get_next_btn();
-    m_print_panel->Reparent(page);
-    sizer->Add(m_print_panel, 0, wxALIGN_CENTER, 0);
-}
-
-void CalibrationWizard::add_send_progress_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer)
-{
-    m_send_progress_panel->Reparent(page);
-    sizer->Add(m_send_progress_panel, 0, wxEXPAND, 0);
+    auto page_next_btn = page->get_next_btn();
+    page_next_btn->SetLabel(_L("Save"));
+    page_next_btn->SetButtonType(ButtonType::Save);
 }
 
 void CalibrationWizard::show_send_progress_bar(bool show)
@@ -545,23 +641,23 @@ void CalibrationWizard::show_send_progress_bar(bool show)
 void CalibrationWizard::on_choose_ams(wxCommandEvent& event) {
     m_filament_list_panel->Show();
     m_virtual_panel->Hide();
-    Layout();
-
+    m_filament_from_ext_spool = false;
     m_virtual_tray_comboBox->SetValue(false);
 
-    event.Skip();
+    Layout();
+    Refresh();
 }
 
 void CalibrationWizard::on_choose_ext_spool(wxCommandEvent& event) {
     m_virtual_panel->Show();
     m_filament_list_panel->Hide();
-    Layout();
-
+    m_filament_from_ext_spool = true;
     for (int i = 0; i < m_filament_comboBox_list.size(); i++) {
         m_filament_comboBox_list[i]->SetValue(false);
     }
 
-    event.Skip();
+    Layout();
+    Refresh();
 }
 
 void CalibrationWizard::show_page(CalibrationWizardPage* page) {
@@ -612,13 +708,14 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
         show_page(get_curr_page()->get_next_page());
         break;
     case Slic3r::GUI::Calibrate: {
-#if 0 /*debug*/
-        SimpleEvent e(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES);
-        e.SetEventObject(this);
-        wxPostEvent(this, e);
-#endif
         if(!curr_obj){
             MessageDialog msg_dlg(nullptr, _L("No Printer Connected!"), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+
+        if (curr_obj->is_connecting() || !curr_obj->is_connected()) {
+            MessageDialog msg_dlg(nullptr, _L("Printer is not connected yet."), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
         }
@@ -646,19 +743,15 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
 
         std::vector<int> tray_ids = get_selected_tray();
         if (start_calibration(tray_ids)) {
-            SimpleEvent e(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES);
-            e.SetEventObject(this);
-            wxPostEvent(this, e);
             m_send_progress_bar->set_cancel_callback_fina([this]() {
                 BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-                // todo cancel send print job related logic (PACalibration doesn't send a print job)
-                //if (Slic3r::GUI::print_job) {
-                //    if (Slic3r::GUI::print_job->is_running()) {
-                //        BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-                //        Slic3r::GUI::print_job->cancel();
-                //    }
-                //    Slic3r::GUI::print_job->join();
-                //}
+                if (CalibUtils::print_job) {
+                    if (CalibUtils::print_job->is_running()) {
+                        BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+                        CalibUtils::print_job->cancel();
+                    }
+                    CalibUtils::print_job->join();
+                }
                 show_send_progress_bar(false);
                 });
         }
@@ -685,7 +778,23 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
 void CalibrationWizard::update_print_progress()
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    // may change printer selection on Device
     if (!dev || !curr_obj) {
+        reset_printing_values();
+        return;
+    }
+
+    // check valid machine
+    if (dev->get_my_machine(curr_obj->dev_id) == nullptr) {
+        reset_printing_values();
+        return;
+    }
+
+    if (curr_obj->is_connecting()) {
+        reset_printing_values();
+        return;
+    }
+    else if (!curr_obj->is_connected()) {
         reset_printing_values();
         return;
     }
@@ -700,13 +809,40 @@ void CalibrationWizard::update_print_progress()
     }
 
     if (curr_obj->is_system_printing()
-        || curr_obj->is_in_calibration()) {// vs obj->is_in_extrusion_cali() ?
+        || curr_obj->is_in_calibration()) {// vs curr_obj->is_in_extrusion_cali() ?
         reset_printing_values();
     }
-    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH") {
+    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH") {// todo analyze every status
         if (curr_obj->is_in_prepare() || curr_obj->print_status == "SLICING") {
             reset_printing_values();
             m_btn_recali->Hide();
+
+            wxString prepare_text;
+            if (curr_obj->is_in_prepare())
+                prepare_text = wxString::Format(_L("Downloading..."));
+            else if (curr_obj->print_status == "SLICING") {
+                if (curr_obj->queue_number <= 0) {
+                    prepare_text = wxString::Format(_L("Cloud Slicing..."));
+                }
+                else {
+                    prepare_text = wxString::Format(_L("In Cloud Slicing Queue, there are %s tasks ahead."), std::to_string(curr_obj->queue_number));
+                }
+            }
+            else
+                prepare_text = wxString::Format(_L("Downloading..."));
+
+            if (curr_obj->gcode_file_prepare_percent >= 0 && curr_obj->gcode_file_prepare_percent <= 100)
+                prepare_text += wxString::Format("(%d%%)", curr_obj->gcode_file_prepare_percent);
+            m_printing_stage_value->SetLabelText(prepare_text);
+            wxString subtask_text = wxString::Format("%s", GUI::from_u8(curr_obj->subtask_name));
+            if (curr_obj->get_modeltask() && curr_obj->get_modeltask()->design_id > 0) {
+                if (!m_staticText_profile_value->IsShown()) { m_staticText_profile_value->Show(); }
+                m_staticText_profile_value->SetLabelText(wxString::FromUTF8(curr_obj->get_modeltask()->profile_name));
+            }
+            else {
+                m_staticText_profile_value->SetLabelText(wxEmptyString);
+                m_staticText_profile_value->Hide();
+            }
         }
         else {
             if (curr_obj->can_resume()) {
@@ -718,13 +854,12 @@ void CalibrationWizard::update_print_progress()
                 if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
             }
 
-            if (curr_obj->print_status == "FINISH") {// obj->is_extrusion_cali_finished() also can get in
+            if (curr_obj->print_status == "FINISH") {// curr_obj->is_extrusion_cali_finished() also can get in
                 m_button_abort->Enable(false);
                 m_button_abort->SetBitmap_("print_control_stop_disable");
                 m_button_pause_resume->Enable(false);
                 m_button_pause_resume->SetBitmap_("print_control_resume_disable");
                 m_btn_next->Enable(true);
-                request_calib_result();
             }
             else {
                 m_button_abort->Enable(true);
@@ -733,6 +868,8 @@ void CalibrationWizard::update_print_progress()
                 m_btn_next->Enable(false);
             }
 
+            // update printing stage
+            m_printing_stage_value->SetLabelText(curr_obj->get_curr_stage());
             // update left time 
             std::string left_time;
             try {
@@ -756,8 +893,19 @@ void CalibrationWizard::update_print_progress()
                 m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
             }
         }
+
+        wxString subtask_text = wxString::Format("%s", GUI::from_u8(curr_obj->subtask_name));
+
+        if (curr_obj->get_modeltask() && curr_obj->get_modeltask()->design_id > 0) {
+            if (!m_staticText_profile_value->IsShown()) { m_staticText_profile_value->Show(); }
+            m_staticText_profile_value->SetLabelText(wxString::FromUTF8(curr_obj->get_modeltask()->profile_name));
+        }
+        else {
+            m_staticText_profile_value->SetLabelText(wxEmptyString);
+            m_staticText_profile_value->Hide();
+        }
     }
-    else {
+    else { // "IDLE" or
         reset_printing_values();
     }
     m_print_panel->Layout();
@@ -773,14 +921,17 @@ void CalibrationWizard::reset_printing_values()
     m_button_abort->Enable(false);
     m_button_abort->SetBitmap_("print_control_stop_disable");
 
-    m_btn_next->Enable(false);
     m_btn_recali->Show();
+    m_btn_next->Enable(false);
 
+    m_staticText_profile_value->SetLabelText(wxEmptyString);
+    m_staticText_profile_value->Hide();
+    m_printing_stage_value->SetLabelText("");
     m_print_gauge_progress->SetValue(0);
     m_staticText_progress_left_time->SetLabelText(NA_STR);
     m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
     m_staticText_progress_percent->SetLabelText(NA_STR);
-    m_print_panel->Layout();
+    Layout();
 }
 
 void CalibrationWizard::on_subtask_pause_resume(wxCommandEvent& event)
@@ -799,6 +950,7 @@ void CalibrationWizard::on_subtask_abort(wxCommandEvent& event)
     if (msg_dlg.ShowModal() == wxID_OK) {
         if (curr_obj) curr_obj->command_task_abort();
         m_btn_recali->Show();
+        Layout();
     }
     //if (abort_dlg == nullptr) {
     //    abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
@@ -808,6 +960,14 @@ void CalibrationWizard::on_subtask_abort(wxCommandEvent& event)
     //}
     //abort_dlg->update_text(_L("Are you sure you want to cancel this print?"));
     //abort_dlg->on_show();
+}
+
+void CalibrationWizard::set_ams_select_mode(FilamentSelectMode mode) {
+    for (int i = 0; i < m_filament_comboBox_list.size(); i++) {
+        m_filament_comboBox_list[i]->set_select_mode(mode);
+        if (i >= 4)
+            m_filament_comboBox_list[i]->GetCheckBox()->Show(false);
+    }
 }
 
 std::vector<int> CalibrationWizard::get_selected_tray()
@@ -866,6 +1026,8 @@ FilamentComboBoxList CalibrationWizard::get_selected_filament_comboBox()
 
 void CalibrationWizard::update_printer_selections()
 {
+    if (!m_presets_panel->IsShownOnScreen()) // todo while calibration is start, switch printer on Device tab should not change calibration::curr_obj
+        return;
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
@@ -902,6 +1064,8 @@ void CalibrationWizard::update_printer_selections()
         else {
             int def_selection = obj_list.size() > 0 ? 0 : -1;
             m_comboBox_printer->SetSelection(def_selection);
+            if (def_selection < 0)
+                m_comboBox_printer->SetValue("");
         }
         wxCommandEvent event(wxEVT_COMBOBOX);
         event.SetEventObject(m_comboBox_printer);
@@ -938,6 +1102,7 @@ void CalibrationWizard::init_nozzle_selections()
         m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.6));
         m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.8));
         m_comboBox_nozzle_dia->SetSelection(-1);
+        m_comboBox_nozzle_dia->SetValue("");
     }
 }
 
@@ -1026,12 +1191,17 @@ void CalibrationWizard::on_select_printer(wxCommandEvent& evt) {
         if (new_obj != curr_obj) {
             curr_obj = new_obj;
             init_presets_selections();
+            change_ams_select_mode();
             wxGetApp().preset_bundle->set_calibrate_printer("");
             on_update_ams_filament(false);
             on_switch_ams(m_ams_item_list[0]->m_amsinfo.ams_id);
             for (auto fcb : m_filament_comboBox_list)
                 fcb->SetValue(false);
             m_virtual_tray_comboBox->SetValue(false);
+
+            SimpleEvent e(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES);
+            e.SetEventObject(this);
+            GetEventHandler()->ProcessEvent(e);
         }
     }
     else {
@@ -1042,7 +1212,7 @@ void CalibrationWizard::on_select_printer(wxCommandEvent& evt) {
 
 void CalibrationWizard::on_select_nozzle(wxCommandEvent& evt) {
     if (curr_obj) {
-        double nozzle_value = 0.4;
+        double nozzle_value = 0.0;
         wxString nozzle_value_str = m_comboBox_nozzle_dia->GetValue();
         try {
             nozzle_value_str.ToDouble(&nozzle_value);
@@ -1111,6 +1281,7 @@ void CalibrationWizard::on_select_tray(SimpleEvent& evt) {
     FilamentComboBoxList fcb_list = get_selected_filament_comboBox();
     if (fcb_list.empty()) {
         m_filament_preset = nullptr;
+        m_filaments_incompatible_tips->SetLabel("");
         m_filaments_incompatible_tips->Hide();
         recommend_input_value();
         return;
@@ -1122,20 +1293,23 @@ void CalibrationWizard::on_select_tray(SimpleEvent& evt) {
         recommend_input_value();
         return;
     }
+
     bool all_preset_same = true;
     for (auto fcb : fcb_list) {
         auto selected_preset = fcb->GetComboBox()->get_selected_preset();
         if (selected_preset && selected_preset->filament_id != first_preset->filament_id)
             all_preset_same = false;
     }
-
     if (!all_preset_same) {
         m_filament_preset = nullptr;
+        wxString tips = wxString(_L("filaments incompatible, please select same type of material"));
+        m_filaments_incompatible_tips->SetLabel(tips);
         m_filaments_incompatible_tips->Show();
         Layout();
     }
     else {
         m_filament_preset = const_cast<Preset*>(first_preset);
+        m_filaments_incompatible_tips->SetLabel("");
         m_filaments_incompatible_tips->Hide();
         Layout();
     }
@@ -1156,19 +1330,41 @@ void CalibrationWizard::on_update_ams_filament(bool dialog)
 {
     auto& list = wxGetApp().preset_bundle->filament_ams_list;
     if (list.empty() && dialog) {
-        MessageDialog dlg(this, _L("No AMS filaments. Please select a printer in 'Device' page to load AMS info."), _L("Sync filaments with AMS"), wxOK);
+        MessageDialog dlg(this, _L("No AMS filaments. Please select a printer to load AMS info."), _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
         return;
     }
 
-    // first, clear tray info
+    // clear selections while changing printer
     update_filaments_from_preset();
-    for (auto& entry : list) {
-        if (entry.first < m_filament_comboBox_list.size()) {
-            m_filament_comboBox_list[entry.first]->load_tray_from_ams(entry.first, entry.second);
+
+    // update tray info
+    DynamicPrintConfig empty_config;
+    empty_config.set_key_value("filament_id", new ConfigOptionStrings{ "" });
+    empty_config.set_key_value("tag_uid", new ConfigOptionStrings{ "" });
+    empty_config.set_key_value("filament_type", new ConfigOptionStrings{ "" });
+    empty_config.set_key_value("tray_name", new ConfigOptionStrings{ "" });
+    empty_config.set_key_value("filament_colour", new ConfigOptionStrings{ "" });
+    empty_config.set_key_value("filament_exist", new ConfigOptionBools{ false });
+    for (int i = 0; i < m_filament_comboBox_list.size(); i++) {
+        auto it = std::find_if(list.begin(), list.end(), [i](auto& entry) {
+            return entry.first == i;
+            });
+        if (it != list.end()) {
+            m_filament_comboBox_list[i]->load_tray_from_ams(i, it->second);
         }
-        if (entry.first == VIRTUAL_TRAY_ID)
-            m_virtual_tray_comboBox->load_tray_from_ams(entry.first, entry.second);
+        else {
+            m_filament_comboBox_list[i]->load_tray_from_ams(i, empty_config);
+        }
+    }
+    auto it = std::find_if(list.begin(), list.end(), [](auto& entry) {
+        return entry.first == VIRTUAL_TRAY_ID;
+        });
+    if (it != list.end()) {
+        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_ID, it->second);
+    }
+    else {
+        m_virtual_tray_comboBox->load_tray_from_ams(VIRTUAL_TRAY_ID, empty_config);
     }
 
     // update m_ams_item_list
@@ -1241,6 +1437,7 @@ bool CalibrationWizard::recommend_input_value() {
             m_max_volumetric_speed->GetTextCtrl()->SetValue(wxEmptyString);
             wxString tips = wxString::Format(_L("%s does not support %s"), m_comboBox_bed_type->GetValue(), m_filament_preset->alias);
             m_bed_type_incompatible_tips->SetLabel(tips);
+            m_bed_type_incompatible_tips->Update();
             m_bed_type_incompatible_tips->Show();
             Layout();
             return false;
@@ -1263,16 +1460,12 @@ int CalibrationWizard::get_bed_temp(DynamicPrintConfig* config)
     return -1;
 }
 
-bool CalibrationWizard::save_presets(const std::string& config_key, ConfigOption* config_value)
+bool CalibrationWizard::save_presets(const std::string& config_key, ConfigOption* config_value, const std::string& name)
 {
     auto filament_presets = &wxGetApp().preset_bundle->filaments;
     DynamicPrintConfig* filament_config = &m_filament_preset->config;
 
-    SavePresetDialog dlg(this, Preset::Type::TYPE_FILAMENT, "Calibrated");
-    if (dlg.ShowModal() != wxID_OK)
-        return false;
-    std::string name = dlg.get_name();
-    bool save_to_project = dlg.get_save_to_project_selection(Preset::TYPE_FILAMENT);
+    bool save_to_project = false;
 
     filament_config->set_key_value(config_key, config_value);
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
@@ -1307,115 +1500,86 @@ PressureAdvanceWizard::PressureAdvanceWizard(wxWindow* parent, wxWindowID id, co
 {
     create_pages();
 
-    for (int i = 0; i < m_filament_comboBox_list.size(); i++) {
-        m_filament_comboBox_list[i]->set_select_mode(FSMCheckBoxMode);
-        if (i >= 4)
-            m_filament_comboBox_list[i]->GetCheckBox()->Show(false);
-    }
+    set_ams_select_mode(FSMCheckBoxMode);
 
     Bind(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES, &PressureAdvanceWizard::switch_pages, this);
+    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto&) {
+        if (is_high_end_type(curr_obj))
+            request_calib_result(); // todo evaluate which ways : timer or button event
+        });
 }
 
-void PressureAdvanceWizard::create_low_end_pages() {
-    // page 3 : save page
-    m_low_end_page3 = new CalibrationWizardPage(m_scrolledWindow, false);
-    m_low_end_page3->set_page_title(_L("Pressure Advance"));
-    m_low_end_page3->set_page_index(_L("3/3"));
-    m_low_end_page3->set_highlight_step_text("Record");
+void PressureAdvanceWizard::create_save_panel_content(wxBoxSizer* sizer)
+{
+    // low end save panel
+    {
+        m_low_end_save_panel = new wxPanel(m_save_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+        auto low_end_sizer = new wxBoxSizer(wxVERTICAL);
+        m_low_end_save_panel->SetSizer(low_end_sizer);
 
-    auto page3_content_sizer = m_low_end_page3->get_content_vsizer();
+        auto complete_text_panel = new wxPanel(m_low_end_save_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+        wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
+        auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("Please find the best line on your plate"));
+        complete_text->SetFont(Label::Head_14);
+        complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+        complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
+        complete_text_panel->SetSizer(complete_text_sizer);
+        low_end_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
 
-    auto complete_text_panel = new wxPanel(m_low_end_page3, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("Please find the best line on your plate"));
-    complete_text->SetFont(Label::Head_14);
-    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
-    complete_text_panel->SetSizer(complete_text_sizer);
-    page3_content_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
+        low_end_sizer->AddSpacer(FromDIP(20));
 
-    page3_content_sizer->AddSpacer(FromDIP(50));
+        auto page3_bitmap = new wxStaticBitmap(m_low_end_save_panel, wxID_ANY, create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
+        low_end_sizer->Add(page3_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
-    auto page3_bitmap = new wxStaticBitmap(m_low_end_page3, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    page3_bitmap->SetMinSize(wxSize(800, 600)); 
-    page3_bitmap->SetBackgroundColour(*wxBLACK); 
-    page3_content_sizer->Add(page3_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
-    page3_content_sizer->AddSpacer(FromDIP(20));
+        low_end_sizer->AddSpacer(FromDIP(20));
 
-    auto value_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto k_value_text = new wxStaticText(m_low_end_page3, wxID_ANY, _L("Factor K"), wxDefaultPosition, wxDefaultSize, 0);
-    k_value_text->Wrap(-1);
-    k_value_text->SetFont(::Label::Body_14);
-    auto n_value_text = new wxStaticText(m_low_end_page3, wxID_ANY, _L("Factor N"), wxDefaultPosition, wxDefaultSize, 0);
-    n_value_text->Wrap(-1);
-    n_value_text->SetFont(::Label::Body_14);
-    m_k_val = new TextInput(m_low_end_page3, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
-    m_n_val = new TextInput(m_low_end_page3, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
-    value_sizer->Add(k_value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
-    value_sizer->AddSpacer(FromDIP(10));
-    value_sizer->Add(m_k_val, 0);
-    value_sizer->AddSpacer(FromDIP(50));
-    value_sizer->Add(n_value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
-    value_sizer->AddSpacer(FromDIP(10));
-    value_sizer->Add(m_n_val, 0);
-    page3_content_sizer->Add(value_sizer, 0, wxALIGN_CENTER);
-    page3_content_sizer->AddSpacer(FromDIP(20));
+        auto value_sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto k_value_text = new wxStaticText(m_low_end_save_panel, wxID_ANY, _L("Factor K"), wxDefaultPosition, wxDefaultSize, 0);
+        k_value_text->Wrap(-1);
+        k_value_text->SetFont(::Label::Body_14);
+        auto n_value_text = new wxStaticText(m_low_end_save_panel, wxID_ANY, _L("Factor N"), wxDefaultPosition, wxDefaultSize, 0);
+        n_value_text->Wrap(-1);
+        n_value_text->SetFont(::Label::Body_14);
+        m_k_val = new TextInput(m_low_end_save_panel, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
+        m_n_val = new TextInput(m_low_end_save_panel, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
+        n_value_text->Hide();
+        m_n_val->Hide();
+        value_sizer->Add(k_value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
+        value_sizer->AddSpacer(FromDIP(10));
+        value_sizer->Add(m_k_val, 0);
+        value_sizer->AddSpacer(FromDIP(50));
+        value_sizer->Add(n_value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
+        value_sizer->AddSpacer(FromDIP(10));
+        value_sizer->Add(m_n_val, 0);
+        low_end_sizer->Add(value_sizer, 0, wxALIGN_CENTER);
 
-    auto page3_prev_btn = m_low_end_page3->get_prev_btn();
-    page3_prev_btn->Hide();
+        sizer->Add(m_low_end_save_panel, 0, wxEXPAND);
+    }
 
-    auto page3_next_btn = m_low_end_page3->get_next_btn();
-    page3_next_btn->SetLabel(_L("Save"));
-    page3_next_btn->SetButtonType(ButtonType::Save);
+    // high end save panel (Hide)
+    {
+        m_high_end_save_panel = new wxPanel(m_save_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+        auto high_end_sizer = new wxBoxSizer(wxVERTICAL);
+        m_high_end_save_panel->SetSizer(high_end_sizer);
 
-    m_all_pages_sizer->Add(m_low_end_page3, 1, wxEXPAND | wxALL, FromDIP(25));
+        auto complete_text_panel = new wxPanel(m_high_end_save_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+        wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
+        auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("We found the best Pressure Advance Factor"));
+        complete_text->SetFont(Label::Head_14);
+        complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+        complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
+        complete_text_panel->SetSizer(complete_text_sizer);
+        high_end_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
 
-    // link page
-    m_page1->chain(m_page2)->chain(m_low_end_page3);
+        high_end_sizer->AddSpacer(FromDIP(20));
 
-    m_first_page = m_page1;
-    m_curr_page = m_page1;
-    show_page(m_curr_page);
-}
+        m_grid_panel = new wxPanel(m_high_end_save_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+        high_end_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
 
-void PressureAdvanceWizard::create_high_end_pages() {
-    // page 3 : save fine result
-    m_high_end_page3 = new CalibrationWizardPage(m_scrolledWindow, false);
-    m_high_end_page3->set_page_title(_L("Pressure Advance"));
-    m_high_end_page3->set_page_index(_L("3/3"));
-    m_high_end_page3->set_highlight_step_text("Record");
+        sizer->Add(m_high_end_save_panel, 0, wxEXPAND);
 
-    auto page3_content_sizer = m_high_end_page3->get_content_vsizer();
-
-    auto complete_text_panel = new wxPanel(m_high_end_page3, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("We found the best Pressure Advance Factor"));
-    complete_text->SetFont(Label::Head_14);
-    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
-    complete_text_panel->SetSizer(complete_text_sizer);
-    page3_content_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
-
-    page3_content_sizer->AddSpacer(FromDIP(50));
-
-    m_grid_panel = new wxPanel(m_high_end_page3, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    page3_content_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
-
-    auto page3_prev_btn = m_high_end_page3->get_prev_btn();
-    page3_prev_btn->Hide();
-
-    auto page3_next_btn = m_high_end_page3->get_next_btn();
-    page3_next_btn->SetLabel(_L("Save"));
-    page3_next_btn->SetButtonType(ButtonType::Save);
-
-    m_all_pages_sizer->Add(m_high_end_page3, 1, wxEXPAND | wxALL, FromDIP(25));
-
-    // link page
-    m_page1->chain(m_page2)->chain(m_high_end_page3);
-
-    m_first_page = m_page1;
-    m_curr_page = m_page1;
-    show_page(m_curr_page);
+        m_high_end_save_panel->Hide();
+    }
 }
 
 void PressureAdvanceWizard::create_pages()
@@ -1423,31 +1587,35 @@ void PressureAdvanceWizard::create_pages()
     // page 0 : start page
     //m_page0 = new CalibrationWizardPage(m_scrolledWindow, false);
     //m_page0->set_page_title(_L("Pressure Advance"));
-    //m_page0->set_page_index(_L("1/3"));
+    //m_page0->set_page_index(_L(""));
 
-    //auto page0_top_sizer = m_page0->get_top_vsizer();
+    //auto page0_top_sizer = m_page0->get_top_hsizer();
+    //page0_top_sizer->Clear(true);
+
+    //auto page0_content_sizer = m_page0->get_content_vsizer();
     //auto page0_top_description = new wxStaticText(m_page0, wxID_ANY, _L("Pressure advance is a technique used to compensate for the delay between the extruder motor and the actual extrusion of the filament. It works by increasing the pressure of the filament in the nozzle just before a rapid movement occurs, improving the accuracy of the printed object. It can be adjusted through the printer's firmware or slicer software, and is useful for objects with sharp corners or intricate details."), wxDefaultPosition, wxDefaultSize, 0);
     //page0_top_description->SetFont(::Label::Body_14);
     //page0_top_description->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     //page0_top_description->SetMinSize(wxSize(CALIBRATION_TEXT_MAX_LENGTH, -1));
-    //page0_top_sizer->Add(page1_top_description, 0, wxALL, 0);
-    //page0_top_sizer->AddSpacer(FromDIP(20));
-
-    //auto page0_content_sizer = m_page0->get_content_vsizer();
+    //page0_content_sizer->Add(page0_top_description, 0, wxALL, 0);
     //auto bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
     //auto page0_bitmap1 = new wxStaticBitmap(m_page0, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    //page0_bitmap1->SetMinSize(wxSize(560, 450)); 
+    //page0_bitmap1->SetMinSize(wxSize(400, 400)); 
     //page0_bitmap1->SetBackgroundColour(*wxBLACK); 
-    //bitmap_sizer->Add(page1_bitmap1, 0, wxALL, 0);
-
+    //bitmap_sizer->Add(page0_bitmap1, 0, wxALL, 0);
+    //bitmap_sizer->AddSpacer(FromDIP(20));
     //auto page0_bitmap2 = new wxStaticBitmap(m_page0, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    //page0_bitmap2->SetMinSize(wxSize(560, 450)); 
+    //page0_bitmap2->SetMinSize(wxSize(400, 400));
     //page0_bitmap2->SetBackgroundColour(*wxBLACK); 
-    //bitmap_sizer->Add(page1_bitmap2, 0, wxALL, 0);
-    //page0_content_sizer->Add(bitmap_sizer, 0);
+    //bitmap_sizer->Add(page0_bitmap2, 0, wxALL, 0);
+    //page0_content_sizer->Add(bitmap_sizer, 0, wxALIGN_CENTER);
 
     //auto page0_prev_btn = m_page0->get_prev_btn();
-    //page0_prev_btn->Hide();
+    //page0_prev_btn->SetLabel(_L("Manage Result"));
+    //page0_prev_btn->SetButtonType(ButtonType::Back);
+    //page0_prev_btn->Bind(wxEVT_BUTTON, [](auto& ) {
+    //    //show_history();
+    //    });
 
     //auto page0_next_btn = m_page0->get_next_btn();
     //page0_next_btn->SetLabel(_L("Start"));
@@ -1463,21 +1631,7 @@ void PressureAdvanceWizard::create_pages()
 
     auto page1_content_sizer = m_page1->get_content_vsizer();
 
-    m_from_text->Hide();
-    m_to_text->Hide();
-    m_from_value->Hide();
-    m_to_value->Hide();
-    m_step_text->Hide();
-    m_step->Hide();
-
-    add_presets_panel_to_page(m_page1, page1_content_sizer);
-
-    auto page1_prev_btn = m_page1->get_prev_btn();
-    page1_prev_btn->Hide();
-
-    auto page1_next_btn = m_page1->get_next_btn();
-    page1_next_btn->SetLabel(_L("Calibrate"));
-    page1_next_btn->SetButtonType(ButtonType::Calibrate);
+    create_presets_panel(m_page1, page1_content_sizer, false);
 
     m_all_pages_sizer->Add(m_page1, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -1488,34 +1642,60 @@ void PressureAdvanceWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    page2_bitmap->SetMinSize(wxSize(800, 600)); 
-    page2_bitmap->SetBackgroundColour(*wxBLACK); 
+    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
     page2_content_sizer->Add(page2_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page2_content_sizer->AddSpacer(FromDIP(20));
-    add_print_panel_to_page(m_page2, page2_content_sizer);
 
-    auto page2_prev_btn = m_page2->get_prev_btn();
-    page2_prev_btn->SetLabel(_L("Re-Calibrate"));
-    page2_prev_btn->SetButtonType(ButtonType::Recalibrate);
-    page2_prev_btn->Hide();
-
-    auto page2_next_btn = m_page2->get_next_btn();
-    page2_next_btn->SetLabel(_L("Next"));
-    page2_next_btn->SetButtonType(ButtonType::Next);
+    create_print_panel(m_page2, page2_content_sizer);
 
     m_all_pages_sizer->Add(m_page2, 1, wxEXPAND | wxALL, FromDIP(25));
 
-    create_low_end_pages();
+    // page 3 : save page
+    m_page3 = new CalibrationWizardPage(m_scrolledWindow, false);
+    m_page3->set_page_title(_L("Pressure Advance"));
+    m_page3->set_page_index(_L("3/3"));
+    m_page3->set_highlight_step_text("Record");
+
+    create_save_panel(m_page3, m_page3->get_content_vsizer());
+
+    m_all_pages_sizer->Add(m_page3, 1, wxEXPAND | wxALL, FromDIP(25));
+
+    // link page
+    m_first_page = m_page1;
+    m_curr_page = m_page1;
+    /*m_page0->chain*/(m_page1)->chain(m_page2)->chain(m_page3);
+    show_page(m_curr_page);
+}
+
+void PressureAdvanceWizard::create_history_window()
+{
+    class HistoryWindow : DPIDialog {
+    public:
+        HistoryWindow(wxWindow* parent, wxWindowID id)
+            : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+        {
+            create();
+            wxGetApp().UpdateDlgDarkUI(this);
+        }
+        ~HistoryWindow() {};
+        void create() {
+            
+        }
+    };
 }
 
 void PressureAdvanceWizard::request_calib_result() {
     // todo emit once and loop to get
-    CalibUtils::emit_get_PA_calib_results();
-    CalibUtils::get_PA_calib_results(m_calib_results);
-    // pass m_calib_results info to page3
-    if (m_calib_results.size() > 0)
-        sync_save_page_data();
+    if (is_high_end_type(curr_obj)) {
+        CalibUtils::emit_get_PA_calib_results();
+        CalibUtils::get_PA_calib_results(m_calib_results);
+        CalibUtils::emit_get_PA_calib_infos();
+        CalibUtils::get_PA_calib_tab(m_calib_results_history);
+        // todo if failed to get result
+        // pass m_calib_results info to page3
+        if (m_calib_results.size() > 0)
+            sync_save_page_data();
+    }
 }
 
 void PressureAdvanceWizard::sync_save_page_data() {
@@ -1557,8 +1737,34 @@ void PressureAdvanceWizard::sync_save_page_data() {
         column_data_sizer->Add(k_value, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
         column_data_sizer->Add(n_value, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
 
-        auto comboBox_tray_name = new ComboBox(m_grid_panel, wxID_ANY, fcb->GetComboBox()->GetValue(), wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
-        column_data_sizer->Add(comboBox_tray_name, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+        if (fcb->is_bbl_filament()) {
+            auto comboBox_tray_name = new TextInput(m_grid_panel, fcb->GetComboBox()->GetValue(), "", "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY | wxTE_CENTER);
+            comboBox_tray_name->SetBorderWidth(0);
+            comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto&) {});
+            column_data_sizer->Add(comboBox_tray_name, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+        }
+        else {
+            auto comboBox_tray_name = new ComboBox(m_grid_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
+            wxArrayString selections;
+            for (auto history : m_calib_results_history) {
+                if (history.tray_id == fcb->get_tray_id())
+                    selections.push_back(history.name);
+            }
+            comboBox_tray_name->Set(selections);
+            comboBox_tray_name->SetValue(fcb->GetComboBox()->GetValue());
+            comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_KEY_DOWN, [this, fcb, comboBox_tray_name](auto& e) {
+                if (wxGetKeyState(WXK_RETURN)) {
+                    auto it = std::find_if(m_calib_results.begin(), m_calib_results.end(), [fcb](auto& calib_result) {
+                        return calib_result.tray_id == fcb->get_tray_id();
+                        });
+                    if (it != m_calib_results.end())
+                        it->name = comboBox_tray_name->GetTextCtrl()->GetValue().ToStdString();
+                }
+                else
+                    e.Skip();
+                });
+            column_data_sizer->Add(comboBox_tray_name, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+        }
 
         grid_sizer->Add(column_data_sizer);
         grid_sizer->AddSpacer(COLUMN_GAP);
@@ -1570,29 +1776,28 @@ void PressureAdvanceWizard::sync_save_page_data() {
 
 void PressureAdvanceWizard::switch_pages(SimpleEvent& evt) {
     if (curr_obj) {
-        if (curr_obj->printer_type == "BL-P001" || curr_obj->printer_type == "BL-P002")
+        if (is_high_end_type(curr_obj))
         {
-            if (m_low_end_page3) {
-                m_low_end_page3->Destroy();
-                m_low_end_page3 = nullptr;
-            }
-            if (m_high_end_page3)
-                m_high_end_page3->Destroy();
+            m_low_end_save_panel->Hide();
+            m_high_end_save_panel->Show();
 
-            create_high_end_pages();
+            sync_save_page_data(); //debug
         }
-        else if (curr_obj->printer_type == "C11")
+        else
         {
-            if (m_high_end_page3) {
-                m_high_end_page3->Destroy();
-                m_high_end_page3 = nullptr;
-            }
-            if (m_low_end_page3)
-                m_low_end_page3->Destroy();
-
-            create_low_end_pages();
+            m_high_end_save_panel->Hide();
+            m_low_end_save_panel->Show();
         }
-        //sync_save_page_data(); debug
+        Layout();
+    }
+}
+
+void PressureAdvanceWizard::change_ams_select_mode() {
+    if (is_high_end_type(curr_obj)) {
+        set_ams_select_mode(FSMCheckBoxMode);
+    }
+    else{
+        set_ams_select_mode(FSMRadioMode);
     }
 }
 
@@ -1612,7 +1817,7 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
         return false;
     }
 
-    if (curr_obj->printer_type == "BL-P001" || curr_obj->printer_type == "BL-P002") {
+    if (is_high_end_type(curr_obj)) {
         m_calib_results.clear();
         X1CCalibInfos calib_infos;
         for (int tray_id : tray_ids) {
@@ -1635,7 +1840,7 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
         else
             return false;
     }
-    else if (curr_obj->printer_type == "C11") {
+    else {
         curr_obj->command_start_extrusion_cali(tray_ids[0], nozzle_temp, bed_temp, max_volumetric_speed, m_filament_preset->setting_id);
         show_page(get_curr_page()->get_next_page());
         return true;
@@ -1646,7 +1851,7 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
 
 bool PressureAdvanceWizard::save_calibration_result()
 {
-    if (curr_obj->printer_type == "BL-P001" || curr_obj->printer_type == "BL-P002") {
+    if (is_high_end_type(curr_obj)) {
         CalibUtils::set_PA_calib_result(m_calib_results);
         MessageDialog msg_dlg(nullptr, _L("Saved success."), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
@@ -1654,7 +1859,7 @@ bool PressureAdvanceWizard::save_calibration_result()
         m_calib_results.shrink_to_fit();
         return true;
     }
-    else if (curr_obj->printer_type == "C11") {
+    else {
         auto check_k_validation = [](wxString k_text)
         {
             if (k_text.IsEmpty())
@@ -1700,10 +1905,10 @@ bool PressureAdvanceWizard::save_calibration_result()
 
         wxString k_text = m_k_val->GetTextCtrl()->GetValue();
         wxString n_text = m_n_val->GetTextCtrl()->GetValue();
-        if (!check_k_n_validation(k_text, n_text)) {
-            //wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
-            wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
-            MessageDialog msg_dlg(nullptr, kn_tips, wxEmptyString, wxICON_WARNING | wxOK);
+        if (!check_k_validation(k_text)) {
+            wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
+            //wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
+            MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return false;
         }
@@ -1712,7 +1917,7 @@ bool PressureAdvanceWizard::save_calibration_result()
         k_text.ToDouble(&k);
 
         double n = 0.0;
-        n_text.ToDouble(&n);
+        //n_text.ToDouble(&n);
 
         // set values
         int nozzle_temp = -1;
@@ -1729,10 +1934,7 @@ bool PressureAdvanceWizard::save_calibration_result()
 
         // send command
         std::vector<int> tray_ids = get_selected_tray();
-        int tray_id = 0;
-        if (!tray_ids.empty())
-            int tray_id = tray_ids[0]; // todo Determines whether multi-calibrate is supported
-        curr_obj->command_extrusion_cali_set(tray_id, setting_id, name, k, n, bed_temp, nozzle_temp, max_volumetric_speed);
+        curr_obj->command_extrusion_cali_set(tray_ids[0], setting_id, name, k, n, bed_temp, nozzle_temp, max_volumetric_speed);
         MessageDialog msg_dlg(nullptr, _L("Saved success."), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return true;
@@ -1750,9 +1952,59 @@ FlowRateWizard::FlowRateWizard(wxWindow* parent, wxWindowID id, const wxPoint& p
 {
     create_pages();
 
-    m_low_end_page3->get_next_btn()->Bind(wxEVT_BUTTON, &FlowRateWizard::on_fine_tune, this);
-
     Bind(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES, &FlowRateWizard::switch_pages, this);
+    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto&) {
+        request_calib_result();
+        });
+}
+
+
+void FlowRateWizard::create_save_panel_content(wxBoxSizer* sizer)
+{
+    auto complete_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
+    complete_text->SetFont(Label::Head_14);
+    complete_text->Wrap(-1);
+    sizer->Add(complete_text, 0, 0, 0);
+    sizer->AddSpacer(FromDIP(20));
+
+    auto page5_bitmap = new wxStaticBitmap(m_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    page5_bitmap->SetMinSize(wxSize(560, 450));
+    page5_bitmap->SetBackgroundColour(*wxBLACK);
+    sizer->Add(page5_bitmap, 0, wxALIGN_CENTER, 0);
+
+    sizer->AddSpacer(FromDIP(20));
+
+    auto fine_value_sizer = new wxBoxSizer(wxVERTICAL);
+    auto fine_value_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Fill in the value above the block with smoothest top surface"), wxDefaultPosition, wxDefaultSize, 0);
+    fine_value_text->Wrap(-1);
+    fine_value_text->SetFont(::Label::Head_14);
+    m_optimal_block_fine = new ComboBox(m_save_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+    wxArrayString fine_block_items;
+    for (int i = 0; i < 10; i++)
+    {
+        fine_block_items.Add(std::to_string(-9 + (i)));
+    }
+    m_optimal_block_fine->Set(fine_block_items);
+    m_fine_calc_result_text = new wxStaticText(m_save_panel, wxID_ANY, "");
+    fine_value_sizer->Add(fine_value_text, 0, 0);
+    fine_value_sizer->Add(m_optimal_block_fine, 0, 0);
+    fine_value_sizer->Add(m_fine_calc_result_text, 0);
+    sizer->Add(fine_value_sizer, 0, 0, 0);
+    sizer->AddSpacer(FromDIP(20));
+
+    auto save_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    save_text->Wrap(-1);
+    save_text->SetFont(Label::Head_14);
+    sizer->Add(save_text, 0, 0, 0);
+
+    auto save_name_input = new TextInput(m_save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    sizer->Add(save_name_input, 0, 0, 0);
+    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
+        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+        else
+            m_save_name = "";
+        });
 }
 
 void FlowRateWizard::create_low_end_pages() {
@@ -1764,23 +2016,23 @@ void FlowRateWizard::create_low_end_pages() {
 
     auto page3_content_sizer = m_low_end_page3->get_content_vsizer();
 
-    auto page3_description = new wxStaticText(m_low_end_page3, wxID_ANY, _L("The calibration blocks has been printed. Examine the blocks and determine which one has the smoothest top surface."), wxDefaultPosition, wxDefaultSize, 0);
+    auto page3_description = new wxStaticText(m_low_end_page3, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
+    page3_description->SetFont(Label::Head_14);
     page3_description->Wrap(-1);
-    page3_description->SetFont(::Label::Body_14);
-    page3_content_sizer->Add(page3_description, 0, wxALIGN_CENTER, 0);
-    page3_content_sizer->AddSpacer(FromDIP(50));
+    page3_content_sizer->Add(page3_description, 0, 0, 0);
+    page3_content_sizer->AddSpacer(FromDIP(20));
 
     auto page3_bitmap = new wxStaticBitmap(m_low_end_page3, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
     page3_bitmap->SetMinSize(wxSize(560, 450)); 
     page3_bitmap->SetBackgroundColour(*wxBLACK); 
-    page3_content_sizer->Add(page3_bitmap, 0, wxALIGN_CENTER, 0);
+    page3_content_sizer->Add(page3_bitmap, 0, 0, 0);
 
     page3_content_sizer->AddSpacer(FromDIP(20));
 
     auto coarse_value_sizer = new wxBoxSizer(wxVERTICAL);
     auto coarse_value_text = new wxStaticText(m_low_end_page3, wxID_ANY, _L("Fill in the value above the block with smoothest top surface"), wxDefaultPosition, wxDefaultSize, 0);
+    coarse_value_text->SetFont(Label::Head_14);
     coarse_value_text->Wrap(-1);
-    coarse_value_text->SetFont(::Label::Head_14);
     m_optimal_block_coarse = new ComboBox(m_low_end_page3, wxID_ANY, "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
     wxArrayString coarse_block_items;
     for (int i = 0; i < 9; i++)
@@ -1788,19 +2040,73 @@ void FlowRateWizard::create_low_end_pages() {
         coarse_block_items.Add(std::to_string(-20 + (i * 5)));
     }
     m_optimal_block_coarse->Set(coarse_block_items);
-    coarse_value_sizer->Add(coarse_value_text, 0, wxALIGN_CENTER);
-    coarse_value_sizer->Add(m_optimal_block_coarse, 0, wxALIGN_CENTER);
-    page3_content_sizer->Add(coarse_value_sizer, 0, wxALIGN_CENTER, 0);
+    m_coarse_calc_result_text = new wxStaticText(m_low_end_page3, wxID_ANY, "");
+    coarse_value_sizer->Add(coarse_value_text, 0, 0);
+    coarse_value_sizer->Add(m_optimal_block_coarse, 0, 0);
+    coarse_value_sizer->Add(m_coarse_calc_result_text, 0);
+    page3_content_sizer->Add(coarse_value_sizer, 0, 0, 0);
     page3_content_sizer->AddSpacer(FromDIP(20));
 
-    // todo add skip calibration 2
+    auto checkBox_panel = new wxPanel(m_low_end_page3);
+    auto cb_sizer = new wxBoxSizer(wxHORIZONTAL);
+    checkBox_panel->SetSizer(cb_sizer);
+    m_checkBox_skip_calibration = new CheckBox(checkBox_panel);
+    cb_sizer->Add(m_checkBox_skip_calibration);
+
+    auto cb_text = new wxStaticText(checkBox_panel, wxID_ANY, _L("Skip Calibration2"));
+    cb_sizer->Add(cb_text);
+    cb_text->Bind(wxEVT_LEFT_DOWN, [this](auto &) {
+        m_checkBox_skip_calibration->SetValue(!m_checkBox_skip_calibration->GetValue());
+        wxCommandEvent event(wxEVT_TOGGLEBUTTON);
+        event.SetEventObject(m_checkBox_skip_calibration);
+        m_checkBox_skip_calibration->GetEventHandler()->ProcessEvent(event);
+        });
+
+    page3_content_sizer->Add(checkBox_panel, 0, 0, 0);
+
+    auto save_panel = new wxPanel(m_low_end_page3);
+    auto save_sizer = new wxBoxSizer(wxVERTICAL);
+    save_panel->SetSizer(save_sizer);
+
+    auto save_text = new wxStaticText(save_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    save_text->Wrap(-1);
+    save_text->SetFont(Label::Head_14);
+    save_sizer->Add(save_text, 0, 0, 0);
+
+    auto save_name_input = new TextInput(save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    save_sizer->Add(save_name_input, 0, 0, 0);
+    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
+        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+        else
+            m_save_name = "";
+        });
+
+    page3_content_sizer->Add(save_panel, 0, 0, 0);
+    save_panel->Hide();
 
     auto page3_prev_btn = m_low_end_page3->get_prev_btn();
     page3_prev_btn->Hide();
 
     auto page3_next_btn = m_low_end_page3->get_next_btn();
-    page3_next_btn->SetLabel(_L("Save & Calibrate"));
+    page3_next_btn->SetLabel(_L("Calibrate"));
     page3_next_btn->SetButtonType(ButtonType::Calibrate);
+
+    m_checkBox_skip_calibration->Bind(wxEVT_TOGGLEBUTTON, [this, save_panel](auto& e) {
+        if (m_checkBox_skip_calibration->GetValue()) {
+            m_low_end_page3->get_next_btn()->SetLabel(_L("Save"));
+            m_low_end_page3->get_next_btn()->SetButtonType(ButtonType::Save);
+            save_panel->Show();
+        }
+        else {
+            m_low_end_page3->get_next_btn()->SetLabel(_L("Calibrate"));
+            m_low_end_page3->get_next_btn()->SetButtonType(ButtonType::Calibrate);
+            save_panel->Hide();
+            m_low_end_page3->get_next_btn()->Bind(wxEVT_BUTTON, &FlowRateWizard::on_fine_tune, this);
+        }
+        Layout();
+        e.Skip();
+        });
 
     m_all_pages_sizer->Add(m_low_end_page3, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -1811,7 +2117,7 @@ void FlowRateWizard::create_low_end_pages() {
     m_low_end_page4->set_highlight_step_text("Calibration");
 
     auto page4_content_sizer = m_low_end_page4->get_content_vsizer();
-    auto page4_bitmap = new wxStaticBitmap(m_low_end_page4, wxID_ANY, create_scaled_bitmap("max_volumetric_speed_wizard", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
+    auto page4_bitmap = new wxStaticBitmap(m_low_end_page4, wxID_ANY, create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
     page4_content_sizer->Add(page4_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page4_content_sizer->AddSpacer(FromDIP(20));
     m_all_pages_sizer->Add(m_low_end_page4, 1, wxEXPAND | wxALL, FromDIP(25));
@@ -1822,53 +2128,30 @@ void FlowRateWizard::create_low_end_pages() {
     m_low_end_page5->set_page_index(_L("5"));
     m_low_end_page5->set_highlight_step_text("Record");
 
-    auto page5_content_sizer = m_low_end_page5->get_content_vsizer();
-
-    auto page5_description = new wxStaticText(m_low_end_page5, wxID_ANY, _L("The calibration blocks has been printed. Examine the blocks and determine which one has the smoothest top surface. Fill in the number above that block and click the Save button to save the calibrated flow rate to the filament preset."), wxDefaultPosition, wxDefaultSize, 0);
-    page5_description->SetFont(::Label::Body_14);
-    page5_description->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    page5_description->SetMinSize(wxSize(CALIBRATION_TEXT_MAX_LENGTH, -1));
-    page5_content_sizer->Add(page5_description, 0, wxALIGN_CENTER, 0);
-    page5_content_sizer->AddSpacer(FromDIP(50));
-
-    auto page5_bitmap = new wxStaticBitmap(m_low_end_page5, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    page5_bitmap->SetMinSize(wxSize(560, 450)); 
-    page5_bitmap->SetBackgroundColour(*wxBLACK); 
-    page5_content_sizer->Add(page5_bitmap, 0, wxALIGN_CENTER, 0);
-
-    page5_content_sizer->AddSpacer(FromDIP(20));
-
-    auto fine_value_sizer = new wxBoxSizer(wxVERTICAL);
-    auto fine_value_text = new wxStaticText(m_low_end_page5, wxID_ANY, _L("Fill in the value above the block with smoothest top surface"), wxDefaultPosition, wxDefaultSize, 0);
-    fine_value_text->Wrap(-1);
-    fine_value_text->SetFont(::Label::Head_14);
-    m_optimal_block_fine = new ComboBox(m_low_end_page5, wxID_ANY, "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-    wxArrayString fine_block_items;
-    for (int i = 0; i < 10; i++)
-    {
-        fine_block_items.Add(std::to_string(-9 + (i)));
-    }
-    m_optimal_block_fine->Set(fine_block_items);
-    fine_value_sizer->Add(fine_value_text, 0, wxALIGN_CENTER);
-    fine_value_sizer->Add(m_optimal_block_fine, 0, wxALIGN_CENTER);
-    page5_content_sizer->Add(fine_value_sizer, 0, wxALIGN_CENTER, 0);
-    page5_content_sizer->AddSpacer(FromDIP(20));
-
-    auto page5_prev_btn = m_low_end_page5->get_prev_btn();
-    page5_prev_btn->Hide();
-
-    auto page5_next_btn = m_low_end_page5->get_next_btn();
-    page5_next_btn->SetLabel(_L("Save"));
-    page5_next_btn->SetButtonType(ButtonType::Save);
+    create_save_panel(m_low_end_page5, m_low_end_page5->get_content_vsizer());
 
     m_all_pages_sizer->Add(m_low_end_page5, 1, wxEXPAND | wxALL, FromDIP(25));
 
     // link page
-    m_page1->chain(m_page2)->chain(m_low_end_page3)->chain(m_low_end_page4)->chain(m_low_end_page5);
-
-    m_first_page = m_page1;
-    m_curr_page = m_page1;
+    m_page2->chain(m_low_end_page3)->chain(m_low_end_page4)->chain(m_low_end_page5);
     show_page(m_curr_page);
+
+    m_optimal_block_coarse->Bind(wxEVT_COMBOBOX, [this](auto& e) {
+        if (m_filament_preset) {
+            DynamicPrintConfig& filament_config = m_filament_preset->config;
+            auto curr_flow_ratio = filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+            m_coarse_calc_result = curr_flow_ratio * (100.0f + stof(m_optimal_block_coarse->GetValue().ToStdString())) / 100.0f;
+            m_coarse_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_coarse_calc_result)));
+        }
+        });
+    m_optimal_block_fine->Bind(wxEVT_COMBOBOX, [this](auto& e) {
+        if (m_filament_preset) {
+            DynamicPrintConfig& filament_config = m_filament_preset->config;
+            auto curr_flow_ratio = filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+            m_fine_calc_result = curr_flow_ratio * (100.0f + stof(m_optimal_block_fine->GetValue().ToStdString())) / 100.0f;
+            m_fine_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_fine_calc_result)));
+        }
+        });
 }
 
 void FlowRateWizard::create_high_end_pages() {
@@ -1879,20 +2162,19 @@ void FlowRateWizard::create_high_end_pages() {
     m_high_end_page3->set_highlight_step_text("Record");
 
     auto high_end_page3_content_sizer = m_high_end_page3->get_content_vsizer();
-
-    auto high_end_page3_description = new wxStaticText(m_high_end_page3, wxID_ANY, _L("The calibration blocks has been printed. Examine the blocks and determine which one has the smoothest top surface. Fill in the number above that block and click the Save button to save the calibrated flow rate to the filament preset."), wxDefaultPosition, wxDefaultSize, 0);
-    high_end_page3_description->SetFont(::Label::Body_14);
-    high_end_page3_description->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    high_end_page3_description->SetMinSize(wxSize(CALIBRATION_TEXT_MAX_LENGTH, -1));
-    high_end_page3_content_sizer->Add(high_end_page3_description, 0, wxALIGN_CENTER, 0);
-    high_end_page3_content_sizer->AddSpacer(FromDIP(50));
-
-    auto high_end_page3_bitmap = new wxStaticBitmap(m_high_end_page3, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    high_end_page3_bitmap->SetMinSize(wxSize(560, 450)); 
-    high_end_page3_bitmap->SetBackgroundColour(*wxBLACK); 
-    high_end_page3_content_sizer->Add(high_end_page3_bitmap, 0, wxALIGN_CENTER, 0);
+    auto complete_text_panel = new wxPanel(m_high_end_page3, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
+    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("We found the best flow ratio for you"));
+    complete_text->SetFont(Label::Head_14);
+    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
+    complete_text_panel->SetSizer(complete_text_sizer);
+    high_end_page3_content_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
 
     high_end_page3_content_sizer->AddSpacer(FromDIP(20));
+
+    m_grid_panel = new wxPanel(m_high_end_page3, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    high_end_page3_content_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
 
     auto high_end_page3_prev_btn = m_high_end_page3->get_prev_btn();
     high_end_page3_prev_btn->Hide();
@@ -1904,10 +2186,7 @@ void FlowRateWizard::create_high_end_pages() {
     m_all_pages_sizer->Add(m_high_end_page3, 1, wxEXPAND | wxALL, FromDIP(25));
 
     // link page
-    m_page1->chain(m_page2)->chain(m_high_end_page3);
-
-    m_first_page = m_page1;
-    m_curr_page = m_page1;
+    m_page2->chain(m_high_end_page3);
     show_page(m_curr_page);
 }
 
@@ -1956,23 +2235,7 @@ void FlowRateWizard::create_pages()
 
     auto page1_content_sizer = m_page1->get_content_vsizer();
 
-    m_from_text->Hide();
-    m_to_text->Hide();
-    m_step_text->Hide();
-    m_from_value->Hide();
-    m_to_value->Hide();
-    m_step->Hide();
-
-    add_presets_panel_to_page(m_page1, page1_content_sizer);
-
-    add_send_progress_to_page(m_page1, m_page1->get_btn_hsizer());
-
-    auto page1_prev_btn = m_page1->get_prev_btn();
-    page1_prev_btn->Hide();
-
-    auto page1_next_btn = m_page1->get_next_btn();
-    page1_next_btn->SetLabel(_L("Calibrate"));
-    page1_next_btn->SetButtonType(ButtonType::Calibrate);
+    create_presets_panel(m_page1, page1_content_sizer, false);
 
     m_all_pages_sizer->Add(m_page1, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -1983,21 +2246,18 @@ void FlowRateWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("max_volumetric_speed_wizard", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
+    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("flow_rate_calibration", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
     page2_content_sizer->Add(page2_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page2_content_sizer->AddSpacer(FromDIP(20));
-    add_print_panel_to_page(m_page2, page2_content_sizer);
 
-    auto page2_prev_btn = m_page2->get_prev_btn();
-    page2_prev_btn->SetLabel(_L("Re-Calibrate"));
-    page2_prev_btn->SetButtonType(ButtonType::Recalibrate);
-    page2_prev_btn->Hide();
-
-    auto page2_next_btn = m_page2->get_next_btn();
-    page2_next_btn->SetLabel(_L("Next"));
-    page2_next_btn->SetButtonType(ButtonType::Next);
+    create_print_panel(m_page2, page2_content_sizer);
 
     m_all_pages_sizer->Add(m_page2, 1, wxEXPAND | wxALL, FromDIP(25));
+
+    m_page1->chain(m_page2);
+    m_first_page = m_page1;
+    m_curr_page = m_page1;
+    show_page(m_curr_page);
 
     create_low_end_pages();
 }
@@ -2006,12 +2266,61 @@ void FlowRateWizard::request_calib_result() {
     // todo emit once and loop to get
     CalibUtils::emit_get_flow_ratio_calib_results();
     CalibUtils::get_flow_ratio_calib_results(m_calib_results);
-    // todo pass m_calib_results info to page3
+    // todo if get result failed
+    sync_save_page_data();
+}
+
+void FlowRateWizard::sync_save_page_data() {
+    FilamentComboBoxList fcb_list = get_selected_filament_comboBox();
+
+    m_grid_panel->DestroyChildren();
+    wxBoxSizer* grid_sizer = new wxBoxSizer(wxHORIZONTAL);
+    const int COLUMN_GAP = FromDIP(50);
+    const int ROW_GAP = FromDIP(30);
+    wxBoxSizer* left_title_sizer = new wxBoxSizer(wxVERTICAL);
+    left_title_sizer->AddSpacer(FromDIP(49));
+    auto flow_ratio_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Flow Ratio"), wxDefaultPosition, wxDefaultSize, 0);
+    flow_ratio_title->SetFont(Label::Head_14);
+    left_title_sizer->Add(flow_ratio_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+    auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Brand Name"), wxDefaultPosition, wxDefaultSize, 0);
+    brand_title->SetFont(Label::Head_14);
+    left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+    grid_sizer->Add(left_title_sizer);
+    grid_sizer->AddSpacer(COLUMN_GAP);
+
+    int i = 0;
+    for (auto fcb : fcb_list) {
+        wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
+        auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
+        tray_title->SetFont(Label::Head_14);
+        tray_title->SetLabel(fcb->get_tray_name());
+        column_data_sizer->Add(tray_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+
+        auto flow_ratio_value = new wxStaticText(m_grid_panel, wxID_ANY, NA_STR, wxDefaultPosition, wxDefaultSize, 0);
+        for (auto calib_result : m_calib_results) {
+            if (calib_result.tray_id == fcb->get_tray_id()) {
+                flow_ratio_value->SetLabel(std::to_string(calib_result.flow_ratio));
+            }
+        }
+        column_data_sizer->Add(flow_ratio_value, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+
+        auto comboBox_tray_name = new TextInput(m_grid_panel, fcb->GetComboBox()->GetValue(), "", "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);// todo use m_high_end_save_names[i] to initial
+        column_data_sizer->Add(comboBox_tray_name, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+        comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, comboBox_tray_name, i](auto& e) {
+            m_high_end_save_names[i] = comboBox_tray_name->GetTextCtrl()->GetValue().ToStdString();
+                });
+        grid_sizer->Add(column_data_sizer);
+        grid_sizer->AddSpacer(COLUMN_GAP);
+        i++;
+    }
+    m_grid_panel->SetSizer(grid_sizer, true);
+
+    Layout();
 }
 
 void FlowRateWizard::switch_pages(SimpleEvent& evt) {
     if (curr_obj) {
-        if (curr_obj->printer_type == "BL-P001" || curr_obj->printer_type == "BL-P002")
+        if (is_high_end_type(curr_obj))
         {
             if (m_low_end_page3) {
                 m_low_end_page3->Destroy();
@@ -2029,8 +2338,10 @@ void FlowRateWizard::switch_pages(SimpleEvent& evt) {
                 m_high_end_page3->Destroy();
 
             create_high_end_pages();
+
+            sync_save_page_data(); // debug
         }
-        else if (curr_obj->printer_type == "C11")
+        else
         {
             if (m_high_end_page3) {
                 m_high_end_page3->Destroy();
@@ -2041,6 +2352,16 @@ void FlowRateWizard::switch_pages(SimpleEvent& evt) {
 
             create_low_end_pages();
         }
+        Layout();
+    }
+}
+
+void FlowRateWizard::change_ams_select_mode() {
+    if (is_high_end_type(curr_obj)) {
+        set_ams_select_mode(FSMCheckBoxMode);
+    }
+    else {
+        set_ams_select_mode(FSMRadioMode);
     }
 }
 
@@ -2060,7 +2381,7 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
         return false;
     }
 
-    if (curr_obj->printer_type == "BL-P001" || curr_obj->printer_type == "BL-P002") {
+    if (is_high_end_type(curr_obj)) {
         m_calib_results.clear();
         X1CCalibInfos calib_infos;
         for (int tray_id : tray_ids) {
@@ -2109,35 +2430,61 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
 
 bool FlowRateWizard::save_calibration_result()
 {
-    if (curr_obj->printer_type == "BL-P001" || curr_obj->printer_type == "BL-P002") {
-        // todo high end machine save logic
-        //CalibUtils::set_flowrate_calib_result(m_calib_results);
-        MessageDialog msg_dlg(nullptr, _L("Saved success."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
+    if (is_high_end_type(curr_obj)) {
+        DynamicPrintConfig& filament_config = m_filament_preset->config;
+        for (int i = 0; i < m_calib_results.size(); i++) {
+            // todo failed to get result logic 
+            //if (!calib_result.flow_ratio)
+            //{
+            //    MessageDialog msg_dlg(nullptr, _L("Failed to get result, input a value manually."), wxEmptyString, wxICON_WARNING | wxOK);
+            //    msg_dlg.ShowModal();
+            //    return false;
+            //}
+            // todo if names are same, will be covered, need to initialize names
+            if (m_high_end_save_names[i].empty()) {
+                MessageDialog msg_dlg(nullptr, _L("Input name of filament preset to save"), wxEmptyString, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+                return false;
+            }
+            save_presets("filament_flow_ratio", new ConfigOptionFloats{ m_calib_results[i].flow_ratio }, m_high_end_save_names[i]);
+        }
         m_calib_results.clear();
         m_calib_results.shrink_to_fit();
+        MessageDialog msg_dlg(nullptr, _L("Saved success."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
         return true;
     }
-    else if (curr_obj->printer_type == "C11") {
-        if (m_optimal_block_coarse->GetValue().IsEmpty() || m_optimal_block_fine->GetValue().IsEmpty())
+    else {
+        bool valid = true;
+        float result_value;
+        if (m_checkBox_skip_calibration->GetValue()) {
+            result_value = m_coarse_calc_result;
+            if (m_optimal_block_coarse->GetValue().IsEmpty())
+                valid = false;
+        }
+        else {
+            result_value = m_fine_calc_result;
+            if (m_optimal_block_coarse->GetValue().IsEmpty() || m_optimal_block_fine->GetValue().IsEmpty())
+                valid = false;
+        }
+        if (!valid)
         {
             MessageDialog msg_dlg(nullptr, _L("Choose a block with smoothest top surface."), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return false;
         }
-
-        DynamicPrintConfig& filament_config = m_filament_preset->config;
-        auto old_flow_ratio = filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
-        int fine_value = stoi(m_optimal_block_fine->GetValue().ToStdString());
-        auto new_flow_ratio = old_flow_ratio * (100 + fine_value) / 100;
-        if (save_presets("filament_flow_ratio", new ConfigOptionFloats{ new_flow_ratio })) {
-            add_send_progress_to_page(m_page1, m_page1->get_btn_hsizer());
-            add_print_panel_to_page(m_page2, m_page2->get_content_vsizer());
-            return true;
-        }
-        else {
+        if (m_save_name.empty()) {
+            MessageDialog msg_dlg(nullptr, _L("Input name of filament preset to save"), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
             return false;
         }
+        DynamicPrintConfig& filament_config = m_filament_preset->config;
+        save_presets("filament_flow_ratio", new ConfigOptionFloats{ result_value }, m_save_name);
+        create_send_progress_bar(m_page1, m_page1->get_btn_hsizer());
+        reset_print_panel_to_page(m_page2, m_page2->get_content_vsizer());
+        MessageDialog msg_dlg(nullptr, _L("Saved success."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return true;
     }
     return false;
 }
@@ -2145,6 +2492,19 @@ bool FlowRateWizard::save_calibration_result()
 bool FlowRateWizard::recommend_input_value()
 {
     return CalibrationWizard::recommend_input_value();
+}
+
+void FlowRateWizard::reset_print_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer)
+{
+    m_btn_recali = page->get_prev_btn();
+    m_btn_next = page->get_next_btn();
+    m_print_panel->Reparent(page);
+    sizer->Add(m_print_panel, 0, wxALIGN_CENTER, 0);
+}
+
+void FlowRateWizard::reset_send_progress_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer)
+{
+    m_send_progress_panel->Reparent(page);
 }
 
 void FlowRateWizard::on_fine_tune(wxCommandEvent& e) {
@@ -2155,14 +2515,11 @@ void FlowRateWizard::on_fine_tune(wxCommandEvent& e) {
     }
 
     DynamicPrintConfig& filament_config = m_filament_preset->config;
-    int coarse_value = stoi(m_optimal_block_coarse->GetValue().ToStdString());
-    auto old_flow_ratio = filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
-    auto new_flow_ratio = old_flow_ratio * (100 + coarse_value) / 100;
-    filament_config.set_key_value("filament_flow_ratio", new ConfigOptionFloats{ new_flow_ratio });
+    filament_config.set_key_value("filament_flow_ratio", new ConfigOptionFloats{ m_coarse_calc_result });
 
-    add_send_progress_to_page(m_low_end_page3, m_low_end_page3->get_btn_hsizer());
+    reset_send_progress_to_page(m_low_end_page3, m_low_end_page3->get_btn_hsizer());
 
-    add_print_panel_to_page(m_low_end_page4, m_low_end_page4->get_content_vsizer());
+    reset_print_panel_to_page(m_low_end_page4, m_low_end_page4->get_content_vsizer());
 
     e.Skip();
 }
@@ -2171,6 +2528,58 @@ MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID 
     : CalibrationWizard(parent, id, pos, size, style) 
 {
     create_pages();
+
+    m_optimal_max_speed->GetTextCtrl()->Bind(wxEVT_TEXT, [this](auto& e) {
+        if (!m_optimal_max_speed->GetTextCtrl()->GetValue().IsEmpty()) {
+            m_calc_result = stof(m_optimal_max_speed->GetTextCtrl()->GetValue().ToStdString()); // todo determine to select an object or input target value directly
+            m_calc_result_text->SetLabel(wxString::Format(_L("max volumetric speed : %s "), std::to_string(m_calc_result)));
+        }
+        });
+}
+
+void MaxVolumetricSpeedWizard::create_save_panel_content(wxBoxSizer* sizer)
+{
+    auto complete_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
+    complete_text->SetFont(::Label::Head_14);
+    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    sizer->Add(complete_text, 0, 0, 0);
+
+    sizer->AddSpacer(FromDIP(20));
+
+    auto page3_bitmap = new wxStaticBitmap(m_save_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    page3_bitmap->SetMinSize(wxSize(500, 400));
+    page3_bitmap->SetBackgroundColour(*wxBLACK);
+    sizer->Add(page3_bitmap, 0, wxALIGN_CENTER, 0);
+
+    sizer->AddSpacer(FromDIP(20));
+
+    auto value_sizer = new wxBoxSizer(wxVERTICAL);
+    auto value_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Input Value"), wxDefaultPosition, wxDefaultSize, 0);
+    value_text->SetFont(Label::Head_14);
+    value_text->Wrap(-1);
+    m_optimal_max_speed = new TextInput(m_save_panel, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    m_optimal_max_speed->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    m_calc_result_text = new wxStaticText(m_save_panel, wxID_ANY, "");
+    value_sizer->Add(value_text, 0, 0, 0);
+    value_sizer->Add(m_optimal_max_speed, 0);
+    value_sizer->Add(m_calc_result_text, 0);
+    sizer->Add(value_sizer, 0, 0);
+
+    sizer->AddSpacer(FromDIP(20));
+
+    auto save_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    save_text->Wrap(-1);
+    save_text->SetFont(Label::Head_14);
+    sizer->Add(save_text, 0, 0, 0);
+
+    auto save_name_input = new TextInput(m_save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    sizer->Add(save_name_input, 0, 0, 0);
+    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
+        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+        else
+            m_save_name = "";
+        });
 }
 
 void MaxVolumetricSpeedWizard::create_pages() 
@@ -2234,23 +2643,14 @@ void MaxVolumetricSpeedWizard::create_pages()
 
     auto page1_content_sizer = m_page1->get_content_vsizer();
 
+    create_presets_panel(m_page1, page1_content_sizer);
+
     m_from_text->SetLabel(_L("From Speed"));
     m_to_text->SetLabel(_L("To Speed"));
     m_from_value->SetLabel(_L("mm\u00B3/s"));
     m_to_value->SetLabel(_L("mm\u00B3/s"));
     m_step->SetLabel(_L("mm\u00B3/s"));
-    m_step->GetTextCtrl()->SetLabel("0.5");
-
-    add_presets_panel_to_page(m_page1, page1_content_sizer);
-
-    add_send_progress_to_page(m_page1, m_page1->get_btn_hsizer());
-
-    auto page1_prev_btn = m_page1->get_prev_btn();
-    page1_prev_btn->Hide();
-
-    auto page1_next_btn = m_page1->get_next_btn();
-    page1_next_btn->SetLabel(_L("Calibrate"));
-    page1_next_btn->SetButtonType(ButtonType::Calibrate);
+    m_step->GetTextCtrl()->SetLabel(_L("0.5"));
 
     m_all_pages_sizer->Add(m_page1, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -2261,19 +2661,11 @@ void MaxVolumetricSpeedWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("max_volumetric_speed_wizard", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
+    auto page2_bitmap = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("max_volumetric_speed_calibration", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
     page2_content_sizer->Add(page2_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
     page2_content_sizer->AddSpacer(FromDIP(20));
-    add_print_panel_to_page(m_page2, page2_content_sizer);
 
-    auto page2_prev_btn = m_page2->get_prev_btn();
-    page2_prev_btn->SetLabel(_L("Re-Calibrate"));
-    page2_prev_btn->SetButtonType(ButtonType::Recalibrate);
-    page2_prev_btn->Hide();
-
-    auto page2_next_btn = m_page2->get_next_btn();
-    page2_next_btn->SetLabel(_L("Next"));
-    page2_next_btn->SetButtonType(ButtonType::Next);
+    create_print_panel(m_page2, page2_content_sizer);
 
     m_all_pages_sizer->Add(m_page2, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -2283,39 +2675,7 @@ void MaxVolumetricSpeedWizard::create_pages()
     m_page3->set_page_index(_L("3/3"));
     m_page3->set_highlight_step_text("Record");
 
-    auto page3_content_sizer = m_page3->get_content_vsizer();
-
-    auto page3_description = new wxStaticText(m_page3, wxID_ANY, _L("The calibration model has been printed."), wxDefaultPosition, wxDefaultSize, 0);
-    page3_description->SetFont(::Label::Body_14);
-    page3_description->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    page3_content_sizer->Add(page3_description, 0, wxALIGN_CENTER, 0);
-    page3_content_sizer->AddSpacer(FromDIP(50));
-
-    auto page3_bitmap = new wxStaticBitmap(m_page3, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    page3_bitmap->SetMinSize(wxSize(800, 600)); 
-    page3_bitmap->SetBackgroundColour(*wxBLACK); 
-    page3_content_sizer->Add(page3_bitmap, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
-
-    page3_content_sizer->AddSpacer(FromDIP(20));
-
-    auto value_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto value_text = new wxStaticText(m_page3, wxID_ANY, _L("Input Value"), wxDefaultPosition, wxDefaultSize, 0);
-    value_text->Wrap(-1);
-    value_text->SetFont(::Label::Body_14);
-    m_optimal_max_speed = new TextInput(m_page3, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
-    value_sizer->Add(value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
-    value_sizer->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
-    value_sizer->Add(m_optimal_max_speed, 0);
-    page3_content_sizer->Add(value_sizer, 0, wxALIGN_CENTER);
-
-    page3_content_sizer->AddSpacer(FromDIP(20));
-
-    auto page3_prev_btn = m_page3->get_prev_btn();
-    page3_prev_btn->Hide();
-
-    auto page3_next_btn = m_page3->get_next_btn();
-    page3_next_btn->SetLabel(_L("Save"));
-    page3_next_btn->SetButtonType(ButtonType::Save);
+    create_save_panel(m_page3, m_page3->get_content_vsizer());
 
     m_all_pages_sizer->Add(m_page3, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -2365,10 +2725,15 @@ bool MaxVolumetricSpeedWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-
     double max_volumetric_speed;
     m_optimal_max_speed->GetTextCtrl()->GetValue().ToDouble(&max_volumetric_speed);
-    return save_presets("filament_max_volumetric_speed", new ConfigOptionFloats{ max_volumetric_speed });
+    if (m_save_name.empty()) {
+        MessageDialog msg_dlg(nullptr, _L("Input name of filament preset to save"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+    save_presets("filament_max_volumetric_speed", new ConfigOptionFloats{ max_volumetric_speed }, m_save_name);
+    return true;
 }
 
 bool MaxVolumetricSpeedWizard::recommend_input_value()
@@ -2391,6 +2756,44 @@ TemperatureWizard::TemperatureWizard(wxWindow* parent, wxWindowID id, const wxPo
     create_pages();
 }
 
+void TemperatureWizard::create_save_panel_content(wxBoxSizer* sizer)
+{
+    auto complete_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
+    complete_text->SetFont(::Label::Head_14);
+    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    sizer->Add(complete_text, 0, 0, 0);
+    sizer->AddSpacer(FromDIP(20));
+
+    auto page3_picture_description = new wxStaticBitmap(m_save_panel, wxID_ANY, create_scaled_bitmap("temperature_record", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
+    sizer->Add(page3_picture_description, 0, wxALIGN_CENTER, 0);
+    sizer->AddSpacer(FromDIP(20));
+
+    auto optimal_temp_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Optimal Temp"), wxDefaultPosition, wxDefaultSize, 0);
+    optimal_temp_text->Wrap(-1);
+    optimal_temp_text->SetFont(Label::Head_14);
+    sizer->Add(optimal_temp_text, 0, 0, 0);
+
+    m_optimal_temp = new TextInput(m_save_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
+    m_optimal_temp->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    sizer->Add(m_optimal_temp, 0, 0, 0);
+
+    sizer->AddSpacer(FromDIP(20));
+
+    auto save_text = new wxStaticText(m_save_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    save_text->Wrap(-1);
+    save_text->SetFont(Label::Head_14);
+    sizer->Add(save_text, 0, 0, 0);
+
+    auto save_name_input = new TextInput(m_save_panel, wxEmptyString, "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
+    sizer->Add(save_name_input, 0, 0, 0);
+    save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, save_name_input](auto& e) {
+        if (!save_name_input->GetTextCtrl()->GetValue().IsEmpty())
+            m_save_name = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+        else
+            m_save_name = "";
+        });
+}
+
 void TemperatureWizard::create_pages()
 {
     // page 1 : preset page
@@ -2399,31 +2802,13 @@ void TemperatureWizard::create_pages()
     m_page1->set_page_index(_L("1/3"));
     m_page1->set_highlight_step_text("Preset");
 
-    auto page1_content_sizer = m_page1->get_content_vsizer();
-
-    add_presets_panel_to_page(m_page1, page1_content_sizer);
-
-    //auto description1 = new wxStaticText(m_page1, wxID_ANY, _L("Temp tower is a straightforward test. The temp tower is a vertical tower with multiple blocks, each printed at a different temperature. Once the print is complete, we can examine each block of the tower and determine the optimal temperature for the filament.\n\nBy click the \"Calibrate\" button, the temp tower will be sent to your printer and start printing. The printing job may take about 50 minutes."), wxDefaultPosition, wxDefaultSize, 0);
-    //description1->Wrap(500);
-    //description1->SetFont(::Label::Body_14);
-    //description1->SetMinSize({ FromDIP(500), -1 });
-    //page1_content_sizer->Add(description1, 0, wxALL | wxEXPAND, 0);
-
-    add_send_progress_to_page(m_page1, m_page1->get_btn_hsizer());
+    create_presets_panel(m_page1, m_page1->get_content_vsizer());
 
     m_from_text->SetLabel(_L("From Temp"));
     m_to_text->SetLabel(_L("To Temp"));
     m_step->Enable(false);
 
-    auto page1_prev_btn = m_page1->get_prev_btn();
-    page1_prev_btn->Hide();
-
-    auto page1_next_btn = m_page1->get_next_btn();
-    page1_next_btn->SetLabel(_L("Calibrate"));
-    page1_next_btn->SetButtonType(ButtonType::Calibrate);
-
     m_all_pages_sizer->Add(m_page1, 1, wxEXPAND | wxALL, FromDIP(25));
-
 
     // page 2 : print page
     m_page2 = new CalibrationWizardPage(m_scrolledWindow, false);
@@ -2432,21 +2817,13 @@ void TemperatureWizard::create_pages()
     m_page2->set_highlight_step_text("Calibration");
 
     auto page2_content_sizer = m_page2->get_content_vsizer();
-    auto page2_picture_description = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("temperature_wizard1", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
+    auto page2_picture_description = new wxStaticBitmap(m_page2, wxID_ANY, create_scaled_bitmap("temperature_calibration", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
     page2_content_sizer->Add(page2_picture_description, 0, wxALIGN_CENTER, 0);
-    add_print_panel_to_page(m_page2, page2_content_sizer);
+    page2_content_sizer->AddSpacer(FromDIP(20));
 
-    auto page2_prev_btn = m_page2->get_prev_btn();
-    page2_prev_btn->SetLabel(_L("Re-Calibrate"));
-    page2_prev_btn->SetButtonType(ButtonType::Recalibrate);
-    page2_prev_btn->Hide();
-
-    auto page2_next_btn = m_page2->get_next_btn();
-    page2_next_btn->SetLabel(_L("Next"));
-    page2_next_btn->SetButtonType(ButtonType::Next);
+    create_print_panel(m_page2, page2_content_sizer);
 
     m_all_pages_sizer->Add(m_page2, 1, wxEXPAND | wxALL, FromDIP(25));
-
 
     // page 3 : save page
     m_page3 = new CalibrationWizardPage(m_scrolledWindow, false);
@@ -2454,40 +2831,7 @@ void TemperatureWizard::create_pages()
     m_page3->set_page_index(_L("3/3"));
     m_page3->set_highlight_step_text("Record");
 
-    auto page3_content_sizer = m_page3->get_content_vsizer();
-    auto page3_picture_description = new wxStaticBitmap(m_page3, wxID_ANY, create_scaled_bitmap("temperature_wizard2", nullptr, 400), wxDefaultPosition, wxDefaultSize, 0);
-    page3_content_sizer->Add(page3_picture_description, 0, wxALIGN_CENTER, 0);
-
-    auto description = new wxStaticText(m_page3, wxID_ANY, _L("The calibration model has been printed.\nPlease find the optimal temperature is the one that produces the highest quality print with the least amount of issues, such as stringing, layer adhesion, warping (overhang), and bridging."), wxDefaultPosition, wxDefaultSize, 0);
-    description->SetFont(::Label::Body_14);
-    description->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    page3_content_sizer->Add(description, 0, wxALIGN_CENTER, 0);
-
-    page3_content_sizer->Add(0, FromDIP(20), 0, wxEXPAND, 0);
-
-    wxBoxSizer* optimal_temp_szier;
-    optimal_temp_szier = new wxBoxSizer(wxHORIZONTAL);
-
-    auto optimal_temp_text = new wxStaticText(m_page3, wxID_ANY, _L("Optimal Temp"), wxDefaultPosition, wxDefaultSize, 0);
-    optimal_temp_text->Wrap(-1);
-    optimal_temp_text->SetFont(::Label::Body_14);
-    optimal_temp_szier->Add(optimal_temp_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
-
-    optimal_temp_szier->Add(FromDIP(10), 0, 0, wxEXPAND, 0);
-
-    m_optimal_temp = new TextInput(m_page3, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
-    optimal_temp_szier->Add(m_optimal_temp, 0, wxALL, 0);
-
-    page3_content_sizer->Add(optimal_temp_szier, 0, wxALIGN_CENTER, 0);
-
-    page3_content_sizer->AddSpacer(FromDIP(20));
-
-    auto page3_prev_btn = m_page3->get_prev_btn();
-    page3_prev_btn->Hide();
-
-    auto page3_next_btn = m_page3->get_next_btn();
-    page3_next_btn->SetLabel(_L("Save"));
-    page3_next_btn->SetButtonType(ButtonType::Save);
+    create_save_panel(m_page3, m_page3->get_content_vsizer());
 
     m_all_pages_sizer->Add(m_page3, 1, wxEXPAND | wxALL, FromDIP(25));
     
@@ -2525,6 +2869,12 @@ bool TemperatureWizard::start_calibration(std::vector<int> tray_ids)
 
     std::string error_message;
     CalibUtils::calib_temptue(calib_info, error_message);
+    if (!error_message.empty()) {
+        MessageDialog msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
     show_send_progress_bar(true);
     return true;
 }
@@ -2537,9 +2887,14 @@ bool TemperatureWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-
     int temp = stoi(m_optimal_temp->GetTextCtrl()->GetValue().ToStdString());
-    return save_presets("nozzle_temperature", new ConfigOptionInts(1, temp));
+    if (m_save_name.empty()) {
+        MessageDialog msg_dlg(nullptr, _L("Input name of filament preset to save"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+    save_presets("nozzle_temperature", new ConfigOptionInts(1, temp), m_save_name);
+    return true;
 }
 
 bool TemperatureWizard::recommend_input_value()

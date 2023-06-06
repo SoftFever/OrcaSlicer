@@ -1397,6 +1397,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
 {
     m_tray_name = config.opt_string("tray_name", 0u);
     m_filament_id = config.opt_string("filament_id", 0u);
+    m_tag_uid = config.opt_string("tag_uid", 0u);
     m_filament_type  = config.opt_string("filament_type", 0u);
     m_filament_color = config.opt_string("filament_colour", 0u);
     m_filament_exist = config.opt_bool("filament_exist", 0u);
@@ -1408,21 +1409,32 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
 #endif
     if (!m_filament_exist) {
         SetValue(_L("Empty"));
+        m_selected_preset = nullptr;
+        m_is_compatible = false;
         clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, 16, 16));
     } else {
         auto &filaments = m_collection->get_presets();
-        auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) { return f.is_compatible && f.is_system && f.filament_id == m_filament_id; });
-        if (iter == filaments.end() && !m_filament_type.empty()) {
-            auto filament_type = "Generic " + m_filament_type;
-            iter               = std::find_if(filaments.begin(), filaments.end(),
-                                [&filament_type](auto &f) { return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
-        }
+        auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
+            bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
+            return is_compatible && f.is_system && f.filament_id == m_filament_id;
+            });
+        //if (iter == filaments.end() && !m_filament_type.empty()) {
+        //    auto filament_type = "Generic " + m_filament_type;
+        //    iter               = std::find_if(filaments.begin(), filaments.end(),
+        //                        [this , &filament_type](auto &f) {
+        //            bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
+        //            return is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
+        //}
         if (iter != filaments.end()) {
             m_selected_preset = &*iter;
+            m_is_compatible = true;
             SetValue(get_preset_name(*iter));
         }
-        else
+        else {
+            m_selected_preset = nullptr;
+            m_is_compatible = false;
             SetValue(_L("Incompatible"));
+        }
         Enable();
     }
 }
@@ -1444,8 +1456,7 @@ void GUI::CalibrateFilamentComboBox::update()
     std::map<wxString, wxBitmap*>  system_presets;
 
     wxString selected_preset = m_selected_preset ? get_preset_name(*m_selected_preset) : GetValue();
-    if (!m_selected_preset)
-        m_selected_preset = m_collection->find_preset(selected_preset.ToStdString());
+
     wxString tooltip;
     const std::deque<Preset>& presets = m_collection->get_presets();
 
@@ -1498,16 +1509,13 @@ void GUI::CalibrateFilamentComboBox::update()
     update_selection();
     Thaw();
 
-    if (!tooltip.IsEmpty()) {
-#ifdef __WXMSW__
-        SetToolTip(NULL);
-#endif
-        SetToolTip(tooltip);
-    }
+    SetToolTip(NULL);
 }
 
 void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
 {
+    m_is_compatible = true;
+    static_cast<FilamentComboBox*>(m_parent)->Enable(true);
     std::string preset_name = m_collection->get_preset_name_by_alias(evt.GetString().ToUTF8().data());
     m_selected_preset       = m_collection->find_preset(preset_name);
     SimpleEvent e(EVT_CALIBRATION_TRAY_SELECTION_CHANGED);

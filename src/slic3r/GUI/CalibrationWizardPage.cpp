@@ -87,40 +87,41 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
     page_sizer->AddSpacer(FromDIP(20));
 
     m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_top_sizer->AddSpacer(FromDIP(180));
+    m_top_sizer->AddStretchSpacer();
     m_preset_text = new wxStaticText(this, wxID_ANY, _L("Preset"), wxDefaultPosition, wxDefaultSize, 0);
     m_preset_text->SetFont(::Label::Head_14);
     m_top_sizer->Add(m_preset_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
-    auto line1 = new wxPanel(this, wxID_ANY, wxDefaultPosition, {FromDIP(250), 1});
+    auto line1 = new wxPanel(this, wxID_ANY, wxDefaultPosition, {FromDIP(200), 1});
     line1->SetBackgroundColour(*wxBLACK);
     m_top_sizer->Add(line1, 1, wxALIGN_CENTER, 0);
     m_calibration_text = new wxStaticText(this, wxID_ANY, _L("Calibration"), wxDefaultPosition, wxDefaultSize, 0);
     m_calibration_text->SetFont(::Label::Head_14);
     m_top_sizer->Add(m_calibration_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
-    auto line2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, { FromDIP(250), 1});
+    auto line2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, { FromDIP(200), 1});
     line2->SetBackgroundColour(*wxBLACK);
     m_top_sizer->Add(line2, 1, wxALIGN_CENTER, 0);
     m_record_text = new wxStaticText(this, wxID_ANY, _L("Record"), wxDefaultPosition, wxDefaultSize, 0);
     m_record_text->SetFont(::Label::Head_14);
     m_top_sizer->Add(m_record_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
-    m_top_sizer->AddSpacer(FromDIP(180));
+    m_top_sizer->AddStretchSpacer();
     page_sizer->Add(m_top_sizer, 0, wxEXPAND, 0);
 
     page_sizer->AddSpacer(FromDIP(40));
 
     m_content_sizer = new wxBoxSizer(wxVERTICAL);
 
-    page_sizer->Add(m_content_sizer, 0, wxEXPAND, 0);
+    page_sizer->Add(m_content_sizer, 0, wxALIGN_CENTER, 0);
 
-    page_sizer->AddStretchSpacer();
+    page_sizer->AddSpacer(FromDIP(40));
 
     m_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_btn_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    m_btn_sizer->AddStretchSpacer();
     m_btn_prev = new PageButton(this, "Back", Back);
     m_btn_sizer->Add(m_btn_prev, 0);
     m_btn_sizer->AddSpacer(FromDIP(10));
     m_btn_next = new PageButton(this, "Next", Next);
     m_btn_sizer->Add(m_btn_next, 0);
+    m_btn_sizer->AddStretchSpacer();
 
     page_sizer->Add(m_btn_sizer, 0, wxEXPAND, 0);
 

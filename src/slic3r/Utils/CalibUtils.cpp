@@ -2,7 +2,6 @@
 
 #include "../GUI/GUI_App.hpp"
 #include "../GUI/DeviceManager.hpp"
-#include "../GUI/Jobs/PrintJob.hpp"
 #include "../GUI/Jobs/ProgressIndicator.hpp"
 #include "../GUI/PartPlate.hpp"
 
@@ -14,7 +13,7 @@
 
 namespace Slic3r {
 namespace GUI {
-std::shared_ptr<PrintJob> print_job;
+std::shared_ptr<PrintJob> CalibUtils::print_job;
 static const std::string temp_dir = fs::path(fs::temp_directory_path() / "calib").string();
 static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
@@ -302,7 +301,7 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
     params.mode = CalibMode::Calib_Flow_Rate;
     process_and_store_3mf(&model, full_config, params, error_message);
     if (!error_message.empty())
-        return
+        return;
 
     send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
 }
@@ -360,6 +359,7 @@ void CalibUtils::calib_temptue(const CalibInfo& calib_info, std::string& error_m
     model.objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model.objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
     model.objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+    model.objects[0]->config.set_key_value("enable_support", new ConfigOptionBool(false));
 
     // apply preset
     DynamicPrintConfig full_config;
@@ -405,7 +405,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo& calib_info, std::string& e
     auto max_lh = printer_config.option<ConfigOptionFloats>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
 
-    filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
+    filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{50});
     filament_config.set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
 
     print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
@@ -555,12 +555,12 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     Print *fff_print = dynamic_cast<Print *>(print);
     fff_print->set_calib_params(params);
 
-    StringObjectException warning;
-    auto err = print->validate(&warning);
-    if (!err.string.empty()) {
-        error_message = "slice validate: " + err.string;
-        return;
-    }
+    //StringObjectException warning;
+    //auto err = print->validate(&warning);
+    //if (!err.string.empty()) {
+    //    error_message = "slice validate: " + err.string;
+    //    return;
+    //}
 
     fff_print->process();
     part_plate->update_slice_result_valid_state(true);
@@ -662,16 +662,17 @@ void CalibUtils::send_to_print(const std::string& dev_id, const std::string& sel
 
     print_job->job_data = job_data;
     print_job->plate_data = plate_data;
+    print_job->m_print_type = "from_normal";
 
-    if (!obj_->is_support_ams_mapping()) {
-        error_message = "It is not support ams mapping.";
-        return;
-    }
+    //if (!obj_->is_support_ams_mapping()) {
+    //    error_message = "It is not support ams mapping.";
+    //    return;
+    //}
 
-    if (!obj_->has_ams()) {
-        error_message = "There is no ams.";
-        return;
-    }
+    //if (!obj_->has_ams()) {
+    //    error_message = "There is no ams.";
+    //    return;
+    //}
 
     print_job->task_ams_mapping = select_ams;
     print_job->task_ams_mapping_info = "";
