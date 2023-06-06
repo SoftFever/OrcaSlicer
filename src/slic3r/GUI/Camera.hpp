@@ -69,10 +69,12 @@ public:
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
 
     void translate(const Vec3d& displacement);
-    const Vec3d& get_target() const { return m_target; }
+    const Vec3d& get_target()  { 
+        update_target();
+        return m_target; }
     void set_target(const Vec3d& target);
 
-    double get_distance() const { return (get_position() - m_target).norm(); }
+    double get_distance()  { return (get_position() - get_target()).norm(); }
     double get_gui_scale() const { return m_gui_scale; }
     float  get_zenit() const { return m_zenit; }
 
