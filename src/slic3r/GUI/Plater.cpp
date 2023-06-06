@@ -10329,11 +10329,12 @@ void Plater::send_calibration_job_finished(wxCommandEvent & evt)
 
 void Plater::print_job_finished(wxCommandEvent &evt)
 {
+    p->hide_select_machine_dlg();
+
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-    dev->set_selected_machine(evt.GetString().ToStdString());
 
-    p->hide_select_machine_dlg();
+    dev->set_selected_machine(evt.GetString().ToStdString());
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
     //jump to monitor and select device status panel
     MonitorPanel* curr_monitor = p->main_frame->m_monitor;

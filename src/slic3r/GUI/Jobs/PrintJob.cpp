@@ -458,6 +458,7 @@ void PrintJob::process()
             msg_text = upload_ftp_failed_str;
         } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             msg_text = print_canceled_str;
+            this->update_status(0, msg_text);
         } else {
             msg_text = send_print_failed_str;
         }
