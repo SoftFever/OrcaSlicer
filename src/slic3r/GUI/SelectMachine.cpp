@@ -2404,6 +2404,9 @@ void SelectMachineDialog::on_send_print()
     m_is_canceled = false;
     Enable_Send_Button(false);
 
+    if (m_mapping_popup.IsShown())
+        m_mapping_popup.Dismiss();
+
     if (m_print_type == PrintFromType::FROM_NORMAL && m_is_in_sending_mode)
         return;
 
