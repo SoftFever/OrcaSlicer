@@ -255,7 +255,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 {
     wxString str_input = evt.GetString();
     try {
-        json j = json::parse(str_input);
+        json j = json::parse(into_u8(str_input));
 
         wxString strCmd = j["command"];
 
