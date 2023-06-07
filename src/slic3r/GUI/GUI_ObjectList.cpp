@@ -1990,6 +1990,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
             }
         }
 
+        model.add_default_instances();
         TriangleMesh mesh = model.mesh();
         // Mesh will be centered when loading.
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
