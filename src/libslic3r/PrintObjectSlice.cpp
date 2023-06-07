@@ -486,13 +486,27 @@ bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<gro
     std::vector<int> groupIndex(objSliceByVolume.size(), -1);
     double offsetValue = 0.05 / SCALING_FACTOR;
 
+    std::vector<std::vector<int>> osvIndex;
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         for (int j = 0; j != objSliceByVolume[i].slices.size(); ++j) {
-            objSliceByVolume[i].slices[j] = offset_ex(objSliceByVolume[i].slices[j], offsetValue);
-            for (ExPolygon& poly_ex : objSliceByVolume[i].slices[j])
-                poly_ex.douglas_peucker(resolution);
+            osvIndex.push_back({ i,j });
         }
     }
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
+        [&osvIndex, &objSliceByVolume, &offsetValue, &resolution](const tbb::blocked_range<int>& range) {
+            for (auto k = range.begin(); k != range.end(); ++k) {
+                for (ExPolygon& poly_ex : objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]])
+                    poly_ex.douglas_peucker(resolution);
+            }
+        });
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
+        [&osvIndex, &objSliceByVolume,&offsetValue, &resolution](const tbb::blocked_range<int>& range) {
+            for (auto k = range.begin(); k != range.end(); ++k) {
+                objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]] = offset_ex(objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]], offsetValue);
+            }
+        });
 
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         if (groupIndex[i] < 0) {
@@ -578,26 +592,42 @@ void applyNegtiveVolumes(ModelVolumePtrs model_volumes, const std::vector<Volume
     }
 }
 
-void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons eps)
+void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons &eps, double resolution)
 {
     std::vector<int> epsIndex;
     epsIndex.resize(eps.size(), -1);
-    for (int ie = 0; ie != eps.size(); ie++) {
-        if (eps[ie].area() <= 0)
-            continue;
-        double minArea = eps[ie].area();
-        for (int iv = 0; iv != gvss.size(); iv++) {
-            auto clipedExPolys = diff_ex(eps[ie], gvss[iv].slices);
-            double area = 0;
-            for (const auto& ce : clipedExPolys) {
-                area += ce.area();
-            }
-            if (area < minArea) {
-                minArea = area;
-                epsIndex[ie] = iv;
-            }
-        }
+
+    auto gvssc = gvss;
+    auto epsc = eps;
+
+    for (ExPolygon& poly_ex : epsc)
+        poly_ex.douglas_peucker(resolution);
+
+    for (int i = 0; i != gvssc.size(); ++i) {
+        for (ExPolygon& poly_ex : gvssc[i].slices)
+            poly_ex.douglas_peucker(resolution);
     }
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, epsc.size()),
+        [&epsc, &gvssc, &epsIndex](const tbb::blocked_range<int>& range) {
+            for (auto ie = range.begin(); ie != range.end(); ++ie) {
+                if (epsc[ie].area() <= 0)
+                    continue;
+
+                double minArea = epsc[ie].area();
+                for (int iv = 0; iv != gvssc.size(); iv++) {
+                    auto clipedExPolys = diff_ex(epsc[ie], gvssc[iv].slices);
+                    double area = 0;
+                    for (const auto& ce : clipedExPolys) {
+                        area += ce.area();
+                    }
+                    if (area < minArea) {
+                        minArea = area;
+                        epsIndex[ie] = iv;
+                    }
+                }
+            }
+        });
 
     for (int iv = 0; iv != gvss.size(); iv++)
         gvss[iv].slices.clear();
@@ -734,7 +764,7 @@ void groupingVolumesForBrim(PrintObject* object, LayerPtrs& layers, int firstLay
     applyNegtiveVolumes(object->model_object()->volumes, object->firstLayerObjSliceMod(), object->firstLayerObjGroupsMod(), scaled_resolution);
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
-    reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices);
+    reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices, scaled_resolution);
 }
 
 // Called by make_perimeters()
