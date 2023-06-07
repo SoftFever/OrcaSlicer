@@ -2484,7 +2484,7 @@ int MachineObject::parse_json(std::string payload)
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
-    if (m_active_state == NotActive) m_active_state = SequenceNotValid;
+    if (m_active_state == NotActive) m_active_state = Active;
 
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();
@@ -2498,26 +2498,6 @@ int MachineObject::parse_json(std::string payload)
         }
 
         if (j_pre.contains("print")) {
-            if (j_pre["print"].contains("sequence_id") && j_pre["print"]["command"] == "push_status") {
-                if (j_pre["print"]["sequence_id"].is_string()) {
-                    std::string str_seq = j_pre["print"]["sequence_id"].get<std::string>();
-                    try {
-                        int sequence_id = stoi(str_seq);
-                        if (j_pre["print"]["msg"].get<int>() == 0) { // all message
-                            if (m_active_state == SequenceNotValid) m_active_state = SequenceValid; // Have init print_sequence_id
-                            print_sequence_id = sequence_id;
-                        } else if (sequence_id != print_sequence_id + 1 && m_active_state >= SequenceValid) {
-                            wxLogWarning("parse_json: print_sequence_id gap, %d -> %d %s", print_sequence_id, sequence_id, wxString::FromUTF8(payload));
-                            if (m_active_state == SequenceValid) m_active_state = SequenceNotValid;
-                            GUI::wxGetApp().CallAfter([this] { this->command_request_push_all(); });
-                        } else if (m_active_state >= SequenceValid) {
-                            print_sequence_id = sequence_id;
-                        }
-                    } catch (...) {
-                        return 0;
-                    }
-                }
-            }
             if (j_pre["print"].contains("command")) {
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
@@ -3895,7 +3875,7 @@ int MachineObject::parse_json(std::string payload)
         }
         catch (...)  {}
 
-        if (m_active_state == SequenceValid) {
+        if (m_active_state == Active) {
             m_active_state = UpdateToDate;
             parse_version_func();
             if (is_support_tunnel_mqtt && connection_type() != "lan") {

@@ -422,8 +422,7 @@ public:
 
     enum ActiveState {
         NotActive, 
-        SequenceNotValid, 
-        SequenceValid, 
+        Active, 
         UpdateToDate
     };
 
@@ -497,9 +496,8 @@ public:
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_start; /* last received print push from machine */
 
-    int m_active_state = 0; // 0 - not active, 1 - active but print_sequence_id not valid, 1 - active but no update-to-date state, 2 - update-to-date
+    int m_active_state = 0; // 0 - not active, 1 - active, 2 - update-to-date
     bool is_support_tunnel_mqtt = false;
-    int print_sequence_id = 0;
     bool is_tunnel_mqtt = false;
 
     /* ams properties */
