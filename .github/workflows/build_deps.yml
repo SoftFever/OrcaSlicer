@@ -20,8 +20,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-          - os: windows-latest
+          - os: windows-2019
           - os: macos-12
+            arch: x86_64
+          - os: macos-12
+            arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -33,7 +36,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Build on Windows
-        if: matrix.os == 'Windows'
+        if: matrix.os == 'windows-2019'
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
@@ -42,13 +45,22 @@ jobs:
             .\build_release.bat deps
 
       - name: Build on Mac x86_64
-        if: ${{ runner.os == 'macOS' }}
+        if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
         working-directory: ${{ github.workspace }}
         run: |
             brew install cmake git gettext
             mkdir -p ${{ github.workspace }}/deps/build_x86_64
             mkdir -p ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
             ./build_release_macos.sh -d -a x86_64
+
+      - name: Build on Mac arm64
+        if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
+        working-directory: ${{ github.workspace }}
+        run: |
+            brew install cmake git gettext
+            mkdir -p ${{ github.workspace }}/deps/build_arm64
+            mkdir -p ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
+            ./build_release_macos.sh -d -a arm64
 
       - name: Build on Ubuntu
         if: matrix.os == 'ubuntu-20.04'
