@@ -2863,20 +2863,37 @@ bool CLI::export_models(IO::ExportFormat format)
 {
     for (Model &model : m_models) {
         const std::string path = this->output_filepath(model, format);
-        bool success = false;
+        bool success = true;
         switch (format) {
             //case IO::AMF: success = Slic3r::store_amf(path.c_str(), &model, nullptr, false); break;
-            case IO::OBJ: success = Slic3r::store_obj(path.c_str(), &model);          break;
-            case IO::STL: success = Slic3r::store_stl(path.c_str(), &model, true);    break;
+            case IO::OBJ:
+                success = Slic3r::store_obj(path.c_str(), &model);
+                if (success)
+                    BOOST_LOG_TRIVIAL(info) << "Model successfully exported to " << path << std::endl;
+                else {
+                    boost::nowide::cerr << "Model export to " << path << " failed" << std::endl;
+                    return false;
+                }
+                break;
+            case IO::STL:
+            {
+                unsigned int index = 1;
+                for (ModelObject* model_object : model.objects)
+                {
+                    const std::string path = this->output_filepath(*model_object, index++, format);
+                    success = Slic3r::store_stl(path.c_str(), model_object, true);
+                    if (success)
+                        BOOST_LOG_TRIVIAL(info) << "Model successfully exported to " << path << std::endl;
+                    else {
+                        boost::nowide::cerr << "Model export to " << path << " failed" << std::endl;
+                        return false;
+                    }
+                }
+                break;
+            }
             //BBS: use bbs 3mf instead of original
             //case IO::TMF: success = Slic3r::store_bbs_3mf(path.c_str(), &model, nullptr, false); break;
             default: assert(false); break;
-        }
-        if (success)
-            BOOST_LOG_TRIVIAL(info) << "Model exported to " << path << std::endl;
-        else {
-            boost::nowide::cerr << "Model export to " << path << " failed" << std::endl;
-            return false;
         }
     }
     return true;
@@ -2926,7 +2943,7 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
     };
     auto proposed_path = boost::filesystem::path(model.propose_export_file_name_and_path(ext));
     // use --output when available
-    std::string cmdline_param = m_config.opt_string("output");
+    std::string cmdline_param = m_config.opt_string("outputdir");
     if (! cmdline_param.empty()) {
         // if we were supplied a directory, use it and append our automatically generated filename
         boost::filesystem::path cmdline_path(cmdline_param);
@@ -2937,6 +2954,35 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
     }
     return proposed_path.string();
 }
+
+std::string CLI::output_filepath(const ModelObject &object, unsigned int index, IO::ExportFormat format) const
+{
+    std::string ext, file_name, output_path;
+    switch (format) {
+        case IO::AMF: ext = ".zip.amf"; break;
+        case IO::OBJ: ext = ".obj"; break;
+        case IO::STL: ext = ".stl"; break;
+        case IO::TMF: ext = ".3mf"; break;
+        default: assert(false); break;
+    };
+    // use --outputdir when available
+    file_name = object.name.empty()?object.input_file:object.name;
+    file_name = "obj_"+std::to_string(index)+"_"+file_name;
+    size_t pos = file_name.find_last_of(ext), ext_pos = file_name.size() - 1;
+    if (pos != ext_pos)
+        file_name += ext;
+
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": file_name="<<file_name<< ", pos = "<<pos<<", ext_pos="<<ext_pos;
+    std::string cmdline_param = m_config.opt_string("outputdir");
+    if (! cmdline_param.empty()) {
+        output_path = cmdline_param + "/"+file_name;
+    }
+    else
+        output_path = file_name;
+
+    return output_path;
+}
+
 
 //BBS: dump stack debug codes, don't delete currently
 //#include <dbghelp.h>
@@ -3014,7 +3060,7 @@ extern "C" {
         //AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
         SET_DEFULTER_HANDLER();
 #endif
-        std::set_new_handler([]() { 
+        std::set_new_handler([]() {
             int *a  = nullptr;
             *a = 0;
             });

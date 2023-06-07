@@ -4693,14 +4693,14 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     /*def = this->add("export_amf", coBool);
     def->label = L("Export AMF");
     def->tooltip = L("Export the model(s) as AMF.");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("export_stl", coBool);
     def->label = L("Export STL");
-    def->tooltip = L("Export the model(s) as STL.");
+    def->tooltip = L("Export the objects as multiple STL.");
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("export_gcode", coBool);
+    /*def = this->add("export_gcode", coBool);
     def->label = L("Export G-code");
     def->tooltip = L("Slice the model and export toolpaths as G-code.");
     def->cli = "export-gcode|gcode|g";
