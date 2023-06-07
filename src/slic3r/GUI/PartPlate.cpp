@@ -2394,7 +2394,7 @@ void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 		Slic3r::SlicingStatusEvent *event = new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status);
 		//BBS: GUI refactor: add plate info befor message
 		if (status.message_type == Slic3r::PrintStateBase::SlicingDefaultNotification) {
-			auto temp = Slic3r::format(_u8L(" plate %1%:"), std::to_string(m_plate_index + 1));
+			auto temp = Slic3r::format(_u8L(" plate %1%: "), std::to_string(m_plate_index + 1));
 			event->status.text = temp + event->status.text;
 		}
 		wxQueueEvent(m_plater, event);

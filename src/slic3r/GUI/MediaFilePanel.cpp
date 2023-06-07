@@ -468,7 +468,9 @@ void MediaFilePanel::doAction(size_t index, int action)
     if (action == 0) {
         if (index == -1) {
             MessageDialog dlg(this, 
-                wxString::Format(_L("You are going to delete %u files from printer. Are you sure to continue?"), fs->GetSelectCount()), 
+                wxString::Format(_L_PLURAL("You are going to delete %u file from printer. Are you sure to continue?",
+                                                         "You are going to delete %u files from printer. Are you sure to continue?", fs->GetSelectCount()),
+                                               fs->GetSelectCount()), 
                 _L("Delete files"), wxYES_NO | wxICON_WARNING);
             if (dlg.ShowModal() != wxID_YES)
                 return;
