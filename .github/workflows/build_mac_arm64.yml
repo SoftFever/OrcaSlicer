@@ -6,7 +6,6 @@ on:
        - main
       paths:
        - 'src/**'
-       - 'deps/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
        - 'bbl/**'
@@ -17,7 +16,6 @@ on:
        - main 
       paths:
        - 'src/**'
-       - 'deps/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
        - 'bbl/**'
