@@ -1,0 +1,57 @@
+# name: Build Deps
+name: Build deps
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'deps/**'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+          - os: windows-latest
+          - os: macos-12
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build on Windows
+      working-directory: ${{ github.workspace }}
+    if: runner.os == 'Windows'
+    run: |
+        choco install strawberryperl
+    - run: mkdir ${{ github.workspace }}/deps/build
+    - run: mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+    - run: .\build_release.bat deps
+
+    - name: Build on Mac x86_64
+      working-directory: ${{ github.workspace }}
+    if: runner.os == 'macos-12'
+    run: |
+        brew install cmake git gettext
+    - run: mkdir -p ${{ github.workspace }}/deps/build_x86_64
+    - run: mkdir -p ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
+    - run: ./build_release_macos.sh -d -a x86_64
+
+    - name: Build on Ubuntu
+      working-directory: ${{ github.workspace }}
+    if: runner.os == 'ubuntu-20.04'
+    run: |
+        sudo apt-get update
+        sudo apt-get install -y autoconf build-essential cmake curl eglexternalplatform-dev \
+        extra-cmake-modules file git libcairo2-dev libcurl4-openssl-dev libdbus-1-dev libglew-dev libglu1-mesa-dev \
+        libglu1-mesa-dev libgstreamer1.0-dev libgstreamerd-3-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev \
+        libgtk-3-dev libgtk-3-dev libmspack-dev libosmesa6-dev libsecret-1-dev libsoup2.4-dev libssl-dev libudev-dev libwayland-dev \
+        libwebkit2gtk-4.0-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget
+        mkdir -p ${{ github.workspace }}/deps/build
+        mkdir -p ${{ github.workspace }}/deps/build/destdir
+        sudo ./BuildLinux.sh -ur
+        sudo chown $USER -R ./
+    - run: ./BuildLinux.sh -dr
