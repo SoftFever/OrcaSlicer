@@ -264,7 +264,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
     { "0%",         Overhang_threshold_none },
-    { "5%",         Overhang_threshold_1_4  },
+    { "10%",         Overhang_threshold_1_4  },
     { "25%",        Overhang_threshold_2_4  },
     { "50%",        Overhang_threshold_3_4  },
     { "75%",        Overhang_threshold_4_4  },
@@ -655,7 +655,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
     def->mode = comAdvanced;
     def->enum_values.emplace_back("0%");
-    def->enum_values.emplace_back("5%");
+    def->enum_values.emplace_back("10%");
     def->enum_values.emplace_back("25%");
     def->enum_values.emplace_back("50%");
     def->enum_values.emplace_back("75%");
@@ -4021,6 +4021,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 ReplaceString(value, split_key, copy_key);
             }
         }
+    } else if (opt_key == "overhang_fan_threshold" && value == "5%") {
+        value = "10%";
     }
 
     // Ignore the following obsolete configuration keys:
