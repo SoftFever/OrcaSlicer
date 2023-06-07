@@ -1177,7 +1177,7 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
             m_extrusions.ranges.temperature.update_from(curr.temperature);
             if (curr.extrusion_role != erCustom || is_visible(erCustom))
                 m_extrusions.ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
-            
+
             if (curr.layer_duration > 0.f) {
                 m_extrusions.ranges.layer_duration.update_from(curr.layer_duration);
             }
@@ -1329,13 +1329,13 @@ static void debug_calibration_output_thumbnail(const ThumbnailData& thumbnail_da
 #endif
 
 void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager)
-{    
+{
     int plate_idx = thumbnail_params.plate_id;
     PartPlate* plate = partplate_list.get_plate(plate_idx);
     BoundingBoxf3 plate_box = plate->get_bounding_box(false);
     plate_box.min.z() = 0.0;
     plate_box.max.z() = 0.0;
-    Vec3d center = plate_box.center(); 
+    Vec3d center = plate_box.center();
 
 #if 1
     Camera camera;
@@ -3196,7 +3196,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
         const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print.config();
-        if (config.enable_prime_tower && 
+        if (config.enable_prime_tower &&
             (print.enable_timelapse_print() || (extruders_count > 1 && (config.print_sequence == PrintSequence::ByLayer)))) {
             const float depth = print.wipe_tower_data(extruders_count).depth;
             const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
@@ -3825,7 +3825,7 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
         glsafe(::glEnable(GL_POINT_SPRITE));
 
@@ -3852,7 +3852,7 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
@@ -3870,7 +3870,7 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
@@ -4000,13 +4000,15 @@ void GCodeViewer::render_toolpaths()
                 default: break;
                 }
                 int uniform_color = shader->get_uniform_location("uniform_color");
-                auto it_path = buffer.render_paths.begin();
+                auto it_path = buffer.render_paths.rbegin();
                 //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":buffer indices size %1%, render_path size %2% ")%buffer.indices.size() %buffer.render_paths.size();
-                for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
+                unsigned int indices_count = static_cast<unsigned int>(buffer.indices.size());
+                for (unsigned int index = 0; index < indices_count; ++index) {
+                    unsigned int ibuffer_id = indices_count - index - 1;
                     const IBuffer& i_buffer = buffer.indices[ibuffer_id];
                     // Skip all paths with ibuffer_id < ibuffer_id.
-                    for (; it_path != buffer.render_paths.end() && it_path->ibuffer_id < ibuffer_id; ++ it_path) ;
-                    if (it_path == buffer.render_paths.end() || it_path->ibuffer_id > ibuffer_id)
+                    for (; it_path != buffer.render_paths.rend() && it_path->ibuffer_id > ibuffer_id; ++ it_path) ;
+                    if (it_path == buffer.render_paths.rend() || it_path->ibuffer_id < ibuffer_id)
                         // Not found. This shall not happen.
                         continue;
 
@@ -4025,16 +4027,16 @@ void GCodeViewer::render_toolpaths()
                     switch (buffer.render_primitive_type)
                     {
                     case TBuffer::ERenderPrimitiveType::Point: {
-                        render_as_points(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_as_points(it_path, buffer.render_paths.rend(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Line: {
                         glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
-                        render_as_lines(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_as_lines(it_path, buffer.render_paths.rend(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_as_triangles(it_path, buffer.render_paths.rend(), *shader, uniform_color);
                         break;
                     }
                     default: { break; }
