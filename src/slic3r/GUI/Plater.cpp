@@ -1371,7 +1371,7 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
     
     if (!obj) {
         p->ams_list_device = device;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1% items") % filament_ams_list.size();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " clear list";
         wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
         for (auto c : p->combos_filament)
             c->update();
@@ -1384,8 +1384,8 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
         DynamicPrintConfig vt_tray_config;
         vt_tray_config.set_key_value("filament_id", new ConfigOptionStrings{ vt_tray.setting_id });
         vt_tray_config.set_key_value("filament_type", new ConfigOptionStrings{ vt_tray.type });
-        vt_tray_config.set_key_value("tray_name", new ConfigOptionStrings{ std::string("Ext")});
-        vt_tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ "#" + vt_tray.color.substr(0, 8) });
+        vt_tray_config.set_key_value("tray_name", new ConfigOptionStrings{std::string("Ext")});
+        vt_tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + vt_tray.color).GetAsString(wxC2S_HTML_SYNTAX))});
         vt_tray_config.set_key_value("filament_exist", new ConfigOptionBools{ vt_tray.is_exists });
 
         filament_ams_list.emplace(VIRTUAL_TRAY_ID, std::move(vt_tray_config));
@@ -1402,8 +1402,8 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
             tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
             tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.second->type});
             tray_config.set_key_value("tray_name", new ConfigOptionStrings{std::string(1, n) + std::string(1, t)});
-            tray_config.set_key_value("filament_colour", new ConfigOptionStrings{ "#" + tray.second->color.substr(0, 8) });
-            tray_config.set_key_value("filament_exist", new ConfigOptionBools{ tray.second->is_exists });
+            tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + tray.second->color).GetAsString(wxC2S_HTML_SYNTAX))});
+            tray_config.set_key_value("filament_exist", new ConfigOptionBools{tray.second->is_exists});
 
             filament_ams_list.emplace(((n - 'A') * 4 + t - '1'), std::move(tray_config));
         }
@@ -5583,7 +5583,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
 {
     ComboBox* combo = static_cast<ComboBox*>(evt.GetEventObject());
     int selection = combo->GetSelection();
-    wxString bed_type_name = combo->GetString(selection);
+    std::string bed_type_name = print_config_def.get("curr_bed_type")->enum_values[selection];
 
     DynamicPrintConfig& proj_config = wxGetApp().preset_bundle->project_config;
     const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
@@ -5591,7 +5591,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     if (keys_map) {
         BedType new_bed_type = btCount;
         for (auto item : *keys_map) {
-            if (_L(item.first) == bed_type_name) {
+            if (item.first == bed_type_name) {
                 new_bed_type = (BedType)item.second;
                 break;
             }
