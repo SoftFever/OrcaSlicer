@@ -7,6 +7,11 @@ on:
       - main
     paths:
       - 'deps/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'deps/**'
 
 jobs:
   build:
