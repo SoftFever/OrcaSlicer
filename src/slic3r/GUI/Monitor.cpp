@@ -394,6 +394,7 @@ void MonitorPanel::on_sys_color_changed()
 {
     m_status_info_panel->on_sys_color_changed();
     m_upgrade_panel->on_sys_color_changed();
+    m_media_file_panel->Rescale();
 }
 
 void MonitorPanel::msw_rescale()

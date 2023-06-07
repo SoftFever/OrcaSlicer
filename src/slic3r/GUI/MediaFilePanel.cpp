@@ -38,9 +38,10 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
     // Time group
     auto time_panel = new wxWindow(this, wxID_ANY);
+    time_panel->SetBackgroundColour(0xEEEEEE);
     m_time_panel = new ::StaticBox(time_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_time_panel->SetBackgroundColor(StateColor());
-    m_button_year = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
+    m_time_panel->SetCornerRadius(0);
+    m_button_year  = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
     m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
     m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
     m_button_year->SetToolTip(_L("Group files by year, recent first."));

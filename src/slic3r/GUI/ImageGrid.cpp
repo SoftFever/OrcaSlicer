@@ -120,6 +120,8 @@ void Slic3r::GUI::ImageGrid::DoActionOnSelection(int action) { DoAction(-1, acti
 
 void Slic3r::GUI::ImageGrid::Rescale()
 {
+    m_title_mask = wxBitmap();
+    m_border_mask = wxBitmap();
     UpdateFileSystem();
     auto em              = em_unit(this);
     wxSize size1{384 * em / 10, 4 * em};
@@ -211,7 +213,7 @@ void ImageGrid::UpdateLayout()
     if (!m_title_mask.IsOk() || m_title_mask.GetSize() != title_mask_size)
         m_title_mask = createAlphaBitmap(title_mask_size, 0x6f6f6f, 255, 0);
     if (!m_border_mask.IsOk() || m_border_mask.GetSize() != m_border_size)
-        m_border_mask = createShadowBorder(m_border_size, GetBackgroundColour(), em_unit(this), 3);
+        m_border_mask = createShadowBorder(m_border_size, StateColor::darkModeColorFor(0xEEEEEE), em_unit(this), 3);
     UpdateFocusRange();
     Refresh();
 }
@@ -641,14 +643,19 @@ void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int ind
     // Draw thumbnail & buttons
     int h = m_content_rect.GetHeight() * 64 / 264;
     m_content_rect.SetHeight(m_content_rect.GetHeight() - h);
+    auto br = dc.GetBrush();
+    auto pn = dc.GetPen();
+    dc.SetBrush(StateColor::darkModeColorFor(0xEEEEEE));
+    dc.SetPen(StateColor::darkModeColorFor(0xEEEEEE));
     dc.DrawRectangle(pt, m_content_rect.GetSize()); // Fix translucent model thumbnail
     renderContent1(dc, pt, index, hit);
     m_content_rect.SetHeight(m_content_rect.GetHeight() + h);
     // Draw info bar
-    auto br = dc.GetBrush();
-    dc.SetBrush(*wxWHITE);
+    dc.SetBrush(StateColor::darkModeColorFor(*wxWHITE));
+    dc.SetPen(StateColor::darkModeColorFor(*wxWHITE));
     dc.DrawRectangle(pt.x, pt.y + m_content_rect.GetHeight() - h, m_content_rect.GetWidth(), h);
     dc.SetBrush(br);
+    dc.SetPen(pn);
     // Draw infos
     dc.SetFont(Label::Head_16);
     dc.SetTextForeground(StateColor::darkModeColorFor("#323A3D"));
