@@ -901,12 +901,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         // Version of the 3mf file
         unsigned int m_version;
-        bool m_check_version;
+        bool m_check_version = false;
         bool m_load_model = false;
-        bool m_load_aux;
-        bool m_load_config;
+        bool m_load_aux = false;
+        bool m_load_config = false;
         // backup & restore
-        bool m_load_restore;
+        bool m_load_restore = false;
         std::string m_backup_path;
         std::string m_origin_file;
         // Semantic version of Bambu Studio, that generated this 3MF.
@@ -1361,19 +1361,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_small);
         m_model->model_info->metadata_items.emplace("Poster", m_thumbnail_middle);
 
-        //BBS: version check
-        bool dont_load_config = !m_load_config;
-        if (m_bambuslicer_generator_version) {
-            Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-            Semver file_version = *m_bambuslicer_generator_version;
-            if (file_version.maj() != app_version.maj())
-                dont_load_config = true;
-        }
-        else {
-            m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
-            dont_load_config = true;
-        }
-
         // we then loop again the entries to read other files stored in the archive
         mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
         mz_zip_archive_file_stat stat;
@@ -1384,7 +1371,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract %1%th file %2%, total=%3%\n")%(i+1)%name%num_entries;
 
-                if (!dont_load_config && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
+                if (boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
                     // extract slic3r print config file
                     ConfigSubstitutionContext config_substitutions(ForwardCompatibilitySubstitutionRule::Disable);
                     _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
@@ -1396,7 +1383,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         return false;
                     }
                 }
-                else if (!dont_load_config && boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
+                else if (boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
                     m_parsing_slice_info = true;
                     //extract slice info from archive
                     _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
