@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Qidi X-Max",
     "model_id": "Qidi-XMax",
-    "nozzle_diameter": "0.4;0.5;0.6;0.8",
+    "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Qidi",
     "bed_model": "qidi_xmax_buildplate_model.stl",

@@ -13,6 +13,7 @@
         "2"
     ],
 	"compatible_printers": [
+		"UltiMaker 2 (0.2 nozzle)",
 		"UltiMaker 2 (0.4 nozzle)",
 		"UltiMaker 2 (0.5 nozzle)",
 		"UltiMaker 2 (0.6 nozzle)",

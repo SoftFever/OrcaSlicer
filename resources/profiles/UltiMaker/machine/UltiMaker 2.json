@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "UltiMaker 2",
     "model_id": "UltiMaker-2",
-    "nozzle_diameter": "0.4;0.5;0.6;0.8",
+    "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "UltiMaker",
     "bed_model": "ultimaker_2_buildplate_model.stl",

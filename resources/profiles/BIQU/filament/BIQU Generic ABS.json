@@ -13,14 +13,17 @@
         "12"
     ],
     "compatible_printers": [
+	  "BIQU BX (0.2 nozzle)",
 	  "BIQU BX (0.4 nozzle)",
 	  "BIQU BX (0.5 nozzle)",
 	  "BIQU BX (0.6 nozzle)",
 	  "BIQU BX (0.8 nozzle)",
+	  "BIQU B1 (0.2 nozzle)",
 	  "BIQU B1 (0.4 nozzle)",
 	  "BIQU B1 (0.5 nozzle)",
 	  "BIQU B1 (0.6 nozzle)",
 	  "BIQU B1 (0.8 nozzle)",
+	  "BIQU Hurakan (0.2 nozzle)",
 	  "BIQU Hurakan (0.4 nozzle)",
 	  "BIQU Hurakan (0.5 nozzle)",
 	  "BIQU Hurakan (0.6 nozzle)",

@@ -72,7 +72,6 @@
 "min_layer_height": [
     "0.10"
 ],
-"printer_variant": "0.4",
 "retraction_minimum_travel": [
     "1.5"
 ],

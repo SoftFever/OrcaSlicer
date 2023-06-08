@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Elegoo Neptune 2S",
     "model_id": "Elegoo-Neptune-2S",
-    "nozzle_diameter": "0.4;0.5;0.6;0.8",
+    "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Elegoo",
     "bed_model": "elegoo_neptune2s_buildplate_model.stl",

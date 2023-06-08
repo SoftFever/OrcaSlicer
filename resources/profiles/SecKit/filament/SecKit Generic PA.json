@@ -37,10 +37,12 @@
         "50"
     ],
 "compatible_printers": [
+		"SecKit SK-Tank (0.2 nozzle)",
         "SecKit SK-Tank (0.4 nozzle)",
 		"SecKit SK-Tank (0.5 nozzle)",
 		"SecKit SK-Tank (0.6 nozzle)",
 		"SecKit SK-Tank (0.8 nozzle)",
+		"SecKit Go3 (0.2 nozzle)",
 		"SecKit Go3 (0.4 nozzle)",
 		"SecKit Go3 (0.5 nozzle)",
 		"SecKit Go3 (0.6 nozzle)",

@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Elegoo Neptune X",
     "model_id": "Elegoo-Neptune-X",
-    "nozzle_diameter": "0.4;0.5;0.6;0.8",
+    "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Elegoo",
     "bed_model": "elegoo_neptunex_buildplate_model.stl",
