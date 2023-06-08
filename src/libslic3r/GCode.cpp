@@ -1451,7 +1451,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
-    if (print.config().print_sequence == PrintSequence::ByObject) {
+    if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
+        m_layer_count = CalibPressureAdvancePattern(this).num_layers();
+    } else if (print.config().print_sequence == PrintSequence::ByObject) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
             //BBS: fix the issue that total layer is not right
@@ -1896,7 +1898,70 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
         } else if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
                 CalibPressureAdvancePattern pa_test(this);
-                gcode += pa_test.generate_test(params.start, params.end, params.step);
+                std::vector<std::string> gcode_layers = pa_test.generate_test(params.start, params.end, params.step);
+
+                m_max_layer_z = pa_test.max_layer_z();
+                coordf_t print_z;
+                bool first_layer;
+
+                for (int i = 0; i < gcode_layers.size(); ++i) {
+                    print_z = pa_test.layer_z()[i];
+
+                    first_layer = (i == 0);
+                    m_writer.set_is_first_layer(first_layer);
+
+                    // add tag for processor
+                    gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
+                    // export layer z
+                    char buf[64];
+                    sprintf(buf, print.is_BBL_printer() ? "; Z_HEIGHT: %g\n" : ";Z:%g\n", print_z);
+                    gcode += buf;
+                    // export layer height
+                    float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;
+                    sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), height);
+                    gcode += buf;
+                    // update caches
+                    m_last_layer_z = static_cast<float>(print_z);
+                    m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
+                    m_last_height = height;
+
+                    if (! print.config().before_layer_change_gcode.value.empty()) {
+                        DynamicConfig config;
+                        config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index + 1));
+                        config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
+                        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+                        gcode += this->placeholder_parser_process(
+                            "before_layer_change_gcode",
+                            print.config().before_layer_change_gcode.value,
+                            m_writer.extruder()->id(),
+                            &config
+                        ) + "\n";
+                    }
+                    
+                    gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
+                    m_nominal_z = print_z;
+
+                    if (! print.config().layer_change_gcode.value.empty()) {
+                        std::cout << "layer_change_gcode found" << std::endl;
+
+                        DynamicConfig config;
+                        config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index));
+                        config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
+                        std::cout << "DynamicConfig updated successfully" << std::endl;
+
+                        gcode += this->placeholder_parser_process(
+                            "layer_change_gcode",
+                            print.config().layer_change_gcode.value,
+                            m_writer.extruder()->id(),
+                            &config
+                        ) + "\n";
+                        std::cout << "returned from placeholder_parser_process" << std::endl;
+
+                        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+                    }
+
+                    gcode += gcode_layers[i];
+                }
         }
 
         file.write(gcode);

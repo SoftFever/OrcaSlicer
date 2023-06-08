@@ -289,7 +289,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
     return gcode.str();
 }
 
-std::string CalibPressureAdvancePattern::generate_test(double start_pa, double end_pa, double step_pa)
+std::vector<std::string> CalibPressureAdvancePattern::generate_test(double start_pa, double end_pa, double step_pa)
 {
     BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
     
@@ -329,6 +329,16 @@ std::string CalibPressureAdvancePattern::generate_test(double start_pa, double e
     }
 
     return print_pa_pattern(pattern_calc);
+}
+
+std::vector<double> CalibPressureAdvancePattern::layer_z() {
+    std::vector<double> layer_z;
+
+    for (int i = 0; i < m_num_layers; ++i) {
+        layer_z.push_back(m_height_first_layer + (i * m_height_layer));
+    }
+
+    return layer_z;
 }
 
 CalibPressureAdvancePattern::PatternSettings::PatternSettings() {
@@ -402,7 +412,7 @@ double CalibPressureAdvancePattern::object_size_x(int num_patterns)
 
 double CalibPressureAdvancePattern::object_size_y(double start_pa, double step_pa, int num_patterns)
 {
-    return 2 * std::sin(to_radians(m_corner_angle) / 2) * m_wall_side_length +
+    return 2 * (std::sin(to_radians(m_corner_angle) / 2) * m_wall_side_length) +
         max_numbering_height(start_pa, step_pa, num_patterns) +
         m_glyph_padding_vertical * 2 +
         line_width_anchor();
@@ -655,20 +665,23 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
     return gcode.str();
 }
 
-std::string CalibPressureAdvancePattern::print_pa_pattern(PatternCalc& calc)
+std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCalc& calc)
 {   
     auto& writer = mp_gcodegen->writer();
     std::stringstream gcode;
+    std::vector<std::string> gcode_layers;
 
     const DrawLineOptArgs draw_line_basic_settings;
     DrawLineOptArgs draw_line_opt_args;
     const DrawBoxOptArgs draw_box_basic_settings;
     DrawBoxOptArgs draw_box_opt_args;
 
-    gcode << writer.travel_to_z(m_height_first_layer, "Move to start layer height");
-    gcode << move_to(Vec2d(calc.pattern_start_x, calc.pattern_start_y), "Move to start position");
+    gcode << writer.travel_to_xyz(
+        Vec3d(calc.pattern_start_x, calc.pattern_start_y, m_height_first_layer),
+        "Move to start position"
+    );
 
-    writer.set_pressure_advance(calc.start_pa);
+    gcode << writer.set_pressure_advance(calc.start_pa);
 
     // create anchor and line numbering frame
     gcode << draw_box(
@@ -697,7 +710,22 @@ std::string CalibPressureAdvancePattern::print_pa_pattern(PatternCalc& calc)
             // set new fan speed after first layer
         }
 
-        gcode << writer.travel_to_z(m_height_first_layer + i * m_height_layer, "Move to layer height");
+        if (i > 0) {
+            gcode_layers.push_back(gcode.str());
+            std::stringstream().swap(gcode); // reset for next layer contents
+
+            Point last_pos = mp_gcodegen->last_pos();
+            std::stringstream comment;
+            comment << "move to next layer (" << i + 1 << ")";
+            gcode << writer.travel_to_xyz(
+                Vec3d(
+                    last_pos.x(),
+                    last_pos.y(),
+                    m_height_first_layer + (i * m_height_layer)
+                ),
+                comment.str()
+            );
+        }
 
         // line numbering
         if (i == 1) {
@@ -752,7 +780,7 @@ std::string CalibPressureAdvancePattern::print_pa_pattern(PatternCalc& calc)
 
         for (int j = 0; j < calc.num_patterns; ++j) {
             // increment pressure advance
-            writer.set_pressure_advance(calc.start_pa + (j * calc.step_pa));
+            gcode << writer.set_pressure_advance(calc.start_pa + (j * calc.step_pa));
 
             for (int k = 0; k < m_wall_count; ++k) {
                 to_x += std::cos(to_radians(m_corner_angle) / 2) * side_length;
@@ -786,8 +814,9 @@ std::string CalibPressureAdvancePattern::print_pa_pattern(PatternCalc& calc)
     }
 
     // set pressure advance back to start value
-    writer.set_pressure_advance(calc.start_pa);
+    gcode << writer.set_pressure_advance(calc.start_pa);
 
-    return gcode.str();
+    gcode_layers.push_back(gcode.str());
+    return gcode_layers;
 }
 } // namespace Slic3r

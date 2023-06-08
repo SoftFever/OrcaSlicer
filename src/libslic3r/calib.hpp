@@ -111,15 +111,21 @@ public:
         
         m_glyph_padding_horizontal(1),
         m_glyph_padding_vertical(1)
-        { }
+        {
+            m_max_layer_z = m_height_first_layer + ((m_num_layers - 1) * m_height_layer);
+        }
     ;
     ~CalibPressureAdvancePattern() { };
 
-    std::string generate_test(
+    std::vector<std::string> generate_test(
         double start_pa = 0,
         double end_pa = 0.08,
         double step_pa = 0.005
     );
+
+    int& num_layers() { return m_num_layers; };
+    std::vector<double> layer_z();
+    double& max_layer_z() { return m_max_layer_z; }
 
 private:
     struct PatternCalc {
@@ -239,13 +245,14 @@ private:
     std::string draw_line(double to_x, double to_y, DrawLineOptArgs opt_args = DrawLineOptArgs());
     std::string draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args = DrawBoxOptArgs());
 
-    std::string print_pa_pattern(PatternCalc& calc);
+    std::vector<std::string> print_pa_pattern(PatternCalc& calc);
 
     double m_line_ratio;
     double m_extrusion_multiplier;
     int m_num_layers;
     double m_height_layer;
     double m_height_first_layer;
+    double m_max_layer_z;
     double m_speed_first_layer;
     double m_speed_perimeter;
     
