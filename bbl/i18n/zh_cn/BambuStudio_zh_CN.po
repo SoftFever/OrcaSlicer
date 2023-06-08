@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-07 09:30+0800\n"
+"POT-Creation-Date: 2023-06-08 19:43+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3527,9 +3527,10 @@ msgid "Load failed [%d]"
 msgstr ""
 
 #, c-format, boost-format
-msgid ""
+msgid "You are going to delete %u file from printer. Are you sure to continue?"
+msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr ""
+msgstr[0] ""
 
 msgid "Delete files"
 msgstr "删除文件"
@@ -3988,8 +3989,8 @@ msgid "Printer settings"
 msgstr "打印机设置"
 
 #, boost-format
-msgid " plate %1%:"
-msgstr "盘%1%："
+msgid " plate %1%: "
+msgstr ""
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "无效名称，不允许使用以下字符："
@@ -8440,6 +8441,12 @@ msgstr "导入切片数据"
 msgid "Load cached slicing data from directory"
 msgstr "从目录导入缓存的切片数据"
 
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as multiple STL."
+msgstr ""
+
 msgid "Slice"
 msgstr "切片"
 
@@ -8917,6 +8924,10 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#, boost-format
+#~ msgid " plate %1%:"
+#~ msgstr "盘%1%："
 
 #~ msgid "Set Unprintable"
 #~ msgstr "设置不可打印"

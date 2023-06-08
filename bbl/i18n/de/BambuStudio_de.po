@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-07 09:30+0800\n"
+"POT-Creation-Date: 2023-06-08 19:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3668,9 +3668,11 @@ msgid "Load failed [%d]"
 msgstr ""
 
 #, c-format, boost-format
-msgid ""
+msgid "You are going to delete %u file from printer. Are you sure to continue?"
+msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr ""
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Delete files"
 msgstr ""
@@ -4147,8 +4149,8 @@ msgid "Printer settings"
 msgstr "Drucker-Einstellungen"
 
 #, boost-format
-msgid " plate %1%:"
-msgstr " Druckplatte %1%:"
+msgid " plate %1%: "
+msgstr ""
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Ungültiger Name, die folgenden Zeichen sind nicht erlaubt:"
@@ -9054,6 +9056,12 @@ msgstr "Slicing-Daten laden"
 msgid "Load cached slicing data from directory"
 msgstr "Zwischengespeicherte Slicing-Daten aus dem Verzeichnis laden"
 
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as multiple STL."
+msgstr ""
+
 msgid "Slice"
 msgstr "Slice"
 
@@ -9561,6 +9569,10 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#, boost-format
+#~ msgid " plate %1%:"
+#~ msgstr " Druckplatte %1%:"
 
 #~ msgid "Set Unprintable"
 #~ msgstr "Undruckbar machen"

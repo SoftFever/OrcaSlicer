@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-07 09:30+0800\n"
+"POT-Creation-Date: 2023-06-08 19:43+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3649,9 +3649,11 @@ msgid "Load failed [%d]"
 msgstr ""
 
 #, c-format, boost-format
-msgid ""
+msgid "You are going to delete %u file from printer. Are you sure to continue?"
+msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr ""
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Delete files"
 msgstr ""
@@ -4133,8 +4135,8 @@ msgid "Printer settings"
 msgstr "Printer instellingen"
 
 #, boost-format
-msgid " plate %1%:"
-msgstr " printbed %1%:"
+msgid " plate %1%: "
+msgstr ""
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Ongeldige naam, the volgende karakters zijn niet toegestaan:"
@@ -9048,6 +9050,12 @@ msgstr "Laad slicinggegevens"
 msgid "Load cached slicing data from directory"
 msgstr "Laad slicinggegevens in de cache uit de directory"
 
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as multiple STL."
+msgstr ""
+
 msgid "Slice"
 msgstr "Slice"
 
@@ -9547,6 +9555,10 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#, boost-format
+#~ msgid " plate %1%:"
+#~ msgstr " printbed %1%:"
 
 #~ msgid "Set Unprintable"
 #~ msgstr "Instellen als niet printbaar"

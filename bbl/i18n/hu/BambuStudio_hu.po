@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-07 09:30+0800\n"
+"POT-Creation-Date: 2023-06-08 19:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3636,9 +3636,11 @@ msgid "Load failed [%d]"
 msgstr ""
 
 #, c-format, boost-format
-msgid ""
+msgid "You are going to delete %u file from printer. Are you sure to continue?"
+msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr ""
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Delete files"
 msgstr ""
@@ -4110,8 +4112,8 @@ msgid "Printer settings"
 msgstr "Nyomtató beállítások"
 
 #, boost-format
-msgid " plate %1%:"
-msgstr " %1% tálca:"
+msgid " plate %1%: "
+msgstr ""
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Érvénytelen név, a következő karakterek nem megengedettek:"
@@ -8956,6 +8958,12 @@ msgstr "Szeletelési adatok betöltése"
 msgid "Load cached slicing data from directory"
 msgstr "Gyorsítótárazott szeletelési adatok betöltése mappából"
 
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as multiple STL."
+msgstr ""
+
 msgid "Slice"
 msgstr "Szeletelés"
 
@@ -9453,6 +9461,10 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#, boost-format
+#~ msgid " plate %1%:"
+#~ msgstr " %1% tálca:"
 
 #~ msgid "Set Unprintable"
 #~ msgstr "Beállítás nyomtathatatlannak"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-07 09:32+0800\n"
+"POT-Creation-Date: 2023-06-08 19:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3431,9 +3431,11 @@ msgid "Load failed [%d]"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid ""
+msgid "You are going to delete %u file from printer. Are you sure to continue?"
+msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr ""
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Delete files"
 msgstr ""
@@ -3891,7 +3893,7 @@ msgid "Printer settings"
 msgstr ""
 
 #, possible-boost-format
-msgid " plate %1%:"
+msgid " plate %1%: "
 msgstr ""
 
 msgid "Invalid name, the following characters are not allowed:"
@@ -8154,6 +8156,12 @@ msgid "Load slicing data"
 msgstr ""
 
 msgid "Load cached slicing data from directory"
+msgstr ""
+
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as multiple STL."
 msgstr ""
 
 msgid "Slice"
