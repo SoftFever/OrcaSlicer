@@ -191,24 +191,42 @@ private:
         int perim_speed;
     };
 
-    struct DrawLineOptArgs : PatternSettings {
-        DrawLineOptArgs();
+    struct DrawLineOptArgs {
+    public:
+        DrawLineOptArgs() {
+            extrusion_multiplier = _ps.extrusion_multiplier;
+            height = _ps.layer_height;
+            line_width = _ps.line_width;
+            speed = _ps.perim_speed;
+            comment = "Print line";
+        };
 
         double extrusion_multiplier;
         double height;
         double line_width;
         int speed;
         std::string comment;
+    private:
+        PatternSettings _ps = PatternSettings();
     };
 
-    struct DrawBoxOptArgs : PatternSettings {
-        DrawBoxOptArgs();
+    struct DrawBoxOptArgs {
+    public:
+        DrawBoxOptArgs() {
+            is_filled = false;
+            num_perimeters = _ps.anchor_perimeters;
+            height = _ps.first_layer_height;
+            line_width = _ps.anchor_line_width;
+            speed = _ps.first_layer_speed;
+        };
 
         bool is_filled;
         int num_perimeters;
         double height;
         double line_width;
         double speed;
+    private:
+        PatternSettings _ps = PatternSettings();
     };
 
     void delta_modify_start(PatternCalc& pc);

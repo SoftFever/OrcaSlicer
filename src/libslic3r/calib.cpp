@@ -356,22 +356,6 @@ CalibPressureAdvancePattern::PatternSettings::PatternSettings() {
     perim_speed = cpap.speed_adjust(cpap.m_speed_perimeter);
 }
 
-CalibPressureAdvancePattern::DrawLineOptArgs::DrawLineOptArgs() {
-    extrusion_multiplier = PatternSettings::extrusion_multiplier;
-    height = PatternSettings::layer_height;
-    line_width = PatternSettings::line_width;
-    speed = PatternSettings::perim_speed;
-    comment = "Print line";
-}
-
-CalibPressureAdvancePattern::DrawBoxOptArgs::DrawBoxOptArgs() {
-    is_filled = false;
-    num_perimeters = PatternSettings::anchor_perimeters;
-    height = PatternSettings::first_layer_height;
-    line_width = PatternSettings::anchor_line_width;
-    speed = PatternSettings::first_layer_speed;
-}
-
 void CalibPressureAdvancePattern::delta_modify_start(PatternCalc& pc)
 {
     pc.pattern_start_x = -pc.pattern_start_x;
