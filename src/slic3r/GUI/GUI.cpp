@@ -553,7 +553,7 @@ void desktop_open_any_folder( const std::string path )
 #elif __APPLE__
     openFolderForFile(from_u8(path));
 #else
-    const char *argv[] = {"xdg-open", path.data(), nullptr};
+    const char *argv[] = {"nautilus", path.data(), nullptr};
 
     // Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
     // because they may mess up the environment expected by the file manager.
