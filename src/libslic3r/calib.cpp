@@ -543,29 +543,28 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
     x = x_min_bound;
     y = y_min_bound;
 
-    line_opt_args.comment = "Fill";
-
     gcode << move_to(Vec2d(x, y), "Move to fill start");
 
-    // this isn't the most robust way, but less expensive than finding line intersections
-    for (int i = 0; i < x_count + y_count + (x_remainder + y_remainder >= spacing_45 ? 1 : 0); ++i) {
+    for (int i = 0; i < x_count + y_count + (x_remainder + y_remainder >= spacing_45 ? 1 : 0); ++i) { // this isn't the most robust way, but less expensive than finding line intersections
         if (i < std::min(x_count, y_count)) {
             if (i % 2 == 0) {
                 x += spacing_45;
                 y = y_min_bound;
-                gcode << move_to(Vec2d(x, y)); // step right
+                gcode << move_to(Vec2d(x, y), "Fill: Step right");
 
                 y += x - x_min_bound;
                 x = x_min_bound;
-                gcode << draw_line(x, y, line_opt_args); // print up/left
+                line_opt_args.comment = "Fill: Print up/left";
+                gcode << draw_line(x, y, line_opt_args);
             } else {
                 y += spacing_45;
                 x = x_min_bound;
-                gcode << move_to(Vec2d(x, y)); // step up
+                gcode << move_to(Vec2d(x, y), "Fill: Step up");
 
                 x += y - y_min_bound;
                 y = y_min_bound;
-                gcode << draw_line(x, y, line_opt_args); // print down/right
+                line_opt_args.comment = "Fill: Print down/right";
+                gcode << draw_line(x, y, line_opt_args);
             }
         } else if (i < std::max(x_count, y_count)) {
             if (x_count > y_count) {
@@ -573,11 +572,12 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
                 if (i % 2 == 0) {
                     x += spacing_45;
                     y = y_min_bound;
-                    gcode << move_to(Vec2d(x, y)); // step right
+                    gcode << move_to(Vec2d(x, y), "Fill: Step right");
 
                     x -= y_max_bound - y_min_bound;
                     y = y_max_bound;
-                    gcode << draw_line(x, y, line_opt_args); // print up/left
+                    line_opt_args.comment = "Fill: Print up/left";
+                    gcode << draw_line(x, y, line_opt_args);
                 } else {
                     if (i == y_count) {
                         x += spacing_45 - y_remainder;
@@ -586,11 +586,12 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
                         x += spacing_45;
                     }
                     y = y_max_bound;
-                    gcode << move_to(Vec2d(x, y)); // step right
+                    gcode << move_to(Vec2d(x, y), "Fill: Step right");
                     
                     x += y_max_bound - y_min_bound;
                     y = y_min_bound;
-                    gcode << draw_line(x, y, line_opt_args); // print down/right
+                    line_opt_args.comment = "Fill: Print down/right";
+                    gcode << draw_line(x, y, line_opt_args);
                 }
             } else {
                 // box is taller than wide
@@ -602,19 +603,21 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
                     } else {
                         y += spacing_45;
                     }
-                    gcode << move_to(Vec2d(x, y)); // step up
+                    gcode << move_to(Vec2d(x, y), "Fill: Step up");
 
                     x = x_min_bound;
                     y += x_max_bound - x_min_bound;
-                    gcode << draw_line(x, y, line_opt_args); // print up/left
+                    line_opt_args.comment = "Fill: Print up/left";
+                    gcode << draw_line(x, y, line_opt_args);
                 } else {
                     x = x_min_bound;
                     y += spacing_45;
-                    gcode << move_to(Vec2d(x, y)); // step up
+                    gcode << move_to(Vec2d(x, y), "Fill: Step up");
 
                     x = x_max_bound;
                     y -= x_max_bound - x_min_bound;
-                    gcode << draw_line(x, y, line_opt_args); // print down/right
+                    line_opt_args.comment = "Fill: Print down/right";
+                    gcode << draw_line(x, y, line_opt_args);
                 }
             }
         } else {
@@ -625,11 +628,12 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
                 } else {
                     y += spacing_45;
                 }
-                gcode << move_to(Vec2d(x, y)); // step up
+                gcode << move_to(Vec2d(x, y), "Fill: Step up");
 
                 x -= y_max_bound - y;
                 y = y_max_bound;
-                gcode << draw_line(x, y, line_opt_args); // print up/left
+                line_opt_args.comment = "Fill: Print up/left";
+                gcode << draw_line(x, y, line_opt_args);
             } else {
                 if (i == y_count) {
                     x += spacing_45 - y_remainder;
@@ -637,11 +641,12 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
                     x += spacing_45;
                 }
                 y = y_max_bound;
-                gcode << move_to(Vec2d(x, y)); // step right
+                gcode << move_to(Vec2d(x, y), "Fill: Step right");
 
                 y -= x_max_bound - x;
                 x = x_max_bound;
-                gcode << draw_line(x, y, line_opt_args); // print down/right
+                line_opt_args.comment = "Fill: Print down/right";
+                gcode << draw_line(x, y, line_opt_args);
             }
         }
     }
