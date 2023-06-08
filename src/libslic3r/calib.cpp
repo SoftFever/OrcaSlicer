@@ -449,14 +449,14 @@ double CalibPressureAdvancePattern::pattern_shift(int num_patterns, double cente
 std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, DrawLineOptArgs opt_args)
 {
     std::stringstream gcode;
-    auto& config = mp_gcodegen->config();
+    const auto& config = mp_gcodegen->config();
     auto& writer = mp_gcodegen->writer();
 
-    Flow line_flow = Flow(opt_args.line_width, opt_args.height, m_nozzle_diameter);
+    const Flow line_flow = Flow(opt_args.line_width, opt_args.height, m_nozzle_diameter);
     const double filament_area = M_PI * std::pow(config.filament_diameter.get_at(0) / 2, 2);
     const double e_per_mm = line_flow.mm3_per_mm() / filament_area * opt_args.extrusion_multiplier;
 
-    Point last_pos = mp_gcodegen->last_pos();
+    const Point last_pos = mp_gcodegen->last_pos();
     const double length = get_distance(last_pos.x(), last_pos.y(), to_x, to_y);
     auto dE = e_per_mm * length;
 
