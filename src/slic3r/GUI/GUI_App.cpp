@@ -4766,6 +4766,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                 {
                     // Allocating a temporary locale will switch the default wxTranslations to its internal wxTranslations instance.
                     wxLocale temp_locale;
+                    temp_locale.Init();
                     // Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
                     wxTranslations::Get()->SetLanguage(wxLANGUAGE_DEFAULT);
                     // Let the wxFileTranslationsLoader enumerate all translation dictionaries for PrusaSlicer
