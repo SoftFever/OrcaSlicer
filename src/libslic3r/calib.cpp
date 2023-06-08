@@ -655,11 +655,6 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
     std::stringstream gcode;
     std::vector<std::string> gcode_layers;
 
-    const DrawLineOptArgs draw_line_basic_settings;
-    DrawLineOptArgs draw_line_opt_args;
-    const DrawBoxOptArgs draw_box_basic_settings;
-    DrawBoxOptArgs draw_box_opt_args;
-
     gcode << writer.travel_to_xyz(
         Vec3d(calc.pattern_start_x, calc.pattern_start_y, m_height_first_layer),
         "Move to start position"
@@ -667,7 +662,10 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
 
     gcode << writer.set_pressure_advance(calc.start_pa);
 
-    // create anchor and line numbering frame
+    const DrawBoxOptArgs draw_box_basic_settings;
+    DrawBoxOptArgs draw_box_opt_args;
+
+    // create anchor frame
     gcode << draw_box(
         calc.pattern_start_x,
         calc.pattern_start_y,
@@ -679,6 +677,7 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
     // create tab for numbers
     draw_box_opt_args = draw_box_basic_settings;
     draw_box_opt_args.is_filled = true;
+    draw_box_opt_args.num_perimeters = m_anchor_perimeters;
     gcode << draw_box(
         calc.pattern_start_x,
         calc.pattern_start_y + calc.frame_size_y + line_spacing_anchor(),
@@ -696,7 +695,7 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
 
         if (i > 0) {
             gcode_layers.push_back(gcode.str());
-            std::stringstream().swap(gcode); // reset for next layer contents
+            gcode = std::stringstream(); // reset for next layer contents
 
             Point last_pos = mp_gcodegen->last_pos();
             std::stringstream comment;
@@ -737,6 +736,9 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
             }
         }
 
+        const DrawLineOptArgs draw_line_basic_settings;
+        DrawLineOptArgs draw_line_opt_args;
+
         double to_x = calc.pattern_start_x + pattern_shift(calc.num_patterns, calc.center_x);
         double to_y = calc.pattern_start_y;
         double side_length = m_wall_side_length;
@@ -750,7 +752,7 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
                 ) / std::sin(to_radians(m_corner_angle) / 2)
             ;
             side_length = m_wall_side_length - shrink;
-            to_x += shrink + std::sin(to_radians(90) - to_radians(m_corner_angle) / 2);
+            to_x += shrink * std::sin(to_radians(90) - to_radians(m_corner_angle) / 2);
             to_y +=
                 line_spacing_anchor() * (m_anchor_perimeters - 1) +
                 (line_width_anchor() * (1 - m_encroachment))
@@ -774,7 +776,11 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
                 draw_line_opt_args.height = i == 0 ? m_height_first_layer : m_height_layer;
                 draw_line_opt_args.speed = i == 0 ? m_speed_first_layer : m_speed_perimeter;
                 draw_line_opt_args.comment = "Print pattern wall";
-                
+                gcode << draw_line(to_x, to_y, draw_line_opt_args);
+
+                to_x -= std::cos(to_radians(m_corner_angle) / 2) * side_length;
+                to_y += std::sin(to_radians(m_corner_angle) / 2) * side_length;
+
                 gcode << draw_line(to_x, to_y, draw_line_opt_args);
 
                 to_y = initial_y;

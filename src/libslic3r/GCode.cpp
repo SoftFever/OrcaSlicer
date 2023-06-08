@@ -1904,8 +1904,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 coordf_t print_z;
                 bool first_layer;
 
-                for (int i = 0; i < gcode_layers.size(); ++i) {
-                    print_z = pa_test.layer_z()[i];
+                for (auto i = 0; i < gcode_layers.size(); ++i) {
+                    m_nominal_z = pa_test.layer_z()[i];
+                    print_z = m_nominal_z;
 
                     first_layer = (i == 0);
                     m_writer.set_is_first_layer(first_layer);
@@ -1939,15 +1940,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     }
                     
                     gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
-                    m_nominal_z = print_z;
 
                     if (! print.config().layer_change_gcode.value.empty()) {
-                        std::cout << "layer_change_gcode found" << std::endl;
-
                         DynamicConfig config;
                         config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index));
                         config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
-                        std::cout << "DynamicConfig updated successfully" << std::endl;
 
                         gcode += this->placeholder_parser_process(
                             "layer_change_gcode",
@@ -1955,7 +1952,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                             m_writer.extruder()->id(),
                             &config
                         ) + "\n";
-                        std::cout << "returned from placeholder_parser_process" << std::endl;
 
                         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
                     }
