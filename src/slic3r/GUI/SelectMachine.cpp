@@ -1217,10 +1217,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_select->Add(select_timelapse, 0, wxLEFT | wxRIGHT, WRAP_GAP);
     m_sizer_select->Add(select_use_ams, 0, wxLEFT | wxRIGHT, WRAP_GAP);
 
-    select_bed->Show(true);
-    select_flow->Show(true);
-    select_timelapse->Show(true);
-    select_use_ams->Show(true);
+    select_bed->Show(false);
+    select_flow->Show(false);
+    select_timelapse->Show(false);
+    select_use_ams->Show(false);
 
     m_sizer_select->Layout();
 
@@ -3403,6 +3403,12 @@ void SelectMachineDialog::set_default()
     }
     select_bed->Show();
     select_flow->Show();
+
+    //reset checkbox
+    select_bed->Show(false);
+    select_flow->Show(false);
+    select_timelapse->Show(false);
+    select_use_ams->Show(false);
 
     // load checkbox values from app config
     AppConfig* config = wxGetApp().app_config;
