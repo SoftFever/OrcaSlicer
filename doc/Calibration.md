@@ -5,8 +5,8 @@
 - [Temp tower](#Temp-tower)
 - [Retraction test](#Retraction-test)
 - [Orca Tolerance Test](#Orca-Tolerance-Test)
-- [Advanced calibration]
-  1. [Max Volumetric speed]
+- [Advanced calibration](#Advanced-Calibration)
+  1. [Max Volumetric speed](#Max-Volumetric-speed)
   2. [VFA]  
 
 **NOTE**: After completing the calibration process, remember to create a new project in order to exit the calibration mode.
@@ -81,6 +81,20 @@ This tolerance test is specifically designed to assess the dimensional accuracy 
 You can assess the tolerance using either an M6 Allen key or the printed hexagon tester.  
 ![image](./images/OrcaToleranceTes_m6.jpg)  
 ![image](./images/OrcaToleranceTest_print.jpg)  
+
+# Advanced Calibration
+
+## Max Volumetric speed
+This is a test designed to calibrate the maximum volumetric speed of the specific filament. The generic or 3rd party filament types may not have the correct volumetric flow rate set in the filament. This test will help you to find the maximum volumetric speed of the filament.
+
+Click on "Calibration" -> "More" -> "Max Volumetric Speed". You will be promted to enter the settings for the test: start volumetric speed, end volumentric speed, and step. It is recommended to use the default values, unless you already have an idea of the lower or upper limit for your filament. Select "OK", slice the plate, and send it to the printer. 
+
+Once printed, take note of where the layers begin to fail. Using calipers or a ruler, measure the height of the print at that point. Then, return to OrcaSlicer and in the "Preview" tab, make sure the color scheme "flow" is selected. Scroll down to the layer height that you measured, and click on the toolhead slider. This will indicate the max flow level for your filmanet. Save this to your filament profile.
+
+
+![image](./images/max_volumetric_flow.jpg)
+
+ ##### *NOTE You may also choose to conservatively reduce the flow by 5-10% to ensure print quality.*
 
 ***
 *Credits:*  
