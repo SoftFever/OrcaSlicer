@@ -2436,18 +2436,22 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_button_pause_resume->Enable(false);
             m_button_pause_resume->SetBitmap_("print_control_pause_disable");
             wxString prepare_text;
-            if (obj->is_in_prepare())
+            bool show_percent = true;
+
+            if (obj->is_in_prepare()) {
                 prepare_text = wxString::Format(_L("Downloading..."));
+            }
             else if (obj->print_status == "SLICING") {
                 if (obj->queue_number <= 0) {
                     prepare_text = wxString::Format(_L("Cloud Slicing..."));
                 } else {
                     prepare_text = wxString::Format(_L("In Cloud Slicing Queue, there are %s tasks ahead."), std::to_string(obj->queue_number));
+                    show_percent = false;
                 }
             } else
                 prepare_text = wxString::Format(_L("Downloading..."));
 
-            if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100)
+            if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100 && show_percent)
                 prepare_text += wxString::Format("(%d%%)", obj->gcode_file_prepare_percent);
             m_printing_stage_value->SetLabelText(prepare_text);
             m_gauge_progress->SetValue(0);
