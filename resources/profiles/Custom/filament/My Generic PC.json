@@ -13,8 +13,20 @@
         "0.94"
     ],
 "compatible_printers": [
-      "MyKlipper (0.4 nozzle)",
+      "MyKlipper (0.2 nozzle)",
+	  "MyKlipper (0.4 nozzle)",
+	  "MyKlipper (0.5 nozzle)",
+	  "MyKlipper (0.6 nozzle)",
+	  "MyKlipper (0.8 nozzle)",
+	  "MyRepRap (0.2 nozzle)",
 	  "MyRepRap (0.4 nozzle)",
-      "MyMarlin (0.4 nozzle)"
+	  "MyRepRap (0.5 nozzle)",
+	  "MyRepRap (0.6 nozzle)",
+	  "MyRepRap (0.8 nozzle)",
+      "MyMarlin (0.2 nozzle)",
+	  "MyMarlin (0.4 nozzle)",
+	  "MyMarlin (0.5 nozzle)",
+	  "MyMarlin (0.6 nozzle)",
+	  "MyMarlin (0.8 nozzle)"
     ]
 }

@@ -6,6 +6,18 @@
     "description": "Raise3D configurations",
     "machine_model_list": [
         {
+            "name": "Raise3D E2",
+            "sub_path": "machine/Raise3D E2.json"
+        },
+        {
+            "name": "Raise3D Pro2",
+            "sub_path": "machine/Raise3D Pro2.json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus",
+            "sub_path": "machine/Raise3D Pro2 Plus.json"
+        },
+        {
             "name": "Raise3D Pro3",
             "sub_path": "machine/Raise3D Pro3.json"
         },
@@ -18,6 +30,186 @@
         {
             "name": "fdm_process_common",
             "sub_path": "process/fdm_process_common.json"
+        },
+		{
+            "name": "0.10mm Fine @Raise3D E2 (0.2 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D E2 (0.2 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D E2 (0.2 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D E2 (0.2 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D E2 (0.2 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D E2 (0.2 nozzle).json"
+        },
+		{
+            "name": "0.10mm Fine @Raise3D E2 (0.4 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D E2 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D E2 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D E2 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D E2 (0.4 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D E2 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.10mm Fine @Raise3D E2 (0.5 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D E2 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D E2 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D E2 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D E2 (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D E2 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.10mm Fine @Raise3D E2 (0.6 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D E2 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D E2 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D E2 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D E2 (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D E2 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.10mm Fine @Raise3D E2 (0.8 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D E2 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D E2 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D E2 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D E2 (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D E2 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.10mm Fine @Raise3D Pro2 (0.2 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2 (0.2 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2Plus (0.2 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2Plus (0.2 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2 (0.2 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2 (0.2 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2Plus (0.2 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2Plus (0.2 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2 (0.2 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2 (0.2 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2Plus (0.2 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2Plus (0.2 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2 (0.4 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2Plus (0.4 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2Plus (0.4 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2Plus (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2Plus (0.4 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2 (0.4 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2 (0.4 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2Plus (0.4 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2Plus (0.4 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2 (0.5 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2Plus (0.5 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2Plus (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2Plus (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2Plus (0.5 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2 (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2 (0.5 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2Plus (0.5 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2Plus (0.5 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2 (0.6 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2Plus (0.6 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2Plus (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2Plus (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2Plus (0.6 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2 (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2 (0.6 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2Plus (0.6 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2Plus (0.6 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2 (0.8 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.10mm Fine @Raise3D Pro2Plus (0.8 nozzle)",
+            "sub_path": "process/0.10mm Fine @Raise3D Pro2Plus (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.20mm Standard @Raise3D Pro2Plus (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Raise3D Pro2Plus (0.8 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2 (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2 (0.8 nozzle).json"
+        },
+        {
+            "name": "0.25mm Draft @Raise3D Pro2Plus (0.8 nozzle)",
+            "sub_path": "process/0.25mm Draft @Raise3D Pro2Plus (0.8 nozzle).json"
         },
         {
             "name": "0.10mm Fine @Raise3D Pro3 (0.2 nozzle)",
@@ -190,6 +382,146 @@
         {
             "name": "fdm_machine_common",
             "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "Raise3D E2 (0.2 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D E2 (0.2 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D E2 (0.4 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D E2 (0.4 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D E2 (0.5 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D E2 (0.5 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D E2 (0.6 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D E2 (0.6 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D E2 (0.8 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D E2 (0.8 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.2 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 (0.2 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.4 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 (0.4 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.5 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 (0.5 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.6 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 (0.6 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.8 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 (0.8 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.2 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 (0.2 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.4 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 (0.4 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.5 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 (0.5 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.6 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 (0.6 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.8 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 (0.8 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.2 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 (0.2 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.4 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 (0.4 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.5 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 (0.5 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.6 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 (0.6 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 (0.8 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 (0.8 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.2 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.2 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.4 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.4 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.5 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.5 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.6 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.6 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.8 nozzle) (Dual)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.8 nozzle) (Dual).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.2 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.2 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.4 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.4 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.5 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.5 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.6 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.6 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.8 nozzle) (Left)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.8 nozzle) (Left).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.2 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.2 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.4 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.4 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.5 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.5 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.6 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.6 nozzle) (Right).json"
+        },
+        {
+            "name": "Raise3D Pro2 Plus (0.8 nozzle) (Right)",
+            "sub_path": "machine/Raise3D Pro2 Plus (0.8 nozzle) (Right).json"
         },
         {
             "name": "Raise3D Pro3 (0.2 nozzle) (Dual)",

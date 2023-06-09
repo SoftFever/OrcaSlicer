@@ -1,0 +1,153 @@
+{
+	"type": "machine",
+	"setting_id": "GM001",
+	"name": "Raise3D E2 (0.2 nozzle) (Dual)",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_machine_common",
+	"printer_model": "Raise3D E2",
+	"default_print_profile": "0.20mm Standard @Raise3D E2 (0.2 nozzle)",
+	"nozzle_diameter": [
+		"0.2",
+		"0.2"
+	],
+	"printer_variant": "0.2",
+    "extruder_colour": [
+        "#FCE94F",
+		"#FCE94F"
+    ],
+    "extruder_offset": [
+        "0x0",
+		"35x0"
+    ],
+	"printable_area": [
+		"0x0",
+		"330x0",
+		"330x240",
+		"0x240"
+	],
+	"printable_height": "240",
+	"nozzle_type": "hardened_steel",
+	"auxiliary_fan": "0",
+    "machine_max_acceleration_e": [
+        "3000",
+		"5000"
+    ],
+	"machine_max_acceleration_extruding": [
+		"800",
+		"1250"
+	],
+	"machine_max_acceleration_retracting": [
+		"1500",
+		"1250"
+	],
+	"machine_max_acceleration_travel": [
+		"1500",
+		"1250"
+	],
+	"machine_max_acceleration_x": [
+		"1000",
+		"1000"
+	],
+	"machine_max_acceleration_y": [
+		"500",
+		"1000"
+	],
+	"machine_max_acceleration_z": [
+		"100",
+		"200"
+	],
+	"machine_max_speed_e": [
+		"20",
+		"120"
+	],
+	"machine_max_speed_x": [
+		"100",
+		"200"
+	],
+	"machine_max_speed_y": [
+		"100",
+		"200"
+	],
+	"machine_max_speed_z": [
+		"5",
+		"12"
+	],
+	"machine_max_jerk_e": [
+		"5",
+		"2.5"
+	],
+	"machine_max_jerk_x": [
+		"8",
+		"10"
+	],
+	"machine_max_jerk_y": [
+		"8",
+		"10"
+	],
+	"machine_max_jerk_z": [
+		"0.4",
+		"0.4"
+	],
+	"max_layer_height": [
+		"0.4",
+		"0.4"
+	],
+	"min_layer_height": [
+		"0.1",
+		"0.1"
+	],
+	"printer_settings_id": "Raise3D",
+	"retraction_minimum_travel": [
+		"0",
+		"0"
+	],
+	"retract_before_wipe": [
+		"0%",
+		"0%"
+	],
+	"retraction_length": [
+		"1",
+		"1"
+	],
+	"retract_length_toolchange": [
+		"2",
+		"2"
+	],
+    "retract_when_changing_layer": [
+        "0",
+		"0"
+    ],
+    "retract_restart_extra": [
+        "0",
+		"0"
+    ],
+    "retract_restart_extra_toolchange": [
+        "0",
+		"0"
+    ],
+	"retraction_speed": [
+		"40",
+		"40"
+	],
+	"deretraction_speed": [
+		"0",
+		"0"
+	],
+    "wipe": [
+        "1",
+		"1"
+    ],
+	"single_extruder_multi_material": "0",
+	"change_filament_gcode": "; color change\nM2000",
+	"machine_pause_gcode": "; pause print\nM2000",
+	"default_filament_profile": [
+		"Raise3D Generic PLA"
+	],
+	"machine_start_gcode": "M605 S0 ; set to standard mode\nG90 ; set printer absolute mode\nM82 ; set extruder to absolute mode\nM106 S0 ; fan off\nM140 S[bed_temperature_initial_layer_single] ; set bed temp\nM104 S[nozzle_temperature_initial_layer] T0 ; set extruder temp\nM104 S[nozzle_temperature_initial_layer] T1; set extruder temp\nM190 S[bed_temperature_initial_layer_single] ; wait for bed temp\nM109 S[nozzle_temperature_initial_layer] T0 ; wait for extruder temp\nM109 S[nozzle_temperature_initial_layer] T1; wait for extruder temp\nG28 ; home all axes\nT0 ; set first toolhead\nG1 Z3 F500 ; Move to Z3 for height clearance before Intro line\nG92 E0 ; set position\n; intro line\nG1 Z0.35 F800 ;\nG1 X10 Y5 F800 ;\nG1 X70 Y5 E12 F200 ;\nG1 Z5 E15 F200 ; Move to Z5 to prevent dragging nozzle and scratching bed\nG92 E0 ; set position\nT1\nG92 E0 ; set position\nG1 X260 Y5 F800\nG1 Z0.35 F200\nG1 X320 Y5 E13 F200\nG1 E15 F200\nG1 Z5 F200\nG92 E0\nT0\nG1 F9000.0 ;\nM117 Printing...\nM1001 ; End of Start G-code",
+	"machine_end_gcode": "M1002 ; Start of End G-code\nM605 S0 ; set to standard mode\nG92 E0 ; set position\nM104 S0 ; turn off temperature\nM140 S0 ; turn off heatbed\nM107 ; turn off fan\nG91\nG1 E-1 F1800 ; retract\n{if max_layer_z < printable_height}G1 Z{z_offset+min(max_layer_z+2, printable_height)}{endif} F720 ; Move print head up\n{if max_layer_z < printable_height}G1 Z{z_offset+min(max_layer_z+30, printable_height)}{endif} F720 ; Move print head further up\nG28 X0 Y0 ; move toolheads to start positions\nM84 ; stop idle hold\nG90 ; set to absolute positioning",
+	"toolchange_gcode": "M104 S{nozzle_temperature[0] * 0.85} T[current_extruder]; set extruder temp\nM104 S[nozzle_temperature] T[next_extruder]; set extruder temp\nM109 S[nozzle_temperature] T[next_extruder]; wait for extruder temp",
+	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0\n;[layer_z]\n\n",
+	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
+	"scan_first_layer": "0"
+}
