@@ -1899,10 +1899,6 @@ void GLCanvas3D::render(bool only_init)
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
         _render_platelist(!camera.is_looking_downward(), only_current, true, hover_id);
-        // BBS: add outline logic
-        if (m_gcode_viewer.GetGcodeGenOk()==false) { 
-            _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
-        }
         // BBS: GUI refactor: add canvas size as parameters
         _render_gcode(cnv_size.get_width(), cnv_size.get_height());
     }

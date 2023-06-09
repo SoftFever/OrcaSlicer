@@ -33,7 +33,7 @@
 extern std::vector<std::array<float, 4>> get_extruders_colors();
 extern float FullyTransparentMaterialThreshold;
 extern float FullTransparentModdifiedToFixAlpha;
-extern std::array<float, 4>              adjust_color_for_rendering(const std::array<float, 4> &colors, int whichView=0);
+extern std::array<float, 4>    adjust_color_for_rendering(const std::array<float, 4> &colors);
 
 
 namespace Slic3r {

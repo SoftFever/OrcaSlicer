@@ -89,29 +89,16 @@ std::vector<std::array<float, 4>> get_extruders_colors()
 }
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
-std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colors, int whichView)
+std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colors)
 {
-    if (whichView == (int) Slic3r::GUI::GLCanvas3D::ECanvasType::CanvasView3D ||
-        whichView == (int) Slic3r::GUI::GLCanvas3D::ECanvasType::CanvasAssembleView) { 
-        if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
+   if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
                 std::array<float, 4> new_color;
                 new_color[0] = 1;
                 new_color[1] = 1;
                 new_color[2] = 1;
                 new_color[3] = FullTransparentModdifiedToFixAlpha;
                 return new_color;
-            }
-    } else {
-        if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
-            std::array<float, 4> new_color;
-            new_color[0] = 1;
-            new_color[1] = 1;
-            new_color[2] = 1;
-            new_color[3] = 0.05f;
-            return new_color;
-        }
-    }
-
+    } 
     return colors;
 }
 
