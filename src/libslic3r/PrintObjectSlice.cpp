@@ -1147,8 +1147,13 @@ void PrintObject::slice_volumes()
                                                                  std::min(0.f, xy_hole_scaled),
                                                                  trimming);
                             //BBS: trim surfaces
-                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id)
-                                layer->regions()[region_id]->trim_surfaces(to_polygons(trimming));
+                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
+                                // BBS: split trimming result by region
+                                Polygons contour_exp;
+                                for (Surface surface : layer->regions()[region_id]->slices.surfaces) contour_exp.push_back(surface.expolygon.contour);
+
+                                layer->regions()[region_id]->slices.set(intersection_ex(contour_exp, to_polygons(trimming)), stInternal);
+                            }
                         }
 	                }
 	                // Merge all regions' slices to get islands, chain them by a shortest path.
