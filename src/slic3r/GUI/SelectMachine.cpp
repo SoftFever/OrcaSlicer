@@ -2685,7 +2685,7 @@ bool  SelectMachineDialog::is_timeout()
     return false;
 }
 
-void SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+int SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
 {
     m_required_data_plate_data_list.clear();
     m_required_data_config = config;
@@ -2696,7 +2696,9 @@ void SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig 
             m_required_data_plate_data_list.push_back(plate_data_list[i]);
         }
     }
+
     m_required_data_file_name = file_name;
+    return m_required_data_plate_data_list.size();
 }
 
 void  SelectMachineDialog::reset_timeout()

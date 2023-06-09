@@ -507,8 +507,16 @@ void MediaFilePanel::doAction(size_t index, int action)
                         return;
                     }
                     auto &file = fs->GetFile(index);
-                    Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, from_u8(file.name).ToStdString());
-                    wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
+                    int gcode_file_count = Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, from_u8(file.name).ToStdString());
+
+                    if (gcode_file_count > 0) {
+                        wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
+                    }
+                    else {
+                        MessageDialog dlg(this, _L("The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio and export a new .gcode.3mf file."), wxEmptyString, wxICON_WARNING | wxOK);
+                        auto res = dlg.ShowModal();
+                    }
+                    
                 });
                 return;
             }

@@ -312,7 +312,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         // Code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
-    content_sizer->Add(html, 1, wxEXPAND|wxRIGHT,12);
+    content_sizer->Add(html, 1, wxEXPAND|wxRIGHT, 8);
     wxGetApp().UpdateDarkUIWin(html);
 }
 

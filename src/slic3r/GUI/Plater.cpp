@@ -2206,7 +2206,7 @@ struct Plater::priv
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
     void on_action_send_to_printer(bool isall = false);
-    void update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);
+    int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);
 private:
     bool layers_height_allowed() const;
 
@@ -6239,10 +6239,10 @@ void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
     m_select_machine_dlg->ShowModal();
 }
 
-void Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
 {
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
-    m_select_machine_dlg->update_print_required_data(config, model, plate_data_list, file_name);
+    return m_select_machine_dlg->update_print_required_data(config, model, plate_data_list, file_name);
 }
 
 void Plater::priv::on_action_send_to_printer(bool isall)
@@ -10423,9 +10423,9 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
     return false;
 }
 
-void Plater::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+int Plater::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
 {
-    p->update_print_required_data(config, model, plate_data_list, file_name);
+    return p->update_print_required_data(config, model, plate_data_list, file_name);
 }
 
 
