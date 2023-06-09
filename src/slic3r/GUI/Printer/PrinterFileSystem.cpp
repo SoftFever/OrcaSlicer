@@ -2,6 +2,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/Model.hpp"
+#include "slic3r/GUI/I18N.hpp"
 
 #include "../../Utils/NetworkAgent.hpp"
 #include "../BitmapCache.hpp"
@@ -28,6 +29,10 @@ wxDEFINE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 
 static wxBitmap default_thumbnail;
+
+static std::map<int, std::string> error_messages = {
+    {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")}
+};
 
 struct StaticBambuLib : BambuLib {
     static StaticBambuLib & get();
@@ -973,6 +978,8 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
     event.SetInt(index);
     if (!str.empty())
         event.SetString(wxString::FromUTF8(str.c_str()));
+    else if (auto iter = error_messages.find(extra); iter != error_messages.end())     
+        event.SetString(wxString::FromUTF8(iter->second.c_str()));
     event.SetExtraLong(extra);
     if (wxThread::IsMain())
         ProcessEventLocally(event);
