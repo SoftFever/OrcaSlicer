@@ -37,31 +37,57 @@ protected:
     };
 
     std::string move_to(Vec2d pt, std::string comment = std::string());
+    double e_per_mm(double line_width, double layer_height);
+    double speed_adjust(int speed) const { return speed * 60; };
     
     std::string convert_number_to_string(double num);
-    std::string draw_digit(double startx, double starty, char c, CalibPressureAdvance::DrawDigitMode mode);
-    std::string draw_number(double startx, double starty, double value, CalibPressureAdvance::DrawDigitMode mode);
+    double number_spacing() { return m_digit_segment_len + m_digit_gap_len; };
+    std::string draw_digit(
+        double startx,
+        double starty,
+        char c,
+        CalibPressureAdvance::DrawDigitMode mode,
+        double line_width,
+        double layer_height
+    );
+    std::string draw_number(
+        double startx,
+        double starty,
+        double value,
+        CalibPressureAdvance::DrawDigitMode mode,
+        double line_width,
+        double layer_height
+    );
     
     bool is_delta();
     void delta_scale_bed_ext(BoundingBoxf& bed_ext);
 
     GCode* mp_gcodegen;
-    double m_nozzle_diameter;
+
+    DrawDigitMode m_draw_digit_mode;
     double m_digit_segment_len;
-    std::string::size_type m_max_number_length;
-    double m_number_spacing;
+    double m_digit_gap_len;
+    std::string::size_type m_max_number_len;
+
+    double m_nozzle_diameter;
+    double m_line_width;
+    double m_layer_height;
 };
 
 class CalibPressureAdvanceLine : public CalibPressureAdvance {
 public:
     CalibPressureAdvanceLine(GCode* gcodegen) :
         CalibPressureAdvance(gcodegen),
+        m_thin_line_width(0.44),
         m_length_short(20.0),
         m_length_long(40.0),
         m_space_y(3.5),
-        m_line_width(0.6),
         m_draw_numbers(true)
-        { }
+        {
+            this->m_line_width = 0.6;
+            this->m_number_line_width = 0.48;
+            this->m_layer_height = 0.2;
+        }
     ;
     ~CalibPressureAdvanceLine() { };
 
@@ -79,10 +105,11 @@ private:
     void delta_modify_start(double& startx, double& starty, int count);
     std::string print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num);
 
+    double m_thin_line_width;
+    double m_number_line_width;
     double m_length_short, m_length_long;
     double m_space_y;
     double m_slow_speed, m_fast_speed;
-    double m_line_width;
     bool   m_draw_numbers;
 };
 
@@ -92,9 +119,7 @@ public:
         CalibPressureAdvance(gcodegen),
 
         m_line_ratio(112.5),
-        m_extrusion_multiplier(0.98),
         m_num_layers(4),
-        m_height_layer(0.2),
         m_height_first_layer(0.25),
         m_speed_first_layer(30),
         m_speed_perimeter(100),
@@ -112,7 +137,10 @@ public:
         m_glyph_padding_horizontal(1),
         m_glyph_padding_vertical(1)
         {
-            m_max_layer_z = m_height_first_layer + ((m_num_layers - 1) * m_height_layer);
+            this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
+            this->m_line_width = line_width();
+            this->m_layer_height = 0.2;
+            this->m_max_layer_z = m_height_first_layer + ((m_num_layers - 1) * m_layer_height);
         }
     ;
     ~CalibPressureAdvancePattern() { };
@@ -183,7 +211,6 @@ private:
         double anchor_line_width;
         int anchor_perimeters;
         double encroachment;
-        double extrusion_multiplier;
         double first_layer_height;
         int first_layer_speed;
         double layer_height;
@@ -194,14 +221,12 @@ private:
     struct DrawLineOptArgs {
     public:
         DrawLineOptArgs() {
-            extrusion_multiplier = _ps.extrusion_multiplier;
             height = _ps.layer_height;
             line_width = _ps.line_width;
             speed = _ps.perim_speed;
             comment = "Print line";
         };
 
-        double extrusion_multiplier;
         double height;
         double line_width;
         int speed;
@@ -231,7 +256,6 @@ private:
 
     void delta_modify_start(PatternCalc& pc);
 
-    double speed_adjust(int speed) const { return speed * 60; };
     double to_radians(double degrees) { return degrees * M_PI / 180; };
     double get_distance(double cur_x, double cur_y, double to_x, double to_y);
     
@@ -239,7 +263,7 @@ private:
     double line_width_anchor() const { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
     
     // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
-    double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
+    double line_spacing() { return line_width() - m_layer_height * (1 - M_PI / 4); };
     double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
     double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
 
@@ -266,9 +290,7 @@ private:
     std::vector<std::string> print_pa_pattern(PatternCalc& calc);
 
     double m_line_ratio;
-    double m_extrusion_multiplier;
     int m_num_layers;
-    double m_height_layer;
     double m_height_first_layer;
     double m_max_layer_z;
     double m_speed_first_layer;

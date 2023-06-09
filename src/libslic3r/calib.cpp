@@ -9,11 +9,12 @@ Calib_Params::Calib_Params() : mode(CalibMode::Calib_None) { }
 
 CalibPressureAdvance::CalibPressureAdvance(GCode* gcodegen) :
     mp_gcodegen(gcodegen),
+    m_draw_digit_mode(DrawDigitMode::Left_To_Right),
     m_digit_segment_len(2),
-    m_max_number_length(5),
-    m_number_spacing(3.0)
+    m_digit_gap_len(1),
+    m_max_number_len(5)
     { 
-        m_nozzle_diameter = gcodegen->config().nozzle_diameter.get_at(0);
+        this->m_nozzle_diameter = gcodegen->config().nozzle_diameter.get_at(0);
     }
 ;
 
@@ -32,6 +33,15 @@ std::string CalibPressureAdvance::move_to(Vec2d pt, std::string comment)
     return gcode.str();
 }
 
+double CalibPressureAdvance::e_per_mm(double line_width, double layer_height) {
+    const auto& config = mp_gcodegen->config();
+
+    const Flow line_flow = Flow(line_width, layer_height, m_nozzle_diameter);
+    const double filament_area = M_PI * std::pow(config.filament_diameter.get_at(0) / 2, 2);
+
+    return line_flow.mm3_per_mm() / filament_area * config.print_flow_ratio;
+}
+
 std::string CalibPressureAdvance::convert_number_to_string(double num)
 {
     auto sNumber = std::to_string(num);
@@ -41,23 +51,22 @@ std::string CalibPressureAdvance::convert_number_to_string(double num)
     return sNumber;
 }
 
-std::string CalibPressureAdvance::draw_digit(double startx, double starty, char c, CalibPressureAdvance::DrawDigitMode mode)
+std::string CalibPressureAdvance::draw_digit(
+    double startx,
+    double starty,
+    char c,
+    CalibPressureAdvance::DrawDigitMode mode,
+    double line_width,
+    double layer_height
+)
 {
     auto& writer = mp_gcodegen->writer();
     std::stringstream gcode;
-    const double lw = 0.48;
-    Flow line_flow = Flow(lw, 0.2, m_nozzle_diameter);
+    const double e_per_mm = CalibPressureAdvance::e_per_mm(line_width, layer_height);
     const double len = m_digit_segment_len;
-    const double gap = lw / 2.0;
+    const double gap = line_width / 2.0;
 
-    /* 
-    filament diameter = 1.75
-    area of a circle = PI * radius^2
-    (1.75 / 2)^2 * PI = 2.40528
-    */
-    
-    const double e = line_flow.mm3_per_mm() / 2.40528; // filament_mm/extrusion_mm
-    const auto dE = e * len;
+    const auto dE = e_per_mm * len;
     const auto two_dE = dE * 2;
 
     Vec2d p0, p1, p2, p3, p4, p5;
@@ -187,22 +196,29 @@ std::string CalibPressureAdvance::draw_digit(double startx, double starty, char 
     return gcode.str();
 }
 
-std::string CalibPressureAdvance::draw_number(double startx, double starty, double value, CalibPressureAdvance::DrawDigitMode mode)
+std::string CalibPressureAdvance::draw_number(
+    double startx,
+    double starty,
+    double value,
+    CalibPressureAdvance::DrawDigitMode mode,
+    double line_width,
+    double layer_height
+)
 {
     auto sNumber = convert_number_to_string(value);
     std::stringstream gcode;
     gcode << mp_gcodegen->writer().set_speed(3600);
 
     for (std::string::size_type i = 0; i < sNumber.length(); ++i) {
-        if (i > m_max_number_length) {
+        if (i > m_max_number_len) {
             break;
         }
         switch (mode) {
             case DrawDigitMode::Bottom_To_Top:
-                gcode << draw_digit(startx, starty + i * m_number_spacing, sNumber[i], mode);
+                gcode << draw_digit(startx, starty + i * number_spacing(), sNumber[i], mode, line_width, layer_height);
                 break;
             default:
-                gcode << draw_digit(startx + i * m_number_spacing, starty, sNumber[i], mode);
+                gcode << draw_digit(startx + i * number_spacing(), starty, sNumber[i], mode, line_width, layer_height);
         }
     }
 
@@ -252,32 +268,31 @@ void CalibPressureAdvanceLine::delta_modify_start(double& startx, double& starty
 std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num)
 {
     auto& writer = mp_gcodegen->writer();
-    Flow line_flow = Flow(m_line_width, 0.2, m_nozzle_diameter);
-    Flow thin_line_flow = Flow(0.44, 0.2, m_nozzle_diameter);
-    const double e_calib = line_flow.mm3_per_mm() / 2.40528; // filament_mm/extrusion_mm
-    const double e = thin_line_flow.mm3_per_mm() / 2.40528; // filament_mm/extrusion_mm
 
-    const double fast = m_fast_speed * 60.0;
-    const double slow = m_slow_speed * 60.0;
+    const double e_per_mm = CalibPressureAdvance::e_per_mm(m_line_width, m_layer_height);
+    const double thin_e_per_mm = CalibPressureAdvance::e_per_mm(m_thin_line_width, m_layer_height);
+
+    const double fast = CalibPressureAdvance::speed_adjust(m_fast_speed);
+    const double slow = CalibPressureAdvance::speed_adjust(m_slow_speed);
     std::stringstream gcode;
-    gcode << mp_gcodegen->writer().travel_to_z(0.2);
+    gcode << mp_gcodegen->writer().travel_to_z(m_layer_height);
     double y_pos = start_y;
 
     // prime line
     auto prime_x = start_x - 2;
     gcode << move_to(Vec2d(prime_x, y_pos + (num - 4) * m_space_y));
     gcode << writer.set_speed(slow);
-    gcode << writer.extrude_to_xy(Vec2d(prime_x, y_pos + 3 * m_space_y), e_calib * m_space_y * num * 1.1);
+    gcode << writer.extrude_to_xy(Vec2d(prime_x, y_pos + 3 * m_space_y), e_per_mm * m_space_y * num * 1.1);
 
     for (int i = 0; i < num; ++i) {
         gcode << writer.set_pressure_advance(start_pa + i * step_pa);
         gcode << move_to(Vec2d(start_x, y_pos + i * m_space_y));
         gcode << writer.set_speed(slow);
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + i * m_space_y), e_calib * m_length_short);
+        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + i * m_space_y), e_per_mm * m_length_short);
         gcode << writer.set_speed(fast);
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + i * m_space_y), e_calib * m_length_long);
+        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + i * m_space_y), e_per_mm * m_length_long);
         gcode << writer.set_speed(slow);
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y), e_calib * m_length_short);
+        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y), e_per_mm * m_length_short);
     }
     gcode << writer.set_pressure_advance(0.0);
 
@@ -285,12 +300,19 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         // draw indicator lines
         gcode << writer.set_speed(fast);
         gcode << move_to(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 2));
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 7), e * 7);
+        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 7), thin_e_per_mm * 7);
         gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7));
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), e * 7);
+        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), thin_e_per_mm * 7);
 
         for (int i = 0; i < num; i += 2) {
-            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa, DrawDigitMode::Left_To_Right);
+            gcode << draw_number(
+                start_x + m_length_short + m_length_long + m_length_short + 3,
+                y_pos + i * m_space_y + m_space_y / 2,
+                start_pa + i * step_pa,
+                DrawDigitMode::Left_To_Right,
+                m_number_line_width,
+                m_layer_height
+            );
         }
     }
     return gcode.str();
@@ -342,7 +364,7 @@ std::vector<double> CalibPressureAdvancePattern::layer_z() {
     std::vector<double> layer_z;
 
     for (int i = 0; i < m_num_layers; ++i) {
-        layer_z.push_back(m_height_first_layer + (i * m_height_layer));
+        layer_z.push_back(m_height_first_layer + (i * m_layer_height));
     }
 
     return layer_z;
@@ -355,10 +377,9 @@ CalibPressureAdvancePattern::PatternSettings::PatternSettings() {
     anchor_line_width = cpap.line_width_anchor();
     anchor_perimeters = cpap.m_anchor_perimeters;
     encroachment = cpap.m_encroachment;
-    extrusion_multiplier = cpap.m_extrusion_multiplier;
     first_layer_height = cpap.m_height_first_layer;
     first_layer_speed = cpap.speed_adjust(cpap.m_speed_first_layer);
-    layer_height = cpap.m_height_layer;
+    layer_height = cpap.m_layer_height;
     line_width = cpap.line_width();
     perim_speed = cpap.speed_adjust(cpap.m_speed_perimeter);
 }
@@ -387,9 +408,9 @@ double CalibPressureAdvancePattern::max_numbering_height(double start_pa, double
         }
     }
 
-    most_characters = std::min(most_characters, m_max_number_length);
+    most_characters = std::min(most_characters, m_max_number_len);
 
-    return (most_characters * m_digit_segment_len) + ((most_characters - 1) * m_number_spacing);
+    return (most_characters * m_digit_segment_len) + ((most_characters - 1) * m_digit_gap_len);
 }
 
 double CalibPressureAdvancePattern::object_size_x(int num_patterns)
@@ -459,9 +480,7 @@ std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, Dra
     const auto& config = mp_gcodegen->config();
     auto& writer = mp_gcodegen->writer();
 
-    const Flow line_flow = Flow(opt_args.line_width, opt_args.height, m_nozzle_diameter);
-    const double filament_area = M_PI * std::pow(config.filament_diameter.get_at(0) / 2, 2);
-    const double e_per_mm = line_flow.mm3_per_mm() / filament_area * opt_args.extrusion_multiplier;
+    const double e_per_mm = CalibPressureAdvance::e_per_mm(opt_args.line_width, opt_args.height);
 
     const Point last_pos = mp_gcodegen->last_pos();
     const double length = get_distance(last_pos.x(), last_pos.y(), to_x, to_y);
@@ -716,7 +735,7 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
                 Vec3d(
                     last_pos.x(),
                     last_pos.y(),
-                    m_height_first_layer + (i * m_height_layer)
+                    m_height_first_layer + (i * m_layer_height)
                 ),
                 comment.str()
             );
@@ -743,7 +762,9 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
                     current_glyph_start_x,
                     calc.pattern_start_y + calc.frame_size_y + m_glyph_padding_vertical + line_width(),
                     calc.start_pa + (j * calc.step_pa),
-                    DrawDigitMode::Bottom_To_Top
+                    DrawDigitMode::Bottom_To_Top,
+                    m_line_width,
+                    m_layer_height
                 );
             }
         }
@@ -785,7 +806,7 @@ std::vector<std::string> CalibPressureAdvancePattern::print_pa_pattern(PatternCa
                 to_y += std::sin(to_radians(m_corner_angle) / 2) * side_length;
                 
                 draw_line_opt_args = draw_line_basic_settings;
-                draw_line_opt_args.height = i == 0 ? m_height_first_layer : m_height_layer;
+                draw_line_opt_args.height = i == 0 ? m_height_first_layer : m_layer_height;
                 draw_line_opt_args.speed = i == 0 ? m_speed_first_layer : m_speed_perimeter;
                 draw_line_opt_args.comment = "Print pattern wall";
                 gcode << draw_line(to_x, to_y, draw_line_opt_args);
