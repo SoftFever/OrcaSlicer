@@ -1359,7 +1359,17 @@ void MachineObject::parse_version_func()
             }
 
             if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
-                local_use_ssl_for_mqtt = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+                local_use_ssl_for_mqtt = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;  
+            }
+
+            if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
+                is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.05.06.05") >= 0;
+            }
+            else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+                is_support_mqtt_alive = ota_version->second.sw_ver.compare("00.03.10.05") >= 0;
+            }
+            else {
+                is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.05.06.05") >= 0;
             }
 
             is_support_remote_tunnel = true;
@@ -1381,11 +1391,32 @@ void MachineObject::parse_version_func()
         if (esp32_version != module_vers.end()) {
             ams_support_auto_switch_filament_flag = esp32_version->second.sw_ver.compare("00.03.11.50") >= 0;
         }
+
+        if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
+            is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
+        }
+        else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+            is_support_mqtt_alive = ota_version->second.sw_ver.compare("00.06.03.51") >= 0;
+        }
+        else {
+            is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
+        }
+
     } else if (printer_type == "C12") {
         is_support_ai_monitoring = true;
         is_cloud_print_only = true;
         is_support_remote_tunnel = true;
         local_camera_proto       = 1;
+
+        if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
+            is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
+        }
+        else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+            is_support_mqtt_alive = ota_version->second.sw_ver.compare("00.06.03.51") >= 0;
+        }
+        else {
+            is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
+        }
     }
 }
 
@@ -4139,7 +4170,7 @@ void DeviceManager::set_agent(NetworkAgent* agent)
 void DeviceManager::check_pushing()
 {
     MachineObject* obj = this->get_selected_machine();
-    if (obj) {
+    if (obj && !obj->is_support_mqtt_alive) {
         std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
         auto internal = std::chrono::duration_cast<std::chrono::milliseconds>(start - obj->last_update_time);
         if (internal.count() > TIMEOUT_FOR_STRAT && internal.count() < 1000 * 60 * 60 * 300) {

@@ -607,7 +607,7 @@ public:
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     int upgrade_display_hold_count = 0;
     PrinterFirmwareType       firmware_type; // engineer|production
-    PrinterFirmwareType       lifecycle;
+    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMEARE_TYPE_UKNOWN };
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
@@ -720,6 +720,7 @@ public:
     bool is_support_ams_humidity {true};
     bool is_support_filament_edit_virtual_tray {true};
     bool is_cloud_print_only {false};
+    bool is_support_mqtt_alive {false};
 
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
