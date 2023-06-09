@@ -290,9 +290,10 @@ public:
     std::vector<bool>        GetStatus(unsigned int status);
 
 public:
+    wxScrolledWindow* m_scrollview_groups{ nullptr };
+    wxBoxSizer* m_scrollview_sizer{ nullptr };
     wxBoxSizer* m_main_sizer{ nullptr };
     wxWrapSizer* m_groups_sizer{ nullptr };
-
     MachineObject* m_obj{ nullptr };
 };
 

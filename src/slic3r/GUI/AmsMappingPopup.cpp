@@ -1197,9 +1197,21 @@ void AmsReplaceMaterialDialog::create()
     label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
     label_txt->Wrap(FromDIP(380));
 
+    m_scrollview_groups = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
+    m_scrollview_groups->SetScrollRate(5, 5);
+    //m_scrollview_groups->SetMinSize(wxSize(400, 400));
+    //m_scrollview_groups->SetMaxSize(wxSize(400, 400));
+    m_scrollview_sizer = new wxBoxSizer(wxVERTICAL);
+
     m_groups_sizer = new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
-    auto m_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_scrollview_sizer->Add( m_groups_sizer, 0, wxALIGN_CENTER, 0 );
+    m_scrollview_groups->SetSizer(m_scrollview_sizer);
+    m_scrollview_groups->Layout();
     
+
+
+    auto m_button_sizer = new wxBoxSizer(wxHORIZONTAL);
     StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
         std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
         std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
@@ -1213,28 +1225,14 @@ void AmsReplaceMaterialDialog::create()
 
 
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    /* auto m_button_add = new Button(this, _L("Add substitute relationship"));
-     m_button_add->SetBackgroundColor(btn_bg_green);
-     m_button_add->SetBorderColor(wxColour(0, 174, 66));
-     m_button_add->SetTextColor(wxColour(255, 255, 255));
-     m_button_add->SetSize(wxSize(-1, FromDIP(24)));
-     m_button_add->SetMinSize(wxSize(-1, FromDIP(24)));
-     m_button_add->SetCornerRadius(FromDIP(12));
-
-
-     m_button_add->Bind(wxEVT_BUTTON, [this](auto& e) {
-         EndModal(wxCLOSE);
-     });*/
-
     m_button_sizer->Add( 0, 0, 1, wxEXPAND, 0 );
-    //m_button_sizer->Add(m_button_add, 0, wxALIGN_CENTER, 0);
 
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(12));
     m_main_sizer->Add(label_title,0, wxLEFT, FromDIP(30));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(4));
     m_main_sizer->Add(label_txt,0, wxLEFT, FromDIP(30));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(16));
-    m_main_sizer->Add(m_groups_sizer,0, wxALIGN_CENTER, 0);
+    m_main_sizer->Add(m_scrollview_groups, 1, wxALIGN_CENTER, 0);
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
     m_main_sizer->Add(m_button_sizer,0,wxALIGN_CENTER, FromDIP(16));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
@@ -1305,13 +1303,26 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
          group_index++;
     }
 
+    if (m_obj->filam_bak.size() > 0) {
+        auto height = 0;
+        if (m_obj->filam_bak.size() > 6) {
+            height = FromDIP(550);
+        }
+        else {
+            height = FromDIP(200) * (std::ceil(m_obj->filam_bak.size() / 2.0));
+        }
+        m_scrollview_groups->SetMinSize(wxSize(FromDIP(400), height));
+        m_scrollview_groups->SetMaxSize(wxSize(FromDIP(400), height));
+    }
+   
+    m_scrollview_groups->Layout();
     Layout();
     Fit();
 }
 
 AmsRMGroup* AmsReplaceMaterialDialog::create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list)
 {
-    auto grp = new AmsRMGroup(this, group_info, material, gname);
+    auto grp = new AmsRMGroup(m_scrollview_groups, group_info, material, gname);
     return grp;
 }
 
@@ -1330,29 +1341,13 @@ void AmsReplaceMaterialDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 AmsRMGroup::AmsRMGroup(wxWindow* parent, std::map<std::string, wxColour> group_info, wxString mname, wxString group_index)
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
     m_group_info.clear();
     m_group_info = group_info;
     m_material_name = mname;
     m_group_index   = group_index;
-
-     
-     /*m_group_info["A1"] = wxColour(255,0,255);
-     m_group_info["A2"] = wxColour(255,215,0);
-     m_group_info["A3"] = wxColour(0,191,255);
-     m_group_info["A4"] = wxColour(255,255,255);
-     m_group_info["A4"] = wxColour(218,165,32);
-     m_group_info["B1"] = wxColour(220, 20, 60);
-     m_group_info["B2"] = wxColour(255, 215, 0);
-     m_group_info["B3"] = wxColour(0, 191, 255);
-     m_group_info["B4"] = wxColour(218, 165, 32);
-     m_group_info["C1"] = wxColour(220, 20, 60);
-     m_group_info["C2"] = wxColour(255, 215, 0);
-     m_group_info["C3"] = wxColour(0, 191, 255);
-     m_group_info["C4"] = wxColour(218, 165, 32);
-     m_group_info["D1"] = wxColour(220, 20, 60);
-     m_group_info["D2"] = wxColour(255, 215, 0);
-     m_group_info["D3"] = wxColour(0, 191, 255);*/
-
 
     wxWindow::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     SetSize(wxSize(FromDIP(166), FromDIP(166)));
@@ -1369,6 +1364,7 @@ AmsRMGroup::AmsRMGroup(wxWindow* parent, std::map<std::string, wxColour> group_i
 
     Bind(wxEVT_PAINT, &AmsRMGroup::paintEvent, this);
     Bind(wxEVT_LEFT_DOWN, &AmsRMGroup::on_mouse_move, this);
+    wxGetApp().UpdateDarkUI(this);
 }
 
 double AmsRMGroup::GetAngle(wxPoint pointA, wxPoint pointB)
@@ -1555,13 +1551,6 @@ void AmsRMGroup::doRender(wxDC& dc)
     dc.SetFont(Label::Body_13);
     text_size = dc.GetTextExtent(m_group_index);
     dc.DrawText(m_group_index, (size.x - text_size.x) / 2, (size.y - text_size.y) / 2 + FromDIP(10));
-
-    /* if (wxGetApp().dark_mode()) {
-         dc.DrawBitmap(bitmap_editable_light.bmp(), wxPoint((size.x - bitmap_editable_light.GetBmpSize().x) / 2, (size.y - bitmap_editable_light.GetBmpSize().y) / 2 + FromDIP(15)));
-     }
-     else {
-         dc.DrawBitmap(bitmap_editable.bmp(), wxPoint((size.x - bitmap_editable_light.GetBmpSize().x) / 2, (size.y - bitmap_editable_light.GetBmpSize().y) / 2 + FromDIP(15)));
-     }*/
 }
 
 }} // namespace Slic3r::GUI
