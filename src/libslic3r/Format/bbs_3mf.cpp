@@ -4101,7 +4101,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         ObjectMetadata::VolumeMetadata &volume = object->second.volumes[m_curr_config.volume_id];
 
         TextInfo text_info;
-        text_info.m_text         = bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR);
+        text_info.m_text      = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR));
         text_info.m_font_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR);
 
         text_info.m_curr_font_idx = bbs_get_attribute_value_int(attributes, num_attributes, FONT_INDEX_ATTR);
@@ -6826,7 +6826,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     void _add_text_info_to_archive(std::stringstream& stream, const TextInfo& text_info) {
         stream << "      <" << TEXT_INFO_TAG << " ";
 
-        stream << TEXT_ATTR << "=\"" << text_info.m_text << "\" ";
+        stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
         stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
 
         stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
