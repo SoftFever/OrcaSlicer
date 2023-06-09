@@ -8052,7 +8052,7 @@ void Plater::import_model_id(wxString download_info)
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
-        this->load_project(encode_path(target_path.string().c_str()), "<silence>");
+        this->load_project(encode_path(target_path.string().c_str()));
 
         /*BBS set project info after load project, project info is reset in load project */
         //p->project.project_model_id = model_id;
