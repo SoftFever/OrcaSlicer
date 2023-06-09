@@ -217,6 +217,7 @@ wxWindow* BitmapTextRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRec
     text_editor->SetInsertionPointEnd();
     text_editor->SelectAll();
     text_editor->SetBackgroundColour(parent->GetBackgroundColour());
+    text_editor->SetForegroundColour(parent->GetForegroundColour());
 
     return text_editor;
 }
