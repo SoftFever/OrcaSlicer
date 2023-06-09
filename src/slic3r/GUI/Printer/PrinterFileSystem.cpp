@@ -690,9 +690,9 @@ void PrinterFileSystem::UpdateFocusThumbnail()
                 const_cast<File &>(file).metadata.emplace("Weight", "...");
             }
             if (file.path.empty())
-                names.push_back({file.name, "", 0, 0, FF_THUMNAIL});
+                names.push_back({file.name, ""});
             else
-                paths.push_back({"", file.path});
+                paths.push_back({file.name, file.path});
             if (names.size() >= 5 || paths.size() >= 5)
                 break;
             if ((file.flags & FF_THUMNAIL_RETRY) != 0) {
@@ -770,8 +770,10 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
         } else { // ModelThumbnail, FinishThumbnail
             std::vector<std::string> fails;
             for (auto &file : *files) {
-                if ((file.flags & FF_THUMNAIL) != 0)
+                if ((file.flags & FF_THUMNAIL) == 0) {
                     fails.push_back(file.path);
+                    file.flags |= FF_THUMNAIL;
+                }
             }
             for (auto &path : fails) {
                 auto iter = std::find_if(m_file_list.begin(), m_file_list.end(), [&path](auto &f) { return f.path == path; });
@@ -840,11 +842,13 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
         },
         [this, files, type](int result, File const &file) {
             auto n    = file.name.find_last_of('.');
-            auto name = n == std::string::npos ? file.name : file.name.substr(0, n);
+            auto name  = n == std::string::npos ? file.name : file.name.substr(0, n) + ".mp4";
             n         = file.path.find_last_of('#');
             auto path = n == std::string::npos ? file.path : file.path.substr(0, n);
-            auto iter = path.empty() ? std::find_if(m_file_list.begin(), m_file_list.end(), [&name](auto &f) { return boost::algorithm::starts_with(f.name, name); }) :
+            auto iter = path.empty() ? std::find_if(m_file_list.begin(), m_file_list.end(), [&name](auto &f) { return f.name == name; }) :
                                        std::find_if(m_file_list.begin(), m_file_list.end(), [&path](auto &f) { return f.path == path; });
+            auto iter2 = path.empty() ? std::find_if(files->begin(), files->end(), [&name](auto &f) { return f.name == name; }) :
+                                        std::find_if(files->begin(), files->end(), [&path](auto &f) { return f.path == path; });
             if (iter != m_file_list.end()) {
                 if (type == ModelMetadata) {
                     iter->metadata = file.metadata;
@@ -853,9 +857,8 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                         iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
                     int index       = iter - m_file_list.begin();
                     SendChangedEvent(EVT_THUMBNAIL, index, file.name);
-                    auto iter = std::find_if(files->begin(), files->end(), [&path](auto &f) { return f.path == path; });
-                    if (iter != files->end())
-                        iter->metadata = file.metadata;
+                    if (iter2 != files->end())
+                        iter2->metadata = file.metadata;
                 } else {
                     iter->flags |= FF_THUMNAIL; // DOTO: retry on fail
                     if (file.thumbnail.IsOk()) {
@@ -865,6 +868,8 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                     }
                 }
             }
+            if (iter2 != files->end())
+                iter2->flags |= FF_THUMNAIL; // have received response
             if (result != CONTINUE)
                 UpdateFocusThumbnail2(files, type == ModelMetadata ? ModelThumbnail : FinishThumbnail);
         });
@@ -968,9 +973,6 @@ boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callba
     std::ostringstream oss;
     oss << root;
     auto msg = oss.str();
-    //OutputDebugStringA(msg.c_str());
-    //OutputDebugStringA("\n");
-    wxLogInfo("PrinterFileSystem::SendRequest >>>: \n%s\n", wxString::FromUTF8(msg));
     boost::unique_lock l(m_mutex);
     m_messages.push_back(msg);
     m_callbacks.push_back(callback);
@@ -1040,6 +1042,9 @@ void PrinterFileSystem::RecvMessageThread()
         }
         if (!m_messages.empty()) {
             auto & msg = m_messages.front();
+            // OutputDebugStringA(msg.c_str());
+            // OutputDebugStringA("\n");
+            wxLogInfo("PrinterFileSystem::SendRequest >>>: \n%s\n", wxString::FromUTF8(msg));
             l.unlock();
             int n = Bambu_SendMessage(m_session.tunnel, CTRL_TYPE, msg.c_str(), msg.length());
             l.lock();
