@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-08 19:43+0800\n"
+"POT-Creation-Date: 2023-06-09 15:26+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5112,13 +5112,13 @@ msgid "Would you like to log in this printer with current account?"
 msgstr "你想使用当前账号登录这台打印机吗?"
 
 msgid "Check the reason"
-msgstr ""
+msgstr "查看原因"
 
 msgid "Read and accept"
-msgstr ""
+msgstr "我已阅读并接受"
 
 msgid "Terms and Conditions"
-msgstr ""
+msgstr "用户使用协议"
 
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
@@ -5127,18 +5127,19 @@ msgid ""
 "Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
+"感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您的Bambu Lab设备即表示您同意遵守隐私政策以及使用条款（统称为“条款”）。如果您不符合或不同意Bambu Lab隐私政策，请不要使用Bambu Lab设备和服务。"
 
 msgid "and"
-msgstr ""
+msgstr "和"
 
 msgid "Privacy Policy"
-msgstr ""
+msgstr "隐私协议"
 
 msgid "We ask for your help to improve everyone's printer"
-msgstr ""
+msgstr "我们请求您的帮助来改善大家的打印机"
 
 msgid "Statement about User Experience Improvement Program"
-msgstr ""
+msgstr "关于用户体验改善计划的声明"
 
 #, c-format, boost-format
 msgid ""
@@ -5154,9 +5155,10 @@ msgid ""
 "payment information, or phone numbers. By enabling this service, you agree "
 "to these terms and the statement about Privacy Policy."
 msgstr ""
+"在3D打印社区，我们从彼此的成功和失败中学习调整自己的切片参数和设置。%s遵循同样的原则，通过机器学习的方式从大量用户打印的成功和失败中获取经验，从而改善打印性能。我们正在通过向%s提供真实世界的数据来训练他们变得更聪明。如果您愿意，此服务将访问您的错误日志和使用日志中的信息，其中可能包括隐私政策中描述的信息。我们不会收集任何可以直接或间接识别个人的个人数据，包括但不限于姓名、地址、支付信息或电话号码。启用此服务即表示您同意这些条款和有关隐私政策的声明。"
 
 msgid "Statement on User Experience Improvement Plan"
-msgstr ""
+msgstr "关于用户体验改善计划的声明"
 
 msgid "Log in successful."
 msgstr "登录成功。"
