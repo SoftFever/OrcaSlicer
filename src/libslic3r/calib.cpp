@@ -110,7 +110,7 @@ std::string CalibPressureAdvance::draw_digit(
         gap_p0_toward_p3 = p0 - Vec2d(0, gap);
         gap_p2_toward_p3 = p2 - Vec2d(gap, 0);
 
-        dot_direction = Vec2d(0, -len / 2);
+        dot_direction = Vec2d(0, len / 2);
     }
 
     switch (c) {
