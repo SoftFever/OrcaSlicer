@@ -78,13 +78,13 @@ std::string CalibPressureAdvance::draw_digit(
         //  |       |       |
         //  0-------3-------4
         p0 = Vec2d(startx, starty);
-        p0_5 = Vec2d(startx, starty - len / 2);
-        p1 = Vec2d(startx, starty - len);
-        p2 = Vec2d(startx + len, starty - len);
+        p0_5 = Vec2d(startx, starty + len / 2);
+        p1 = Vec2d(startx, starty + len);
+        p2 = Vec2d(startx + len, starty + len);
         p3 = Vec2d(startx + len, starty);
         p4 = Vec2d(startx + len * 2, starty);
-        p4_5 = Vec2d(startx + len * 2, starty - len / 2);
-        p5 = Vec2d(startx + len * 2, starty - len);
+        p4_5 = Vec2d(startx + len * 2, starty + len / 2);
+        p5 = Vec2d(startx + len * 2, starty + len);
 
         gap_p0_toward_p3 = p0 + Vec2d(gap, 0);
         gap_p2_toward_p3 = p2 + Vec2d(0, gap);
