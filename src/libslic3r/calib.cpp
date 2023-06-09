@@ -5,8 +5,6 @@
 #include <map>
 
 namespace Slic3r {
-Calib_Params::Calib_Params() : mode(CalibMode::Calib_None) { }
-
 CalibPressureAdvance::CalibPressureAdvance(GCode* gcodegen) :
     mp_gcodegen(gcodegen),
     m_draw_digit_mode(DrawDigitMode::Left_To_Right),

@@ -20,7 +20,7 @@ enum class CalibMode : int {
 
 struct Calib_Params
 {
-    Calib_Params();
+    Calib_Params() : mode(CalibMode::Calib_None) { };
     double start, end, step;
     bool print_numbers;
     CalibMode mode;
