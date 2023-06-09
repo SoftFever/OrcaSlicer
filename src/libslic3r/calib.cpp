@@ -194,9 +194,16 @@ std::string CalibPressureAdvance::draw_number(double startx, double starty, doub
     gcode << mp_gcodegen->writer().set_speed(3600);
 
     for (std::string::size_type i = 0; i < sNumber.length(); ++i) {
-        if (i > m_max_number_length)
+        if (i > m_max_number_length) {
             break;
-        gcode << draw_digit(startx + i * m_number_spacing, starty, sNumber[i], mode);
+        }
+        switch (mode) {
+            case DrawDigitMode::Bottom_To_Top:
+                gcode << draw_digit(startx, starty + i * m_number_spacing, sNumber[i], mode);
+                break;
+            default:
+                gcode << draw_digit(startx + i * m_number_spacing, starty, sNumber[i], mode);
+        }
     }
 
     return gcode.str();
