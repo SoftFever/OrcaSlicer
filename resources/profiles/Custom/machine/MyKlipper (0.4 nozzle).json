@@ -5,7 +5,7 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
-  "printer_model": "Generaic Klipper Printer",
+  "printer_model": "Generic Klipper Printer",
     "default_print_profile": "0.20mm Standard @MyKlipper (0.4 nozzle)",
   "nozzle_diameter": [
     "0.4"
