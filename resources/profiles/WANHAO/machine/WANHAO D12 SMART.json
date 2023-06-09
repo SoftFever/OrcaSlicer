@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "WANHAO D12 SMART",
+    "model_id": "WANHAO_D12_SMART",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "WANHAO",
+    "bed_model": "",
+    "bed_texture": "wanhao_d12_smart_buildplate_texture",
+    "hotend_model": "",
+    "default_materials": "WANHAO Generic ABS;WANHAO Generic PLA;WANHAO Generic PLA-CF;WANHAO Generic PETG;WANHAO Generic TPU;WANHAO Generic ASA;WANHAO Generic PC;WANHAO Generic PVA;WANHAO Generic PA;WANHAO Generic PA-CF"
+}

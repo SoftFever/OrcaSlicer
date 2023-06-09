@@ -1,0 +1,72 @@
+{
+    "type": "machine",
+    "setting_id": "GM003",
+    "name": "WANHAO D12 SMART 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_machine_common",
+    "printer_model": "WANHAO D12 SMART",
+    "default_print_profile": "0.20mm Standard @WANHAO D12 SMART",
+    "gcode_flavor": "klipper",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "bed_exclude_area": [
+      "0x0"
+    ],
+    "printable_area": [
+		"0x0",
+		"230x0",
+		"230x230",
+		"0x230"
+	],
+    "printable_height": "250",
+    "machine_end_gcode": "PRINT_END",
+    "machine_start_gcode": "M190 S[bed_temperature_initial_layer_single]\nM109 S[nozzle_temperature_initial_layer]\nPRINT_START",
+    "layer_change_gcode": "",
+    "scan_first_layer": "0",
+    "nozzle_type": "hardened_steel",
+    "auxiliary_fan": "0",
+	"machine_max_acceleration_extruding": [
+        "6000",
+        "20000"
+    ],
+    "machine_max_acceleration_x": [
+        "6000",
+        "20000"
+    ],
+    "machine_max_acceleration_y": [
+        "6000",
+        "20000"
+    ],
+    "machine_max_jerk_z": [
+        "3",
+        "0.4"
+    ],
+    "machine_max_speed_e": [
+        "30",
+        "25"
+    ],
+    "machine_max_speed_x": [
+        "300",
+        "200"
+    ],
+    "machine_max_speed_y": [
+        "300",
+        "200"
+    ],
+    "machine_max_speed_z": [
+        "20",
+        "12"
+    ],
+    "max_layer_height": [
+        "0.28"
+    ],
+	"retract_before_wipe": [
+        "0%"
+    ],
+    "z_hop_types": [
+        "Spiral Lift"
+    ]
+  }
+  

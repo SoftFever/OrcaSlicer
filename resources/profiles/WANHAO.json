@@ -1,0 +1,122 @@
+{
+    "name": "WANHAO",
+    "version": "01.06.00.02",
+    "force_update": "0",
+    "description": "WANHAO configurations",
+    "machine_model_list": [
+        {
+            "name": "WANHAO D15",
+            "sub_path": "machine/WANHAO D15.json"
+		},
+		{		
+			"name": "WANHAO D12 SMART",
+            "sub_path": "machine/WANHAO D12 SMART.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },		
+        {
+            "name": "0.20mm Standard @WANHAO D15",
+            "sub_path": "process/0.20mm Standard @WANHAO D15.json"
+        },
+		{
+            "name": "0.20mm Standard @WANHAO D12 SMART",
+            "sub_path": "process/0.20mm Standard @WANHAO D12 SMART.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "WANHAO Generic PLA",
+            "sub_path": "filament/WANHAO Generic PLA.json"
+        },
+        {
+            "name": "WANHAO Generic PLA-CF",
+            "sub_path": "filament/WANHAO Generic PLA-CF.json"
+        },
+        {
+            "name": "WANHAO Generic PETG",
+            "sub_path": "filament/WANHAO Generic PETG.json"
+        },
+        {
+            "name": "WANHAO Generic ABS",
+            "sub_path": "filament/WANHAO Generic ABS.json"
+        },
+        {
+            "name": "WANHAO Generic TPU",
+            "sub_path": "filament/WANHAO Generic TPU.json"
+        },
+        {
+            "name": "WANHAO Generic ASA",
+            "sub_path": "filament/WANHAO Generic ASA.json"
+        },
+        {
+            "name": "WANHAO Generic PC",
+            "sub_path": "filament/WANHAO Generic PC.json"
+        },
+        {
+            "name": "WANHAO Generic PVA",
+            "sub_path": "filament/WANHAO Generic PVA.json"
+        },
+        {
+            "name": "WANHAO Generic PA",
+            "sub_path": "filament/WANHAO Generic PA.json"
+        },
+        {
+            "name": "WANHAO Generic PA-CF",
+            "sub_path": "filament/WANHAO Generic PA-CF.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "WANHAO D15 0.4 nozzle",
+            "sub_path": "machine/WANHAO D15 0.4 nozzle.json"
+        },
+		{
+            "name": "WANHAO D12 SMART 0.4 nozzle",
+            "sub_path": "machine/WANHAO D12 SMART 0.4 nozzle.json"
+        }
+    ]
+}

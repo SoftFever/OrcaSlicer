@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "WANHAO D15",
+    "model_id": "WANHAO_D15",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "WANHAO",
+    "bed_model": "wanhao_d15_buildplate_model.stl",
+    "bed_texture": "wanhao_d15_buildplate_texture.png",
+    "hotend_model": "",
+    "default_materials": "WANHAO Generic ABS;WANHAO Generic PLA;WANHAO Generic PLA-CF;WANHAO Generic PETG;WANHAO Generic TPU;WANHAO Generic ASA;WANHAO Generic PC;WANHAO Generic PVA;WANHAO Generic PA;WANHAO Generic PA-CF"
+}
