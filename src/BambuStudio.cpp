@@ -849,7 +849,7 @@ int CLI::run(int argc, char **argv)
             //use the original printer name in 3mf
             std::string system_printer_path = resources_dir() + "/profiles/BBL/machine_full/"+current_printer_system_name+".json";
             if (! boost::filesystem::exists(system_printer_path)) {
-                boost::nowide::cerr << __FUNCTION__<< ": can not find system preset file: " << system_printer_path << std::endl;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_printer_path;
                 //use original one
             }
             else {
@@ -870,7 +870,7 @@ int CLI::run(int argc, char **argv)
             //use the original printer name in 3mf
             std::string system_process_path = resources_dir() + "/profiles/BBL/process_full/"+current_process_system_name+".json";
             if (! boost::filesystem::exists(system_process_path)) {
-                boost::nowide::cerr << __FUNCTION__<< ": can not find system preset file: " << system_process_path << std::endl;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_process_path;
                 //use original one
             }
             else {
@@ -892,7 +892,7 @@ int CLI::run(int argc, char **argv)
                 std::string system_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+current_filaments_system_name[index]+".json";
                 current_index++;
                 if (! boost::filesystem::exists(system_filament_path)) {
-                    boost::nowide::cerr << __FUNCTION__<< ": can not find system preset file: " << system_filament_path << std::endl;
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_filament_path;
                     continue;
                 }
                 DynamicPrintConfig  config;
@@ -919,7 +919,7 @@ int CLI::run(int argc, char **argv)
             //use the original printer name in 3mf
             std::string system_printer_path = resources_dir() + "/profiles/BBL/machine_full/"+current_printer_system_name+".json";
             if (! boost::filesystem::exists(system_printer_path)) {
-                boost::nowide::cerr << __FUNCTION__<< ": can not find system preset file: " << system_printer_path << std::endl;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_printer_path;
                 //skip
             }
             else {
@@ -939,7 +939,7 @@ int CLI::run(int argc, char **argv)
             //use the original printer name in 3mf
             std::string system_process_path = resources_dir() + "/profiles/BBL/process_full/"+current_process_system_name+".json";
             if (! boost::filesystem::exists(system_process_path)) {
-                boost::nowide::cerr << __FUNCTION__<< ": can not find system preset file: " << system_process_path << std::endl;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_process_path;
                 //use original one
             }
             else {
@@ -954,9 +954,18 @@ int CLI::run(int argc, char **argv)
     }
 
     //upwards check
-    bool process_compatible = true, machine_upwards = false;
+    bool process_compatible = false, machine_upwards = false;
+    BOOST_LOG_TRIVIAL(info) << boost::format("current printer %1%, new printer %2%, current process %3%, new process %4%")%current_printer_name %new_printer_name %current_process_name %new_process_name;
+    for (int index = 0; index < current_print_compatible_printers.size(); index++) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("index %1%, current print compatible printer %2%")%index %current_print_compatible_printers[index];
+    }
+    for (int index = 0; index < new_print_compatible_printers.size(); index++) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("index %1%, new print compatible printer %2%")%index %new_print_compatible_printers[index];
+    }
+    for (int index = 0; index < upward_compatible_printers.size(); index++) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("index %1%, upward_compatible_printers %2%")%index %upward_compatible_printers[index];
+    }
     if (!new_printer_name.empty()) {
-        process_compatible = false;
         if (!new_process_name.empty()) {
             for (int index = 0; index < new_print_compatible_printers.size(); index++) {
                 if (new_print_compatible_printers[index] == new_printer_name) {
@@ -977,7 +986,6 @@ int CLI::run(int argc, char **argv)
         }
     }
     else if (!new_process_name.empty()) {
-        process_compatible = false;
         for (int index = 0; index < new_print_compatible_printers.size(); index++) {
             if (new_print_compatible_printers[index] == current_printer_name) {
                 process_compatible = true;
@@ -985,6 +993,21 @@ int CLI::run(int argc, char **argv)
             }
         }
         BOOST_LOG_TRIVIAL(info) << boost::format("old printer %1%, new process %2%, compatible %3%")%current_printer_name %new_process_name %process_compatible;
+    }
+    else {
+        //check the compatible of old printer&&process
+        for (int index = 0; index < current_print_compatible_printers.size(); index++) {
+            if (current_print_compatible_printers[index] == current_printer_name) {
+                process_compatible = true;
+                break;
+            }
+        }
+        if (!process_compatible && current_print_compatible_printers.empty())
+        {
+            BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf, no compatible printers, set to compatible");
+            process_compatible = true;
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("old printer %1%, old process %2%, compatible %3%")%current_printer_name %current_process_name %process_compatible;
     }
     if (!process_compatible && !new_printer_name.empty() && !current_printer_name.empty() && (new_printer_name != current_printer_name)) {
         if (upward_compatible_printers.size() > 0) {
