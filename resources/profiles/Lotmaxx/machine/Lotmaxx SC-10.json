@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Lotmaxx SC-10",
+    "model_id": "Lotmaxx-SC10",
+    "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
+    "machine_tech": "FFF",
+    "family": "Lotmaxx",
+    "bed_model": "lotmaxx_sc10_buildplate_model.stl",
+    "bed_texture": "lotmaxx_sc10_buildplate_texture.png",
+    "hotend_model": "",
+    "default_materials": "Lotmaxx Generic PLA;Lotmaxx Generic PETG;Lotmaxx Generic ABS"
+}

@@ -5,8 +5,8 @@
     "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Voron",
-    "bed_model": "",
-    "bed_texture": "voron_gen2_buildplate_texture.png",
+    "bed_model": "voron_24350_buildplate_model.stl",
+    "bed_texture": "voron_24350_buildplate_texture.png",
     "hotend_model": "",
     "default_materials": "Voron Generic ABS;Voron Generic PLA;Voron Generic PLA-CF;Voron Generic PETG;Voron Generic TPU;Voron Generic ASA;Voron Generic PC;Voron Generic PVA;Voron Generic PA;Voron Generic PA-CF"
 }

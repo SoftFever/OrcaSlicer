@@ -1,0 +1,163 @@
+{
+    "name": "Lotmaxx",
+    "url": "",
+    "version": "02.00.00.00",
+    "force_update": "0",
+    "description": "Lotmaxx configurations",
+    "machine_model_list": [
+        {
+            "name": "Lotmaxx SC-10",
+            "sub_path": "machine/Lotmaxx SC-10.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+		{
+            "name": "fdm_process_lotmaxx_common",
+            "sub_path": "process/fdm_process_lotmaxx_common.json"
+        },
+		{
+            "name": "0.12mm Fine @Lotmaxx SC10 (0.2 nozzle)",
+            "sub_path": "process/0.12mm Fine @Lotmaxx SC10 (0.2 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Lotmaxx SC10 (0.2 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Lotmaxx SC10 (0.2 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Lotmaxx SC10 (0.2 nozzle)",
+            "sub_path": "process/0.20mm Standard @Lotmaxx SC10 (0.2 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @Lotmaxx SC10 (0.2 nozzle)",
+            "sub_path": "process/0.24mm Draft @Lotmaxx SC10 (0.2 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Lotmaxx SC10 (0.4 nozzle)",
+            "sub_path": "process/0.12mm Fine @Lotmaxx SC10 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Lotmaxx SC10 (0.4 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Lotmaxx SC10 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Lotmaxx SC10 (0.4 nozzle)",
+            "sub_path": "process/0.20mm Standard @Lotmaxx SC10 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @Lotmaxx SC10 (0.4 nozzle)",
+            "sub_path": "process/0.24mm Draft @Lotmaxx SC10 (0.4 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Lotmaxx SC10 (0.5 nozzle)",
+            "sub_path": "process/0.12mm Fine @Lotmaxx SC10 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Lotmaxx SC10 (0.5 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Lotmaxx SC10 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Lotmaxx SC10 (0.5 nozzle)",
+            "sub_path": "process/0.20mm Standard @Lotmaxx SC10 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @Lotmaxx SC10 (0.5 nozzle)",
+            "sub_path": "process/0.24mm Draft @Lotmaxx SC10 (0.5 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Lotmaxx SC10 (0.6 nozzle)",
+            "sub_path": "process/0.12mm Fine @Lotmaxx SC10 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Lotmaxx SC10 (0.6 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Lotmaxx SC10 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Lotmaxx SC10 (0.6 nozzle)",
+            "sub_path": "process/0.20mm Standard @Lotmaxx SC10 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @Lotmaxx SC10 (0.6 nozzle)",
+            "sub_path": "process/0.24mm Draft @Lotmaxx SC10 (0.6 nozzle).json"
+        },
+		{
+            "name": "0.12mm Fine @Lotmaxx SC10 (0.8 nozzle)",
+            "sub_path": "process/0.12mm Fine @Lotmaxx SC10 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.15mm Optimal @Lotmaxx SC10 (0.8 nozzle)",
+            "sub_path": "process/0.15mm Optimal @Lotmaxx SC10 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.20mm Standard @Lotmaxx SC10 (0.8 nozzle)",
+            "sub_path": "process/0.20mm Standard @Lotmaxx SC10 (0.8 nozzle).json"
+        },
+		{
+            "name": "0.24mm Draft @Lotmaxx SC10 (0.8 nozzle)",
+            "sub_path": "process/0.24mm Draft @Lotmaxx SC10 (0.8 nozzle).json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "Lotmaxx Generic ABS",
+            "sub_path": "filament/Lotmaxx Generic ABS.json"
+        },
+        {
+            "name": "Lotmaxx Generic PETG",
+            "sub_path": "filament/Lotmaxx Generic PETG.json"
+        },
+        {
+            "name": "Lotmaxx Generic PLA",
+            "sub_path": "filament/Lotmaxx Generic PLA.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "fdm_lotmaxx_common",
+            "sub_path": "machine/fdm_lotmaxx_common.json"
+        },
+        {
+            "name": "Lotmaxx SC-10 (0.2 nozzle)",
+            "sub_path": "machine/Lotmaxx SC-10 (0.2 nozzle).json"
+        },
+        {
+            "name": "Lotmaxx SC-10 (0.4 nozzle)",
+            "sub_path": "machine/Lotmaxx SC-10 (0.4 nozzle).json"
+        },
+        {
+            "name": "Lotmaxx SC-10 (0.5 nozzle)",
+            "sub_path": "machine/Lotmaxx SC-10 (0.5 nozzle).json"
+        },
+        {
+            "name": "Lotmaxx SC-10 (0.6 nozzle)",
+            "sub_path": "machine/Lotmaxx SC-10 (0.6 nozzle).json"
+        },
+        {
+            "name": "Lotmaxx SC-10 (0.8 nozzle)",
+            "sub_path": "machine/Lotmaxx SC-10 (0.8 nozzle).json"
+        }
+    ]
+}

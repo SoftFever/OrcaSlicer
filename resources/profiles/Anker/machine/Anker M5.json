@@ -5,8 +5,8 @@
     "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Anker",
-    "bed_model": "",
-    "bed_texture": "",
+    "bed_model": "anker_m5_buildplate_model.stl",
+    "bed_texture": "anker_m5_buildplate_texture.png",
     "hotend_model": "",
     "default_materials": "Anker Generic ABS;Anker Generic PLA;Anker Generic PLA-CF;Anker Generic PETG;Anker Generic TPU;Anker Generic ASA;Anker Generic PC;Anker Generic PVA;Anker Generic PA;Anker Generic PA-CF"
 }

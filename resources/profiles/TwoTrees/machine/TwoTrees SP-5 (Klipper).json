@@ -5,7 +5,7 @@
     "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "TwoTrees",
-    "bed_model": "SP-twotrees_sp5_buildplate_model.stl",
+    "bed_model": "twotrees_sp5_buildplate_model.stl",
     "bed_texture": "twotrees_sp5_buildplate_texture.png",
     "hotend_model": "",
     "default_materials": "TwoTrees Generic ABS;TwoTrees Generic PLA;TwoTrees Generic PLA-CF;TwoTrees Generic PETG;TwoTrees Generic TPU;TwoTrees Generic ASA;TwoTrees Generic PC;TwoTrees Generic PVA;TwoTrees Generic PA;TwoTrees Generic PA-CF"

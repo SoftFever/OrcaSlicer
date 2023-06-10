@@ -5,7 +5,7 @@
     "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Tronxy",
-    "bed_model": "",
+    "bed_model": "tronxy_x5sa400_buildplate_model.stl",
     "bed_texture": "tronxy_x5sa400_buildplate_texture.png",
     "hotend_model": "",
     "default_materials": "Tronxy Generic ABS;Tronxy Generic PLA;Tronxy Generic PLA-CF;Tronxy Generic PETG;Tronxy Generic TPU;Tronxy Generic ASA;Tronxy Generic PC;Tronxy Generic PVA;Tronxy Generic PA;Tronxy Generic PA-CF"

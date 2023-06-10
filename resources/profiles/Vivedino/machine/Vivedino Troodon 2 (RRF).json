@@ -5,7 +5,7 @@
     "nozzle_diameter": "0.2;0.4;0.5;0.6;0.8",
     "machine_tech": "FFF",
     "family": "Vivedino",
-    "bed_model": "",
+    "bed_model": "vivedino_troodon2_buildplate_model.stl",
     "bed_texture": "vivedino_troodon2_buildplate_texture.png",
     "hotend_model": "",
     "default_materials": "Vivedino Generic ABS;Vivedino Generic PLA;Vivedino Generic PLA-CF;Vivedino Generic PETG;Vivedino Generic TPU;Vivedino Generic ASA;Vivedino Generic PC;Vivedino Generic PVA;Vivedino Generic PA;Vivedino Generic PA-CF"
