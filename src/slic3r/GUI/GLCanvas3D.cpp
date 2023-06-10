@@ -5804,6 +5804,8 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
         return;
 
     bool multisample = OpenGLManager::can_multisample();
+    if (for_picking)
+        multisample = false;
     //if (!multisample)
     //    glsafe(::glEnable(GL_MULTISAMPLE));
 
