@@ -2980,12 +2980,24 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
 
 std::string CLI::output_filepath(const ModelObject &object, unsigned int index, IO::ExportFormat format) const
 {
-    std::string ext, file_name, output_path;
+    std::string ext, subdir, file_name, output_path;
     switch (format) {
-        case IO::AMF: ext = ".zip.amf"; break;
-        case IO::OBJ: ext = ".obj"; break;
-        case IO::STL: ext = ".stl"; break;
-        case IO::TMF: ext = ".3mf"; break;
+        case IO::AMF:
+            ext = ".zip.amf";
+            subdir = "amf";
+            break;
+        case IO::OBJ:
+            ext = ".obj";
+            subdir = "obj";
+            break;
+        case IO::STL:
+            ext = ".stl";
+            subdir = "stl";
+            break;
+        case IO::TMF:
+            ext = ".3mf";
+            subdir = "3mf";
+            break;
         default: assert(false); break;
     };
     // use --outputdir when available
@@ -2998,11 +3010,14 @@ std::string CLI::output_filepath(const ModelObject &object, unsigned int index, 
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": file_name="<<file_name<< ", pos = "<<pos<<", ext_pos="<<ext_pos;
     std::string cmdline_param = m_config.opt_string("outputdir");
     if (! cmdline_param.empty()) {
-        output_path = cmdline_param + "/"+file_name;
+        subdir = cmdline_param + "/" + subdir;
     }
-    else
-        output_path = file_name;
 
+    output_path = subdir + "/"+file_name;
+
+    boost::filesystem::path subdir_path(subdir);
+    if (!boost::filesystem::exists(subdir_path))
+        boost::filesystem::create_directory(subdir_path);
     return output_path;
 }
 
