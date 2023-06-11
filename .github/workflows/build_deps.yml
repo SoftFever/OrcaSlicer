@@ -19,7 +19,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
           - os: windows-2019
           - os: macos-12
             arch: x86_64
@@ -63,7 +63,7 @@ jobs:
             ./build_release_macos.sh -d -a arm64
 
       - name: Build on Ubuntu
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-22.04'
         working-directory: ${{ github.workspace }}
         run: |
             sudo apt-get update
@@ -71,7 +71,7 @@ jobs:
             libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules pkgconf \
             libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev libwebkit2gtk-4.0-dev \
             libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
-            gstreamer1.0-plugins-bad libosmesa6-dev wget sudo
+            gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev
             mkdir -p ${{ github.workspace }}/deps/build
             mkdir -p ${{ github.workspace }}/deps/build/destdir
             sudo ./BuildLinux.sh -ur
