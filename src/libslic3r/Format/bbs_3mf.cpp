@@ -283,7 +283,7 @@ static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
 static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
 static constexpr const char* OUTSIDE_ATTR = "outside";
 static constexpr const char* SUPPORT_USED_ATTR = "support_used";
-
+static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
 
 static constexpr const char* OBJECT_TYPE = "object";
 static constexpr const char* VOLUME_TYPE = "volume";
@@ -1417,6 +1417,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->gcode_weight = it->second->gcode_weight;
             plate->toolpath_outside = it->second->toolpath_outside;
             plate->is_support_used = it->second->is_support_used;
+            plate->is_label_object_enabled = it->second->is_label_object_enabled;
             plate->slice_filaments_info = it->second->slice_filaments_info;
             plate->warnings = it->second->warnings;
             plate->thumbnail_file = it->second->thumbnail_file;
@@ -2048,6 +2049,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
             plate_data_list[it->first-1]->is_support_used = it->second->is_support_used;
+            plate_data_list[it->first-1]->is_label_object_enabled = it->second->is_label_object_enabled;
             plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
             plate_data_list[it->first-1]->warnings = it->second->warnings;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
@@ -3922,6 +3924,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_support_used;
+            }
+            else if (key == LABEL_OBJECT_ENABLED_ATTR)
+            {
+                if (m_curr_plater)
+                    std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
             }
         }
 
@@ -7208,6 +7215,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_USED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_support_used << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LABEL_OBJECT_ENABLED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_label_object_enabled << "\"/>\n";
 
                 for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
                 {

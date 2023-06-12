@@ -767,6 +767,8 @@ void GCodeProcessorResult::reset() {
     bed_exclude_area = Pointfs();
     //BBS: add toolpath_outside
     toolpath_outside = false;
+    //BBS: add label_object_enabled
+    label_object_enabled = false;
     printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -792,6 +794,8 @@ void GCodeProcessorResult::reset() {
     bed_exclude_area = Pointfs();
     //BBS: add toolpath_outside
     toolpath_outside = false;
+    //BBS: add label_object_enabled
+    label_object_enabled = false;
     printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;

@@ -82,6 +82,7 @@ struct PlateData
     bool            is_support_used {false};
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
+    bool            is_label_object_enabled {false};
 
     std::vector<GCodeProcessorResult::SliceWarning> warnings;
 

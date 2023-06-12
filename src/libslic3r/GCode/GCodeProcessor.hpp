@@ -177,6 +177,8 @@ namespace Slic3r {
         Pointfs bed_exclude_area;
         //BBS: add toolpath_outside
         bool toolpath_outside;
+        //BBS: add object_label_enabled
+        bool label_object_enabled;
         float printable_height;
         SettingsIds settings_ids;
         size_t extruders_count;
@@ -208,6 +210,7 @@ namespace Slic3r {
             printable_area = other.printable_area;
             bed_exclude_area = other.bed_exclude_area;
             toolpath_outside = other.toolpath_outside;
+            label_object_enabled = other.label_object_enabled;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
             extruders_count = other.extruders_count;

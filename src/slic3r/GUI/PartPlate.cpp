@@ -4583,6 +4583,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 					plate_data_item->gcode_prediction = std::to_string(
 						(int) m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
 					plate_data_item->toolpath_outside = m_plate_list[i]->m_gcode_result->toolpath_outside;
+					plate_data_item->is_label_object_enabled = m_plate_list[i]->m_gcode_result->label_object_enabled;
 					Print *print                      = nullptr;
 					m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
 					if (print) {
@@ -4631,8 +4632,8 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;
 		}
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, gcode_file %2%, is_sliced_valid %3%, toolpath_outside %4%, is_support_used %5%")
-			%i %plate_data_list[i]->gcode_file %plate_data_list[i]->is_sliced_valid %plate_data_list[i]->toolpath_outside %plate_data_list[i]->is_support_used;
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, gcode_file %2%, is_sliced_valid %3%, toolpath_outside %4%, is_support_used %5% is_label_object_enabled %6%")
+			%i %plate_data_list[i]->gcode_file %plate_data_list[i]->is_sliced_valid %plate_data_list[i]->toolpath_outside %plate_data_list[i]->is_support_used %plate_data_list[i]->is_label_object_enabled;
 		//load object and instance from 3mf
 		//just test for file correct or not, we will rebuild later
 		/*for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)
@@ -4653,6 +4654,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		}
 		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
+		gcode_result->label_object_enabled = plate_data_list[i]->is_label_object_enabled;
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
 		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
