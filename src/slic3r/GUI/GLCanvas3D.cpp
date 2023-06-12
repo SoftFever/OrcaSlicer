@@ -3370,10 +3370,6 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
                     //post_event(SimpleEvent(EVT_GLCANVAS_TAB));
                 }
-                else if (keyCode == WXK_TAB && evt.ShiftDown() && !evt.ControlDown() && ! wxGetApp().is_gcode_viewer()) {
-                    // Collapse side-panel with Shift+Tab
-                    post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
-                }
                 else if (keyCode == WXK_SHIFT) {
                     translationProcessor.process(evt);
 
@@ -3476,7 +3472,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
-                else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
+                else if (keyCode == WXK_TAB && evt.ShiftDown() && !evt.ControlDown() && !wxGetApp().is_gcode_viewer()) {
+                    // Collapse side-panel with Shift+Tab
+                    post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
+                } else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
                     auto _do_rotate = [this](double angle_z_rad) {
                         m_selection.start_dragging();
                         m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
