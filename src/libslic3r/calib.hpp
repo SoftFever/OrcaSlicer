@@ -28,11 +28,17 @@ struct Calib_Params
 
 class CalibPressureAdvance {
 protected:
+    CalibPressureAdvance() :
+        m_draw_digit_mode(DrawDigitMode::Left_To_Right),
+        m_digit_segment_len(2),
+        m_digit_gap_len(1),
+        m_max_number_len(5)
+        { };
     CalibPressureAdvance(GCode* gcodegen);
     ~CalibPressureAdvance() { };
 
     enum class DrawDigitMode {
-        Left_To_Right = 0,
+        Left_To_Right,
         Bottom_To_Top
     };
 
@@ -115,8 +121,14 @@ private:
 
 class CalibPressureAdvancePattern : public CalibPressureAdvance {
 public:
-    CalibPressureAdvancePattern(GCode* gcodegen) :
-        CalibPressureAdvance(gcodegen),
+    CalibPressureAdvancePattern(
+        DynamicPrintConfig* printer_config,
+        DynamicPrintConfig* print_config,
+        DynamicPrintConfig* filament_config
+    ) :
+        m_printer_config(printer_config),
+        m_print_config(print_config),
+        m_filament_config(filament_config),
 
         m_line_ratio(112.5),
         m_num_layers(4),
@@ -151,10 +163,12 @@ public:
         double step_pa = 0.005
     );
 
-    int& num_layers() { return m_num_layers; };
+    int num_layers() const { return m_num_layers; };
     std::vector<double> layer_z();
-    double& max_layer_z() { return m_max_layer_z; }
+    double max_layer_z() const { return m_max_layer_z; }
 
+    double first_layer_height() const { return m_height_first_layer; };
+    double layer_height() const { return m_layer_height; };
 private:
     struct PatternCalc {
         PatternCalc(
@@ -288,6 +302,10 @@ private:
     std::string draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args = DrawBoxOptArgs());
 
     std::vector<std::string> print_pa_pattern(PatternCalc& calc);
+
+    DynamicPrintConfig* m_printer_config;
+    DynamicPrintConfig* m_print_config;
+    DynamicPrintConfig* m_filament_config;
 
     double m_line_ratio;
     int m_num_layers;

@@ -1452,7 +1452,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
     if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
-        m_layer_count = CalibPressureAdvancePattern(this).num_layers();
+        // m_layer_count = CalibPressureAdvancePattern(this).num_layers();
     } else if (print.config().print_sequence == PrintSequence::ByObject) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
@@ -1871,7 +1871,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
     // SoftFever: calib
-    if (print.calib_params().mode == CalibMode::Calib_PA_Line || print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
+    if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
         if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
             gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
@@ -1884,7 +1884,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         auto params = print.calib_params();
 
-        if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
+        // if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
                 CalibPressureAdvanceLine pa_test(this);
 
                 double filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
@@ -1896,69 +1896,69 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 pa_test.draw_numbers() = print.calib_params().print_numbers;
                 
                 gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
-        } else if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
-                CalibPressureAdvancePattern pa_test(this);
-                std::vector<std::string> gcode_layers = pa_test.generate_test(params.start, params.end, params.step);
+        // } else if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
+        //         CalibPressureAdvancePattern pa_test(this);
+        //         std::vector<std::string> gcode_layers = pa_test.generate_test(params.start, params.end, params.step);
 
-                m_max_layer_z = pa_test.max_layer_z();
-                coordf_t print_z;
-                bool first_layer;
+        //         m_max_layer_z = pa_test.max_layer_z();
+        //         coordf_t print_z;
+        //         bool first_layer;
 
-                for (auto i = 0; i < gcode_layers.size(); ++i) {
-                    m_nominal_z = pa_test.layer_z()[i];
-                    print_z = m_nominal_z;
+        //         for (auto i = 0; i < gcode_layers.size(); ++i) {
+        //             m_nominal_z = pa_test.layer_z()[i];
+        //             print_z = m_nominal_z;
 
-                    first_layer = (i == 0);
-                    m_writer.set_is_first_layer(first_layer);
+        //             first_layer = (i == 0);
+        //             m_writer.set_is_first_layer(first_layer);
 
-                    // add tag for processor
-                    gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
-                    // export layer z
-                    char buf[64];
-                    sprintf(buf, print.is_BBL_printer() ? "; Z_HEIGHT: %g\n" : ";Z:%g\n", print_z);
-                    gcode += buf;
-                    // export layer height
-                    float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;
-                    sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), height);
-                    gcode += buf;
-                    // update caches
-                    m_last_layer_z = static_cast<float>(print_z);
-                    m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
-                    m_last_height = height;
+        //             // add tag for processor
+        //             gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
+        //             // export layer z
+        //             char buf[64];
+        //             sprintf(buf, print.is_BBL_printer() ? "; Z_HEIGHT: %g\n" : ";Z:%g\n", print_z);
+        //             gcode += buf;
+        //             // export layer height
+        //             float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;
+        //             sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), height);
+        //             gcode += buf;
+        //             // update caches
+        //             m_last_layer_z = static_cast<float>(print_z);
+        //             m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
+        //             m_last_height = height;
 
-                    if (! print.config().before_layer_change_gcode.value.empty()) {
-                        DynamicConfig config;
-                        config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index + 1));
-                        config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
-                        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-                        gcode += this->placeholder_parser_process(
-                            "before_layer_change_gcode",
-                            print.config().before_layer_change_gcode.value,
-                            m_writer.extruder()->id(),
-                            &config
-                        ) + "\n";
-                    }
+        //             if (! print.config().before_layer_change_gcode.value.empty()) {
+        //                 DynamicConfig config;
+        //                 config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index + 1));
+        //                 config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
+        //                 config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+        //                 gcode += this->placeholder_parser_process(
+        //                     "before_layer_change_gcode",
+        //                     print.config().before_layer_change_gcode.value,
+        //                     m_writer.extruder()->id(),
+        //                     &config
+        //                 ) + "\n";
+        //             }
                     
-                    gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
+        //             gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
 
-                    if (! print.config().layer_change_gcode.value.empty()) {
-                        DynamicConfig config;
-                        config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index));
-                        config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
+        //             if (! print.config().layer_change_gcode.value.empty()) {
+        //                 DynamicConfig config;
+        //                 config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index));
+        //                 config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
 
-                        gcode += this->placeholder_parser_process(
-                            "layer_change_gcode",
-                            print.config().layer_change_gcode.value,
-                            m_writer.extruder()->id(),
-                            &config
-                        ) + "\n";
+        //                 gcode += this->placeholder_parser_process(
+        //                     "layer_change_gcode",
+        //                     print.config().layer_change_gcode.value,
+        //                     m_writer.extruder()->id(),
+        //                     &config
+        //                 ) + "\n";
 
-                        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-                    }
+        //                 config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+        //             }
 
-                    gcode += gcode_layers[i];
-                }
-        }
+        //             gcode += gcode_layers[i];
+        //         }
+        // }
 
         file.write(gcode);
     } else {

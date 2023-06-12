@@ -318,7 +318,9 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
 
 std::vector<std::string> CalibPressureAdvancePattern::generate_test(double start_pa, double end_pa, double step_pa)
 {
-    BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
+    BoundingBoxf bed_ext = get_extents(
+        m_printer_config->opt<ConfigOptionPoints>("printable_area")->values
+    );
     
     if (is_delta()) {
         delta_scale_bed_ext(bed_ext);
@@ -369,8 +371,8 @@ std::vector<double> CalibPressureAdvancePattern::layer_z() {
 }
 
 CalibPressureAdvancePattern::PatternSettings::PatternSettings() {
-    GCode gc;
-    const CalibPressureAdvancePattern cpap(&gc);
+    DynamicPrintConfig a, b, c;
+    const CalibPressureAdvancePattern cpap(&a, &b, &c);
 
     anchor_line_width = cpap.line_width_anchor();
     anchor_perimeters = cpap.m_anchor_perimeters;
