@@ -235,7 +235,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
     } else if (!m_supported) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Not supported by this model of printer!"));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         fs->Attached();

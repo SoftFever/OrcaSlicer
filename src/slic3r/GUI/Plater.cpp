@@ -3705,16 +3705,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
     }
     // automatic selection of added objects
-    if (!obj_idxs.empty() && view3D != nullptr && load_config) {
+    if (!obj_idxs.empty() && view3D != nullptr) {
         // update printable state for new volumes on canvas3D
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 
-        Selection& selection = view3D->get_canvas3d()->get_selection();
-        selection.clear();
-        for (size_t idx : obj_idxs) {
-            selection.add_object((unsigned int)idx, false);
+        if (!load_config) {
+            Selection& selection = view3D->get_canvas3d()->get_selection();
+            selection.clear();
+            for (size_t idx : obj_idxs) {
+                selection.add_object((unsigned int)idx, false);
+            }
         }
-
         // BBS: update object list selection
         this->sidebar->obj_list()->update_selections();
 
