@@ -9474,7 +9474,7 @@ void Plater::export_gcode_3mf(bool export_all)
 
     //BBS replace gcode extension to .gcode.3mf
     default_output_file = default_output_file.replace_extension(".gcode.3mf");
-    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string(),true));
 
     //Get a last save path
     start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);

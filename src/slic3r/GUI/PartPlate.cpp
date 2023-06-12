@@ -1,6 +1,5 @@
 #include <cstddef>
 #include <algorithm>
-#include <regex>
 #include <numeric>
 #include <vector>
 #include <string>
@@ -1610,7 +1609,7 @@ void PartPlate::set_plate_name(const std::string &name)
     if (boost::equals(m_name, name)) return;
     m_name = name;
     
-    std::regex reg("[\\\\/:*?\"<>|]");
+    std::regex reg("[\\\\/:*?\"<>|\\0]");
     m_name= regex_replace(m_name, reg, "");
     m_name_change = true;
     if (m_plater) {
