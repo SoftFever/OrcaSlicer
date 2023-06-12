@@ -4942,7 +4942,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def = this->add("skip_objects", coStrings);
     def->label = L("Skip Objects");
     def->tooltip = L("Skip some objects in this print");
-    def->cli_params = "\"3;5;10;77\"";
+    def->cli_params = "\"3,5,10,77\"";
     def->set_default_value(new ConfigOptionInts());
 
     /*def = this->add("output", coString);

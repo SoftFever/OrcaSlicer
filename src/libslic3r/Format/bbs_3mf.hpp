@@ -78,6 +78,7 @@ struct PlateData
     std::string     gcode_weight;
     std::string     plate_name;
     std::vector<FilamentInfo> slice_filaments_info;
+    std::vector<size_t> skipped_objects;
     DynamicPrintConfig config;
     bool            is_support_used {false};
     bool            is_sliced_valid = false;

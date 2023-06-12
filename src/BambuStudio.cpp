@@ -423,7 +423,9 @@ int CLI::run(int argc, char **argv)
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
     const std::vector<std::string>              &load_filaments           = m_config.option<ConfigOptionStrings>("load_filaments", true)->values;
+    //skip model object logic
     const std::vector<int>                      &skip_objects             = m_config.option<ConfigOptionInts>("skip_objects", true)->values;
+    std::map<int, bool>     skip_maps;
     bool   need_skip      = (skip_objects.size() > 0)?true:false;
 
     if (start_gui) {
@@ -1810,6 +1812,8 @@ int CLI::run(int argc, char **argv)
     std::string outfile_dir = m_config.opt_string("outputdir");
     std::vector<ThumbnailData*> calibration_thumbnails;
     int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0;
+    std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
+    std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
             this->print_help();
@@ -1879,8 +1883,7 @@ int CLI::run(int argc, char **argv)
                 pre_check = false;
             bool finished = false;
 
-            //skip model object
-            std::map<int, bool> skip_maps;
+            //skip model object logic
             if (need_skip) {
                 BOOST_LOG_TRIVIAL(info) << boost::format("need to skip objects, size %1%:")%skip_objects.size();
                 for (int index = 0; index < skip_objects.size(); index++)
@@ -1974,6 +1977,8 @@ int CLI::run(int argc, char **argv)
                                         i->printable = false;
                                         if (i->print_volume_state == ModelInstancePVS_Inside) {
                                             skipped_count++;
+                                            plate_has_skips[index] = true;
+                                            plate_skipped_objects[index].emplace_back(i->loaded_id);
                                             BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: skip object %2%.")%(index+1)%i->loaded_id;
                                             //need to regenerate the thumbnail
                                             if (plate_data_src.size() > index) {
@@ -2247,6 +2252,8 @@ int CLI::run(int argc, char **argv)
             PlateData *plate_data = plate_data_list[i];
             bool skip_this_plate = ((plate_to_slice != 0) && (plate_to_slice != (i + 1)))?true:false;
 
+            plate_data->skipped_objects = plate_skipped_objects[i];
+
             for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
                 //it->filament_id = filament_id?filament_id->get_at(it->id):"unknown";
                 std::string display_filament_type;
@@ -2266,7 +2273,12 @@ int CLI::run(int argc, char **argv)
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s thumbnail file exists, no need to regenerate")%(i+1);
+                    if (regenerate_thumbnails) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s thumbnail file %2% cleared, need to regenerate")%(i+1) %plate_data->thumbnail_file;
+                        plate_data->thumbnail_file.clear();
+                    }
+                    else
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s thumbnail file exists, no need to regenerate")%(i+1);
                 }
             }
             else {
@@ -2292,7 +2304,13 @@ int CLI::run(int argc, char **argv)
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s top_thumbnail file exists, no need to regenerate")%(i+1);
+                    if (regenerate_thumbnails) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s top_thumbnail file %2% cleared, need to regenerate")%(i+1) %plate_data->top_file;
+                        plate_data->top_file.clear();
+                        plate_data->pick_file.clear();
+                    }
+                    else
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s top_thumbnail file exists, no need to regenerate")%(i+1);
                 }
             }
         }
@@ -2555,7 +2573,7 @@ int CLI::run(int argc, char **argv)
             glfwTerminate();
         }
         else {
-            BOOST_LOG_TRIVIAL(info) << boost::format("use previous thumbnails, no need to regenerate");
+            BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: use previous thumbnails, no need to regenerate")%__LINE__;
             for (int i = 0; i < partplate_list.get_plate_count(); i++) {
                 PlateData *plate_data = plate_data_list[i];
                 bool skip_this_plate = ((plate_to_slice != 0) && (plate_to_slice != (i + 1)))?true:false;
