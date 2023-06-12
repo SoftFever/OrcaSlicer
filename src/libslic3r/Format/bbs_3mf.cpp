@@ -6064,7 +6064,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool cb_cancel = false;
         std::vector<std::string> object_paths;
-        if (!m_skip_model) {
+        // if (!m_skip_model) {
             for (ModelObject* obj : model.objects) {
                 if (sub_model && obj != objects_data.begin()->second.object) continue;
 
@@ -6127,6 +6127,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     object_data.object_id = object_id;
                 }
 
+                if (m_skip_model) continue;
+
                 if (write_object) {
                     // Store geometry of all ModelVolumes contained in a single ModelObject into a single 3MF indexed triangle set object.
                     // object_it->second.volumes_objectID will contain the offsets of the ModelVolumes in that single indexed triangle set.
@@ -6151,7 +6153,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 if (!m_from_backup_save) object_id++;
             }
-        }
+        // }
 
         {
             std::stringstream stream;
