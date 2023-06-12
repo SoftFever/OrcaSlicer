@@ -8163,6 +8163,17 @@ void Plater::_prep_calib_pa_pattern(const Calib_Params& params) {
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+
+    CustomGCode::Item layer_1_gcode;
+    layer_1_gcode.print_z = 0.25;
+    layer_1_gcode.type = CustomGCode::Type::Custom;
+    layer_1_gcode.extra = "; Test custom layer 1";
+
+    CustomGCode::Info custom_info;
+    custom_info.mode = CustomGCode::Mode::SingleExtruder;
+    custom_info.gcodes = {layer_1_gcode};
+
+    model().plates_custom_gcodes[model().curr_plate_index] = custom_info;
 }
 
 void Plater::_prep_calib_pa_tower(const Calib_Params& params) {
