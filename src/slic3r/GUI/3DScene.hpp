@@ -702,7 +702,7 @@ public:
     bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state) const;
     void reset_outside_state();
 
-    void update_colors_by_extruder(const DynamicPrintConfig* config);
+    void update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha = true);
 
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
     std::vector<double> get_current_print_zs(bool active_only) const;

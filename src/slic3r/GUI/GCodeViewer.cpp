@@ -1217,7 +1217,7 @@ void GCodeViewer::refresh_render_paths()
 void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* config)
 {
     if (config != nullptr)
-        m_shells.volumes.update_colors_by_extruder(config);
+        m_shells.volumes.update_colors_by_extruder(config,false);
 }
 
 //BBS: always load shell at preview

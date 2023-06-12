@@ -1533,7 +1533,7 @@ void GLVolumeCollection::reset_outside_state()
     }
 }
 
-void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* config)
+void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha)
 {
     static const float inv_255 = 1.0f / 255.0f;
 
@@ -1603,7 +1603,13 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
         const Color& color = colors[extruder_id];
         if (!color.text.empty()) {
             for (int i = 0; i < 4; ++i) {
-                volume->color[i] = (float)color.rgba[i] * inv_255;
+                if (is_update_alpha == false) { 
+                    if (i < 3) { 
+                        volume->color[i] = (float) color.rgba[i] * inv_255;
+                    }
+                    continue;
+                }
+                volume->color[i] = (float) color.rgba[i] * inv_255;
             }
         }
     }
