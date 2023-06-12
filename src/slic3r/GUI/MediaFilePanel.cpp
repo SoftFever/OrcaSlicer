@@ -77,11 +77,11 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_type_panel->SetCornerRadius(FromDIP(5));
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
     m_button_timelapse = new ::Button(m_type_panel, _L("Timelapse"), "", wxBORDER_NONE);
-    m_button_timelapse->SetToolTip(L("Switch to timelapse files."));
+    m_button_timelapse->SetToolTip(_L("Switch to timelapse files."));
     m_button_video = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);
-    m_button_video->SetToolTip(L("Switch to video files."));
+    m_button_video->SetToolTip(_L("Switch to video files."));
     m_button_model = new ::Button(m_type_panel, _L("Model"), "", wxBORDER_NONE);
-    m_button_video->SetToolTip(L("Switch to 3mf model files."));
+    m_button_video->SetToolTip(_L("Switch to 3mf model files."));
     for (auto b : {m_button_timelapse, m_button_video, m_button_model}) {
         b->SetBackgroundColor(background);
         b->SetCanFocus(false);
@@ -99,11 +99,11 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_manage_panel->SetBackgroundColor(StateColor());
     m_button_delete     = new ::Button(m_manage_panel, _L("Delete"));
-    m_button_delete->SetToolTip(L("Delete selected files from printer."));
+    m_button_delete->SetToolTip(_L("Delete selected files from printer."));
     m_button_download = new ::Button(m_manage_panel, _L("Download"));
-    m_button_download->SetToolTip(L("Download selected files from printer."));
+    m_button_download->SetToolTip(_L("Download selected files from printer."));
     m_button_management = new ::Button(m_manage_panel, _L("Select"));
-    m_button_management->SetToolTip(L("Batch manage files."));
+    m_button_management->SetToolTip(_L("Batch manage files."));
     for (auto b : {m_button_delete, m_button_download, m_button_management}) {
         b->SetFont(Label::Body_12);
         b->SetCornerRadius(12);
@@ -277,7 +277,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
             case PrinterFileSystem::ListReady: icon = extra == 0 ? m_bmp_empty : m_bmp_failed; msg = extra == 0 ? _L("No files [%d]") : _L("Load failed [%d]"); break;
             }
-            if (!e.GetString().IsEmpty()) msg = e.GetString();
+            if (!e.GetString().IsEmpty()) msg = _L(e.GetString());
             if (fs->GetCount() == 0 && !msg.empty())
                 m_image_grid->SetStatus(icon, msg);
             if (e.GetInt() == PrinterFileSystem::Initializing)
@@ -492,10 +492,12 @@ void MediaFilePanel::doAction(size_t index, int action)
                     dlg->Destroy();
                     if (result == PrinterFileSystem::ERROR_CANCEL)
                         return;
-                    if (result != 0)
+                    if (result != 0) {
                         MessageDialog(this, 
                             _L("Failed to fetching model infomations from printer."), 
                             _L("Error"), wxOK).ShowModal();
+                        return;
+                    }
                     Slic3r::DynamicPrintConfig config;
                     Slic3r::Model              model;
                     Slic3r::PlateDataPtrs      plate_data_list;
