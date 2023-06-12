@@ -3715,15 +3715,16 @@ void GUI_App::request_user_login(int online_login)
 void GUI_App::request_user_logout()
 {
     if (m_agent && m_agent->is_user_login()) {
+        // Update data first before showing dialogs
+        m_agent->user_logout();
+        m_agent->set_user_selected_machine("");
+        /* delete old user settings */
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
             _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
         using ab        = UnsavedChangesDialog::ActionButtons;
         wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ab::KEEP | ab::SAVE, &transfer_preset_changes);
 
-        m_agent->user_logout();
-        m_agent->set_user_selected_machine("");
-        /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({}, {});
         remove_user_presets();
