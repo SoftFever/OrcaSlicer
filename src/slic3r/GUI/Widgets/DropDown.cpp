@@ -478,7 +478,7 @@ void DropDown::sendDropDownEvent()
     wxCommandEvent event(wxEVT_COMBOBOX, GetId());
     event.SetEventObject(this);
     event.SetInt(hover_item);
-    event.SetString(GetValue());
+    event.SetString(texts[hover_item]);
     GetEventHandler()->ProcessEvent(event);
 }
 
