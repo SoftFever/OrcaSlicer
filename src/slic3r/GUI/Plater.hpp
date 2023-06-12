@@ -234,7 +234,8 @@ public:
 
     // SoftFever
     void calib_pa(const Calib_Params& params);
-    void _prep_calib_pa_pattern(const Calib_Params& params, DynamicPrintConfig* printer_config, DynamicPrintConfig* print_config, DynamicPrintConfig* filament_profile);
+    void _prep_calib_pa_pattern(const Calib_Params& params);
+    void _prep_calib_pa_tower(const Calib_Params& params);
     void calib_flowrate(int pass);
     void calib_temp(const Calib_Params& params);
     void calib_max_vol_speed(const Calib_Params& params);

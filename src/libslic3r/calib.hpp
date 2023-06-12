@@ -3,6 +3,7 @@
 
 #include <string>
 #include "Point.hpp"
+#include "PrintConfig.hpp"
 namespace Slic3r {
 
 class GCode;
@@ -270,7 +271,7 @@ private:
 
     void delta_modify_start(PatternCalc& pc);
 
-    double to_radians(double degrees) { return degrees * M_PI / 180; };
+    double to_radians(double degrees) const { return degrees * M_PI / 180; };
     double get_distance(double cur_x, double cur_y, double to_x, double to_y);
     
     double line_width() const { return m_nozzle_diameter * m_line_ratio / 100; };

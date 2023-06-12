@@ -8105,68 +8105,42 @@ void Plater::calib_pa(const Calib_Params& params) {
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
+    p->background_process.fff_print()->set_calib_params(params);
+
+    if (params.mode == CalibMode::Calib_PA_Line) {
+        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+        return;
+    } else if (params.mode == CalibMode::Calib_PA_Pattern) {
+        _prep_calib_pa_pattern(params);
+    } else {
+        _prep_calib_pa_tower(params);
+    }
+
+    // automatic selection of added objects
+    // update printable state for new volumes on canvas3D
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
+
+    Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    selection.clear();
+    selection.add_object(0, false);
+
+    // BBS: update object list selection
+    p->sidebar->obj_list()->update_selections();
+    selection.notify_instance_update(-1, -1);
+    if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
+        // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
+        p->view3D->get_canvas3d()->update_gizmos_on_off_state();
+}
+
+void Plater::_prep_calib_pa_pattern(const Calib_Params& params) {
+    add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+    orient();
+
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
-    if (params.mode == CalibMode::Calib_PA_Line) {
-        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
-    } else if (params.mode == CalibMode::Calib_PA_Pattern) {
-        _prep_calib_pa_pattern(params, printer_config, print_config, filament_config);
-    } else {
-        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
-
-        filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
-        print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
-        print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
-        print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
-        if(print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator")->value == PerimeterGeneratorType::Arachne)
-            print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
-        model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
-
-        changed_objects({ 0 });
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
-        wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
-        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
-        wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
-
-        auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
-        auto obj_bb = model().objects[0]->bounding_box();
-        if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
-            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
-        }
-    }
-
-    if (params.mode == CalibMode::Calib_PA_Pattern || params.mode == CalibMode::Calib_PA_Tower) {
-        // automatic selection of added objects
-        // update printable state for new volumes on canvas3D
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
-
-        Selection& selection = p->view3D->get_canvas3d()->get_selection();
-        selection.clear();
-        selection.add_object(0, false);
-
-        // BBS: update object list selection
-        p->sidebar->obj_list()->update_selections();
-        selection.notify_instance_update(-1, -1);
-        if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
-            // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
-            p->view3D->get_canvas3d()->update_gizmos_on_off_state();
-    }
-    p->background_process.fff_print()->set_calib_params(params);
-}
-
-void Plater::_prep_calib_pa_pattern(const Calib_Params& params, DynamicPrintConfig* printer_config, DynamicPrintConfig* print_config, DynamicPrintConfig* filament_config) {
-    add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
-    orient();
-
     CalibPressureAdvancePattern pa_pattern(printer_config, print_config, filament_config);
-
-    double first_layer_height = pa_pattern.first_layer_height();
-    double layer_height = pa_pattern.layer_height();
 
     auto new_height = pa_pattern.max_layer_z();
     for (auto i = 0; i < model().objects.size(); ++i) {
@@ -8179,8 +8153,8 @@ void Plater::_prep_calib_pa_pattern(const Calib_Params& params, DynamicPrintConf
         changed_object(i);
     }
 
-    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
-    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.layer_height()));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.first_layer_height()));
 
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -8189,6 +8163,36 @@ void Plater::_prep_calib_pa_pattern(const Calib_Params& params, DynamicPrintConf
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+}
+
+void Plater::_prep_calib_pa_tower(const Calib_Params& params) {
+    add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
+
+    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
+    print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+    if(print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator")->value == PerimeterGeneratorType::Arachne)
+        print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
+    model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+
+    changed_objects({ 0 });
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+
+    auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
+    auto obj_bb = model().objects[0]->bounding_box();
+    if (new_height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
+        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
 }
 
 void Plater::calib_flowrate(int pass) {
