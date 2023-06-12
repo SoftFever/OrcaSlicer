@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-09 15:26+0800\n"
+"POT-Creation-Date: 2023-06-12 12:41+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -504,7 +504,7 @@ msgid "Input text"
 msgstr "输入文本"
 
 msgid "Embeded"
-msgstr ""
+msgstr "嵌入的"
 
 msgid "Text Gap"
 msgstr "文字间距"
@@ -722,7 +722,7 @@ msgid "Choose files"
 msgstr "选择文件"
 
 msgid "New Folder"
-msgstr ""
+msgstr "新建文件夹"
 
 msgid "Open"
 msgstr "打开"
@@ -816,7 +816,7 @@ msgid "Show"
 msgstr "显示"
 
 msgid "Del"
-msgstr ""
+msgstr "删除"
 
 msgid "Delete the selected object"
 msgstr "删除所选对象"
@@ -1120,7 +1120,7 @@ msgid "Error!"
 msgstr "错误！"
 
 msgid "Failed to get the model data in the current file."
-msgstr ""
+msgstr "无法获取当前文件中的模型数据。"
 
 msgid "Generic"
 msgstr "通用"
@@ -1443,7 +1443,7 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "Ams filament backup"
-msgstr ""
+msgstr "AMS耗材丝备份"
 
 msgid "AMS not connected"
 msgstr "AMS未连接"
@@ -1494,16 +1494,16 @@ msgid "Pull back current filament"
 msgstr "抽回耗材丝"
 
 msgid "Push new filament into extruder"
-msgstr "送出新的耗材丝到挤出机"
+msgstr "送出耗材丝"
 
 msgid "Purge old filament"
 msgstr "冲刷旧耗材丝"
 
 msgid "Push new filament into the extruder"
-msgstr ""
+msgstr "将新的耗材丝推入挤出机"
 
 msgid "Grab new filament"
-msgstr ""
+msgstr "咬入耗材丝"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1625,16 +1625,16 @@ msgid "Failed to send the print job. Please try again."
 msgstr "无法发送打印任务，请重试。"
 
 msgid "Failed to upload file to ftp. Please try again."
-msgstr ""
+msgstr "上传文件至FTP失败，请重试。"
 
 msgid ""
 "Check the current status of the bambu server by clicking on the link above."
-msgstr ""
+msgstr "点击上方的链接检查Bambu服务器的当前状态。"
 
 msgid ""
 "The size of the print file is too large. Please adjust the file size and try "
 "again."
-msgstr ""
+msgstr "打印文件的大小过大，请调整文件大小后重试。"
 
 msgid "Print file not found, Please slice it again and send it for printing."
 msgstr "未找到打印文件，请重新切片后再发送打印。"
@@ -1642,7 +1642,7 @@ msgstr "未找到打印文件，请重新切片后再发送打印。"
 msgid ""
 "Failed to upload print file to FTP. Please check the network status and try "
 "again."
-msgstr ""
+msgstr "无法将打印文件上传至FTP。请检查网络状态并重试。"
 
 msgid "Sending print job over LAN"
 msgstr "正在通过局域网发送打印任务"
@@ -1680,7 +1680,7 @@ msgid "An SD card needs to be inserted before sending to printer."
 msgstr "需要插入SD卡后方可发送到打印机。"
 
 msgid "Choose SLA archive:"
-msgstr ""
+msgstr "选择SLA存档："
 
 msgid "Import file"
 msgstr "导入文件"
@@ -1695,21 +1695,22 @@ msgid "Import model only"
 msgstr "仅导入模型"
 
 msgid "Accurate"
-msgstr ""
+msgstr "精确的"
 
 msgid "Balanced"
-msgstr ""
+msgstr "均衡的"
 
 msgid "Quick"
-msgstr ""
+msgstr "快速的"
 
 msgid "Importing SLA archive"
-msgstr ""
+msgstr "导入SLA存档"
 
 msgid ""
 "The SLA archive doesn't contain any presets. Please activate some SLA "
 "printer preset first before importing that SLA archive."
-msgstr ""
+msgstr "SLA存档不包含任何预设。在导入该SLA存档之前，请先激活一些"
+"SLA打印机预设。"
 
 msgid "Importing canceled."
 msgstr "导入已取消。"
@@ -1720,10 +1721,10 @@ msgstr "导入完成。"
 msgid ""
 "The imported SLA archive did not contain any presets. The current SLA "
 "presets were used as fallback."
-msgstr ""
+msgstr "导入的SLA存档不包含任何预设。当前的SLA预设被用作备用选项。"
 
 msgid "You cannot load SLA project with a multi-part object on the bed"
-msgstr ""
+msgstr "您不能加载一个在床上有多个部件的SLA项目"
 
 msgid "Please check your object list before preset changing."
 msgstr "请在预设更改之前检查对象列表。"
@@ -1867,10 +1868,10 @@ msgid "You need to select the material type and color first."
 msgstr "您需要先选择材料类型和颜色。"
 
 msgid "Other Color"
-msgstr ""
+msgstr "其他颜色"
 
 msgid "Custom Color"
-msgstr ""
+msgstr "自定义颜色"
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量标定"
@@ -2018,18 +2019,18 @@ msgid "Print with filaments mounted on the back of the chassis"
 msgstr "采用挂载在机箱背部的材料打印"
 
 msgid "Filaments Auto refill"
-msgstr ""
+msgstr "耗材丝自动补给"
 
 msgid "Auto refill"
-msgstr ""
+msgstr "自动补给"
 
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
-msgstr ""
+msgstr "当前材料耗尽时，打印机将按照以下顺序继续打印。"
 
 msgid "Group"
-msgstr ""
+msgstr "组"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -2497,7 +2498,7 @@ msgid "Serious"
 msgstr "严重"
 
 msgid "Common"
-msgstr ""
+msgstr "普通"
 
 msgid "Update successful."
 msgstr "更新成功。"
@@ -3056,7 +3057,7 @@ msgid "Show Tip of the Day"
 msgstr "展示每日小贴士"
 
 msgid "Report issue"
-msgstr ""
+msgstr "报告问题"
 
 msgid "Check for Update"
 msgstr "检查新版本"
@@ -3404,7 +3405,7 @@ msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初始化失败（未找到打印机的局域网地址）！"
 
 msgid "Initialize failed (Not supported on the current printer version)!"
-msgstr ""
+msgstr "初始化失败（当前打印机的版本不支持）！"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3485,10 +3486,10 @@ msgid "Switch to video files."
 msgstr "切换到视频文件列表"
 
 msgid "Switch to 3mf model files."
-msgstr ""
+msgstr "切换到3MF模型文件。"
 
 msgid "Delete selected files from printer."
-msgstr "从打印机中输出选中的文件"
+msgstr "从打印机中删除选中的文件"
 
 msgid "Download"
 msgstr "下载"
@@ -3524,13 +3525,13 @@ msgstr "文件列表为空[%d]"
 
 #, c-format, boost-format
 msgid "Load failed [%d]"
-msgstr ""
+msgstr "加载失败 [%d]"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] ""
+msgstr[0] "您将从打印机中删除%u个文件。你确定要继续吗？"
 
 msgid "Delete files"
 msgstr "删除文件"
@@ -3543,13 +3544,18 @@ msgid "Delete file"
 msgstr "删除文件"
 
 msgid "Fetching model infomations ..."
-msgstr ""
+msgstr "正在获取模型信息..."
 
 msgid "Failed to fetching model infomations from printer."
-msgstr ""
+msgstr "无法从打印机获取模型信息。"
 
 msgid "Failed to parse model infomations."
-msgstr ""
+msgstr "解析模型信息失败。"
+
+msgid ""
+"The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
+"and export a new .gcode.3mf file."
+msgstr ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的.gcode.3mf文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3570,6 +3576,9 @@ msgstr "下载完成"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "下载中 %d%%..."
+
+msgid "Not supported on the current printer version."
+msgstr "当前打印机的版本不支持。"
 
 msgid "Speed:"
 msgstr "速度："
@@ -3617,7 +3626,7 @@ msgid "Layer: N/A"
 msgstr "层： N/A"
 
 msgid "Immediately score"
-msgstr ""
+msgstr "立即打分"
 
 msgid "Clear"
 msgstr "清除"
@@ -3698,7 +3707,7 @@ msgid "Please give a score for your favorite Bambu Market model."
 msgstr "请为您喜欢的 Bambu 商城模型打分。"
 
 msgid "Score"
-msgstr ""
+msgstr "打分"
 
 #, c-format, boost-format
 msgid "Layer: %d/%d"
@@ -3743,7 +3752,7 @@ msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
 
 msgid "Check cloud service status"
-msgstr ""
+msgstr "检查云服务状态"
 
 msgid "code"
 msgstr ""
@@ -3758,19 +3767,19 @@ msgid "HMS"
 msgstr ""
 
 msgid "Failed to connect to cloud service"
-msgstr ""
+msgstr "无法连接到云服务"
 
 msgid "Please click on the hyperlink above to view the cloud service status"
-msgstr ""
+msgstr "请点击上方的超链接以查看云服务状态"
 
 msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
 
 msgid "Connection to printer failed"
-msgstr ""
+msgstr "连接打印机失败"
 
 msgid "Please check the network connection of the printer and Studio."
-msgstr ""
+msgstr "请检查打印机和工作室的网络连接"
 
 msgid "Don't show again"
 msgstr "不再显示"
@@ -3887,7 +3896,7 @@ msgid "Export successfully."
 msgstr "发送成功."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "严重警告："
 
 msgid " (Repair)"
 msgstr "（修复）"
@@ -4070,7 +4079,8 @@ msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
 "Please update Bambu Studio or restart Bambu Studio to check if there is an "
 "update to system presets."
-msgstr ""
+msgstr "有一些未知或不兼容的填料映射到通用预设中。请更新Bambu Studio"
+"或重新启动Bambu Studio，以检查是否有系统预设的更新。"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4371,7 +4381,7 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
-msgstr ""
+msgstr "无法对模型网格执行布尔运算。只有正面部分将被导出。"
 
 msgid ""
 "Print By Object: \n"
@@ -4600,7 +4610,7 @@ msgid "Develop mode"
 msgstr "开发者模式"
 
 msgid "Skip AMS blacklist check"
-msgstr ""
+msgstr "跳过AMS黑名单检查"
 
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
@@ -4639,16 +4649,16 @@ msgid "Mouse wheel reverses when zooming"
 msgstr "缩放时鼠标滚轮反转"
 
 msgid "Enable SSL(MQTT)"
-msgstr ""
+msgstr "启用SSL（MQTT）"
 
 msgid "Enable SSL(FTP)"
-msgstr ""
+msgstr "启用SSL（FTP）"
 
 msgid "Internal developer mode"
 msgstr "内部开发者模式"
 
 msgid "Log Level"
-msgstr ""
+msgstr "日志级别"
 
 msgid "fatal"
 msgstr ""
@@ -4732,7 +4742,7 @@ msgid "Add/Remove printers"
 msgstr "添加/删除打印机"
 
 msgid "Incompatible"
-msgstr ""
+msgstr "不兼容的预设"
 
 msgid "Same as Global Print Sequence"
 msgstr "跟随全局打印顺序"
@@ -4744,7 +4754,7 @@ msgid "Plate name"
 msgstr "盘名称"
 
 msgid "Same as Global Plate Type"
-msgstr ""
+msgstr "跟随全局打印板类型"
 
 msgid "Same as Global Bed Type"
 msgstr "跟随全局打印板类型"
@@ -4927,7 +4937,7 @@ msgid "send completed"
 msgstr "发送完成"
 
 msgid "Error code"
-msgstr "错误码"
+msgstr "错误代码"
 
 msgid "Check the status of current system services"
 msgstr "请检查当前系统服务状态"
@@ -5127,7 +5137,9 @@ msgid ""
 "Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
-"感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您的Bambu Lab设备即表示您同意遵守隐私政策以及使用条款（统称为“条款”）。如果您不符合或不同意Bambu Lab隐私政策，请不要使用Bambu Lab设备和服务。"
+"感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
+"的Bambu Lab设备即表示您同意遵守隐私政策以及使用条款（统称为“条款”）。如果您不"
+"符合或不同意Bambu Lab隐私政策，请不要使用Bambu Lab设备和服务。"
 
 msgid "and"
 msgstr "和"
@@ -5155,7 +5167,12 @@ msgid ""
 "payment information, or phone numbers. By enabling this service, you agree "
 "to these terms and the statement about Privacy Policy."
 msgstr ""
-"在3D打印社区，我们从彼此的成功和失败中学习调整自己的切片参数和设置。%s遵循同样的原则，通过机器学习的方式从大量用户打印的成功和失败中获取经验，从而改善打印性能。我们正在通过向%s提供真实世界的数据来训练他们变得更聪明。如果您愿意，此服务将访问您的错误日志和使用日志中的信息，其中可能包括隐私政策中描述的信息。我们不会收集任何可以直接或间接识别个人的个人数据，包括但不限于姓名、地址、支付信息或电话号码。启用此服务即表示您同意这些条款和有关隐私政策的声明。"
+"在3D打印社区，我们从彼此的成功和失败中学习调整自己的切片参数和设置。%s遵循同"
+"样的原则，通过机器学习的方式从大量用户打印的成功和失败中获取经验，从而改善打"
+"印性能。我们正在通过向%s提供真实世界的数据来训练他们变得更聪明。如果您愿意，"
+"此服务将访问您的错误日志和使用日志中的信息，其中可能包括隐私政策中描述的信"
+"息。我们不会收集任何可以直接或间接识别个人的个人数据，包括但不限于姓名、地"
+"址、支付信息或电话号码。启用此服务即表示您同意这些条款和有关隐私政策的声明。"
 
 msgid "Statement on User Experience Improvement Plan"
 msgstr "关于用户体验改善计划的声明"
@@ -6741,7 +6758,7 @@ msgid "Compatible machine"
 msgstr "兼容的机器"
 
 msgid "upward compatible machine"
-msgstr ""
+msgstr "向上兼容的机器"
 
 msgid "Compatible machine condition"
 msgstr "兼容的机器的条件"
@@ -7320,7 +7337,7 @@ msgstr ""
 "自动合并若干层稀疏填充一起打印以可缩短时间。内外墙依然保持原始层高打印。"
 
 msgid "Length of sparse infill anchor"
-msgstr ""
+msgstr "稀疏填充铆线长度"
 
 msgid ""
 "Connect a sparse infill line to an internal perimeter with a short segment "
@@ -7332,7 +7349,11 @@ msgid ""
 "taken is limited to this parameter, but no longer than anchor_length_max. "
 "Set this parameter to zero to disable anchoring perimeters connected to a "
 "single infill line."
-msgstr ""
+msgstr "使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比"
+"(例如:15%)，则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线"
+"连接到一个短的轮廓线段上。如果找不到短于“填充锚点最大值”的轮廓线段，则"
+"填充线只在一侧连接到轮廓线段，并且所选取的轮廓线段的长度仅限于此参数，但"
+"不超过“锚点长度最大值”。将此参数设置为零以禁用连接到单个填充线的锚点轮廓。"
 
 msgid "0 (no open anchors)"
 msgstr "0 (无锚线)"
@@ -7341,7 +7362,7 @@ msgid "1000 (unlimited)"
 msgstr "1000（无限制）"
 
 msgid "Maximum length of sparse infill anchor"
-msgstr ""
+msgstr "稀疏填充铆线最大长度"
 
 msgid ""
 "Connect a sparse infill line to an internal perimeter with a short segment "
@@ -7352,7 +7373,11 @@ msgid ""
 "perimeter segment at just one side and the length of the perimeter segment "
 "taken is limited to infill_anchor, but no longer than this parameter. Set "
 "this parameter to zero to disable anchoring."
-msgstr ""
+msgstr "使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比"
+"(例如:15%)，则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线"
+"连接到一个短的轮廓线段上。如果找不到短于该参数的轮廓线段，则填充线只在一侧连接"
+"到轮廓线段，并且所选取的轮廓线段的长度仅限于“填充锚点”，但不超过此参数。"
+"将此参数设置为零以禁用锚点。"
 
 msgid "0 (not anchored)"
 msgstr "0（无）"
@@ -7594,12 +7619,12 @@ msgid "Diameter of nozzle"
 msgstr "喷嘴直径"
 
 msgid "Host Type"
-msgstr ""
+msgstr "主机类型"
 
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field must contain "
 "the kind of the host."
-msgstr ""
+msgstr "Slic3r可以将G-code文件上传到打印机主机。此字段必须包含主机类型。"
 
 msgid "Nozzle volume"
 msgstr "喷嘴内腔体积"
@@ -7608,7 +7633,7 @@ msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "从切刀位置到喷嘴尖端的内腔体积"
 
 msgid "Start end points"
-msgstr ""
+msgstr "起始终止点"
 
 msgid "The start and end points which is from cutter area to garbage can."
 msgstr ""
@@ -8444,10 +8469,10 @@ msgid "Load cached slicing data from directory"
 msgstr "从目录导入缓存的切片数据"
 
 msgid "Export STL"
-msgstr ""
+msgstr "导出STL文件"
 
 msgid "Export the objects as multiple STL."
-msgstr ""
+msgstr "将对象导出为多个STL文件"
 
 msgid "Slice"
 msgstr "切片"
@@ -8462,31 +8487,31 @@ msgid "UpToDate"
 msgstr ""
 
 msgid "Update the configs values of 3mf to latest."
-msgstr ""
+msgstr "将3mf的配置值更新为最新值。"
 
 msgid "mtcpp"
 msgstr ""
 
 msgid "max triangle count per plate for slicing."
-msgstr ""
+msgstr "切片时每个盘的最大三角形数。"
 
 msgid "mstpp"
 msgstr ""
 
 msgid "max slicing time per plate in seconds."
-msgstr ""
+msgstr "每个盘的最大切片时间（秒）。"
 
 msgid "No check"
-msgstr ""
+msgstr "不要检查"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "不要运行任何有效性检查，如gcode路径冲突检查。"
 
 msgid "Normative check"
-msgstr ""
+msgstr "规范性检查"
 
 msgid "Check the normative items."
-msgstr ""
+msgstr "检查规范性项目。"
 
 msgid "Output Model Info"
 msgstr "输出模型信息"
@@ -8501,10 +8526,10 @@ msgid "Export settings to a file."
 msgstr "导出配置到文件。"
 
 msgid "Send progress to pipe"
-msgstr ""
+msgstr "将进度发送到管道"
 
 msgid "Send progress to pipe."
-msgstr ""
+msgstr "将进度发送到管道。"
 
 msgid "Arrange Options"
 msgstr "摆放选项"

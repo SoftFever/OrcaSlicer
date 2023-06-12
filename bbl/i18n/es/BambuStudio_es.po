@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-09 15:26+0800\n"
+"POT-Creation-Date: 2023-06-12 12:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3681,6 +3681,11 @@ msgstr ""
 msgid "Failed to parse model infomations."
 msgstr ""
 
+msgid ""
+"The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
+"and export a new .gcode.3mf file."
+msgstr ""
+
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "El archivo '%s' se ha perdido. Por favor, descárguelo de nuevo."
@@ -3700,6 +3705,9 @@ msgstr "Descarga finalizada"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Descargando %d%%..."
+
+msgid "Not supported on the current printer version."
+msgstr ""
 
 msgid "Speed:"
 msgstr "Velocidad:"
