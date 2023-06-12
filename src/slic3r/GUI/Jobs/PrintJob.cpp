@@ -510,7 +510,7 @@ void PrintJob::on_check_ip_address_success(std::function<void()> func)
 
 void PrintJob::connect_to_local_mqtt()
 {
-    this->update_status(0, "1111111");
+    this->update_status(0, wxEmptyString);
 }
 
 

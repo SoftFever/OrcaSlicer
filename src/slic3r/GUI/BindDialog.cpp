@@ -42,7 +42,7 @@ wxString get_fail_reason(int code)
         return _L("Failed to parse login report reason"); 
     
     else if (code == BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED)
-        return _L("Failed to parse login report reason111");
+        return _L("Failed to parse login report reason");
 
     else if (code == BAMBU_NETWORK_ERR_BIND_RECEIVE_LOGIN_REPORT_TIMEOUT)
         return _L("Receive login report timeout");
