@@ -3772,18 +3772,17 @@ void SelectMachineDialog::set_default_from_sdcard()
     reset_ams_material();
 
     // basic info
-    auto       aprint_stats = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
-    wxString   time;
-    PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
-    if (plate) {
-        if (plate->get_slice_result()) { time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); }
+    try {
+        float float_time = std::stof(m_required_data_plate_data_list[m_print_plate_idx]->get_gcode_prediction_str());
+        double float_weight = std::stof(m_required_data_plate_data_list[m_print_plate_idx]->get_gcode_weight_str());
+        wxString   time;
+        time = wxString::Format("%s", short_time(get_time_dhms(float_time)));
+        char weight[64];
+        ::sprintf(weight, "  %.2f g", float_weight);
+        m_stext_time->SetLabel(time);
+        m_stext_weight->SetLabel(weight);
     }
-
-    char weight[64];
-    ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
-
-    m_stext_time->SetLabel(time);
-    m_stext_weight->SetLabel(weight);
+    catch (...) {}
 }
 
 void SelectMachineDialog::update_page_turn_state(bool show)
