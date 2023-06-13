@@ -284,8 +284,7 @@ static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
 static constexpr const char* OUTSIDE_ATTR = "outside";
 static constexpr const char* SUPPORT_USED_ATTR = "support_used";
 static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
-static constexpr const char* SKIPPED_OBJECT_ATTR = "skipped_object";
-static constexpr const char* SKIPPED_OBJECT_ID_TAG   = "id";
+static constexpr const char* SKIPPED_ATTR = "skipped";
 
 static constexpr const char* OBJECT_TYPE = "object";
 static constexpr const char* VOLUME_TYPE = "volume";
@@ -3934,10 +3933,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
             }
-            else if (key == SKIPPED_OBJECT_ATTR)
-            {
-                //currently not processed
-            }
         }
 
         return true;
@@ -5226,7 +5221,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, int export_plate_idx = -1, bool save_gcode = true, bool use_loaded_id = false);
         bool _add_cut_information_file_to_archive(mz_zip_archive &archive, Model &model);
-        bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
+        bool _add_slice_info_config_file_to_archive(mz_zip_archive &archive, const Model &model, PlateDataPtrs &plate_data_list, const ObjectToObjectDataMap &objects_data);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
         bool _add_auxiliary_dir_to_archive(mz_zip_archive &archive, const std::string &aux_dir, PackingTemporaryData &data);
@@ -5721,7 +5716,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         // Adds sliced info of plate file ("Metadata/slice_info.config")
         // This file contains all sliced info of all plates
-        if (!_add_slice_info_config_file_to_archive(archive, model, plate_data_list)) {
+        if (!_add_slice_info_config_file_to_archive(archive, model, plate_data_list, objects_data)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_slice_info_config_file_to_archive failed\n");
             return false;
         }
@@ -6881,6 +6876,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << CONFIG_TAG << ">\n";
 
+        if (!m_skip_model)
         for (const ObjectToObjectDataMap::value_type& obj_metadata : objects_data) {
             auto object_data = obj_metadata.second;
             const ModelObject *obj = object_data.object;
@@ -7088,6 +7084,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (save_gcode)
             _add_relationships_file_to_archive(archive, BBS_MODEL_CONFIG_RELS_FILE, gcode_paths, {"http://schemas.bambulab.com/package/2021/gcode"}, Slic3r::PackingTemporaryData(), export_plate_idx);
 
+        if (!m_skip_model) {
         //BBS: store assemble related info
         stream << "  <" << ASSEMBLE_TAG << ">\n";
         for (const ObjectToObjectDataMap::value_type& obj_metadata : objects_data) {
@@ -7118,6 +7115,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
         stream << "  </" << ASSEMBLE_TAG << ">\n";
+        }
 
         stream << "</" << CONFIG_TAG << ">\n";
 
@@ -7194,7 +7192,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list)
+    bool _BBS_3MF_Exporter::_add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data)
     {
         std::stringstream stream;
         // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
@@ -7225,9 +7223,33 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_USED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_support_used << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LABEL_OBJECT_ENABLED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_label_object_enabled << "\"/>\n";
 
-                for (auto it = plate_data->skipped_objects.begin(); it != plate_data->skipped_objects.end(); it++)
+                for (auto it = plate_data->objects_and_instances.begin(); it != plate_data->objects_and_instances.end(); it++)
                 {
-                    stream << "    <" << SKIPPED_OBJECT_ATTR << " " << SKIPPED_OBJECT_ID_TAG << "=\"" << std::to_string(*it) << "\" />\n";
+                        int obj_id = it->first;
+                        int inst_id = it->second;
+                        int identify_id = 0;
+                        ModelObject* obj = NULL;
+                        ModelInstance* inst = NULL;
+                        if (obj_id >= model.objects.size()) {
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid object id %1%\n")%obj_id;
+                            continue;
+                        }
+                        obj =  model.objects[obj_id];
+
+                        if (obj && (inst_id >= obj->instances.size())) {
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid instance id %1%\n")%inst_id;
+                            continue;
+                        }
+                        inst =  obj->instances[inst_id];
+                        if (m_use_loaded_id && (inst->loaded_id > 0))
+                            identify_id = inst->loaded_id;
+                        else
+                            identify_id = inst->id().id;
+                        bool skipped = std::find(plate_data->skipped_objects.begin(), plate_data->skipped_objects.end(), identify_id) !=
+                                       plate_data->skipped_objects.end();
+                        stream << "    <" << OBJECT_TAG << " " << IDENTIFYID_ATTR << "=\"" << std::to_string(identify_id) << "\" " << NAME_ATTR << "=\"" << xml_escape(obj->name)
+                               << "\" " << SKIPPED_ATTR << "=\"" << (skipped ? "true" : "false")
+                               << "\" />\n";
                 }
 
                 for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
