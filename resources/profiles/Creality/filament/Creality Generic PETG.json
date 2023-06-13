@@ -1,8 +1,8 @@
 {
     "type": "filament",
     "filament_id": "GFG99",
-    "setting_id": "GFSG99_CREALITY_00",
-    "name": "Generic PETG @Creality",
+    "setting_id": "GFSG99_Creality_00",
+    "name": "Creality Generic PETG",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
@@ -28,7 +28,7 @@
         "40"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "slow_down_layer_time": [
         "8"
@@ -42,7 +42,16 @@
     "filament_start_gcode": [
         "; filament start gcode\n"
     ],
-    "compatible_printers": [
-      "Creality Ender-3 V2 0.4 nozzle"
-    ]
+	"compatible_printers": [
+        "Creality CR-10 V2 0.4 nozzle",
+        "Creality CR-10 Max 0.4 nozzle",
+        "Creality Ender-3 V2 0.4 nozzle",
+        "Creality Ender-3 S1 0.4 nozzle",
+        "Creality Ender-3 S1 Pro 0.4 nozzle",
+        "Creality Ender-5 0.4 nozzle",
+        "Creality Ender-5 Plus 0.4 nozzle",
+        "Creality Ender-5S 0.4 nozzle",
+        "Creality Ender-5 S1 0.4 nozzle",
+        "Creality Ender-6 0.4 nozzle"
+	]
 }

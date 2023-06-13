@@ -1,6 +1,6 @@
 {
   "type": "process",
-  "setting_id": "GP_VORON_001",
+  "setting_id": "GP_PRUSA_001",
   "name": "0.20mm Standard @MK3S",
   "from": "system",
   "instantiation": "true",

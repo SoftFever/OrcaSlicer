@@ -1,6 +1,6 @@
 {
 	"type": "process",
-	"setting_id": "GP004",
+	"setting_id": "GP_Anycubic_011",
 	"name": "0.20mm Standard @Anycubic Vyper",
 	"from": "system",
 	"inherits": "fdm_process_common",

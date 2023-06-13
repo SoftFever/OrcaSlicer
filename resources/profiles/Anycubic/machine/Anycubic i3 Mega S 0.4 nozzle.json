@@ -1,6 +1,6 @@
 {
 	"type": "machine",
-	"setting_id": "GM001",
+	"setting_id": "GM_Anycubic_003",
 	"name": "Anycubic i3 Mega S 0.4 nozzle",
 	"from": "system",
 	"instantiation": "true",

@@ -1,6 +1,6 @@
 {
   "type": "process",
-  "setting_id": "GP_VORON_000",
+  "setting_id": "GP_PRUSA_000",
   "name": "0.20mm Standard @MINI",
   "from": "system",
   "instantiation": "true",

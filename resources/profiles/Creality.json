@@ -1,12 +1,48 @@
 {
     "name": "Creality",
-    "version": "01.06.00.00",
+    "version": "01.06.00.01",
     "force_update": "0",
     "description": "Creality configurations",
     "machine_model_list": [
         {
+            "name": "Creality CR-10 V2",
+            "sub_path": "machine/Creality CR-10 V2.json"
+        },
+        {
+            "name": "Creality CR-10 Max",
+            "sub_path": "machine/Creality CR-10 Max.json"
+        },
+        {
             "name": "Creality Ender-3 V2",
             "sub_path": "machine/Creality Ender-3 V2.json"
+        },
+        {
+            "name": "Creality Ender-3 S1",
+            "sub_path": "machine/Creality Ender-3 S1.json"
+        },
+        {
+            "name": "Creality Ender-3 S1 Pro",
+            "sub_path": "machine/Creality Ender-3 S1 Pro.json"
+        },
+        {
+            "name": "Creality Ender-5",
+            "sub_path": "machine/Creality Ender-5.json"
+        },
+        {
+            "name": "Creality Ender-5 Plus",
+            "sub_path": "machine/Creality Ender-5 Plus.json"
+        },
+        {
+            "name": "Creality Ender-5S",
+            "sub_path": "machine/Creality Ender-5S.json"
+        },
+        {
+            "name": "Creality Ender-5 S1",
+            "sub_path": "machine/Creality Ender-5 S1.json"
+        },
+        {
+            "name": "Creality Ender-6",
+            "sub_path": "machine/Creality Ender-6.json"
         }
     ],
     "process_list": [
@@ -19,20 +55,100 @@
             "sub_path": "process/fdm_process_creality_common.json"
         },
         {
-            "name": "0.12mm Fine @Creality",
-            "sub_path": "process/0.12mm Fine @Creality.json"
+            "name": "0.12mm Fine @Creality CR10Max",
+            "sub_path": "process/0.12mm Fine @Creality CR10Max.json"
         },
         {
-            "name": "0.15mm Optimal @Creality",
-            "sub_path": "process/0.15mm Optimal @Creality.json"
+            "name": "0.12mm Fine @Creality Ender3V2",
+            "sub_path": "process/0.12mm Fine @Creality Ender3V2.json"
         },
         {
-            "name": "0.20mm Standard @Creality",
-            "sub_path": "process/0.20mm Standard @Creality.json"
+            "name": "0.16mm Optimal @Creality CR10V2",
+            "sub_path": "process/0.16mm Optimal @Creality CR10V2.json"
         },
         {
-            "name": "0.24mm Draft @Creality",
-            "sub_path": "process/0.24mm Draft @Creality.json"
+            "name": "0.15mm Optimal @Creality CR10Max",
+            "sub_path": "process/0.15mm Optimal @Creality CR10Max.json"
+        },
+        {
+            "name": "0.15mm Optimal @Creality Ender3V2",
+            "sub_path": "process/0.15mm Optimal @Creality Ender3V2.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality Ender3S1",
+            "sub_path": "process/0.16mm Optimal @Creality Ender3S1.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality Ender3S1Pro",
+            "sub_path": "process/0.16mm Optimal @Creality Ender3S1Pro.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality Ender5",
+            "sub_path": "process/0.16mm Optimal @Creality Ender5.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality Ender5Plus",
+            "sub_path": "process/0.16mm Optimal @Creality Ender5Plus.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality Ender5S",
+            "sub_path": "process/0.16mm Optimal @Creality Ender5S.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality Ender5S1",
+            "sub_path": "process/0.16mm Optimal @Creality Ender5S1.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality Ender6",
+            "sub_path": "process/0.16mm Optimal @Creality Ender6.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality CR10V2",
+            "sub_path": "process/0.20mm Standard @Creality CR10V2.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality CR10Max",
+            "sub_path": "process/0.20mm Standard @Creality CR10Max.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender3V2",
+            "sub_path": "process/0.20mm Standard @Creality Ender3V2.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender3S1",
+            "sub_path": "process/0.20mm Standard @Creality Ender3S1.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender3S1Pro",
+            "sub_path": "process/0.20mm Standard @Creality Ender3S1Pro.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender5",
+            "sub_path": "process/0.20mm Standard @Creality Ender5.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender5Plus",
+            "sub_path": "process/0.20mm Standard @Creality Ender5Plus.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender5S",
+            "sub_path": "process/0.20mm Standard @Creality Ender5S.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender5S1",
+            "sub_path": "process/0.20mm Standard @Creality Ender5S1.json"
+        },
+        {
+            "name": "0.20mm Standard @Creality Ender6",
+            "sub_path": "process/0.20mm Standard @Creality Ender6.json"
+        },
+        {
+            "name": "0.24mm Draft @Creality CR10Max",
+            "sub_path": "process/0.24mm Draft @Creality CR10Max.json"
+        },
+        {
+            "name": "0.24mm Draft @Creality Ender3V2",
+            "sub_path": "process/0.24mm Draft @Creality Ender3V2.json"
         }
     ],
     "filament_list": [
@@ -53,16 +169,16 @@
             "sub_path": "filament/fdm_filament_abs.json"
         },
         {
-            "name": "Generic PLA @Creality",
-            "sub_path": "filament/Generic PLA @Creality.json"
+            "name": "Creality Generic PLA",
+            "sub_path": "filament/Creality Generic PLA.json"
         },
         {
-            "name": "Generic PETG @Creality",
-            "sub_path": "filament/Generic PETG @Creality.json"
+            "name": "Creality Generic PETG",
+            "sub_path": "filament/Creality Generic PETG.json"
         },
         {
-            "name": "Generic ABS @Creality",
-            "sub_path": "filament/Generic ABS @Creality.json"
+            "name": "Creality Generic ABS",
+            "sub_path": "filament/Creality Generic ABS.json"
         }
     ],
     "machine_list": [
@@ -75,8 +191,44 @@
             "sub_path": "machine/fdm_creality_common.json"
         },
         {
+            "name": "Creality CR-10 V2 0.4 nozzle",
+            "sub_path": "machine/Creality CR-10 V2 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality CR-10 Max 0.4 nozzle",
+            "sub_path": "machine/Creality CR-10 Max 0.4 nozzle.json"
+        },
+        {
             "name": "Creality Ender-3 V2 0.4 nozzle",
             "sub_path": "machine/Creality Ender-3 V2 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-3 S1 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-3 S1 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-3 S1 Pro 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-3 S1 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-5 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-5 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-5 Plus 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-5 Plus 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-5S 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-5S 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-5 S1 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-5 S1 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality Ender-6 0.4 nozzle",
+            "sub_path": "machine/Creality Ender-6 0.4 nozzle.json"
         }
     ]
 }

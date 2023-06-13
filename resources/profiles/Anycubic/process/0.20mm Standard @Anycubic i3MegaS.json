@@ -1,6 +1,6 @@
 {
 	"type": "process",
-	"setting_id": "GP004",
+	"setting_id": "GP_Anycubic_009",
 	"name": "0.20mm Standard @Anycubic i3MegaS",
 	"from": "system",
 	"inherits": "fdm_process_common",

@@ -1,6 +1,6 @@
 {
 	"type": "machine",
-	"setting_id": "GM001",
+	"setting_id": "GM_Anycubic_002",
 	"name": "Anycubic Chiron 0.4 nozzle",
 	"from": "system",
 	"instantiation": "true",

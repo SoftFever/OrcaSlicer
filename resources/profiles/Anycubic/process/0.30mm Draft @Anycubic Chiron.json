@@ -1,6 +1,6 @@
 {
 	"type": "process",
-	"setting_id": "GP004",
+	"setting_id": "GP_Anycubic_013",
 	"name": "0.30mm Draft @Anycubic Chiron",
 	"from": "system",
 	"inherits": "fdm_process_common",

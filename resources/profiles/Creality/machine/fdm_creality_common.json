@@ -102,7 +102,7 @@
     "2"
   ],
   "z_hop": [
-    "0"
+    "0.4"
   ],
   "retract_restart_extra": [
     "0"
@@ -126,7 +126,7 @@
   "default_filament_profile": [
     "Generic PLA @Creality"
   ],
-  "default_print_profile": "0.20mm Standard @Creality",
+  "default_print_profile": "0.20mm Standard @Creality Ender3V2",
   "bed_exclude_area": [
     "0x0"
   ],
