@@ -471,8 +471,9 @@ void PrintJob::process()
         }
         
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
-
     } else {
+        wxGetApp().plater()->record_slice_preset("print");
+
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
         if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {

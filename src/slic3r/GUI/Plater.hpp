@@ -339,6 +339,7 @@ public:
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void reslice();
+    void record_slice_preset(std::string action);
     void reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_hollowing(const ModelObject &object, bool postpone_error_messages = false);
     void reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages = false);

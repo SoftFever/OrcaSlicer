@@ -9434,10 +9434,8 @@ void Plater::export_gcode(bool prefer_removable)
             if (preset_bundle) {
                 j["Gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
             }
-
             NetworkAgent *agent = wxGetApp().getAgent();
-            if (agent) agent->track_event("printer_export_Gcode", j.dump());
-            
+            if (agent) agent->track_event("printer_export_gcode", j.dump());
         } catch (...) {}
 
     }
@@ -10069,17 +10067,23 @@ void Plater::reslice()
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, started slicing for plate %1%") % p->partplate_list.get_curr_plate_index();
 
+    record_slice_preset("slicing");
+}
+
+void Plater::record_slice_preset(std::string action)
+{
+    // record slice preset
     try
     {
         json j;
         auto printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset_with_vendor_profile().preset;
-        if (printer_preset.is_system) { 
+        if (printer_preset.is_system) {
             j["printer_preset_name"] = printer_preset.name;
-        } else {
+        }
+        else {
             j["printer_preset_name"] = printer_preset.config.opt_string("inherits");
         }
-
-        const t_config_enum_values *keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
+        const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
         if (keys_map) {
             for (auto item : *keys_map) {
                 if (item.second == wxGetApp().preset_bundle->project_config.opt_enum<BedType>("curr_bed_type")) {
@@ -10093,28 +10097,47 @@ void Plater::reslice()
             auto filament_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[i]);
             if (filament_preset->is_system) {
                 j["filament_preset_" + std::to_string(i)] = filament_preset->name;
-            } else {
+            }
+            else {
                 j["filament_preset_" + std::to_string(i)] = filament_preset->config.opt_string("inherits");
             }
-            
         }
 
-        auto print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
+        Preset& print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
         if (print_preset.is_system) {
-            j["print_preset"]  = print_preset.name;
-        } else {
-            j["print_preset"] = print_preset.config.opt_string("inherits");
+            j["process_preset"] = print_preset.name;
+        }
+        else {
+            j["process_preset"] = print_preset.config.opt_string("inherits");
+        }
+        j["support_type"] = ConfigOptionEnum<SupportType>::get_enum_names().at(print_preset.config.opt_enum<SupportType>("support_type"));
+        j["sparse_infill_pattern"] = ConfigOptionEnum<InfillPattern>::get_enum_names().at(print_preset.config.opt_enum<InfillPattern>("sparse_infill_pattern"));
+        j["sparse_infill_density"] = print_preset.config.opt<ConfigOptionPercent>("sparse_infill_density")->value;
+
+        j["brim_type"] = ConfigOptionEnum<BrimType>::get_enum_names().at(print_preset.config.opt_enum<BrimType>("brim_type"));
+        j["user_mode"] = wxGetApp().get_mode_str();
+
+        if (p->background_process.fff_print()) {
+            const DynamicPrintConfig& full_config = p->background_process.fff_print()->full_print_config();
+            json values = json::array();
+            if (full_config.has("different_settings_to_system")) {
+                std::vector<std::string> different_values = full_config.option<ConfigOptionStrings>("different_settings_to_system")->values;
+                for (auto& item : different_values) {
+                    values.push_back(item);
+                }
+            }
+            j["different_settings_to_system"] = values;
         }
 
-        NetworkAgent *agent = wxGetApp().getAgent();
-        if (agent) 
+        j["record_event"] = action;
+        NetworkAgent* agent = wxGetApp().getAgent();
+        if (agent)
             agent->track_event("slice_completed", j.dump());
     }
     catch (...)
     {
         return;
     }
-
 }
 
 //BBS: add project slicing related logic
@@ -10249,7 +10272,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
 
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
             if (preset_bundle) { 
-                j["Gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle); 
+                j["gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle); 
             }
 
             if (physical_printer_config) { 

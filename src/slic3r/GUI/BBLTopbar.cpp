@@ -382,6 +382,12 @@ void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
         return;
     }
 
+    // record
+    json j;
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    if (agent)
+        agent->track_event("enter_model_mall", j.dump());
+
     //no more check
     //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
 

@@ -1995,6 +1995,11 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
                 return;
             }
 
+            json j;
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent)
+                agent->track_event("enter_model_mall", j.dump());
+
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
             wxGetApp().open_publish_page_dialog();
         });

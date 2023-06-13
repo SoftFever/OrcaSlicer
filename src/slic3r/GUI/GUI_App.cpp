@@ -4115,9 +4115,16 @@ void GUI_App::check_track_enable()
         int major = 0, minor = 0, micro = 0;
         header_json["os"] = std::string(os_desc.ToUTF8());
         header_json["name"] = std::string(SLIC3R_APP_NAME);
+        header_json["uuid"] = app_config->get("slicer_uuid");
         if (m_agent) {
             m_agent->track_header(header_json.dump());
             m_agent->track_enable(true);
+        }
+        /* record studio start event */
+        json j;
+        j["user_mode"] = this->get_mode_str();
+        if (m_agent) {
+            m_agent->track_event("studio_launch", j.dump());
         }
     }
 }
@@ -5039,6 +5046,13 @@ ConfigOptionMode GUI_App::get_mode()
     return mode == "advanced" ? comAdvanced :
            mode == "simple" ? comSimple :
            mode == "develop" ? comDevelop : comSimple;
+}
+
+std::string GUI_App::get_mode_str()
+{
+    if (!app_config->has("user_mode"))
+        return "simple";
+    return app_config->get("user_mode");
 }
 
 void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)

@@ -464,6 +464,7 @@ public:
     Tab*            get_model_tab(bool part = false);
     Tab*            get_layer_tab();
     ConfigOptionMode get_mode();
+    std::string     get_mode_str();
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
     void            update_internal_development();
