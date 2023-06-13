@@ -12,9 +12,6 @@
     "hot_plate_temp" : [
         "60"
     ],
-    "textured_plate_temp" : [
-        "60"
-    ],
     "cool_plate_temp_initial_layer" : [
         "60"
     ],
@@ -22,9 +19,6 @@
         "60"
     ],
     "hot_plate_temp_initial_layer" : [
-        "60"
-    ],
-    "textured_plate_temp_initial_layer" : [
         "60"
     ],
     "overhang_fan_threshold": [
@@ -82,9 +76,6 @@
         "nil"
     ],
     "filament_z_hop": [
-        "nil"
-    ],
-    "filament_z_hop_types": [
         "nil"
     ],
     "filament_retract_restart_extra": [
