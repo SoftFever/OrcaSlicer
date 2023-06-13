@@ -1615,6 +1615,8 @@ void GLCanvas3D::enable_main_toolbar(bool enable)
 void GLCanvas3D::reset_select_plate_toolbar_selection() {
     if (m_sel_plate_toolbar.m_all_plates_stats_item)
         m_sel_plate_toolbar.m_all_plates_stats_item->selected = false;
+    if (wxGetApp().mainframe)
+        wxGetApp().mainframe->update_slice_print_status(MainFrame::eEventSliceUpdate, true, true);
 }
 
 void GLCanvas3D::enable_select_plate_toolbar(bool enable)

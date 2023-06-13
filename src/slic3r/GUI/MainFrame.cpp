@@ -1672,7 +1672,7 @@ bool MainFrame::get_enable_print_status()
 
     PartPlateList &part_plate_list = m_plater->get_partplate_list();
     PartPlate *current_plate = part_plate_list.get_curr_plate();
-
+    bool is_all_plates = wxGetApp().plater()->get_preview_canvas3D()->is_all_plates_selected();
     if (m_print_select == ePrintAll)
     {
         if (!part_plate_list.is_all_slice_results_ready_for_print())
@@ -1686,6 +1686,7 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eExportGcode)
     {
@@ -1693,6 +1694,7 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eSendGcode)
     {
@@ -1700,6 +1702,7 @@ bool MainFrame::get_enable_print_status()
             enable = false;
         if (!can_send_gcode())
             enable = false;
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eUploadGcode)
     {
@@ -1707,6 +1710,7 @@ bool MainFrame::get_enable_print_status()
             enable = false;
         if (!can_send_gcode())
             enable = false;
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eExportSlicedFile)
     {
@@ -1714,6 +1718,7 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
+        enable = enable && !is_all_plates;
 	}
 	else if (m_print_select == eSendToPrinter)
 	{
@@ -1721,6 +1726,7 @@ bool MainFrame::get_enable_print_status()
 		{
 			enable = false;
 		}
+        enable = enable && !is_all_plates;
 	}
     else if (m_print_select == eSendToPrinterAll)
     {

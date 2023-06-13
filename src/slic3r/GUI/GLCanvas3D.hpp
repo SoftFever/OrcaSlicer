@@ -724,6 +724,7 @@ public:
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
+    bool is_all_plates_selected() { return m_sel_plate_toolbar.m_all_plates_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item->selected; }
     const float get_scale() const;
 
     //BBS
