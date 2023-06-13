@@ -1358,6 +1358,8 @@ void IMSlider::render_add_menu()
                 for (int i = 0; i < extruder_num; i++) {
                     std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
                     ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                    if (rgba[3] == 0)
+                        icon_clr = 0;
                     if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr, false, true, &hovered)) add_code_as_tick(ToolChange, i + 1);
                     if (hovered) { show_tooltip(_u8L("Change filament at the beginning of this layer.")); }
                 }

@@ -1482,7 +1482,13 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
             float icon_pos_y = selectable_pos_y + (label_size.y + style.ItemSpacing.y - icon_size.y) / 2;
             float icon_pos_x = pos.x + window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f;
             ImVec2 icon_pos = ImVec2(icon_pos_x, icon_pos_y);
-            ImGui::RenderFrame(icon_pos, icon_pos + icon_size, icon_color);
+            if (icon_color != 0)
+                ImGui::RenderFrame(icon_pos, icon_pos + icon_size, icon_color);
+            else {
+                static ImTextureID transparent;
+                IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/transparent.svg", icon_size.x, icon_size.y, transparent);
+                window->DrawList->AddImage(transparent, icon_pos, icon_pos + icon_size, { 0,0 }, { 1,1 }, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
+            }
         }
 
         if (shortcut_w > 0.0f) {
