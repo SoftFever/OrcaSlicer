@@ -268,7 +268,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             area = "US";
         else
             area = "Others";*/
-
+        combobox->SetSelection(region_index);
         NetworkAgent* agent = wxGetApp().getAgent();
         AppConfig* config = GUI::wxGetApp().app_config;
         if (agent) {
