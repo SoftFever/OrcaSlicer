@@ -439,7 +439,7 @@ public:
 
     void set_default();
     void show_status(int status);
-
+    void set_print_finish_status(bool is_finish);
     void set_hold_count(int& count);
 
     void rescale_camera_icons();

@@ -3585,6 +3585,10 @@ void StatusPanel::show_status(int status)
     }
 }
 
+void StatusPanel::set_print_finish_status(bool is_finish) { 
+    m_print_finish = is_finish; 
+}
+
 void StatusPanel::set_hold_count(int& count)
 {
     if (obj) {
