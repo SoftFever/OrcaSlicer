@@ -758,6 +758,7 @@ static std::vector<std::string> s_Preset_print_options {
      "timelapse_type", "internal_bridge_support_thickness",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
      "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process",
+    "seam_gap", "wipe_speed",
      // calib
     "print_flow_ratio"
 };

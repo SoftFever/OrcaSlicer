@@ -2333,6 +2333,22 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SeamPosition>(spAligned));
 
+    def = this->add("seam_gap", coFloat);
+    def->label = L("Seam gap");
+    def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 0.15");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0.15));
+
+    def = this->add("wipe_speed", coPercent);
+    def->label = L("Wipe speed");
+    def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration." "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above." "The default value for this parameter is 80%");
+    def->sidetext = L("%");
+    def->min = 0.01;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionPercent(80));
+
     def = this->add("skirt_distance", coFloat);
     def->label = L("Skirt distance");
     def->tooltip = L("Distance from skirt to brim or object");
@@ -3161,7 +3177,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Classic"));
     def->enum_labels.push_back(L("Arachne"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
+    def->set_default_value(new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Arachne));
 
     def = this->add("wall_transition_length", coPercent);
     def->label = L("Wall transition length");

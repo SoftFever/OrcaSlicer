@@ -144,7 +144,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "chamber_temperature",
         "nozzle_hrc",
         "required_nozzle_HRC",
-        "upward_compatible_machine"
+        "upward_compatible_machine",
+        //SoftFever
+        "seam_gap",
+        "wipe_speed"
     };
 
     static std::unordered_set<std::string> steps_ignore;

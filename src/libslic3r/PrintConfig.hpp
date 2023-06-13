@@ -700,6 +700,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            min_bead_width))
     ((ConfigOptionBool,               only_one_wall_top))
     ((ConfigOptionBool,               only_one_wall_first_layer))
+    // SoftFever
+    ((ConfigOptionFloat,              seam_gap))
+    ((ConfigOptionPercent,            wipe_speed))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

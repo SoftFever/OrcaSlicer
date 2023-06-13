@@ -292,7 +292,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         /*  Reduce feedrate a bit; travel speed is often too high to move on existing material.
             Too fast = ripping of existing material; too slow = short wipe path, thus more blob.  */
-        double wipe_speed = gcodegen.writer().config.travel_speed.value * 0.8;
+        //softFever
+        double wipe_speed = gcodegen.writer().config.travel_speed.value * gcodegen.config().wipe_speed.value / 100;
 
         // get the retraction length
         double length = toolchange
@@ -3434,7 +3435,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case
     double clip_length = m_enable_loop_clipping ?
-        scale_(EXTRUDER_CONFIG(nozzle_diameter)) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER :
+        scale_(EXTRUDER_CONFIG(nozzle_diameter)) * m_config.seam_gap.value :
         0;
 
     // get paths
