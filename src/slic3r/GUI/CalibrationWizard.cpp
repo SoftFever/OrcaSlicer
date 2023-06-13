@@ -2782,7 +2782,7 @@ bool MaxVolumetricSpeedWizard::start_calibration(std::vector<int> tray_ids)
     std::string error_message;
     CalibUtils::calib_max_vol_speed(calib_info, error_message);
     if (!error_message.empty()) {
-        MessageDialog msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L(error_message), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
@@ -2960,7 +2960,7 @@ bool TemperatureWizard::start_calibration(std::vector<int> tray_ids)
     std::string error_message;
     CalibUtils::calib_temptue(calib_info, error_message);
     if (!error_message.empty()) {
-        MessageDialog msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L(error_message), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }

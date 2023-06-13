@@ -33,7 +33,7 @@ namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
     gcfMarlinLegacy, gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
-    gcfSmoothie, gcfNoExtrusion,
+    gcfSmoothie, gcfNoExtrusion, gcfKlipper
 };
 
 enum class FuzzySkinType {

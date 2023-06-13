@@ -198,6 +198,11 @@ public:
     // append full config to the given string
     static void append_full_config(const Print& print, std::string& str);
 
+    // BBS: detect lift type in needs_retraction
+    bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
+    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
+    std::string unretract() { return m_writer.unlift() + m_writer.unretract(); }
+
     // Object and support extrusions of the same PrintObject at the same print_z.
     // public, so that it could be accessed by free helper functions from GCode.cpp
     struct LayerToPrint
@@ -400,10 +405,7 @@ private:
     std::string     travel_to(const Point &point, ExtrusionRole role, std::string comment);
     // BBS
     LiftType to_lift_type(ZHopType z_hop_types);
-    // BBS: detect lift type in needs_retraction
-    bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
-    std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
-    std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
+
     std::string     set_extruder(unsigned int extruder_id, double print_z);
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
     std::set<ObjectID>              m_objSupportsWithBrim; // indicates the objs' supports with brim

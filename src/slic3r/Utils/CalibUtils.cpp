@@ -7,9 +7,6 @@
 
 #include "libslic3r/Model.hpp"
 
-// todo test
-#include "../GUI/BBLStatusBar.hpp"
-
 
 namespace Slic3r {
 namespace GUI {
@@ -64,6 +61,16 @@ static void read_model_from_file(const std::string& input_file, Model& model)
     model.add_default_instances();
     for (auto object : model.objects)
         object->ensure_on_bed();
+}
+
+std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3 &bbox, const double &cut_height)
+{
+    std::array<Vec3d, 4> plane_pts;
+    plane_pts[0] = Vec3d(bbox.min(0), bbox.min(1), cut_height);
+    plane_pts[1] = Vec3d(bbox.max(0), bbox.min(1), cut_height);
+    plane_pts[2] = Vec3d(bbox.max(0), bbox.max(1), cut_height);
+    plane_pts[3] = Vec3d(bbox.min(0), bbox.max(1), cut_height);
+    return plane_pts;
 }
 
 void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, std::string& error_message)
@@ -306,6 +313,33 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
     send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
 }
 
+void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &error_message)
+{
+    const Calib_Params &params = calib_info.params;
+    if (params.mode != CalibMode::Calib_PA_Line)
+        return;
+
+    Model model;
+    std::string input_file = Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl";
+    read_model_from_file(input_file, model);
+
+    DynamicPrintConfig print_config    = calib_info.print_prest->config;
+    DynamicPrintConfig filament_config = calib_info.filament_prest->config;
+    DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
+
+    DynamicPrintConfig full_config;
+    full_config.apply(FullPrintConfig::defaults());
+    full_config.apply(print_config);
+    full_config.apply(filament_config);
+    full_config.apply(printer_config);
+
+    process_and_store_3mf(&model, full_config, params, error_message);
+    if (!error_message.empty())
+        return;
+
+    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+}
+
 void CalibUtils::calib_temptue(const CalibInfo& calib_info, std::string& error_message)
 {
     const Calib_Params &params = calib_info.params;
@@ -509,6 +543,55 @@ void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_messa
     send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
 }
 
+void CalibUtils::calib_retraction(const CalibInfo &calib_info, std::string &error_message)
+{
+    const Calib_Params &params = calib_info.params;
+    if (params.mode != CalibMode::Calib_Retraction_tower)
+        return;
+
+    Model model;
+    std::string input_file = Slic3r::resources_dir() + "/calib/retraction/retraction_tower.stl";
+    read_model_from_file(input_file, model);
+
+    DynamicPrintConfig print_config    = calib_info.print_prest->config;
+    DynamicPrintConfig filament_config = calib_info.filament_prest->config;
+    DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
+
+    auto obj = model.objects[0];
+
+    double layer_height = 0.2;
+
+    auto max_lh = printer_config.option<ConfigOptionFloats>("max_layer_height");
+    if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
+
+    obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
+    obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(3));
+    obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    obj->config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
+    obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+
+    //  cut upper
+    auto obj_bb = obj->bounding_box();
+    auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
+    if (height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
+        cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    DynamicPrintConfig full_config;
+    full_config.apply(FullPrintConfig::defaults());
+    full_config.apply(print_config);
+    full_config.apply(filament_config);
+    full_config.apply(printer_config);
+
+    process_and_store_3mf(&model, full_config, params, error_message);
+    if (!error_message.empty())
+        return;
+
+    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+}
+
 void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message)
 {
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
@@ -544,7 +627,7 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     BuildVolume build_volume(bedfs, print_height);
     unsigned int count = model->update_print_volume_state(build_volume);
     if (count == 0) {
-        error_message = "Nothing to be sliced, either the print is empty or no object is fully inside the print volume before apply.";
+        error_message = "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small";
         return;
     }
 
