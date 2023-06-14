@@ -75,6 +75,10 @@ void ComboBox::SetSelection(int n)
     if (drop.selection >= 0)
         SetIcon(icons[drop.selection]);
 }
+void ComboBox::SelectAndNotify(int n) { 
+    SetSelection(n);
+    sendComboBoxEvent();
+}
 
 void ComboBox::Rescale()
 {

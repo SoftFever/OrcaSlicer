@@ -1026,17 +1026,39 @@ void Sidebar::update_all_preset_comboboxes()
 
     bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
 
+    auto p_mainframe = wxGetApp().mainframe;
+
+    p_mainframe->show_device(is_bbl_preset);
     if (is_bbl_preset) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        m_bed_type_list->SelectAndNotify(btPC - 1);
+        m_bed_type_list->Enable();
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        auto cfg = preset_bundle.printers.get_edited_preset().config;
+        wxString url;
+        if (cfg.has("print_host_webui") && !cfg.opt_string("print_host_webui").empty()) {
+            url = cfg.opt_string("print_host_webui");
+        } else {
+            url = cfg.opt_string("print_host");
+        }
+        if(!url.empty()) 
+        {
+            if(!url.Lower().starts_with("http"))
+                url = wxString::Format("http://%s",url);
+
+            p_mainframe->load_printer_url(url);
+        }
+
+        m_bed_type_list->SelectAndNotify(btPEI - 1);
+        m_bed_type_list->Disable();
     }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.

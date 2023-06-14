@@ -43,6 +43,8 @@ public:
 
     void SetSelection(int n) override;
 
+    void SelectAndNotify(int n);
+
     virtual void Rescale() override;
 
     wxString GetValue() const;

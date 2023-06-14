@@ -1552,6 +1552,9 @@ DynamicPrintConfig PresetBundle::full_config_secure() const
 {
     DynamicPrintConfig config = this->full_config();
     //BBS example: config.erase("print_host");
+    config.erase("print_host_webui");
+    config.erase("printhost_apikey");
+    config.erase("printhost_cafile");
     return config;
 }
 

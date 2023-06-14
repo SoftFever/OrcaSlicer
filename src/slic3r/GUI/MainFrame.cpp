@@ -83,6 +83,7 @@ wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
 
 enum class ERescaleTarget
 {
@@ -925,13 +926,32 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
         int old_sel = e.GetOldSelection();
         int new_sel = e.GetSelection();
-        if (new_sel == tpMonitor) {
+        if (wxGetApp().preset_bundle &&
+            wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
+            new_sel == tpMonitor) {
             if (!wxGetApp().getAgent()) {
                 e.Veto();
-                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins")%old_sel %new_sel;
+                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") %
+                    old_sel % new_sel;
                 if (m_plater) {
-                    wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
+                    wxCommandEvent* evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
                     wxQueueEvent(m_plater, evt);
+                }
+            }
+        }
+        else {
+            if (new_sel == tpMonitor && wxGetApp().preset_bundle != nullptr) {
+                auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+                wxString url;
+                if (cfg.has("print_host_webui") && !cfg.opt_string("print_host_webui").empty()) {
+                    url = cfg.opt_string("print_host_webui");
+                }
+                else {
+                    url = cfg.opt_string("print_host");
+                }
+                if (url.empty()) {
+                    wxString url = wxString::Format("file://%s/web/device/missing_connection.html", from_u8(resources_dir()));
+                    m_printer_view->load_url(url);
                 }
             }
         }
@@ -1017,6 +1037,14 @@ void MainFrame::init_tabpanel()
     m_monitor->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
 
+    m_printer_view = new PrinterWebView(m_tabpanel);
+    Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
+        wxString url = evt.GetString();
+        //select_tab(MainFrame::tpMonitor);
+        m_printer_view->load_url(url);
+    });
+    m_printer_view->Hide();
+
     m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_project->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
@@ -1038,6 +1066,36 @@ void MainFrame::init_tabpanel()
         }
     }
 }
+
+
+// SoftFever
+void MainFrame::show_device(bool bBBLPrinter) {
+  if (m_tabpanel->GetPage(tpMonitor) != m_monitor &&
+      m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
+    BOOST_LOG_TRIVIAL(error) << "Failed to find device tab";
+    return;
+  }
+  if (bBBLPrinter) {
+    if (m_tabpanel->GetPage(tpMonitor) != m_monitor) {
+        m_printer_view->Hide();
+      m_tabpanel->RemovePage(tpMonitor);
+      m_tabpanel->InsertPage(tpMonitor, m_monitor, _L("Device"),
+                             std::string("tab_monitor_active"),
+                             std::string("tab_monitor_active"));
+      m_tabpanel->SetSelection(tp3DEditor);
+    }
+  } else {
+    if (m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
+      m_printer_view->Show();
+      m_tabpanel->RemovePage(tpMonitor);
+      m_tabpanel->InsertPage(tpMonitor, m_printer_view, _L("Device"),
+                          std::string("tab_monitor_active"),
+                          std::string("tab_monitor_active"));
+      m_tabpanel->SetSelection(tp3DEditor);
+    }
+  }
+}
+
 
 bool MainFrame::preview_only_hint()
 {
@@ -3243,6 +3301,34 @@ void MainFrame::load_url(wxString url)
     evt->SetString(url);
     wxQueueEvent(this, evt);
 }
+
+void MainFrame::load_printer_url(wxString url)
+{
+    BOOST_LOG_TRIVIAL(trace) << "load_printer_url:" << url;
+    auto evt = new wxCommandEvent(EVT_LOAD_PRINTER_URL, this->GetId());
+    evt->SetString(url);
+    wxQueueEvent(this, evt);
+}
+
+void MainFrame::load_printer_url()
+{
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+        return;
+    
+    auto cfg = preset_bundle.printers.get_edited_preset().config;
+    wxString url =
+        cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
+    if (!url.empty()) {
+        if (!url.Lower().starts_with("http"))
+            url = wxString::Format("http://%s", url);
+
+        load_printer_url(url);
+    }
+}
+
+bool MainFrame::is_printer_view() const { return m_tabpanel->GetSelection() == TabPosition::tpMonitor; }
+
 
 void MainFrame::refresh_plugin_tips()
 {

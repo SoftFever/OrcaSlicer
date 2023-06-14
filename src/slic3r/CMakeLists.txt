@@ -245,6 +245,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp
     GUI/WebViewDialog.hpp
+    GUI/PrinterWebView.cpp
+    GUI/PrinterWebView.hpp
     GUI/WebDownPluginDlg.hpp
     GUI/WebDownPluginDlg.cpp
     GUI/WebGuideDialog.hpp
@@ -429,6 +431,17 @@ set(SLIC3R_GUI_SOURCES
     Utils/PrintHost.cpp
     Utils/NetworkAgent.cpp
     Utils/NetworkAgent.hpp
+    Utils/MKS.hpp
+    Utils/MKS.cpp
+    Utils/Duet.cpp
+    Utils/Duet.hpp
+    Utils/FlashAir.cpp
+    Utils/FlashAir.hpp
+    Utils/AstroBox.cpp
+    Utils/AstroBox.hpp
+    Utils/Repetier.cpp
+    Utils/Repetier.hpp
+
     Utils/CalibUtils.cpp
     Utils/CalibUtils.hpp
 )

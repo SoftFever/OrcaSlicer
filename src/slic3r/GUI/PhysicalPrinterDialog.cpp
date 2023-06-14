@@ -219,6 +219,10 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     host_line.append_widget(print_host_test);
     m_optgroup->append_line(host_line);
 
+    option = m_optgroup->get_option("print_host_webui");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
+
     m_optgroup->append_single_option_line("printhost_authorization_type");
 
     option = m_optgroup->get_option("printhost_apikey");
@@ -233,7 +237,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     const auto ca_file_hint = _u8L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.");
 
-    /*if (Http::ca_file_supported()) {
+    if (Http::ca_file_supported()) {
         option = m_optgroup->get_option("printhost_cafile");
         option.opt.width = Field::def_width_wider();
         Line cafile_line = m_optgroup->create_single_option_line(option);
@@ -253,37 +257,37 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         };
 
         cafile_line.append_widget(printhost_cafile_browse);
-        //m_optgroup->append_line(cafile_line);
+        m_optgroup->append_line(cafile_line);
 
-        //Line cafile_hint{ "", "" };
-        //cafile_hint.full_width = 1;
-        //cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
-        //    auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
-        //    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        //    sizer->Add(txt);
-        //    return sizer;
-        //};
-        //m_optgroup->append_line(cafile_hint);
+        Line cafile_hint{ "", "" };
+        cafile_hint.full_width = 1;
+        cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
+            auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(txt);
+            return sizer;
+        };
+        m_optgroup->append_line(cafile_hint);
     }
     else {
         
-        //Line line{ "", "" };
-        //line.full_width = 1;
+        Line line{ "", "" };
+        line.full_width = 1;
 
-        //line.widget = [ca_file_hint](wxWindow* parent) {
-        //    std::string info = _u8L("HTTPS CA File") + ":\n\t" +
-        //        (boost::format(_u8L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.")) % SLIC3R_APP_NAME).str() +
-        //        "\n\t" + _u8L("To use a custom CA file, please import your CA file into Certificate Store / Keychain.");
+        line.widget = [ca_file_hint](wxWindow* parent) {
+            std::string info = _u8L("HTTPS CA File") + ":\n\t" +
+                (boost::format(_u8L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.")) % SLIC3R_APP_NAME).str() +
+                "\n\t" + _u8L("To use a custom CA file, please import your CA file into Certificate Store / Keychain.");
 
-        //    //auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
-        //    auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\t%2%") % info % ca_file_hint).str()));
-        //    txt->SetFont(wxGetApp().normal_font());
-        //    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        //    sizer->Add(txt, 1, wxEXPAND);
-        //    return sizer;
-        //};
-        //m_optgroup->append_line(line);
-    }*/
+            //auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\t%2%") % info % ca_file_hint).str()));
+            txt->SetFont(wxGetApp().normal_font());
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(txt, 1, wxEXPAND|wxALIGN_LEFT);
+            return sizer;
+        };
+        m_optgroup->append_line(line);
+    }
 
     for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" }) {        
         option = m_optgroup->get_option(opt_key);
@@ -292,9 +296,9 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     }
 
 #ifdef WIN32
-    //option = m_optgroup->get_option("printhost_ssl_ignore_revoke");
-    //option.opt.width = Field::def_width_wider();
-    //m_optgroup->append_single_option_line(option);
+    option = m_optgroup->get_option("printhost_ssl_ignore_revoke");
+    option.opt.width = Field::def_width_wider();
+    m_optgroup->append_single_option_line(option);
 #endif
 
     m_optgroup->activate();

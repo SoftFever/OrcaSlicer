@@ -75,11 +75,11 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrinterTechnology)
 static t_config_enum_values s_keys_map_PrintHostType{
     { "prusalink",      htPrusaLink },
     { "octoprint",      htOctoPrint },
-    //{ "duet",           htDuet },
-    //{ "flashair",       htFlashAir },
-    //{ "astrobox",       htAstroBox },
-    //{ "repetier",       htRepetier },
-    //{ "mks",            htMKS }
+    { "duet",           htDuet },
+    { "flashair",       htFlashAir },
+    { "astrobox",       htAstroBox },
+    { "repetier",       htRepetier },
+    { "mks",            htMKS }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
@@ -403,6 +403,14 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("print_host_webui", coString);
+    def->label = L("Device UI");
+    def->tooltip = L("Specify the URL of your device user interface if it's not same as print_host");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionString(""));
+
 
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
@@ -2011,18 +2019,18 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
     def->enum_values.push_back("prusalink");
     def->enum_values.push_back("octoprint");
-    //def->enum_values.push_back("duet");
-    //def->enum_values.push_back("flashair");
-    //def->enum_values.push_back("astrobox");
-    //def->enum_values.push_back("repetier");
-    //def->enum_values.push_back("mks");
+    def->enum_values.push_back("duet");
+    def->enum_values.push_back("flashair");
+    def->enum_values.push_back("astrobox");
+    def->enum_values.push_back("repetier");
+    def->enum_values.push_back("mks");
     def->enum_labels.push_back("PrusaLink");
     def->enum_labels.push_back("OctoPrint");
-    //def->enum_labels.push_back("Duet");
-    //def->enum_labels.push_back("FlashAir");
-    //def->enum_labels.push_back("AstroBox");
-    //def->enum_labels.push_back("Repetier");
-    //def->enum_labels.push_back("MKS");
+    def->enum_labels.push_back("Duet");
+    def->enum_labels.push_back("FlashAir");
+    def->enum_labels.push_back("AstroBox");
+    def->enum_labels.push_back("Repetier");
+    def->enum_labels.push_back("MKS");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
