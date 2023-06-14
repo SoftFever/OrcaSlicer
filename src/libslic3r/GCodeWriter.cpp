@@ -26,6 +26,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
                   || print_config.gcode_flavor.value == gcfMarlinFirmware
                   || print_config.gcode_flavor.value == gcfKlipper;
     m_max_acceleration = std::lrint(is_marlin ? print_config.machine_max_acceleration_extruding.values.front() : 0);
+    m_max_jerk = std::lrint(is_marlin ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -200,6 +201,27 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
         else
             gcode << "M900 K" << std::setprecision(4) << pa << "; Override pressure advance value\n";
     }
+    return gcode.str();
+}
+
+std::string GCodeWriter::set_jerk_xy(double jerk)
+{
+    // Clamp the jerk to the allowed maximum.
+    if (m_max_jerk > 0 && jerk > m_max_jerk) jerk = m_max_jerk;
+
+    if (jerk < 0.01 || is_approx(jerk, m_last_jerk)) return std::string();
+
+    m_last_jerk = jerk;
+
+    std::ostringstream gcode;
+    if (FLAVOR_IS(gcfKlipper))
+        gcode << "SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=" << jerk;
+    else
+        gcode << "M205 X" << jerk << " Y" << jerk;
+
+    if (GCodeWriter::full_gcode_comment) gcode << " ; adjust jerk";
+    gcode << "\n";
+
     return gcode.str();
 }
 

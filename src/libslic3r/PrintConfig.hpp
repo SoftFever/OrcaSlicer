@@ -962,6 +962,14 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              nozzle_volume))
     ((ConfigOptionPoints,             start_end_points))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
+    ((ConfigOptionFloat,              default_jerk))
+    ((ConfigOptionFloat,              outer_wall_jerk))
+    ((ConfigOptionFloat,              inner_wall_jerk))
+    ((ConfigOptionFloat,              infill_jerk))
+    ((ConfigOptionFloat,              top_surface_jerk))
+    ((ConfigOptionFloat,              initial_layer_jerk))
+    ((ConfigOptionFloat,              travel_jerk))
+
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool, independent_support_layer_height))
 )

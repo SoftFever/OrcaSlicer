@@ -1873,11 +1873,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             gcode += m_writer.set_acceleration((unsigned int) floor(m_config.outer_wall_acceleration.value + 0.5));
         }
 
-        // todo: 3rd party printer need
-        //if (m_config.default_jerk.value > 0) {
-        //    double jerk = m_config.outer_wall_jerk.value;
-        //    gcode += m_writer.set_jerk_xy(jerk);
-        //}
+        if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {
+            double jerk = m_config.outer_wall_jerk.value;
+            gcode += m_writer.set_jerk_xy(jerk);
+        }
 
         calib_pressure_advance pa_test(this);
         double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
@@ -2807,6 +2806,9 @@ GCode::LayerResult GCode::process_layer(
             double acceleration = m_config.initial_layer_acceleration.value;
             gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
+
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
+            gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
@@ -2831,6 +2833,10 @@ GCode::LayerResult GCode::process_layer(
             double acceleration = m_config.default_acceleration.value;
             gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
+
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
+            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
+
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // nozzle_temperature_initial_layer vs. temperature settings.
         for (const Extruder &extruder : m_writer.extruders()) {
@@ -3472,9 +3478,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
+        gcode += m_writer.set_acceleration((unsigned int) (m_config.default_acceleration.value + 0.5));
+        if (!this->is_BBL_Printer())
+            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
+    }
+
 
     // BBS
     if (m_wipe.enable) {
@@ -3553,9 +3563,12 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        gcode += m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.value + 0.5));
+        if (!this->is_BBL_Printer())
+            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
+    }
     return gcode;
 }
 
@@ -3581,9 +3594,12 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
         m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        gcode += m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.value + 0.5));
+        if (!this->is_BBL_Printer())
+            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
+    }
     return gcode;
 }
 
@@ -3798,6 +3814,21 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
     }
 
+    if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {
+        double jerk = m_config.default_jerk.value;
+        if (this->on_first_layer() && m_config.initial_layer_jerk.value > 0)
+            jerk = m_config.initial_layer_jerk.value;
+        else if (m_config.outer_wall_jerk.value > 0 && path.role() == erExternalPerimeter)
+            jerk = m_config.outer_wall_jerk.value;
+        else if (m_config.inner_wall_jerk.value > 0 && path.role() == erPerimeter)
+            jerk = m_config.inner_wall_jerk.value;
+        else if (m_config.infill_jerk.value > 0 && is_infill(path.role()))
+            jerk = m_config.infill_jerk.value;
+        else if (m_config.top_surface_jerk.value > 0 && is_top_surface(path.role()))
+            jerk = m_config.top_surface_jerk.value;
+
+        gcode += m_writer.set_jerk_xy(jerk);
+    }
     // calculate extrusion length per distance unit
     auto _mm3_per_mm = path.mm3_per_mm * double(m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio.value : 1);
 
@@ -4129,6 +4160,13 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
+        // SoftFever
+        if (this->on_first_layer()) {
+            if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
+                gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
+        } else if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0 && !this->is_BBL_Printer())
+                gcode += m_writer.set_jerk_xy(m_config.travel_jerk.value);
+
         for (size_t i = 1; i < travel.size(); ++ i) {
             // BBS. Process lazy layer change, but don't do lazy layer change when enable spiral vase
             Vec3d curr_pos = m_writer.get_position();

@@ -356,6 +356,10 @@ void ObjectSettings::update_config_values(ModelConfig* config)
 
     //BBS: change local config to DynamicPrintConfig
     ConfigManipulation config_manipulation(load_config, toggle_field, nullptr, nullptr, &(config->get()));
+    // BBS: whether the preset is Bambu Lab printer
+    PresetBundle &preset_bundle  = *wxGetApp().preset_bundle;
+    bool is_BBL_printer = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+    config_manipulation.set_is_BBL_Printer(is_BBL_printer);
 
     if (!is_object_settings)
     {

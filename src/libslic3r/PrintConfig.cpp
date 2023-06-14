@@ -1411,6 +1411,62 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
 
+    def = this->add("default_jerk", coFloat);
+    def->label = L("Default");
+    def->tooltip = L("Default jerk");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("outer_wall_jerk", coFloat);
+    def->label = L("Outer wall");
+    def->tooltip = L("Jerk of outer walls");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def = this->add("inner_wall_jerk", coFloat);
+    def->label = L("Inner wall");
+    def->tooltip = L("Jerk of inner walls");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def = this->add("infill_jerk", coFloat);
+    def->label = L("Infill");
+    def->tooltip = L("Jerk of infill");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def           = this->add("top_surface_jerk", coFloat);
+    def->label    = L("Top surface");
+    def->tooltip  = L("Jerk of top surface");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def           = this->add("initial_layer_jerk", coFloat);
+    def->label    = L("First layer");
+    def->tooltip  = L("Jerk of first layer");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def           = this->add("travel_jerk", coFloat);
+    def->label    = L("Travel");
+    def->tooltip  = L("Jerk of travel");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
     def = this->add("initial_layer_line_width", coFloat);
     def->label = L("Initial layer");
     def->category = L("Quality");

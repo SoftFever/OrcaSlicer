@@ -26,6 +26,7 @@ public:
         multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),
+        m_last_jerk(0), m_max_jerk(0),
         /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
         m_to_lift(0),
@@ -51,6 +52,7 @@ public:
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
     std::string set_pressure_advance(double pa) const;
+    std::string set_jerk_xy(double jerk);
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
@@ -115,6 +117,8 @@ private:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
+    double          m_last_jerk;
+    double          m_max_jerk;
     //BBS
     unsigned int    m_last_additional_fan_speed;
     int             m_last_bed_temperature;

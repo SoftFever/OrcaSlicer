@@ -1948,6 +1948,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_acceleration");
         optgroup->append_single_option_line("default_acceleration");
 
+        optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_acceleration", 15);
+        optgroup->append_single_option_line("default_jerk");
+        optgroup->append_single_option_line("outer_wall_jerk");
+        optgroup->append_single_option_line("inner_wall_jerk");
+        optgroup->append_single_option_line("infill_jerk");
+        optgroup->append_single_option_line("top_surface_jerk");
+        optgroup->append_single_option_line("initial_layer_jerk");
+        optgroup->append_single_option_line("travel_jerk");
+
 #ifdef HAS_PRESSURE_EQUALIZER
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
@@ -2091,6 +2100,11 @@ void TabPrint::update_description_lines()
 void TabPrint::toggle_options()
 {
     if (!m_active_page) return;
+    // BBS: whether the preset is Bambu Lab printer
+    if (m_preset_bundle) {
+        bool is_BBL_printer = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
+        m_config_manipulation.set_is_BBL_Printer(is_BBL_printer);
+    }
 
     m_config_manipulation.toggle_print_fff_options(m_config, m_type < Preset::TYPE_COUNT);
 
@@ -2836,9 +2850,10 @@ void TabFilament::toggle_options()
         toggle_line("enable_pressure_advance", !is_BBL_printer);
         if (is_BBL_printer)
             toggle_line("pressure_advance", false);
-        else
+        else {
+            toggle_line("pressure_advance", true);
             toggle_option("pressure_advance", m_config->opt_bool("enable_pressure_advance", 0));
-
+        }
         toggle_line("chamber_temperature", !is_BBL_printer);
         for (auto el :
              {"cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})

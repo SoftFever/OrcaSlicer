@@ -150,6 +150,13 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         //SoftFever
         "seam_gap",
         "wipe_speed"
+        "default_jerk",
+        "outer_wall_jerk",
+        "inner_wall_jerk",
+        "infill_jerk",
+        "top_surface_jerk",
+        "initial_layer_jerk",
+        "travel_jerk"
     };
 
     static std::unordered_set<std::string> steps_ignore;

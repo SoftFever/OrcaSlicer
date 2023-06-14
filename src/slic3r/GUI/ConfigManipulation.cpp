@@ -571,6 +571,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     //BBS
     for (auto el : { "initial_layer_acceleration", "outer_wall_acceleration", "top_surface_acceleration" })
         toggle_field(el, have_default_acceleration);
+    if (is_BBL_Printer) {
+        for (auto el : {"default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk", "travel_jerk"})
+            toggle_line(el, false);
+    } else {
+        for (auto el : {"default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk", "travel_jerk"})
+            toggle_line(el, true);
+
+        bool quality_default_jerk = config->opt_float("default_jerk") > 0;
+        for (auto el : {"outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk", "travel_jerk"})
+            toggle_field(el, quality_default_jerk);
+    }
 
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
