@@ -32,6 +32,7 @@ input
 
 #ItemSelectArea
 {
+	flex: 0 0 40px;
 	height:40px;
 	border-top: 1px solid #00AE42;
 	display: flex;
@@ -46,7 +47,7 @@ input
 
 #ItemBlockArea
 {
-	flex: 1;
+	flex: 1 0 236px;
 	display:flex;
 	overflow-x:auto;
 	flex-wrap:wrap;
