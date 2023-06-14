@@ -1667,24 +1667,22 @@ void StatusPanel::show_recenter_dialog() {
 void StatusPanel::market_model_scoring_page(int design_id)
 { 
     std::string url;
+    std::string country_code   = GUI::wxGetApp().app_config->get_country_code();
+    std::string model_http_url = GUI::wxGetApp().get_model_http_url(country_code);
     if (GUI::wxGetApp().getAgent()->get_model_mall_detail_url(&url, std::to_string(design_id)) == 0) {
-        std::string sign_in;
-        std::string ticket;
-        size_t      model_page = url.find("=http");
-        if (model_page != std::string::npos) sign_in = url.substr(0, model_page + 1);
-        size_t ticket_pos = url.find("ticket=");
-        if (ticket_pos != std::string::npos) ticket = url.substr(ticket_pos);
         std::string user_id = GUI::wxGetApp().getAgent()->get_user_id();
-        if (sign_in.empty() || ticket.empty())
-            url = "https://makerhub-pre.bambu-lab.com/en/u/" + user_id + "/rating";
-        else
-            url = sign_in + "https://makerhub-pre.bambu-lab.com/en/u/" + user_id + "/rating" + '&' + ticket;
+        boost::algorithm::replace_first(url, "models", "u/" + user_id + "/rating");
+        // Prevent user_id from containing design_id
+        size_t      sign_in = url.find("/rating");
+        std::string sub_url = url.substr(0, sign_in + 7);
+        url.erase(0, sign_in + 7);
+        boost::algorithm::replace_first(url, std::to_string(design_id), "");
+        url = sub_url + url;
         try {
-            wxLaunchDefaultBrowser(url); }
-        catch(...) {
+            if (!url.empty()) { wxLaunchDefaultBrowser(url); }
+        } catch (...) {
             return;
         }
-        
     }
 }
 
@@ -2486,6 +2484,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
                 if (is_market_task) { 
                     m_button_market_scoring->Show(); 
+                    BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
                     if (!m_print_finish && IsShownOnScreen()) {
                         m_print_finish = true;
                         int job_id = obj->get_modeltask()->job_id;
@@ -2498,6 +2497,8 @@ void StatusPanel::update_subtask(MachineObject *obj)
                             if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
                             if (res == wxID_YES) { market_model_scoring_page(old_design_id); }
                             rated_model_id.insert(job_id);
+                            BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_DLG: design_id [" << old_design_id << "] print_finish [" << m_print_finish << "] not_show ["
+                                                    << wxGetApp().app_config->get("not_show_score_dialog") << "] job_id [" << job_id << "]";
                         }
                     }
                 } else {
