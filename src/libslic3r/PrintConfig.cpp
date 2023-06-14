@@ -91,6 +91,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AuthorizationType)
 
 static t_config_enum_values s_keys_map_GCodeFlavor {
     { "marlin",         gcfMarlinLegacy },
+    { "klipper",        gcfKlipper },
     { "reprap",         gcfRepRapSprinter },
     { "reprapfirmware", gcfRepRapFirmware },
     { "repetier",       gcfRepetier },
@@ -1551,29 +1552,31 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("What kind of gcode the printer is compatible with");
     def->enum_keys_map = &ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("marlin");
-    /*def->enum_values.push_back("reprap");
-    def->enum_values.push_back("reprapfirmware");
-    def->enum_values.push_back("repetier");
-    def->enum_values.push_back("teacup");
-    def->enum_values.push_back("makerware");
-    def->enum_values.push_back("marlin2");
-    def->enum_values.push_back("sailfish");
-    def->enum_values.push_back("mach3");
-    def->enum_values.push_back("machinekit");
-    def->enum_values.push_back("smoothie");
-    def->enum_values.push_back("no-extrusion");*/
+    def->enum_values.push_back("klipper");
+    //def->enum_values.push_back("reprap");
+    //def->enum_values.push_back("reprapfirmware");
+    //def->enum_values.push_back("repetier");
+    //def->enum_values.push_back("teacup");
+    //def->enum_values.push_back("makerware");
+    //def->enum_values.push_back("marlin2");
+    //def->enum_values.push_back("sailfish");
+    //def->enum_values.push_back("mach3");
+    //def->enum_values.push_back("machinekit");
+    //def->enum_values.push_back("smoothie");
+    //def->enum_values.push_back("no-extrusion");
     def->enum_labels.push_back("Marlin(legacy)");
-    /*def->enum_labels.push_back("RepRap/Sprinter");
-    def->enum_labels.push_back("RepRapFirmware");
-    def->enum_labels.push_back("Repetier");
-    def->enum_labels.push_back("Teacup");
-    def->enum_labels.push_back("MakerWare (MakerBot)");
-    def->enum_labels.push_back("Marlin 2");
-    def->enum_labels.push_back("Sailfish (MakerBot)");
-    def->enum_labels.push_back("Mach3/LinuxCNC");
-    def->enum_labels.push_back("Machinekit");
-    def->enum_labels.push_back("Smoothie");
-    def->enum_labels.push_back(L("No extrusion"));*/
+    def->enum_labels.push_back("Klipper");
+    //def->enum_labels.push_back("RepRap/Sprinter");
+    //def->enum_labels.push_back("RepRapFirmware");
+    //def->enum_labels.push_back("Repetier");
+    //def->enum_labels.push_back("Teacup");
+    //def->enum_labels.push_back("MakerWare (MakerBot)");
+    //def->enum_labels.push_back("Marlin 2");
+    //def->enum_labels.push_back("Sailfish (MakerBot)");
+    //def->enum_labels.push_back("Mach3/LinuxCNC");
+    //def->enum_labels.push_back("Machinekit");
+    //def->enum_labels.push_back("Smoothie");
+    //def->enum_labels.push_back(L("No extrusion"));
     def->mode = comAdvanced;
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
@@ -2878,6 +2881,15 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("chamber_temperature", coInt);
+    def->label = L("Chamber temperature");
+    def->tooltip = L("Target chamber temperature");
+    def->sidetext = L("°C");
+    def->full_label = L("Chamber temperature");
+    def->min = 0;
+    def->max = max_temp;
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");

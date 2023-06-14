@@ -141,6 +141,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_distance",
         "curr_bed_type",
         "nozzle_volume",
+        "chamber_temperature",
         "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine"
@@ -180,6 +181,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "print_sequence"
+            || opt_key == "chamber_temperature"
             || opt_key == "filament_type"
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"

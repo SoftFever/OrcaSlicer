@@ -2617,6 +2617,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
+        optgroup->append_single_option_line("chamber_temperature");
+
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
@@ -2806,6 +2808,13 @@ void TabFilament::toggle_options()
     if (!m_active_page)
         return;
 
+    bool is_BBL_printer = false;
+    if (m_preset_bundle) {
+        is_BBL_printer =
+            m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(
+                m_preset_bundle);
+    }
+
     if (m_active_page->title() == "Cooling")
     {
         bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
@@ -2814,6 +2823,10 @@ void TabFilament::toggle_options()
         bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
         for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
             toggle_option(el, has_enable_overhang_bridge_fan);
+    }
+    if (m_active_page->title() == "Filament")
+    {
+        toggle_line("chamber_temperature", !is_BBL_printer);
     }
 
     if (m_active_page->title() == "Setting Overrides")
@@ -3281,7 +3294,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 {
     size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
     auto        flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-    bool		is_marlin_flavor = (flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware);
+    bool		is_marlin_flavor = (flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware || flavor == gcfKlipper);
 
     /* ! Freeze/Thaw in this function is needed to avoid call OnPaint() for erased pages
      * and be cause of application crash, when try to change Preset in moment,
@@ -3632,7 +3645,8 @@ void TabPrinter::toggle_options()
 
     if (m_active_page->title() == "Motion ability") {
         assert(m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinLegacy
-            || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
+            || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware
+            || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfKlipper);
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field = silent_mode ? 2 : 1;
         //BBS: limits of BBL printer can't be edited, except jerk.
@@ -3667,7 +3681,8 @@ void TabPrinter::update_fff()
         m_use_silent_mode = m_config->opt_bool("silent_mode");
     }
 
-    bool supports_travel_acceleration = (m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
+    auto gcf_ = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+    bool supports_travel_acceleration = (gcf_ == gcfMarlinFirmware || gcf_ == gcfMarlinLegacy || gcf_ == gcfKlipper);
     if (m_supports_travel_acceleration != supports_travel_acceleration) {
         m_rebuild_kinematics_page = true;
         m_supports_travel_acceleration = supports_travel_acceleration;

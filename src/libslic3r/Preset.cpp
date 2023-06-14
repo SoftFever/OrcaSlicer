@@ -781,7 +781,9 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
     //BBS
     "filament_wipe_distance", "additional_cooling_fan_speed",
-    "bed_temperature_difference", "nozzle_temperature_range_low", "nozzle_temperature_range_high"
+    "bed_temperature_difference", "nozzle_temperature_range_low", "nozzle_temperature_range_high",
+    //softfever
+    "chamber_temperature"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {

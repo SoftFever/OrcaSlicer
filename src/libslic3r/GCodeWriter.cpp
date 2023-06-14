@@ -22,7 +22,9 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
-    bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware;
+    bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy
+                  || print_config.gcode_flavor.value == gcfMarlinFirmware
+                  || print_config.gcode_flavor.value == gcfKlipper;
     m_max_acceleration = std::lrint(is_marlin ? print_config.machine_max_acceleration_extruding.values.front() : 0);
 }
 
@@ -54,7 +56,8 @@ std::string GCodeWriter::preamble()
         FLAVOR_IS(gcfMarlinFirmware) ||
         FLAVOR_IS(gcfTeacup) ||
         FLAVOR_IS(gcfRepetier) ||
-        FLAVOR_IS(gcfSmoothie))
+        FLAVOR_IS(gcfSmoothie) ||
+        FLAVOR_IS(gcfKlipper))
     {
         if (RELATIVE_E_AXIS) {
             gcode << "M83 ; only support relative e\n";
