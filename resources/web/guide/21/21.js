@@ -41,6 +41,12 @@ function HandleStudio( pVal )
 }
 
 
+function ShowPrinterThumb(pItem, strImg)
+{
+	$(pItem).attr('src',strImg);
+	$(pItem).attr('onerror',null);
+}
+
 function HandleModelList( pVal )
 {
 	if( !pVal.hasOwnProperty("model") )
@@ -75,7 +81,10 @@ function HandleModelList( pVal )
 '</div>'+
 '</div>';
 			
-			$('#Content').append(HtmlNewVendor);
+			if(sVV=='Bambu Lab')
+				$('#Content').html( HtmlNewVendor + $('#Content').html() );
+			else
+				$('#Content').append( HtmlNewVendor );
 		}
 		
 		let ModelName=OneModel['model'];
@@ -93,8 +102,9 @@ function HandleModelList( pVal )
 		}
 		
 		let CoverImage="../../image/printer/"+OneModel['model']+"_cover.png";
+		let	CoverImage2="../../../profiles/"+strVendor+"/"+OneModel['model']+"_cover.png";
 		ModelHtml[strVendor]+='<div class="PrinterBlock">'+
-'	<div class="PImg"><img src="'+CoverImage+'"  /></div>'+
+'	<div class="PImg"><img src="'+CoverImage+'" onerror="ShowPrinterThumb(this,\''+CoverImage2+'\')" /></div>'+
 '    <div class="PName">'+OneModel['model']+'</div>'+ HtmlNozzel +'</div>';
 	}
 	
