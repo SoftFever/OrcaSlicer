@@ -2410,6 +2410,7 @@ void AMSControl::SetActionState(bool button_status[])
 
 void AMSControl::EnterNoneAMSMode(bool support_vt_load)
 {
+    if(m_is_none_ams_mode) return;
     m_simplebook_amsitems->Hide();
     m_panel_top->Hide();
     m_simplebook_amsitems->SetSelection(1);
@@ -2435,6 +2436,7 @@ void AMSControl::EnterNoneAMSMode(bool support_vt_load)
 
 void AMSControl::ExitNoneAMSMode()
 {
+    if(!m_is_none_ams_mode) return;
     m_simplebook_amsitems->Show();
     m_panel_top->Show();
     m_simplebook_ams->SetSelection(0);
@@ -2885,14 +2887,18 @@ void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type, bool is_
 
     if (f_type == FilamentStepType::STEP_TYPE_LOAD) {
         if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
-            m_simplebook_right->SetSelection(1);
+            if (m_simplebook_right->GetSelection() != 1) {
+                m_simplebook_right->SetSelection(1);
+            }
             m_filament_load_step->SelectItem(item_idx - 1);
         } else {
             m_filament_load_step->Idle();
         }
     } else if (f_type == FilamentStepType::STEP_TYPE_UNLOAD) {
         if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
-            m_simplebook_right->SetSelection(2);
+            if (m_simplebook_right->GetSelection() != 2) {
+                m_simplebook_right->SetSelection(2);
+            }
             m_filament_unload_step->SelectItem(item_idx - 1);
         }
         else {
