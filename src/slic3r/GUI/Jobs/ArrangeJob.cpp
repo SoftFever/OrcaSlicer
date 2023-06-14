@@ -392,7 +392,7 @@ void ArrangeJob::prepare()
         NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging..."));
     m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
 
-    params = init_arrange_params(*m_plater);
+    params = init_arrange_params(m_plater);
 
     //BBS update extruder params and speed table before arranging
     Plater::setExtruderParams(Model::extruderParamsMap);
@@ -727,10 +727,10 @@ arrangement::ArrangeParams get_arrange_params(Plater *p)
 }
 
 // call before get selected and unselected
-arrangement::ArrangeParams init_arrange_params(const Plater &p)
+arrangement::ArrangeParams init_arrange_params(Plater *p)
 {
     arrangement::ArrangeParams         params;
-    const GLCanvas3D::ArrangeSettings &settings = static_cast<const GLCanvas3D *>(p.canvas3D())->get_arrange_settings();
+    const GLCanvas3D::ArrangeSettings &settings = static_cast<const GLCanvas3D *>(p->canvas3D())->get_arrange_settings();
     auto &                             print    = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
     params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
@@ -744,6 +744,13 @@ arrangement::ArrangeParams init_arrange_params(const Plater &p)
     params.min_obj_distance                    = scaled(settings.distance);
     params.bed_shrink_x                        = settings.bed_shrink_x;
     params.bed_shrink_y                        = settings.bed_shrink_y;
+
+    int state = p->get_prepare_state();
+    if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
+        PartPlateList &plate_list = p->get_partplate_list();
+        PartPlate *    plate      = plate_list.get_curr_plate();
+        params.is_seq_print       = plate->get_real_print_seq() == PrintSequence::ByObject;
+    }
 
     if (params.is_seq_print)
         params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error

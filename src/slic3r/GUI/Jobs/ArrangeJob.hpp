@@ -78,7 +78,7 @@ double bed_stride_y(const Plater* plater);
 
 arrangement::ArrangeParams get_arrange_params(Plater *p);
 
-arrangement::ArrangeParams init_arrange_params(const Plater &p);
+arrangement::ArrangeParams init_arrange_params(Plater *p);
 
 Points get_shrink_bedpts(const Plater& plater,const arrangement::ArrangeParams& params);
 

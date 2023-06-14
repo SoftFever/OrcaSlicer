@@ -23,7 +23,7 @@ void FillBedJob::prepare()
     m_unselected.clear();
     m_bedpts.clear();
 
-    params = init_arrange_params(*m_plater);
+    params = init_arrange_params(m_plater);
 
     m_object_idx = m_plater->get_selected_object_idx();
     if (m_object_idx == -1)
