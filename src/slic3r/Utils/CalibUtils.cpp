@@ -16,11 +16,12 @@ static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
-static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
-    //"auto",
+static std::string MachineBedTypeString[5] = {
+    "auto",
     "pc",
+    "ep",
     "pei",
-    "pe",
+    "pte"
 };
 
 static void cut_model(Model &model, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
@@ -759,7 +760,7 @@ void CalibUtils::send_to_print(const std::string& dev_id, const std::string& sel
 
     print_job->task_ams_mapping = select_ams;
     print_job->task_ams_mapping_info = "";
-    print_job->task_use_ams = true;
+    print_job->task_use_ams = select_ams == "[254]" ? false : true;
 
     print_job->has_sdcard = obj_->has_sdcard();
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
