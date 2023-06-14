@@ -11634,7 +11634,7 @@ void Plater::show_object_info()
 
     if (selCount > 1) {
         notify_manager->bbl_close_objectsinfo_notification();
-        info_text += (boost::format(_utf8(L("Number of currently selected parts: %1%\n"))) % selCount).str();
+        info_text += (boost::format(_utf8(L("Number of currently selected: %1%\n"))) % selCount).str();
         notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D));
         return;
     }

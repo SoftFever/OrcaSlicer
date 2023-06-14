@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-12 12:41+0800\n"
+"POT-Creation-Date: 2023-06-14 11:23+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -762,18 +762,6 @@ msgstr "Hastighet"
 
 msgid "Strength"
 msgstr "Styrka"
-
-msgid "Top Solid Layers"
-msgstr "Massiva Top Lager"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "Minsta Top Skal Tjocklek"
-
-msgid "Bottom Solid Layers"
-msgstr "Massiva Botten Lager"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "Minsta Botten Skal Tjocklek"
 
 msgid "Ironing"
 msgstr "Strykning"
@@ -1692,6 +1680,10 @@ msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
 "Framgångsrikt skickat. Kommer automatiskt att hoppa till enhetssidan om %s s"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Ett Micro SD-kort måste sättas i innan utskrift via LAN."
 
@@ -2593,6 +2585,22 @@ msgstr "Uppdatering misslyckades."
 
 msgid "Failed to start printing job"
 msgstr "Det gick inte att starta utskriftsjobbet"
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr ""
 
 msgid "default"
 msgstr "standard"
@@ -3591,9 +3599,6 @@ msgstr "Batch hantera filer."
 msgid "No printers."
 msgstr "Ingen printer."
 
-msgid "Not supported by this model of printer!"
-msgstr "Stöds inte av denna modell av skrivare!"
-
 msgid "Connecting..."
 msgstr "Sammankopplar..."
 
@@ -3758,23 +3763,6 @@ msgstr "Avbryt utskrift"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Är du säker på att du vill avbryta utskriften?"
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"Frånkopplad från skrivaren [%s] på grund av att LAN-läget är inaktiverat. "
-"Vänligen återanslut skrivaren genom att logga in med ditt användarkonto."
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"Frånkopplad från skrivaren [%s] på grund av att LAN-läge är aktiverat. "
-"Anslut skrivaren igen genom att ange åtkomstkoden som kan hämtas från "
-"skrivar skärmen."
 
 msgid "Downloading..."
 msgstr "Laddar ner..."
@@ -4529,7 +4517,7 @@ msgid "Plate Settings"
 msgstr ""
 
 #, boost-format
-msgid "Number of currently selected parts: %1%\n"
+msgid "Number of currently selected: %1%\n"
 msgstr ""
 
 #, boost-format
@@ -5195,6 +5183,10 @@ msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Förbereder utskriftsjobb"
 
@@ -5241,9 +5233,6 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -9364,6 +9353,39 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid "Top Solid Layers"
+#~ msgstr "Massiva Top Lager"
+
+#~ msgid "Top Minimum Shell Thickness"
+#~ msgstr "Minsta Top Skal Tjocklek"
+
+#~ msgid "Bottom Solid Layers"
+#~ msgstr "Massiva Botten Lager"
+
+#~ msgid "Bottom Minimum Shell Thickness"
+#~ msgstr "Minsta Botten Skal Tjocklek"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "Stöds inte av denna modell av skrivare!"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "Frånkopplad från skrivaren [%s] på grund av att LAN-läget är inaktiverat. "
+#~ "Vänligen återanslut skrivaren genom att logga in med ditt användarkonto."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "Frånkopplad från skrivaren [%s] på grund av att LAN-läge är aktiverat. "
+#~ "Anslut skrivaren igen genom att ange åtkomstkoden som kan hämtas från "
+#~ "skrivar skärmen."
 
 #, boost-format
 #~ msgid " plate %1%:"

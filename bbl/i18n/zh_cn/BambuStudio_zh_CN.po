@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-12 12:41+0800\n"
+"POT-Creation-Date: 2023-06-14 11:23+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -757,18 +757,6 @@ msgstr "速度"
 
 msgid "Strength"
 msgstr "强度"
-
-msgid "Top Solid Layers"
-msgstr "顶部实心层"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "顶部外壳最小厚度"
-
-msgid "Bottom Solid Layers"
-msgstr "底部实心层"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "底部外壳最小厚度"
 
 msgid "Ironing"
 msgstr "熨烫"
@@ -1666,6 +1654,10 @@ msgstr "正在发送打印配置"
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr "已成功发送。将自动跳转到%ss中的下一页。"
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
 
@@ -1712,8 +1704,8 @@ msgstr "导入SLA存档"
 msgid ""
 "The SLA archive doesn't contain any presets. Please activate some SLA "
 "printer preset first before importing that SLA archive."
-msgstr "SLA存档不包含任何预设。在导入该SLA存档之前，请先激活一些"
-"SLA打印机预设。"
+msgstr ""
+"SLA存档不包含任何预设。在导入该SLA存档之前，请先激活一些SLA打印机预设。"
 
 msgid "Importing canceled."
 msgstr "导入已取消。"
@@ -2517,6 +2509,22 @@ msgstr "更新失败。"
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
+
+msgid "TPU is not supported by AMS."
+msgstr "AMS不支持TPU。"
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr "AMS不支持Bambu PET-CF/PA6-CF。"
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr "潮湿的PVA会变得柔软并粘在AMS内，请在使用前注意干燥。"
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr "CF/GF耗材丝丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
 msgid "default"
 msgstr "缺省"
@@ -3509,9 +3517,6 @@ msgstr "批量管理文件"
 msgid "No printers."
 msgstr "未选择打印机"
 
-msgid "Not supported by this model of printer!"
-msgstr "该型号的打印机不支持该功能！"
-
 msgid "Connecting..."
 msgstr "连接中..."
 
@@ -3558,7 +3563,9 @@ msgstr "解析模型信息失败。"
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
 "and export a new .gcode.3mf file."
-msgstr ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的.gcode.3mf文件。"
+msgstr ""
+".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的."
+"gcode.3mf文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3675,22 +3682,6 @@ msgstr "取消打印"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "你确定要取消这次打印吗？"
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"由于LAN模式被禁用，已与打印机[%s]断开连接。请使用您的用户帐户登录以重新连接打"
-"印机。"
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"由于启用了LAN模式，已与打印机[%s]断开连接。请通过输入访问码重新连接打印机，访"
-"问码可从打印机屏幕上获取。"
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -3896,7 +3887,7 @@ msgid "Warning:"
 msgstr "警告："
 
 msgid "Export successfully."
-msgstr "发送成功."
+msgstr "发送成功。"
 
 msgid "Serious warning:"
 msgstr "严重警告："
@@ -4082,8 +4073,9 @@ msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
 "Please update Bambu Studio or restart Bambu Studio to check if there is an "
 "update to system presets."
-msgstr "有一些未知或不兼容的填料映射到通用预设中。请更新Bambu Studio"
-"或重新启动Bambu Studio，以检查是否有系统预设的更新。"
+msgstr ""
+"有一些未知或不兼容的填料映射到通用预设中。请更新Bambu Studio或重新启动Bambu "
+"Studio，以检查是否有系统预设的更新。"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4409,7 +4401,7 @@ msgid "Plate Settings"
 msgstr "盘参数设置"
 
 #, boost-format
-msgid "Number of currently selected parts: %1%\n"
+msgid "Number of currently selected: %1%\n"
 msgstr "当前选择的零件数量: %1%\n"
 
 #, boost-format
@@ -5047,7 +5039,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "%s is not supported by AMS."
-msgstr "%s耗材无法在AMS中使用"
+msgstr "%s 不受AMS支持。"
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -5060,6 +5052,10 @@ msgstr ""
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
+
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr "正在连接打印机。连接过程中无法取消。"
 
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
@@ -5107,9 +5103,6 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -7352,11 +7345,12 @@ msgid ""
 "taken is limited to this parameter, but no longer than anchor_length_max. "
 "Set this parameter to zero to disable anchoring perimeters connected to a "
 "single infill line."
-msgstr "使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比"
-"(例如:15%)，则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线"
-"连接到一个短的轮廓线段上。如果找不到短于“填充锚点最大值”的轮廓线段，则"
-"填充线只在一侧连接到轮廓线段，并且所选取的轮廓线段的长度仅限于此参数，但"
-"不超过“锚点长度最大值”。将此参数设置为零以禁用连接到单个填充线的锚点轮廓。"
+msgstr ""
+"使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比(例如:15%)，"
+"则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线连接到一个短的"
+"轮廓线段上。如果找不到短于“填充锚点最大值”的轮廓线段，则填充线只在一侧连接到"
+"轮廓线段，并且所选取的轮廓线段的长度仅限于此参数，但不超过“锚点长度最大值”。"
+"将此参数设置为零以禁用连接到单个填充线的锚点轮廓。"
 
 msgid "0 (no open anchors)"
 msgstr "0 (无锚线)"
@@ -7376,11 +7370,12 @@ msgid ""
 "perimeter segment at just one side and the length of the perimeter segment "
 "taken is limited to infill_anchor, but no longer than this parameter. Set "
 "this parameter to zero to disable anchoring."
-msgstr "使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比"
-"(例如:15%)，则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线"
-"连接到一个短的轮廓线段上。如果找不到短于该参数的轮廓线段，则填充线只在一侧连接"
-"到轮廓线段，并且所选取的轮廓线段的长度仅限于“填充锚点”，但不超过此参数。"
-"将此参数设置为零以禁用锚点。"
+msgstr ""
+"使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比(例如:15%)，"
+"则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线连接到一个短的"
+"轮廓线段上。如果找不到短于该参数的轮廓线段，则填充线只在一侧连接到轮廓线段，"
+"并且所选取的轮廓线段的长度仅限于“填充锚点”，但不超过此参数。将此参数设置为零"
+"以禁用锚点。"
 
 msgid "0 (not anchored)"
 msgstr "0（无）"
@@ -8954,6 +8949,54 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Damp %s will become flexible and get stuck inside AMS,please take care to "
+#~ "dry it before use."
+#~ msgstr "潮湿的%s会变软并卡在AMS内，请在使用前保持干燥。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "%s filaments are hard and brittle, It's easy to break or get stuck in "
+#~ "AMS, please use with caution."
+#~ msgstr "%s耗材丝又硬又脆，很容易断裂或卡在AMS中，请谨慎使用。"
+
+#~ msgid "Top Solid Layers"
+#~ msgstr "顶部实心层"
+
+#~ msgid "Top Minimum Shell Thickness"
+#~ msgstr "顶部外壳最小厚度"
+
+#~ msgid "Bottom Solid Layers"
+#~ msgstr "底部实心层"
+
+#~ msgid "Bottom Minimum Shell Thickness"
+#~ msgstr "底部外壳最小厚度"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "该型号的打印机不支持该功能！"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "由于LAN模式被禁用，已与打印机[%s]断开连接。请使用您的用户帐户登录以重新连"
+#~ "接打印机。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "由于启用了LAN模式，已与打印机[%s]断开连接。请通过输入访问码重新连接打印"
+#~ "机，访问码可从打印机屏幕上获取。"
+
+#, boost-format
+#~ msgid "Number of currently selected parts: %1%\n"
+#~ msgstr "当前选择的零件数量: %1%\n"
 
 #, boost-format
 #~ msgid " plate %1%:"

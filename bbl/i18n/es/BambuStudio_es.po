@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-12 12:41+0800\n"
+"POT-Creation-Date: 2023-06-14 11:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -775,18 +775,6 @@ msgstr "Velocidad"
 
 msgid "Strength"
 msgstr "Fuerza"
-
-msgid "Top Solid Layers"
-msgstr "Capas sólidas superiores"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "Espesor mínimo de la carcasa superior"
-
-msgid "Bottom Solid Layers"
-msgstr "Capas sólidas inferiores"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "Espesor mínimo del cuerpo inferior"
 
 msgid "Ironing"
 msgstr "Alisado"
@@ -1714,6 +1702,10 @@ msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
 "Enviado correctamente. Se mostrará automáticamente en el dispositivo en %s S"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Se debe insertar una tarjeta microSD antes de imprimir mediante LAN."
 
@@ -2635,6 +2627,22 @@ msgstr "Actualización fallida."
 
 msgid "Failed to start printing job"
 msgstr "No se pudo iniciar la impresión"
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr ""
 
 msgid "default"
 msgstr "por defecto"
@@ -3634,9 +3642,6 @@ msgstr "Gestion de archivos por lotes."
 msgid "No printers."
 msgstr "No hay impresoras."
 
-msgid "Not supported by this model of printer!"
-msgstr "¡Modelo de impresora no soportado!"
-
 msgid "Connecting..."
 msgstr "Conectando…"
 
@@ -3801,24 +3806,6 @@ msgstr "Cancelar impresión"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "¿Está seguro de cancelar la impresión?"
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"Se desconectó de la impresora [%s] debido a que el modo LAN está "
-"desactivado. Vuelva a conectar la impresora iniciando sesión con su cuenta "
-"de usuario."
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"Se ha desconectado de la impresora [%s] debido a que el modo LAN está "
-"activado. Vuelva a conectar la impresora introduciendo el código de acceso "
-"que se puede obtener de la pantalla de la impresora."
 
 msgid "Downloading..."
 msgstr "Descargando…"
@@ -4588,7 +4575,7 @@ msgid "Plate Settings"
 msgstr ""
 
 #, boost-format
-msgid "Number of currently selected parts: %1%\n"
+msgid "Number of currently selected: %1%\n"
 msgstr ""
 
 #, boost-format
@@ -5268,6 +5255,10 @@ msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Preparando el trabajo de impresión"
 
@@ -5316,9 +5307,6 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -9541,6 +9529,40 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "Top Solid Layers"
+#~ msgstr "Capas sólidas superiores"
+
+#~ msgid "Top Minimum Shell Thickness"
+#~ msgstr "Espesor mínimo de la carcasa superior"
+
+#~ msgid "Bottom Solid Layers"
+#~ msgstr "Capas sólidas inferiores"
+
+#~ msgid "Bottom Minimum Shell Thickness"
+#~ msgstr "Espesor mínimo del cuerpo inferior"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "¡Modelo de impresora no soportado!"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "Se desconectó de la impresora [%s] debido a que el modo LAN está "
+#~ "desactivado. Vuelva a conectar la impresora iniciando sesión con su "
+#~ "cuenta de usuario."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "Se ha desconectado de la impresora [%s] debido a que el modo LAN está "
+#~ "activado. Vuelva a conectar la impresora introduciendo el código de "
+#~ "acceso que se puede obtener de la pantalla de la impresora."
 
 #, boost-format
 #~ msgid " plate %1%:"

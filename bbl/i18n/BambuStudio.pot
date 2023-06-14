@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-12 12:41+0800\n"
+"POT-Creation-Date: 2023-06-14 11:23+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -749,18 +749,6 @@ msgid "Speed"
 msgstr ""
 
 msgid "Strength"
-msgstr ""
-
-msgid "Top Solid Layers"
-msgstr ""
-
-msgid "Top Minimum Shell Thickness"
-msgstr ""
-
-msgid "Bottom Solid Layers"
-msgstr ""
-
-msgid "Bottom Minimum Shell Thickness"
 msgstr ""
 
 msgid "Ironing"
@@ -1650,6 +1638,10 @@ msgstr ""
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
@@ -2432,6 +2424,22 @@ msgid "Update failed."
 msgstr ""
 
 msgid "Failed to start printing job"
+msgstr ""
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
 msgstr ""
 
 msgid "default"
@@ -3409,9 +3417,6 @@ msgstr ""
 msgid "No printers."
 msgstr ""
 
-msgid "Not supported by this model of printer!"
-msgstr ""
-
 msgid "Connecting..."
 msgstr ""
 
@@ -3575,18 +3580,6 @@ msgid "Cancel print"
 msgstr ""
 
 msgid "Are you sure you want to cancel this print?"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
 msgstr ""
 
 msgid "Downloading..."
@@ -4296,7 +4289,7 @@ msgid "Plate Settings"
 msgstr ""
 
 #, possible-boost-format
-msgid "Number of currently selected parts: %1%\n"
+msgid "Number of currently selected: %1%\n"
 msgstr ""
 
 #, possible-boost-format
@@ -4933,6 +4926,10 @@ msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr ""
 
@@ -4979,9 +4976,6 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"

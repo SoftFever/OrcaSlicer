@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-12 12:41+0800\n"
+"POT-Creation-Date: 2023-06-14 11:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -771,18 +771,6 @@ msgstr "Sebesség"
 
 msgid "Strength"
 msgstr "Szilárdság"
-
-msgid "Top Solid Layers"
-msgstr "Felső tömör rétegek"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "Minimális fedőréteg vastagság"
-
-msgid "Bottom Solid Layers"
-msgstr "Alsó tömör rétegek"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "Alsó minimális héjvastagság"
 
 msgid "Ironing"
 msgstr "Vasalás"
@@ -1709,6 +1697,10 @@ msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
 "Sikeresen elküldve. Az eszköz oldala automatikusan megjelenik %s mp-en belül"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "A LAN-on keresztüli nyomtatáshoz helyezz be egy SD kártyát."
 
@@ -2614,6 +2606,22 @@ msgstr "A frissítés sikertelen."
 
 msgid "Failed to start printing job"
 msgstr "Nem sikerült elindítani a nyomtatási feladatot"
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr ""
 
 msgid "default"
 msgstr "alapértelmezett"
@@ -3614,9 +3622,6 @@ msgstr "Fájlok kötegelt kezelése."
 msgid "No printers."
 msgstr "Nincs nyomtató."
 
-msgid "Not supported by this model of printer!"
-msgstr "Ez a nyomtatómodell nem támogatja!"
-
 msgid "Connecting..."
 msgstr "Csatlakozás..."
 
@@ -3781,23 +3786,6 @@ msgstr "Nyomtatás megszakítása"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Biztosan megszakítod ezt a nyomtatást?"
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"Megszakadt a kapcsolat a(z) [%s] nyomtatóval, mivel a LAN mód le van tiltva. "
-"Kérjük, csatlakoztasd újra a nyomtatót a fiókodba történő bejelentkezéssel."
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"Megszakadt a kapcsolat a(z) [%s] nyomtatóval, mivel a LAN mód le van tiltva. "
-"Kérjük, csatlakoztasd újra a nyomtatót a hozzáférési kód megadásával, "
-"amelyet a nyomtató kijelzőjén találsz."
 
 msgid "Downloading..."
 msgstr "Letöltés..."
@@ -4558,7 +4546,7 @@ msgid "Plate Settings"
 msgstr ""
 
 #, boost-format
-msgid "Number of currently selected parts: %1%\n"
+msgid "Number of currently selected: %1%\n"
 msgstr ""
 
 #, boost-format
@@ -5229,6 +5217,10 @@ msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Nyomtatási feladat előkészítése"
 
@@ -5278,9 +5270,6 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -9469,6 +9458,40 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "Top Solid Layers"
+#~ msgstr "Felső tömör rétegek"
+
+#~ msgid "Top Minimum Shell Thickness"
+#~ msgstr "Minimális fedőréteg vastagság"
+
+#~ msgid "Bottom Solid Layers"
+#~ msgstr "Alsó tömör rétegek"
+
+#~ msgid "Bottom Minimum Shell Thickness"
+#~ msgstr "Alsó minimális héjvastagság"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "Ez a nyomtatómodell nem támogatja!"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "Megszakadt a kapcsolat a(z) [%s] nyomtatóval, mivel a LAN mód le van "
+#~ "tiltva. Kérjük, csatlakoztasd újra a nyomtatót a fiókodba történő "
+#~ "bejelentkezéssel."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "Megszakadt a kapcsolat a(z) [%s] nyomtatóval, mivel a LAN mód le van "
+#~ "tiltva. Kérjük, csatlakoztasd újra a nyomtatót a hozzáférési kód "
+#~ "megadásával, amelyet a nyomtató kijelzőjén találsz."
 
 #, boost-format
 #~ msgid " plate %1%:"

@@ -2386,7 +2386,7 @@ void SelectMachineDialog::connect_printer_mqtt()
     if (obj_->connection_type() == "cloud") {
         show_status(PrintDialogStatus::PrintStatusSending);
         m_status_bar->disable_cancel_button();
-        m_status_bar->set_status_text("Connecting to the printer. Unable to cancel during the connection process.");
+        m_status_bar->set_status_text(_L("Connecting to the printer. Unable to cancel during the connection process."));
 #if !BBL_RELEASE_TO_PUBLIC
         obj_->connect(false, wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
 #else

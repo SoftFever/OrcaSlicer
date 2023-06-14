@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-12 12:41+0800\n"
+"POT-Creation-Date: 2023-06-14 11:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -759,18 +759,6 @@ msgstr "속도"
 
 msgid "Strength"
 msgstr "강도"
-
-msgid "Top Solid Layers"
-msgstr "상단레이어"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "상단면 최소두께"
-
-msgid "Bottom Solid Layers"
-msgstr "하단 레이어"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "하단면 최소두께"
 
 msgid "Ironing"
 msgstr "다림질"
@@ -1673,6 +1661,10 @@ msgstr "출력 설정 보내기"
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Successfully sent. Will automatically jump to the device page in %ss"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "A MicroSD card needs to be inserted before printing via LAN."
 
@@ -2561,6 +2553,22 @@ msgstr "업데이트 실패"
 
 msgid "Failed to start printing job"
 msgstr "Failed to start print job"
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr ""
 
 msgid "default"
 msgstr "기본값"
@@ -3557,9 +3565,6 @@ msgstr "Batch manage files."
 msgid "No printers."
 msgstr "No printers."
 
-msgid "Not supported by this model of printer!"
-msgstr "Not supported by this model of printer!"
-
 msgid "Connecting..."
 msgstr "Connecting..."
 
@@ -3723,23 +3728,6 @@ msgstr "Cancel print"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Are you sure you want to cancel this print?"
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"Disconnected from printer [%s] due to LAN mode being disabled. Please "
-"reconnect the printer by logging in with your user account."
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"Disconnected from printer [%s] due to LAN mode being enabled. Please "
-"reconnect the printer by inputting the Access Code which can be gotten from "
-"the printer screen."
 
 msgid "Downloading..."
 msgstr "Downloading..."
@@ -4488,7 +4476,7 @@ msgid "Plate Settings"
 msgstr ""
 
 #, boost-format
-msgid "Number of currently selected parts: %1%\n"
+msgid "Number of currently selected: %1%\n"
 msgstr ""
 
 #, boost-format
@@ -5148,6 +5136,10 @@ msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "출력 작업 준비 중"
 
@@ -5194,9 +5186,6 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -9284,6 +9273,39 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid "Top Solid Layers"
+#~ msgstr "상단레이어"
+
+#~ msgid "Top Minimum Shell Thickness"
+#~ msgstr "상단면 최소두께"
+
+#~ msgid "Bottom Solid Layers"
+#~ msgstr "하단 레이어"
+
+#~ msgid "Bottom Minimum Shell Thickness"
+#~ msgstr "하단면 최소두께"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "Not supported by this model of printer!"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "Disconnected from printer [%s] due to LAN mode being disabled. Please "
+#~ "reconnect the printer by logging in with your user account."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "Disconnected from printer [%s] due to LAN mode being enabled. Please "
+#~ "reconnect the printer by inputting the Access Code which can be gotten "
+#~ "from the printer screen."
 
 #, boost-format
 #~ msgid " plate %1%:"

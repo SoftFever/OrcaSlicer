@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-12 12:41+0800\n"
+"POT-Creation-Date: 2023-06-14 11:23+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -765,18 +765,6 @@ msgstr "Snelheid"
 
 msgid "Strength"
 msgstr "Sterkte"
-
-msgid "Top Solid Layers"
-msgstr "Aantal solide  bovenste lagen"
-
-msgid "Top Minimum Shell Thickness"
-msgstr "Minimale dikte van de toplaag"
-
-msgid "Bottom Solid Layers"
-msgstr "Aantal gesloten bodem lagen"
-
-msgid "Bottom Minimum Shell Thickness"
-msgstr "Minimale bodem dikte"
 
 msgid "Ironing"
 msgstr "Strijken"
@@ -1710,6 +1698,10 @@ msgstr "Print configuratie verzenden"
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Succesvol verzonden. Springt automatisch naar de apparaatpagina in %ss"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 "Er moet een MicroSD-kaart worden geplaatst voordat er via LAN kan worden "
@@ -2628,6 +2620,22 @@ msgstr "Updaten mislukt."
 
 msgid "Failed to start printing job"
 msgstr "Het starten van de printopdracht is mislukt"
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr ""
 
 msgid "default"
 msgstr "Standaard"
@@ -3627,9 +3635,6 @@ msgstr "Batchbeheer van bestanden."
 msgid "No printers."
 msgstr "Geen printers"
 
-msgid "Not supported by this model of printer!"
-msgstr "Niet ondersteund door dit model printer!"
-
 msgid "Connecting..."
 msgstr "Verbinden..."
 
@@ -3794,24 +3799,6 @@ msgstr "Print annuleren"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Weet je zeker dat je deze print wilt annuleren?"
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
-"uitgeschakeld. Sluit de printer opnieuw aan door in te loggen met uw "
-"gebruikersaccount."
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
-"ingeschakeld. Sluit de printer opnieuw aan door de toegangscode in te voeren "
-"die u op het scherm van de printer kunt vinden."
 
 msgid "Downloading..."
 msgstr "Downloaden..."
@@ -4592,7 +4579,7 @@ msgid "Plate Settings"
 msgstr ""
 
 #, boost-format
-msgid "Number of currently selected parts: %1%\n"
+msgid "Number of currently selected: %1%\n"
 msgstr ""
 
 #, boost-format
@@ -5276,6 +5263,10 @@ msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Print opdracht voorbereiden"
 
@@ -5324,9 +5315,6 @@ msgid "Failed to post ticket to server"
 msgstr ""
 
 msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Failed to parse login report reason111"
 msgstr ""
 
 msgid "Receive login report timeout"
@@ -9563,6 +9551,40 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Top Solid Layers"
+#~ msgstr "Aantal solide  bovenste lagen"
+
+#~ msgid "Top Minimum Shell Thickness"
+#~ msgstr "Minimale dikte van de toplaag"
+
+#~ msgid "Bottom Solid Layers"
+#~ msgstr "Aantal gesloten bodem lagen"
+
+#~ msgid "Bottom Minimum Shell Thickness"
+#~ msgstr "Minimale bodem dikte"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "Niet ondersteund door dit model printer!"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
+#~ "uitgeschakeld. Sluit de printer opnieuw aan door in te loggen met uw "
+#~ "gebruikersaccount."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
+#~ "ingeschakeld. Sluit de printer opnieuw aan door de toegangscode in te "
+#~ "voeren die u op het scherm van de printer kunt vinden."
 
 #, boost-format
 #~ msgid " plate %1%:"
