@@ -490,6 +490,14 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
             [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
     }
 
+    if (type == ModelVolumeType::INVALID) {
+        sub_menu->AppendSeparator();
+        for (auto &item : {L("Bambu Cube"), L("3DBenchy"), L("ksr FDMTest")}) {
+            append_menu_item(
+                sub_menu, wxID_ANY, _(item), "", [type, item](wxCommandEvent &) { obj_list()->load_generic_subobject(item, type); }, "", menu);
+        }
+    }
+
     return sub_menu;
 }
 
