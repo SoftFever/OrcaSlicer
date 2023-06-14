@@ -170,7 +170,7 @@ private:
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
-    void render_logo(bool bottom) const;
+    void render_logo(bool bottom, bool render_cali = true) const;
     void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
@@ -338,7 +338,7 @@ public:
     bool contains(const BoundingBoxf3& bb) const;
     bool intersects(const BoundingBoxf3& bb) const;
 
-    void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1);
+    void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
@@ -522,6 +522,7 @@ class PartPlateList : public ObjectBase
     // set render option
     bool render_bedtype_logo = true;
     bool render_plate_settings = true;
+    bool render_cali_logo = true;
 
     bool m_is_dark = false;
 
@@ -585,6 +586,7 @@ public:
     static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
     static GLTexture bed_textures[(unsigned int)btCount];
     static bool is_load_bedtype_textures;
+    static bool is_load_cali_texture;
 
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
@@ -725,9 +727,10 @@ public:
 
     /*rendering related functions*/
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
-    void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1);
+    void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false);
     void render_for_picking_pass();
     void set_render_option(bool bedtype_texture, bool plate_settings);
+    void set_render_cali(bool value = true) { render_cali_logo = value; }
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);
     int select_plate_by_obj(int obj_index, int instance_index);
@@ -785,7 +788,12 @@ public:
     void init_bed_type_info();
     void load_bedtype_textures();
 
+    void show_cali_texture(bool show = true);
+    void init_cali_texture_info();
+    void load_cali_textures();
+
     BedTextureInfo bed_texture_info[btCount];
+    BedTextureInfo cali_texture_info;
 };
 
 } // namespace GUI

@@ -1891,7 +1891,7 @@ void GLCanvas3D::render(bool only_init)
         if (!no_partplate)
             _render_bed(!camera.is_looking_downward(), show_axes);
         if (!no_partplate) //BBS: add outline logic
-            _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id);
+            _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id, true);
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
     }
     /* preview render */
@@ -6677,9 +6677,9 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
     //m_bed.render_for_picking(*this, bottom, scale_factor);
 }
 
-void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id) const
+void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali) const
 {
-    wxGetApp().plater()->get_partplate_list().render(bottom, only_current, only_body, hover_id);
+    wxGetApp().plater()->get_partplate_list().render(bottom, only_current, only_body, hover_id, render_cali);
 }
 
 void GLCanvas3D::_render_plates_for_picking() const

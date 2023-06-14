@@ -704,6 +704,15 @@ bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
     return is_bbl_vendor_preset;
 }
 
+bool Preset::has_cali_lines(PresetBundle* preset_bundle)
+{
+    std::string model_id = this->get_printer_type(preset_bundle);
+    if (model_id == "BL-P001" || model_id == "BL-P002") {
+        return true;
+    }
+    return false;
+}
+
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",

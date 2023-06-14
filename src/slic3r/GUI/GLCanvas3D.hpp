@@ -1106,7 +1106,7 @@ private:
     void _render_bed(bool bottom, bool show_axes);
     void _render_bed_for_picking(bool bottom);
     //BBS: add part plate related logic
-    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1) const;
+    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false) const;
     void _render_plates_for_picking() const;
     //BBS: add outline drawing logic
     void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);

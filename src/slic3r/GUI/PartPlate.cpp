@@ -557,7 +557,7 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffe
 	}
 }
 
-void PartPlate::render_logo(bool bottom) const
+void PartPlate::render_logo(bool bottom, bool render_cali) const
 {
 	if (!m_partplate_list->render_bedtype_logo) {
 		// render third-party printer texture logo
@@ -636,6 +636,7 @@ void PartPlate::render_logo(bool bottom) const
 	}
 
 	m_partplate_list->load_bedtype_textures();
+	m_partplate_list->load_cali_textures();
 
 	// btDefault should be skipped
 	auto curr_bed_type = get_bed_type();
@@ -645,6 +646,7 @@ void PartPlate::render_logo(bool bottom) const
             curr_bed_type = proj_cfg.opt_enum<BedType>(std::string("curr_bed_type"));
 	}
 	int bed_type_idx = (int)curr_bed_type;
+	// render bed textures
 	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
 		if (part.texture) {
 			if (part.buffer && part.buffer->get_vertices_count() > 0
@@ -658,6 +660,24 @@ void PartPlate::render_logo(bool bottom) const
 									*(part.buffer),
 									bottom,
 									part.vbo_id);
+			}
+		}
+	}
+
+	// render cali texture
+	if (render_cali) {
+		for (auto& part : m_partplate_list->cali_texture_info.parts) {
+			if (part.texture) {
+				if (part.buffer && part.buffer->get_vertices_count() > 0) {
+					if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
+						part.offset = Vec2d(m_origin.x(), m_origin.y());
+						part.update_buffer();
+					}
+					render_logo_texture(*(part.texture),
+						*(part.buffer),
+						bottom,
+						part.vbo_id);
+				}
 			}
 		}
 	}
@@ -2301,7 +2321,7 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 	return print_volume.intersects(bb);
 }
 
-void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id)
+void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
 {
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	glsafe(::glEnable(GL_BLEND));
@@ -2318,7 +2338,10 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 	render_grid(bottom);
 
 	if (!bottom && m_selected && !force_background_color) {
-		render_logo(bottom);
+		if (m_partplate_list)
+           render_logo(bottom, m_partplate_list->render_cali_logo && render_cali);
+		else
+		   render_logo(bottom);
 	}
 
 	render_height_limit(mode);
@@ -2860,6 +2883,7 @@ void PartPlateList::release_icon_textures()
 	}
 	//reset
 	PartPlateList::is_load_bedtype_textures = false;
+	PartPlateList::is_load_cali_texture = false;
 	for (int i = 0; i < btCount; i++) {
 		for (auto& part: bed_texture_info[i].parts) {
 			if (part.texture) {
@@ -4124,7 +4148,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id)
+void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -4149,15 +4173,15 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
 		if (current_index == m_current_plate) {
 			PartPlate::HeightLimitMode height_mode = (only_current)?PartPlate::HEIGHT_LIMIT_NONE:m_height_limit_mode;
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, height_mode, plate_hover_action);
+				(*it)->render(bottom, only_body, false, height_mode, plate_hover_action, render_cali);
 			else
-				(*it)->render(bottom, only_body, false, height_mode, -1);
+				(*it)->render(bottom, only_body, false, height_mode, -1, render_cali);
 		}
 		else {
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, plate_hover_action);
+				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, plate_hover_action, render_cali);
 			else
-				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1);
+				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
 		}
 	}
 }
@@ -4747,6 +4771,7 @@ void PartPlateList::print() const
 }
 
 bool PartPlateList::is_load_bedtype_textures = false;
+bool PartPlateList::is_load_cali_texture = false;
 
 void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 {
@@ -4835,6 +4860,40 @@ void PartPlateList::load_bedtype_textures()
 		}
 	}
 	PartPlateList::is_load_bedtype_textures = true;
+}
+
+void PartPlateList::init_cali_texture_info()
+{
+	BedTextureInfo::TexturePart cali_line(1, -3, 256, 70, "bbl_cali_lines.svg");
+	cali_texture_info.parts.push_back(cali_line);
+
+	for (int j = 0; j < cali_texture_info.parts.size(); j++) {
+		cali_texture_info.parts[j].update_buffer();
+	}
+}
+
+void PartPlateList::load_cali_textures()
+{
+	if (PartPlateList::is_load_cali_texture) return;
+
+	init_cali_texture_info();
+	GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
+	GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
+	for (int i = 0; i < (unsigned int)btCount; ++i) {
+		for (int j = 0; j < cali_texture_info.parts.size(); j++) {
+			std::string filename = resources_dir() + "/images/" + cali_texture_info.parts[j].filename;
+			if (boost::filesystem::exists(filename)) {
+				PartPlateList::cali_texture_info.parts[j].texture = new GLTexture();
+				if (!PartPlateList::cali_texture_info.parts[j].texture->load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load cali texture from %1% failed!") % filename;
+				}
+			}
+			else {
+				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load cali texture from %1% failed!") % filename;
+			}
+		}
+	}
+	PartPlateList::is_load_cali_texture = true;
 }
 
 }//end namespace GUI

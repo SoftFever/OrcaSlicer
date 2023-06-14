@@ -1643,10 +1643,17 @@ void Tab::on_presets_changed()
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
     bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
-    if (is_bbl_vendor_preset)
+    if (is_bbl_vendor_preset) {
         wxGetApp().plater()->get_partplate_list().set_render_option(true, true);
-    else
+        if (wxGetApp().preset_bundle->printers.get_edited_preset().has_cali_lines(wxGetApp().preset_bundle)) {
+            wxGetApp().plater()->get_partplate_list().set_render_cali(true);
+        } else {
+            wxGetApp().plater()->get_partplate_list().set_render_cali(false);
+        }
+    } else {
         wxGetApp().plater()->get_partplate_list().set_render_option(false, false);
+        wxGetApp().plater()->get_partplate_list().set_render_cali(false);
+    }
 
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
