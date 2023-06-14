@@ -1149,8 +1149,7 @@ void PrintObject::slice_volumes()
                             //BBS: trim surfaces
                             for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
                                 // BBS: split trimming result by region
-                                Polygons contour_exp;
-                                for (Surface surface : layer->regions()[region_id]->slices.surfaces) contour_exp.push_back(surface.expolygon.contour);
+                                ExPolygons contour_exp = to_expolygons(std::move(layer->regions()[region_id]->slices.surfaces));
 
                                 layer->regions()[region_id]->slices.set(intersection_ex(contour_exp, to_polygons(trimming)), stInternal);
                             }
