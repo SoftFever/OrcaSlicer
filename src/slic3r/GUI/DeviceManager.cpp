@@ -4440,14 +4440,17 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
         } else {
             if (m_agent) {
                 if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
-                    if (m_agent->get_user_selected_machine() != dev_id) {
+                    if (m_agent->get_user_selected_machine() == dev_id) {
+                        it->second->reset_update_time();
+                    }
+                    else {
                         BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = " << dev_id;
                         m_agent->set_user_selected_machine(dev_id);
                         it->second->reset();
-                    } else {
-                        it->second->reset_update_time();
                     }
                 } else {
+                    BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = empty";
+                    m_agent->set_user_selected_machine("");
                     it->second->reset();
 #if !BBL_RELEASE_TO_PUBLIC
                     it->second->connect(false, Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
