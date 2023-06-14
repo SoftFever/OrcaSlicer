@@ -1589,7 +1589,9 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     if (render_combo(_u8L("Style"), connector_styles, m_connector_style))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
     m_imgui->disabled_end();
+    ImGuiWrapper::pop_combo_style();
 
+    ImGuiWrapper::push_combo_style(m_parent.get_scale());
     if (render_combo(_u8L("Shape"), connector_shapes, m_connector_shape_id))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     ImGuiWrapper::pop_combo_style();
