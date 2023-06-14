@@ -697,7 +697,7 @@ public:
     std::string camera_resolution = "";
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
-    int local_camera_proto = 0;
+    int local_camera_proto = -1;
     int file_proto = 0;
     std::string local_rtsp_url;
     std::string tutk_state;

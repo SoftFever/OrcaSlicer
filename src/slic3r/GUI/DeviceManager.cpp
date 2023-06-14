@@ -1376,10 +1376,10 @@ void MachineObject::parse_version_func()
                 is_support_remote_tunnel = true;
                 is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.04.01.04") >= 0
                     || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.20.30") >= 0));
-                local_camera_proto = (local_rtsp_url.empty() || local_rtsp_url == "disable") ? 0
-                    : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
-                file_proto = 2;
             }
+            local_camera_proto       = local_rtsp_url.empty() ? -1 : local_rtsp_url == "disable" ? 0 
+                                        : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
+            file_proto = 2;
         }
     } else if (printer_type == "C11") {
         is_cloud_print_only = true;

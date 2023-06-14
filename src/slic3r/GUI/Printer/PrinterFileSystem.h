@@ -51,6 +51,7 @@ public:
         FILE_READ_ERR       = 14,
         FILE_CHECK_ERR      = 15,
         FILE_TYPE_ERR       = 16,
+        STORAGE_UNAVAILABLE = 17,
     };
 
 

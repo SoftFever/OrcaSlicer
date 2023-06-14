@@ -31,7 +31,8 @@ wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
-    {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")}
+    {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
+    {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Storage unavailable, insert SD card.")}
 };
 
 struct StaticBambuLib : BambuLib {
