@@ -4569,8 +4569,15 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                 dlg->Update(percent, _L("Loading user preset"));
             });
         };
-        cancelFn = [dlg]() {
-            return dlg->WasCanceled();
+        cancelFn = [this, dlg]() {
+            bool was_canceled = dlg->WasCanceled();
+            if (was_canceled) {
+                CallAfter([=] {
+                    dlg->Destroy();
+                    reload_settings();
+                });
+            }
+            return was_canceled;
         };
         finishFn = [this, dlg] {
             CallAfter([=]{
