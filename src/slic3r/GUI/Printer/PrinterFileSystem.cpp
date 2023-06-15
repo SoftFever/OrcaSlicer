@@ -814,8 +814,10 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
             if (type == ModelThumbnail) {
                 for (auto &file : *files) {
                     auto thumbnail = file.metadata["Thumbnail"];
-                    if (!thumbnail.empty())
+                    if (!thumbnail.empty()) {
                         arr.push_back(file.path + "#" + thumbnail);
+                        file.flags &= ~FF_THUMNAIL;
+                    }
                 }
             }
             if (arr.empty()) {
