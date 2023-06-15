@@ -117,6 +117,7 @@ private:
     bool        m_show_edit{false};
     bool        m_show_bind{false};
     bool        m_hover {false};
+    bool        m_is_macos_special_version{false};
 
 
     PrinterBindState   m_bind_state;
@@ -145,17 +146,14 @@ public:
                        const wxSize &  size  = wxDefaultSize,
                        long            style = wxTAB_TRAVERSAL,
                        const wxString &name  = wxEmptyString);
+    
     ~MachineObjectPanel();
 
     void show_bind_dialog();
- 
     void set_printer_state(PrinterState state);
-
     void show_printer_bind(bool show, PrinterBindState state);
     void show_edit_printer_name(bool show);
-
     void update_machine_info(MachineObject *info, bool is_my_devices = false);
-
 protected:
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);

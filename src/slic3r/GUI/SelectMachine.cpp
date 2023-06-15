@@ -13,6 +13,7 @@
 #include "Widgets/StaticBox.hpp"
 #include "ConnectPrinter.hpp"
 
+
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
@@ -175,7 +176,21 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
     this->Bind(wxEVT_ENTER_WINDOW, &MachineObjectPanel::on_mouse_enter, this);
     this->Bind(wxEVT_LEAVE_WINDOW, &MachineObjectPanel::on_mouse_leave, this);
     this->Bind(wxEVT_LEFT_UP, &MachineObjectPanel::on_mouse_left_up, this);
+
+#ifdef __APPLE__
+    wxPlatformInfo platformInfo;
+    auto major = platformInfo.GetOSMajorVersion();
+    auto minor = platformInfo.GetOSMinorVersion();
+    auto micro = platformInfo.GetOSMicroVersion();
+
+    //macos 13.1.0
+    if (major >= 13 && minor >= 1 && micro >= 0) {
+        m_is_macos_special_version = true;
+    }
+#endif
+
 }
+
 
 MachineObjectPanel::~MachineObjectPanel() {}
 
@@ -286,10 +301,14 @@ void MachineObjectPanel::doRender(wxDC &dc)
 
     dc.DrawText(finally_name, wxPoint(left, (size.y - sizet.y) / 2));
 
-    if (m_hover) {
-        dc.SetPen(SELECT_MACHINE_BRAND);
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRectangle(0, 0, size.x, size.y);
+
+    if (m_hover || m_is_macos_special_version) {
+
+        if (m_hover && !m_is_macos_special_version) {
+            dc.SetPen(SELECT_MACHINE_BRAND);
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRectangle(0, 0, size.x, size.y);
+        }
 
         if (m_show_bind) {
             if (m_bind_state == ALLOW_UNBIND) {
@@ -303,6 +322,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
             dc.DrawBitmap(m_edit_name_img.bmp(), left, (size.y - m_edit_name_img.GetBmpSize().y) / 2);
         }
     }
+    
 }
 
 void MachineObjectPanel::update_machine_info(MachineObject *info, bool is_my_devices)
