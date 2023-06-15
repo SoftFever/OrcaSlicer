@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-14 11:23+0800\n"
+"POT-Creation-Date: 2023-06-15 16:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -817,6 +817,15 @@ msgstr ""
 msgid "Cone"
 msgstr ""
 
+msgid "Bambu Cube"
+msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "ksr FDMTest"
+msgstr ""
+
 msgid "Height range Modifier"
 msgstr ""
 
@@ -911,7 +920,10 @@ msgstr ""
 msgid "Assemble the selected objects to an object with single part"
 msgstr ""
 
-msgid "Assemble the selected parts to a single part"
+msgid "Mesh boolean"
+msgstr ""
+
+msgid "Mesh boolean operations including union and subtraction"
 msgstr ""
 
 msgid "Along X axis"
@@ -1869,13 +1881,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm³"
+msgid "mm\\u00B3"
 msgstr ""
 
 msgid "Start calibration"
@@ -3309,16 +3321,13 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-msgid "Initialize failed (Not supported with LAN-only mode)!"
+msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr ""
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
-msgstr ""
-
-msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3487,6 +3496,9 @@ msgid "Downloading %d%%..."
 msgstr ""
 
 msgid "Not supported on the current printer version."
+msgstr ""
+
+msgid "Storage unavailable, insert SD card."
 msgstr ""
 
 msgid "Speed:"
@@ -5002,8 +5014,8 @@ msgstr ""
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 
@@ -6327,6 +6339,13 @@ msgid ""
 "password@your-octopi-address/"
 msgstr ""
 
+msgid "Device UI"
+msgstr ""
+
+msgid ""
+"Specify the URL of your device user interface if it's not same as print_host"
+msgstr ""
+
 msgid "API Key / Password"
 msgstr ""
 
@@ -6806,6 +6825,22 @@ msgstr ""
 msgid "The flow ratio set by object, the meaning is the same as flow ratio."
 msgstr ""
 
+msgid "Enable pressure advance"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled. Useless for Bambu Printer"
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid ""
+"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
+"Bambu Printer"
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
 
@@ -6856,6 +6891,9 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
+msgstr ""
+
+msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"
@@ -7575,6 +7613,26 @@ msgstr ""
 msgid "Random"
 msgstr ""
 
+msgid "Seam gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current extruder diameter. The default value for this parameter is 0.15"
+msgstr ""
+
+msgid "Wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by the speed setting specified in this "
+"configuration.If the value is expressed as a percentage (e.g. 80%), it will "
+"be calculated based on the travel speed setting above.The default value for "
+"this parameter is 80%"
+msgstr ""
+
 msgid "Skirt distance"
 msgstr ""
 
@@ -7903,6 +7961,12 @@ msgid "Tree support brim width"
 msgstr ""
 
 msgid "The brim width around tree support. 0 means auto."
+msgstr ""
+
+msgid "Chamber temperature"
+msgstr ""
+
+msgid "Target chamber temperature"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"

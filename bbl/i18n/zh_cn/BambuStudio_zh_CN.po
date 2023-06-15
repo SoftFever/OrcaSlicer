@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-14 11:23+0800\n"
+"POT-Creation-Date: 2023-06-15 16:05+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -824,6 +824,15 @@ msgstr "圆柱体"
 msgid "Cone"
 msgstr "锥体"
 
+msgid "Bambu Cube"
+msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "ksr FDMTest"
+msgstr ""
+
 msgid "Height range Modifier"
 msgstr "高度范围修改器"
 
@@ -912,17 +921,17 @@ msgstr "恢复到米"
 msgid "Assemble"
 msgstr "组合"
 
-msgid "Mesh boolean"
-msgstr "网格布尔操作"
-
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "组合所选对象为一个多零件对象"
 
 msgid "Assemble the selected objects to an object with single part"
 msgstr "组合所选对象为一个单零件对象"
 
-msgid "Assemble the selected parts to a single part"
-msgstr "组合所选零件为单个零件"
+msgid "Mesh boolean"
+msgstr "网格布尔操作"
+
+msgid "Mesh boolean operations including union and subtraction"
+msgstr ""
 
 msgid "Along X axis"
 msgstr "沿 X 轴"
@@ -1894,14 +1903,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -3406,17 +3415,14 @@ msgstr "正在初始化……"
 msgid "Loading..."
 msgstr "正在加载视频……"
 
-msgid "Initialize failed (Not supported with LAN-only mode)!"
-msgstr "初始化失败（不支持局域网模式的视频连接）"
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr "初始化失败（当前打印机的版本不支持）！"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "初始化失败（在局域网模式中不可访问）！"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初始化失败（未找到打印机的局域网地址）！"
-
-msgid "Initialize failed (Not supported on the current printer version)!"
-msgstr "初始化失败（当前打印机的版本不支持）！"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3589,6 +3595,9 @@ msgstr "下载中 %d%%..."
 
 msgid "Not supported on the current printer version."
 msgstr "当前打印机的版本不支持。"
+
+msgid "Storage unavailable, insert SD card."
+msgstr ""
 
 msgid "Speed:"
 msgstr "速度："
@@ -5129,8 +5138,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -6498,6 +6507,13 @@ msgid ""
 "password@your-octopi-address/"
 msgstr ""
 
+msgid "Device UI"
+msgstr ""
+
+msgid ""
+"Specify the URL of your device user interface if it's not same as print_host"
+msgstr ""
+
 msgid "API Key / Password"
 msgstr ""
 
@@ -7008,6 +7024,22 @@ msgstr ""
 msgid "The flow ratio set by object, the meaning is the same as flow ratio."
 msgstr ""
 
+msgid "Enable pressure advance"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled. Useless for Bambu Printer"
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid ""
+"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
+"Bambu Printer"
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "当线宽设置为0时走线的默认线宽"
 
@@ -7065,6 +7097,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
@@ -7815,6 +7850,26 @@ msgstr "背面"
 msgid "Random"
 msgstr "随机"
 
+msgid "Seam gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current extruder diameter. The default value for this parameter is 0.15"
+msgstr ""
+
+msgid "Wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by the speed setting specified in this "
+"configuration.If the value is expressed as a percentage (e.g. 80%), it will "
+"be calculated based on the travel speed setting above.The default value for "
+"this parameter is 80%"
+msgstr ""
+
 msgid "Skirt distance"
 msgstr "Skirt距离"
 
@@ -8167,6 +8222,12 @@ msgstr "树状支撑裙边宽度"
 
 msgid "The brim width around tree support. 0 means auto."
 msgstr "围绕树状支撑的裙边宽度。0表示自动。"
+
+msgid "Chamber temperature"
+msgstr ""
+
+msgid "Target chamber temperature"
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
@@ -8950,13 +9011,17 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
-#, c-format, boost-format
+#~ msgid "Assemble the selected parts to a single part"
+#~ msgstr "组合所选零件为单个零件"
+
+#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
+#~ msgstr "初始化失败（不支持局域网模式的视频连接）"
+
 #~ msgid ""
 #~ "Damp %s will become flexible and get stuck inside AMS,please take care to "
 #~ "dry it before use."
 #~ msgstr "潮湿的%s会变软并卡在AMS内，请在使用前保持干燥。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "%s filaments are hard and brittle, It's easy to break or get stuck in "
 #~ "AMS, please use with caution."
@@ -8977,7 +9042,6 @@ msgstr ""
 #~ msgid "Not supported by this model of printer!"
 #~ msgstr "该型号的打印机不支持该功能！"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
 #~ "the printer by logging in with your user account."
@@ -8985,7 +9049,6 @@ msgstr ""
 #~ "由于LAN模式被禁用，已与打印机[%s]断开连接。请使用您的用户帐户登录以重新连"
 #~ "接打印机。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
 #~ "the printer by inputting Access Code which can be gotten from printer "
@@ -8994,11 +9057,9 @@ msgstr ""
 #~ "由于启用了LAN模式，已与打印机[%s]断开连接。请通过输入访问码重新连接打印"
 #~ "机，访问码可从打印机屏幕上获取。"
 
-#, boost-format
 #~ msgid "Number of currently selected parts: %1%\n"
 #~ msgstr "当前选择的零件数量: %1%\n"
 
-#, boost-format
 #~ msgid " plate %1%:"
 #~ msgstr "盘%1%："
 

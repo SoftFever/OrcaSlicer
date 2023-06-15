@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-14 11:23+0800\n"
+"POT-Creation-Date: 2023-06-15 16:05+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -247,37 +247,37 @@ msgid "uniform scale"
 msgstr "Uniform schalen"
 
 msgid "Left click"
-msgstr ""
+msgstr "Left click"
 
 msgid "Add connector"
-msgstr ""
+msgstr "Add connector"
 
 msgid "Right click"
-msgstr ""
+msgstr "Right click"
 
 msgid "Remove connector"
-msgstr ""
+msgstr "Remove connector"
 
 msgid "Drag"
-msgstr ""
+msgstr "Drag"
 
 msgid "Move connector"
-msgstr ""
+msgstr "Move connector"
 
 msgid "Add connector to selection"
-msgstr ""
+msgstr "Add connector to selection"
 
 msgid "Remove connector from selection"
-msgstr ""
+msgstr "Remove connector from selection"
 
 msgid "Select all connectors"
-msgstr ""
+msgstr "Select all connectors"
 
 msgid "Cut"
 msgstr "Knippen"
 
 msgid "Connector"
-msgstr ""
+msgstr "Connector"
 
 msgid "Movement:"
 msgstr "Beweging:"
@@ -289,28 +289,28 @@ msgid "Height"
 msgstr "Hoogte"
 
 msgid "Edit connectors"
-msgstr ""
+msgstr "Edit connectors"
 
 msgid "Add connectors"
-msgstr ""
+msgstr "Add connectors"
 
 msgid "Upper part"
-msgstr ""
+msgstr "Upper part"
 
 msgid "Lower part"
-msgstr ""
+msgstr "Lower part"
 
 msgid "Keep"
-msgstr ""
+msgstr "Keep"
 
 msgid "Place on cut"
-msgstr ""
+msgstr "Place on cut"
 
 msgid "Flip"
-msgstr ""
+msgstr "Flip"
 
 msgid "After cut"
-msgstr ""
+msgstr "After cut"
 
 msgid "Cut to parts"
 msgstr "In delen knippen"
@@ -325,7 +325,7 @@ msgid "Reset"
 msgstr "Terugzetten"
 
 msgid "Connectors"
-msgstr ""
+msgstr "Connectors"
 
 msgid "Type"
 msgstr "Type"
@@ -337,25 +337,25 @@ msgid "Shape"
 msgstr "Vorm"
 
 msgid "Depth ratio"
-msgstr ""
+msgstr "Depth ratio"
 
 msgid "Remove connectors"
-msgstr ""
+msgstr "Remove connectors"
 
 msgid "Prizm"
-msgstr ""
+msgstr "Prizm"
 
 msgid "Frustum"
-msgstr ""
+msgstr "Frustum"
 
 msgid "Square"
-msgstr ""
+msgstr "Square"
 
 msgid "Hexagon"
-msgstr ""
+msgstr "Hexagon"
 
 msgid "Confirm connectors"
-msgstr ""
+msgstr "Confirm connectors"
 
 msgid "Cancel"
 msgstr "Annuleren"
@@ -364,36 +364,38 @@ msgid "Warning"
 msgstr "Waarschuwing"
 
 msgid "Invalid connectors detected"
-msgstr ""
+msgstr "Invalid connectors detected"
 
 msgid "connector is out of cut contour"
-msgstr ""
+msgstr "connector is out of cut contour"
 
 msgid "connectors are out of cut contour"
-msgstr ""
+msgstr "connectors are out of cut contour"
 
 msgid "connector is out of object"
-msgstr ""
+msgstr "connector is out of object"
 
 msgid "connectors is out of object"
-msgstr ""
+msgstr "Connectors must be on object surface."
 
 msgid "Some connectors are overlapped"
-msgstr ""
+msgstr "Some connectors are overlapped"
 
 msgid ""
 "Invalid state. \n"
 "No one part is selected for keep after cut"
 msgstr ""
+"Invalid state. \n"
+"No one part is selected to keep after cut"
 
 msgid "Plug"
-msgstr ""
+msgstr "Plug"
 
 msgid "Dowel"
-msgstr ""
+msgstr "Dowel"
 
 msgid "Tolerance"
-msgstr ""
+msgstr "Tolerance"
 
 msgid "Mesh name"
 msgstr "Constructie name"
@@ -483,10 +485,10 @@ msgid "Remove selection"
 msgstr "Verwijder selectie"
 
 msgid "Shift + Mouse move up or dowm"
-msgstr ""
+msgstr "Shift + Mouse move up or dowm"
 
 msgid "Rotate text"
-msgstr ""
+msgstr "Rotate text"
 
 msgid "Text shape"
 msgstr "Tekstvorm"
@@ -501,27 +503,27 @@ msgid "Input text"
 msgstr "Tekst invoeren"
 
 msgid "Embeded"
-msgstr ""
+msgstr "Embedded"
 
 msgid "Text Gap"
-msgstr ""
+msgstr "Text Gap"
 
 msgid "Angle"
-msgstr ""
+msgstr "Angle"
 
 msgid ""
 "Embeded\n"
 "depth"
-msgstr ""
+msgstr "Embedded depth"
 
 msgid "Surface"
-msgstr ""
+msgstr "Surface"
 
 msgid "Horizontal text"
-msgstr ""
+msgstr "Horizontal text"
 
 msgid "Ctrl+"
-msgstr ""
+msgstr "Ctrl+"
 
 msgid "Notice"
 msgstr "Let op"
@@ -688,7 +690,7 @@ msgstr ""
 "nieuwste versie voordat deze normaal kan worden gebruikt"
 
 msgid "Privacy Policy Update"
-msgstr ""
+msgstr "Privacy Policy Update"
 
 msgid "Loading"
 msgstr "Laden"
@@ -721,7 +723,7 @@ msgid "Select a G-code file:"
 msgstr "Selecteer een G-code bestand:"
 
 msgid "Import File"
-msgstr ""
+msgstr "Import File"
 
 msgid "Delete"
 msgstr "Verwijderen"
@@ -730,7 +732,7 @@ msgid "Choose files"
 msgstr "Kies bestanden"
 
 msgid "New Folder"
-msgstr ""
+msgstr "New Folder"
 
 msgid "Open"
 msgstr "Open"
@@ -812,13 +814,13 @@ msgid "Show"
 msgstr "Weergeven"
 
 msgid "Del"
-msgstr ""
+msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Verwijder het geselecteerde object"
 
 msgid "Edit Text"
-msgstr ""
+msgstr "Edit Text"
 
 msgid "Load..."
 msgstr "Laden..."
@@ -832,8 +834,17 @@ msgstr "Cilinder"
 msgid "Cone"
 msgstr "Kegel"
 
-msgid "Height range Modifier"
+msgid "Bambu Cube"
 msgstr ""
+
+msgid "3DBenchy"
+msgstr ""
+
+msgid "ksr FDMTest"
+msgstr ""
+
+msgid "Height range Modifier"
+msgstr "Height Range Modifier"
 
 msgid "Add settings"
 msgstr "Instellingen toevoegen"
@@ -928,8 +939,11 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr ""
 "Monteer de geselecteerde objecten tot een object bestaande uit 1 onderdeel"
 
-msgid "Assemble the selected parts to a single part"
-msgstr "Monteer de geselecteerde onderdelen tot een enkel onderdeel"
+msgid "Mesh boolean"
+msgstr ""
+
+msgid "Mesh boolean operations including union and subtraction"
+msgstr ""
 
 msgid "Along X axis"
 msgstr "Langs de X as"
@@ -956,7 +970,7 @@ msgid "Mirror object"
 msgstr "Spiegel object"
 
 msgid "Invalidate cut info"
-msgstr ""
+msgstr "Invalidate cut info"
 
 msgid "Add Primitive"
 msgstr "Primitief toevoegen"
@@ -1020,7 +1034,7 @@ msgid "auto rotate current plate"
 msgstr "Huidig printbed automatisch roteren"
 
 msgid "Delete Plate"
-msgstr ""
+msgstr "Delete Plate"
 
 msgid "Remove the selected plate"
 msgstr "Verwijder het huidige printbed"
@@ -1056,13 +1070,13 @@ msgid "Lock"
 msgstr "Vergrendelen"
 
 msgid "Fill bed with copies"
-msgstr ""
+msgstr "Fill bed with copies"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr ""
+msgstr "Fill the remaining area of bed with copies of the selected object"
 
 msgid "Edit plate settings"
-msgstr "Plaatinstellingen bewerken"
+msgstr ""
 
 msgid "Name"
 msgstr "Naam"
@@ -1119,7 +1133,7 @@ msgid "Click the icon to edit color painting of the object"
 msgstr "Klik op het pictogram om de kleur van het object te bewerken"
 
 msgid "Click the icon to shift this object to the bed"
-msgstr ""
+msgstr "Click the icon to shift this object to the bed"
 
 msgid "Loading file"
 msgstr "Bestand laden"
@@ -1149,18 +1163,20 @@ msgstr ""
 "geselecteerde objecten te bewerken."
 
 msgid "Delete connector from object which is a part of cut"
-msgstr ""
+msgstr "Delete connector from object which is a part of cut"
 
 msgid "Delete solid part from object which is a part of cut"
-msgstr ""
+msgstr "Delete solid part from object which is a part of cut"
 
 msgid "Delete negative volume from object which is a part of cut"
-msgstr ""
+msgstr "Delete negative volume from object which is a part of cut"
 
 msgid ""
 "To save cut correspondence you can delete all connectors from all related "
 "objects."
 msgstr ""
+"To save cut correspondence you can delete all connectors from all related "
+"objects."
 
 msgid ""
 "This action will break a cut correspondence.\n"
@@ -1169,9 +1185,14 @@ msgid ""
 "To manipulate with solid parts or negative volumes you have to invalidate "
 "cut infornation first."
 msgstr ""
+"This action will break a cut correspondence.\n"
+"After that, model consistency can't be guaranteed .\n"
+"\n"
+"To manipulate with solid parts or negative volumes you have to invalidate "
+"cut information first."
 
 msgid "Delete all connectors"
-msgstr ""
+msgstr "Delete all connectors"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Het is niet toegestaand om het laaste vaste deel te verwijderen."
@@ -1185,34 +1206,34 @@ msgid "Assembly"
 msgstr "Montage"
 
 msgid "Cut Connectors information"
-msgstr ""
+msgstr "Cut Connectors information"
 
 msgid "Object manipulation"
-msgstr ""
+msgstr "Object manipulation"
 
 msgid "Group manipulation"
-msgstr ""
+msgstr "Group manipulation"
 
 msgid "Object Settings to modify"
-msgstr ""
+msgstr "Object Settings to Modify"
 
 msgid "Part Settings to modify"
-msgstr ""
+msgstr "Part Settings to Modify"
 
 msgid "Layer range Settings to modify"
-msgstr ""
+msgstr "Layer Range Settings to Modify"
 
 msgid "Part manipulation"
-msgstr ""
+msgstr "Part manipulation"
 
 msgid "Instance manipulation"
-msgstr ""
+msgstr "Instance manipulation"
 
 msgid "Height ranges"
-msgstr ""
+msgstr "Height ranges"
 
 msgid "Settings for height range"
-msgstr ""
+msgstr "Settings for height range"
 
 msgid "Object"
 msgstr "Voorwerp"
@@ -1297,10 +1318,10 @@ msgid "to"
 msgstr "naar"
 
 msgid "Remove height range"
-msgstr ""
+msgstr "Remove height range"
 
 msgid "Add height range"
-msgstr ""
+msgstr "Add height range"
 
 msgid "Invalid numeric."
 msgstr "Onjuist getal."
@@ -1335,13 +1356,13 @@ msgid "Auto"
 msgstr "Automatisch"
 
 msgid "Outer brim only"
-msgstr ""
+msgstr "Outer brim only"
 
 msgid "Inner brim only"
-msgstr ""
+msgstr "Inner brim only"
 
 msgid "Outer and inner brim"
-msgstr ""
+msgstr "Outer and inner brim"
 
 msgid "No-brim"
 msgstr "Geen extra rand (brim)"
@@ -1380,16 +1401,16 @@ msgid "Open Documentation in web browser."
 msgstr "Documentatie openen in een webbrowser"
 
 msgid "Pause:"
-msgstr ""
+msgstr "Pause:"
 
 msgid "Custom Template:"
-msgstr ""
+msgstr "Custom Template:"
 
 msgid "Custom G-code:"
-msgstr ""
+msgstr "Custom G-code:"
 
 msgid "Pause Print"
-msgstr ""
+msgstr "Pause Print"
 
 msgid "OK"
 msgstr "Offline"
@@ -1413,43 +1434,43 @@ msgid "Add Pause"
 msgstr "Pauze toevoegen"
 
 msgid "Insert a pause command at the beginning of this layer."
-msgstr ""
+msgstr "Insert a pause command at the beginning of this layer."
 
 msgid "Add Custom G-code"
 msgstr "Aangepaste G-code toevoegen"
 
 msgid "Insert custom G-code at the beginning of this layer."
-msgstr ""
+msgstr "Insert custom G-code at the beginning of this layer."
 
 msgid "Add Custom Template"
 msgstr "Aangepaste sjabloon toevoegen"
 
 msgid "Insert template custom G-code at the beginning of this layer."
-msgstr ""
+msgstr "Insert template custom G-code at the beginning of this layer."
 
 msgid "Filament "
 msgstr "Filament"
 
 msgid "Change filament at the beginning of this layer."
-msgstr ""
+msgstr "Change filament at the beginning of this layer."
 
 msgid "Edit Pause Print Message"
-msgstr ""
+msgstr "Edit Pause Print Message"
 
 msgid "Delete Pause Print"
-msgstr ""
+msgstr "Delete Pause Print"
 
 msgid "Delete Custom Template"
-msgstr ""
+msgstr "Delete Custom Template"
 
 msgid "Edit Custom G-code"
-msgstr ""
+msgstr "Edit Custom G-code"
 
 msgid "Delete Custom G-code"
-msgstr ""
+msgstr "Delete Custom G-code"
 
 msgid "Delete Filament Change"
-msgstr ""
+msgstr "Delete Filament Change"
 
 msgid "No printer"
 msgstr "Geen printer"
@@ -1467,7 +1488,7 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "Ams filament backup"
-msgstr ""
+msgstr "AMS filament backup"
 
 msgid "AMS not connected"
 msgstr "AMS niet aangesloten"
@@ -1526,10 +1547,10 @@ msgid "Purge old filament"
 msgstr "Oud filament verwijderen"
 
 msgid "Push new filament into the extruder"
-msgstr ""
+msgstr "Push new filament into the extruder"
 
 msgid "Grab new filament"
-msgstr ""
+msgstr "Grab new filament"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1613,13 +1634,13 @@ msgid "Orienting"
 msgstr "Oriënteren "
 
 msgid "Filling bed "
-msgstr ""
+msgstr "Filling bed"
 
 msgid "Bed filling canceled."
-msgstr ""
+msgstr "Bed filling canceled."
 
 msgid "Bed filling done."
-msgstr ""
+msgstr "Bed filling done."
 
 msgid "Error! Unable to create thread!"
 msgstr "Fout! Kan geen thread maken!"
@@ -1637,47 +1658,55 @@ msgid "Please check the printer network connection."
 msgstr "Controleer de netwerkverbinding van de printer."
 
 msgid "Abnormal print file data. Please slice again."
-msgstr ""
+msgstr "Abnormal print file data: please slice again."
 
 msgid "Task canceled."
-msgstr ""
+msgstr "Task canceled."
 
 msgid "Upload task timed out. Please check the network status and try again."
-msgstr ""
+msgstr "Upload task timed out. Please check the network status and try again."
 
 msgid "Cloud service connection failed. Please try again."
 msgstr "Verbinding met cloudservice is mislukt. Probeer het nog eens."
 
 msgid "Print file not found. please slice again."
-msgstr ""
+msgstr "Print file not found; please slice again."
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
 "model and slice again."
 msgstr ""
+"The print file exceeds the maximum allowable size (1GB). Please simplify the "
+"model and slice again."
 
 msgid "Failed to send the print job. Please try again."
 msgstr "Het verzenden van de printopdracht is mislukt. Probeer het opnieuw."
 
 msgid "Failed to upload file to ftp. Please try again."
-msgstr ""
+msgstr "Failed to upload file to ftp. Please try again."
 
 msgid ""
 "Check the current status of the bambu server by clicking on the link above."
 msgstr ""
+"Check the current status of the Bambu Lab server by clicking on the link "
+"above."
 
 msgid ""
 "The size of the print file is too large. Please adjust the file size and try "
 "again."
 msgstr ""
+"The size of the print file is too large. Please adjust the file size and try "
+"again."
 
 msgid "Print file not found, Please slice it again and send it for printing."
-msgstr ""
+msgstr "Print file not found; please slice it again and send it for printing."
 
 msgid ""
 "Failed to upload print file to FTP. Please check the network status and try "
 "again."
 msgstr ""
+"Failed to upload print file via FTP. Please check the network status and try "
+"again."
 
 msgid "Sending print job over LAN"
 msgstr "Printopdracht verzenden via LAN"
@@ -1723,53 +1752,57 @@ msgstr ""
 "wordt gestuurd."
 
 msgid "Choose SLA archive:"
-msgstr ""
+msgstr "Choose SLA archive:"
 
 msgid "Import file"
-msgstr ""
+msgstr "Import file"
 
 msgid "Import model and profile"
-msgstr ""
+msgstr "Import model and profile"
 
 msgid "Import profile only"
-msgstr ""
+msgstr "Import profile only"
 
 msgid "Import model only"
-msgstr ""
+msgstr "Import model only"
 
 msgid "Accurate"
-msgstr ""
+msgstr "Accurate"
 
 msgid "Balanced"
-msgstr ""
+msgstr "Balanced"
 
 msgid "Quick"
-msgstr ""
+msgstr "Quick"
 
 msgid "Importing SLA archive"
-msgstr ""
+msgstr "Importing SLA archive"
 
 msgid ""
 "The SLA archive doesn't contain any presets. Please activate some SLA "
 "printer preset first before importing that SLA archive."
 msgstr ""
+"The SLA archive doesn't contain any presets. Please activate some SLA "
+"printer presets first before importing that SLA archive."
 
 msgid "Importing canceled."
-msgstr ""
+msgstr "Importing canceled."
 
 msgid "Importing done."
-msgstr ""
+msgstr "Importing done."
 
 msgid ""
 "The imported SLA archive did not contain any presets. The current SLA "
 "presets were used as fallback."
 msgstr ""
+"The imported SLA archive did not contain any presets. The current SLA "
+"presets were used as fallback."
 
 msgid "You cannot load SLA project with a multi-part object on the bed"
-msgstr ""
+msgstr "You cannot load an SLA project with a multi-part object on the bed"
 
 msgid "Please check your object list before preset changing."
-msgstr ""
+msgstr "Please check your object list before preset changing."
 
 msgid "Attention!"
 msgstr "Let op!"
@@ -1906,10 +1939,10 @@ msgid "Factor N"
 msgstr "Factor N"
 
 msgid "Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "Setting Virtual slot information while printing is not supported"
 
 msgid "Are you sure you want to clear the filament information?"
-msgstr ""
+msgstr "Are you sure you want to clear the filament information?"
 
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Voer een geldige waarde in (K in 0 ~ 0,5)"
@@ -1918,13 +1951,13 @@ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Voer een geldige waarde in (K in 0 ~ 0,5, N in 0,6 ~ 2,0)"
 
 msgid "You need to select the material type and color first."
-msgstr ""
+msgstr "You need to select the material type and color first."
 
 msgid "Other Color"
-msgstr ""
+msgstr "Other Color"
 
 msgid "Custom Color"
-msgstr ""
+msgstr "Custom Color"
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamic flow calibration"
@@ -1954,14 +1987,14 @@ msgstr "Bed Temperatuur"
 msgid "Max volumetric speed"
 msgstr "Maximale volumetrische snelheid"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Printbed temperatuur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -2085,10 +2118,10 @@ msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Print met filament op een externe spoel"
 
 msgid "Filaments Auto refill"
-msgstr ""
+msgstr "Filament Auto-refill"
 
 msgid "Auto refill"
-msgstr ""
+msgstr "Auto refill"
 
 msgid ""
 "When the current material run out, the printer will continue to print in the "
@@ -2096,7 +2129,7 @@ msgid ""
 msgstr ""
 
 msgid "Group"
-msgstr ""
+msgstr "Group"
 
 msgid "AMS Settings"
 msgstr "AMS Instellingen"
@@ -2159,7 +2192,7 @@ msgstr ""
 "wordt de resterende capaciteit automatisch bijgewerkt."
 
 msgid "AMS filament backup"
-msgstr ""
+msgstr "AMS filament backup"
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -2455,6 +2488,8 @@ msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2518,6 +2553,8 @@ msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
 msgstr ""
+"While printing by object, the extruder may collide with a skirt.\n"
+"Thus, reset the skirt layer to 1 to avoid collisions."
 
 msgid "Auto bed leveling"
 msgstr "Automatisch bed levellen"
@@ -2726,7 +2763,7 @@ msgid "Generating geometry index data"
 msgstr "Geometrie-indexgegevens genereren"
 
 msgid "Statistics of All Plates"
-msgstr ""
+msgstr "Statistics of All Plates"
 
 msgid "Display"
 msgstr "Tonen"
@@ -2738,7 +2775,7 @@ msgid "Total"
 msgstr "Totaal"
 
 msgid "Total Time Estimation"
-msgstr ""
+msgstr "Total Time Estimation"
 
 msgid "Total time"
 msgstr "Totale tijd"
@@ -2780,7 +2817,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Volumestroom (mm³/s)"
 
 msgid "Layer Time (s)"
-msgstr ""
+msgstr "Layer Time (s)"
 
 msgid "Used filament"
 msgstr "Verbruikt filament"
@@ -2912,7 +2949,7 @@ msgid "Tool Move"
 msgstr "Beweeg tool"
 
 msgid "Tool Rotate"
-msgstr ""
+msgstr "Tool Rotate"
 
 msgid "Move Object"
 msgstr "Beweeg object"
@@ -3006,6 +3043,8 @@ msgid ""
 "Conflicts of gcode paths have been found at layer %d. Please separate the "
 "conflicted objects farther (%s <-> %s)."
 msgstr ""
+"Conflicts of gcode paths have been found at layer %d. Please separate the "
+"conflicting objects further (%s <-> %s)."
 
 msgid "An object is layed over the boundary of plate."
 msgstr "Er bevind zich een object buiten de grenzen van de printplaat."
@@ -3136,7 +3175,7 @@ msgid "No"
 msgstr "Nee"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
-msgstr ""
+msgstr "will be closed before creating a new model. Do you want to continue?"
 
 msgid "Slice plate"
 msgstr "Slice printbed"
@@ -3181,7 +3220,7 @@ msgid "Show Tip of the Day"
 msgstr "Toon Tip van de dag"
 
 msgid "Report issue"
-msgstr ""
+msgstr "Report issue"
 
 msgid "Check for Update"
 msgstr "Zoeken naar updates"
@@ -3265,7 +3304,7 @@ msgid "Save Project as"
 msgstr "Bewaar project als"
 
 msgid "Shift+"
-msgstr ""
+msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Bewaar huidig project als"
@@ -3382,10 +3421,10 @@ msgid "Show object labels in 3D scene"
 msgstr "Toon objectlabels in 3D-scène"
 
 msgid "Show &Overhang"
-msgstr ""
+msgstr "Show &Overhang"
 
 msgid "Show object overhang highlight in 3D scene"
-msgstr ""
+msgstr "Show object overhang highlight in 3D scene"
 
 msgid "Preferences"
 msgstr "Voorkeuren"
@@ -3438,11 +3477,11 @@ msgstr "&Help"
 
 #, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
-msgstr ""
+msgstr "A file exists with the same name: %s. Do you want to override it?"
 
 #, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to override it."
-msgstr ""
+msgstr "A config exists with the same name: %s. Do you want to override it?"
 
 msgid "Overwrite file"
 msgstr "Bestand overschrijven"
@@ -3507,7 +3546,7 @@ msgid "Initialize failed (No Device)!"
 msgstr "Het initializeren is mislukt (geen apparaat)!"
 
 msgid "Initialize failed (Device connection not ready)!"
-msgstr ""
+msgstr "Initialization failed (Device connection not ready)!"
 
 msgid "Initialize failed (No Camera Device)!"
 msgstr "Initialisatie is mislukt (geen camera-apparaat)!"
@@ -3522,17 +3561,14 @@ msgstr "Initialiseren..."
 msgid "Loading..."
 msgstr "Laden..."
 
-msgid "Initialize failed (Not supported with LAN-only mode)!"
-msgstr "Initialisatie mislukt (niet ondersteund in alleen LAN-modus)!"
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr ""
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "Initialisatie mislukt (niet toegankelijk in alleen LAN-modus)!"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialisatie is mislukt (LAN-IP van de printer ontbreekt)!"
-
-msgid "Initialize failed (Not supported on the current printer version)!"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3615,7 +3651,7 @@ msgid "Switch to video files."
 msgstr "Schakel over naar videobestanden."
 
 msgid "Switch to 3mf model files."
-msgstr ""
+msgstr "Switch to 3mf model files."
 
 msgid "Delete selected files from printer."
 msgstr "Verwijder geselecteerde bestanden van de printer."
@@ -3647,11 +3683,11 @@ msgstr "Bestandslijst laden..."
 
 #, c-format, boost-format
 msgid "No files [%d]"
-msgstr ""
+msgstr "No files [%d]"
 
 #, c-format, boost-format
 msgid "Load failed [%d]"
-msgstr ""
+msgstr "Load failed [%d]"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -3661,23 +3697,23 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Delete files"
-msgstr ""
+msgstr "Delete files"
 
 #, c-format, boost-format
 msgid "Do you want to delete the file '%s' from printer?"
-msgstr ""
+msgstr "Do you want to delete the file '%s' from printer?"
 
 msgid "Delete file"
-msgstr ""
+msgstr "Delete file"
 
 msgid "Fetching model infomations ..."
-msgstr ""
+msgstr "Fetching model information..."
 
 msgid "Failed to fetching model infomations from printer."
-msgstr ""
+msgstr "Failed to fetch model infomation from printer."
 
 msgid "Failed to parse model infomations."
-msgstr ""
+msgstr "Failed to parse model infomation"
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
@@ -3705,6 +3741,9 @@ msgid "Downloading %d%%..."
 msgstr "%d%% downloaden..."
 
 msgid "Not supported on the current printer version."
+msgstr ""
+
+msgid "Storage unavailable, insert SD card."
 msgstr ""
 
 msgid "Speed:"
@@ -3750,10 +3789,10 @@ msgid "0"
 msgstr "0"
 
 msgid "Layer: N/A"
-msgstr ""
+msgstr "Layer: N/A"
 
 msgid "Immediately score"
-msgstr ""
+msgstr "Immediately score"
 
 msgid "Clear"
 msgstr "Wissen"
@@ -3808,21 +3847,21 @@ msgstr "Cloud Slicing..."
 
 #, c-format, boost-format
 msgid "In Cloud Slicing Queue, there are %s tasks ahead."
-msgstr ""
+msgstr "In Cloud Slicing Queue, there are %s tasks ahead of you."
 
 #, c-format, boost-format
 msgid "Layer: %s"
-msgstr ""
+msgstr "Layer: %s"
 
 msgid "Please give a score for your favorite Bambu Market model."
-msgstr ""
+msgstr "Please give a score for your favorite Bambu Market model."
 
 msgid "Score"
-msgstr ""
+msgstr "Score"
 
 #, c-format, boost-format
 msgid "Layer: %d/%d"
-msgstr ""
+msgstr "Layer: %d/%d"
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
@@ -3866,10 +3905,10 @@ msgid "Failed to connect to the server"
 msgstr "Verbinding maken met de server is mislukt"
 
 msgid "Check cloud service status"
-msgstr ""
+msgstr "Check cloud service status"
 
 msgid "code"
-msgstr ""
+msgstr "code"
 
 msgid "Status"
 msgstr "Status"
@@ -3881,19 +3920,19 @@ msgid "HMS"
 msgstr "HMS"
 
 msgid "Failed to connect to cloud service"
-msgstr ""
+msgstr "Failed to connect to cloud service"
 
 msgid "Please click on the hyperlink above to view the cloud service status"
-msgstr ""
+msgstr "Please click on the hyperlink above to view the cloud service status"
 
 msgid "Failed to connect to the printer"
 msgstr "Verbinding maken met de printer is mislukt"
 
 msgid "Connection to printer failed"
-msgstr ""
+msgstr "Connection to printer failed"
 
 msgid "Please check the network connection of the printer and Studio."
-msgstr ""
+msgstr "Please check the network connection of the printer and Studio."
 
 msgid "Don't show again"
 msgstr "Niet nogmaals tonen"
@@ -3965,7 +4004,7 @@ msgid "Open Folder."
 msgstr "Open bestandsmap."
 
 msgid "Safely remove hardware."
-msgstr ""
+msgstr "Safely remove hardware."
 
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
@@ -4045,7 +4084,7 @@ msgid "Color painting"
 msgstr "Kleur aanbrengen"
 
 msgid "Cut connectors"
-msgstr ""
+msgstr "Cut connectors"
 
 msgid "Layers"
 msgstr "Lagen"
@@ -4201,12 +4240,14 @@ msgid ""
 "Already did a synchronization, do you want to sync only changes or resync "
 "all?"
 msgstr ""
+"Already did a synchronization; do you want to sync only changes or resync "
+"all?"
 
 msgid "Sync"
-msgstr ""
+msgstr "Sync"
 
 msgid "Resync"
-msgstr ""
+msgstr "Resync"
 
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
@@ -4301,10 +4342,10 @@ msgstr ""
 "software te upgraden."
 
 msgid "Invalid values found in the 3mf:"
-msgstr ""
+msgstr "Invalid values found in the 3mf:"
 
 msgid "Please correct them in the param tabs"
-msgstr ""
+msgstr "Please correct them in the Param tabs"
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -4384,13 +4425,16 @@ msgid "Save file as:"
 msgstr "Bewaar bestand als:"
 
 msgid "Delete object which is a part of cut object"
-msgstr ""
+msgstr "Delete object which is a part of cut object"
 
 msgid ""
 "You try to delete an object which is a part of a cut object.\n"
 "This action will break a cut correspondence.\n"
 "After that model consistency can't be guaranteed."
 msgstr ""
+"You are trying to delete an object which is a part of a cut object.\n"
+"This action will break a cut correspondence.\n"
+"After that, model consistency can't be guaranteed."
 
 msgid "The selected object couldn't be split."
 msgstr "Het geselecteerde object kan niet opgesplitst worden."
@@ -4527,7 +4571,7 @@ msgstr ""
 "voordat u verder gaat?"
 
 msgid "Remember my choice."
-msgstr ""
+msgstr "Remember my choice."
 
 msgid "Number of copies:"
 msgstr "Aantal kopieën:"
@@ -4553,6 +4597,8 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
 msgstr ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
 
 msgid ""
 "Print By Object: \n"
@@ -4576,7 +4622,7 @@ msgid "Invalid number"
 msgstr "Ongeldig nummer"
 
 msgid "Plate Settings"
-msgstr ""
+msgstr "Plate Settings"
 
 #, boost-format
 msgid "Number of currently selected: %1%\n"
@@ -4626,6 +4672,9 @@ msgid ""
 "still want to do this printing, please set this filament's bed temperature "
 "to non zero."
 msgstr ""
+"Plate% d: %s is not suggested for use printing filament %s(%s). If you still "
+"want to do this print job, please set this filament's bed temperature to a "
+"number that is not zero."
 
 msgid "Switching the language requires application restart.\n"
 msgstr ""
@@ -4691,12 +4740,14 @@ msgid "Units"
 msgstr "Eenheden"
 
 msgid "Zoom to mouse position"
-msgstr ""
+msgstr "Zoom to mouse position"
 
 msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Toon de melding 'Tip van de dag' na het starten"
@@ -4706,7 +4757,7 @@ msgstr ""
 "Indien ingeschakeld, worden bij het opstarten nuttige tips weergegeven."
 
 msgid "Presets"
-msgstr ""
+msgstr "Presets"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
@@ -4717,13 +4768,13 @@ msgid "User Sync"
 msgstr "Gebruiker synchroniseren"
 
 msgid "Update built-in Presets automatically."
-msgstr ""
+msgstr "Update built-in presets automatically."
 
 msgid "System Sync"
-msgstr ""
+msgstr "System Sync"
 
 msgid "Clear my choice on the unsaved presets."
-msgstr ""
+msgstr "Clear my choice on the unsaved presets."
 
 msgid "Associate files to BambuStudio"
 msgstr "Koppel bestanden aan Bambu Studio"
@@ -4753,19 +4804,19 @@ msgstr ""
 "om .step-bestanden te openen"
 
 msgid "Online Models"
-msgstr ""
+msgstr "Online Models"
 
 msgid "Show online staff-picked models on the home page"
-msgstr ""
+msgstr "Show online staff-picked models on the home page"
 
 msgid "Maximum recent projects"
-msgstr ""
+msgstr "Maximum recent projects"
 
 msgid "Maximum count of recent projects"
-msgstr ""
+msgstr "Maximum count of recent projects"
 
 msgid "Clear my choice on the unsaved projects."
-msgstr ""
+msgstr "Clear my choice on the unsaved projects."
 
 msgid "Auto-Backup"
 msgstr "Automatisch backup maken"
@@ -4773,12 +4824,14 @@ msgstr "Automatisch backup maken"
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
 msgstr ""
+"Backup your project periodically to help with restoring from an occasional "
+"crash."
 
 msgid "every"
-msgstr ""
+msgstr "every"
 
 msgid "The peroid of backup in seconds."
-msgstr ""
+msgstr "The period of backup in seconds."
 
 msgid "Downloads"
 msgstr "Downloads"
@@ -4793,7 +4846,7 @@ msgid "Develop mode"
 msgstr "Ontwikkelmodus"
 
 msgid "Skip AMS blacklist check"
-msgstr ""
+msgstr "Skip AMS blacklist check"
 
 msgid "Home page and daily tips"
 msgstr "Startpagina en dagelijkse tips"
@@ -4832,13 +4885,13 @@ msgid "Mouse wheel reverses when zooming"
 msgstr "Omgekeerde scrollrichting tijdens het zoomen"
 
 msgid "Enable SSL(MQTT)"
-msgstr ""
+msgstr "Enable SSL(MQTT)"
 
 msgid "Enable SSL(FTP)"
-msgstr ""
+msgstr "Enable SSL(FTP)"
 
 msgid "Internal developer mode"
-msgstr ""
+msgstr "Internal developer mode"
 
 msgid "Log Level"
 msgstr "Log level"
@@ -4904,7 +4957,7 @@ msgid "Click to pick filament color"
 msgstr "Klik om de filament kleur te kiezen"
 
 msgid "Please choose the filament colour"
-msgstr ""
+msgstr "Please choose the filament color"
 
 msgid "Add/Remove presets"
 msgstr "Voorinstellingen toevoegen/verwijderen"
@@ -4925,34 +4978,34 @@ msgid "Add/Remove printers"
 msgstr "Printers toevoegen/verwijderen"
 
 msgid "Incompatible"
-msgstr ""
+msgstr "Incompatible"
 
 msgid "Same as Global Print Sequence"
-msgstr ""
+msgstr "Same as Global Print Sequence"
 
 msgid "Print sequence"
 msgstr "Afdrukvolgorde"
 
 msgid "Plate name"
-msgstr ""
+msgstr "Plate name"
 
 msgid "Same as Global Plate Type"
-msgstr ""
+msgstr "Same as Global Plate Type"
 
 msgid "Same as Global Bed Type"
 msgstr "Hetzelfde als Global Bed Type"
 
 msgid "By Layer"
-msgstr ""
+msgstr "By Layer"
 
 msgid "By Object"
-msgstr ""
+msgstr "By Object"
 
 msgid "Accept"
-msgstr ""
+msgstr "Accept"
 
 msgid "Log Out"
-msgstr ""
+msgstr "Log Out"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -5077,7 +5130,7 @@ msgid "Offline"
 msgstr "Offline"
 
 msgid "(LAN)"
-msgstr ""
+msgstr "(LAN)"
 
 msgid "My Device"
 msgstr "Mijn apparaat"
@@ -5101,7 +5154,7 @@ msgid "Bambu Cool Plate"
 msgstr "Bambu Cool (koude) Plate"
 
 msgid "PLA Plate"
-msgstr ""
+msgstr "PLA Plate"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering (technische) plate"
@@ -5128,13 +5181,13 @@ msgid "send completed"
 msgstr "Versturen gelukt"
 
 msgid "Error code"
-msgstr ""
+msgstr "Error code"
 
 msgid "Check the status of current system services"
-msgstr ""
+msgstr "Check the status of current system services"
 
 msgid "Printer local connection failed, please try again."
-msgstr ""
+msgstr "Printer local connection failed; please try again."
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Geen login-account, alleen printers in LAN-modus worden weergegeven"
@@ -5238,17 +5291,20 @@ msgid "Errors"
 msgstr "Fouten"
 
 msgid "Please check the following:"
-msgstr ""
+msgstr "Please check the following:"
 
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
 "type for slicing."
 msgstr ""
+"The printer type selected when generating G-Code is not consistent with the "
+"currently selected printer. It is recommended that you use the same printer "
+"type for slicing."
 
 #, c-format, boost-format
 msgid "%s is not supported by AMS."
-msgstr ""
+msgstr "%s is not supported by the AMS."
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -5262,6 +5318,7 @@ msgstr ""
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
+"Please click the confirm button if you still want to proceed with printing."
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -5274,7 +5331,7 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "Abnormale printbestand. Slice opnieuw"
 
 msgid "The name length exceeds the limit."
-msgstr ""
+msgstr "The name length exceeds the limit."
 
 msgid "Modifying the device name"
 msgstr "De naam van het apparaat wijzigen"
@@ -5287,6 +5344,7 @@ msgstr "Kan de printtaak niet verzenden wanneer de upgrade wordt uitgevoerd"
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr ""
+"A MicroSD card needs to be inserted before sending to the printer SD card."
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "De printer moet zich in hetzelfde LAN bevinden als Bambu Studio."
@@ -5297,28 +5355,28 @@ msgstr ""
 "van de printer."
 
 msgid "Failed to create socket"
-msgstr ""
+msgstr "Failed to create socket"
 
 msgid "Failed to connect socket"
-msgstr ""
+msgstr "Failed to connect socket"
 
 msgid "Failed to publish login request"
-msgstr ""
+msgstr "Failed to publish login request"
 
 msgid "Get ticket from device timeout"
-msgstr ""
+msgstr "Timeout getting ticket from device"
 
 msgid "Get ticket from server timeout"
-msgstr ""
+msgstr "Timeout getting ticket from server"
 
 msgid "Failed to post ticket to server"
-msgstr ""
+msgstr "Failed to post ticket to server"
 
 msgid "Failed to parse login report reason"
-msgstr ""
+msgstr "Failed to parse login report reason"
 
 msgid "Receive login report timeout"
-msgstr ""
+msgstr "Receive login report timeout"
 
 msgid "Unknown Failure"
 msgstr "Onbekende fout"
@@ -5330,33 +5388,38 @@ msgid "Would you like to log in this printer with current account?"
 msgstr "Wil je met het huidige account inloggen op de printer?"
 
 msgid "Check the reason"
-msgstr ""
+msgstr "Check the reason"
 
 msgid "Read and accept"
-msgstr ""
+msgstr "Read and accept"
 
 msgid "Terms and Conditions"
-msgstr ""
+msgstr "Terms and Conditions"
 
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
+"Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab "
+"device, please read the terms and conditions. By clicking to agree to use "
+"your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of "
+"Use (collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 
 msgid "and"
-msgstr ""
+msgstr "and"
 
 msgid "Privacy Policy"
-msgstr ""
+msgstr "Privacy Policy"
 
 msgid "We ask for your help to improve everyone's printer"
-msgstr ""
+msgstr "We ask for your help to improve everyone's printer"
 
 msgid "Statement about User Experience Improvement Program"
-msgstr ""
+msgstr "Statement about User Experience Improvement Program"
 
 #, c-format, boost-format
 msgid ""
@@ -5372,9 +5435,20 @@ msgid ""
 "payment information, or phone numbers. By enabling this service, you agree "
 "to these terms and the statement about Privacy Policy."
 msgstr ""
+"In the 3D Printing community, we learn from each other's successes and "
+"failures to adjust our own slicing parameters and settings. %s follows the "
+"same principle and uses machine learning to improve its performance from the "
+"successes and failures of the vast number of prints by our users. We are "
+"training %s to be smarter by feeding them the real-world data. If you are "
+"willing, this service will access information from your error logs and usage "
+"logs, which may include information described in  Privacy Policy. We will "
+"not collect any Personal Data by which an individual can be identified "
+"directly or indirectly, including without limitation names, addresses, "
+"payment information, or phone numbers. By enabling this service, you agree "
+"to these terms and the statement about Privacy Policy."
 
 msgid "Statement on User Experience Improvement Plan"
-msgstr ""
+msgstr "Statement on User Experience Improvement Plan"
 
 msgid "Log in successful."
 msgstr "Inloggen gelukt."
@@ -5462,6 +5536,10 @@ msgid ""
 "0 top z distance, 0 interface spacing, concentric pattern and disable "
 "independent support layer height"
 msgstr ""
+"When using support material for the support interface, we recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, concentric pattern and disable "
+"independent support layer height"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -5533,7 +5611,7 @@ msgid "G-code output"
 msgstr "G-code uitvoer"
 
 msgid "Post-processing scripts"
-msgstr ""
+msgstr "Post-processing scripts"
 
 msgid "Frequent"
 msgstr "Veelgebruikt"
@@ -5589,7 +5667,7 @@ msgid "Nozzle temperature when printing"
 msgstr "Nozzle temperatuur tijdens printen"
 
 msgid "Cool Plate / PLA Plate"
-msgstr ""
+msgstr "Cool Plate / PLA Plate"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -5877,7 +5955,7 @@ msgid "Capabilities"
 msgstr "Mogelijkheden"
 
 msgid "Select presets to compare"
-msgstr ""
+msgstr "Select presets to compare"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Toon alle presets (inclusief incompatibele)"
@@ -6015,13 +6093,13 @@ msgid "Objects list"
 msgstr "Object lijst"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
-msgstr ""
+msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 
 msgid "⌘+Shift+G"
-msgstr ""
+msgstr "⌘+Shift+G"
 
 msgid "Ctrl+Shift+G"
-msgstr ""
+msgstr "Ctrl+Shift+G"
 
 msgid "Copy to clipboard"
 msgstr "Kopieer naar klembord"
@@ -6053,10 +6131,10 @@ msgid "Zoom View"
 msgstr "Zoom View"
 
 msgid "Shift+A"
-msgstr ""
+msgstr "Shift+A"
 
 msgid "Shift+R"
-msgstr ""
+msgstr "Shift+R"
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
@@ -6068,7 +6146,7 @@ msgstr ""
 "objecten. Anders oriënteert het alle objecten op de disk."
 
 msgid "Shift+Tab"
-msgstr ""
+msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "De menubalk in-/uitschuiven"
@@ -6137,7 +6215,7 @@ msgid "Movement step set to 1 mm"
 msgstr "Bewegingsinterval ingesteld op 1mm"
 
 msgid "Esc"
-msgstr ""
+msgstr "Esc"
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "Toets 1-9: kies filament voor het object/onderdeel"
@@ -6287,7 +6365,7 @@ msgid "Don't remind me of this version again"
 msgstr "Herinner me niet meer aan deze versie."
 
 msgid "Done"
-msgstr ""
+msgstr "Done"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-verbinding mislukt (verzenden afdrukbestand)"
@@ -6445,6 +6523,8 @@ msgid ""
 "The following object(s) have empty initial layer and can't be printed. "
 "Please Cut the bottom or enable supports."
 msgstr ""
+"The following object(s) have an empty initial layer and can't be printed. "
+"Please cut the bottom or enable supports."
 
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
@@ -6829,6 +6909,13 @@ msgstr ""
 "indeling in de URL te plaatsen: https://username:password@your-octopi-"
 "address/"
 
+msgid "Device UI"
+msgstr ""
+
+msgid ""
+"Specify the URL of your device user interface if it's not same as print_host"
+msgstr ""
+
 msgid "API Key / Password"
 msgstr "API sleutel / wachtwoord"
 
@@ -7086,10 +7173,10 @@ msgstr ""
 "aan het bovenste invulpatroon"
 
 msgid "Only one wall on first layer"
-msgstr ""
+msgstr "Only one wall on first layer"
 
 msgid "Use only one wall on the first layer of model"
-msgstr ""
+msgstr "Use only one wall on the first layer of models"
 
 msgid "Slow down for overhang"
 msgstr "Afremmen voor overhangende delen"
@@ -7118,6 +7205,8 @@ msgid ""
 "This controls the generation of the brim at outer and/or inner side of "
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
+"This controls the generation of the brim at outer and/or inner side of "
+"models. Auto means the brim width is analyzed and calculated automatically."
 
 msgid "Brim-object gap"
 msgstr "Ruimte tussen rand en object"
@@ -7411,9 +7500,25 @@ msgstr ""
 "lichte over- of onderflow is."
 
 msgid "Object flow ratio"
-msgstr ""
+msgstr "Object flow ratio"
 
 msgid "The flow ratio set by object, the meaning is the same as flow ratio."
+msgstr "The flow ratio set by object; the meaning is the same as flow ratio."
+
+msgid "Enable pressure advance"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled. Useless for Bambu Printer"
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid ""
+"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
+"Bambu Printer"
 msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
@@ -7480,6 +7585,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Filament laadt tijd"
@@ -7676,10 +7784,10 @@ msgid "None"
 msgstr "Geen"
 
 msgid "Contour"
-msgstr ""
+msgstr "Contour"
 
 msgid "Contour and hole"
-msgstr ""
+msgstr "Contour and hole"
 
 msgid "All walls"
 msgstr "Alle wanden"
@@ -7795,7 +7903,7 @@ msgstr ""
 "verlagen. De wanden worden geprint in de originele laaghoogte."
 
 msgid "Length of sparse infill anchor"
-msgstr ""
+msgstr "Length of sparse infill anchor"
 
 msgid ""
 "Connect a sparse infill line to an internal perimeter with a short segment "
@@ -7808,15 +7916,24 @@ msgid ""
 "Set this parameter to zero to disable anchoring perimeters connected to a "
 "single infill line."
 msgstr ""
+"This connects a sparse infill line to an internal perimeter with a short "
+"segment of an additional perimeter. If expressed as percentage (example: "
+"15%) it is calculated over sparse infill line width. Slicer tries to connect "
+"two close infill lines to a short perimeter segment. If no such perimeter "
+"segment shorter than infill_anchor_max is found, the infill line is "
+"connected to a perimeter segment at just one side and the length of the "
+"perimeter segment taken is limited to this parameter, but no longer than "
+"anchor_length_max. Set this parameter to zero to disable anchoring "
+"perimeters connected to a single infill line."
 
 msgid "0 (no open anchors)"
-msgstr ""
+msgstr "0 (no open anchors)"
 
 msgid "1000 (unlimited)"
-msgstr ""
+msgstr "1000 (unlimited)"
 
 msgid "Maximum length of sparse infill anchor"
-msgstr ""
+msgstr "Maximum length of sparse infill anchor"
 
 msgid ""
 "Connect a sparse infill line to an internal perimeter with a short segment "
@@ -7828,9 +7945,17 @@ msgid ""
 "taken is limited to infill_anchor, but no longer than this parameter. Set "
 "this parameter to zero to disable anchoring."
 msgstr ""
+"This connects a sparse infill line to an internal perimeter with a short "
+"segment of an additional perimeter. If expressed as percentage (example: "
+"15%) it is calculated over sparse infill line width. Slicer tries to connect "
+"two close infill lines to a short perimeter segment. If no such perimeter "
+"segment shorter than this parameter is found, the infill line is connected "
+"to a perimeter segment at just one side and the length of the perimeter "
+"segment taken is limited to infill_anchor, but no longer than this "
+"parameter. Set this parameter to zero to disable anchoring."
 
 msgid "0 (not anchored)"
-msgstr ""
+msgstr "0 (not anchored)"
 
 msgid "Filament to print internal sparse infill."
 msgstr ""
@@ -7877,7 +8002,7 @@ msgid "All solid layer"
 msgstr "Alle vaste lagen"
 
 msgid "Ironing Pattern"
-msgstr ""
+msgstr "Ironing Pattern"
 
 msgid "Ironing flow"
 msgstr "Flow tijdens strijken"
@@ -8157,7 +8282,7 @@ msgid "Number of walls of every layer"
 msgstr "Dit is het aantal wanden per laag."
 
 msgid "Post-processing Scripts"
-msgstr ""
+msgstr "Post-processing Scripts"
 
 msgid ""
 "If you want to process the output G-code through custom scripts, just list "
@@ -8165,6 +8290,10 @@ msgid ""
 "Scripts will be passed the absolute path to the G-code file as the first "
 "argument, and variables of settings also can be read"
 msgstr ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed via the absolute path to the G-code file as the first "
+"argument, and variables of settings can also be read"
 
 msgid "Raft contact Z distance"
 msgstr "Vlot (raft) contact Z afstand:"
@@ -8312,6 +8441,26 @@ msgstr "Achterzijde"
 msgid "Random"
 msgstr "Willekeurig"
 
+msgid "Seam gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current extruder diameter. The default value for this parameter is 0.15"
+msgstr ""
+
+msgid "Wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by the speed setting specified in this "
+"configuration.If the value is expressed as a percentage (e.g. 80%), it will "
+"be calculated based on the travel speed setting above.The default value for "
+"this parameter is 80%"
+msgstr ""
+
 msgid "Skirt distance"
 msgstr "Rand (skirt) afstand"
 
@@ -8319,10 +8468,10 @@ msgid "Distance from skirt to brim or object"
 msgstr "Dit is de afstand van de skirt tot de rand van het object."
 
 msgid "Skirt height"
-msgstr ""
+msgstr "Skirt height"
 
 msgid "How many layers of skirt. Usually only one layer"
-msgstr ""
+msgstr "Number of skirt layers: usually only one"
 
 msgid "Skirt loops"
 msgstr "Rand (skirt) lussen"
@@ -8517,7 +8666,7 @@ msgid "The z gap between the bottom support interface and object"
 msgstr "De z-opening tussen de onderste ondersteuningsinterface en het object"
 
 msgid "Support/raft base"
-msgstr ""
+msgstr "Support/raft base"
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
@@ -8540,7 +8689,7 @@ msgstr ""
 "uitgeschakeld."
 
 msgid "Support/raft interface"
-msgstr ""
+msgstr "Support/raft interface"
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
@@ -8602,7 +8751,7 @@ msgstr ""
 "standaardpatroon voor oplosbare support interfaces Concentrisch is."
 
 msgid "Rectilinear Interlaced"
-msgstr ""
+msgstr "Rectilinear Interlaced"
 
 msgid "Base pattern spacing"
 msgstr "Basis patroon afstand"
@@ -8657,6 +8806,9 @@ msgid ""
 "support customizing z-gap and save print time.This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
+"Support layer uses layer height independent with object layer. This is to "
+"support customizing z-gap and save print time.This option will be invalid "
+"when the prime tower is enabled."
 
 msgid "Threshold angle"
 msgstr "Drempel hoek"
@@ -8702,9 +8854,15 @@ msgid "This setting specify the count of walls around tree support"
 msgstr "Deze instelling specificeert het aantal wanden rond de tree support."
 
 msgid "Tree support brim width"
-msgstr ""
+msgstr "Tree support brim width"
 
 msgid "The brim width around tree support. 0 means auto."
+msgstr "The brim width around tree support. 0 means auto."
+
+msgid "Chamber temperature"
+msgstr ""
+
+msgid "Target chamber temperature"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -8808,6 +8966,9 @@ msgid ""
 "stabilize the chamber pressure inside the nozzle, in order to avoid "
 "appearance defects when printing objects."
 msgstr ""
+"The wiping tower can be used to clean up residue on the nozzle and stabilize "
+"the chamber pressure inside the nozzle in order to avoid appearance defects "
+"when printing objects."
 
 msgid "Purging volumes"
 msgstr "Volumes opschonen"
@@ -9013,20 +9174,20 @@ msgstr ""
 "rechtlijnige patroon gebruikt."
 
 msgid "invalid value "
-msgstr ""
+msgstr "invalid value "
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
-msgstr ""
+msgstr " doesn't work at 100%% density "
 
 msgid "Invalid value when spiral vase mode is enabled: "
-msgstr ""
+msgstr "Invalid value when spiral vase mode is enabled: "
 
 msgid "too large line width "
-msgstr ""
+msgstr "too large line width "
 
 msgid " not in range "
-msgstr ""
+msgstr " not in range "
 
 msgid "Export 3MF"
 msgstr "Exporteer 3mf"
@@ -9068,28 +9229,28 @@ msgid "Update the configs values of 3mf to latest."
 msgstr "Update de configuratiewaarden van 3mf naar de nieuwste versie."
 
 msgid "mtcpp"
-msgstr ""
+msgstr "mtcpp"
 
 msgid "max triangle count per plate for slicing."
-msgstr ""
+msgstr "max triangle count per plate for slicing"
 
 msgid "mstpp"
-msgstr ""
+msgstr "mstpp"
 
 msgid "max slicing time per plate in seconds."
-msgstr ""
+msgstr "max slicing time per plate in seconds"
 
 msgid "No check"
-msgstr ""
+msgstr "No check"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
-msgstr ""
+msgstr "Do not run any validity checks, such as G-code path conflicts check."
 
 msgid "Normative check"
-msgstr ""
+msgstr "Normative check"
 
 msgid "Check the normative items."
-msgstr ""
+msgstr "Check the normative items."
 
 msgid "Output Model Info"
 msgstr "Model informatie weergeven"
@@ -9140,10 +9301,10 @@ msgid "Load filament settings from the specified file list"
 msgstr "Filament instellingen laden vanuit een bestandslijst"
 
 msgid "Skip Objects"
-msgstr ""
+msgstr "Skip Objects"
 
 msgid "Skip some objects in this print"
-msgstr ""
+msgstr "Skip some objects in this print"
 
 msgid "Output directory"
 msgstr "Uitvoermap"
@@ -9183,19 +9344,21 @@ msgid "Checking support necessity"
 msgstr "Controleren of support is noodzakelijk"
 
 msgid "floating regions"
-msgstr ""
+msgstr "floating regions"
 
 msgid "floating cantilever"
-msgstr ""
+msgstr "floating cantilever"
 
 msgid "large overhangs"
-msgstr ""
+msgstr "large overhangs"
 
 #, c-format, boost-format
 msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
 msgstr ""
+"It seems object %s has %s. Please re-orient the object or enable support "
+"generation."
 
 msgid "Optimizing toolpath"
 msgstr "Optimaliseren van het pad"
@@ -9215,12 +9378,17 @@ msgid ""
 "No layers were detected. You might want to repair your STL file(s) or check "
 "their size or thickness and retry.\n"
 msgstr ""
+"No layers were detected. You might want to repair your STL file(s) or check "
+"their size or thickness and retry.\n"
 
 msgid ""
 "An object's XY size compensation will not be used because it is also color-"
 "painted.\n"
 "XY Size compensation can not be combined with color-painting."
 msgstr ""
+"An object's XY size compensation will not be used because it is also color-"
+"painted.\n"
+"XY Size compensation can not be combined with color-painting."
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
@@ -9256,33 +9424,35 @@ msgstr "Support: verspreid takken op laag %d"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
+"Unknown file format: input file must have .stl, .obj, or .amf(.xml) "
+"extension."
 
 msgid "Loading of a model file failed."
-msgstr ""
+msgstr "Loading of model file failed."
 
 msgid "The supplied file couldn't be read because it's empty"
-msgstr ""
+msgstr "The supplied file couldn't be read because it's empty."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
-msgstr ""
+msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
 
 msgid "Canceled"
-msgstr ""
+msgstr "Canceled"
 
 msgid "load_obj: failed to parse"
-msgstr ""
+msgstr "load_obj: failed to parse"
 
 msgid "The file contains polygons with more than 4 vertices."
-msgstr ""
+msgstr "The file contains polygons with more than 4 vertices."
 
 msgid "The file contains polygons with less than 2 vertices."
-msgstr ""
+msgstr "The file contains polygons with less than 2 vertices."
 
 msgid "The file contains invalid vertex index."
-msgstr ""
+msgstr "The file contains invalid vertex index."
 
 msgid "This OBJ file couldn't be read because it's empty."
-msgstr ""
+msgstr "This OBJ file couldn't be read because it's empty."
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -9552,171 +9722,6 @@ msgstr ""
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
 
-#~ msgid "Top Solid Layers"
-#~ msgstr "Aantal solide  bovenste lagen"
-
-#~ msgid "Top Minimum Shell Thickness"
-#~ msgstr "Minimale dikte van de toplaag"
-
-#~ msgid "Bottom Solid Layers"
-#~ msgstr "Aantal gesloten bodem lagen"
-
-#~ msgid "Bottom Minimum Shell Thickness"
-#~ msgstr "Minimale bodem dikte"
-
-#~ msgid "Not supported by this model of printer!"
-#~ msgstr "Niet ondersteund door dit model printer!"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
-#~ "the printer by logging in with your user account."
-#~ msgstr ""
-#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
-#~ "uitgeschakeld. Sluit de printer opnieuw aan door in te loggen met uw "
-#~ "gebruikersaccount."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
-#~ "the printer by inputting Access Code which can be gotten from printer "
-#~ "screen."
-#~ msgstr ""
-#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
-#~ "ingeschakeld. Sluit de printer opnieuw aan door de toegangscode in te "
-#~ "voeren die u op het scherm van de printer kunt vinden."
-
-#, boost-format
-#~ msgid " plate %1%:"
-#~ msgstr " printbed %1%:"
-
-#~ msgid "Set Unprintable"
-#~ msgstr "Instellen als niet printbaar"
-
-#~ msgid "Set Printable"
-#~ msgstr "Instellen als printbaar"
-
-#~ msgid "Manual"
-#~ msgstr "Handmatig"
-
-#~ msgid "Initialize failed (Not supported by printer)!"
-#~ msgstr "Initialisatie is mislukt (niet ondersteund door de printer)!"
-
-#~ msgid ""
-#~ "There are some unknown filaments mapped to generic preset. Please update "
-#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
-#~ "system presets."
-#~ msgstr ""
-#~ "Er zijn enkele onbekende filamenten toegewezen aan generieke "
-#~ "voorinstellingen. Werk Bambu Studio bij of start Bambu Studio opnieuw op "
-#~ "om te controleren of er een update is voor systeemvoorinstellingen."
-
-#~ msgid "Cool Plate"
-#~ msgstr "Cool (koud) printbed"
-
-#~ msgid "The region parameter is incorrrect"
-#~ msgstr "De regioparameter is onjuist."
-
-#~ msgid "Failure of printer login"
-#~ msgstr "Fout bij inloggen op printer"
-
-#~ msgid "Failed to get ticket"
-#~ msgstr "Het is niet gelukt om een ticket te verkrijgen"
-
-#~ msgid "User authorization timeout"
-#~ msgstr "Timeout voor gebruikersautorisatie"
-
-#~ msgid "Failure of bind"
-#~ msgstr "Koppeling mislukt"
-
-#~ msgid ""
-#~ "Upload task timed out. Please check the network problem and try again"
-#~ msgstr ""
-#~ "Time-out tijdens het uploaden van de taak. Controleer of er een "
-#~ "netwerkprobleem is en probeer het opnieuw"
-
-#~ msgid "Print file not found, please slice again"
-#~ msgstr "Print bestand niet gevonden, opnieuw slicen a.u.b."
-
-#~ msgid ""
-#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
-#~ "the model and slice again"
-#~ msgstr ""
-#~ "Het afdrukbestand overschrijdt de maximale grootte (1 GB). Vereenvoudig "
-#~ "het model en slice opnieuw"
-
-#~ msgid "Failed uploading print file"
-#~ msgstr "Uploaden van het printbestand is mislukt"
-
-#~ msgid "Wrong Access code"
-#~ msgstr "Verkeerde toegangscode"
-
-#~ msgid "Send to Printer failed. Please try again."
-#~ msgstr "Verzenden naar de printer is mislukt. Probeer het opnieuw."
-
-#~ msgid "Sending gcode file through cloud service"
-#~ msgstr "G-codebestand verzenden via cloudservice"
-
-#~ msgid "Please log out and login to the printer again."
-#~ msgstr "Log uit en log opnieuw in op de printer."
-
-#~ msgid "No files"
-#~ msgstr "Geen bestanden"
-
-#~ msgid "Not accessible in LAN-only mode!"
-#~ msgstr "Niet toegankelijk in LAN-only modus!"
-
-#~ msgid "Missing LAN ip of printer!"
-#~ msgstr "LAN-IP van de printer ontbreekt!"
-
-#~ msgid "Media"
-#~ msgstr "Media"
-
-#~ msgid "Dump video"
-#~ msgstr "Video verwijderen"
-
-#~ msgid "Cool plate"
-#~ msgstr "Cool (koud) printbed"
-
-#~ msgid "Engineering plate"
-#~ msgstr "Engineering plate (technisch printbed)"
-
-#~ msgid ""
-#~ "One object has empty initial layer and can't be printed. Please Cut the "
-#~ "bottom or enable supports."
-#~ msgstr ""
-#~ "Eén object heeft een lege eerste laag en kan niet geprint worden. Knip "
-#~ "een stuk van de bodem van het object of genereer support."
-
-#~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
-#~ "sending print:"
-#~ msgstr ""
-#~ "Controleer de volgende informatie en klik op Bevestigen om door te gaan "
-#~ "met het verzenden van de print:"
-
-#~ msgid ""
-#~ "The printer type used to generate G-code is not the same type as the "
-#~ "currently selected physical printer. It is recommend to re-slice by "
-#~ "selecting the same printer type."
-#~ msgstr ""
-#~ "Het printertype dat wordt gebruikt voor het genereren van G-code is niet "
-#~ "hetzelfde type als de momenteel geselecteerde fysieke printer. Het is "
-#~ "raadzaam opnieuw te slicen nadat het juiste printertype is geselecteerd."
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid ""
-#~ "Print a tower to prime material in nozzle after switching to a new "
-#~ "material."
-#~ msgstr ""
-#~ "Deze optie maakt het mogelijk om een toren te printen om materiaal in de "
-#~ "nozzle te primen na het overschakelen naar een nieuw materiaal."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -9791,6 +9796,9 @@ msgstr ""
 #~ "uitgeschakeld. Dit kan bij snel printen de kwaliteit van overhangende "
 #~ "oppervlakken verminderen.\n"
 
+#~ msgid "Assemble the selected parts to a single part"
+#~ msgstr "Monteer de geselecteerde onderdelen tot een enkel onderdeel"
+
 #~ msgid "Auto arrange"
 #~ msgstr "Automatisch rangschikken"
 
@@ -9835,6 +9843,12 @@ msgstr ""
 #~ "De bedtemperatuur is hoger dan de verglazingstemperatuur van dit "
 #~ "filament. Hierdoor kan de nozzle verstopt raken en kan het printen "
 #~ "mislukken"
+
+#~ msgid "Bottom Minimum Shell Thickness"
+#~ msgstr "Minimale bodem dikte"
+
+#~ msgid "Bottom Solid Layers"
+#~ msgstr "Aantal gesloten bodem lagen"
 
 #~ msgid ""
 #~ "Calibration completed. Please select the factors according to the left "
@@ -9882,6 +9896,15 @@ msgstr ""
 #~ msgid "Comsumption"
 #~ msgstr "Verbruik"
 
+#~ msgid "Confirm whether the filament has been extruded"
+#~ msgstr "Confirm whether the filament has been extruded"
+
+#~ msgid "Cool Plate"
+#~ msgstr "Cool (koud) printbed"
+
+#~ msgid "Cool plate"
+#~ msgstr "Cool (koud) printbed"
+
 #~ msgid "Creating"
 #~ msgstr "Bezig met creëren"
 
@@ -9916,6 +9939,23 @@ msgstr ""
 #~ "Overhangvertraging automatisch uitschakelen?\n"
 #~ "Ja - Arachne inschakelen en overhangvertraging uitschakelen\n"
 #~ "Nee - Arachne niet gebruiken voor deze afdruk"
+
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
+#~ "uitgeschakeld. Sluit de printer opnieuw aan door in te loggen met uw "
+#~ "gebruikersaccount."
+
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
+#~ "ingeschakeld. Sluit de printer opnieuw aan door de toegangscode in te "
+#~ "voeren die u op het scherm van de printer kunt vinden."
 
 #~ msgid "Display printable box"
 #~ msgstr "Toon printbare box"
@@ -9972,6 +10012,12 @@ msgstr ""
 #~ msgid "Downloading Bambu Network plug-in"
 #~ msgstr "Bambu Netwerk Plug-in downloaden"
 
+#~ msgid "Dump video"
+#~ msgstr "Video verwijderen"
+
+#~ msgid "Edit plate setitngs"
+#~ msgstr "Edit plate settings"
+
 #~ msgid ""
 #~ "Enabling this option means the height of every layer except the first "
 #~ "will be automatically calculated during slicing according to the slope of "
@@ -9984,6 +10030,9 @@ msgstr ""
 #~ "de helling van het oppervlak van het model.\n"
 #~ "Houd er rekening mee dat deze optie alleen van kracht is als er geen "
 #~ "prime-toren is gegenereerd op het huidige printbed."
+
+#~ msgid "Engineering plate"
+#~ msgstr "Engineering plate (technisch printbed)"
 
 #~ msgid "Enter a search term"
 #~ msgstr "Voer een zoekterm in"
@@ -10018,6 +10067,13 @@ msgstr ""
 #~ msgid "Extruder position"
 #~ msgstr "Positie van de extruder"
 
+#~ msgid ""
+#~ "Extrusion compensation calibration is not supported when using Textured "
+#~ "PEI Plate"
+#~ msgstr ""
+#~ "Extrusion compensation calibration is not supported when using the "
+#~ "Textured PEI Plate."
+
 #~ msgid "Failed"
 #~ msgstr "Mislukt"
 
@@ -10028,8 +10084,26 @@ msgstr ""
 #~ "Kan geen verbinding maken met de printer via LAN. Voer het juiste IP-"
 #~ "adres en de juiste toegangscode van de printer in."
 
+#~ msgid "Failed to get ticket"
+#~ msgstr "Het is niet gelukt om een ticket te verkrijgen"
+
+#~ msgid "Failed to parse login report reason111"
+#~ msgstr "Failed to parse login report reason"
+
+#~ msgid "Failed uploading print file"
+#~ msgstr "Uploaden van het printbestand is mislukt"
+
 #~ msgid "Failed uploading print file. Please enter ip address again."
 #~ msgstr "Uploaden van printbestand is mislukt. Voer het IP-adres opnieuw in."
+
+#~ msgid "Failure of bind"
+#~ msgstr "Koppeling mislukt"
+
+#~ msgid "Failure of printer login"
+#~ msgstr "Fout bij inloggen op printer"
+
+#~ msgid "Feed new filament from external spool"
+#~ msgstr "Feed new filament from external spool"
 
 #~ msgid "Filament 1"
 #~ msgstr "Filament 1"
@@ -10090,6 +10164,9 @@ msgstr ""
 
 #~ msgid "Filaments Selection"
 #~ msgstr "Filaments selectie"
+
+#~ msgid "Filaments replace"
+#~ msgstr "Backup Filament"
 
 #~ msgid "Finish"
 #~ msgstr "Klaar"
@@ -10183,6 +10260,12 @@ msgstr ""
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "Het initialiseren is mislukt [%d]!"
 
+#~ msgid "Initialize failed (Not supported by printer)!"
+#~ msgstr "Initialisatie is mislukt (niet ondersteund door de printer)!"
+
+#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
+#~ msgstr "Initialisatie mislukt (niet ondersteund in alleen LAN-modus)!"
+
 #~ msgid "Initialize failed (Not supported without remote video tunnel)!"
 #~ msgstr ""
 #~ "Initialisatie is mislukt (niet ondersteund zonder externe videotunnel)!"
@@ -10246,6 +10329,9 @@ msgstr ""
 #~ msgid "Management"
 #~ msgstr "Management"
 
+#~ msgid "Manual"
+#~ msgstr "Handmatig"
+
 #~ msgid "Max travel detour distance"
 #~ msgstr "Maximale afstand voor printpad omleiding"
 
@@ -10255,6 +10341,12 @@ msgstr ""
 #~ msgstr ""
 #~ "Maximale omleidingsafstand om beweging over muren te vermijden. Als de "
 #~ "afstand groter is dan deze waarde, is er geen omleiding."
+
+#~ msgid "Media"
+#~ msgstr "Media"
+
+#~ msgid "Missing LAN ip of printer!"
+#~ msgstr "LAN-IP van de printer ontbreekt!"
 
 #~ msgid "Modify"
 #~ msgstr "Aanpassen"
@@ -10271,13 +10363,32 @@ msgstr ""
 #~ msgid "NO AMS"
 #~ msgstr "GEEN AMS"
 
+#~ msgid "No files"
+#~ msgstr "Geen bestanden"
+
+#~ msgid "Not accessible in LAN-only mode!"
+#~ msgstr "Niet toegankelijk in LAN-only modus!"
+
 #~ msgid "Not supported."
 #~ msgstr "Niet ondersteund."
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "Niet ondersteund door dit model printer!"
 
 #~ msgid ""
 #~ "Note : The location of IP and access code on the machine is as follows :"
 #~ msgstr ""
 #~ "Opmerking: De locatie van IP en toegangscode op de machine zijn als volgt:"
+
+#~ msgid "Number of currently selected parts: %1%\n"
+#~ msgstr "Number of currently selected parts: %1%\n"
+
+#~ msgid ""
+#~ "One object has empty initial layer and can't be printed. Please Cut the "
+#~ "bottom or enable supports."
+#~ msgstr ""
+#~ "Eén object heeft een lege eerste laag en kan niet geprint worden. Knip "
+#~ "een stuk van de bodem van het object of genereer support."
 
 #~ msgid "Open &PrusaSlicer"
 #~ msgstr "Open &PrusaSlicer"
@@ -10321,8 +10432,24 @@ msgstr ""
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
 #~ msgstr "Plate %d: %s does not support filament %s (%s).\n"
 
+#~ msgid "Plate Type"
+#~ msgstr "Plate Type"
+
+#~ msgid "Plate type"
+#~ msgstr "Plate type"
+
+#~ msgid "Plate types supported by the printer"
+#~ msgstr "Plate types supported by the printer"
+
 #~ msgid "Please Fill Task Report."
 #~ msgstr "Vul het taakrapport in."
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:"
+#~ msgstr ""
+#~ "Controleer de volgende informatie en klik op Bevestigen om door te gaan "
+#~ "met het verzenden van de print:"
 
 #~ msgid ""
 #~ "Please check the following infomation and click Confirm to continue "
@@ -10333,6 +10460,9 @@ msgstr ""
 
 #~ msgid "Please fill report first."
 #~ msgstr "Gelieve eerst het rapport in te vullen."
+
+#~ msgid "Please log out and login to the printer again."
+#~ msgstr "Log uit en log opnieuw in op de printer."
 
 #~ msgid "Please upgrade your printer first"
 #~ msgstr "Upgrade eerst uw printer"
@@ -10361,6 +10491,16 @@ msgstr ""
 #~ msgstr ""
 #~ "Prime Tower is voor de Timelapse vereist. Weet je zeker dat je ze allebei "
 #~ "wilt uitschakelen?"
+
+#~ msgid ""
+#~ "Print a tower to prime material in nozzle after switching to a new "
+#~ "material."
+#~ msgstr ""
+#~ "Deze optie maakt het mogelijk om een toren te printen om materiaal in de "
+#~ "nozzle te primen na het overschakelen naar een nieuw materiaal."
+
+#~ msgid "Print file not found, please slice again"
+#~ msgstr "Print bestand niet gevonden, opnieuw slicen a.u.b."
 
 #~ msgid "Printer Selection"
 #~ msgstr "Printer selectie"
@@ -10432,8 +10572,20 @@ msgstr ""
 #~ msgid "Select Bed Type"
 #~ msgstr "Selecteer bedtype"
 
+#~ msgid "Send to Printer failed. Please try again."
+#~ msgstr "Verzenden naar de printer is mislukt. Probeer het opnieuw."
+
 #~ msgid "Sending"
 #~ msgstr "Verzenden"
+
+#~ msgid "Sending gcode file through cloud service"
+#~ msgstr "G-codebestand verzenden via cloudservice"
+
+#~ msgid "Set Printable"
+#~ msgstr "Instellen als printbaar"
+
+#~ msgid "Set Unprintable"
+#~ msgstr "Instellen als niet printbaar"
 
 #~ msgid "Set pen size"
 #~ msgstr "Selecteer pen formaat"
@@ -10607,6 +10759,22 @@ msgstr ""
 #~ "controleren of het invoerbestand repareren en het opnieuw proberen."
 
 #~ msgid ""
+#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
+#~ "the model and slice again"
+#~ msgstr ""
+#~ "Het afdrukbestand overschrijdt de maximale grootte (1 GB). Vereenvoudig "
+#~ "het model en slice opnieuw"
+
+#~ msgid ""
+#~ "The printer type used to generate G-code is not the same type as the "
+#~ "currently selected physical printer. It is recommend to re-slice by "
+#~ "selecting the same printer type."
+#~ msgstr ""
+#~ "Het printertype dat wordt gebruikt voor het genereren van G-code is niet "
+#~ "hetzelfde type als de momenteel geselecteerde fysieke printer. Het is "
+#~ "raadzaam opnieuw te slicen nadat het juiste printertype is geselecteerd."
+
+#~ msgid ""
 #~ "The printer type used to generate G-code is not the same type as the "
 #~ "currently selected physical printer. It is recommend to re-slice by "
 #~ "selecting the same printer type.\n"
@@ -10614,6 +10782,18 @@ msgstr ""
 #~ "Het printertype dat wordt gebruikt voor het genereren van G-code is niet "
 #~ "hetzelfde type als de momenteel geselecteerde fysieke printer. Het is "
 #~ "raadzaam om opnieuw te slicen door hetzelfde printertype te selecteren.\n"
+
+#~ msgid "The region parameter is incorrrect"
+#~ msgstr "De regioparameter is onjuist."
+
+#~ msgid ""
+#~ "There are some unknown filaments mapped to generic preset. Please update "
+#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
+#~ "system presets."
+#~ msgstr ""
+#~ "Er zijn enkele onbekende filamenten toegewezen aan generieke "
+#~ "voorinstellingen. Werk Bambu Studio bij of start Bambu Studio opnieuw op "
+#~ "om te controleren of er een update is voor systeemvoorinstellingen."
 
 #~ msgid ""
 #~ "This controls brim position including outer side of models, inner side of "
@@ -10657,6 +10837,12 @@ msgstr ""
 #~ msgid "Timelapse without toolhead"
 #~ msgstr "Timelapse zonder toolhead"
 
+#~ msgid "Top Minimum Shell Thickness"
+#~ msgstr "Minimale dikte van de toplaag"
+
+#~ msgid "Top Solid Layers"
+#~ msgstr "Aantal solide  bovenste lagen"
+
 #~ msgid "Translation"
 #~ msgstr "Vertaling"
 
@@ -10669,8 +10855,17 @@ msgstr ""
 #~ msgid "Unable to create zip file"
 #~ msgstr "Kan het zip-bestand niet aanmaken"
 
+#~ msgid ""
+#~ "Upload task timed out. Please check the network problem and try again"
+#~ msgstr ""
+#~ "Time-out tijdens het uploaden van de taak. Controleer of er een "
+#~ "netwerkprobleem is en probeer het opnieuw"
+
 #~ msgid "Uploading"
 #~ msgstr "Uploaden"
+
+#~ msgid "User authorization timeout"
+#~ msgstr "Timeout voor gebruikersautorisatie"
 
 #~ msgid "User pause"
 #~ msgstr "Pauze door de gebruiker"
@@ -10706,6 +10901,13 @@ msgstr ""
 #~ "bruggen. 0 betekent dat deze functie moet worden uitgeschakeld"
 
 #~ msgid ""
+#~ "When the current material run out,the printer will continue to print in "
+#~ "the following order."
+#~ msgstr ""
+#~ "When the current material runs out, the printer will continue to print in "
+#~ "the following order."
+
+#~ msgid ""
 #~ "When using support material for the support interface, We recommend the "
 #~ "following settings:\n"
 #~ "0 top z distance, 0 interface spacing, concentric pattern."
@@ -10714,11 +10916,20 @@ msgstr ""
 #~ "raden we de volgende instellingen aan:\n"
 #~ "0 op z afstand, 0 interface-afstand, concentrisch patroon."
 
+#~ msgid "Wrong Access code"
+#~ msgstr "Verkeerde toegangscode"
+
 #~ msgid ""
 #~ "X1 General Settings - Network Settings in the side bar of X1 main screen"
 #~ msgstr ""
 #~ "X1 Algemene instellingen - Netwerkinstellingen in de zijbalk van het X1-"
 #~ "hoofdscherm."
+
+#~ msgid ""
+#~ "You are going to delete %u files from printer. Are you sure to continue?"
+#~ msgstr ""
+#~ "You are going to delete %u files from the printer. Are you sure you want "
+#~ "to continue?"
 
 #~ msgid ""
 #~ "You have changed some preset settings. \n"
@@ -10756,6 +10967,9 @@ msgstr ""
 #~ msgstr ""
 #~ " bevindt zich te dichtbij andere objecten, er zullen botsingen optreden "
 #~ "tijdens het printen.\n"
+
+#~ msgid " plate %1%:"
+#~ msgstr " printbed %1%:"
 
 #~ msgid ""
 #~ " will be closed before creating a new model. Do you want to continue?"
