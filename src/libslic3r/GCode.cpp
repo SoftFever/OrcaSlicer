@@ -1484,13 +1484,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             for (auto layer : object->support_layers())
                 zs.push_back(layer->print_z);
         }
-        std::sort(zs.begin(), zs.end());
-        //BBS: merge numerically very close Z values.
-        auto end_it = std::unique(zs.begin(), zs.end());
-        m_layer_count = (unsigned int)(end_it - zs.begin());
-        for (auto it = zs.begin(); it != end_it - 1; it++) {
-            if (abs(*it - *(it + 1)) < EPSILON)
-                m_layer_count--;
+        if (!zs.empty())
+        {
+            std::sort(zs.begin(), zs.end());
+            //BBS: merge numerically very close Z values.
+            auto end_it = std::unique(zs.begin(), zs.end());
+            m_layer_count = (unsigned int)(end_it - zs.begin());
+            for (auto it = zs.begin(); it != end_it - 1; it++) {
+                if (abs(*it - *(it + 1)) < EPSILON)
+                    m_layer_count--;
+            }
         }
     }
     print.throw_if_canceled();

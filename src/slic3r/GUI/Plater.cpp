@@ -4716,6 +4716,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
 unsigned int Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
 {
     bool switch_print = true;
+
     //BBS: judge whether can switch print or not
     if ((partplate_list.get_plate_count() > 1) && !this->background_process.can_switch_print())
     {
@@ -11199,7 +11200,8 @@ int Plater::select_plate(int plate_index, bool need_slice)
             {
                 if (need_slice) { //from preview's thumbnail
                     if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) || (gcode_result->moves.empty())){
-                        //part_plate->update_slice_result_valid_state(false);
+                        if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+                            part_plate->update_slice_result_valid_state(false);
                         p->process_completed_with_error = -1;
                         p->m_slice_all = false;
                         reset_gcode_toolpaths();
