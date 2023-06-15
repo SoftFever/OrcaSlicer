@@ -8187,6 +8187,355 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 }
 
+std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3 &bbox, const double &cut_height)
+{
+    std::array<Vec3d, 4> plane_pts;
+    plane_pts[0] = Vec3d(bbox.min(0), bbox.min(1), cut_height);
+    plane_pts[1] = Vec3d(bbox.max(0), bbox.min(1), cut_height);
+    plane_pts[2] = Vec3d(bbox.max(0), bbox.max(1), cut_height);
+    plane_pts[3] = Vec3d(bbox.min(0), bbox.max(1), cut_height);
+    return plane_pts;
+}
+
+void Plater::calib_pa(const Calib_Params &params)
+{
+    const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
+    new_project(false, false, calib_pa_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode == CalibMode::Calib_PA_Line) {
+        add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl");
+    } else {
+        add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/tower_with_seam.stl");
+        auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+        filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{1});
+        // todo: for 3rd printer
+        //print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
+        //print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
+        //print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+        if (print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator")->value == PerimeterGeneratorType::Arachne)
+            print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
+        model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+
+        changed_objects({0});
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+
+        auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
+        auto obj_bb     = model().objects[0]->bounding_box();
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        }
+
+        // automatic selection of added objects
+        // update printable state for new volumes on canvas3D
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
+
+        Selection &selection = p->view3D->get_canvas3d()->get_selection();
+        selection.clear();
+        selection.add_object(0, false);
+
+        // BBS: update object list selection
+        p->sidebar->obj_list()->update_selections();
+        selection.notify_instance_update(-1, -1);
+        if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
+            // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
+            p->view3D->get_canvas3d()->update_gizmos_on_off_state();
+    }
+    p->background_process.fff_print()->set_calib_params(params);
+}
+
+void Plater::calib_flowrate(int pass)
+{
+    if (pass != 1 && pass != 2) return;
+    const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
+    new_project(false, false, calib_name);
+
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+
+    if (pass == 1)
+        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
+    else
+        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
+
+    auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto printerConfig   = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    /// --- scale ---
+    // model is created for a 0.4 nozzle, scale z with nozzle size.
+    const ConfigOptionFloats *nozzle_diameter_config = printerConfig->option<ConfigOptionFloats>("nozzle_diameter");
+    assert(nozzle_diameter_config->values.size() > 0);
+    float nozzle_diameter = nozzle_diameter_config->values[0];
+    float xyScale         = nozzle_diameter / 0.6;
+    // scale z to have 7 layers
+    double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
+    double layer_height       = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
+    first_layer_height        = std::max(first_layer_height, layer_height);
+
+    float zscale = (first_layer_height + 6 * layer_height) / 1.4;
+    // only enlarge
+    if (xyScale > 1.2) {
+        for (auto _obj : model().objects) _obj->scale(xyScale, xyScale, zscale);
+    } else {
+        for (auto _obj : model().objects) _obj->scale(1, 1, zscale);
+    }
+
+    Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
+    double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
+    double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
+    double internal_solid_speed          = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed"), max_infill_speed));
+    double top_surface_speed             = std::floor(std::min(print_config->opt_float("top_surface_speed"), max_infill_speed));
+
+    // adjust parameters
+    for (auto _obj : model().objects) {
+        _obj->ensure_on_bed();
+        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
+        _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+        _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(35));
+        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+        _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
+        _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
+        // _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));  // todo: SoftFever parameter
+        _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
+        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
+        _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
+        _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
+        _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
+
+        // extract flowrate from name, filename format: flowrate_xxx
+        std::string obj_name = _obj->name;
+        assert(obj_name.length() > 9);
+        obj_name = obj_name.substr(9);
+        if (obj_name[0] == 'm') obj_name[0] = '-';
+        auto modifier = stof(obj_name);
+        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier / 100.f));
+    }
+
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
+    print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
+    // filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
+
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+
+    Calib_Params params;
+    params.mode = CalibMode::Calib_Flow_Rate;
+    p->background_process.fff_print()->set_calib_params(params);
+}
+
+void Plater::calib_temp(const Calib_Params &params)
+{
+    const auto calib_temp_name = wxString::Format(L"Nozzle temperature test");
+    new_project(false, false, calib_temp_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode != CalibMode::Calib_Temp_Tower) return;
+
+    add_model(false, Slic3r::resources_dir() + "/calib/temperature_tower/temperature_tower.stl");
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    auto start_temp      = lround(params.start);
+    filament_config->set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts(1, (int) start_temp));
+    filament_config->set_key_value("nozzle_temperature", new ConfigOptionInts(1, (int) start_temp));
+    model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
+    model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
+    model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+
+    changed_objects({0});
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+
+    // cut upper
+    auto obj_bb      = model().objects[0]->bounding_box();
+    auto block_count = lround((350 - params.end) / 5 + 1);
+    if (block_count > 0) {
+        // add EPSILON offset to avoid cutting at the exact location where the flat surface is
+        auto new_height = block_count * 10.0 + EPSILON;
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        }
+    }
+
+    // cut bottom
+    obj_bb      = model().objects[0]->bounding_box();
+    block_count = lround((350 - params.start) / 5);
+    if (block_count > 0) {
+        auto new_height = block_count * 10.0 + EPSILON;
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepUpper);
+        }
+    }
+
+    p->background_process.fff_print()->set_calib_params(params);
+}
+
+void Plater::calib_max_vol_speed(const Calib_Params &params)
+{
+    const auto calib_vol_speed_name = wxString::Format(L"Max volumetric speed test");
+    new_project(false, false, calib_vol_speed_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode != CalibMode::Calib_Vol_speed_Tower) return;
+
+    add_model(false, Slic3r::resources_dir() + "/calib/volumetric_speed/SpeedTestStructure.step");
+
+    auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto obj             = model().objects[0];
+
+    auto         bed_shape = printer_config->option<ConfigOptionPoints>("printable_area")->values;
+    BoundingBoxf bed_ext   = get_extents(bed_shape);
+    auto         scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box().size().x();
+    if (scale_obj < 1.0) obj->scale(scale_obj, 1, 1);
+
+    const ConfigOptionFloats *nozzle_diameter_config = printer_config->option<ConfigOptionFloats>("nozzle_diameter");
+    assert(nozzle_diameter_config->values.size() > 0);
+    double nozzle_diameter = nozzle_diameter_config->values[0];
+    double line_width      = nozzle_diameter * 1.75;
+    double layer_height    = nozzle_diameter * 0.8;
+
+    auto max_lh = printer_config->option<ConfigOptionFloats>("max_layer_height");
+    if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
+
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
+    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
+
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
+    print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+    print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+    print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
+    print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloat(line_width));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    obj->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
+    obj->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
+    obj->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+
+    changed_objects({0});
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+
+    //  cut upper
+    auto obj_bb = obj->bounding_box();
+    auto height = (params.end - params.start + 1) / params.step;
+    if (height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
+        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    auto new_params  = params;
+    auto mm3_per_mm  = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() * filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    new_params.end   = params.end / mm3_per_mm;
+    new_params.start = params.start / mm3_per_mm;
+    new_params.step  = params.step / mm3_per_mm;
+
+    p->background_process.fff_print()->set_calib_params(new_params);
+}
+
+void Plater::calib_retraction(const Calib_Params &params)
+{
+    const auto calib_retraction_name = wxString::Format(L"Retraction test");
+    new_project(false, false, calib_retraction_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode != CalibMode::Calib_Retraction_tower) return;
+
+    add_model(false, Slic3r::resources_dir() + "/calib/retraction/retraction_tower.stl");
+
+    auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto obj             = model().objects[0];
+
+    double layer_height = 0.2;
+
+    auto max_lh = printer_config->option<ConfigOptionFloats>("max_layer_height");
+    if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
+
+    obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
+    obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(3));
+    obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    obj->config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
+    obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+
+    changed_objects({0});
+
+    //  cut upper
+    auto obj_bb = obj->bounding_box();
+    auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
+    if (height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
+        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    p->background_process.fff_print()->set_calib_params(params);
+}
+
+void Plater::calib_VFA(const Calib_Params &params)
+{
+    const auto calib_vfa_name = wxString::Format(L"VFA test");
+    new_project(false, false, calib_vfa_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (params.mode != CalibMode::Calib_VFA_Tower) return;
+
+    add_model(false, Slic3r::resources_dir() + "/calib/vfa/VFA.stl");
+    auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
+    print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+    print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+    print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
+    model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
+    model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
+    model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
+
+    changed_objects({0});
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
+
+    // cut upper
+    auto obj_bb = model().objects[0]->bounding_box();
+    auto height = 5 * ((params.end - params.start) / params.step + 1);
+    if (height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
+        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    p->background_process.fff_print()->set_calib_params(params);
+}
+
 void Plater::import_sl1_archive()
 {
     if (!p->m_ui_jobs.is_any_running())

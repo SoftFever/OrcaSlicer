@@ -3800,7 +3800,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // calculate extrusion length per distance unit
     auto _mm3_per_mm = path.mm3_per_mm * double(m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio.value : 1);
-    double e_per_mm    = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
+
+    // calculate extrusion length per distance unit
+    if( path.role() == erTopSolidInfill )
+        _mm3_per_mm *= m_config.top_solid_infill_flow_ratio.value;
+    else if (path.role() == erBottomSurface)
+        _mm3_per_mm *= m_config.bottom_solid_infill_flow_ratio.value;
+
+    double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
@@ -3843,8 +3850,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
     //BBS: if not set the speed, then use the filament_max_volumetric_speed directly
-    if (speed == 0)
-        speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
+    if( speed == 0 )
+    {
+        if (_mm3_per_mm>0)
+            speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+        else
+            speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
+    }
     if (this->on_first_layer()) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
@@ -3862,11 +3874,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //    );
     //}
     if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
+        double extrude_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
+        if (_mm3_per_mm > 0)
+            extrude_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
-        speed = std::min(
-            speed,
-            EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm
-        );
+        speed = std::min(speed, extrude_speed);
     }
     double F = speed * 60;  // convert mm/sec to mm/min
 

@@ -763,6 +763,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, overhang_4_4_speed))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor_max))
+    //SoftFever
+    ((ConfigOptionFloat, top_solid_infill_flow_ratio))
+    ((ConfigOptionFloat, bottom_solid_infill_flow_ratio))
     //calib
     ((ConfigOptionFloat, print_flow_ratio)))
 
