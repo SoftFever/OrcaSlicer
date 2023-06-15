@@ -2606,6 +2606,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
         optgroup->append_single_option_line("filament_flow_ratio");
+        optgroup->append_single_option_line("enable_pressure_advance");
+        optgroup->append_single_option_line("pressure_advance");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
         //BBS
@@ -2828,6 +2830,13 @@ void TabFilament::toggle_options()
     }
     if (m_active_page->title() == "Filament")
     {
+        //BBS: hide these useless option for bambu printer
+        toggle_line("enable_pressure_advance", !is_BBL_printer);
+        if (is_BBL_printer)
+            toggle_line("pressure_advance", false);
+        else
+            toggle_option("pressure_advance", m_config->opt_bool("enable_pressure_advance", 0));
+
         toggle_line("chamber_temperature", !is_BBL_printer);
     }
 

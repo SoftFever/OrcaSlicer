@@ -1136,6 +1136,18 @@ void PrintConfigDef::init_fff_params()
     def->min     = 0.01;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("enable_pressure_advance", coBools);
+    def->label = L("Enable pressure advance");
+    def->tooltip = L("Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer");
+    def->set_default_value(new ConfigOptionBools{ false });
+
+    def = this->add("pressure_advance", coFloats);
+    def->label = L("Pressure advance");
+    def->tooltip = L("Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer");
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{ 0.02 });
+
     def = this->add("line_width", coFloat);
     def->label = L("Default");
     def->category = L("Quality");

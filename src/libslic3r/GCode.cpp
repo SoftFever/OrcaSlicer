@@ -581,6 +581,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         gcode += tcr_gcode;
         check_add_eol(toolchange_gcode_str);
 
+        //SoftFever: set new PA for new filament. BBS: never use for Bambu Printer
+        if (!gcodegen.is_BBL_Printer() && gcodegen.config().enable_pressure_advance.get_at(new_extruder_id))
+            gcode += gcodegen.writer().set_pressure_advance(gcodegen.config().pressure_advance.get_at(new_extruder_id));
+
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy(end_pos.cast<double>());
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
@@ -1036,6 +1040,13 @@ namespace DoExport {
         return ret;
     }
 } // namespace DoExport
+
+bool GCode::is_BBL_Printer()
+{
+    if (m_curr_print)
+        return m_curr_print->is_BBL_Printer();
+    return false;
+}
 
 void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
@@ -4295,6 +4306,10 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
             gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, extruder_id);
             check_add_eol(gcode);
         }
+        //BBS: never use for Bambu Printer
+        if (!this->is_BBL_Printer() && m_config.enable_pressure_advance.get_at(extruder_id))
+            gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(extruder_id));
+
         gcode += m_writer.toolchange(extruder_id);
         return gcode;
     }
@@ -4473,6 +4488,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // Set the new extruder to the operating temperature.
     if (m_ooze_prevention.enable)
         gcode += m_ooze_prevention.post_toolchange(*this);
+    //BBS: never use for Bambu Printer
+    if (!this->is_BBL_Printer() && m_config.enable_pressure_advance.get_at(extruder_id))
+        gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(extruder_id));
 
     return gcode;
 }

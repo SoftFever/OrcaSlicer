@@ -202,6 +202,8 @@ public:
     bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
     std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
     std::string unretract() { return m_writer.unlift() + m_writer.unretract(); }
+    //BBS
+    bool is_BBL_Printer();
 
     // Object and support extrusions of the same PrintObject at the same print_z.
     // public, so that it could be accessed by free helper functions from GCode.cpp
