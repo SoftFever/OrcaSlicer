@@ -83,6 +83,7 @@ void PrinterFileSystem::SetFileType(FileType type, std::string const &storage)
 {
     if (m_file_type == type && m_file_storage == storage)
         return;
+    SelectAll(false);
     assert(m_file_list_cache[std::make_pair(m_file_type, m_file_storage)].empty());
     m_file_list.swap(m_file_list_cache[{m_file_type, m_file_storage}]);
     std::swap(m_file_type, type);
@@ -1203,6 +1204,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         }
         wxLogMessage("PrinterFileSystem::Reconnect Initializing");
         m_status = Status::Initializing;
+        m_last_error = 0;
         SendChangedEvent(EVT_STATUS_CHANGED, m_status);
         // wait for url
         while (!m_stopped && m_messages.empty())
