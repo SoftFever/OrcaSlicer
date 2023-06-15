@@ -2838,6 +2838,9 @@ void TabFilament::toggle_options()
             toggle_option("pressure_advance", m_config->opt_bool("enable_pressure_advance", 0));
 
         toggle_line("chamber_temperature", !is_BBL_printer);
+        for (auto el :
+             {"cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
+            toggle_line(el, is_BBL_printer);
     }
 
     if (m_active_page->title() == "Setting Overrides")
