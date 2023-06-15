@@ -4022,14 +4022,25 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
     wxString result;
     if (status >= 400 && status < 500) {
         try {
-        json j = json::parse(evt.GetString());
-        if (j.contains("code")) {
-            if (!j["code"].is_null())
-                code = j["code"].get<int>();
-        }
-        if (j.contains("error"))
-            if (!j["error"].is_null())
-                error = j["error"].get<std::string>();
+            wxString body_str = evt.GetString();
+            bool found_json = false;
+            for (int i = 0; i < body_str.size(); i++) {
+                if (body_str[i] == '{') {
+                    found_json = true;
+                    break;
+                }
+            }
+            if (found_json) {
+                json j = json::parse(body_str);
+                if (j.contains("code")) {
+                    if (!j["code"].is_null())
+                        code = j["code"].get<int>();
+                }
+                if (j.contains("error")) {
+                    if (!j["error"].is_null())
+                        error = j["error"].get<std::string>();
+                }
+            }
         }
         catch (...) {}
     }
