@@ -152,8 +152,15 @@ function SetLoginInfo( strAvatar, strName )
 {
 	$("#Login1").hide();
 	
-	$("#UserAvatarIcon").prop("src",strAvatar);
 	$("#UserName").text(strName);
+	
+    let OriginAvatar=$("#UserAvatarIcon").prop("src");
+	if(strAvatar!=OriginAvatar)
+		$("#UserAvatarIcon").prop("src",strAvatar);
+	else
+	{
+		//alert('Avatar is Same');
+	}
 	
 	$("#Login2").show();
 	$("#Login2").css("display","flex");
