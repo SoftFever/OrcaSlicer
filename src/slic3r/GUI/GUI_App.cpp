@@ -4745,7 +4745,11 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
 
     // Is there a candidate matching a country code of a system language? Move it to the end,
     // while maintaining the order of matches, so that the best match ends up at the very end.
-    std::string system_country = "_" + into_u8(system_language->CanonicalName.AfterFirst('_')).substr(0, 2);
+    std::string temp_local = into_u8(system_language->CanonicalName.AfterFirst('_'));
+    if (temp_local.size() >= 2) {
+        temp_local = temp_local.substr(0, 2);
+    }
+    std::string system_country = "_" + temp_local;
     int cnt = locales.size();
     for (int i=0; i<cnt; ++i)
         if (locales[i].find(system_country) != std::string::npos) {
