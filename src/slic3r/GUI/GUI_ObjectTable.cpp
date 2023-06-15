@@ -2699,7 +2699,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
     SetSize(wxSize(-1, FromDIP(450)));
     SetMinSize(wxSize(-1, FromDIP(450)));
-    SetMaxSize(wxSize(-1, FromDIP(450)));
+    //SetMaxSize(wxSize(-1, FromDIP(450)));
     
 
     //m_search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
@@ -2769,7 +2769,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
     m_top_sizer->Add(m_object_grid, 1, wxEXPAND,0);
     m_top_sizer->Add(m_line_left, 0, wxEXPAND, 0);
-    m_top_sizer->Add(m_side_window,0,0,0);
+    m_top_sizer->Add(m_side_window, 0, wxEXPAND, 0);
 
     //wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -3418,9 +3418,9 @@ void ObjectTableDialog::OnSize(wxSizeEvent& event)
     SetMinSize(wxSize(GetSize().x, -1));
     SetSize(wxSize(GetSize().x, -1));
 
-    m_obj_panel->SetSize(wxSize(-1, GetSize().y));
-    m_obj_panel->SetMinSize(wxSize(-1, GetSize().y));
-    m_obj_panel->SetMaxSize(wxSize(-1, GetSize().y));
+    //m_obj_panel->SetSize(wxSize(-1, GetSize().y));
+    //m_obj_panel->SetMinSize(wxSize(-1, GetSize().y));
+    //m_obj_panel->SetMaxSize(wxSize(-1, GetSize().y));
 
     event.Skip();
 }

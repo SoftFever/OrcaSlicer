@@ -290,10 +290,16 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             if (field)
                 field->toggle(toggle);
         };
-        ConfigManipulation config_manipulation(nullptr, toggle_field, nullptr, nullptr, &m_current_config);
+        auto toggle_line = [this, optgroup](const t_config_option_key & opt_key, bool toggle)
+        {
+            Line* line = optgroup->get_line(opt_key);
+            if (line) line->toggle_visible = toggle;
+        };
+        ConfigManipulation config_manipulation(nullptr, toggle_field, toggle_line, nullptr, &m_current_config);
 
         printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&m_current_config) :
                                         config_manipulation.toggle_print_sla_options(&m_current_config) ;
+        optgroup->update_visibility(wxGetApp().get_mode());
     }
 
     //if (!categories.empty()) {
@@ -383,15 +389,26 @@ void ObjectTableSettings::update_config_values(bool is_object, ModelObject* obje
         if (field)
             field->toggle(toggle);
     };
+    auto toggle_line = [this](const t_config_option_key &opt_key, bool toggle) {
+        for (auto og : m_og_settings) {
+            Line *line = og->get_line(opt_key);
+            if (line) { line->toggle_visible = toggle; break; }
+        }
+    };
 
-    ConfigManipulation config_manipulation(nullptr, toggle_field, nullptr, nullptr, &m_current_config);
+    ConfigManipulation config_manipulation(nullptr, toggle_field, toggle_line, nullptr, &m_current_config);
 
     printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                     config_manipulation.update_print_sla_config(&main_config) ;
 
     printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&main_config) :
                                     config_manipulation.toggle_print_sla_options(&main_config) ;
-
+    for (auto og : m_og_settings) {
+        og->update_visibility(wxGetApp().get_mode());
+    }
+    m_parent->Layout();
+    m_parent->Fit();
+    m_parent->GetParent()->Layout();
     t_config_option_keys diff_keys;
     for (const t_config_option_key &opt_key : main_config.keys()) {
         const ConfigOption *this_opt  = main_config.option(opt_key);
