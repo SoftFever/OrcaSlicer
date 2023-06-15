@@ -1881,8 +1881,8 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
             if (iter != objects.end()) { ovs.push_back({*iter, nullptr}); }
 		}
 		if (!ovs.empty()) {
-            wxGetApp().obj_list()->select_items(ovs);
             wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+            wxGetApp().obj_list()->select_items(ovs);
 		}
 		return false;
 	} : std::function<bool(wxEvtHandler *)>();
@@ -1909,8 +1909,8 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 		auto & objects = wxGetApp().model().objects;
 		auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
         if (iter != objects.end()) {
-			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
             wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
 		}
 		return false;
 	} : std::function<bool(wxEvtHandler *)>();
@@ -2140,8 +2140,8 @@ void NotificationManager::push_slicing_serious_warning_notification(const std::s
                                 if (iter != objects.end()) { ovs.push_back({*iter, nullptr}); }
                             }
                             if (!ovs.empty()) {
-                                wxGetApp().obj_list()->select_items(ovs);
                                 wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+                                wxGetApp().obj_list()->select_items(ovs);
                             }
                             return false;
                         } :
