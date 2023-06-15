@@ -91,15 +91,16 @@ public:
 
     bool is_finished() { return m_job_finished;  }
     void set_print_job_finished_event(int event_id) { m_print_job_completed_id = event_id; }
-
     void on_success(std::function<void()> success);
-    wxString get_http_error_msg(unsigned int status, std::string body);
     void process() override;
     void finalize() override;
     void set_project_name(std::string name);
     void on_check_ip_address_fail(std::function<void()> func);
     void on_check_ip_address_success(std::function<void()> func);
     void connect_to_local_mqtt();
+    wxString get_http_error_msg(unsigned int status, std::string body);
+    std::string truncate_string(const std::string& str, size_t maxLength);
+
 };
 
 }} // namespace Slic3r::GUI

@@ -63,6 +63,19 @@ void PrintJob::on_success(std::function<void()> success)
     m_success_fun = success;
 }
 
+std::string PrintJob::truncate_string(const std::string& str, size_t maxLength)
+{
+    if (str.length() <= maxLength)
+    {
+        return str;
+    }
+
+    std::string truncatedStr = str.substr(0, maxLength - 3);
+    truncatedStr.append("...");
+    return truncatedStr;
+}
+
+
 wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
 {
     try {
@@ -153,8 +166,7 @@ void PrintJob::process()
         }
     }
 
-    // task name
-    std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
+    m_project_name = truncate_string(m_project_name, 100);
     int curr_plate_idx = 0;
 
     if (m_print_type == "from_normal") {
@@ -208,7 +220,6 @@ void PrintJob::process()
 
     params.dev_id = m_dev_id;
     params.ftp_folder = m_ftp_folder;
-    //params.project_name = m_project_name;
     
     
     params.filename = job_data._3mf_path.string();
@@ -264,11 +275,6 @@ void PrintJob::process()
     if (params.preset_name.empty()) { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
 
-    //Prevent string length from exceeding 100 bytes
-    if (params.project_name.size() >= 100) {
-        params.project_name = params.project_name.substr(0, 99);
-    }
-    
     wxString error_text;
     wxString msg_text;
 
