@@ -1617,7 +1617,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     m_panel_lib->m_info.can_id = caninfo.can_id;
     m_panel_lib->m_can_index   = canindex;
     auto m_panel_road          = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
-    m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
+    m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(3));
     m_sizer_ams->Add(m_panel_road, 0, wxALL, 0);
 
     amscan->SetSizer(m_sizer_ams);
