@@ -1363,7 +1363,7 @@ void GUI_App::shutdown()
 }
 
 
-std::string GUI_App::get_http_url(std::string country_code)
+std::string GUI_App::get_http_url(std::string country_code, std::string path)
 {
     std::string url;
     if (country_code == "US") {
@@ -1385,7 +1385,7 @@ std::string GUI_App::get_http_url(std::string country_code)
         url = "https://api.bambulab.com/";
     }
 
-    url += "v1/iot-service/api/slicer/resource";
+    url += path.empty() ? "v1/iot-service/api/slicer/resource" : path;
     return url;
 }
 
@@ -1771,7 +1771,7 @@ void GUI_App::restart_networking()
             start_sync_user_preset();
         }
         if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
-            if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(m_agent); }
+            if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(true); }
         }
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
@@ -3818,7 +3818,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("modelmall_model_advise_get") == 0) {
                 if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
                     if (mainframe->m_webview) {
-                        mainframe->m_webview->SendDesignStaffpick(m_agent);
+                        mainframe->m_webview->SendDesignStaffpick(true);
                     }
                 }
             }
@@ -3826,10 +3826,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
                     boost::optional<std::string> id = data_node.get_optional<std::string>("id");
-                    if (id.has_value() && m_agent) {
-                        std::string url;
-                        if (m_agent->get_model_mall_detail_url(&url, id.value()) == 0)
-                            wxLaunchDefaultBrowser(url);
+                    if (id.has_value() && mainframe->m_webview) {
+                        mainframe->m_webview->OpenModelDetail(id.value(), m_agent);
                     }
                 }
             }
@@ -4686,7 +4684,7 @@ void GUI_App::stop_http_server()
 
 void GUI_App::switch_staff_pick(bool on)
 {
-    mainframe->m_webview->SendDesignStaffpick(on ? m_agent : nullptr);
+    mainframe->m_webview->SendDesignStaffpick(on);
 }
 
 bool GUI_App::switch_language()
