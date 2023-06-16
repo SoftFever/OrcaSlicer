@@ -631,7 +631,7 @@ void PrinterFileSystem::DownloadNextFile()
                 if (!download->ofs) return FILE_OPEN_ERR;
             }
             if (download->total && (download->size != prog.size || download->total != prog.total)) {
-                wxLogWarning("PrinterFileSystem::DownloadNextFile data error: %d != %d\n", download->size, download->size);
+                wxLogWarning("PrinterFileSystem::DownloadNextFile data error: %d != %d\n", download->size, prog.size);
             }
             // receive data
             download->ofs.write((char const *) data, size);
@@ -875,7 +875,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
         [this, files, type](int result, File const &file) {
             auto n    = file.name.find_last_of('.');
             auto name  = n == std::string::npos ? file.name : file.name.substr(0, n) + ".mp4";
-            n         = file.path.find_last_of('#');
+            n          = (type == ModelMetadata) ? std::string::npos : file.path.find_last_of('#');
             auto path = n == std::string::npos ? file.path : file.path.substr(0, n);
             auto iter = path.empty() ? std::find_if(m_file_list.begin(), m_file_list.end(), [&name](auto &f) { return f.name == name; }) :
                                        std::find_if(m_file_list.begin(), m_file_list.end(), [&path](auto &f) { return f.path == path; });
