@@ -1944,10 +1944,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("travel_speed");
 
         optgroup = page->new_optgroup(L("Acceleration"), L"param_acceleration", 15);
+        optgroup->append_single_option_line("default_acceleration");
         optgroup->append_single_option_line("initial_layer_acceleration");
         optgroup->append_single_option_line("outer_wall_acceleration");
+        optgroup->append_single_option_line("inner_wall_acceleration");
         optgroup->append_single_option_line("top_surface_acceleration");
-        optgroup->append_single_option_line("default_acceleration");
+        optgroup->append_single_option_line("sparse_infill_acceleration");
         optgroup->append_single_option_line("accel_to_decel_enable");
         optgroup->append_single_option_line("accel_to_decel_factor");
 

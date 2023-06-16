@@ -158,7 +158,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "infill_jerk",
         "top_surface_jerk",
         "initial_layer_jerk",
-        "travel_jerk"
+        "travel_jerk",
+        "inner_wall_acceleration",
+        "sparse_infill_acceleration"
     };
 
     static std::unordered_set<std::string> steps_ignore;

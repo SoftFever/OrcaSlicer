@@ -3808,6 +3808,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             acceleration = m_config.outer_wall_acceleration.value;
         } else if (m_config.top_surface_acceleration.value > 0 && is_top_surface(path.role())) {
             acceleration = m_config.top_surface_acceleration.value;
+        } else if (m_config.inner_wall_acceleration.value > 0 && path.role() == erPerimeter) {
+            acceleration = m_config.inner_wall_acceleration.value;
+        } else if (m_config.get_abs_value("sparse_infill_acceleration") > 0 && (path.role() == erInternalInfill)) {
+            acceleration = m_config.get_abs_value("sparse_infill_acceleration");
         } else {
             acceleration = m_config.default_acceleration.value;
         }
