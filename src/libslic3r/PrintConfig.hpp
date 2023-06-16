@@ -859,6 +859,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionInt,                 nozzle_hrc))
     ((ConfigOptionBool,                auxiliary_fan))
+    ((ConfigOptionBool,                accel_to_decel_enable))
+    ((ConfigOptionPercent,             accel_to_decel_factor))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

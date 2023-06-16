@@ -1947,6 +1947,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("outer_wall_acceleration");
         optgroup->append_single_option_line("top_surface_acceleration");
         optgroup->append_single_option_line("default_acceleration");
+        optgroup->append_single_option_line("accel_to_decel_enable");
+        optgroup->append_single_option_line("accel_to_decel_factor");
 
         optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_acceleration", 15);
         optgroup->append_single_option_line("default_jerk");

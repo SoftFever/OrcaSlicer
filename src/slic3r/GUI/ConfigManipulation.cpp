@@ -686,6 +686,23 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("detect_thin_wall", !have_arachne);
     //toggle_field("enable_overhang_speed", !have_arachne);
     toggle_field("only_one_wall_top", !have_arachne);
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    // SoftFever
+    auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+
+    // SoftFever
+    if( gcflavor != gcfKlipper )
+    {
+        for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})
+            toggle_line(el, false);
+    }
+    else {
+        for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})
+            toggle_line(el, true);
+
+        toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
+    }
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
