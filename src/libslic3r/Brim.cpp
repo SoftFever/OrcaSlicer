@@ -23,28 +23,40 @@
 
 namespace Slic3r {
 
+//BBS: instance_shift is too large because of multi-plate, apply without plate offset.
+static Point instance_shift_without_plate_offset(const PrintInstance& instance)
+{
+    const Print* print = instance.print_object->print();
+    const Vec3d plate_offset = print->get_plate_origin();
+    return instance.shift - Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
+}
+
 static void append_and_translate(ExPolygons &dst, const ExPolygons &src, const PrintInstance &instance) {
     size_t dst_idx = dst.size();
     expolygons_append(dst, src);
+
+    Point instance_shift = instance_shift_without_plate_offset(instance);
     for (; dst_idx < dst.size(); ++dst_idx)
-        dst[dst_idx].translate(instance.shift.x(), instance.shift.y());
+        dst[dst_idx].translate(instance_shift);
 }
 // BBS: generate brim area by objs
 static void append_and_translate(ExPolygons& dst, const ExPolygons& src,
     const PrintInstance& instance, const Print& print, std::map<ObjectID, ExPolygons>& brimAreaMap) {
     ExPolygons srcShifted = src;
-    for (size_t src_idx = 0; src_idx < src.size(); ++src_idx)
-        srcShifted[src_idx].translate(instance.shift.x(), instance.shift.y());
-    srcShifted = diff_ex(std::move(srcShifted), dst);
+    Point instance_shift = instance_shift_without_plate_offset(instance);
+    for (size_t src_idx = 0; src_idx < srcShifted.size(); ++src_idx)
+        srcShifted[src_idx].translate(instance_shift);
+    srcShifted = diff_ex(srcShifted, dst);
     //expolygons_append(dst, temp2);
-    expolygons_append(brimAreaMap[instance.print_object->id()], srcShifted);
+    expolygons_append(brimAreaMap[instance.print_object->id()], std::move(srcShifted));
 }
 
 static void append_and_translate(Polygons &dst, const Polygons &src, const PrintInstance &instance) {
     size_t dst_idx = dst.size();
     polygons_append(dst, src);
+    Point instance_shift = instance_shift_without_plate_offset(instance);
     for (; dst_idx < dst.size(); ++dst_idx)
-        dst[dst_idx].translate(instance.shift.x(), instance.shift.y());
+        dst[dst_idx].translate(instance_shift);
 }
 
 static float max_brim_width(const ConstPrintObjectPtrsAdaptor &objects)
@@ -89,12 +101,14 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print, 
             islands_object.emplace_back(ex_poly.contour);
 
         islands.reserve(islands.size() + object->instances().size() * islands_object.size());
-        for (const PrintInstance &instance : object->instances())
-            for (Polygon &poly : islands_object) {
+        for (const PrintInstance& instance : object->instances()) {
+            Point instance_shift = instance_shift_without_plate_offset(instance);
+            for (Polygon& poly : islands_object) {
                 islands.emplace_back(poly);
-                islands.back().translate(instance.shift);
+                islands.back().translate(instance_shift);
                 island_to_object.emplace_back(object);
             }
+        }
     }
     assert(islands.size() == island_to_object.size());
 
@@ -982,8 +996,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         }
     }
     if (!bedExPoly.empty()){
-        auto plateOffset = print.get_plate_origin();
-        bedExPoly.front().translate(scale_(plateOffset.x()), scale_(plateOffset.y()));
         no_brim_area.push_back(bedExPoly.front());
     }
     for (const PrintObject* object : print.objects()) {
@@ -1224,8 +1236,9 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                 for (const PrintInstance& instance : object->instances()) {
                     size_t dst_idx = final_loops.size();
                     final_loops.insert(final_loops.end(), all_loops_object.begin(), all_loops_object.end());
+                    Point instance_shift = instance_shift_without_plate_offset(instance);
                     for (; dst_idx < final_loops.size(); ++dst_idx)
-                        final_loops[dst_idx].translate(instance.shift.x(), instance.shift.y());
+                        final_loops[dst_idx].translate(instance_shift);
 
                 }
                 extrusion_entities_append_loops_and_paths(brim.entities, std::move(final_loops),
@@ -1561,6 +1574,12 @@ ExtrusionEntityCollection makeBrimInfill(const ExPolygons& singleBrimArea, const
     optimize_polylines_by_reversing(&all_loops);
     all_loops = connect_brim_lines(std::move(all_loops), offset(singleBrimArea, float(SCALED_EPSILON)), float(flow.scaled_spacing()) * 2.f);
 
+    //BBS: finally apply the plate offset which may very large
+    auto plate_offset = print.get_plate_origin();
+    Point scaled_plate_offset = Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
+    for (Polyline& one_loop : all_loops)
+        one_loop.translate(scaled_plate_offset);
+
     extrusion_entities_append_loops_and_paths(brim.entities, std::move(all_loops), erBrim, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height()));
     return brim;
 }
@@ -1589,14 +1608,14 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
         for (const ExPolygon& ex_poly : object->layers().front()->lslices)
             for (const PrintInstance& instance : object->instances()) {
                 auto ex_poly_translated = ex_poly;
-                ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
+                ex_poly_translated.translate(instance_shift_without_plate_offset(instance));
                 bbx.merge(get_extents(ex_poly_translated.contour));
             }
         if (!object->support_layers().empty())
         for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing())
             for (const PrintInstance& instance : object->instances()) {
                 auto ex_poly_translated = support_contour;
-                ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
+                ex_poly_translated.translate(instance_shift_without_plate_offset(instance));
                 bbx.merge(get_extents(ex_poly_translated));
             }
         if (supportBrimAreaMap.find(printObjID) != supportBrimAreaMap.end()) {
