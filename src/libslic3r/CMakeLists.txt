@@ -101,6 +101,8 @@ set(lisbslic3r_sources
     Fill/FillRectilinear.hpp
     Flow.cpp
     Flow.hpp
+    FlushVolCalc.cpp
+    FlushVolCalc.hpp
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp

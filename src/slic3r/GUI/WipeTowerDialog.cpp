@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <sstream>
+#include "libslic3r/FlushVolCalc.hpp"
 #include "WipeTowerDialog.hpp"
 #include "BitmapCache.hpp"
 #include "GUI.hpp"
@@ -45,9 +46,6 @@ static void update_ui(wxWindow* window)
 #define style wxSP_ARROW_KEYS
 #endif
 
-static const int m_max_flush_volume = 750.f;
-static const int g_min_flush_volume_from_support = 420.f;
-static const int g_flush_volume_to_support = 230;
 static const float g_min_flush_multiplier = 0.f;
 static const float g_max_flush_multiplier = 3.f;
 
@@ -249,7 +247,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
 WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, Button* calc_button,
     int extra_flush_volume, float flush_multiplier)
 : wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/)
-,m_matrix(matrix), m_min_flush_volume(extra_flush_volume), m_max_flush_volume(800)
+,m_matrix(matrix), m_min_flush_volume(extra_flush_volume), m_max_flush_volume(Slic3r::g_max_flush_volume)
 {
     m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
 
@@ -487,74 +485,11 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     });
 }
 
-static float to_radians(float degree)
-{
-    return degree / 180.f * M_PI;
-}
-
-float DeltaHS_BBS(float h1, float s1, float v1, float h2, float s2, float v2)
-{
-    float h1_rad = to_radians(h1);
-    float h2_rad = to_radians(h2);
-
-    float dx = std::cos(h1_rad) * s1 * v1 - cos(h2_rad) * s2 * v2;
-    float dy = std::sin(h1_rad) * s1 * v1 - sin(h2_rad) * s2 * v2;
-    float dxy = std::sqrt(dx * dx + dy * dy);
-    return std::min(1.2f, dxy);
-}
-
-static float get_luminance(float r, float g, float b)
-{
-    return r * 0.3 + g * 0.59 + b * 0.11;
-}
-
-static float calc_triangle_3rd_edge(float edge_a, float edge_b, float degree_ab)
-{
-    return std::sqrt(edge_a * edge_a + edge_b * edge_b - 2 * edge_a * edge_b * std::cos(to_radians(degree_ab)));
-}
-
 int WipingPanel::calc_flushing_volume(const wxColour& from_, const wxColour& to_)
 {
-    wxColour from = from_;
-    wxColour to   = to_;
-    // BBS: Transparent materials are treated as white materials
-    if (from.Alpha() == 0) {
-        from.Set(255, 255, 255);
-    }
-    if (to.Alpha() == 0) {
-        to.Set(255, 255, 255);
-    }
+    Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
 
-    float from_hsv_h, from_hsv_s, from_hsv_v;
-    float to_hsv_h, to_hsv_s, to_hsv_v;
-
-    // Calculate color distance in HSV color space
-    RGB2HSV((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f, &from_hsv_h, &from_hsv_s, &from_hsv_v);
-    RGB2HSV((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f, &to_hsv_h, &to_hsv_s, &to_hsv_v);
-    float hs_dist = DeltaHS_BBS(from_hsv_h, from_hsv_s, from_hsv_v, to_hsv_h, to_hsv_s, to_hsv_v);
-
-    // 1. Color difference is more obvious if the dest color has high luminance
-    // 2. Color difference is more obvious if the source color has low luminance
-    float from_lumi = get_luminance((float)from.Red() / 255.f, (float)from.Green() / 255.f, (float)from.Blue() / 255.f);
-    float to_lumi = get_luminance((float)to.Red() / 255.f, (float)to.Green() / 255.f, (float)to.Blue() / 255.f);
-    float lumi_flush = 0.f;
-    if (to_lumi >= from_lumi) {
-        lumi_flush = std::pow(to_lumi - from_lumi, 0.7f) * 560.f;
-    }
-    else {
-        lumi_flush = (from_lumi - to_lumi) * 80.f;
-
-        float inter_hsv_v = 0.67 * to_hsv_v + 0.33 * from_hsv_v;
-        hs_dist = std::min(inter_hsv_v, hs_dist);
-    }
-    float hs_flush = 230.f * hs_dist;
-
-    float flush_volume = calc_triangle_3rd_edge(hs_flush, lumi_flush, 120.f);
-    flush_volume = std::max(flush_volume, 60.f);
-
-    //float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
-    flush_volume += m_min_flush_volume;
-    return std::min((int)flush_volume, m_max_flush_volume);
+    return calculator.calc_flush_vol(from_.Alpha(), from_.Red(), from_.Green(), from_.Blue(), to_.Alpha(), to_.Red(), to_.Green(), to_.Blue());
 }
 
 void WipingPanel::update_warning_texts()
@@ -614,13 +549,13 @@ void WipingPanel::calc_flushing_volumes()
             else {
                 int flushing_volume = 0;
                 if (is_to_support) {
-                    flushing_volume = g_flush_volume_to_support;
+                    flushing_volume = Slic3r::g_flush_volume_to_support;
                 }
                 else {
                     const wxColour& to = m_colours[to_idx];
                     flushing_volume = calc_flushing_volume(from, to);
                     if (is_from_support) {
-                        flushing_volume = std::max(g_min_flush_volume_from_support, flushing_volume);
+                        flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
                     }
                 }
 

@@ -63,6 +63,7 @@ using namespace nlohmann;
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
+#include "libslic3r/FlushVolCalc.hpp"
 
 #include "libslic3r/Orient.hpp"
 
@@ -388,7 +389,7 @@ int CLI::run(int argc, char **argv)
         "--export-3mf=output.3mf",
         "--slice",
         "0",
-        "Cube.3mf"
+        "boats.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -1292,6 +1293,105 @@ int CLI::run(int argc, char **argv)
                 }
             }
         }
+    }
+
+    //compute the flush volume
+    ConfigOptionStrings* selected_filament_colors_option = m_extra_config.option<ConfigOptionStrings>("filament_colour");
+    ConfigOptionStrings *project_filament_colors_option = m_print_config.option<ConfigOptionStrings>("filament_colour");
+    if (project_filament_colors_option)
+    {
+        std::vector<std::string>  selected_filament_colors;
+        if (selected_filament_colors_option) {
+            selected_filament_colors = selected_filament_colors_option->values;
+            //erase here
+            m_extra_config.erase("filament_colour");
+        }
+
+        std::vector<std::string>  &project_filament_colors = project_filament_colors_option->values;
+        size_t project_filament_count = project_filament_colors.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("select filament color from cli, size %1%")%selected_filament_colors.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("project filament colors size %1%")%project_filament_colors.size();
+        if (project_filament_count > 0)
+        {
+            for ( size_t index = 0; index < project_filament_count; index++ )
+            {
+                BOOST_LOG_TRIVIAL(info) << boost::format("project filament %1% original color %2%")%index %project_filament_colors[index];
+                if (selected_filament_colors.size() > index)
+                {
+                    if (!selected_filament_colors[index].empty())
+                    {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("changed to new color %1%")%selected_filament_colors[index];
+                        project_filament_colors[index] = selected_filament_colors[index];
+                    }
+                }
+            }
+
+            //computing
+            ConfigOptionBools* filament_is_support = m_print_config.option<ConfigOptionBools>("filament_is_support", true);
+            std::vector<double>& flush_vol_matrix = m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix", true)->values;
+            //std::vector<float>& flush_vol_vector = m_print_config.option<ConfigOptionFloats>("flush_volumes_vector", true)->values;
+            flush_vol_matrix.resize(project_filament_count*project_filament_count, 0.f);
+            //flush_vol_vector.resize(project_filament_count);
+            //set multiplier to 1?
+            m_print_config.option<ConfigOptionFloat>("flush_multiplier", true)->set(new ConfigOptionFloat(1.f));
+            ConfigOption* extra_flush_volume_opt = m_print_config.option("nozzle_volume");
+            int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+
+            if (filament_is_support->size() != project_filament_count)
+            {
+                BOOST_LOG_TRIVIAL(error) << boost::format("filament_is_support's count %1% not equal to filament_colour's size %2%")%filament_is_support->size() %project_filament_count;
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
+            }
+
+            BOOST_LOG_TRIVIAL(info) << boost::format("extra_flush_volume: %1%")%extra_flush_volume;
+            BOOST_LOG_TRIVIAL(info) << boost::format("filament_is_support: %1%")%filament_is_support->serialize();
+            BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix before computing: %1%")%m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
+            for (int from_idx = 0; from_idx < project_filament_count; from_idx++) {
+                const std::string& from_color = project_filament_colors[from_idx];
+                unsigned char from_rgb[4] = {};
+                Slic3r::GUI::BitmapCache::parse_color4(from_color, from_rgb);
+                bool is_from_support = filament_is_support->get_at(from_idx);
+                for (int to_idx = 0; to_idx < project_filament_count; to_idx++) {
+                    bool is_to_support = filament_is_support->get_at(to_idx);
+                    if (from_idx == to_idx) {
+                        flush_vol_matrix[project_filament_count*from_idx + to_idx] = 0.f;
+                    }
+                    else {
+                        int flushing_volume = 0;
+                        if (is_to_support) {
+                            flushing_volume = Slic3r::g_flush_volume_to_support;
+                        }
+                        else {
+                            const std::string& to_color = project_filament_colors[to_idx];
+                            unsigned char to_rgb[4] = {};
+                            Slic3r::GUI::BitmapCache::parse_color4(to_color, to_rgb);
+                            //BOOST_LOG_TRIVIAL(info) << boost::format("src_idx %1%, src color %2%, dst idex %3%, dst color %4%")%from_idx %from_color %to_idx %to_color;
+                            //BOOST_LOG_TRIVIAL(info) << boost::format("src_rgba {%1%,%2%,%3%,%4%} dst_rgba {%5%,%6%,%7%,%8%}")%(unsigned int)(from_rgb[0]) %(unsigned int)(from_rgb[1]) %(unsigned int)(from_rgb[2]) %(unsigned int)(from_rgb[3])
+                            //       %(unsigned int)(to_rgb[0]) %(unsigned int)(to_rgb[1]) %(unsigned int)(to_rgb[2]) %(unsigned int)(to_rgb[3]);
+
+                            Slic3r::FlushVolCalculator calculator(extra_flush_volume, Slic3r::g_max_flush_volume);
+
+                            flushing_volume = calculator.calc_flush_vol(from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
+                            if (is_from_support) {
+                                flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
+                            }
+                        }
+
+                        flush_vol_matrix[project_filament_count * from_idx + to_idx] = flushing_volume;
+                        //flushing_volume = int(flushing_volume * get_flush_multiplier());
+                    }
+                }
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("flush_volumes_matrix after computed: %1%")%m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")->serialize();
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning) << boost::format("filament colors count is 0 in projects");
+        }
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(warning) << boost::format("no filament colors found in projects");
     }
 
     //BBS: set default to ptFFF
@@ -2321,14 +2421,14 @@ int CLI::run(int argc, char **argv)
                 colors= filament_color->vserialize();
             }
             else
-                colors.push_back("#FFFFFF");
+                colors.push_back("#FFFFFFFF");
 
             std::vector<std::array<float, 4>> colors_out(colors.size());
-            unsigned char rgb_color[3] = {};
+            unsigned char rgb_color[4] = {};
             for (const std::string& color : colors) {
-                Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+                Slic3r::GUI::BitmapCache::parse_color4(color, rgb_color);
                 size_t color_idx = &color - &colors.front();
-                colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+                colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, float(rgb_color[3]) / 255.f };
             }
 
             int gl_major, gl_minor, gl_verbos;
@@ -2399,17 +2499,17 @@ int CLI::run(int argc, char **argv)
                                 const ModelInstance &model_instance = *model_object.instances[instance_idx];
                                 glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
                                 //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
-                                std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00";
+                                std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00FF";
 
-                                unsigned char  rgb_color[3] = {};
-                                Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-                                glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f);
+                                unsigned char  rgb_color[4] = {};
+                                Slic3r::GUI::BitmapCache::parse_color4(color, rgb_color);
+                                glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, float(rgb_color[3]) / 255.f);
 
                                 std::array<float, 4> new_color;
                                 new_color[0] = float(rgb_color[0]) / 255.f;
                                 new_color[1] = float(rgb_color[1]) / 255.f;
                                 new_color[2] = float(rgb_color[2]) / 255.f;
-                                new_color[3] = 1.f;
+                                new_color[3] = float(rgb_color[3]) / 255.f;
                                 glvolume_collection.volumes.back()->set_color(new_color);
                                 glvolume_collection.volumes.back()->printable = model_instance.printable;
                             }
