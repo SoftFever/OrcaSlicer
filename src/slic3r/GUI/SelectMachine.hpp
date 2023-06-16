@@ -438,7 +438,7 @@ public:
     void update_priner_status_msg(wxString msg, bool is_warning = false);
     void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
     void update_print_error_info(int code, std::string msg, std::string extra);
-    //void set_flow_calibration_state(bool state);
+    void set_flow_calibration_state(bool state);
     bool is_show_timelapse();
     bool is_same_printer_model();
     bool has_tips(MachineObject* obj);
