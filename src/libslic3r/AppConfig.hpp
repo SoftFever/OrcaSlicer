@@ -9,6 +9,7 @@
 
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Semver.hpp"
+#include "Calib.hpp"
 
 using namespace nlohmann;
 
@@ -178,6 +179,9 @@ public:
         m_dirty                = true;
     }
 
+	const std::vector<PrinterCaliInfo> &get_printer_cali_infos() const { return m_printer_cali_infos; }
+    void save_printer_cali_infos(const PrinterCaliInfo& cali_info);
+
 	// return recent/last_opened_folder or recent/settings_folder or empty string.
 	std::string 		get_last_dir() const;
 	void 				update_config_dir(const std::string &dir);
@@ -276,6 +280,8 @@ private:
 
 	std::vector<std::string>									m_filament_presets;
     std::vector<std::string>									m_filament_colors;
+
+	std::vector<PrinterCaliInfo>								m_printer_cali_infos;
 };
 
 } // namespace Slic3r

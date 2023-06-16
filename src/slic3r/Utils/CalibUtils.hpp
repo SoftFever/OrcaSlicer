@@ -22,12 +22,14 @@ public:
     std::shared_ptr<ProgressIndicator> process_bar;
 };
 
-
 class CalibUtils
 {
 public:
     CalibUtils(){};
     static std::shared_ptr<PrintJob> print_job;
+
+    static CalibMode get_calib_mode_by_name(const std::string &name);
+
     static void calib_PA(const X1CCalibInfos& calib_infos, std::string& error_message);
     static void emit_get_PA_calib_results();
     static bool get_PA_calib_results(std::vector<PACalibResult> &pa_calib_results);
@@ -50,7 +52,7 @@ public:
 
 private:
     static void process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message);
-    static void send_to_print(const std::string& dev_id, const std::string& select_ams, std::shared_ptr<ProgressIndicator> process_bar, BedType bed_type, std::string& error_message);
+    static void send_to_print(const CalibInfo& calib_info, std::string &error_message);
 };
 
 }

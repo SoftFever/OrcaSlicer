@@ -258,7 +258,7 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     // Also, remove anything below the bed (sinking objects).
     for (i=0; i<hits.size(); ++i) {
         Vec3d transformed_hit = trafo * hits[i].position();
-        if (transformed_hit.z() >= sinking_limit ? SINKING_Z_THRESHOLD : -std::numeric_limits<double>::max() &&
+        if (transformed_hit.z() >= (sinking_limit ? SINKING_Z_THRESHOLD : -std::numeric_limits<double>::max()) &&
             (!clipping_plane || !clipping_plane->is_point_clipped(transformed_hit)))
             break;
     }

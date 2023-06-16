@@ -77,11 +77,6 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
 
     title_sizer->AddStretchSpacer();
 
-    m_index = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
-    m_index->Wrap(-1);
-    m_index->SetFont(Label::Head_16);
-    title_sizer->Add(m_index, 0, wxALL, 0);
-
     page_sizer->Add(title_sizer, 0, wxEXPAND, 0);
 
     page_sizer->AddSpacer(FromDIP(20));
@@ -133,15 +128,20 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
     m_btn_next->Bind(wxEVT_BUTTON, &CalibrationWizardPage::on_click_next, this);
 }
 
-void CalibrationWizardPage::set_highlight_step_text(wxString text) {
+void CalibrationWizardPage::set_highlight_step_text(PageType page_type) {
+    if (page_type == PageType::Start) {
+        m_top_sizer->Clear(true);
+        Layout();
+        return;
+    }
     m_preset_text->SetForegroundColour(wxColour(181, 181, 181));
     m_calibration_text->SetForegroundColour(wxColour(181, 181, 181));
     m_record_text->SetForegroundColour(wxColour(181, 181, 181));
-    if(text == "Preset")
+    if(page_type == PageType::Preset)
         m_preset_text->SetForegroundColour(*wxBLACK);
-    if (text == "Calibration")
+    if (page_type == PageType::Calibration || page_type == PageType::CoarseSave || page_type == PageType::FineCalibration)
         m_calibration_text->SetForegroundColour(*wxBLACK);
-    if (text == "Record")
+    if (page_type == PageType::Save)
         m_record_text->SetForegroundColour(*wxBLACK);
 }
 

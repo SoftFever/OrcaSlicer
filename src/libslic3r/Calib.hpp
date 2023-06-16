@@ -15,7 +15,23 @@ enum class CalibMode : int {
     Calib_Vol_speed_Tower,
     Calib_VFA_Tower,
     Calib_Retraction_tower
+};
 
+enum class CalibState {
+    Start = 0,
+    Preset,
+    Calibration,
+    CoarseSave,
+    FineCalibration,
+    Save,
+};
+
+struct PrinterCaliInfo
+{
+    std::string dev_id;
+    CalibMode   mode;
+    CalibState  state;
+    std::string filament_preset;
 };
 
 struct Calib_Params

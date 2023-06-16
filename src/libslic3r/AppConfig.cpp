@@ -508,6 +508,15 @@ std::string AppConfig::load()
                         m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                     }
                 }
+            } else if (it.key() == "calis") {
+                for (auto &j : it.value()) {
+                    PrinterCaliInfo cali_info;
+                    cali_info.dev_id          = j["dev_id"].get<std::string>();
+                    cali_info.mode            = CalibMode(j["cali_mode"].get<int>());
+                    cali_info.state           = CalibState(j["cali_state"].get<int>());
+                    cali_info.filament_preset = j["preset"].get<std::string>();
+                    m_printer_cali_infos.emplace_back(cali_info);
+                }
             } else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
@@ -611,6 +620,15 @@ void AppConfig::save()
 
     for (const auto &filament_color : m_filament_colors) {
         j["app"]["filament_colors"].push_back(filament_color);
+    }
+
+    for (const auto &cali_info : m_printer_cali_infos) {
+        json json;
+        json["dev_id"]             = cali_info.dev_id;
+        json["cali_mode"]          = int(cali_info.mode);
+        json["cali_state"]         = int(cali_info.state);
+        json["preset"]             = cali_info.filament_preset;
+        j["calis"].push_back(json);
     }
 
     // Write the other categories.
@@ -936,6 +954,22 @@ void AppConfig::set_variant(const std::string &vendor, const std::string &model,
 void AppConfig::set_vendors(const AppConfig &from)
 {
     m_vendors = from.m_vendors;
+    m_dirty = true;
+}
+
+void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
+{
+    auto iter = std::find_if(m_printer_cali_infos.begin(), m_printer_cali_infos.end(), [&cali_info](const PrinterCaliInfo &cali_info_item) {
+        return cali_info_item.dev_id == cali_info.dev_id;
+    });
+
+    if (iter == m_printer_cali_infos.end()) {
+        m_printer_cali_infos.emplace_back(cali_info);
+    } else {
+        (*iter).filament_preset = cali_info.filament_preset;
+        (*iter).mode            = cali_info.mode;
+        (*iter).state           = cali_info.state;
+    }
     m_dirty = true;
 }
 

@@ -115,8 +115,8 @@ private:
     CalibrationWizard* m_pa_panel{ nullptr };
     CalibrationWizard* m_flow_panel{ nullptr };
     CalibrationWizard* m_volumetric_panel{ nullptr };
-    TemperatureWizard* m_temp_panel{ nullptr };
-    CalibrationWizard* m_vfa_panel{ nullptr };
+    CalibrationWizard* m_temp_panel{ nullptr };
+    CalibrationWizard* m_retraction_panel{ nullptr };
 
     wxTimer* m_refresh_timer = nullptr;
 };

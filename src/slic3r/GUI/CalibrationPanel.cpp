@@ -162,7 +162,6 @@ void MObjectPanel::on_mouse_left_up(wxMouseEvent& evt)
         wxCommandEvent event(EVT_DISSMISS_MACHINE_LIST);
         event.SetEventObject(this->GetParent()->GetParent());
         wxPostEvent(this, event);
-        
     }
 }
 
@@ -464,7 +463,10 @@ void CalibrationPanel::init_tabpanel() {
     m_temp_panel = new TemperatureWizard(m_tabpanel);
     m_tabpanel->AddPage(m_temp_panel, _L("Temperature"), "", false);
 
-    for (int i = 0; i < 4; i++)
+    m_retraction_panel = new RetractionWizard(m_tabpanel);
+    m_tabpanel->AddPage(m_retraction_panel, _L("Retraction"), "", false);
+
+    for (int i = 0; i < 5; i++)
         m_tabpanel->SetPageImage(i, "");
 
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent&) {
@@ -487,21 +489,30 @@ void CalibrationPanel::on_timer(wxTimerEvent& event) {
 }
 
 void CalibrationPanel::update_all() {
-    if (m_pa_panel && m_pa_panel->IsShown()) {
-        m_pa_panel->update_printer_selections();
-        m_pa_panel->update_print_progress();
+    if (m_pa_panel) {
+        m_pa_panel->update_printer();
+        if (m_pa_panel->IsShown())
+            m_pa_panel->update_print_progress();
     }
-    if (m_flow_panel && m_flow_panel->IsShown()) {
-        m_flow_panel->update_printer_selections();
-        m_flow_panel->update_print_progress();
+    if (m_flow_panel) {
+        m_flow_panel->update_printer();
+        if (m_flow_panel->IsShown())
+            m_flow_panel->update_print_progress();
     }
-    if (m_volumetric_panel && m_volumetric_panel->IsShown()) {
-        m_volumetric_panel->update_printer_selections();
-        m_volumetric_panel->update_print_progress();
+    if (m_volumetric_panel) {
+        m_volumetric_panel->update_printer();
+        if (m_volumetric_panel->IsShown())
+            m_volumetric_panel->update_print_progress();
     }
-    if (m_temp_panel && m_temp_panel->IsShown()) {
-        m_temp_panel->update_printer_selections();
-        m_temp_panel->update_print_progress();
+    if (m_temp_panel) {
+        m_temp_panel->update_printer();
+        if (m_temp_panel->IsShown())
+            m_temp_panel->update_print_progress();
+    }
+    if (m_retraction_panel) {
+        m_retraction_panel->update_printer();
+        if (m_retraction_panel->IsShown())
+            m_retraction_panel->update_print_progress();
     }
 
     NetworkAgent* m_agent = wxGetApp().getAgent();
@@ -510,7 +521,10 @@ void CalibrationPanel::update_all() {
         return;
     MachineObject* obj = dev->get_selected_machine();
 
-    if (!obj) return;
+    if (!obj) {
+        m_side_tools->set_none_printer_mode();
+        return;
+    }
 
     /* Update Device Info */
     m_side_tools->set_current_printer_name(obj->dev_name);

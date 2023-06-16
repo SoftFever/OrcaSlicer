@@ -31,6 +31,16 @@ private:
     ButtonType m_type;
 };
 
+enum class PageType {
+    Start,
+    Preset,
+    Calibration,
+    CoarseSave,
+    FineCalibration,
+    Save,
+    Finish,
+};
+
 class CalibrationWizardPage : public wxPanel 
 {
 public:
@@ -53,14 +63,14 @@ public:
     wxBoxSizer* get_btn_hsizer() { return m_btn_sizer; }
     PageButton* get_prev_btn() { return m_btn_prev; }
     PageButton* get_next_btn() { return m_btn_next; }
+    PageType get_page_type() { return m_page_type; }
 
+    void set_page_type(PageType type) { m_page_type = type; }
     void set_page_title(wxString title) { m_title->SetLabel(title); }
-    void set_page_index(wxString index) { m_index->SetLabel(index); }
-    void set_highlight_step_text(wxString text);
+    void set_highlight_step_text(PageType page_type);
 
 private:
     wxStaticText* m_title;
-    wxStaticText* m_index;
     wxBoxSizer* m_top_sizer;
     wxStaticText* m_preset_text;
     wxStaticText* m_calibration_text;
@@ -69,6 +79,7 @@ private:
     wxBoxSizer* m_btn_sizer;
     PageButton* m_btn_prev;
     PageButton* m_btn_next;
+    PageType m_page_type;
 
     CalibrationWizardPage* m_prev_page{nullptr};
     CalibrationWizardPage* m_next_page{nullptr};

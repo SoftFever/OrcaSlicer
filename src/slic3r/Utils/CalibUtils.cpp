@@ -24,6 +24,14 @@ static std::string MachineBedTypeString[5] = {
     "pte"
 };
 
+static std::map<CalibMode, std::string> calib_mode_to_name = {
+    {CalibMode::Calib_Flow_Rate,           "flow_rate_calib_mode"},
+    {CalibMode::Calib_Temp_Tower,          "temp_tower_calib_mode"},
+    {CalibMode::Calib_Vol_speed_Tower,     "vol_speed_tower_calib_mode"},
+    {CalibMode::Calib_VFA_Tower,           "vfa_tower_calib_mode"},
+    {CalibMode::Calib_Retraction_tower,    "retration_tower_calib_mode"}
+};
+
 static void cut_model(Model &model, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
 {
     size_t obj_idx = 0;
@@ -72,6 +80,16 @@ std::array<Vec3d, 4> get_cut_plane_points(const BoundingBoxf3 &bbox, const doubl
     plane_pts[2] = Vec3d(bbox.max(0), bbox.max(1), cut_height);
     plane_pts[3] = Vec3d(bbox.min(0), bbox.max(1), cut_height);
     return plane_pts;
+}
+
+CalibMode CalibUtils::get_calib_mode_by_name(const std::string &name)
+{
+    for (auto iter = calib_mode_to_name.begin(); iter != calib_mode_to_name.end(); ++iter) {
+        if (iter->second == name) {
+            return iter->first;
+        }
+    }
+    return CalibMode::Calib_None;
 }
 
 void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, std::string& error_message)
@@ -311,7 +329,7 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
     if (!error_message.empty())
         return;
 
-    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+    send_to_print(calib_info, error_message);
 }
 
 void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &error_message)
@@ -338,7 +356,7 @@ void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &erro
     if (!error_message.empty())
         return;
 
-    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+    send_to_print(calib_info, error_message);
 }
 
 void CalibUtils::calib_temptue(const CalibInfo& calib_info, std::string& error_message)
@@ -407,7 +425,7 @@ void CalibUtils::calib_temptue(const CalibInfo& calib_info, std::string& error_m
     if (!error_message.empty())
         return;
 
-    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+    send_to_print(calib_info, error_message);
 }
 
 void CalibUtils::calib_max_vol_speed(const CalibInfo& calib_info, std::string& error_message)
@@ -485,7 +503,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo& calib_info, std::string& e
     if (!error_message.empty())
         return;
 
-    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+    send_to_print(calib_info, error_message);
 }
 
 void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_message)
@@ -541,7 +559,7 @@ void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_messa
     if (!error_message.empty())
         return;
 
-    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+    send_to_print(calib_info, error_message);
 }
 
 void CalibUtils::calib_retraction(const CalibInfo &calib_info, std::string &error_message)
@@ -590,7 +608,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, std::string &erro
     if (!error_message.empty())
         return;
 
-    send_to_print(calib_info.dev_id, calib_info.select_ams, calib_info.process_bar, calib_info.bed_type, error_message);
+    send_to_print(calib_info, error_message);
 }
 
 void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message)
@@ -676,8 +694,13 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     success           = Slic3r::store_bbs_3mf(store_params);
 }
 
-void CalibUtils::send_to_print(const std::string& dev_id, const std::string& select_ams, std::shared_ptr<ProgressIndicator> process_bar, BedType bed_type, std::string& error_message)
+void CalibUtils::send_to_print(const CalibInfo& calib_info, std::string &error_message)
 {
+    std::string dev_id = calib_info.dev_id;
+    std::string select_ams = calib_info.select_ams;
+    std::shared_ptr<ProgressIndicator> process_bar = calib_info.process_bar;
+    BedType bed_type = calib_info.bed_type;
+
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
         error_message = "Need select printer";
@@ -748,19 +771,10 @@ void CalibUtils::send_to_print(const std::string& dev_id, const std::string& sel
     print_job->plate_data = plate_data;
     print_job->m_print_type = "from_normal";
 
-    //if (!obj_->is_support_ams_mapping()) {
-    //    error_message = "It is not support ams mapping.";
-    //    return;
-    //}
-
-    //if (!obj_->has_ams()) {
-    //    error_message = "There is no ams.";
-    //    return;
-    //}
-
     print_job->task_ams_mapping = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_use_ams = select_ams == "[254]" ? false : true;
+    print_job->m_project_name = calib_mode_to_name[calib_info.params.mode];
 
     print_job->has_sdcard = obj_->has_sdcard();
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);

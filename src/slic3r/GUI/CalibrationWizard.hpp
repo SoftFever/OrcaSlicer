@@ -60,23 +60,29 @@ typedef std::vector<FilamentComboBox*> FilamentComboBoxList;
 
 class CalibrationWizard : public wxPanel {
 public:
-    CalibrationWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+    CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~CalibrationWizard() {};
     CalibrationWizardPage* get_curr_page() { return m_curr_page; }
     CalibrationWizardPage* get_frist_page() { return m_first_page; }
     void show_page(CalibrationWizardPage* page);
     void show_send_progress_bar(bool show);
-    void update_printer_selections();
+    void update_printer();
     void update_print_progress();
-    void update_filaments_from_preset();
+    CalibMode get_calibration_mode() { return m_mode; }
 
 protected:
+    virtual CalibrationWizardPage* create_start_page() { return nullptr; }
+    virtual CalibrationWizardPage* create_presets_page(bool need_custom_range);
+    virtual CalibrationWizardPage* create_print_page();
+    virtual CalibrationWizardPage* create_save_page();
+    virtual void create_save_panel_content(wxBoxSizer* sizer) {}
     virtual void create_pages() = 0;
     virtual bool start_calibration(std::vector<int> tray_ids) = 0;
     virtual bool save_calibration_result() = 0;
     virtual bool recommend_input_value();
     virtual void set_save_name() {};
     virtual void request_calib_result() {};
+    virtual void jump_to_page(PageType page_type);
     virtual void change_ams_select_mode() {};
     virtual void init_bitmaps();
 
@@ -92,8 +98,10 @@ private:
     ScalableBitmap m_bitmap_abort_disable;
 
 protected:
+    std::map<std::string, PrinterCaliInfo> m_printer_calib_infos;
+
+    CalibMode m_mode;
     MachineObject* curr_obj{ nullptr };
-    std::vector<MachineObject*> obj_list{ nullptr };
 
     wxScrolledWindow* m_scrolledWindow;
     wxBoxSizer* m_all_pages_sizer;
@@ -116,7 +124,6 @@ protected:
     FilamentComboBoxList m_filament_comboBox_list;
     wxPanel* m_virtual_panel;
     FilamentComboBox* m_virtual_tray_comboBox;
-    ComboBox* m_comboBox_printer;
     ComboBox* m_comboBox_nozzle_dia;
     ComboBox* m_comboBox_bed_type;
     ComboBox* m_comboBox_process;
@@ -139,6 +146,7 @@ protected:
 
     // print panel
     wxPanel* m_print_panel;
+    wxStaticBitmap* m_print_picture;
     wxStaticText* m_staticText_profile_value;
     wxStaticText* m_printing_stage_value;
     wxStaticText* m_staticText_progress_percent;
@@ -148,13 +156,14 @@ protected:
     ScalableButton* m_button_abort;
     ProgressBar* m_print_gauge_progress; // for print
     PageButton* m_btn_next;
-    PageButton* m_btn_recali;
 
     // save panel
     wxPanel* m_save_panel;
 
-    void create_presets_panel(CalibrationWizardPage* page, wxBoxSizer* sizer, bool need_custom_range = true);
-    void create_send_progress_bar(CalibrationWizardPage* page, wxBoxSizer* sizer);
+    void init_printer_calib_info_from_appconfig();
+    void save_to_printer_calib_info(PageType page_type);
+
+    // preset
     void init_presets_selections();
     void init_nozzle_selections();
     void init_bed_type_selections();
@@ -165,15 +174,13 @@ protected:
     std::vector<int> get_selected_tray();
     FilamentComboBoxList get_selected_filament_comboBox();
 
-    void create_print_panel(CalibrationWizardPage* page, wxBoxSizer* sizer);
+    // print
     void reset_printing_values();
 
-    void create_save_panel(CalibrationWizardPage* page, wxBoxSizer* sizer);
-    virtual void create_save_panel_content(wxBoxSizer* sizer) {}
+    // save
     bool save_presets(const std::string& config_key, ConfigOption* config_value, const std::string& name);
 
     // event handlers
-    void on_select_printer(wxCommandEvent& evt);
     void on_select_nozzle(wxCommandEvent& evt);
     void on_select_tray(SimpleEvent& evt);
     void on_select_bed_type(wxCommandEvent& evt);
@@ -187,11 +194,22 @@ protected:
     void on_switch_ams(std::string ams_id);
 };
 
+class HistoryWindow : public DPIDialog {
+public:
+    HistoryWindow(wxWindow* parent);
+    ~HistoryWindow() {};
+    void on_dpi_changed(const wxRect& suggested_rect) {}
+    void create();
+
+    wxPanel* m_history_data_panel;
+};
+
 class PressureAdvanceWizard : public CalibrationWizard{
 public:
     PressureAdvanceWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~PressureAdvanceWizard() {};
 protected:
+    virtual CalibrationWizardPage* create_start_page() override;
     void create_history_window();
     virtual void create_pages() override;
     virtual void create_save_panel_content(wxBoxSizer* sizer) override;
@@ -202,21 +220,22 @@ protected:
     virtual void change_ams_select_mode() override;
     virtual void init_bitmaps() override;
 
+    void sync_history_window_data();
     void sync_save_page_data();
     void switch_pages(SimpleEvent& evt);
 private:
     // history page
-    //CalibrationWizardPage* m_history_page{ nullptr };
+    HistoryWindow* m_history_page{ nullptr };
 
     // start page
     CalibrationWizardPage* m_page0{ nullptr };
+    std::string m_wiki_url;
 
     // preset page
     CalibrationWizardPage* m_page1{ nullptr };
 
     // print page
     CalibrationWizardPage* m_page2{ nullptr };
-    wxStaticBitmap* m_print_picture;
 
     // save page
     CalibrationWizardPage* m_page3{ nullptr };
@@ -236,6 +255,7 @@ public:
     FlowRateWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~FlowRateWizard() {};
 protected:
+    virtual CalibrationWizardPage* create_start_page() override;
     void create_low_end_pages();
     void create_high_end_pages();
     virtual void create_pages() override;
@@ -251,12 +271,18 @@ protected:
     void sync_save_page_data();
     void switch_pages(SimpleEvent& evt);
 private:
+    // start page
+    CalibrationWizardPage* m_page0{ nullptr };
+    std::string m_wiki_url;
+
     // preset page
     CalibrationWizardPage* m_page1{ nullptr };
+    wxPanel* m_choose_step_panel;
+    wxRadioButton* m_complete_radioBox;
+    wxRadioButton* m_fine_radioBox;
 
     // print page
     CalibrationWizardPage* m_page2{ nullptr };
-    wxStaticBitmap* m_print_picture;
 
     // page 3
     CalibrationWizardPage* m_low_end_page3{ nullptr };
@@ -295,6 +321,7 @@ public:
     MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~MaxVolumetricSpeedWizard() {};
 protected:
+    virtual CalibrationWizardPage* create_start_page() override;
     virtual void create_pages() override;
     virtual void create_save_panel_content(wxBoxSizer* sizer) override;
     virtual bool start_calibration(std::vector<int> tray_ids) override;
@@ -303,12 +330,15 @@ protected:
     virtual void set_save_name() override;
     virtual void init_bitmaps() override;
 private:
+    // start page
+    CalibrationWizardPage* m_page0;
+    std::string m_wiki_url;
+
     // preset page
     CalibrationWizardPage* m_page1;
 
     // print page
     CalibrationWizardPage* m_page2;
-    wxStaticBitmap* m_print_picture;
 
     // save page
     CalibrationWizardPage* m_page3;
@@ -325,6 +355,7 @@ public:
     TemperatureWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~TemperatureWizard() {};
 protected:
+    virtual CalibrationWizardPage* create_start_page() override;
     virtual void create_pages() override;
     virtual void create_save_panel_content(wxBoxSizer* sizer) override;
     virtual bool start_calibration(std::vector<int> tray_ids) override;
@@ -333,12 +364,15 @@ protected:
     virtual void set_save_name() override;
     virtual void init_bitmaps() override;
 private:
+    // start page
+    CalibrationWizardPage* m_page0;
+    std::string m_wiki_url;
+
     // preset page
     CalibrationWizardPage* m_page1;
 
     // print page
     CalibrationWizardPage* m_page2;
-    wxStaticBitmap* m_print_picture;
 
     // save page
     CalibrationWizardPage* m_page3;
@@ -348,7 +382,37 @@ private:
     std::string m_save_name;
 };
 
-class VFAWizard : public CalibrationWizard {};
+class RetractionWizard : public CalibrationWizard {
+public:
+    RetractionWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+    ~RetractionWizard() {};
+protected:
+    virtual CalibrationWizardPage* create_start_page() override;
+    virtual void create_pages() override;
+    virtual void create_save_panel_content(wxBoxSizer* sizer) override;
+    virtual bool start_calibration(std::vector<int> tray_ids) override;
+    virtual bool save_calibration_result() override;
+    virtual bool recommend_input_value() override;
+    virtual void set_save_name() override;
+    virtual void init_bitmaps() override;
+private:
+    // start page
+    CalibrationWizardPage* m_page0;
+    std::string m_wiki_url;
+
+    // preset page
+    CalibrationWizardPage* m_page1;
+
+    // print page
+    CalibrationWizardPage* m_page2;
+
+    // save page
+    CalibrationWizardPage* m_page3;
+    wxStaticBitmap* m_record_picture;
+    TextInput* m_optimal_retraction;
+    TextInput* m_save_name_input;
+    std::string m_save_name;
+};
 
 }} // namespace Slic3r::GUI
 
