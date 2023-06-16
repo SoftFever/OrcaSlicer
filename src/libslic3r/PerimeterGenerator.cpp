@@ -1194,6 +1194,10 @@ void PerimeterGenerator::process_classic()
                 ++ irun;
             }
 #endif
+            // SoftFever: filter out tiny gap fills
+            polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [&](const ThickPolyline &p) {
+                return p.length()< scale_(this->config->filter_out_gap_fill.value);
+            }), polylines.end());
 
             if (! polylines.empty()) {
 				ExtrusionEntityCollection gap_fill;

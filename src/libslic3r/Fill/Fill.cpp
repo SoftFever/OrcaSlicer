@@ -479,6 +479,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
+		params.filter_out_gap_fill = layerm->region().config().filter_out_gap_fill.value;
 		for (ExPolygon& expoly : surface_fill.expolygons) {
             f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.

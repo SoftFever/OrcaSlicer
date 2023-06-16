@@ -1580,6 +1580,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.8));
 
+    def           = this->add("filter_out_gap_fill", coFloat);
+    def->label    = L("Filter out tiny gaps");
+    def->tooltip  = L("Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers");
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0));
+    
     def = this->add("gap_infill_speed", coFloat);
     def->label = L("Gap infill");
     def->category = L("Speed");

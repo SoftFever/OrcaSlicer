@@ -40,7 +40,7 @@ struct FillParams
     bool        full_infill() const { return density > 0.9999f; }
     // Don't connect the fill lines around the inner perimeter.
     bool        dont_connect() const { return anchor_length_max < 0.05f; }
-
+    double      filter_out_gap_fill { 0.0 };
     // Fill density, fraction in <0, 1>
     float       density 		{ 0.f };
 

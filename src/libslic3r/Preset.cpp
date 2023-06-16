@@ -762,6 +762,7 @@ static std::vector<std::string> s_Preset_print_options {
      "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process",
     "seam_gap", "wipe_speed", "top_solid_infill_flow_ratio", "bottom_solid_infill_flow_ratio",
     "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk", "travel_jerk",
+    "filter_out_gap_fill",
      // calib
     "print_flow_ratio"
 };

@@ -1905,6 +1905,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
         optgroup->append_single_option_line("sparse_infill_anchor");
         optgroup->append_single_option_line("sparse_infill_anchor_max");
+        optgroup->append_single_option_line("filter_out_gap_fill");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("infill_wall_overlap");
