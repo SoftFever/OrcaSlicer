@@ -398,6 +398,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/CalibrationWizard.cpp
     GUI/CalibrationWizardPage.cpp
     GUI/CalibrationWizardPage.hpp
+	GUI/calib_dlg.cpp
+	GUI/calib_dlg.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp

@@ -64,7 +64,7 @@ static void read_model_from_file(const std::string& input_file, Model& model)
         object->ensure_on_bed();
 }
 
-std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3 &bbox, const double &cut_height)
+std::array<Vec3d, 4> get_cut_plane_points(const BoundingBoxf3 &bbox, const double &cut_height)
 {
     std::array<Vec3d, 4> plane_pts;
     plane_pts[0] = Vec3d(bbox.min(0), bbox.min(1), cut_height);
@@ -576,7 +576,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, std::string &erro
     auto obj_bb = obj->bounding_box();
     auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
+        std::array<Vec3d, 4> plane_pts = get_cut_plane_points(obj_bb, height);
         cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
     }
 

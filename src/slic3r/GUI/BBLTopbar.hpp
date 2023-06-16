@@ -23,6 +23,7 @@ public:
     void OnCloseFrame(wxAuiToolBarEvent& event);
     void OnFileToolItem(wxAuiToolBarEvent& evt);
     void OnDropdownToolItem(wxAuiToolBarEvent& evt);
+    void OnCalibToolItem(wxAuiToolBarEvent &evt);
     void OnMouseLeftDClock(wxMouseEvent& mouse);
     void OnMouseLeftDown(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseEvent& event);
@@ -43,6 +44,7 @@ public:
     void AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title);
     void AddDropDownMenuItem(wxMenuItem* menu_item);
     wxMenu *GetTopMenu();
+    wxMenu *GetCalibMenu();
     void SetTitle(wxString title);
     void SetMaximizedSize();
     void SetWindowSize();
@@ -60,6 +62,7 @@ private:
     wxPoint m_delta;
     wxMenu m_top_menu;
     wxMenu* m_file_menu;
+    wxMenu m_calib_menu;
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_model_store_item;
@@ -67,6 +70,7 @@ private:
     wxAuiToolBarItem *m_publish_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
+    wxAuiToolBarItem* m_calib_item;
     wxAuiToolBarItem* maximize_btn;
 
     wxBitmap m_publish_bitmap;
@@ -78,4 +82,5 @@ private:
     int m_toolbar_h;
     bool m_skip_popup_file_menu;
     bool m_skip_popup_dropdown_menu;
+    bool m_skip_popup_calib_menu;
 };

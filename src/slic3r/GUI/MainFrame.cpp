@@ -2648,6 +2648,77 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
+
+     // SoftFever calibrations
+    {
+        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Temperature"), _L("Temperature Calibration"),
+            [this](wxCommandEvent&) {
+                if (!m_temp_calib_dlg)
+                    m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+                m_temp_calib_dlg->ShowModal();
+            }, "", nullptr,
+            [this]() {return m_plater->is_view3D_shown();; }, this);
+        auto flowrate_menu = new wxMenu();
+        append_menu_item(
+            flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+            [this]() {return m_plater->is_view3D_shown();; }, this);
+        append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+            [this]() {return m_plater->is_view3D_shown();; }, this);
+        m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
+            [this](wxCommandEvent&) {
+                if (!m_pa_calib_dlg)
+                    m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+                m_pa_calib_dlg->ShowModal();
+            }, "", nullptr,
+            [this]() {return m_plater->is_view3D_shown();; }, this);
+        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Retraction test"), _L("Retraction test"),
+            [this](wxCommandEvent&) {
+                if (!m_retraction_calib_dlg)
+                    m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+                m_retraction_calib_dlg->ShowModal();
+            }, "", nullptr,
+            [this]() {return m_plater->is_view3D_shown();; }, this);
+
+        // Advance calibrations
+        auto advance_menu = new wxMenu(); // sub menu
+        {
+            append_menu_item(
+                advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
+                [this](wxCommandEvent &) {
+                    if (!m_vol_test_dlg) m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
+                    m_vol_test_dlg->ShowModal();
+                },
+                "", nullptr,
+                [this]() {
+                    return m_plater->is_view3D_shown();
+                    ;
+                },
+                this);
+
+            append_menu_item(
+                advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
+                [this](wxCommandEvent &) {
+                    if (!m_vfa_test_dlg) m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
+                    m_vfa_test_dlg->ShowModal();
+                },
+                "", nullptr,
+                [this]() {
+                    return m_plater->is_view3D_shown();
+                    ;
+                },
+                this);
+            m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
+        }
+
+        // help 
+        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
+            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+            [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    }
 #else
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
     if (editMenu)
