@@ -317,6 +317,8 @@ void BackgroundSlicingProcess::thread_proc()
 			break;
 		// Process the background slicing task.
 		m_state = STATE_RUNNING;
+		//BBS: internal cancel
+		m_internal_cancelled = false;
 		lck.unlock();
 		std::exception_ptr exception;
 #ifdef _WIN32
@@ -336,6 +338,10 @@ void BackgroundSlicingProcess::thread_proc()
 				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception);
 			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": send SlicingProcessCompletedEvent to main, status %1%")%evt.status();
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+		}
+		else {
+			//BBS: internal cancel
+			m_internal_cancelled = true;
 		}
 		m_print->restart();
 		lck.unlock();

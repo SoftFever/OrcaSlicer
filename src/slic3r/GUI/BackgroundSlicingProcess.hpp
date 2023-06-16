@@ -184,6 +184,7 @@ public:
     //BBS: improve the finished logic, also judge the m_gcode_result
     //bool    finished() const { return m_print->finished(); }
     bool    finished() const { return m_print->finished() && !m_gcode_result->moves.empty(); }
+    bool    is_internal_cancelled() { return m_internal_cancelled; }
 
     //BBS: add Plater to friend class
     //need to call stop_internal in ui thread
@@ -274,6 +275,7 @@ private:
 	//BBS: partplate related
 	GUI::PartPlate* m_current_plate;
 	PrinterTechnology m_printer_tech = ptUnknown;
+	bool m_internal_cancelled = false;
 
     PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
 	bool                set_step_started(BackgroundSlicingProcessStep step);

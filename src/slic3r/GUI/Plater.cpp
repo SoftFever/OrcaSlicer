@@ -4536,14 +4536,18 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         process_completed_with_error = -1;
     }
 
-    if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
-        (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
-        // The background processing was killed and it will not be restarted.
-        // Post the "canceled" callback message, so that it will be processed after any possible pending status bar update messages.
-        SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
-            SlicingProcessCompletedEvent::Cancelled, nullptr);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%, post an EVT_PROCESS_COMPLETED to main, status %2%")%__LINE__ %evt.status();
-        wxQueueEvent(q, evt.Clone());
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: was_running = %2%, running %3%, invalidated=%4%, return_state=%5%, internal_cancel=%6%")
+        % __LINE__ % was_running % this->background_process.running() % invalidated % return_state % this->background_process.is_internal_cancelled();
+    if (was_running && ! this->background_process.running() && (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
+        if (invalidated != Print::APPLY_STATUS_UNCHANGED || this->background_process.is_internal_cancelled())
+        {
+            // The background processing was killed and it will not be restarted.
+            // Post the "canceled" callback message, so that it will be processed after any possible pending status bar update messages.
+            SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
+                SlicingProcessCompletedEvent::Cancelled, nullptr);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%, post an EVT_PROCESS_COMPLETED to main, status %2%")%__LINE__ %evt.status();
+            wxQueueEvent(q, evt.Clone());
+        }
     }
 
     if ((return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
