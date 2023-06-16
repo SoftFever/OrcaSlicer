@@ -149,10 +149,11 @@ public:
 	void show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
 	void Enable_Send_Button(bool en);
 	void on_dpi_changed(const wxRect& suggested_rect) override;
-	void update_user_machine_list();
+    void update_user_machine_list();
     void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void update_print_error_info(int code, std::string msg, std::string extra);
     wxString format_text(wxString& m_msg);
+    std::string filter_characters(const std::string& str, const std::string& filterChars);
 	std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
 

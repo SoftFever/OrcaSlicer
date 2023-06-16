@@ -206,12 +206,12 @@ void SendJob::process()
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
-    params.dev_id = m_dev_id;
-    params.project_name = m_project_name + ".gcode.3mf";
-    params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
-    params.filename = job_data._3mf_path.string();
-    params.config_filename = job_data._3mf_config_path.string();
-    params.plate_index = curr_plate_idx;
+    params.dev_id               = m_dev_id;
+    params.project_name         = m_project_name + ".gcode.3mf";
+    params.preset_name          = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+    params.filename             = job_data._3mf_path.string();
+    params.config_filename      = job_data._3mf_config_path.string();
+    params.plate_index          = curr_plate_idx;
     params.ams_mapping          = this->task_ams_mapping;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;

@@ -218,13 +218,11 @@ void PrintJob::process()
         params.filename = "";
     }
 
-    params.dev_id = m_dev_id;
-    params.ftp_folder = m_ftp_folder;
-    
-    
-    params.filename = job_data._3mf_path.string();
-    params.config_filename = job_data._3mf_config_path.string();
-    params.plate_index = curr_plate_idx;
+    params.dev_id               = m_dev_id;
+    params.ftp_folder           = m_ftp_folder;
+    params.filename             = job_data._3mf_path.string();
+    params.config_filename      = job_data._3mf_config_path.string();
+    params.plate_index          = curr_plate_idx;
     params.task_bed_leveling    = this->task_bed_leveling;
     params.task_flow_cali       = this->task_flow_cali;
     params.task_vibration_cali  = this->task_vibration_cali;
@@ -235,7 +233,7 @@ void PrintJob::process()
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
-    params.print_type            = this->m_print_type;
+    params.print_type           = this->m_print_type;
 
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();

@@ -3365,6 +3365,19 @@ void SelectMachineDialog::set_flow_calibration_state(bool state)
     }
 }
 
+std::string SelectMachineDialog::filter_characters(const std::string& str, const std::string& filterChars)
+{
+    std::string filteredStr = str;
+
+    auto removeFunc = [&filterChars](char ch) {
+        return filterChars.find(ch) != std::string::npos;
+    };
+
+    filteredStr.erase(std::remove_if(filteredStr.begin(), filteredStr.end(), removeFunc), filteredStr.end());
+
+    return filteredStr;
+}
+
 void SelectMachineDialog::set_default()
 {
     if (m_print_type == PrintFromType::FROM_NORMAL) {
@@ -3394,9 +3407,13 @@ void SelectMachineDialog::set_default()
         filename = m_plater->get_export_gcode_filename("", true);
         if (filename.empty()) filename = _L("Untitled");
     }
-
+    
     fs::path filename_path(filename.c_str());
     m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
+
+    //unsupported character filter
+    m_current_project_name = filter_characters(m_current_project_name.ToStdString(), "<>[]:/\\|?*\"");
+
     m_rename_text->SetLabelText(m_current_project_name);
     m_rename_normal_panel->Layout();
 
@@ -4008,7 +4025,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
     wxString info_line;
     auto     new_dev_name = m_textCtr->GetTextCtrl()->GetValue();
 
-    const char *      unusable_symbols = "@~.<>[]:/\\|?*\"";
+    const char *      unusable_symbols = "<>[]:/\\|?*\"";
     const std::string unusable_suffix  = PresetCollection::get_suffix_modified();
 
     for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {

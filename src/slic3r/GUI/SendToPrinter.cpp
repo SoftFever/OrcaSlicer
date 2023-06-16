@@ -778,7 +778,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();
     m_send_job->set_project_name(m_current_project_name.utf8_string());
-
+ 
     enable_prepare_mode = false;
 
     m_send_job->on_check_ip_address_fail([this]() {
@@ -1211,6 +1211,19 @@ void SendToPrinterDialog::on_dpi_changed(const wxRect &suggested_rect)
     Refresh();
 }
 
+std::string SendToPrinterDialog::filter_characters(const std::string& str, const std::string& filterChars)
+{
+    std::string filteredStr = str;
+
+    auto removeFunc = [&filterChars](char ch) {
+        return filterChars.find(ch) != std::string::npos;
+    };
+
+    filteredStr.erase(std::remove_if(filteredStr.begin(), filteredStr.end(), removeFunc), filteredStr.end());
+
+    return filteredStr;
+}
+
 void SendToPrinterDialog::set_default()
 {
     //project name
@@ -1229,6 +1242,10 @@ void SendToPrinterDialog::set_default()
 
     fs::path filename_path(filename.c_str());
     m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
+
+    //unsupported character filter
+    m_current_project_name = filter_characters(m_current_project_name.ToStdString(), "<>[]:/\\|?*\"");
+
     m_rename_text->SetLabelText(m_current_project_name);
     m_rename_normal_panel->Layout();
 
