@@ -154,12 +154,16 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				//BBS
 				params.with_loop     = surface.surface_type == stInternalWithLoop;
 
-		        if (surface.is_solid()) {
+				if (surface.is_solid()) {
 		            params.density = 100.f;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
-		            params.pattern = (surface.is_external() && ! is_bridge) ? 
-						(surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value) :
-		                region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+					if (surface.is_solid_infill())
+                        params.pattern = region_config.internal_solid_infill_pattern.value;
+					else if (surface.is_external() && !is_bridge)
+						params.pattern = surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value;
+					else
+						params.pattern = region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+
 		        } else if (params.density <= 0)
 		            continue;
 
@@ -479,7 +483,6 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
-		params.filter_out_gap_fill = layerm->region().config().filter_out_gap_fill.value;
 		for (ExPolygon& expoly : surface_fill.expolygons) {
             f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.

@@ -717,6 +717,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, bottom_surface_pattern))
+    ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
     ((ConfigOptionFloat, outer_wall_line_width))
     ((ConfigOptionFloat, outer_wall_speed))
     ((ConfigOptionFloat, infill_direction))
