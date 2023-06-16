@@ -413,22 +413,38 @@ static ClipperLib_Z::Paths clip_extrusion(const ClipperLib_Z::Path& subject, con
     ClipperLib_Z::Clipper clipper;
     clipper.ZFillFunction([](const ClipperLib_Z::IntPoint& e1bot, const ClipperLib_Z::IntPoint& e1top, const ClipperLib_Z::IntPoint& e2bot,
         const ClipperLib_Z::IntPoint& e2top, ClipperLib_Z::IntPoint& pt) {
+            // The clipping contour may be simplified by clipping it with a bounding box of "subject" path.
+            // The clipping function used may produce self intersections outside of the "subject" bounding box. Such self intersections are 
+            // harmless to the result of the clipping operation,
+            // Both ends of each edge belong to the same source: Either they are from subject or from clipping path.
+            assert(e1bot.z() >= 0 && e1top.z() >= 0);
+            assert(e2bot.z() >= 0 && e2top.z() >= 0);
+            assert((e1bot.z() == 0) == (e1top.z() == 0));
+            assert((e2bot.z() == 0) == (e2top.z() == 0));
+
+            // Start & end points of the clipped polyline (extrusion path with a non-zero width).
             ClipperLib_Z::IntPoint start = e1bot;
             ClipperLib_Z::IntPoint end = e1top;
-
             if (start.z() <= 0 && end.z() <= 0) {
                 start = e2bot;
                 end = e2top;
             }
 
-            assert(start.z() > 0 && end.z() > 0);
+            if (start.z() <= 0 && end.z() <= 0) {
+                // Self intersection on the source contour.
+                assert(start.z() == 0 && end.z() == 0);
+                pt.z() = 0;
+            }
+            else {
+                // Interpolate extrusion line width.
+                assert(start.z() > 0 && end.z() > 0);
 
-            // Interpolate extrusion line width.
-            double length_sqr = (end - start).cast<double>().squaredNorm();
-            double dist_sqr = (pt - start).cast<double>().squaredNorm();
-            double t = std::sqrt(dist_sqr / length_sqr);
+                double length_sqr = (end - start).cast<double>().squaredNorm();
+                double dist_sqr = (pt - start).cast<double>().squaredNorm();
+                double t = std::sqrt(dist_sqr / length_sqr);
 
-            pt.z() = start.z() + coord_t((end.z() - start.z()) * t);
+                pt.z() = start.z() + coord_t((end.z() - start.z()) * t);
+            }
         });
 
     clipper.AddPath(subject, ClipperLib_Z::ptSubject, false);
