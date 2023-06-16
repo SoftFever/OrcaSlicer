@@ -1,0 +1,39 @@
+{
+    "type": "filament",
+    "filament_id": "GFG99",
+    "setting_id": "GFSG99_VORON_00",
+    "name": "Generic PETG @Voron",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pet",
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "overhang_fan_speed": [
+        "90"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "fan_max_speed": [
+        "90"
+    ],
+    "fan_min_speed": [
+        "40"
+    ],
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "10"
+    ],
+    "compatible_printers": [
+        "Voron 2.4 250 0.4 nozzle",
+        "Voron 2.4 300 0.4 nozzle",
+        "Voron 2.4 350 0.4 nozzle",
+        "Voron Trident 250 0.4 nozzle",
+        "Voron Trident 300 0.4 nozzle",
+        "Voron Trident 350 0.4 nozzle",
+        "Voron 0.1 0.4 nozzle"
+    ]
+}

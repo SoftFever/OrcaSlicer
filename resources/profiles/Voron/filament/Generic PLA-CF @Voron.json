@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFL98",
+    "setting_id": "GFSL98_VORON_00",
+    "name": "Generic PLA-CF @Voron",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_type": [
+        "PLA-CF"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "compatible_printers": [
+        "Voron 2.4 250 0.4 nozzle",
+        "Voron 2.4 300 0.4 nozzle",
+        "Voron 2.4 350 0.4 nozzle",
+        "Voron Trident 250 0.4 nozzle",
+        "Voron Trident 300 0.4 nozzle",
+        "Voron Trident 350 0.4 nozzle",
+        "Voron 0.1 0.4 nozzle"
+    ]
+}

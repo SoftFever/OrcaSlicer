@@ -25,76 +25,77 @@
             "sub_path": "filament/fdm_filament_common.json"
         },
         {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
-        },
-        {
-            "name": "fdm_filament_tpu",
-            "sub_path": "filament/fdm_filament_tpu.json"
-        },
-        {
-            "name": "fdm_filament_pet",
-            "sub_path": "filament/fdm_filament_pet.json"
-        },
-        {
             "name": "fdm_filament_abs",
             "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
         },
         {
             "name": "fdm_filament_pc",
             "sub_path": "filament/fdm_filament_pc.json"
         },
         {
-            "name": "fdm_filament_asa",
-            "sub_path": "filament/fdm_filament_asa.json"
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
         },
         {
             "name": "fdm_filament_pva",
             "sub_path": "filament/fdm_filament_pva.json"
         },
         {
-            "name": "fdm_filament_pa",
-            "sub_path": "filament/fdm_filament_pa.json"
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
         },
         {
-            "name": "Anker Generic PLA",
-            "sub_path": "filament/Anker Generic PLA.json"
+            "name": "Generic ABS @Anker",
+            "sub_path": "filament/Generic ABS @Anker.json"
         },
         {
-            "name": "Anker Generic PLA-CF",
-            "sub_path": "filament/Anker Generic PLA-CF.json"
+            "name": "Generic ASA @Anker",
+            "sub_path": "filament/Generic ASA @Anker.json"
         },
         {
-            "name": "Anker Generic PETG",
-            "sub_path": "filament/Anker Generic PETG.json"
+            "name": "Generic PA @Anker",
+            "sub_path": "filament/Generic PA @Anker.json"
         },
         {
-            "name": "Anker Generic ABS",
-            "sub_path": "filament/Anker Generic ABS.json"
+            "name": "Generic PA-CF @Anker",
+            "sub_path": "filament/Generic PA-CF @Anker.json"
         },
         {
-            "name": "Anker Generic TPU",
-            "sub_path": "filament/Anker Generic TPU.json"
+            "name": "Generic PC @Anker",
+            "sub_path": "filament/Generic PC @Anker.json"
         },
         {
-            "name": "Anker Generic ASA",
-            "sub_path": "filament/Anker Generic ASA.json"
+            "name": "Generic PETG @Anker",
+            "sub_path": "filament/Generic PETG @Anker.json"
         },
         {
-            "name": "Anker Generic PC",
-            "sub_path": "filament/Anker Generic PC.json"
+            "name": "Generic PLA @Anker",
+            "sub_path": "filament/Generic PLA @Anker.json"
         },
         {
-            "name": "Anker Generic PVA",
-            "sub_path": "filament/Anker Generic PVA.json"
+            "name": "Generic PLA-CF @Anker",
+            "sub_path": "filament/Generic PLA-CF @Anker.json"
         },
         {
-            "name": "Anker Generic PA",
-            "sub_path": "filament/Anker Generic PA.json"
+            "name": "Generic PVA @Anker",
+            "sub_path": "filament/Generic PVA @Anker.json"
         },
         {
-            "name": "Anker Generic PA-CF",
-            "sub_path": "filament/Anker Generic PA-CF.json"
+            "name": "Generic TPU @Anker",
+            "sub_path": "filament/Generic TPU @Anker.json"
         }
     ],
     "machine_list": [

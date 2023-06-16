@@ -157,28 +157,28 @@
             "sub_path": "filament/fdm_filament_common.json"
         },
         {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
         },
         {
             "name": "fdm_filament_pet",
             "sub_path": "filament/fdm_filament_pet.json"
         },
         {
-            "name": "fdm_filament_abs",
-            "sub_path": "filament/fdm_filament_abs.json"
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
         },
         {
-            "name": "Creality Generic PLA",
-            "sub_path": "filament/Creality Generic PLA.json"
+            "name": "Generic ABS @Creality",
+            "sub_path": "filament/Generic ABS @Creality.json"
         },
         {
-            "name": "Creality Generic PETG",
-            "sub_path": "filament/Creality Generic PETG.json"
+            "name": "Generic PETG @Creality",
+            "sub_path": "filament/Generic PETG @Creality.json"
         },
         {
-            "name": "Creality Generic ABS",
-            "sub_path": "filament/Creality Generic ABS.json"
+            "name": "Generic PLA @Creality",
+            "sub_path": "filament/Generic PLA @Creality.json"
         }
     ],
     "machine_list": [

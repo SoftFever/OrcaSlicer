@@ -197,52 +197,52 @@
             "sub_path": "filament/fdm_filament_tpu.json"
         },
         {
-            "name": "Qidi Generic ABS",
-            "sub_path": "filament/Qidi Generic ABS.json"
+            "name": "Generic ABS @Qidi",
+            "sub_path": "filament/Generic ABS @Qidi.json"
         },
         {
-            "name": "Qidi Generic ASA",
-            "sub_path": "filament/Qidi Generic ASA.json"
+            "name": "Generic ASA @Qidi",
+            "sub_path": "filament/Generic ASA @Qidi.json"
         },
         {
-            "name": "Qidi Generic PA",
-            "sub_path": "filament/Qidi Generic PA.json"
+            "name": "Generic PA @Qidi",
+            "sub_path": "filament/Generic PA @Qidi.json"
         },
         {
-            "name": "Qidi Generic PA-CF",
-            "sub_path": "filament/Qidi Generic PA-CF.json"
+            "name": "Generic PA-CF @Qidi",
+            "sub_path": "filament/Generic PA-CF @Qidi.json"
         },
         {
-            "name": "Qidi Generic PC",
-            "sub_path": "filament/Qidi Generic PC.json"
+            "name": "Generic PC @Qidi",
+            "sub_path": "filament/Generic PC @Qidi.json"
         },
         {
-            "name": "Qidi Generic PETG",
-            "sub_path": "filament/Qidi Generic PETG.json"
+            "name": "Generic PETG @Qidi",
+            "sub_path": "filament/Generic PETG @Qidi.json"
         },
         {
-            "name": "Qidi Generic PETG-CF",
-            "sub_path": "filament/Qidi Generic PETG-CF.json"
+            "name": "Generic PETG-CF @Qidi",
+            "sub_path": "filament/Generic PETG-CF @Qidi.json"
         },
         {
-            "name": "Qidi Generic PLA Silk",
-            "sub_path": "filament/Qidi Generic PLA Silk.json"
+            "name": "Generic PLA @Qidi",
+            "sub_path": "filament/Generic PLA @Qidi.json"
         },
         {
-            "name": "Qidi Generic PLA",
-            "sub_path": "filament/Qidi Generic PLA.json"
+            "name": "Generic PLA Silk @Qidi",
+            "sub_path": "filament/Generic PLA Silk @Qidi.json"
         },
         {
-            "name": "Qidi Generic PLA-CF",
-            "sub_path": "filament/Qidi Generic PLA-CF.json"
+            "name": "Generic PLA-CF @Qidi",
+            "sub_path": "filament/Generic PLA-CF @Qidi.json"
         },
         {
-            "name": "Qidi Generic PVA",
-            "sub_path": "filament/Qidi Generic PVA.json"
+            "name": "Generic PVA @Qidi",
+            "sub_path": "filament/Generic PVA @Qidi.json"
         },
         {
-            "name": "Qidi Generic TPU",
-            "sub_path": "filament/Qidi Generic TPU.json"
+            "name": "Generic TPU @Qidi",
+            "sub_path": "filament/Generic TPU @Qidi.json"
         }
     ],
     "machine_list": [

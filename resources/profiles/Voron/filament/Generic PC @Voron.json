@@ -1,0 +1,24 @@
+{
+    "type": "filament",
+    "filament_id": "GFC99",
+    "setting_id": "GFSC99_VORON_00",
+    "name": "Generic PC @Voron",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pc",
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "filament_flow_ratio": [
+        "0.94"
+    ],
+    "compatible_printers": [
+        "Voron 2.4 250 0.4 nozzle",
+        "Voron 2.4 300 0.4 nozzle",
+        "Voron 2.4 350 0.4 nozzle",
+        "Voron Trident 250 0.4 nozzle",
+        "Voron Trident 300 0.4 nozzle",
+        "Voron Trident 350 0.4 nozzle",
+        "Voron 0.1 0.4 nozzle"
+    ]
+}

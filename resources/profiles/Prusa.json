@@ -33,76 +33,77 @@
             "sub_path": "filament/fdm_filament_common.json"
         },
         {
-            "name": "fdm_filament_pla",
-            "sub_path": "filament/fdm_filament_pla.json"
-        },
-        {
-            "name": "fdm_filament_tpu",
-            "sub_path": "filament/fdm_filament_tpu.json"
-        },
-        {
-            "name": "fdm_filament_pet",
-            "sub_path": "filament/fdm_filament_pet.json"
-        },
-        {
             "name": "fdm_filament_abs",
             "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+       
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
         },
         {
             "name": "fdm_filament_pc",
             "sub_path": "filament/fdm_filament_pc.json"
         },
         {
-            "name": "fdm_filament_asa",
-            "sub_path": "filament/fdm_filament_asa.json"
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
         },
         {
             "name": "fdm_filament_pva",
             "sub_path": "filament/fdm_filament_pva.json"
         },
         {
-            "name": "fdm_filament_pa",
-            "sub_path": "filament/fdm_filament_pa.json"
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
         },
         {
-            "name": "Prusa Generic PLA",
-            "sub_path": "filament/Prusa Generic PLA.json"
+            "name": "Generic ABS @Prusa",
+            "sub_path": "filament/Generic ABS @Prusa.json"
         },
         {
-            "name": "Prusa Generic PLA-CF",
-            "sub_path": "filament/Prusa Generic PLA-CF.json"
+            "name": "Generic ASA @Prusa",
+            "sub_path": "filament/Generic ASA @Prusa.json"
         },
         {
-            "name": "Prusa Generic PETG",
-            "sub_path": "filament/Prusa Generic PETG.json"
+            "name": "Generic PA @Prusa",
+            "sub_path": "filament/Generic PA @Prusa.json"
         },
         {
-            "name": "Prusa Generic ABS",
-            "sub_path": "filament/Prusa Generic ABS.json"
+            "name": "Generic PA-CF @Prusa",
+            "sub_path": "filament/Generic PA-CF @Prusa.json"
         },
         {
-            "name": "Prusa Generic TPU",
-            "sub_path": "filament/Prusa Generic TPU.json"
+            "name": "Generic PC @Prusa",
+            "sub_path": "filament/Generic PC @Prusa.json"
         },
         {
-            "name": "Prusa Generic ASA",
-            "sub_path": "filament/Prusa Generic ASA.json"
+            "name": "Generic PETG @Prusa",
+            "sub_path": "filament/Generic PETG @Prusa.json"
         },
         {
-            "name": "Prusa Generic PC",
-            "sub_path": "filament/Prusa Generic PC.json"
+            "name": "Generic PLA @Prusa",
+            "sub_path": "filament/Generic PLA @Prusa.json"
         },
         {
-            "name": "Prusa Generic PVA",
-            "sub_path": "filament/Prusa Generic PVA.json"
+            "name": "Generic PLA-CF @Prusa",
+            "sub_path": "filament/Generic PLA-CF @Prusa.json"
         },
         {
-            "name": "Prusa Generic PA",
-            "sub_path": "filament/Prusa Generic PA.json"
+            "name": "Generic PVA @Prusa",
+            "sub_path": "filament/Generic PVA @Prusa.json"
         },
         {
-            "name": "Prusa Generic PA-CF",
-            "sub_path": "filament/Prusa Generic PA-CF.json"
+            "name": "Generic TPU @Prusa",
+            "sub_path": "filament/Generic TPU @Prusa.json"
         }
     ],
     "machine_list": [

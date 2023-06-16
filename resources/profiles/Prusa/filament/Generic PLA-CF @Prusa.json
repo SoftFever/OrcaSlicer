@@ -1,0 +1,22 @@
+{
+    "type": "filament",
+    "filament_id": "GFL98",
+    "setting_id": "GFSL98_PRUSA_00",
+    "name": "Generic PLA-CF @Prusa",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_type": [
+        "PLA-CF"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "compatible_printers": [
+        "Prusa MK3S 0.4 nozzle",
+        "Prusa MINI 0.4 nozzle"
+    ]
+}

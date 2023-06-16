@@ -285,16 +285,16 @@
             "sub_path": "filament/fdm_filament_pla.json"
         },
         {
-            "name": "Elegoo Generic ABS",
-            "sub_path": "filament/Elegoo Generic ABS.json"
+            "name": "Generic ABS @Elegoo",
+            "sub_path": "filament/Generic ABS @Elegoo.json"
         },
         {
-            "name": "Elegoo Generic PETG",
-            "sub_path": "filament/Elegoo Generic PETG.json"
+            "name": "Generic PETG @Elegoo",
+            "sub_path": "filament/Generic PETG @Elegoo.json"
         },
         {
-            "name": "Elegoo Generic PLA",
-            "sub_path": "filament/Elegoo Generic PLA.json"
+            "name": "Generic PLA @Elegoo",
+            "sub_path": "filament/Generic PLA @Elegoo.json"
         }
     ],
     "machine_list": [

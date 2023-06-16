@@ -1,0 +1,22 @@
+{
+    "type": "filament",
+    "filament_id": "GFN98",
+    "setting_id": "GFSN98_PRUSA_00",
+    "name": "Generic PA-CF @Prusa",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa",
+    "filament_type": [
+        "PA-CF"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "compatible_printers": [
+        "Prusa MK3S 0.4 nozzle",
+        "Prusa MINI 0.4 nozzle"
+    ]
+}
