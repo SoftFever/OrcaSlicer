@@ -1008,7 +1008,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("internal_bridge_support_thickness", coFloat);
     def->label = L("Internal bridge support thickness");
     def->category = L("Strength");
-    def->tooltip = L("If enabled, Studio will generate support loops under the contours of internal bridges."
+    def->tooltip = L("If enabled, support loops will be generated under the contours of internal bridges."
                      "These support loops could prevent internal bridges from extruding over the air and improve the top surface quality, especially when the sparse infill density is low."
                      "This value determines the thickness of the support loops. 0 means disable this feature");
     def->sidetext = L("mm");
