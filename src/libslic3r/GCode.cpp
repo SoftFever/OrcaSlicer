@@ -4018,6 +4018,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         }
     }
+    // Override skirt speed if set
+    if (path.role() == erSkirt) {
+        const double skirt_speed = m_config.get_abs_value("skirt_speed");
+        if (skirt_speed > 0.0)
+        speed = skirt_speed;
+    }
     //BBS: remove this config
     //else if (this->object_layer_over_raft())
     //    speed = m_config.get_abs_value("first_layer_speed_over_raft", speed);
