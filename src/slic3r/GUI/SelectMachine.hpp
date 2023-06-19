@@ -163,9 +163,9 @@ protected:
     void on_mouse_left_up(wxMouseEvent &evt);
 };
 
-#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(214), FromDIP(364))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(210), FromDIP(360))  
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(180), FromDIP(35))
+#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(216), FromDIP(364))
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))  
+#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(182), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
@@ -309,7 +309,6 @@ private:
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
-    wxObjectDataPtr<MachineListModel>   m_machine_model;
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
     Slic3r::Model                       m_required_data_model; 

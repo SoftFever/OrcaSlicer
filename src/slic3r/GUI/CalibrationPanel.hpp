@@ -6,6 +6,94 @@
 //#include "Widgets/SideTools.hpp"
 
 namespace Slic3r { namespace GUI {
+
+#define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
+#define SELECT_MACHINE_GREY600 wxColour(144,144,144)
+#define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
+#define SELECT_MACHINE_BRAND wxColour(0, 174, 66)
+#define SELECT_MACHINE_REMIND wxColour(255,111,0)
+#define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
+
+class MObjectPanel : public wxPanel
+{
+private:
+    bool        m_is_my_devices{ false };
+    bool        m_hover{ false };
+
+    PrinterState       m_state;
+    ScalableBitmap m_printer_status_offline;
+    ScalableBitmap m_printer_status_busy;
+    ScalableBitmap m_printer_status_idle;
+    ScalableBitmap m_printer_status_lock;
+    ScalableBitmap m_printer_in_lan;
+    MachineObject* m_info;
+
+public:
+    MObjectPanel(wxWindow* parent,
+            wxWindowID      id = wxID_ANY,
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            long            style = wxTAB_TRAVERSAL,
+            const wxString& name = wxEmptyString);
+
+    ~MObjectPanel();
+
+    void set_printer_state(PrinterState state);
+    void update_machine_info(MachineObject* info, bool is_my_devices = false);
+protected:
+    void OnPaint(wxPaintEvent& event);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+    void on_mouse_enter(wxMouseEvent& evt);
+    void on_mouse_leave(wxMouseEvent& evt);
+    void on_mouse_left_up(wxMouseEvent& evt);
+};
+
+class MPanel
+{
+public:
+    wxString mIndex;
+    MObjectPanel* mPanel;
+};
+
+class SelectMObjectPopup : public PopupWindow
+{
+public:
+    SelectMObjectPopup(wxWindow* parent);
+    ~SelectMObjectPopup();
+
+    // PopupWindow virtual methods are all overridden to log them
+    virtual void Popup(wxWindow* focus = NULL) wxOVERRIDE;
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+    virtual bool Show(bool show = true) wxOVERRIDE;
+
+    void update_machine_list(wxCommandEvent& event);
+    bool was_dismiss() { return m_dismiss; }
+
+private:
+    int                                 m_my_devices_count{ 0 };
+    int                                 m_other_devices_count{ 0 };
+    bool                                m_dismiss{ false };
+    wxWindow*                           m_placeholder_panel   { nullptr };
+    wxWindow*                           m_panel_body{ nullptr };
+    wxBoxSizer*                         m_sizer_body{ nullptr };
+    wxBoxSizer*                         m_sizer_my_devices{ nullptr };
+    wxScrolledWindow*                   m_scrolledWindow{ nullptr };
+    wxTimer*                            m_refresh_timer{ nullptr };
+    std::vector<MPanel*>          m_user_list_machine_panel;
+    boost::thread*                      get_print_info_thread{ nullptr };
+    std::string                         m_print_info;
+    std::map<std::string, MachineObject*> m_bind_machine_list;
+
+private:
+    void OnLeftUp(wxMouseEvent& event);
+    void on_timer(wxTimerEvent& event);
+    void update_user_devices();
+    void on_dissmiss_win(wxCommandEvent& event);
+};
+
+
 class CalibrationPanel : public wxPanel
 {
 public:
@@ -14,14 +102,16 @@ public:
     Tabbook* get_tabpanel() { return m_tabpanel; };
     void update_all();
     bool Show(bool show);
+    void on_printer_clicked(wxMouseEvent& event);
 protected:
     void init_tabpanel();
     void init_timer();
     void on_timer(wxTimerEvent& event);
 
 private:
+    SideTools* m_side_tools{ nullptr };
     Tabbook*    m_tabpanel{ nullptr };
-
+    SelectMObjectPopup m_mobjectlist_popup;
     CalibrationWizard* m_pa_panel{ nullptr };
     CalibrationWizard* m_flow_panel{ nullptr };
     CalibrationWizard* m_volumetric_panel{ nullptr };

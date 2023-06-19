@@ -100,62 +100,6 @@ std::string get_print_status_info(PrintDialogStatus status)
     return "unknown";
 }
 
-
-MachineListModel::MachineListModel() : wxDataViewVirtualListModel(INITIAL_NUMBER_OF_MACHINES) { ; }
-
-void MachineListModel::display_machines(std::map<std::string, MachineObject *> list)
-{
-    for (int i = 0; i < Col_Max; i++) { m_values[i].clear(); }
-
-    std::vector<MachineObject *>                     list_array;
-    std::map<std::string, MachineObject *>::iterator it;
-    for (it = list.begin(); it != list.end(); it++) { list_array.push_back(it->second); }
-
-    std::sort(list_array.begin(), list_array.end(), [](MachineObject *obj1, MachineObject *obj2) { return obj1->dev_name < obj2->dev_name; });
-
-    std::vector<MachineObject *>::iterator iter;
-    for (iter = list_array.begin(); iter != list_array.end(); iter++) { this->add_machine(*iter, false); }
-    Reset(list_array.size());
-}
-
-void MachineListModel::add_machine(MachineObject *obj, bool reset)
-{
-    m_values[Col_MachineName].Add(from_u8(obj->dev_name));
-    m_values[Col_MachineSN].Add(from_u8(obj->dev_id));
-    m_values[Col_MachinePrintingStatus].Add(from_u8(obj->print_status));
-    m_values[Col_MachineIPAddress].Add(from_u8(obj->dev_ip));
-    m_values[Col_MachineConnection].Add(obj->is_online() ? _L("Online") : _L("Offline"));
-    if (reset) Reset(m_values[Col_MachineName].GetCount());
-}
-
-int MachineListModel::find_row_by_sn(wxString sn)
-{
-    wxVariant val;
-    for (int i = 0; i < this->GetCount(); i++) {
-        GetValueByRow(val, i, Col_MachineSN);
-        if (val == sn) { return i; }
-    }
-
-    return -1;
-}
-
-void MachineListModel::GetValueByRow(wxVariant &variant, unsigned int row, unsigned int col) const
-{
-    if (row > m_values[col].GetCount())
-        variant = wxString::Format("virtual row %d", row);
-    else
-        variant = m_values[col][row];
-}
-
-bool MachineListModel::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const { return true; }
-
-bool MachineListModel::SetValueByRow(const wxVariant &variant, unsigned int row, unsigned int col)
-{
-    if (row >= m_values[col].GetCount()) return false;
-    m_values[col][row] = variant.GetString();
-    return true;
-}
-
 MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
 {
     wxPanel::Create(parent, id, pos, SELECT_MACHINE_ITEM_SIZE, style, name);

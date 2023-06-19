@@ -112,7 +112,6 @@ private:
     wxColour							m_colour_def_color{ wxColour(255, 255, 255) };
     wxColour							m_colour_bold_color{ wxColour(38, 46, 48) };
 	wxTimer*							m_refresh_timer{ nullptr };
-    wxObjectDataPtr<MachineListModel>   machine_model;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
 	wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
 
