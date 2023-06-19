@@ -1586,6 +1586,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #endif
 
     file.write_format("; EXECUTABLE_BLOCK_START\n");
+
+    // SoftFever: Orca's implementation for skipping object, for klipper firmware printer only
+    if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper)
+        file.write(set_object_info(&print));
+
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
 
@@ -2656,6 +2661,18 @@ namespace Skirt {
 
 } // namespace Skirt
 
+inline std::string get_instance_name(const PrintObject* object, size_t inst_id) {
+    auto obj_name = object->model_object()->name;
+    // replace space in obj_name with '-'
+    std::replace(obj_name.begin(), obj_name.end(), ' ', '_');
+
+    return (boost::format("%1%_id_%2%_copy_%3%") % obj_name % object->get_klipper_object_id() % inst_id).str();
+}
+
+inline std::string get_instance_name(const PrintObject* object, const PrintInstance& inst) {
+    return get_instance_name(object, inst.id);
+}
+
 // In sequential mode, process_layer is called once per each object and its copy,
 // therefore layers will contain a single entry and single_object_instance_idx will point to the copy of the object.
 // In non-sequential mode, process_layer is called per each print_z height with all object and support layers accumulated.
@@ -3156,6 +3173,7 @@ GCode::LayerResult GCode::process_layer(
             if (is_anything_overridden && print_wipe_extrusions == 0)
                 gcode+="; PURGING FINISHED\n";
             for (InstanceToPrint &instance_to_print : instances_to_print) {
+                const auto& inst = instance_to_print.print_object.instances()[instance_to_print.instance_id];
                 const LayerToPrint &layer_to_print = layers[instance_to_print.layer_id];
                 // To control print speed of the 1st object layer printed over raft interface.
                 bool object_layer_over_raft = layer_to_print.object_layer && layer_to_print.object_layer->id() > 0 &&
@@ -3173,6 +3191,16 @@ GCode::LayerResult GCode::process_layer(
                     }
                     m_writer.set_object_start_str(start_str);
                 }
+                //Orca's implementation for skipping object, for klipper firmware printer only
+                bool reset_e = false;
+                if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper) {
+                    gcode += std::string("EXCLUDE_OBJECT_START NAME=") +
+                        get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
+                    reset_e = true;
+                }
+                if (reset_e && !RELATIVE_E_AXIS)
+                    gcode += m_writer.reset_e(true);
+
                 // When starting a new object, use the external motion planner for the first travel move.
                 const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
@@ -3267,7 +3295,14 @@ GCode::LayerResult GCode::process_layer(
                         end_str += "M625\n";
                     m_writer.set_object_end_str(end_str);
                 }
-
+                //Orca's implementation for skipping object, for klipper firmware printer only
+                if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper) {
+                    gcode += std::string("EXCLUDE_OBJECT_END NAME=") +
+                        get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
+                    reset_e = true;
+                }
+                if (reset_e && !RELATIVE_E_AXIS)
+                    gcode += m_writer.reset_e(true);
             }
         }
     }
@@ -4551,6 +4586,41 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(extruder_id));
 
     return gcode;
+}
+
+inline std::string polygon_to_string(const Polygon& polygon, Print* print) {
+    std::ostringstream gcode;
+    gcode << "[";
+    for (const Point& p : polygon.points) {
+        const auto v = print->translate_to_print_space(p);
+        gcode << "[" << v.x() << "," << v.y() << "],";
+    }
+    const auto first_v = print->translate_to_print_space(polygon.points.front());
+    gcode << "[" << first_v.x() << "," << first_v.y() << "]";
+    gcode << "]";
+    return gcode.str();
+}
+// this function iterator PrintObject and assign a seqential id to each object.
+// this id is used to generate unique object id for each object.
+std::string GCode::set_object_info(Print* print)
+{
+    std::ostringstream gcode;
+    size_t object_id = 0;
+    for (PrintObject* object : print->objects()) {
+        object->set_klipper_object_id(object_id++);
+        size_t inst_id = 0;
+        for (PrintInstance& inst : object->instances()) {
+            inst.id = inst_id++;
+            if (this->config().exclude_object && print->config().gcode_flavor.value == gcfKlipper) {
+                auto bbox = inst.get_bounding_box();
+                auto center = print->translate_to_print_space(Vec2d(bbox.center().x(), bbox.center().y()));
+                gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << get_instance_name(object, inst) << " CENTER=" << center.x()
+                    << "," << center.y() << " POLYGON=" << polygon_to_string(inst.get_convex_hull_2d(), print)
+                    << "\n";
+            }
+        }
+    }
+    return gcode.str();
 }
 
 // convert a model-space scaled point into G-code coordinates

@@ -976,7 +976,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              travel_jerk))
 
     // BBS: move from PrintObjectConfig
-    ((ConfigOptionBool, independent_support_layer_height))
+    ((ConfigOptionBool,               independent_support_layer_height))
+    ((ConfigOptionBool,               exclude_object))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

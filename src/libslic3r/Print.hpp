@@ -194,6 +194,13 @@ struct PrintInstance
 	const ModelInstance *model_instance;
 	// Shift of this instance's center into the world coordinates.
 	Point 				 shift;
+
+    BoundingBoxf3   get_bounding_box();
+    Polygon get_convex_hull_2d();
+    // SoftFever
+    // 
+    // instance id
+    size_t               id;
 };
 
 typedef std::vector<PrintInstance> PrintInstances;
@@ -295,6 +302,7 @@ public:
     Transform3d                  trafo_centered() const
         { Transform3d t = this->trafo(); t.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0)); return t; }
     const PrintInstances&        instances() const      { return m_instances; }
+    PrintInstances& instances() { return m_instances; }
 
     // Whoever will get a non-const pointer to PrintObject will be able to modify its layers.
     LayerPtrs&                   layers()               { return m_layers; }
@@ -420,6 +428,11 @@ public:
 
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
+
+    // SoftFever
+    size_t get_klipper_object_id() const { return m_klipper_object_id; }
+    void set_klipper_object_id(size_t id) { m_klipper_object_id = id; }
+
 private:
     // to be called from Print only.
     friend class Print;
@@ -503,6 +516,11 @@ private:
     ExtrusionEntityCollection               m_skirt;
 
     PrintObject*                            m_shared_object{ nullptr };
+
+    // SoftFever
+    // 
+    // object id for klipper firmware only
+    size_t               m_klipper_object_id;
 
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.
@@ -789,11 +807,14 @@ public:
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
     std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
-
+    //SoftFever
     CalibMode &         calib_mode() { return m_calib_params.mode; }
     const CalibMode&    calib_mode() const { return m_calib_params.mode; }
     void                set_calib_params(const Calib_Params &params);
     const Calib_Params& calib_params() const { return m_calib_params; }
+    Vec2d translate_to_print_space(const Vec2d& point) const;
+    // scaled point
+    Vec2d translate_to_print_space(const Point& point) const;
 
 protected:
     // Invalidates the step, and its depending steps in Print.

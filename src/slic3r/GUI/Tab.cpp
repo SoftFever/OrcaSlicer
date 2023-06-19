@@ -2050,6 +2050,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
         optgroup->append_single_option_line("gcode_add_line_number");
+        optgroup->append_single_option_line("exclude_object");
         Option option = optgroup->get_option("filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
@@ -3627,6 +3628,8 @@ void TabPrinter::toggle_options()
     //}
     if (m_active_page->title() == "Basic information") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
+        //BBS: gcode_flavore of BBL printer can't be edited and changed
+        toggle_option("gcode_flavor", !is_BBL_printer);
 
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;

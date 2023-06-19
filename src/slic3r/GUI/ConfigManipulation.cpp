@@ -703,6 +703,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
     }
+    toggle_line("exclude_object", gcflavor == gcfKlipper);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

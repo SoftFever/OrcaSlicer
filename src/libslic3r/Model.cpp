@@ -1384,6 +1384,16 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
     return bb;
 }
 
+BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance& instance, bool dont_translate) const {
+    BoundingBoxf3 bbox;
+    const auto& inst_mat = instance.get_transformation().get_matrix(dont_translate);
+    for (auto vol : this->volumes) {
+        if (vol->is_model_part())
+            bbox.merge(vol->mesh().transformed_bounding_box(inst_mat * vol->get_matrix()));
+    }
+    return bbox;
+}
+
 //BBS: add convex bounding box
 BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate) const
 {

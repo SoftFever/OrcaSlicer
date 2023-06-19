@@ -1704,6 +1704,13 @@ void PrintConfigDef::init_fff_params()
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
+    //OrcaSlicer
+    def = this->add("exclude_object", coBool);
+    def->label = L("Exclude objects");
+    def->tooltip = L("Enable this option to add EXCLUDE OBJECT command in g-code for klipper firmware printer");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(1));
+
     //BBS
     def = this->add("infill_combination", coBool);
     def->label = L("Infill combination");

@@ -160,7 +160,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "initial_layer_jerk",
         "travel_jerk",
         "inner_wall_acceleration",
-        "sparse_infill_acceleration"
+        "sparse_infill_acceleration",
+        "exclude_object",
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -2004,6 +2005,16 @@ std::vector<Point> Print::first_layer_wipe_tower_corners(bool check_wipe_tower_e
     return corners;
 }
 
+//SoftFever
+Vec2d Print::translate_to_print_space(const Vec2d& point) const {
+    //const BoundingBoxf bed_bbox(config().printable_area.values);
+    return Vec2d(point(0) - m_origin(0), point(1) - m_origin(1));
+}
+
+Vec2d Print::translate_to_print_space(const Point& point) const {
+    return Vec2d(unscaled(point.x()) - m_origin(0), unscaled(point.y()) - m_origin(1));
+}
+
 void Print::finalize_first_layer_convex_hull()
 {
     append(m_first_layer_convex_hull.points, m_skirt_convex_hull);
@@ -3493,6 +3504,16 @@ int Print::load_cached_data(const std::string& directory)
     object_filenames.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret;
     return ret;
+}
+
+BoundingBoxf3 PrintInstance::get_bounding_box() {
+    return print_object->model_object()->instance_bounding_box(*model_instance, false);
+}
+
+Polygon PrintInstance::get_convex_hull_2d() {
+    Polygon poly = print_object->model_object()->convex_hull_2d(model_instance->get_matrix());
+    poly.douglas_peucker(0.1);
+    return poly;
 }
 
 } // namespace Slic3r
