@@ -1234,7 +1234,7 @@ void StatusPanel::update_camera_state(MachineObject* obj)
     }
 
     //camera setting
-    if (m_camera_popup) {
+    if (m_camera_popup && m_camera_popup->IsShown()) {
         bool show_vcamera = m_media_play_ctrl->IsStreaming();
         m_camera_popup->update(show_vcamera);
     }
