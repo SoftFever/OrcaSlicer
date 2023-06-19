@@ -864,19 +864,7 @@ void MainFrame::update_title()
 
 void MainFrame::show_publish_button(bool show)
 {
-    if (!m_menubar) return;
-
-    wxMenu* menu = m_menubar->GetMenu(3);
-    auto title = menu->GetTitle();
-
-    if (show) {
-        if (title != wxString::Format("&%s", _L("3D Models"))) {
-             m_menubar->Insert(3, publishMenu, wxString::Format("&%s", _L("3D Models")));
-        }
-    }
-    else {
-        m_menubar->Remove(3);
-    }
+    m_publish_btn->Show(show);
 }
 
 void MainFrame::update_title_colour_after_set_title()
@@ -1443,14 +1431,18 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
+    m_publish_btn = new Button(this, _L("Upload"), "bar_publish", 0, FromDIP(16));
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
     m_print_btn = new SideButton(this, _L("Print plate"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
+    m_publish_btn->Hide();
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
+    sizer->Add(m_publish_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
@@ -1459,6 +1451,23 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
+
+    m_publish_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
+        CallAfter([this] {
+            wxGetApp().open_publish_page_dialog();
+
+            if (!wxGetApp().getAgent()) {
+                BOOST_LOG_TRIVIAL(info) << "publish: no agent";
+                return;
+            }
+
+            // record
+            json j;
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent)
+                agent->track_event("enter_model_mall", j.dump());
+        });
+    });
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -1817,6 +1826,18 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetCornerRadius(FromDIP(12));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));*/
+    StateColor m_btn_bg_enable = StateColor(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
+        std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    m_publish_btn->SetMinSize(wxSize(FromDIP(125), FromDIP(24)));
+    m_publish_btn->SetCornerRadius(FromDIP(12));
+    m_publish_btn->SetBackgroundColor(m_btn_bg_enable);
+    m_publish_btn->SetBorderColor(m_btn_bg_enable);
+    m_publish_btn->SetBackgroundColour(wxColour(59,68,70));
+    m_publish_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
 
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
     m_slice_btn->SetCornerRadius(FromDIP(12));
@@ -2435,11 +2456,11 @@ void MainFrame::init_menubar_as_editor()
 
     //publish menu
 
-    if (m_plater) {
+    /*if (m_plater) {
         publishMenu = new wxMenu();
         add_common_publish_menu_items(publishMenu, this);
         publishMenu->AppendSeparator();
-    }
+    }*/
 
     // View menu
     wxMenu* viewMenu = nullptr;
@@ -2725,8 +2746,8 @@ void MainFrame::init_menubar_as_editor()
         m_menubar->Append(editMenu, wxString::Format("&%s", _L("Edit")));
     if (viewMenu)
         m_menubar->Append(viewMenu, wxString::Format("&%s", _L("View")));
-    if (publishMenu)
-        m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));
+    //if (publishMenu)
+    //    m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);

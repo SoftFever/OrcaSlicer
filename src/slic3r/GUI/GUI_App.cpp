@@ -2993,18 +2993,10 @@ void GUI_App::update_label_colours_from_appconfig()
 void GUI_App::update_publish_status()
 {
     if (app_config->get_country_code() == "CN") {
-#ifdef __WINDOWS__
-        mainframe->m_topbar->show_publish_button(false);
-#else
         mainframe->show_publish_button(false);
-#endif
     }
     else {
-#ifdef __WINDOWS__
-        mainframe->m_topbar->show_publish_button(true);
-#else
         mainframe->show_publish_button(true);
-#endif
     }
 }
 
