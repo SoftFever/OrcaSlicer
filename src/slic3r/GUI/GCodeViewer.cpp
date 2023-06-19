@@ -319,7 +319,7 @@ void GCodeViewer::SequentialRangeCap::reset() {
 void GCodeViewer::SequentialView::Marker::init(std::string filename)
 {
     if (filename.empty()) {
-        //m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
+        m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
     } else {
         m_model.init_from_file(filename);
     }
