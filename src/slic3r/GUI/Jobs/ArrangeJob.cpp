@@ -497,7 +497,8 @@ void ArrangeJob::process()
     auto & partplate_list = m_plater->get_partplate_list();
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
-    if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer"))
+    const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
+    if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
         
     update_arrange_params(params, *m_plater, m_selected);
@@ -776,15 +777,6 @@ void update_arrange_params(arrangement::ArrangeParams &params, const Plater &p, 
         params.bed_shrink_x -= shift_dist;
         params.bed_shrink_y -= shift_dist;
     }
-
-    // For by-layer printing, need to shrink bed a little, so the support won't go outside bed.
-    // We set it to 5mm because that's how much a normal support will grow by default.
-    // But for by-object printing, it's not needed since the clerance distance is already very large.
-    if (print.full_print_config().opt_bool("enable_support") && !params.is_seq_print) {
-        params.bed_shrink_x     = std::max(5.f, params.bed_shrink_x);
-        params.bed_shrink_y     = std::max(5.f, params.bed_shrink_y);
-        params.min_obj_distance = std::max(scaled(10.0), params.min_obj_distance);
-    }
 }
 
 //it will bed accurate after call update_params
@@ -807,7 +799,7 @@ void update_selected_items_inflation(arrangement::ArrangePolygons &selected, con
     Points      bedpts = get_shrink_bedpts(p, params);
     BoundingBox bedbb  = Polygon(bedpts).bounding_box();
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon &ap) {
-        ap.inflation      = params.min_obj_distance / 2;
+        ap.inflation      = std::max(scaled(ap.brim_width), params.min_obj_distance / 2);
         BoundingBox apbb  = ap.poly.contour.bounding_box();
         auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
         auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
@@ -834,7 +826,8 @@ void update_unselected_items_inflation(arrangement::ArrangePolygons &unselected,
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
     double scaled_exclusion_gap = scale_(1);
     std::for_each(unselected.begin(), unselected.end(),
-                  [&](auto &ap) { ap.inflation = !ap.is_virt_object ? params.min_obj_distance / 2 : (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap); });
+                  [&](auto &ap) { ap.inflation = !ap.is_virt_object ? std::max(scaled(ap.brim_width), params.min_obj_distance / 2)
+                                                : (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap); });
 }
 
 }} // namespace Slic3r::GUI

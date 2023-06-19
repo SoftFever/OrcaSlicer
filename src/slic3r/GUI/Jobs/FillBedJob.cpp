@@ -45,6 +45,7 @@ void FillBedJob::prepare()
     ModelObject *model_object = m_plater->model().objects[m_object_idx];
     if (model_object->instances.empty()) return;
 
+    const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
     m_selected.reserve(model_object->instances.size());
     for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
     {
@@ -53,7 +54,7 @@ void FillBedJob::prepare()
         {
             bool selected = (oidx == m_object_idx);
 
-            ArrangePolygon ap = get_arrange_poly(mo->instances[inst_idx]);
+            ArrangePolygon ap = get_instance_arrange_poly(mo->instances[inst_idx], global_config);
             BoundingBox ap_bb = ap.transformed_poly().contour.bounding_box();
             ap.height = 1;
             ap.name = mo->name;
@@ -167,7 +168,7 @@ void FillBedJob::prepare()
     // if the selection is not a single instance, choose the first as template
     //sel_id = std::max(sel_id, 0);
     ModelInstance *mi = model_object->instances[sel_id];
-    ArrangePolygon template_ap = get_arrange_poly(mi);
+    ArrangePolygon template_ap = get_instance_arrange_poly(mi, global_config);
 
     for (int i = 0; i < needed_items; ++i) {
         ArrangePolygon ap = template_ap;
@@ -209,7 +210,8 @@ void FillBedJob::process()
 
     auto &partplate_list               = m_plater->get_partplate_list();
     auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer")) 
+    const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
+    if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
     
     update_selected_items_inflation(m_selected, *m_plater, params);
