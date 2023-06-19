@@ -1,9 +1,9 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.20mm Fast @Vivedino",
+    "name": "0.20mm Fast @Vivedino Troodon 2.0 (0.4 nozzle)",
     "from": "system",
-    "inherits": "0.20mm Standard @Vivedino",
+    "inherits": "0.20mm Standard @Vivedino Troodon 2.0 (0.4 nozzle)",
     "instantiation": "true",
     "layer_height": "0.2",
     "accel_to_decel_enable": "1",
@@ -16,7 +16,7 @@
     "top_shell_layers": "4",
     "outer_wall_acceleration": "1500",
     "outer_wall_speed": "100",
-    "print_settings_id": "0.20mm Fast @Vivedino",
+    "print_settings_id": "0.20mm Fast @Vivedino Troodon 2.0 (0.4 nozzle)",
     "top_surface_acceleration": "1000",
     "travel_acceleration": "4000"
 }
