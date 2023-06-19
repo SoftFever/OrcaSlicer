@@ -8130,6 +8130,15 @@ void Plater::calib_pa(const Calib_Params& params) {
     if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
         // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
         p->view3D->get_canvas3d()->update_gizmos_on_off_state();
+
+    if (params.mode == CalibMode::Calib_PA_Pattern) {
+        CalibPressureAdvancePattern pa_pattern(params);
+
+        GizmoObjectManipulation& giz_obj_manip = wxGetApp().plater()->
+            canvas3D()->get_gizmos_manager().get_object_manipulation();
+        giz_obj_manip.set_uniform_scaling(false);
+        giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
+    }
 }
 
 void Plater::_prep_calib_pa_pattern(const Calib_Params& params) {
@@ -8142,16 +8151,8 @@ void Plater::_prep_calib_pa_pattern(const Calib_Params& params) {
 
     CalibPressureAdvancePattern pa_pattern(printer_config, print_config, filament_config);
 
-    auto new_height = pa_pattern.max_layer_z();
-    for (auto i = 0; i < model().objects.size(); ++i) {
-        auto _obj = model().objects[i];
 
-        auto original_height = _obj->get_max_z();
-        auto zscale = new_height / original_height;
-        _obj->scale(1, 1, zscale);
 
-        changed_object(i);
-    }
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.layer_height()));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.first_layer_height()));
