@@ -131,6 +131,7 @@ public:
     void rescale();
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect);
+    void msw_rescale();
 
     Label* m_staticText_release_note {nullptr};
     wxBoxSizer* m_sizer_main;

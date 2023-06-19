@@ -789,7 +789,12 @@ SecondaryCheckDialog::~SecondaryCheckDialog()
 
 void SecondaryCheckDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    rescale();
+    rescale(); 
+}
+
+void SecondaryCheckDialog::msw_rescale() { 
+    wxGetApp().UpdateFrameDarkUI(this); 
+    Refresh();
 }
 
 void SecondaryCheckDialog::rescale()
