@@ -86,17 +86,20 @@ template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
     if (params.is_seq_print) {
-        // Align the arranged pile into the center of the bin
-        pcfg.alignment = PConf::Alignment::CENTER;
         // Start placing the items from the center of the print bed
         pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
     }
     else {
-        // Align the arranged pile into the center of the bin
-        pcfg.alignment = PConf::Alignment::CENTER;
         // Start placing the items from the center of the print bed
         pcfg.starting_point = PConf::Alignment::TOP_RIGHT;
     }
+
+    if (params.do_final_align) {
+        // Align the arranged pile into the center of the bin
+        pcfg.alignment = PConf::Alignment::CENTER;
+    }else
+        pcfg.alignment = PConf::Alignment::DONT_ALIGN;
+
 
     // Try 4 angles (45 degree step) and find the one with min cost
     if (params.allow_rotations)
@@ -542,12 +545,6 @@ public:
             if (items.empty()) return;
 
             auto binbb = sl::boundingBox(m_bin);
-            // BBS: excluded region (virtual object but not wipe tower) should not affect final alignment
-            //bool all_is_excluded_region = std::all_of(items.begin(), items.end(), [](Item &itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
-            //if (!all_is_excluded_region)
-            //    cfg.alignment = PConfig::Alignment::DONT_ALIGN;
-            //else
-            //    cfg.alignment = PConfig::Alignment::CENTER;
 
             auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? binbb.minCorner() : binbb.center();
             // if we have wipe tower, items should be arranged around wipe tower
@@ -559,15 +556,7 @@ public:
             }
 
             cfg.object_function = [this, binbb, starting_point](const Item &item, const ItemGroup &packed_items) {
-                // 在我们的摆盘中，没有天然的固定对象。固定对象只有：屏蔽区域、挤出补偿区域、料塔。
-                // 对于屏蔽区域，摆入的对象仍然是可以向右上滑动的；
-                // 对挤出料塔，摆入的对象不能滑动（必须围绕料塔）
-                bool pack_around_wipe_tower = std::any_of(packed_items.begin(), packed_items.end(), [](Item& itm) { return itm.is_wipe_tower; });
-                //if(pack_around_wipe_tower)
-                    return fixed_overfit(objfunc(item, starting_point), binbb);
-                //else {
-                //    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb, m_excluded_and_extruCali_regions);
-                //}
+                return fixed_overfit(objfunc(item, starting_point), binbb);
             };
         };
 

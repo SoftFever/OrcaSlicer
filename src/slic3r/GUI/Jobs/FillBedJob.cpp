@@ -228,6 +228,8 @@ void FillBedJob::process()
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
         do_stop = ap.bed_idx > 0 && ap.priority == 0;
     };
+    // final align用的是凸包，在有fixed item的情况下可能找到的参考点位置是错的，这里就不做了。见STUDIO-3265
+    params.do_final_align = false;
 
     arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 

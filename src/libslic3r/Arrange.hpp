@@ -114,6 +114,8 @@ struct ArrangeParams {
 
     bool allow_rotations = false;
 
+    bool do_final_align = true;
+
     //BBS: add specific arrange params
     bool  allow_multi_materials_on_same_plate = true;
     bool  avoid_extrusion_cali_region         = true;
