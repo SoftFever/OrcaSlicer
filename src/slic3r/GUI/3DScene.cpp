@@ -1343,7 +1343,7 @@ void GLVolumeCollection::render(
         float normal_z  = -::cos(Geometry::deg2rad((float) support_threshold_angle));
   
         shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
-        shader->set_uniform("slope.actived", enable_support && m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+        shader->set_uniform("slope.actived", m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
         shader->set_uniform("slope.normal_z", normal_z);
 
