@@ -234,8 +234,6 @@ public:
 
     // SoftFever
     void calib_pa(const Calib_Params& params);
-    void _prep_calib_pa_pattern(const Calib_Params& params);
-    void _prep_calib_pa_tower(const Calib_Params& params);
     void calib_flowrate(int pass);
     void calib_temp(const Calib_Params& params);
     void calib_max_vol_speed(const Calib_Params& params);
@@ -728,6 +726,10 @@ private:
     void single_snapshots_leave(SingleSnapshot *single);
     // BBS: add project slice related functions
     int start_next_slice();
+
+    void _calib_pa_pattern(const Calib_Params& params);
+    void _calib_pa_tower(const Calib_Params& params);
+    void _calib_pa_select_added_objects();
 
     friend class SuppressBackgroundProcessingUpdate;
 };

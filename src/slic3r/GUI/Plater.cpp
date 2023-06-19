@@ -1,4 +1,5 @@
 #include "Plater.hpp"
+
 #include <cstddef>
 #include <algorithm>
 #include <numeric>
@@ -100,6 +101,7 @@
 #include "MsgDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
+#include "Gizmos/GizmoObjectManipulation.hpp"
 
 // BBS
 #include "Widgets/ProgressDialog.hpp"
@@ -8100,63 +8102,39 @@ std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3& bbox, const double& cut_
     return plane_pts;
 }
 
-void Plater::calib_pa(const Calib_Params& params) {
+void Plater::calib_pa(const Calib_Params& params)
+{    
     const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
+    switch (params.mode) {
+        case CalibMode::Calib_PA_Line:
+            add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+            break;
+        case CalibMode::Calib_PA_Pattern:
+            _calib_pa_pattern(params);
+            break;
+        case CalibMode::Calib_PA_Tower:
+            _calib_pa_tower(params);
+            break;
+        default: break;
+    }
+
     p->background_process.fff_print()->set_calib_params(params);
-
-    if (params.mode == CalibMode::Calib_PA_Line) {
-        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
-        return;
-    } else if (params.mode == CalibMode::Calib_PA_Pattern) {
-        _prep_calib_pa_pattern(params);
-    } else {
-        _prep_calib_pa_tower(params);
-    }
-
-    // automatic selection of added objects
-    // update printable state for new volumes on canvas3D
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
-
-    Selection& selection = p->view3D->get_canvas3d()->get_selection();
-    selection.clear();
-    selection.add_object(0, false);
-
-    // BBS: update object list selection
-    p->sidebar->obj_list()->update_selections();
-    selection.notify_instance_update(-1, -1);
-    if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
-        // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
-        p->view3D->get_canvas3d()->update_gizmos_on_off_state();
-
-    if (params.mode == CalibMode::Calib_PA_Pattern) {
-        CalibPressureAdvancePattern pa_pattern(params);
-
-        GizmoObjectManipulation& giz_obj_manip = wxGetApp().plater()->
-            canvas3D()->get_gizmos_manager().get_object_manipulation();
-        giz_obj_manip.set_uniform_scaling(false);
-        giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
-    }
 }
 
-void Plater::_prep_calib_pa_pattern(const Calib_Params& params) {
+void Plater::_calib_pa_pattern(const Calib_Params& params) {
     add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
     orient();
 
-    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    CalibPressureAdvancePattern pa_pattern(params);
 
-    CalibPressureAdvancePattern pa_pattern(printer_config, print_config, filament_config);
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.height_layer()));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.height_first_layer()));
 
-
-
-
-    print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.layer_height()));
-    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.first_layer_height()));
-
+    changed_objects({ 0 });
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
@@ -8165,22 +8143,28 @@ void Plater::_prep_calib_pa_pattern(const Calib_Params& params) {
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
 
-    CustomGCode::Item layer_1_gcode;
-    layer_1_gcode.print_z = 0.25;
-    layer_1_gcode.type = CustomGCode::Type::Custom;
-    layer_1_gcode.extra = "; Test custom layer 1";
+    _calib_pa_select_added_objects();
 
-    CustomGCode::Info custom_info;
-    custom_info.mode = CustomGCode::Mode::SingleExtruder;
-    custom_info.gcodes = {layer_1_gcode};
+    GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
+        get_gizmos_manager().get_object_manipulation();
+    giz_obj_manip.set_uniform_scaling(false);
+    giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
 
-    model().plates_custom_gcodes[model().curr_plate_index] = custom_info;
+    // auto& fff_print = this->get_partplate_list().get_current_fff_print();
+    // fff_print.apply(model(), full_config);
+    // GCodeWriter writer;
+    // writer.apply_print_config(fff_print.config());
+    // writer.set_extruders({0});
+
+    // CustomGCode::Info custom_info = pa_pattern.generate_gcodes(full_config, writer);
+    // model().plates_custom_gcodes[model().curr_plate_index] = custom_info;
 }
 
-void Plater::_prep_calib_pa_tower(const Calib_Params& params) {
+void Plater::_calib_pa_tower(const Calib_Params& params) {
     add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
 
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
@@ -8204,6 +8188,25 @@ void Plater::_prep_calib_pa_tower(const Calib_Params& params) {
     if (new_height < obj_bb.size().z()) {
         std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
         cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    _calib_pa_select_added_objects();
+}
+
+void Plater::_calib_pa_select_added_objects() {
+    // update printable state for new volumes on canvas3D
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
+
+    Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    selection.clear();
+    selection.add_object(0, false);
+
+    // BBS: update object list selection
+    p->sidebar->obj_list()->update_selections();
+    selection.notify_instance_update(-1, -1);
+    if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled()) {
+        // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
+        p->view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
 }
 
