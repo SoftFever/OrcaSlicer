@@ -354,6 +354,10 @@
             "sub_path": "filament/Bambu PC @base.json"
         },
         {
+            "name": "eSUN PLA+ @base",
+            "sub_path": "filament/eSUN PLA+ @base.json"
+        },
+        {
             "name": "PolyTerra PLA @base",
             "sub_path": "filament/PolyTerra PLA @base.json"
         },
@@ -636,6 +640,26 @@
         {
             "name": "Bambu PC @BBL X1C 0.6 nozzle",
             "sub_path": "filament/Bambu PC @BBL X1C 0.6 nozzle.json"
+        },
+        {
+            "name": "eSUN PLA+ @BBL X1C",
+            "sub_path": "filament/eSUN PLA+ @BBL X1C.json"
+        },
+        {
+            "name": "eSUN PLA+ @BBL X1",
+            "sub_path": "filament/eSUN PLA+ @BBL X1.json"
+        },
+        {
+            "name": "eSUN PLA+ @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/eSUN PLA+ @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "eSUN PLA+ @BBL P1P",
+            "sub_path": "filament/P1P/eSUN PLA+ @BBL P1P.json"
+        },
+        {
+            "name": "eSUN PLA+ @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/P1P/eSUN PLA+ @BBL P1P 0.2 nozzle.json"
         },
         {
             "name": "PolyLite PLA @BBL X1C",
