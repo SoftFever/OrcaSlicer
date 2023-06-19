@@ -303,6 +303,7 @@ public:
     bool is_custom_defined();
 
     bool is_bbl_vendor_preset(PresetBundle *preset_bundle);
+    BedType get_default_bed_type(PresetBundle *preset_bundle);
     bool has_cali_lines(PresetBundle* preset_bundle);
 
 

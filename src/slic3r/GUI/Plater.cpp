@@ -1036,7 +1036,20 @@ void Sidebar::update_all_preset_comboboxes()
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
-        m_bed_type_list->SelectAndNotify(btPC - 1);
+        AppConfig* config = wxGetApp().app_config;
+        if (config && !config->get("curr_bed_type").empty()) {
+            int bed_type_idx = 0;
+            std::string str_bed_type = config->get("curr_bed_type");
+            int bed_type_value = (int)btPC;
+            try {
+                bed_type_value = atoi(str_bed_type.c_str());
+            } catch(...) {}
+            bed_type_idx = bed_type_value - 1;
+            m_bed_type_list->Select(bed_type_idx);
+        } else {
+            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+            m_bed_type_list->SelectAndNotify((int)bed_type - 1);
+        }
         m_bed_type_list->Enable();
     } else {
         connection_btn->Show();
@@ -5615,6 +5628,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     int selection = combo->GetSelection();
     std::string bed_type_name = print_config_def.get("curr_bed_type")->enum_values[selection];
 
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     DynamicPrintConfig& proj_config = wxGetApp().preset_bundle->project_config;
     const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
 
@@ -5631,15 +5645,18 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
             BedType old_bed_type = proj_config.opt_enum<BedType>("curr_bed_type");
             if (old_bed_type != new_bed_type) {
                 proj_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(new_bed_type));
-
                 wxGetApp().plater()->update_project_dirty_from_presets();
 
                 // update plater with new config
                 q->on_config_change(wxGetApp().preset_bundle->full_config());
 
-                // update app_config
-                AppConfig* app_config = wxGetApp().app_config;
-                app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
+                // only update curr_bed_type to config when preset is bbl printers
+                bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+                if (is_bbl_preset) {
+                    // update app_config
+                    AppConfig* app_config = wxGetApp().app_config;
+                    app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
+                }
 
                 //update slice status
                 auto plate_list = partplate_list.get_plate_list();

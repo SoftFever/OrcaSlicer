@@ -704,6 +704,27 @@ bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
     return is_bbl_vendor_preset;
 }
 
+BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
+{
+    if (config.has("default_bed_type") && !config.opt_string("default_bed_type").empty()) {
+        try {
+            std::string str_bed_type = config.opt_string("default_bed_type");
+            int bed_type_value = atoi(str_bed_type.c_str());
+            return BedType(bed_type_value);
+        } catch(...) {
+            ;
+        }
+    }
+
+    std::string model_id = this->get_printer_type(preset_bundle);
+    if (model_id == "BL-P001" || model_id == "BL-P002") {
+        return BedType::btPC;
+    } else if (model_id == "C11") {
+        return BedType::btPEI;
+    }
+    return BedType::btPEI;
+}
+
 bool Preset::has_cali_lines(PresetBundle* preset_bundle)
 {
     std::string model_id = this->get_printer_type(preset_bundle);
