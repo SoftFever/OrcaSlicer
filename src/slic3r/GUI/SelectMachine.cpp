@@ -1405,7 +1405,7 @@ void SelectMachineDialog::init_bind()
     m_bitmap_next_plate->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
 
 
-    wxGetApp().Bind(EVT_CONNECT_LAN_MODE_PRINT, [this](wxCommandEvent& e) {
+    Bind(EVT_CONNECT_LAN_MODE_PRINT, [this](wxCommandEvent& e) {
         if (e.GetInt() == 0) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) return;

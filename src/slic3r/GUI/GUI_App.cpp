@@ -1948,8 +1948,9 @@ void GUI_App::init_networking_callbacks()
                             }
                         }
                     }
-                    event.SetEventObject(this);
-                    wxPostEvent(this, event);
+                    if (wxGetApp().plater()->get_select_machine_dialog()) {
+                        wxPostEvent(wxGetApp().plater()->get_select_machine_dialog(), event);
+                    }
                 });
             }
         );

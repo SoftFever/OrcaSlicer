@@ -429,6 +429,7 @@ public:
     GLCanvas3D* get_view3D_canvas3D();
     GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();
+    wxWindow* get_select_machine_dialog();
 
     void arrange();
     void orient();

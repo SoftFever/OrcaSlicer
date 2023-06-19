@@ -11143,6 +11143,11 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
     return colors;
 }
 
+wxWindow* Plater::get_select_machine_dialog()
+{
+    return p->m_select_machine_dlg;
+}
+
 void Plater::update_print_error_info(int code, std::string msg, std::string extra)
 {
     if (p->m_select_machine_dlg) {
