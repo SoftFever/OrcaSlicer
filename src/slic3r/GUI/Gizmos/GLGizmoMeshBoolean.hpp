@@ -43,12 +43,12 @@ public:
     void set_src_volume(ModelVolume* mv) { 
         m_src.mv = mv;
         if (m_src.mv == m_tool.mv)
-            m_tool.mv = nullptr;
+            m_tool.reset();
     }
     void set_tool_volume(ModelVolume* mv) { 
         m_tool.mv = mv;
         if (m_tool.mv == m_src.mv)
-            m_src.mv = nullptr;
+            m_src.reset();
     }
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);

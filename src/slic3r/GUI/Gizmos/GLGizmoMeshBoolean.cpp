@@ -6,12 +6,15 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
 namespace Slic3r {
 namespace GUI {
+
+static const std::string warning_text = _u8L("Unable to perform boolean operation on selected parts");
 
 GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
@@ -151,6 +154,7 @@ void GLGizmoMeshBoolean::on_set_state()
         bool m_inter_delete_input = false;
         m_operation_mode = MeshBooleanOperation::Undef;
         m_selecting_state = MeshBooleanSelectingState::Undef;
+        wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
     }
 }
 
@@ -315,8 +319,13 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             temp_tool_mesh.transform(m_tool.trafo);
             std::vector<TriangleMesh> temp_mesh_resuls;
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "UNION");
-            if (temp_mesh_resuls.size() != 0)
+            if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(true, *temp_mesh_resuls.begin());
+                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+            }
+            else {
+                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+            }
         }
     }
     else if (m_operation_mode == MeshBooleanOperation::Difference) {
@@ -328,8 +337,13 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             temp_tool_mesh.transform(m_tool.trafo);
             std::vector<TriangleMesh> temp_mesh_resuls;
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "A_NOT_B");
-            if (temp_mesh_resuls.size() != 0)
+            if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_diff_delete_input, *temp_mesh_resuls.begin());
+                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+            }
+            else {
+                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+            }
         }
     }
     else if (m_operation_mode == MeshBooleanOperation::Intersection){
@@ -341,8 +355,13 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             temp_tool_mesh.transform(m_tool.trafo);
             std::vector<TriangleMesh> temp_mesh_resuls;
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "INTERSECTION");
-            if (temp_mesh_resuls.size() != 0)
+            if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_inter_delete_input, *temp_mesh_resuls.begin());
+                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+            }
+            else {
+                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+            }
         }
     }
 
@@ -401,8 +420,8 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
 
     if (delete_input) {
         std::vector<ItemForDelete> items;
-        const Selection& selection = m_parent.get_selection();
-        items.emplace_back(ItemType::itVolume, selection.get_volume(0)->object_idx(), m_tool.volume_idx);
+        auto obj_idx = m_parent.get_selection().get_object_idx();
+        items.emplace_back(ItemType::itVolume, obj_idx, m_tool.volume_idx);
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
 
