@@ -524,17 +524,23 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, For
     // BBS do not load sla_print
     // BBS: change directoties by design
     try {
+        std::string print_selected_preset_name = prints.get_selected_preset().name;
         this->prints.load_presets(dir_user_presets, PRESET_PRINT_NAME, substitutions, substitution_rule);
+        prints.select_preset_by_name(print_selected_preset_name, false);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
     try {
+        std::string filament_selected_preset_name = filaments.get_selected_preset().name;
         this->filaments.load_presets(dir_user_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule);
+        filaments.select_preset_by_name(filament_selected_preset_name, false);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
     try {
+        std::string printer_selected_preset_name = printers.get_selected_preset().name;
         this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
+        printers.select_preset_by_name(printer_selected_preset_name, false);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
