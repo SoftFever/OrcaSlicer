@@ -797,36 +797,48 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
     DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
 
-    auto keys = select_object_config.keys();
-    for (auto key : FREQ_SETTINGS_BUNDLE_FFF["Flush options"]) {
-        if (find(keys.begin(), keys.end(), key) == keys.end()) {
-            const ConfigOption* option = global_config.option(key);
-            select_object_config.set_key_value(key, option->clone());
-        }
-    }
-
-
     wxMenu* flush_options_menu = new wxMenu();
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' infill"), "",
         [&select_object_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]); return option->getBool(); }, m_parent);
+        }, menu, []() {return true; }, 
+            [&select_object_config, &global_config]() {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
+            }
+            return option->getBool();
+        }, m_parent);
 
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into this object"), "",
         [&select_object_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]); return option->getBool(); }, m_parent);
+        }, menu, []() {return true; }, 
+            [&select_object_config, &global_config]() {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
+            }
+            return option->getBool();
+        }, m_parent);
 
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' support"), "",
         [&select_object_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]); return option->getBool(); }, m_parent);
+        }, menu, []() {return true; }, 
+            [&select_object_config, &global_config]() {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
+            }
+            return option->getBool();
+        }, m_parent);
 
     size_t i = 0;
     for (auto node = menu->GetMenuItems().GetFirst(); node; node = node->GetNext())
