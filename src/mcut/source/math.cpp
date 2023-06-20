@@ -589,9 +589,9 @@
             return x;
         }();
 
-        matrix_t<double> I(3, 3); // 3x3 identity
+        matrix_t<double> I(3, 3); // 3x3 identity with reflection
         I(0, 0) = 1.0;
-        I(1, 1) = 1.0;
+        I(1, 1) = -1.0;
         I(2, 2) = 1.0;
 
         matrix_t<double> R = I;

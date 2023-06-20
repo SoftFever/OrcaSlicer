@@ -4,8 +4,8 @@
 #include "mcut/internal/hmesh.h"
 #include "mcut/internal/kernel.h"
 #include "mcut/internal/math.h"
-#include "mcut/internal/utils.h"
 #include "mcut/internal/timer.h"
+#include "mcut/internal/utils.h"
 
 #include <numeric> // std::partial_sum
 #include <queue>
@@ -13,8 +13,8 @@
 
 // If the inputs are found to not be in general position, then we perturb the
 // cut-mesh by this constant (scaled by bbox diag times a random variable [0.1-1.0]).
-const double GENERAL_POSITION_ENFORCMENT_CONSTANT = 1e-4;
-const int MAX_PERTUBATION_ATTEMPTS = 1 << 3;
+// const double GENERAL_POSITION_ENFORCMENT_CONSTANT = 1e-4;
+// const int MAX_PERTUBATION_ATTEMPTS = 1 << 3;
 
 // this function converts an index array mesh (e.g. as recieved by the dispatch
 // function) into a halfedge mesh representation for the kernel backend.
@@ -111,7 +111,7 @@ bool client_input_arrays_to_hmesh(
 #if 0
     std::partial_sum(partial_sums.begin(), partial_sums.end(), partial_sums.data());
 #else
-    parallel_partial_sum(context_ptr->get_shared_compute_threadpool() , partial_sums.begin(), partial_sums.end());
+    parallel_partial_sum(context_ptr->get_shared_compute_threadpool(), partial_sums.begin(), partial_sums.end());
 #endif
     {
         typedef std::vector<uint32_t>::const_iterator InputStorageIteratorType;
@@ -131,7 +131,7 @@ bool client_input_arrays_to_hmesh(
 
                 if (face_vertex_count < 3) {
                     int zero = (int)McResult::MC_NO_ERROR;
-                    bool exchanged = atm_result.compare_exchange_strong(zero, 1);
+                    bool exchanged = atm_result.compare_exchange_strong(zero, 1, std::memory_order_acq_rel);
                     if (exchanged) // first thread to detect error
                     {
                         context_ptr->dbg_cb( //
@@ -150,14 +150,9 @@ bool client_input_arrays_to_hmesh(
                 for (int j = 0; j < face_vertex_count; ++j) {
                     uint32_t idx = ((uint32_t*)pFaceIndices)[faceBaseOffset + j];
 
-                    MCUT_ASSERT(idx < numVertices);
-
-                    const vertex_descriptor_t descr(idx);
-                    const bool isDuplicate = std::find(faceVertices.cbegin(), faceVertices.cend(), descr) != faceVertices.cend();
-
-                    if (isDuplicate) {
+                    if (idx >= numVertices) {
                         int zero = (int)McResult::MC_NO_ERROR;
-                        bool exchanged = atm_result.compare_exchange_strong(zero, 2);
+                        bool exchanged = atm_result.compare_exchange_strong(zero, 2, std::memory_order_acq_rel);
 
                         if (exchanged) // first thread to detect error
                         {
@@ -166,7 +161,26 @@ bool client_input_arrays_to_hmesh(
                                 MC_DEBUG_TYPE_ERROR,
                                 0,
                                 MC_DEBUG_SEVERITY_HIGH,
-                                "found duplicate vertex in face - " + std::to_string(faceID));
+                                "vertex index out of range in face - " + std::to_string(faceID));
+                        }
+                        break;
+                    }
+
+                    const vertex_descriptor_t descr(idx);
+                    const bool isDuplicate = std::find(faceVertices.cbegin(), faceVertices.cend(), descr) != faceVertices.cend();
+
+                    if (isDuplicate) {
+                        int zero = (int)McResult::MC_NO_ERROR;
+                        bool exchanged = atm_result.compare_exchange_strong(zero, 2, std::memory_order_acq_rel);
+
+                        if (exchanged) // first thread to detect error
+                        {
+                            context_ptr->dbg_cb(
+                                MC_DEBUG_SOURCE_API,
+                                MC_DEBUG_TYPE_ERROR,
+                                0,
+                                MC_DEBUG_SEVERITY_HIGH,
+                                "duplicate vertex index in face f" + std::to_string(faceID));
                         }
                         break;
                     }
@@ -181,7 +195,7 @@ bool client_input_arrays_to_hmesh(
         OutputStorageType partial_res;
 
         parallel_for(
-            context_ptr->get_shared_compute_threadpool() ,
+            context_ptr->get_shared_compute_threadpool(),
             partial_sums.cbegin(),
             partial_sums.cend(),
             fn_create_faces,
@@ -203,7 +217,7 @@ bool client_input_arrays_to_hmesh(
                         MC_DEBUG_TYPE_ERROR, //
                         0, //
                         MC_DEBUG_SEVERITY_HIGH, //
-                        "invalid vertices on face - " + std::to_string(faceID));
+                        "invalid face f" + std::to_string(faceID) + " (potentially contains non-manifold edge)");
                     return false;
                 }
             }
@@ -216,7 +230,7 @@ bool client_input_arrays_to_hmesh(
             MCUT_ASSERT(f.valid()); // The behavior is undefined if valid()== false before the call to wait_for
             OutputStorageType future_res = f.get();
 
-            const int val = atm_result.load();
+            const int val = atm_result.load(std::memory_order_acquire);
             okay = okay && val == 0;
             if (!okay) {
                 continue; // just go on (to next iteration) in order to at-least wait for all tasks to finish before we return to user
@@ -226,9 +240,15 @@ bool client_input_arrays_to_hmesh(
             okay = okay && result == true;
         }
 
-        if (!okay) {
+        if (!okay || atm_result.load(std::memory_order_acquire) != 0) { // check if worker threads (or master thread) encountered an error
             return false;
         }
+
+        // const int val = atm_result.load(); // check if master thread encountered an error
+        // okay = (val == 0);
+        // if (!okay) {
+        //     return false;
+        //}
 
         // add lastly in order to maintain order
         bool result = add_faces(partial_res.first, partial_res.second);
@@ -254,6 +274,18 @@ bool client_input_arrays_to_hmesh(
         for (int j = 0; j < face_vertex_count; ++j) {
 
             uint32_t idx = ((uint32_t*)pFaceIndices)[faceSizeOffset + j];
+
+            if (idx >= numVertices) {
+
+                context_ptr->dbg_cb(
+                    MC_DEBUG_SOURCE_API,
+                    MC_DEBUG_TYPE_ERROR,
+                    0,
+                    MC_DEBUG_SEVERITY_HIGH,
+                    "vertex index out of range in face - f" + std::to_string(i));
+                return false;
+            }
+
             const vertex_descriptor_t descr(idx); // = fIter->second; //vmap[*fIter.first];
             const bool isDuplicate = std::find(faceVertices.cbegin(), faceVertices.cend(), descr) != faceVertices.cend();
 
@@ -345,7 +377,7 @@ bool check_input_mesh(std::shared_ptr<context_t>& context_ptr, const hmesh_t& m)
     std::vector<int> cc_to_face_count;
     int n = find_connected_components(
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
-        context_ptr->get_shared_compute_threadpool() ,
+        context_ptr->get_shared_compute_threadpool(),
 #endif
         fccmap, m, cc_to_vertex_count, cc_to_face_count);
 
@@ -369,7 +401,7 @@ bool check_input_mesh(std::shared_ptr<context_t>& context_ptr, const hmesh_t& m)
                 MC_DEBUG_TYPE_OTHER,
                 0,
                 MC_DEBUG_SEVERITY_NOTIFICATION,
-                "Vertices (" + std::to_string(fv_count) + ") on face " + std::to_string(*f) + " not coplanar");
+                "Vertices (" + std::to_string(fv_count) + ") on face f" + std::to_string(*f) + " are not coplanar");
             // No need to return false, simply warn. It is difficult to
             // know whether the non-coplanarity is severe enough to cause
             // confusion when computing intersection points between two
@@ -397,8 +429,11 @@ McResult convert(const status_t& v)
     case status_t::INVALID_MESH_INTERSECTION:
         result = McResult::MC_INVALID_OPERATION;
         break;
+    case status_t::INVALID_CUT_MESH: case status_t::INVALID_SRC_MESH:
+        result = McResult::MC_INVALID_VALUE;
+        break;
     default:
-        std::fprintf(stderr, "[MCUT]: warning - conversion error (McResult=%d)\n", (int)v);
+        std::fprintf(stderr, "[MCUT]: warning - unknown conversion (McResult=%d)\n", (int)v);
     }
     return result;
 }
@@ -1266,7 +1301,7 @@ extern "C" void preproc(
     input_t kernel_input; // kernel/backend inpout
 
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
-    kernel_input.scheduler = &context_ptr->get_shared_compute_threadpool() ;
+    kernel_input.scheduler = &context_ptr->get_shared_compute_threadpool();
 #endif
 
     kernel_input.src_mesh = source_hmesh;
@@ -1319,7 +1354,7 @@ extern "C" void preproc(
         kernel_input.keep_cutmesh_seam = true;
     }
 
-    kernel_input.enforce_general_position = (0 != (dispatchFlags & MC_DISPATCH_ENFORCE_GENERAL_POSITION));
+    kernel_input.enforce_general_position = (0 != (dispatchFlags & MC_DISPATCH_ENFORCE_GENERAL_POSITION)) || (0 != (dispatchFlags & MC_DISPATCH_ENFORCE_GENERAL_POSITION_ABSOLUTE));
 
     // Construct BVHs
     // ::::::::::::::
@@ -1332,7 +1367,7 @@ extern "C" void preproc(
     std::vector<bounding_box_t<vec3>> source_hmesh_face_aabb_array;
     build_oibvh(
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
-        context_ptr->get_shared_compute_threadpool() ,
+        context_ptr->get_shared_compute_threadpool(),
 #endif
         *source_hmesh.get(), source_hmesh_BVH_aabb_array, source_hmesh_BVH_leafdata_array, source_hmesh_face_aabb_array);
 #else
@@ -1404,7 +1439,10 @@ extern "C" void preproc(
 
     int cut_mesh_perturbation_count = 0; // number of times we have perturbed the cut mesh
     int kernel_invocation_counter = -1; // number of times we have called the internal dispatch/intersect function
-    double numerical_perturbation_constant = 0.0; // = cut_hmesh_aabb_diag * GENERAL_POSITION_ENFORCMENT_CONSTANT;
+    double relative_perturbation_constant = 0.0; // i.e. relative to the bbox diagonal length
+    // the (translation) vector to hold the values with which we will
+    // carry out numerical perturbation of the cutting surface
+    vec3 perturbation(0.0, 0.0, 0.0);
 
     // RESOLVE mesh intersections
     // ::::::::::::::::::::::::::
@@ -1420,6 +1458,8 @@ extern "C" void preproc(
     // And if floating polygons arise, then we partition the suspected face into two new faces with an edge that is guaranteed to be
     // severed during the cut.
     do {
+        TIMESTACK_RESET(); 
+
         kernel_invocation_counter++;
 
         // here we check the reason (if any) for entering the loop body.
@@ -1440,17 +1480,15 @@ extern "C" void preproc(
         kernel_output.status = status_t::SUCCESS;
 #endif
 
-        // the (translation) vector to hold the values with which we will
-        // carry out numerical perturbation of the cutting surface
-        vec3 perturbation(0.0, 0.0, 0.0);
-
         if (general_position_assumption_was_violated) { // i.e. do we need to perturb the cut-mesh?
 
             MCUT_ASSERT(floating_polygon_was_detected == false); // cannot occur at same time! (see kernel)
 
-            if (cut_mesh_perturbation_count == MAX_PERTUBATION_ATTEMPTS) {
+            context_ptr->dbg_cb(MC_DEBUG_SOURCE_KERNEL, MC_DEBUG_TYPE_OTHER, 0, MC_DEBUG_SEVERITY_HIGH, "general position assumption violated!");
 
-                context_ptr->dbg_cb(MC_DEBUG_SOURCE_KERNEL, MC_DEBUG_TYPE_OTHER, 0, MC_DEBUG_SEVERITY_MEDIUM, kernel_output.logger.get_reason_for_failure());
+            if (cut_mesh_perturbation_count == context_ptr->get_general_position_enforcement_constant()) {
+
+                context_ptr->dbg_cb(MC_DEBUG_SOURCE_KERNEL, MC_DEBUG_TYPE_OTHER, 0, MC_DEBUG_SEVERITY_HIGH, kernel_output.logger.get_reason_for_failure());
 
                 throw std::runtime_error("max perturbation iteratons reached");
             }
@@ -1459,14 +1497,14 @@ extern "C" void preproc(
             // not intersect at all, which means we need to perturb again.
             kernel_input.general_position_enforcement_count = cut_mesh_perturbation_count;
 
-            MCUT_ASSERT(numerical_perturbation_constant != double(0.0));
+            MCUT_ASSERT(relative_perturbation_constant != double(0.0));
 
             static thread_local std::default_random_engine random_engine(1);
             static thread_local std::mt19937 mersenne_twister_generator(random_engine());
             static thread_local std::uniform_real_distribution<double> uniform_distribution(-1.0, 1.0);
 
             for (int i = 0; i < 3; ++i) {
-                perturbation[i] = uniform_distribution(mersenne_twister_generator) * numerical_perturbation_constant;
+                perturbation[i] = uniform_distribution(mersenne_twister_generator) * relative_perturbation_constant;
             }
 
             cut_mesh_perturbation_count++;
@@ -1488,7 +1526,12 @@ extern "C" void preproc(
                 throw std::invalid_argument("invalid cut-mesh arrays");
             }
 
-            numerical_perturbation_constant = cut_hmesh_aabb_diag * GENERAL_POSITION_ENFORCMENT_CONSTANT;
+            /*const*/ double perturbation_scalar = cut_hmesh_aabb_diag;
+            if (dispatchFlags & MC_DISPATCH_ENFORCE_GENERAL_POSITION_ABSOLUTE) {
+                perturbation_scalar = 1.0;
+            }
+
+            relative_perturbation_constant = perturbation_scalar * context_ptr->get_general_position_enforcement_constant();
 
             kernel_input.cut_mesh = cut_hmesh;
 
@@ -1498,11 +1541,11 @@ extern "C" void preproc(
                 cut_hmesh_BVH_leafdata_array.clear();
                 build_oibvh(
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
-                    context_ptr->get_shared_compute_threadpool() ,
+                    context_ptr->get_shared_compute_threadpool(),
 #endif
-                    *cut_hmesh.get(), cut_hmesh_BVH_aabb_array, cut_hmesh_BVH_leafdata_array, cut_hmesh_face_face_aabb_array, numerical_perturbation_constant);
+                    *cut_hmesh.get(), cut_hmesh_BVH_aabb_array, cut_hmesh_BVH_leafdata_array, cut_hmesh_face_face_aabb_array, relative_perturbation_constant);
 #else
-                cut_hmesh_BVH.buildTree(cut_hmesh, numerical_perturbation_constant);
+                cut_hmesh_BVH.buildTree(cut_hmesh, relative_perturbation_constant);
 #endif
                 source_or_cut_hmesh_BVH_rebuilt = true;
             }
@@ -1539,7 +1582,7 @@ extern "C" void preproc(
                 source_hmesh_BVH_leafdata_array.clear();
                 build_oibvh(
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
-                    context_ptr->get_shared_compute_threadpool() ,
+                    context_ptr->get_shared_compute_threadpool(),
 #endif
                     *source_hmesh.get(),
                     source_hmesh_BVH_aabb_array,
@@ -1556,15 +1599,15 @@ extern "C" void preproc(
                 cut_hmesh_BVH_leafdata_array.clear();
                 build_oibvh(
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
-                    context_ptr->get_shared_compute_threadpool() ,
+                    context_ptr->get_shared_compute_threadpool(),
 #endif
                     *cut_hmesh.get(),
                     cut_hmesh_BVH_aabb_array,
                     cut_hmesh_BVH_leafdata_array,
                     cut_hmesh_face_face_aabb_array,
-                    numerical_perturbation_constant);
+                    relative_perturbation_constant);
 #else
-                cut_hmesh_BVH.buildTree(cut_hmesh, numerical_perturbation_constant);
+                cut_hmesh_BVH.buildTree(cut_hmesh, relative_perturbation_constant);
 #endif
             }
 
@@ -1605,7 +1648,7 @@ extern "C" void preproc(
 #else
             BoundingVolumeHierarchy::intersectBVHTrees(
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
-                context_ptr->get_shared_compute_threadpool() ,
+                context_ptr->get_shared_compute_threadpool(),
 #endif
                 ps_face_to_potentially_intersecting_others,
                 source_hmesh_BVH,
@@ -1727,16 +1770,16 @@ extern "C" void preproc(
             // const std::string cs_patch_loc_str = to_string(j->first);
 
             for (std::vector<std::shared_ptr<output_mesh_info_t>>::const_iterator k = j->second.cbegin(); k != j->second.cend(); ++k) {
-                
+
                 std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new fragment_cc_t, fn_delete_cc<fragment_cc_t>);
-                
+
                 MCUT_ASSERT(cc_ptr != nullptr);
-                
+
                 std::shared_ptr<fragment_cc_t> asFragPtr = std::dynamic_pointer_cast<fragment_cc_t>(cc_ptr);
-                
+
                 MCUT_ASSERT(asFragPtr != nullptr);
 
-                asFragPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+                asFragPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
                 asFragPtr->type = MC_CONNECTED_COMPONENT_TYPE_FRAGMENT;
                 asFragPtr->fragmentLocation = convert(i->first);
                 asFragPtr->patchLocation = convert(j->first);
@@ -1757,6 +1800,8 @@ extern "C" void preproc(
                 asFragPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
                 asFragPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
 
+                asFragPtr->perturbation_vector = perturbation;
+
                 context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
             }
         }
@@ -1774,15 +1819,15 @@ extern "C" void preproc(
         for (std::vector<std::shared_ptr<output_mesh_info_t>>::const_iterator j = i->second.cbegin(); j != i->second.cend(); ++j) { // for each mesh
 
             std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new fragment_cc_t, fn_delete_cc<fragment_cc_t>);
-                
+
             MCUT_ASSERT(cc_ptr != nullptr);
-            
+
             std::shared_ptr<fragment_cc_t> asFragPtr = std::dynamic_pointer_cast<fragment_cc_t>(cc_ptr);
-            
+
             MCUT_ASSERT(asFragPtr != nullptr);
-            
-            asFragPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
-                
+
+            asFragPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
+
             asFragPtr->type = MC_CONNECTED_COMPONENT_TYPE_FRAGMENT;
             asFragPtr->fragmentLocation = convert(i->first);
             asFragPtr->patchLocation = McPatchLocation::MC_PATCH_LOCATION_UNDEFINED;
@@ -1800,6 +1845,8 @@ extern "C" void preproc(
             asFragPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
             asFragPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
 
+            asFragPtr->perturbation_vector = perturbation;
+
             context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
         }
     }
@@ -1813,20 +1860,20 @@ extern "C" void preproc(
          it != insidePatches.cend();
          ++it) {
 
-            std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new patch_cc_t, fn_delete_cc<patch_cc_t>);
-                
-            MCUT_ASSERT(cc_ptr != nullptr);
-            
-            std::shared_ptr<patch_cc_t> asPatchPtr = std::dynamic_pointer_cast<patch_cc_t>(cc_ptr);
-            
-            MCUT_ASSERT(asPatchPtr != nullptr);
-            
-            asPatchPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new patch_cc_t, fn_delete_cc<patch_cc_t>);
+
+        MCUT_ASSERT(cc_ptr != nullptr);
+
+        std::shared_ptr<patch_cc_t> asPatchPtr = std::dynamic_pointer_cast<patch_cc_t>(cc_ptr);
+
+        MCUT_ASSERT(asPatchPtr != nullptr);
+
+        asPatchPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 #if 0
         // std::shared_ptr<connected_component_t> patchConnComp = std::unique_ptr<patch_cc_t, void (*)(connected_component_t*)>(new patch_cc_t, fn_delete_cc<patch_cc_t>);
         // McConnectedComponent clientHandle = reinterpret_cast<McConnectedComponent>(patchConnComp.get());
         // context_ptr->connected_components.emplace(clientHandle, std::move(patchConnComp));
-        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 
         // allocate internal context object (including associated threadpool etc.)
         context_ptr->connected_components.add_or_update_mapping(handle, std::shared_ptr<connected_component_t>(new patch_cc_t, fn_delete_cc<patch_cc_t>));
@@ -1851,6 +1898,8 @@ extern "C" void preproc(
         asPatchPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
         asPatchPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
 
+        asPatchPtr->perturbation_vector = perturbation;
+
         context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
     }
     TIMESTACK_POP();
@@ -1860,20 +1909,20 @@ extern "C" void preproc(
     const std::vector<std::shared_ptr<output_mesh_info_t>>& outsidePatches = kernel_output.outside_patches[cm_patch_winding_order_t::DEFAULT];
 
     for (std::vector<std::shared_ptr<output_mesh_info_t>>::const_iterator it = outsidePatches.cbegin(); it != outsidePatches.cend(); ++it) {
-            std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new patch_cc_t, fn_delete_cc<patch_cc_t>);
-                
-            MCUT_ASSERT(cc_ptr != nullptr);
-            
-            std::shared_ptr<patch_cc_t> asPatchPtr = std::dynamic_pointer_cast<patch_cc_t>(cc_ptr);
-            
-            MCUT_ASSERT(asPatchPtr != nullptr);
-            
-            asPatchPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new patch_cc_t, fn_delete_cc<patch_cc_t>);
+
+        MCUT_ASSERT(cc_ptr != nullptr);
+
+        std::shared_ptr<patch_cc_t> asPatchPtr = std::dynamic_pointer_cast<patch_cc_t>(cc_ptr);
+
+        MCUT_ASSERT(asPatchPtr != nullptr);
+
+        asPatchPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 #if 0
         /// std::shared_ptr<connected_component_t> patchConnComp = std::unique_ptr<patch_cc_t, void (*)(connected_component_t*)>(new patch_cc_t, fn_delete_cc<patch_cc_t>);
         // McConnectedComponent clientHandle = reinterpret_cast<McConnectedComponent>(patchConnComp.get());
         // context_ptr->connected_components.emplace(clientHandle, std::move(patchConnComp));
-        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 
         // allocate internal context object (including associated threadpool etc.)
         context_ptr->connected_components.add_or_update_mapping(handle, std::shared_ptr<connected_component_t>(new patch_cc_t, fn_delete_cc<patch_cc_t>));
@@ -1897,6 +1946,8 @@ extern "C" void preproc(
         asPatchPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
         asPatchPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
 
+        asPatchPtr->perturbation_vector = perturbation;
+
         context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
     }
     TIMESTACK_POP();
@@ -1910,22 +1961,22 @@ extern "C" void preproc(
 
     if (kernel_output.seamed_src_mesh != nullptr && kernel_output.seamed_src_mesh->mesh->number_of_faces() > 0) {
         TIMESTACK_PUSH("store source-mesh seam");
-        
+
         std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new seam_cc_t, fn_delete_cc<seam_cc_t>);
-            
+
         MCUT_ASSERT(cc_ptr != nullptr);
-        
+
         std::shared_ptr<seam_cc_t> asSrcMeshSeamPtr = std::dynamic_pointer_cast<seam_cc_t>(cc_ptr);
-        
+
         MCUT_ASSERT(asSrcMeshSeamPtr != nullptr);
-        
-        asSrcMeshSeamPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+
+        asSrcMeshSeamPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 #if 0
         // std::shared_ptr<connected_component_t> srcMeshSeam = std::unique_ptr<seam_cc_t, void (*)(connected_component_t*)>(new seam_cc_t, fn_delete_cc<seam_cc_t>);
         // McConnectedComponent clientHandle = reinterpret_cast<McConnectedComponent>(srcMeshSeam.get());
         // context_ptr->connected_components.emplace(clientHandle, std::move(srcMeshSeam));
         //  allocate internal context object (including associated threadpool etc.)
-        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 
         context_ptr->connected_components.add_or_update_mapping(handle, std::shared_ptr<connected_component_t>(new seam_cc_t, fn_delete_cc<seam_cc_t>));
 
@@ -1950,6 +2001,8 @@ extern "C" void preproc(
         asSrcMeshSeamPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
         asSrcMeshSeamPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
 
+        asSrcMeshSeamPtr->perturbation_vector = perturbation;
+
         context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
 
         TIMESTACK_POP();
@@ -1959,21 +2012,21 @@ extern "C" void preproc(
 
     if (kernel_output.seamed_cut_mesh != nullptr && kernel_output.seamed_cut_mesh->mesh->number_of_faces() > 0) {
         TIMESTACK_PUSH("store cut-mesh seam");
-        
+
         std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new seam_cc_t, fn_delete_cc<seam_cc_t>);
-            
+
         MCUT_ASSERT(cc_ptr != nullptr);
-        
+
         std::shared_ptr<seam_cc_t> asCutMeshSeamPtr = std::dynamic_pointer_cast<seam_cc_t>(cc_ptr);
-        
+
         MCUT_ASSERT(asCutMeshSeamPtr != nullptr);
-        
-        asCutMeshSeamPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+
+        asCutMeshSeamPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 #if 0
         // std::shared_ptr<connected_component_t> cutMeshSeam = std::unique_ptr<seam_cc_t, void (*)(connected_component_t*)>(new seam_cc_t, fn_delete_cc<seam_cc_t>);
         // McConnectedComponent clientHandle = reinterpret_cast<McConnectedComponent>(cutMeshSeam.get());
         // context_ptr->connected_components.emplace(clientHandle, std::move(cutMeshSeam));
-        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 
         context_ptr->connected_components.add_or_update_mapping(handle, std::shared_ptr<connected_component_t>(new seam_cc_t, fn_delete_cc<seam_cc_t>));
 
@@ -1997,6 +2050,8 @@ extern "C" void preproc(
         asCutMeshSeamPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
         asCutMeshSeamPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
 
+        asCutMeshSeamPtr->perturbation_vector = perturbation;
+
         context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
 
         TIMESTACK_POP();
@@ -2010,19 +2065,19 @@ extern "C" void preproc(
         TIMESTACK_PUSH("store original cut-mesh");
 
         std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new input_cc_t, fn_delete_cc<input_cc_t>);
-            
+
         MCUT_ASSERT(cc_ptr != nullptr);
-        
+
         std::shared_ptr<input_cc_t> asCutMeshInputPtr = std::dynamic_pointer_cast<input_cc_t>(cc_ptr);
-        
+
         MCUT_ASSERT(asCutMeshInputPtr != nullptr);
-        
-        asCutMeshInputPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+
+        asCutMeshInputPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 #if 0
         // std::shared_ptr<connected_component_t> internalCutMesh = std::unique_ptr<input_cc_t, void (*)(connected_component_t*)>(new input_cc_t, fn_delete_cc<input_cc_t>);
         // McConnectedComponent clientHandle = reinterpret_cast<McConnectedComponent>(internalCutMesh.get());
         // context_ptr->connected_components.emplace(clientHandle, std::move(internalCutMesh));
-        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 
         context_ptr->connected_components.add_or_update_mapping(handle, std::shared_ptr<connected_component_t>(new input_cc_t, fn_delete_cc<input_cc_t>));
 
@@ -2051,7 +2106,7 @@ extern "C" void preproc(
             };
 
             parallel_for(
-                context_ptr->get_shared_compute_threadpool() ,
+                context_ptr->get_shared_compute_threadpool(),
                 cut_hmesh->vertices_begin(),
                 cut_hmesh->vertices_end(),
                 fn_fill_vertex_map);
@@ -2060,7 +2115,6 @@ extern "C" void preproc(
                 omi->data_maps.vertex_map[*i] = vd_t((*i) + source_hmesh->number_of_vertices()); // apply offset like kernel does
             }
 #endif
-            
         }
 
         if (kernel_input.populate_face_maps) {
@@ -2073,7 +2127,7 @@ extern "C" void preproc(
             };
 
             parallel_for(
-                context_ptr->get_shared_compute_threadpool() ,
+                context_ptr->get_shared_compute_threadpool(),
                 cut_hmesh->faces_begin(),
                 cut_hmesh->faces_end(),
                 fn_fill_face_map);
@@ -2098,6 +2152,8 @@ extern "C" void preproc(
         asCutMeshInputPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
         asCutMeshInputPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
 
+        asCutMeshInputPtr->perturbation_vector = perturbation;
+
         context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
 
         TIMESTACK_POP();
@@ -2108,19 +2164,19 @@ extern "C" void preproc(
         TIMESTACK_PUSH("store original src-mesh");
 
         std::shared_ptr<connected_component_t> cc_ptr = std::shared_ptr<connected_component_t>(new input_cc_t, fn_delete_cc<input_cc_t>);
-            
+
         MCUT_ASSERT(cc_ptr != nullptr);
-        
+
         std::shared_ptr<input_cc_t> asSrcMeshInputPtr = std::dynamic_pointer_cast<input_cc_t>(cc_ptr);
-        
+
         MCUT_ASSERT(asSrcMeshInputPtr != nullptr);
-        
-        asSrcMeshInputPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+
+        asSrcMeshInputPtr->m_user_handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 #if 0
         // std::shared_ptr<connected_component_t> internalSrcMesh = std::unique_ptr<input_cc_t, void (*)(connected_component_t*)>(new input_cc_t, fn_delete_cc<input_cc_t>);
         // McConnectedComponent clientHandle = reinterpret_cast<McConnectedComponent>(internalSrcMesh.get());
         // context_ptr->connected_components.emplace(clientHandle, std::move(internalSrcMesh));
-        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter++);
+        const McConnectedComponent handle = reinterpret_cast<McConnectedComponent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
 
         context_ptr->connected_components.add_or_update_mapping(handle, std::shared_ptr<connected_component_t>(new input_cc_t, fn_delete_cc<input_cc_t>));
 
@@ -2145,7 +2201,7 @@ extern "C" void preproc(
             };
 
             parallel_for(
-                context_ptr->get_shared_compute_threadpool() ,
+                context_ptr->get_shared_compute_threadpool(),
                 source_hmesh->vertices_begin(),
                 source_hmesh->vertices_end(),
                 fn_fill_vertex_map);
@@ -2166,7 +2222,7 @@ extern "C" void preproc(
             };
 
             parallel_for(
-                context_ptr->get_shared_compute_threadpool() ,
+                context_ptr->get_shared_compute_threadpool(),
                 source_hmesh->faces_begin(),
                 source_hmesh->faces_end(),
                 fn_fill_face_map);
@@ -2190,6 +2246,8 @@ extern "C" void preproc(
         asSrcMeshInputPtr->client_sourcemesh_vertex_count = numSrcMeshVertices;
         asSrcMeshInputPtr->internal_sourcemesh_face_count = source_hmesh->number_of_faces();
         asSrcMeshInputPtr->client_sourcemesh_face_count = numSrcMeshFaces; // or source_hmesh_face_count
+
+        asSrcMeshInputPtr->perturbation_vector = perturbation;
 
         context_ptr->connected_components.push_front(cc_ptr); // copy the connected component ptr into the context object
 

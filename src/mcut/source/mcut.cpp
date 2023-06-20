@@ -123,7 +123,7 @@ MCAPI_ATTR McResult MCAPI_CALL mcGetDebugMessageLog(
         per_thread_api_log_str = "count must be > 0";
     } else if (bufSize == 0) {
         per_thread_api_log_str = "bufSize must be > 0";
-    }  else if (numFetched == nullptr) {
+    } else if (numFetched == nullptr) {
         per_thread_api_log_str = "numFetched  undef (NULL)";
     } else {
         try {
@@ -198,7 +198,11 @@ MCAPI_ATTR McResult MCAPI_CALL mcGetInfo(const McContext context, McFlags info, 
         per_thread_api_log_str = "context ptr (param0) undef (NULL)";
     } else if (bytes != 0 && pMem == nullptr) {
         per_thread_api_log_str = "invalid specification (param2 & param3)";
-    } else if (false == (info == MC_CONTEXT_FLAGS || info == MC_MAX_DEBUG_MESSAGE_LENGTH)) // check all possible values
+    } else if (false == //
+        (info == MC_CONTEXT_FLAGS || //
+            info == MC_CONTEXT_MAX_DEBUG_MESSAGE_LENGTH || //
+            info == MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT || //
+            info == MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_ATTEMPTS)) // check all possible values
     {
         per_thread_api_log_str = "invalid info flag val (param1)";
     } else if ((info == MC_CONTEXT_FLAGS) && (pMem != nullptr && bytes != sizeof(McFlags))) {
@@ -206,6 +210,50 @@ MCAPI_ATTR McResult MCAPI_CALL mcGetInfo(const McContext context, McFlags info, 
     } else {
         try {
             get_info_impl(context, info, bytes, pMem, pNumBytes);
+        }
+        CATCH_POSSIBLE_EXCEPTIONS(per_thread_api_log_str);
+    }
+
+    if (!per_thread_api_log_str.empty()) {
+        std::fprintf(stderr, "%s(...) -> %s\n", __FUNCTION__, per_thread_api_log_str.c_str());
+        if (return_value == McResult::MC_NO_ERROR) // i.e. problem with basic local parameter checks
+        {
+            return_value = McResult::MC_INVALID_VALUE;
+        }
+    }
+
+    return return_value;
+}
+
+MCAPI_ATTR McResult MCAPI_CALL mcBindState(
+    const McContext context,
+    McFlags stateInfo,
+    McSize bytes,
+    const McVoid* pMem)
+{
+    McResult return_value = McResult::MC_NO_ERROR;
+    per_thread_api_log_str.clear();
+
+    if (context == nullptr) {
+        per_thread_api_log_str = "context ptr (param0) undef (NULL)";
+    } else if (bytes == 0) {
+        per_thread_api_log_str = "invalid bytes ";
+    } else if (pMem == nullptr) {
+        per_thread_api_log_str = "invalid ptr (pMem)";
+    } else if (false == //
+        (stateInfo == MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT || //
+            stateInfo == MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_ATTEMPTS ||//
+            stateInfo == MC_CONTEXT_CONNECTED_COMPONENT_FACE_WINDING_ORDER)) // check all possible values
+    {
+        per_thread_api_log_str = "invalid stateInfo ";
+    } else if (
+        ((stateInfo == MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT) && bytes != sizeof(McDouble)) || //
+        ((stateInfo == MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_ATTEMPTS) && bytes != sizeof(McUint32))|| //
+        ((stateInfo == MC_CONTEXT_CONNECTED_COMPONENT_FACE_WINDING_ORDER) && bytes != sizeof(McConnectedComponentFaceWindingOrder))) {
+        per_thread_api_log_str = "invalid num bytes"; // leads to e.g. "out of bounds" memory access during memcpy
+    } else {
+        try {
+            bind_state_impl(context, stateInfo, bytes, pMem);
         }
         CATCH_POSSIBLE_EXCEPTIONS(per_thread_api_log_str);
     }
@@ -396,10 +444,7 @@ MCAPI_ATTR McResult MCAPI_CALL mcEnqueueDispatch(
     const McEvent* pEventWaitList,
     McEvent* pEvent)
 {
-    TIMESTACK_RESET(); // reset tracking vars
-
-    SCOPED_TIMER(__FUNCTION__);
-
+   
     McResult return_value = McResult::MC_NO_ERROR;
     per_thread_api_log_str.clear();
 
@@ -527,6 +572,89 @@ MCAPI_ATTR McResult MCAPI_CALL mcDispatch(
 
     return return_value;
 }
+
+MCAPI_ATTR McResult MCAPI_CALL mcEnqueueDispatchPlanarSection(
+    const McContext context,
+    McFlags dispatchFlags,
+    const McVoid* pSrcMeshVertices,
+    const uint32_t* pSrcMeshFaceIndices,
+    const uint32_t* pSrcMeshFaceSizes,
+    uint32_t numSrcMeshVertices,
+    uint32_t numSrcMeshFaces,
+    const McDouble* pNormalVector,
+    const McDouble sectionOffset,
+    uint32_t numEventsInWaitlist,
+    const McEvent* pEventWaitList,
+    McEvent* pEvent)
+    {
+        McResult return_value = McResult::MC_NO_ERROR;
+    per_thread_api_log_str.clear();
+
+    if (context == nullptr) {
+        per_thread_api_log_str = "context ptr (param0) undef (NULL)";
+    } else if (dispatchFlags == 0) {
+        per_thread_api_log_str = "dispatch flags unspecified";
+    } else if ((dispatchFlags & MC_DISPATCH_REQUIRE_THROUGH_CUTS) && //
+        (dispatchFlags & MC_DISPATCH_FILTER_FRAGMENT_LOCATION_UNDEFINED)) {
+        // The user states that she does not want a partial cut but yet also states that she
+        // wants to keep fragments with partial cuts. These two options are mutually exclusive!
+        per_thread_api_log_str = "use of mutually-exclusive flags: MC_DISPATCH_REQUIRE_THROUGH_CUTS & MC_DISPATCH_FILTER_FRAGMENT_LOCATION_UNDEFINED";
+    } else if ((dispatchFlags & MC_DISPATCH_VERTEX_ARRAY_FLOAT) == 0 && (dispatchFlags & MC_DISPATCH_VERTEX_ARRAY_DOUBLE) == 0) {
+        per_thread_api_log_str = "dispatch vertex aray type unspecified";
+    } else if (pSrcMeshVertices == nullptr) {
+        per_thread_api_log_str = "source-mesh vertex-position array ptr undef (NULL)";
+    } else if (numSrcMeshVertices < 3) {
+        per_thread_api_log_str = "invalid source-mesh vertex count";
+    } else if (pSrcMeshFaceIndices == nullptr) {
+        per_thread_api_log_str = "source-mesh face-index array ptr undef (NULL)";
+    } /*else if (pSrcMeshFaceSizes == nullptr) {
+        per_thread_api_log_str = "source-mesh face-size array ptr undef (NULL)";
+    }*/
+    else if (numSrcMeshFaces < 1) {
+        per_thread_api_log_str = "invalid source-mesh vertex count";
+    } else if (pNormalVector == nullptr) {
+        per_thread_api_log_str = "normal vector ptr undef (NULL)";
+    } else if (pNormalVector[0] == 0.0 && pNormalVector[1] == 0.0 && pNormalVector[2] == 0.0) {
+        per_thread_api_log_str = "invalid normal vector (zero vector)";
+    }else if (sectionOffset <= 0 && sectionOffset >= 1.0) {
+        per_thread_api_log_str = "invalid section offset parameter";
+    } else if (pEventWaitList == nullptr && numEventsInWaitlist > 0) {
+        per_thread_api_log_str = "invalid event waitlist ptr (NULL)";
+    } else if (pEventWaitList != nullptr && numEventsInWaitlist == 0) {
+        per_thread_api_log_str = "invalid event waitlist size (zero)";
+    } else if (pEventWaitList == nullptr && numEventsInWaitlist == 0 && pEvent == nullptr) {
+        per_thread_api_log_str = "invalid event ptr (zero)";
+    } else {
+        try {
+            dispatch_planar_section_impl(
+                context,
+                dispatchFlags,
+                pSrcMeshVertices,
+                pSrcMeshFaceIndices,
+                pSrcMeshFaceSizes,
+                numSrcMeshVertices,
+                numSrcMeshFaces,
+                pNormalVector,
+                sectionOffset,
+                numEventsInWaitlist,
+                pEventWaitList,
+                pEvent);
+        }
+        CATCH_POSSIBLE_EXCEPTIONS(per_thread_api_log_str);
+    }
+
+    if (!per_thread_api_log_str.empty()) {
+
+        std::fprintf(stderr, "%s(...) -> %s\n", __FUNCTION__, per_thread_api_log_str.c_str());
+
+        if (return_value == McResult::MC_NO_ERROR) // i.e. problem with basic local parameter checks
+        {
+            return_value = McResult::MC_INVALID_VALUE;
+        }
+    }
+
+    return return_value;
+    }
 
 MCAPI_ATTR McResult MCAPI_CALL mcEnqueueGetConnectedComponents(
     const McContext context,

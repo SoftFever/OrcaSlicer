@@ -99,8 +99,6 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #define SAFE_ACCESS(var, i) var[i]
 #endif
 
-
-
 static inline int wrap_integer(int x, const int lo, const int hi)
 {
     const int range_size = hi - lo + 1;
@@ -247,12 +245,12 @@ pair<T> make_pair(const T a, const T b)
 // Threadsafe logging to console which prevents std::cerr from mixing strings when
 // concatenating with the operator<< multiple time per string, across multiple
 // threads.
-#define log_msg(msg_str)            \
-    {                               \
-        std::stringstream ss;       \
-        ss << msg_str << std::endl; \
-        std::cerr << ss.str();      \
-    }
+#define log_msg(msg_str)                     \
+    {                                        \
+        std::stringstream ss;                \
+        ss << msg_str << std::endl;          \
+        std::cerr << ss.str() << std::flush; \
+        }
 
 // used to marked/label unused function parameters to prevent warnings
 #define UNUSED(x) [&x] {}()

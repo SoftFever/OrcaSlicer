@@ -50,6 +50,12 @@ extern "C" {
 /** MCUT 1.0 version number */
 #define MC_API_VERSION_1_0 MC_MAKE_VERSION(1, 0, 0) // Patch version should always be set to 0
 
+/** MCUT 1.1 version number */
+#define MC_API_VERSION_1_1 MC_MAKE_VERSION(1, 1, 0) // Patch version should always be set to 0
+
+/** MCUT 1.2 version number */
+#define MC_API_VERSION_1_2 MC_MAKE_VERSION(1, 2, 0) // Patch version should always be set to 0
+
 /** Macro to decode MCUT version (MAJOR) from MC_HEADER_VERSION_COMPLETE */
 #define MC_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 
@@ -63,7 +69,7 @@ extern "C" {
 #define MC_HEADER_VERSION 100
 
 /** Complete version of this file */
-#define MC_HEADER_VERSION_COMPLETE MC_MAKE_VERSION(1, 0, MC_HEADER_VERSION)
+#define MC_HEADER_VERSION_COMPLETE MC_MAKE_VERSION(1, 2, MC_HEADER_VERSION)
 
 /** Constant value assigned to null variables and parameters */
 #define MC_NULL_HANDLE 0
@@ -275,7 +281,7 @@ typedef enum McConnectedComponentData {
     // MC_CONNECTED_COMPONENT_DATA_VERTEX_COUNT = (1 << 0), /**< Number of vertices. */
     MC_CONNECTED_COMPONENT_DATA_VERTEX_FLOAT = (1 << 1), /**< List of vertex coordinates as an array of 32 bit floating-point numbers. */
     MC_CONNECTED_COMPONENT_DATA_VERTEX_DOUBLE = (1 << 2), /**< List of vertex coordinates as an array of 64 bit floating-point numbers. */
-    // MC_CONNECTED_COMPONENT_DATA_FACE_COUNT = (1 << 4), /**< Number of faces. */
+    MC_CONNECTED_COMPONENT_DATA_DISPATCH_PERTURBATION_VECTOR = (1 << 4), /**< Tuple of three real numbers represneting the vector that was used to nudge/perturb the source- and cut-mesh into general position to produce the respective connected component. This vector will represent the zero-vector if no perturbation was applied prior to the cutting operation that produced this connected component. */
     MC_CONNECTED_COMPONENT_DATA_FACE = (1 << 5), /**< List of faces as an array of indices. Each face can also be understood as a "planar straight line graph" (PSLG), which is a collection of vertices and segments that lie on the same plane. Segments are edges whose endpoints are vertices in the PSLG.*/
     MC_CONNECTED_COMPONENT_DATA_FACE_SIZE = (1 << 6), /**< List of face sizes (vertices per face) as an array. */
     // MC_CONNECTED_COMPONENT_DATA_EDGE_COUNT = (1 << 7), /**< Number of edges. */
@@ -293,7 +299,7 @@ typedef enum McConnectedComponentData {
     MC_CONNECTED_COMPONENT_DATA_FACE_ADJACENT_FACE_SIZE = (1 << 18), /**< List of adjacent-face-list sizes (number of adjacent faces per face).*/
     MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION = (1 << 19), /**< List of 3*N triangulated face indices, where N is the number of triangles that are produced using a [Constrained] Delaunay triangulation. Such a triangulation is similar to a Delaunay triangulation, but each (non-triangulated) face segment is present as a single edge in the triangulation. A constrained Delaunay triangulation is not truly a Delaunay triangulation. Some of its triangles might not be Delaunay, but they are all constrained Delaunay. */
     MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION_MAP = (1 << 20), /**< List of a subset of face indices from one of the input meshes (source-mesh or the cut-mesh). Each value will be the index of an input mesh face. This index-value corresponds to the connected-component face at the accessed index. Example: the value at index 0 of the queried array is the index of the face in the original input mesh. Note that all triangulated-faces are mapped to a defined value. In order to clearly distinguish indices of the cut mesh from those of the source mesh, an input-mesh face index value corresponds to a cut-mesh vertex-index if it is great-than-or-equal-to the number of source-mesh faces. The input connected component (source-mesh or cut-mesh) that is referred to must be one stored internally by MCUT (i.e. a connected component queried from the API via ::McInputOrigin), to ensure consistency with any modification done internally by MCUT. */
-    // TODO MC_CONNECTED_COMPONENT_DATA_FACE_TRIANGULATION_CDT = (1<<20) /**< List of 3*N triangulated face indices, where N is the number of triangles that are produced using a [Conforming] Delaunay triangulation. A conforming Delaunay triangulation (CDT) of a PSLG (i.e. a face of in the given connected component) is a true Delaunay triangulation in which each PSLG segment/edge may have been subdivided into several edges by the insertion of additional vertices, called Steiner points. Steiner points are necessary to allow the segments to exist in the mesh while maintaining the Delaunay property. This Delaunay property follows from the definition of a "Delaunay triangulation": the Delaunay triangulation is the triangulation such that, if you circumscribe a circle around every triangle, none of those circles will contain any other points. Alternatively, the Delaunay triangulation is the triangulation that “maximizes the minimum angle in all of the triangles.”. Steiner points are not inserted to meet constraints on the minimum angle and maximum triangle area. MCUT computes a CDT of a given connected component starting only from the faces that have more than three vertices. Neighbouring (triangle) faces will also be processed (i.e. refined) if their incident edges are split as a result of performing CDT on the current face. */
+    
 } McConnectedComponentData;
 
 /**
@@ -391,20 +397,33 @@ typedef enum McDispatchFlags {
         MC_DISPATCH_FILTER_SEAM_SRCMESH | //
         MC_DISPATCH_FILTER_SEAM_CUTMESH), /**< Keep all connected components resulting from the dispatched cut. */
     /**
-     * Allow MCUT to perturb the cut-mesh if the inputs are not in general position.
+     * The following two flags allow MCUT to perturb the cut-mesh if the inputs are found not to be in general position.
      *
-     * MCUT is formulated for inputs in general position. Here the notion of general position is defined with
-    respect to the orientation predicate (as evaluated on the intersecting polygons). Thus, a set of points
-    is in general position if no three points are collinear and also no four points are coplanar.
+     * MCUT is formulated for inputs in general position. Here the notion of general position is defined with respect 
+     * to the orientation predicate (as evaluated on the intersecting polygons). Thus, a set of points is in general 
+     * position if no three points are collinear and also no four points are coplanar.
+     * 
+     * MCUT uses the "MC_DISPATCH_ENFORCE_GENERAL_POSITION.." flags to inform of when to use perturbation (of the
+     * cut-mesh) so as to bring the input into general position. In such cases, the idea is to solve the cutting
+     * problem not on the given input, but on a nearby input. The nearby input is obtained by perturbing the given
+     * input. The perturbed input will then be in general position and, since it is near the original input, 
+     * the result for the perturbed input will hopefully still be useful.  This is justified by the fact that 
+     * the task of MCUT is not to decide whether the input is in general position but rather to make perturbation
+     * on the input (if) necessary within the available precision of the computing device. 
+     * 
+     * HOW GENERAL POSITION IS ENFORCED
+     * 
+     * When the inputs are found _not_ to be in GP, MCUT will generate a pseudo-random 
+     * 3d vector "p" representing a translation that will be applied to the cut-mesh. 
+     * 
+     * A component "i" of "p" is computed as "p[i] = r() * c", where "r()" is a 
+     * function returning a random variable from a uniform distribution on the 
+     * interval [-1.0, 1.0), and "c" is a scalar computed from the general position 
+     * enforcement constant (see ::MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT).
+     * */
 
-    MCUT uses the "GENERAL_POSITION_VIOLATION" flag to inform of when to use perturbation (of the
-    cut-mesh) so as to bring the input into general position. In such cases, the idea is to solve the cutting
-    problem not on the given input, but on a nearby input. The nearby input is obtained by perturbing the given
-    input. The perturbed input will then be in general position and, since it is near the original input,
-    the result for the perturbed input will hopefully still be useful.  This is justified by the fact that
-    the task of MCUT is not to decide whether the input is in general position but rather to make perturbation
-    on the input (if) necessary within the available precision of the computing device. */
-    MC_DISPATCH_ENFORCE_GENERAL_POSITION = (1 << 15)
+    MC_DISPATCH_ENFORCE_GENERAL_POSITION = (1 << 15), /**< Enforce general position such that the variable "c" (see detailed note above) is computed as the multiplication of the current general position enforcement constant (of current MCUT context) and the diagonal length of the bounding box of the cut-mesh. So this uses a relative perturbation of the cut-mesh based on its scale (see also ::MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT). */
+    MC_DISPATCH_ENFORCE_GENERAL_POSITION_ABSOLUTE= (1 << 16), /**< Enforce general position such that the variable "c" (see detailed note above) is the current general position enforcement constant (of current MCUT context). So this uses an absolute perturbation of the cut-mesh based on the stored constant (see also ::MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT). */
 } McDispatchFlags;
 
 /**
@@ -434,6 +453,17 @@ typedef enum McCommandType {
 } McCommandType;
 
 /**
+ * \enum McConnectedComponentFaceWindingOrder
+ * @brief Flags for specifying the state used to determine winding order of queried faces.
+ *
+ * This enum structure defines the flags which are used for identifying the winding order that is used to orient the vertex indices defining the faces of connected components.
+ */
+typedef enum McConnectedComponentFaceWindingOrder {
+    MC_CONNECTED_COMPONENT_FACE_WINDING_ORDER_AS_GIVEN = 1 << 0, /**< Define the order of face-vertex indices using the orientation implied by the input meshes. */
+    MC_CONNECTED_COMPONENT_FACE_WINDING_ORDER_REVERSED = 1 << 1, /**< Define the order of face-vertex indices using the reversed orientation implied by the input meshes. */
+} McConnectedComponentFaceWindingOrder;
+
+/**
  * \enum McQueryFlags
  * @brief Flags for querying fixed API state.
  *
@@ -449,7 +479,10 @@ typedef enum McQueryFlags {
     MC_EVENT_COMMAND_EXECUTION_STATUS = 1 << 6, /**< the execution status of the command identified by event. See also ::McEventCommandExecStatus */
     MC_EVENT_CONTEXT = 1 << 7, /**< The context associated with event. */
     MC_EVENT_COMMAND_TYPE = 1 << 8, /**< The command associated with event. Can be one of the values in :: */
-    MC_MAX_DEBUG_MESSAGE_LENGTH = 1 << 9
+    MC_CONTEXT_MAX_DEBUG_MESSAGE_LENGTH = 1 << 9, /**< The maximum length of a single message return from ::mcGetDebugMessageLog */
+    MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT = 1 << 10, /**< A constant small real number representing the amount by which to perturb the cut-mesh when two intersecting polygon are found to not be in general position. */
+    MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_ATTEMPTS = 1<<11, /**< The number of times that a dispatch operation will attempt to perturb the cut-mesh if the input meshes are found to not be in general position.*/
+    MC_CONTEXT_CONNECTED_COMPONENT_FACE_WINDING_ORDER = 1<<12 /**< The winding order that is used when specifying vertex indices that define the faces of connected components. */
 } McQueryFlags;
 
 /**
@@ -641,7 +674,7 @@ extern MCAPI_ATTR McResult MCAPI_CALL mcDebugMessageCallback(
  * McResult GetFirstNMessages(McContext context, McUint32 numMsgs)
  * {
  *      McSize maxMsgLen = 0;
- *      mcGet(MC_MAX_DEBUG_MESSAGE_LENGTH, &maxMsgLen);
+ *      mcGetInfo(MC_CONTEXT_MAX_DEBUG_MESSAGE_LENGTH, &maxMsgLen);
  * 	    std::vector<McChar> msgData(numMsgs * maxMsgLen);
  *      std::vector<McDebugSource> sources(numMsgs);
  *      std::vector<McDebugType> types(numMsgs);
@@ -919,7 +952,7 @@ extern MCAPI_ATTR McResult MCAPI_CALL mcSetEventCallback(
  *   -# \p numCutMeshFaces is less than one.
  *   -# \p numEventsInWaitlist Number of events in the waitlist.
  *   -# \p pEventWaitList events that need to complete before this particular command can be executed
- *   -# ::MC_DISPATCH_ENFORCE_GENERAL_POSITION is not set and: 1) Found two intersecting edges between the source-mesh and the cut-mesh and/or 2) An intersection test between a face and an edge failed because an edge vertex only touches (but does not penetrate) the face, and/or 3) One or more source-mesh vertices are colocated with one or more cut-mesh vertices.
+ *   -# ::MC_DISPATCH_ENFORCE_GENERAL_POSITION or ::MC_DISPATCH_ENFORCE_GENERAL_POSITION_ABSOLUTE is not set and: 1) Found two intersecting edges between the source-mesh and the cut-mesh and/or 2) An intersection test between a face and an edge failed because an edge vertex only touches (but does not penetrate) the face, and/or 3) One or more source-mesh vertices are colocated with one or more cut-mesh vertices.
  * - ::MC_OUT_OF_MEMORY
  *   -# Insufficient memory to perform operation.
  */
@@ -957,6 +990,20 @@ extern MCAPI_ATTR McResult MCAPI_CALL mcDispatch(
     uint32_t numCutMeshVertices,
     uint32_t numCutMeshFaces);
 
+extern MCAPI_ATTR McResult MCAPI_CALL mcEnqueueDispatchPlanarSection(
+    const McContext context,
+    McFlags dispatchFlags,
+    const McVoid* pSrcMeshVertices,
+    const uint32_t* pSrcMeshFaceIndices,
+    const uint32_t* pSrcMeshFaceSizes,
+    uint32_t numSrcMeshVertices,
+    uint32_t numSrcMeshFaces,
+    const McDouble* pNormalVector,
+    const McDouble sectionOffset,
+    uint32_t numEventsInWaitlist,
+    const McEvent* pEventWaitList,
+    McEvent* pEvent);
+
 /**
  * @brief Return the value of a selected parameter.
  *
@@ -991,8 +1038,6 @@ extern MCAPI_ATTR McResult MCAPI_CALL mcDispatch(
  * - MC_INVALID_VALUE
  *   -# \p pContext is NULL or \p pContext is not an existing context.
  *   -# \p bytes is greater than the returned size of data type queried
- *
- * @note Event synchronisation is not implemented.
  */
 extern MCAPI_ATTR McResult MCAPI_CALL mcGetInfo(
     const McContext context,
@@ -1000,6 +1045,42 @@ extern MCAPI_ATTR McResult MCAPI_CALL mcGetInfo(
     McSize bytes,
     McVoid* pMem,
     McSize* pNumBytes);
+
+/**
+ * @brief Set the value of a selected parameter of a context.
+ *
+ * @param[in] context The context handle that was created by a previous call to ::mcCreateContext.
+ * @param[in] info Information being set. ::McQueryFlags
+ * @param[in] bytes Size in bytes of memory pointed to by \p pMem.
+ * @param[out] pMem Pointer to memory from where the appropriate result being copied.
+ * 
+ * This function effectively sets state variables of a context. All API functions using the respective context shall be effected by this state.
+ *
+ * An example of usage:
+ * @code
+ * McDouble epsilon = 1e-4;
+ * McResult err =  mcBindState(context, MC_CONTEXT_GENERAL_POSITION_ENFORCEMENT_CONSTANT, sizeof(McDouble), &epsilon);
+ * if(err != MC_NO_ERROR)
+ * {
+ *  // deal with error
+ * }
+ * @endcode
+ * @return Error code.
+ *
+ * <b>Error codes</b>
+ * - MC_NO_ERROR
+ *   -# proper exit
+ * - MC_INVALID_VALUE
+ *   -# \p pContext is NULL or \p pContext is not an existing context.
+ *   -# \p stateInfo is not an accepted flag.
+ *   -# \p bytes is 0
+ *   -# \p pMem is NULL  
+ */
+extern MCAPI_ATTR McResult MCAPI_CALL mcBindState(
+    const McContext context,
+    McFlags stateInfo,
+    McSize bytes,
+    const McVoid* pMem);
 
 /**
  * @brief Query the connected components available in a context.

@@ -33,8 +33,8 @@
 #include "mcut/internal/hmesh.h"
 #include "mcut/internal/kernel.h"
 #include "mcut/internal/math.h"
-#include "mcut/internal/utils.h"
 #include "mcut/internal/timer.h"
+#include "mcut/internal/utils.h"
 
 #ifndef LICENSE_PURCHASED
 #define lmsg() printf("NOTE: MCUT is copyrighted and may not be sold or included in commercial products without a license.\n")
@@ -656,8 +656,15 @@ hmesh_t extract_connected_components(
         // structure "mesh" to the (local) connected-component
         //
 
+//#define EXTRACT_SEAM_HALFEDGES
+
+#ifdef EXTRACT_SEAM_HALFEDGES
+        std::vector<halfedge_descriptor_t> cc_seam_halfedges;
+        const std::vector<halfedge_descriptor_t>& halfedges_on_face = mesh.get_halfedges_around_face(fd);
+        bool prev_vertex_belonged_to_seam = false; // previous in face
+        #endif
         // for each vertex around the current face
-        const std::vector<vertex_descriptor_t> vertices_around_face = mesh.get_vertices_around_face(fd);
+        const std::vector<vertex_descriptor_t> vertices_around_face = mesh.get_vertices_around_face(fd); // order according to "halfedges_on_face" (targets)
 
         for (std::vector<vertex_descriptor_t>::const_iterator face_vertex_iter = vertices_around_face.cbegin();
              face_vertex_iter != vertices_around_face.cend();
@@ -683,9 +690,31 @@ hmesh_t extract_connected_components(
                 // check if we need to save vertex as being a seam vertex
                 // std::vector<bool>::const_iterator fiter = mesh_vertex_to_seam_flag.find(*face_vertex_iter);
                 bool is_seam_vertex = (size_t)(*face_vertex_iter) < mesh_vertex_to_seam_flag.size() && SAFE_ACCESS(mesh_vertex_to_seam_flag, *face_vertex_iter); //(size_t)(*face_vertex_iter) < mesh_vertex_to_seam_flag.size(); //fiter != mesh_vertex_to_seam_flag.cend() && fiter->second == true;
+                
                 if (is_seam_vertex) {
+                    
                     cc_seam_vertices.push_back(cc_descriptor);
+#ifdef EXTRACT_SEAM_HALFEDGES
+                    const uint32_t face_vertex_idx = std::distance(vertices_around_face.cbegin(), face_vertex_iter);
+
+                    const bool is_first_face_vertex = (face_vertex_idx == 0);
+                    bool have_seam_halfedge = prev_vertex_belonged_to_seam;
+
+                    if (is_first_face_vertex) {
+                        vd_t last_vtx_descr = (*(vertices_around_face.end() - 1));
+                        bool last_vertex_is_seam_vertex = (size_t)(last_vtx_descr) < mesh_vertex_to_seam_flag.size() && SAFE_ACCESS(mesh_vertex_to_seam_flag, last_vtx_descr); //(size_t)(*face_vertex_iter) < mesh_vertex_to_seam_flag.size(); //fiter != mesh_vertex_to_seam_flag.cend() && fiter->second == true;
+                        have_seam_halfedge = (last_vertex_is_seam_vertex);
+                    }
+                    
+                    if (have_seam_halfedge) {
+                        const halfedge_descriptor_t seam_he = SAFE_ACCESS(halfedges_on_face, face_vertex_idx); // number of halfedge == number of vertices in face
+                        cc_seam_halfedges.push_back(seam_he);
+                    }
+                    #endif
                 }
+#ifdef EXTRACT_SEAM_HALFEDGES
+                prev_vertex_belonged_to_seam = is_seam_vertex;
+                #endif
             }
         }
     } // for (face_array_iterator_t face_iter = mesh.faces_begin(); face_iter != mesh.faces_end(); ++face_iter)
@@ -1453,13 +1482,13 @@ void update_neighouring_ps_iface_m0_edge_list(
 typedef std::vector<hd_t> traced_polygon_t;
 
 bool mesh_is_closed(
-#if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
+#if 0 //defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
     thread_pool& scheduler,
 #endif
     const hmesh_t& mesh)
 {
     bool all_halfedges_incident_to_face = true;
-#if 0 //defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
+#if 0 // defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
     {
         printf("mesh=%d\n", (int)mesh.number_of_halfedges());
         all_halfedges_incident_to_face = parallel_find_if(
@@ -1556,7 +1585,7 @@ void dispatch(output_t& output, const input_t& input)
 
     TIMESTACK_PUSH("Check source mesh is closed");
     const bool sm_is_watertight = mesh_is_closed(
-#if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
+#if 0 //defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
         *input.scheduler,
 #endif
         sm);
@@ -1565,7 +1594,7 @@ void dispatch(output_t& output, const input_t& input)
 
     TIMESTACK_PUSH("Check cut mesh is closed");
     const bool cm_is_watertight = mesh_is_closed(
-#if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
+#if 0// defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
         *input.scheduler,
 #endif
         cs);
@@ -1763,7 +1792,7 @@ void dispatch(output_t& output, const input_t& input)
     ///////////////////////////////////////////////////////////////////////////
 
     std::unordered_map<ed_t, std::vector<fd_t>> ps_edge_face_intersection_pairs;
-
+    
     TIMESTACK_PUSH("Prepare edge-to-face pairs");
 
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
@@ -1971,7 +2000,7 @@ void dispatch(output_t& output, const input_t& input)
     //
     // build bounding boxes for each intersecting edge
     //
-
+#if 1
     TIMESTACK_PUSH("Build edge bounding boxes");
 
     // http://gamma.cs.unc.edu/RTRI/i3d08_RTRI.pdf
@@ -2146,7 +2175,7 @@ void dispatch(output_t& output, const input_t& input)
 
     // assuming each edge will produce a new vertex
     m0.reserve_for_additional_elements((std::uint32_t)ps_edge_face_intersection_pairs.size());
-
+#endif
     TIMESTACK_PUSH("Compute intersecting face properties");
     // compute/extract geometry properties of each tested face
     //--------------------------------------------------------
@@ -2166,6 +2195,8 @@ void dispatch(output_t& output, const input_t& input)
             >
             OutputStorageTypesTuple;
         typedef std::map<fd_t, std::vector<fd_t>>::const_iterator InputStorageIteratorType;
+
+        std::atomic<int> potentially_intersecting_face_with_zero_area(-1); // did any errors occur (e.g. found a face with zero area)
 
         auto fn_compute_intersecting_face_properties = [&](InputStorageIteratorType block_start_, InputStorageIteratorType block_end_) -> OutputStorageTypesTuple {
             OutputStorageTypesTuple output_res;
@@ -2196,6 +2227,10 @@ void dispatch(output_t& output, const input_t& input)
                     tested_face_plane_param_d,
                     tested_face_vertices.data(),
                     (int)tested_face_vertices.size());
+
+                if (squared_length(tested_face_plane_normal) == 0) {
+                    potentially_intersecting_face_with_zero_area.store((int)tested_faces_iter->first, std::memory_order_release);
+                }
             }
             return output_res;
         };
@@ -2226,6 +2261,10 @@ void dispatch(output_t& output, const input_t& input)
 
             OutputStorageTypesTuple future_res = f.get();
 
+            if (potentially_intersecting_face_with_zero_area.load(std::memory_order_acquire) >= 0) {
+                break; // stop there was a runtime error
+            }
+
             std::unordered_map<fd_t, vec3>& ps_tested_face_to_plane_normal_FUTURE = std::get<0>(future_res);
             std::unordered_map<fd_t, double>& ps_tested_face_to_plane_normal_d_param_FUTURE = std::get<1>(future_res);
             std::unordered_map<fd_t, int>& ps_tested_face_to_plane_normal_max_comp_FUTURE = std::get<2>(future_res);
@@ -2246,6 +2285,19 @@ void dispatch(output_t& output, const input_t& input)
             ps_tested_face_to_vertices.insert(
                 ps_tested_face_to_vertices_FUTURE.cbegin(),
                 ps_tested_face_to_vertices_FUTURE.cend());
+        }
+
+        const int tmp_local = potentially_intersecting_face_with_zero_area.load(std::memory_order_acquire);
+
+        if (tmp_local >= 0) {
+            const bool is_cutmesh_face = (tmp_local > sm_face_count);
+            // if "tmp_local" > srcMeshFaceCount then "tmp_local" is a cut-mesh face with id="tmp_local-srcMeshFaceCount"
+            const std::string msh_name = is_cutmesh_face ? "cut-mesh" : "source-mesh";
+            // index/descriptor in the _kernel_ input mesh (note the stress on kernel since frontend might modify user-provided mesh)
+            const fd_t bad_face_desr = fd_t(is_cutmesh_face ? (tmp_local - sm_face_count) : tmp_local);
+            lg.set_reason_for_failure("face f" + std::to_string(bad_face_desr) + " of " + msh_name + " is degenerate (has zero area)");
+            output.status.store(is_cutmesh_face ? status_t::INVALID_CUT_MESH : status_t::INVALID_SRC_MESH, std::memory_order_release);
+            return; // stop there was a runtime error
         }
 
     } // end of parallel scope
@@ -2277,6 +2329,16 @@ void dispatch(output_t& output, const input_t& input)
                 tested_face_plane_param_d,
                 tested_face_vertices.data(),
                 (int)tested_face_vertices.size());
+
+            if (squared_length(tested_face_plane_normal) == 0) {
+                const int tmp_local = (int)tested_faces_iter->first;
+                const bool is_cutmesh_face = (tmp_local > sm_face_count);
+                const std::string msh_name = is_cutmesh_face ? "cut-mesh" : "source-mesh";
+                const fd_t bad_face_desr = fd_t(is_cutmesh_face ? (tmp_local - sm_face_count) : tmp_local);
+                lg.set_reason_for_failure("face f" + std::to_string(bad_face_desr) + " of " + msh_name + " is degenerate (has zero area)");
+                output.status = (is_cutmesh_face ? status_t::INVALID_CUT_MESH : status_t::INVALID_SRC_MESH);
+                return;
+            }
         }
     }
 #endif
@@ -3258,7 +3320,7 @@ void dispatch(output_t& output, const input_t& input)
         std::vector<hd_t> // list of halfedges whose target is the intersection point
         >
         ivtx_to_incoming_hlist;
-#if 1 // used for debugging colinearity bug, which occur when we have poly with eg. > 3
+#if 0 // used for debugging colinearity bug, which occur when we have poly with eg. > 3
     // vertices where at least 3 more-or-less are colinear but exact predicate says no.
     for (std::map<pair<fd_t>, std::vector<vd_t>>::const_iterator cutpath_edge_creation_info_iter = cutpath_edge_creation_info.cbegin();
          cutpath_edge_creation_info_iter != cutpath_edge_creation_info.cend();
@@ -7704,8 +7766,8 @@ void dispatch(output_t& output, const input_t& input)
     //
 
     if (proceed_to_fill_holes == false) {
-
-        return; // exit
+        printf("[mcut-kernel]: detected a configuration that does not permit filling holes. input-mesh verification advised.\n");
+        return; // done
     }
 
     if (false == (input.keep_fragments_below_cutmesh || //

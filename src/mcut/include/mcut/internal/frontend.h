@@ -104,6 +104,12 @@ extern "C" void get_info_impl(
     McVoid* pMem,
     McSize* pNumBytes) noexcept(false);
 
+extern "C" void bind_state_impl(
+    const McContext context,
+    McFlags stateInfo,
+    McSize bytes,
+    const McVoid* pMem);
+
 extern "C" void create_user_event_impl(McEvent* event, McContext context);
 
 extern "C" void set_user_event_status_impl(McEvent event, McInt32 execution_status);
@@ -138,6 +144,20 @@ extern "C" void dispatch_impl(
     const uint32_t* pCutMeshFaceSizes,
     uint32_t numCutMeshVertices,
     uint32_t numCutMeshFaces,
+    uint32_t numEventsInWaitlist,
+    const McEvent* pEventWaitList,
+    McEvent* pEvent) noexcept(false);
+
+extern "C" void dispatch_planar_section_impl(
+    McContext context,
+    McFlags flags,
+    const McVoid* pSrcMeshVertices,
+    const uint32_t* pSrcMeshFaceIndices,
+    const uint32_t* pSrcMeshFaceSizes,
+    uint32_t numSrcMeshVertices,
+    uint32_t numSrcMeshFaces,
+    const McDouble* pNormalVector,
+    const McDouble sectionOffset,
     uint32_t numEventsInWaitlist,
     const McEvent* pEventWaitList,
     McEvent* pEvent) noexcept(false);
@@ -233,6 +253,8 @@ struct connected_component_t {
     std::vector<uint32_t> face_adjacent_faces_size_cache;
     bool face_adjacent_faces_size_cache_initialized = false;
 #endif // #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
+    // non-zero if origin source and cut-mesh where perturbed
+    vec3 perturbation_vector = vec3(0.0);
 };
 
 // struct representing a fragment
@@ -296,8 +318,32 @@ struct event_t {
     // API command to be able to effectively wait on user events.
     std::unique_ptr<std::packaged_task<void()>> m_user_API_command_task_emulator;
     McContext m_context;
-    event_t()
-        : m_user_handle(MC_NULL_HANDLE)
+
+    const char* get_cmd_type_str()
+    {
+        switch (m_command_type) {
+        case McCommandType::MC_COMMAND_DISPATCH: {
+            return "MC_COMMAND_DISPATCH";
+        } break;
+        case McCommandType::MC_COMMAND_GET_CONNECTED_COMPONENT_DATA: {
+            return "MC_COMMAND_GET_CONNECTED_COMPONENT_DATA";
+        } break;
+        case McCommandType::MC_COMMAND_GET_CONNECTED_COMPONENTS: {
+            return "MC_COMMAND_GET_CONNECTED_COMPONENTS";
+        } break;
+        case McCommandType::MC_COMMAND_USER: {
+            return "MC_COMMAND_USER";
+        } break;
+        case McCommandType::MC_COMMAND_UKNOWN: {
+            return "MC_COMMAND_UKNOWN";
+        } break;
+        default:
+            fprintf(stderr, "unknown command type value (%d)\n", (int)m_command_type);
+            return "UNKNOWN VALUE";
+        }
+    }
+    explicit event_t(McEvent user_handle, McCommandType command_type)
+        : m_user_handle(user_handle)
         , m_responsible_thread_id(UINT32_MAX)
         , m_runtime_exec_status(MC_NO_ERROR)
         , m_timestamp_submit(0)
@@ -305,11 +351,11 @@ struct event_t {
         , m_timestamp_end(0)
         , m_command_exec_status(MC_RESULT_MAX_ENUM)
         , m_profiling_enabled(true)
-        , m_command_type(MC_COMMAND_UKNOWN)
+        , m_command_type(command_type)
         , m_user_API_command_task_emulator(nullptr)
         , m_context(nullptr)
     {
-        log_msg("[MCUT] Create event " << this);
+        log_msg("[MCUT] Create event (type=" << get_cmd_type_str() <<", handle=" << m_user_handle << ")");
 
         m_callback_info.m_fn_ptr = nullptr;
         m_callback_info.m_data_ptr = nullptr;
@@ -325,7 +371,7 @@ struct event_t {
             (*(m_callback_info.m_fn_ptr))(m_user_handle, m_callback_info.m_data_ptr);
         }
 
-        log_msg("[MCUT] Destroy event " << this << "(" << m_user_handle << ")");
+        log_msg("[MCUT] Destroy event (type=" << get_cmd_type_str() << ", handle=" << m_user_handle << ")");
     }
 
     inline std::size_t get_time_since_epoch()
@@ -431,6 +477,10 @@ private:
     // The state and flag variable current used to configure the next dispatch call
     McFlags m_flags = (McFlags)0;
 
+    std::atomic<McDouble> m_general_position_enforcement_constant;
+    std::atomic<McUint32> m_max_num_perturbation_attempts;
+    std::atomic<McConnectedComponentFaceWindingOrder> m_connected_component_winding_order;
+
     void api_thread_main(uint32_t thread_id)
     {
         log_msg("[MCUT] Launch API thread " << std::this_thread::get_id() << " (" << thread_id << ")");
@@ -466,6 +516,9 @@ public:
         : m_done(false)
         // , m_joiner(m_api_threads)
         , m_flags(flags)
+        , m_general_position_enforcement_constant(1e-4)
+        , m_max_num_perturbation_attempts(1 << 2),
+        m_connected_component_winding_order(McConnectedComponentFaceWindingOrder::MC_CONNECTED_COMPONENT_FACE_WINDING_ORDER_AS_GIVEN)
         , m_user_handle(handle)
         , dbgCallbackBitfieldSource(0)
         , dbgCallbackBitfieldType(0)
@@ -505,6 +558,9 @@ public:
     void shutdown()
     {
         m_done = true;
+        
+        std::atomic_thread_fence(std::memory_order_acq_rel);
+
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
         m_compute_threadpool.reset();
 #endif
@@ -524,6 +580,41 @@ public:
         return this->m_flags;
     }
 
+    // returns (user controllable) epsilon representing the maximum by which the cut-mesh
+    // can be perturbed on any axis
+    McDouble get_general_position_enforcement_constant() const
+    {
+        return this->m_general_position_enforcement_constant.load(std::memory_order_acquire);
+    }
+
+    void set_general_position_enforcement_constant(McDouble new_value)
+    {
+        this->m_general_position_enforcement_constant.store(new_value, std::memory_order_release);
+    }
+
+    // returns (user controllable) maximum number of times by which the cut-mesh
+    // can be perturbed before giving (input likely need to be preprocessed)
+    McUint32 get_general_position_enforcement_attempts() const
+    {
+        return this->m_max_num_perturbation_attempts.load(std::memory_order_acquire);
+    }
+
+    void set_general_position_enforcement_attempts(McUint32 new_value)
+    {
+        this->m_max_num_perturbation_attempts.store(new_value, std::memory_order_release);
+    }
+
+ McConnectedComponentFaceWindingOrder get_connected_component_winding_order() const
+    {
+        return this->m_connected_component_winding_order.load(std::memory_order_acquire);
+    }
+
+    void set_connected_component_winding_order(McConnectedComponentFaceWindingOrder new_value)
+    {
+        this->m_connected_component_winding_order.store(new_value, std::memory_order_release);
+    }
+    
+
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
     thread_pool& get_shared_compute_threadpool()
     {
@@ -538,15 +629,17 @@ public:
         // create the event object associated with the enqueued task
         //
 
-        std::shared_ptr<event_t> event_ptr = std::shared_ptr<event_t>(new event_t);
+        std::shared_ptr<event_t> event_ptr = std::shared_ptr<event_t>(new event_t(
+            reinterpret_cast<McEvent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed)),
+            cmdType));
 
         MCUT_ASSERT(event_ptr != nullptr);
 
         g_events.push_front(event_ptr);
 
-        event_ptr->m_user_handle = reinterpret_cast<McEvent>(g_objects_counter++);
+        //event_ptr->m_user_handle = reinterpret_cast<McEvent>(g_objects_counter.fetch_add(1, std::memory_order_relaxed));
         event_ptr->m_profiling_enabled = (this->m_flags & MC_PROFILING_ENABLE) != 0;
-        event_ptr->m_command_type = cmdType;
+        // event_ptr->m_command_type = cmdType;
 
         event_ptr->log_submit_time();
 
@@ -567,7 +660,9 @@ public:
 
             const std::shared_ptr<event_t> parent_task_event_ptr = g_events.find_first_if([=](std::shared_ptr<event_t> e) { return e->m_user_handle == parent_task_event_handle; });
 
-            MCUT_ASSERT(parent_task_event_ptr != nullptr);
+            if (parent_task_event_ptr == nullptr) {
+                throw std::invalid_argument("invalid event in waitlist");
+            }
 
             const bool parent_task_is_not_finished = parent_task_event_ptr->m_finished.load() == false;
 
@@ -588,7 +683,7 @@ public:
             uint32_t thread_with_empty_queue = UINT32_MAX;
 
             for (uint32_t i = 0; i < (uint32_t)m_api_threads.size(); ++i) {
-                if (m_queues[i].empty() == true) {
+                if (m_queues[(i + 1) % (uint32_t)m_api_threads.size()].empty() == true) {
                     thread_with_empty_queue = i;
                     break;
                 }
@@ -670,7 +765,7 @@ public:
 
     // McFlags dispatchFlags = (McFlags)0;
 
-    // client/user debugging variable
+    // client/user debugging variables
     // ------------------------------
 
     // function pointer to user-define callback function for status/erro reporting
