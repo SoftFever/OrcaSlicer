@@ -3381,21 +3381,6 @@ GCode::LayerResult GCode::process_layer(
         }
     }
 
-    if (print.calib_mode() == CalibMode::Calib_PA_Pattern) {
-        gcode += "; start pressure advance pattern for layer\n";
-
-        CalibPressureAdvancePattern pa_pattern(print.calib_params(), this);
-        CustomGCode::Info pa_pattern_info = pa_pattern.generate_gcodes();
-
-        for (CustomGCode::Item i : pa_pattern_info.gcodes) {
-            if (i.print_z == print_z) {
-                gcode += i.extra;
-            }
-        }
-
-        gcode += "; end pressure advance pattern for layer\n";
-    }
-
 #if 0
     // Apply spiral vase post-processing if this layer contains suitable geometry
     // (we must feed all the G-code into the post-processor, including the first
