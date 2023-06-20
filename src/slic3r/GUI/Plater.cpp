@@ -11160,6 +11160,8 @@ void Plater::update_print_error_info(int code, std::string msg, std::string extr
     if (p->m_send_to_sdcard_dlg) {
         p->m_send_to_sdcard_dlg->update_print_error_info(code, msg, extra);
     }
+    if (p->main_frame->m_calibration)
+        p->main_frame->m_calibration->update_print_error_info(code, msg, extra);
 }
     
 wxString Plater::get_project_filename(const wxString& extension) const

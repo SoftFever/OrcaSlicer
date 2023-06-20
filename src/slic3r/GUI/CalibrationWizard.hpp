@@ -6,7 +6,6 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/AMSControl.hpp"
-#include "AMSMaterialsSetting.hpp"
 #include "Widgets/ProgressBar.hpp"
 #include "SavePresetDialog.hpp"
 #include "PresetComboBoxes.hpp"
@@ -65,6 +64,7 @@ public:
     CalibrationWizardPage* get_curr_page() { return m_curr_page; }
     CalibrationWizardPage* get_frist_page() { return m_first_page; }
     void show_page(CalibrationWizardPage* page);
+    void update_print_error_info(int code, std::string msg, std::string extra);
     void show_send_progress_bar(bool show);
     void update_printer();
     void update_print_progress();
@@ -143,7 +143,15 @@ protected:
     wxStaticText* m_filaments_incompatible_tips;
     wxStaticText* m_bed_type_incompatible_tips;
     wxPanel* m_send_progress_panel;
-    std::shared_ptr<BBLStatusBarSend> m_send_progress_bar;  // for send 
+    // send bar
+    std::shared_ptr<BBLStatusBarSend> m_send_progress_bar;
+    wxScrolledWindow* m_sw_print_failed_info{ nullptr };
+    int m_print_error_code;
+    std::string m_print_error_msg;
+    std::string m_print_error_extra;
+    Label* m_st_txt_error_code{ nullptr };
+    Label* m_st_txt_error_desc{ nullptr };
+    Label* m_st_txt_extra_info{ nullptr };
 
     // print panel
     wxPanel* m_print_panel;
@@ -156,6 +164,7 @@ protected:
     ScalableButton* m_button_pause_resume;
     ScalableButton* m_button_abort;
     ProgressBar* m_print_gauge_progress; // for print
+    PageButton* m_btn_recali;
     PageButton* m_btn_next;
 
     // save panel
@@ -173,7 +182,9 @@ protected:
     FilamentSelectMode get_ams_select_mode() { if (!m_filament_comboBox_list.empty()) return m_filament_comboBox_list[0]->get_select_mode(); return FilamentSelectMode::FSMRadioMode; }
     void set_ams_select_mode(FilamentSelectMode mode);
     std::vector<int> get_selected_tray();
+    void set_selected_tray(const std::vector<int>& tray_ids);
     FilamentComboBoxList get_selected_filament_comboBox();
+    void show_send_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
 
     // print
     void reset_printing_values();
@@ -260,6 +271,7 @@ class FlowRateWizard : public CalibrationWizard {
 public:
     FlowRateWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~FlowRateWizard() {};
+    void reset_reuse_panels();
 protected:
     virtual CalibrationWizardPage* create_start_page() override;
     void create_low_end_pages();

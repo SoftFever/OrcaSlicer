@@ -488,6 +488,13 @@ void CalibrationPanel::on_timer(wxTimerEvent& event) {
     update_all();
 }
 
+void CalibrationPanel::update_print_error_info(int code, std::string msg, std::string extra) {
+    for (int i = 0; i < m_tabpanel->GetPageCount(); i++) {
+        if(m_tabpanel->GetPage(i))
+            static_cast<CalibrationWizard*>(m_tabpanel->GetPage(i))->update_print_error_info(code, msg, extra);
+    }
+}
+
 void CalibrationPanel::update_all() {
     if (m_pa_panel) {
         m_pa_panel->update_printer();

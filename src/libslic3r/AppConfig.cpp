@@ -510,11 +510,18 @@ std::string AppConfig::load()
                 }
             } else if (it.key() == "calis") {
                 for (auto &j : it.value()) {
+                    std::string str = j.dump();
                     PrinterCaliInfo cali_info;
                     cali_info.dev_id          = j["dev_id"].get<std::string>();
                     cali_info.mode            = CalibMode(j["cali_mode"].get<int>());
                     cali_info.state           = CalibState(j["cali_state"].get<int>());
                     cali_info.filament_preset = j["preset"].get<std::string>();
+                    //if (j.contains("nozzle"))
+                    //cali_info.nozzle_dia      = j["nozzle"].get<float>();
+                    //if (j.contains("bed_type"))
+                    //cali_info.bed_type        = j["bed_type"].get<int>();
+                    if (j.contains("tray_ids"))
+                        cali_info.tray_ids = j["tray_ids"].get<std::vector<int>>();
                     m_printer_cali_infos.emplace_back(cali_info);
                 }
             } else {
@@ -628,6 +635,11 @@ void AppConfig::save()
         json["cali_mode"]          = int(cali_info.mode);
         json["cali_state"]         = int(cali_info.state);
         json["preset"]             = cali_info.filament_preset;
+        for (int tray_id : cali_info.tray_ids) {
+            json["tray_ids"].push_back(tray_id);
+        }
+        //json["nozzle"] = cali_info.nozzle_dia;
+        //json["bed_type"] = cali_info.bed_type;
         j["calis"].push_back(json);
     }
 
@@ -969,6 +981,9 @@ void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
         (*iter).filament_preset = cali_info.filament_preset;
         (*iter).mode            = cali_info.mode;
         (*iter).state           = cali_info.state;
+        (*iter).tray_ids        = cali_info.tray_ids;
+        //(*iter).nozzle_dia      = cali_info.nozzle_dia;
+        //(*iter).bed_type        = cali_info.bed_type;
     }
     m_dirty = true;
 }

@@ -100,6 +100,7 @@ public:
     CalibrationPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~CalibrationPanel();
     Tabbook* get_tabpanel() { return m_tabpanel; };
+    void update_print_error_info(int code, std::string msg, std::string extra);
     void update_all();
     bool Show(bool show);
     void on_printer_clicked(wxMouseEvent& event);

@@ -33,6 +33,9 @@ struct PrinterCaliInfo
     CalibMode   mode;
     CalibState  state;
     std::string filament_preset;
+    std::vector<int> tray_ids;
+    float nozzle_dia;
+    int bed_type;
 };
 
 struct Calib_Params

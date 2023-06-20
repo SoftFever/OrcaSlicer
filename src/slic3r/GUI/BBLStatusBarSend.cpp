@@ -314,8 +314,8 @@ void BBLStatusBarSend::set_status_text(const std::string& txt)
 void BBLStatusBarSend::set_status_text(const char *txt)
 { 
     this->set_status_text(wxString::FromUTF8(txt));
-    get_panel()->Layout();
-    get_panel()->Refresh();
+    get_panel()->GetParent()->Layout();
+    get_panel()->GetParent()->Update();
 }
 
 void BBLStatusBarSend::msw_rescale() { 
