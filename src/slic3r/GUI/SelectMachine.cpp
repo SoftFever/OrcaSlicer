@@ -1106,9 +1106,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_material_area->Add(m_sizer_material_tips, 0, wxALIGN_CENTER|wxLEFT, FromDIP(8));
     m_sizer_material_area->Add(m_sizer_material, 0, wxLEFT, FromDIP(15));
 
-#ifdef FILAMENT_BACKUP
-    auto m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
-    auto m_ams_backup_tip = new Label(this, _L("Ams filament backup"));
+    m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
+    auto m_ams_backup_tip = new Label(this, _L("Auto Refill"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
     m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
@@ -1118,6 +1117,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_backup->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_backup->Add(img_ams_backup, 0, wxALL, FromDIP(3));
     m_sizer_backup->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
+    m_sizer_backup->Show(false);
 
     m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
     img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
@@ -1127,7 +1127,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); on_rename_enter(); });
     img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); });
-#endif
 
     m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_ams_msg->SetFont(::Label::Body_13);
@@ -1358,10 +1357,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(13));
     m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT, FromDIP(25));
-
-#ifdef FILAMENT_BACKUP
     m_sizer_main->Add(m_sizer_backup, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-#endif
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1413,7 +1409,7 @@ void SelectMachineDialog::init_bind()
         if (e.GetInt() == 0) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) return;
-            if (dev->get_selected_machine()) {
+            if (dev->get_selected_machine()->dev_id == e.GetString()) {
                 m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
             }
         }else if(e.GetInt() == 1){
@@ -2876,6 +2872,20 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
     wxGetApp().reset_to_active();
     update_show_status();
+
+    ///show auto refill
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if(!dev) return;
+    MachineObject* obj_ = dev->get_selected_machine();
+    if(!obj_) return;
+    if (!obj_ || obj_->amsList.empty() || obj_->ams_exist_bits == 0 || !obj_->ams_auto_switch_filament_flag || !obj_->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP)) {
+        m_sizer_backup->Show(false);
+        Layout();
+    }
+    else {
+        m_sizer_backup->Show(true);
+        Layout();
+    }
 }
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
@@ -2926,6 +2936,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         return;
     }
 
+
     //reset print status
     show_status(PrintDialogStatus::PrintStatusInit);
 
@@ -2965,7 +2976,6 @@ void SelectMachineDialog::update_show_status()
     }
     if (!dev) return;
     dev->check_pushing();
-
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
 
     // blank plate has no valid gcode file
@@ -2975,7 +2985,6 @@ void SelectMachineDialog::update_show_status()
             return;
         }
     }
-
     MachineObject* obj_ = dev->get_my_machine(m_printer_last_select);
     if (!obj_) {
         update_ams_check(nullptr);

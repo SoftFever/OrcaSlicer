@@ -330,6 +330,7 @@ protected:
     wxBoxSizer*                         m_sizer_scrollable_region{ nullptr };
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
+    wxBoxSizer*                         m_sizer_backup{ nullptr };
     Button*                             m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
     ScalableButton *                    m_rename_button{nullptr};

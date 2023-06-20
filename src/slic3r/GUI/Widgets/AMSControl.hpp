@@ -13,7 +13,6 @@
 #include <wx/animate.h>
 #include <wx/dynarray.h>
 
-#define FILAMENT_BACKUP 1
 #define AMS_CONTROL_BRAND_COLOUR wxColour(0, 174, 66)
 #define AMS_CONTROL_GRAY700 wxColour(107, 107, 107)
 #define AMS_CONTROL_GRAY800 wxColour(50, 58, 61)
@@ -564,6 +563,7 @@ protected:
     wxBoxSizer*   m_vams_sizer               = {nullptr};
     wxBoxSizer*   m_sizer_vams_tips          = {nullptr};
 
+    Label*          m_ams_backup_tip = {nullptr};
     Caninfo         m_vams_info;
     StaticBox*      m_panel_virtual = {nullptr};
     AMSLib*         m_vams_lib      = {nullptr};
@@ -583,6 +583,7 @@ protected:
     Button *m_button_extruder_feed = {nullptr};
     Button *m_button_extruder_back = {nullptr};
     wxStaticBitmap* m_button_ams_setting   = {nullptr};
+    wxStaticBitmap* m_img_ams_backup  = {nullptr};
     ScalableBitmap m_button_ams_setting_normal;
     ScalableBitmap m_button_ams_setting_hover;
     ScalableBitmap m_button_ams_setting_press;
@@ -640,10 +641,10 @@ public:
     void Reset();
 
     void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load = false, bool simple_mode = false);
+    void show_auto_refill(bool show);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray, MachineObject* obj);
-    void show_filament_backup(bool show);
 
     void reset_vams();
     void post_event(wxEvent&& event);

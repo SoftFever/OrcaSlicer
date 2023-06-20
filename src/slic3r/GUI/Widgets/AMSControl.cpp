@@ -1886,13 +1886,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 
     //backup tips
-
-#ifdef FILAMENT_BACKUP
-    auto m_ams_backup_tip = new Label(m_amswin, _L("Ams filament backup"));
+    m_ams_backup_tip = new Label(m_amswin, _L("Auto Refill"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
     m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
-    auto m_img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    m_img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     m_img_ams_backup->SetBackgroundColour(*wxWHITE);
 
     m_sizer_ams_tips->Add(0, 0, 1, wxEXPAND, 0);
@@ -1907,10 +1905,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
     m_img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
-#endif // FILAMENT_BACKUP
-
    
-
 
     //ams cans
     m_panel_can = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
@@ -2656,8 +2651,15 @@ void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool supp
     }
 
     show?ExitNoneAMSMode() : EnterNoneAMSMode(support_vt_load);
-    if (simple_mode)
-        EnterSimpleMode();
+    if (simple_mode)EnterSimpleMode();
+}
+
+void AMSControl::show_auto_refill(bool show)
+{
+    m_ams_backup_tip->Show(show);
+    m_img_ams_backup->Show(show);
+    m_amswin->Layout();
+    m_amswin->Fit();
 }
 
 void AMSControl::show_vams(bool show)
@@ -2695,10 +2697,6 @@ void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
     m_vams_lib->m_info.material_name = tray.get_display_filament_type();
     m_vams_lib->m_info.material_colour = tray.get_color();
     m_vams_lib->Refresh();
-}
-
-void AMSControl::show_filament_backup(bool show)
-{
 }
 
 void AMSControl::reset_vams()
@@ -2760,22 +2758,6 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
             }
         }
     }
-
-    /*if (m_current_senect.empty() && info.size() > 0) {
-        if (curr_ams_id.empty()) {
-            SwitchAms(info[0].ams_id);
-            return;
-        }
-
-        if (keep_selection) {
-            SwitchAms(curr_ams_id);
-            for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-                AmsCansWindow *cans = m_ams_cans_list[i];
-                if (i < info.size()) { cans->amsCans->SelectCan(curr_can_id); }
-            }
-            return;
-        }
-    }*/
 
     if ( m_current_show_ams.empty() && !is_reset ) {
         if (info.size() > 0) {

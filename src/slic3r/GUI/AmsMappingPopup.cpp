@@ -1161,7 +1161,7 @@ void MappingContainer::doRender(wxDC& dc)
 }
 
 AmsReplaceMaterialDialog::AmsReplaceMaterialDialog(wxWindow* parent)
-    : DPIDialog(parent, wxID_ANY, _L("Filaments Auto refill"), wxDefaultPosition, wxDefaultSize, wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent, wxID_ANY, _L("Auto Refill"), wxDefaultPosition, wxDefaultSize, wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -1187,7 +1187,7 @@ void AmsReplaceMaterialDialog::create()
     m_main_sizer->Add(m_top_line, 0, wxEXPAND, 0);
 
 
-    auto label_title = new Label(this, _L("Auto refill"));
+    auto label_title = new Label(this, _L("Auto Refill"));
     label_title->SetFont(Label::Head_14);
     label_title->SetForegroundColour(0x00AE42);
     auto label_txt = new Label(this, _L("When the current material run out, the printer will continue to print in the following order."));

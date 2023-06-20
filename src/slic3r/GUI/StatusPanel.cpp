@@ -2012,7 +2012,9 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
-    bool is_none_ams_mode = false;
+    bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
+    bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+    bool is_support_filament_backup = obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP);
 
     if (!obj
         || !obj->is_connected()
@@ -2027,31 +2029,19 @@ void StatusPanel::update_ams(MachineObject *obj)
             last_ams_version = -1;
             BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         }
-        bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-        bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
 
-        if (is_support_virtual_tray) {
-            m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
-        }
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
-        is_none_ams_mode = true;
-        //return;
+        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali, obj->is_support_filament_edit_virtual_tray);
+        m_ams_control->show_auto_refill(false);
+    }
+    else {
+       
+        show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali, obj->is_support_filament_edit_virtual_tray);
+        m_ams_control->show_auto_refill(is_support_filament_backup);
+        if(is_support_filament_backup) m_ams_control->show_auto_refill(obj->ams_auto_switch_filament_flag); 
     }
 
-    bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-    bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
-    bool is_support_filament_backup = obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP);
 
-    m_ams_control->show_filament_backup(is_support_filament_backup);
-
-    if (is_support_virtual_tray) {
-        m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
-    }
-
-    if (!is_none_ams_mode) {
-         show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
-    }
-   
+    if (is_support_virtual_tray) m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
