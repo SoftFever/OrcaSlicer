@@ -2078,8 +2078,10 @@ void PressureAdvanceWizard::request_calib_result() {
         if (curr_obj->has_get_pa_calib_result) {
             if (!has_get_result) {
                 CalibUtils::get_PA_calib_results(m_calib_results);
-                if (m_calib_results.size() > 0)
+                if (m_calib_results.size() > 0) {
                     has_get_result = true;
+                    sync_save_page_data();
+                }
             }
         }
     }
@@ -2299,13 +2301,13 @@ void PressureAdvanceWizard::sync_save_page_data() {
             set_edit_mode("normal");
             comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_KEY_DOWN, [this, result_failed, index, fcb, comboBox_tray_name](auto& e) {
                 if (wxGetKeyState(WXK_RETURN)) {
-                    this->m_calib_results[index].name = comboBox_tray_name->GetValue().ToStdString();
+                    this->m_calib_results[index].name = comboBox_tray_name->GetTextCtrl()->GetValue().ToStdString();
                 }
                 else
                     e.Skip();
                 });
             comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, result_failed, index, fcb, comboBox_tray_name](auto& e) {
-                this->m_calib_results[index].name = comboBox_tray_name->GetValue().ToStdString();
+                this->m_calib_results[index].name = comboBox_tray_name->GetTextCtrl()->GetValue().ToStdString();
                 e.Skip();
                 });
         }
@@ -2982,8 +2984,10 @@ void FlowRateWizard::request_calib_result() {
         if (curr_obj->has_get_flow_ratio_result) {
             if (!has_get_result) {
                 CalibUtils::get_flow_ratio_calib_results(m_calib_results);
-                if (m_calib_results.size() > 0)
+                if (m_calib_results.size() > 0) {
                     has_get_result = true;
+                    sync_save_page_data();
+                }
             }
         }
     }
