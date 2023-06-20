@@ -285,6 +285,7 @@ public:
     AmsRMGroup* create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list);
     void        create();
     void        update_machine_obj(MachineObject* obj);
+    void        update_mapping_result(std::vector<FilamentInfo> result);
     void        paintEvent(wxPaintEvent& evt);
     void        on_dpi_changed(const wxRect& suggested_rect) override;
     std::vector<bool>        GetStatus(unsigned int status);
@@ -295,6 +296,7 @@ public:
     wxBoxSizer* m_main_sizer{ nullptr };
     wxWrapSizer* m_groups_sizer{ nullptr };
     MachineObject* m_obj{ nullptr };
+    std::vector<std::string> m_tray_used;
 };
 
 

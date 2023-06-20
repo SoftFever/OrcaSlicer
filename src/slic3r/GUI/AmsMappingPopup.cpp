@@ -1260,6 +1260,14 @@ std::vector<bool> AmsReplaceMaterialDialog::GetStatus(unsigned int status)
     return listStatus;
 }
 
+void AmsReplaceMaterialDialog::update_mapping_result( std::vector<FilamentInfo> result)
+{
+    m_tray_used.clear();
+    for (int i = 0; i < result.size(); i++) {
+        m_tray_used.push_back(wxGetApp().transition_tridid(result[i].tray_id).ToStdString());
+    }
+}
+
 void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
 {
     if (obj) {m_obj = obj;}
@@ -1284,32 +1292,41 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
     catch (...) {}
 
     //creat group
-    int group_index = 1;
+    int group_index = 0;
     for (int filam : m_obj->filam_bak) {
          auto status_list = GetStatus(filam);
 
          std::map<std::string, wxColour> group_info;
          std::string    group_material;
+         bool   is_in_tray = false;
 
          //get color & material
          for (auto i = 0; i < status_list.size(); i++) {
              if (status_list[i] && tray_list[i] != nullptr) {
-                 group_info[wxGetApp().transition_tridid(i).ToStdString()] = AmsTray::decode_color(tray_list[i]->color);
+                 auto tray_name = wxGetApp().transition_tridid(i).ToStdString();
+                 auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
+                 if (it != m_tray_used.end()) {
+                     is_in_tray = true;
+                 }
+
+                 group_info[tray_name] = AmsTray::decode_color(tray_list[i]->color);
                  group_material = tray_list[i]->get_display_filament_type();
              }
          }
 
-         m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
-         group_index++;
+         if (is_in_tray) {
+             m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
+             group_index++;
+         } 
     }
 
-    if (m_obj->filam_bak.size() > 0) {
+    if (group_index > 0) {
         auto height = 0;
-        if (m_obj->filam_bak.size() > 6) {
+        if (group_index > 6) {
             height = FromDIP(550);
         }
         else {
-            height = FromDIP(200) * (std::ceil(m_obj->filam_bak.size() / 2.0));
+            height = FromDIP(200) * (std::ceil(group_index / 2.0));
         }
         m_scrollview_groups->SetMinSize(wxSize(FromDIP(400), height));
         m_scrollview_groups->SetMaxSize(wxSize(FromDIP(400), height));

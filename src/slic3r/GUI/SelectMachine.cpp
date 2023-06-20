@@ -1107,17 +1107,19 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_material_area->Add(m_sizer_material, 0, wxLEFT, FromDIP(15));
 
     m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
-    auto m_ams_backup_tip = new Label(this, _L("Auto Refill"));
+    m_ams_backup_tip = new Label(this, _L("Auto Refill"));
     m_ams_backup_tip->SetFont(::Label::Head_12);
     m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
     m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
-    auto img_ams_backup = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_ams_backup = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     img_ams_backup->SetBackgroundColour(*wxWHITE);
 
     m_sizer_backup->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_backup->Add(img_ams_backup, 0, wxALL, FromDIP(3));
     m_sizer_backup->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
-    m_sizer_backup->Show(false);
+
+    m_ams_backup_tip->Hide();
+    img_ams_backup->Hide();
 
     m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
     img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
@@ -1507,6 +1509,7 @@ void SelectMachineDialog::popup_filament_backup()
     if (!dev) return;
     if (dev->get_selected_machine()/* && dev->get_selected_machine()->filam_bak.size() > 0*/) {
         AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
+        m_replace_material_popup->update_mapping_result(m_ams_mapping_result);
         m_replace_material_popup->update_machine_obj(dev->get_selected_machine());
         m_replace_material_popup->ShowModal();
     }
@@ -2879,12 +2882,18 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     MachineObject* obj_ = dev->get_selected_machine();
     if(!obj_) return;
     if (!obj_ || obj_->amsList.empty() || obj_->ams_exist_bits == 0 || !obj_->ams_auto_switch_filament_flag || !obj_->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP)) {
-        m_sizer_backup->Show(false);
-        Layout();
+        if (m_ams_backup_tip->IsShown()) {
+            m_ams_backup_tip->Hide();
+            img_ams_backup->Hide();
+             Layout();
+        }
     }
     else {
-        m_sizer_backup->Show(true);
-        Layout();
+        if (!m_ams_backup_tip->IsShown()) {
+            m_ams_backup_tip->Show();
+            img_ams_backup->Show();
+            Layout();
+        }
     }
 }
 
@@ -2927,7 +2936,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     if (obj && !obj->get_lan_mode_connection_state()) {
         obj->command_get_version();
         obj->command_request_push_all();
-        dev->set_selected_machine(m_printer_last_select, true);
+        if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
+            dev->set_selected_machine(m_printer_last_select, true);
+        }
         // Has changed machine unrecoverably
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
         update_select_layout(obj);

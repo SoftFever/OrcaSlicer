@@ -359,6 +359,7 @@ protected:
     Label*                              m_st_txt_error_desc{nullptr};
     Label*                              m_st_txt_extra_info{nullptr};
     Label *                             m_link_network_state;
+    Label*                              m_ams_backup_tip{nullptr};
     wxSimplebook*                       m_rename_switch_panel{nullptr};
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
@@ -385,6 +386,7 @@ protected:
     wxStaticBitmap *                    amsmapping_tip{nullptr};
     ScalableBitmap *                    enable_ams_mapping{nullptr};
     wxStaticBitmap *                    ams_tip{nullptr};
+    wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
 
 public:
