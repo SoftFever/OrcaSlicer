@@ -13,6 +13,7 @@ class CalibrationWizard;
 enum ButtonType
 {
     Start,
+    Restart,
     Back,
     Next,
     Calibrate,

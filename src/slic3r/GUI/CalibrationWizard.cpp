@@ -7,7 +7,7 @@
 
 namespace Slic3r { namespace GUI {
 
-#define CALIBRATION_DEBUG
+//#define CALIBRATION_DEBUG
 
 #define PRESET_GAP                         FromDIP(25)
 #define CALIBRATION_COMBOX_SIZE            wxSize(FromDIP(500), FromDIP(24))
@@ -472,7 +472,8 @@ CalibrationWizardPage* CalibrationWizard::create_presets_page(bool need_custom_r
     auto page_btn_sizer = page->get_btn_hsizer();
 
     auto page_prev_btn = page->get_prev_btn();
-    page_prev_btn->Hide();
+    page_prev_btn->SetLabel(_L("Restart"));
+    page_prev_btn->SetButtonType(ButtonType::Restart);
 
     auto page_next_btn = page->get_next_btn();
     page_next_btn->SetLabel(_L("Calibrate"));
@@ -737,7 +738,8 @@ CalibrationWizardPage* CalibrationWizard::create_save_page() {
     create_save_panel_content(panel_sizer);
 
     auto page_prev_btn = page->get_prev_btn();
-    page_prev_btn->Hide();
+    page_prev_btn->SetLabel(_L("Restart"));
+    page_prev_btn->SetButtonType(ButtonType::Restart);
 
     auto page_next_btn = page->get_next_btn();
     page_next_btn->SetLabel(_L("Save"));
@@ -848,12 +850,21 @@ void CalibrationWizard::on_click_btn_prev(IntEvent& event)
             msg_dlg.ShowModal();
             return;
         }
+    case Slic3r::GUI::Restart:
+        init_presets_selections();
+        change_ams_select_mode();
+        wxGetApp().preset_bundle->set_calibrate_printer("");
+        on_update_ams_filament(false);
+        on_switch_ams(m_ams_item_list[0]->m_amsinfo.ams_id);
+        for (auto fcb : m_filament_comboBox_list)
+            fcb->SetValue(false);
+        m_virtual_tray_comboBox->SetValue(false);
         if (m_mode == CalibMode::Calib_Flow_Rate) {
             auto flow_rate_wizard = static_cast<FlowRateWizard*>(this);
             flow_rate_wizard->reset_reuse_panels();
         }
-        save_to_printer_calib_info(PageType::Start);
         show_page(get_frist_page());
+        save_to_printer_calib_info(PageType::Start);
         break;
     }
 }
@@ -935,7 +946,6 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
 }
 
 void CalibrationWizard::init_printer_calib_info_from_appconfig() {
-    // todo add selected_tray info
     std::vector<PrinterCaliInfo> infos = wxGetApp().app_config->get_printer_cali_infos();
     for (int i = 0; i < infos.size(); i++) {
         if (m_printer_calib_infos.find(infos[i].dev_id) == m_printer_calib_infos.end()) {
@@ -954,7 +964,8 @@ void CalibrationWizard::save_to_printer_calib_info(PageType page_type) {
     m_printer_calib_infos[curr_obj->dev_id].dev_id = curr_obj->dev_id;
     m_printer_calib_infos[curr_obj->dev_id].mode = m_mode;
     m_printer_calib_infos[curr_obj->dev_id].state = static_cast<Slic3r::CalibState>(page_type);
-    m_printer_calib_infos[curr_obj->dev_id].filament_preset = m_filament_preset->name;
+    if (m_filament_preset)
+        m_printer_calib_infos[curr_obj->dev_id].filament_preset = m_filament_preset->name;
     //m_printer_calib_infos[curr_obj->dev_id].nozzle_dia = stof(m_comboBox_nozzle_dia->GetValue().ToStdString());
     //m_printer_calib_infos[curr_obj->dev_id].bed_type = (int)(m_comboBox_bed_type->GetSelection() + btDefault + 1);
     m_printer_calib_infos[curr_obj->dev_id].tray_ids = get_selected_tray();
@@ -1052,7 +1063,11 @@ void CalibrationWizard::update_print_progress()
                     m_btn_recali->Show();
                     if (curr_obj->print_status == "FAILED" || curr_obj->print_status == "IDLE")
                         reset_printing_values();
-                    if (/*curr_obj->print_status == "FINISH" && */m_curr_page->get_page_type() == PageType::Calibration) {
+#ifdef CALIBRATION_DEBUG
+                    if (m_curr_page->get_page_type() == PageType::Calibration) 
+#endif
+                    if (curr_obj->print_status == "FINISH" && m_curr_page->get_page_type() == PageType::Calibration)
+                    {
                         m_button_abort->Enable(false);
                         m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());
                         m_button_pause_resume->Enable(false);
@@ -1214,7 +1229,7 @@ void CalibrationWizard::set_selected_tray(const std::vector<int>& tray_ids)
     if (tray_ids[0] == VIRTUAL_TRAY_ID) {
         assert(tray_ids.size() == 1);
         m_filament_from_ext_spool = true;
-        m_virtual_tray_comboBox->GetRadioBox()->SetValue(true);
+        m_virtual_tray_comboBox->SetValue(true);
     }
     else {
         m_filament_from_ext_spool = false;
@@ -1222,14 +1237,14 @@ void CalibrationWizard::set_selected_tray(const std::vector<int>& tray_ids)
             if (get_ams_select_mode() == FilamentSelectMode::FSMCheckBoxMode) {
                 for (auto fcb : m_filament_comboBox_list) {
                     if (fcb->get_tray_id() == tray_id) {
-                        fcb->GetCheckBox()->SetValue(true);
+                        fcb->SetValue(true);
                     }
                 }
             }
             else if (get_ams_select_mode() == FilamentSelectMode::FSMRadioMode) {
                 for (auto fcb : m_filament_comboBox_list) {
                     if (fcb->get_tray_id() == tray_id) {
-                        fcb->GetRadioBox()->SetValue(true);
+                        fcb->SetValue(true);
                     }
                 }
             }
@@ -1464,12 +1479,9 @@ void CalibrationWizard::on_switch_ams(std::string ams_id)
 }
 
 void CalibrationWizard::on_select_tray(SimpleEvent& evt) {
-    // when comboBox set selection or value of checkbox/radio changed will enter,
-    // check if preset names are same
+    // when set selection of comboBox or select a checkbox/radio will enter
 
     FilamentComboBoxList fcb_list = get_selected_filament_comboBox();
-    if (m_mode == CalibMode::Calib_PA_Line)
-        int i = 0;
     if (fcb_list.empty()) {
         m_filament_preset = nullptr;
         m_filaments_incompatible_tips->SetLabel("");
@@ -1952,7 +1964,6 @@ void PressureAdvanceWizard::request_calib_result() {
             is_first_time_get_result = false;
         }
         CalibUtils::get_PA_calib_results(m_calib_results);
-        // todo if failed to get result
         // pass m_calib_results info to page3
         if (m_calib_results.size() > 0)
             sync_save_page_data();
@@ -2097,7 +2108,8 @@ void PressureAdvanceWizard::sync_save_page_data() {
             auto comboBox_tray_name = new ComboBox(m_grid_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0, nullptr, result_failed ? wxCB_READONLY : 0);
             wxArrayString selections;
             selections.push_back(_L("Default"));
-            std::vector<PACalibResult> filtered_results;
+            static std::vector<PACalibResult> filtered_results;
+            filtered_results.clear();
             for (auto history : m_calib_results_history) {
                 if (history.setting_id == m_filament_preset->setting_id) {
                     filtered_results.push_back(history);
@@ -2105,9 +2117,9 @@ void PressureAdvanceWizard::sync_save_page_data() {
                 }
             }
             comboBox_tray_name->Set(selections);
-            comboBox_tray_name->SetValue(fcb->GetComboBox()->GetValue());
+            comboBox_tray_name->SetValue(result_failed ? " - " : fcb->GetComboBox()->GetValue());
 
-            comboBox_tray_name->Bind(wxEVT_COMBOBOX, [this, result_failed, it_result, &filtered_results, fcb, comboBox_tray_name, k_value, n_value](auto& e) {
+            comboBox_tray_name->Bind(wxEVT_COMBOBOX, [this, result_failed, it_result, fcb, comboBox_tray_name, k_value, n_value](auto& e) {
                 int selection = comboBox_tray_name->GetSelection();
                 // selection == 0 is default
                 if (selection > 0) {
@@ -2166,11 +2178,6 @@ void PressureAdvanceWizard::sync_save_page_data() {
                     e.Skip();
                 });
             comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, result_failed, it_result, fcb, comboBox_tray_name](auto& e) {
-                if (!result_failed)
-                    it_result->name = comboBox_tray_name->GetTextCtrl()->GetValue().ToStdString();
-                e.Skip();
-                });
-            comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_LEFT_DOWN, [this, result_failed, it_result, fcb, comboBox_tray_name](wxMouseEvent& e) {
                 if (!result_failed)
                     it_result->name = comboBox_tray_name->GetTextCtrl()->GetValue().ToStdString();
                 e.Skip();
@@ -2823,15 +2830,13 @@ void FlowRateWizard::request_calib_result() {
             is_first_time_get_result = false;
         }
         CalibUtils::get_flow_ratio_calib_results(m_calib_results);
-        // todo if failed to get result
         if (m_calib_results.size() > 0)
             sync_save_page_data();
     }
 }
 
 void FlowRateWizard::sync_save_page_data() {
-    FilamentComboBoxList fcb_list = get_selected_filament_comboBox();
-
+    m_high_end_save_names.clear();
     m_grid_panel->DestroyChildren();
     wxBoxSizer* grid_sizer = new wxBoxSizer(wxHORIZONTAL);
     const int COLUMN_GAP = FromDIP(50);
@@ -2847,8 +2852,19 @@ void FlowRateWizard::sync_save_page_data() {
     grid_sizer->Add(left_title_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
 
-    int i = 0;
+    FilamentComboBoxList fcb_list = get_selected_filament_comboBox();
     for (auto fcb : fcb_list) {
+        bool result_failed = false;
+        auto it_result = std::find_if(m_calib_results.begin(), m_calib_results.end(), [fcb](auto& calib_result) {
+            return calib_result.tray_id == fcb->get_tray_id();
+            });
+        if (it_result != m_calib_results.end()) {
+            result_failed = false;
+        }
+        else {
+            result_failed = true;
+        }
+
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
         tray_title->SetFont(Label::Head_14);
@@ -2856,24 +2872,45 @@ void FlowRateWizard::sync_save_page_data() {
         column_data_sizer->Add(tray_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
 
         auto flow_ratio_value = new wxStaticText(m_grid_panel, wxID_ANY, NA_STR, wxDefaultPosition, wxDefaultSize, 0);
-        for (auto calib_result : m_calib_results) {
-            if (calib_result.tray_id == fcb->get_tray_id()) {
-                flow_ratio_value->SetLabel(std::to_string(calib_result.flow_ratio));
-            }
+        if (!result_failed) {
+            auto flow_ratio_str = wxString::Format("%.3f", it_result->flow_ratio);
+            flow_ratio_value->SetLabel(flow_ratio_str);
+        }
+        else {
+            flow_ratio_value->SetLabel(_L("Failed"));
         }
         column_data_sizer->Add(flow_ratio_value, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
 
-        auto comboBox_tray_name = new TextInput(m_grid_panel, fcb->GetComboBox()->GetValue(), "", "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);// todo use m_high_end_save_names[i] to initial
-        column_data_sizer->Add(comboBox_tray_name, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
-        comboBox_tray_name->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, comboBox_tray_name, i](auto& e) {
-            m_high_end_save_names[i] = comboBox_tray_name->GetTextCtrl()->GetValue().ToStdString();
+        if (!result_failed) {
+            auto save_name_input = new TextInput(m_grid_panel, fcb->GetComboBox()->GetValue() + "-Calibrated", "", "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_PROCESS_ENTER);
+            m_high_end_save_names[fcb->get_tray_id()] = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+
+            save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, fcb, save_name_input](auto& e) {
+                m_high_end_save_names[fcb->get_tray_id()] = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+                e.Skip();
                 });
+            save_name_input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, fcb, save_name_input](auto& e) {
+                m_high_end_save_names[fcb->get_tray_id()] = save_name_input->GetTextCtrl()->GetValue().ToStdString();
+                });
+            column_data_sizer->Add(save_name_input, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+        }
+        else {
+            auto save_name_input = new TextInput(m_grid_panel, " - ", "", "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+            column_data_sizer->Add(save_name_input, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+        }
+
         grid_sizer->Add(column_data_sizer);
         grid_sizer->AddSpacer(COLUMN_GAP);
-        i++;
     }
+    m_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        // todo
+        auto focus_children = wxWindow::FindFocus();
+        wxFocusEvent focus_evt(wxEVT_KILL_FOCUS);
+        focus_evt.SetEventObject(focus_children);
+        wxPostEvent(focus_children, focus_evt);
+        //e.Skip();
+        });
     m_grid_panel->SetSizer(grid_sizer, true);
-
     Layout();
 }
 
@@ -3018,22 +3055,20 @@ bool FlowRateWizard::save_calibration_result()
     if (is_high_end_type(curr_obj)) {
         DynamicPrintConfig& filament_config = m_filament_preset->config;
         for (int i = 0; i < m_calib_results.size(); i++) {
-            // todo if failed
-            //if (!calib_result.flow_ratio)
-            //{
-            //    MessageDialog msg_dlg(nullptr, _L("Failed to get result, input a value manually."), wxEmptyString, wxICON_WARNING | wxOK);
-            //    msg_dlg.ShowModal();
-            //    return false;
-            //}
-            // todo if names are same, will be covered, need to initialize names
-            if (m_high_end_save_names[i].empty()) {
+            // todo if names are same, will be covered
+            auto it = m_high_end_save_names.find(m_calib_results[i].tray_id);
+            if (it != m_high_end_save_names.end() && !it->second.empty()) {
+                save_presets("filament_flow_ratio", new ConfigOptionFloats{ m_calib_results[i].flow_ratio }, it->second);
+                return true;
+            }
+
+            if (it != m_high_end_save_names.end() && it->second.empty()) {
                 MessageDialog msg_dlg(nullptr, _L("Input name of filament preset to save"), wxEmptyString, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
                 return false;
             }
-            save_presets("filament_flow_ratio", new ConfigOptionFloats{ m_calib_results[i].flow_ratio }, m_high_end_save_names[i]);
         }
-        return true;
+        return false;
     }
     else {
         bool valid = true;
@@ -3103,8 +3138,6 @@ void FlowRateWizard::on_fine_tune(wxCommandEvent& e) {
     reset_send_progress_to_page(m_low_end_page3, m_low_end_page3->get_btn_hsizer());
 
     reset_print_panel_to_page(m_low_end_page4, m_low_end_page4->get_content_vsizer());
-
-    save_to_printer_calib_info(PageType::Save);
 
     e.Skip();
 }
