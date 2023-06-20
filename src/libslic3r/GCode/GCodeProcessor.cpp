@@ -1659,7 +1659,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
     m_start_position = m_end_position;
 
     const std::string_view cmd = line.cmd();
-    //softfever
+    //OrcaSlicer
     if (m_flavor == gcfKlipper)
     {
         if (boost::iequals(cmd, "SET_VELOCITY_LIMIT"))

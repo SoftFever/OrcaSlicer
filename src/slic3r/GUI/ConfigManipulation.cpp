@@ -688,10 +688,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("only_one_wall_top", !have_arachne);
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    // SoftFever
+    // OrcaSlicer
     auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-
-    // SoftFever
     if( gcflavor != gcfKlipper )
     {
         for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})

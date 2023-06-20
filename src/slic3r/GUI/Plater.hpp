@@ -231,7 +231,7 @@ public:
     void reload_gcode_from_disk();
     void refresh_print();
 
-    // SoftFever calibration
+    // OrcaSlicer calibration
     void calib_pa(const Calib_Params &params);
     void calib_flowrate(int pass);
     void calib_temp(const Calib_Params &params);

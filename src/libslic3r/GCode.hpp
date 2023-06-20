@@ -195,7 +195,7 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
-    // SoftFever
+    // OrcaSlicer
     std::string set_object_info(Print* print);
 
     // append full config to the given string

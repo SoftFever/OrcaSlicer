@@ -3174,7 +3174,7 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
 
         if (!polylines.empty() && !is_bridge(params.extrusion_role)) {
             ExtrusionEntityCollection gap_fill;
-            // SoftFever: filter out tiny gap fills
+            // OrcaSlicer: filter out tiny gap fills
             polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [&](const ThickPolyline &p) {
                 return p.length() < scale_(params.filter_out_gap_fill);
             }), polylines.end());

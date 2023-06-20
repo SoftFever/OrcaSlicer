@@ -700,7 +700,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            min_bead_width))
     ((ConfigOptionBool,               only_one_wall_top))
     ((ConfigOptionBool,               only_one_wall_first_layer))
-    // SoftFever
+    // OrcaSlicer
     ((ConfigOptionFloat,              seam_gap))
     ((ConfigOptionPercent,            wipe_speed))
 )
@@ -764,7 +764,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, overhang_4_4_speed))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor_max))
-    //SoftFever
+    //OrcaSlicer
     ((ConfigOptionFloat, top_solid_infill_flow_ratio))
     ((ConfigOptionFloat, bottom_solid_infill_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))

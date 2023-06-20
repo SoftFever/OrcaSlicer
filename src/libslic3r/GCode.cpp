@@ -292,7 +292,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         /*  Reduce feedrate a bit; travel speed is often too high to move on existing material.
             Too fast = ripping of existing material; too slow = short wipe path, thus more blob.  */
-        //softFever
+        //OrcaSlicer
         double wipe_speed = gcodegen.writer().config.travel_speed.value * gcodegen.config().wipe_speed.value / 100;
 
         // get the retraction length
@@ -581,7 +581,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         gcode += tcr_gcode;
         check_add_eol(toolchange_gcode_str);
 
-        //SoftFever: set new PA for new filament. BBS: never use for Bambu Printer
+        //OrcaSlicer: set new PA for new filament. BBS: never use for Bambu Printer
         if (!gcodegen.is_BBL_Printer() && gcodegen.config().enable_pressure_advance.get_at(new_extruder_id))
             gcode += gcodegen.writer().set_pressure_advance(gcodegen.config().pressure_advance.get_at(new_extruder_id));
 
@@ -1587,7 +1587,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     file.write_format("; EXECUTABLE_BLOCK_START\n");
 
-    // SoftFever: Orca's implementation for skipping object, for klipper firmware printer only
+    // OrcaSlicer: Orca's implementation for skipping object, for klipper firmware printer only
     if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper)
         file.write(set_object_info(&print));
 
@@ -1871,7 +1871,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
-    // SoftFever: calib
+    // OrcaSlicer: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
         if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
@@ -4199,7 +4199,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
-        // SoftFever
+        // OrcaSlicer
         if (this->on_first_layer()) {
             if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
                 gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);

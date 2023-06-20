@@ -197,7 +197,7 @@ struct PrintInstance
 
     BoundingBoxf3   get_bounding_box();
     Polygon get_convex_hull_2d();
-    // SoftFever
+    // OrcaSlicer
     // 
     // instance id
     size_t               id;
@@ -429,7 +429,7 @@ public:
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
 
-    // SoftFever
+    // OrcaSlicer
     size_t get_klipper_object_id() const { return m_klipper_object_id; }
     void set_klipper_object_id(size_t id) { m_klipper_object_id = id; }
 
@@ -517,7 +517,7 @@ private:
 
     PrintObject*                            m_shared_object{ nullptr };
 
-    // SoftFever
+    // OrcaSlicer
     // 
     // object id for klipper firmware only
     size_t               m_klipper_object_id;
@@ -807,7 +807,7 @@ public:
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
     std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
-    //SoftFever
+    //OrcaSlicer
     CalibMode &         calib_mode() { return m_calib_params.mode; }
     const CalibMode&    calib_mode() const { return m_calib_params.mode; }
     void                set_calib_params(const Calib_Params &params);
@@ -869,7 +869,7 @@ private:
     ConflictResultOpt m_conflict_result;
     FakeWipeTower     m_fake_wipe_tower;
 
-    // SoftFever: calibration
+    // OrcaSlicer: calibration
     Calib_Params m_calib_params;
 
     // To allow GCode to set the Print's GCodeExport step status.

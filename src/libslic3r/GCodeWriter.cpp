@@ -196,7 +196,7 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     std::ostringstream gcode;
     if (pa < 0) return gcode.str();
     if (false) { // todo: bbl printer
-        // SoftFever: set L1000 to use linear model
+        // OrcaSlicer: set L1000 to use linear model
         gcode << "M900 K" << std::setprecision(4) << pa << " L1000 M10 ; Override pressure advance value\n";
     } else {
         if (this->config.gcode_flavor == gcfKlipper)
