@@ -105,7 +105,7 @@ bool FilamentComboBox::Enable(bool enable) {
     return result;
 }
 
-void FilamentComboBox::SetValue(bool value) {
+void FilamentComboBox::SetValue(bool value, bool send_event) {
     if (m_radioBox) {
         if (value == m_radioBox->GetValue()) {
             if (m_checkBox) {
@@ -121,10 +121,12 @@ void FilamentComboBox::SetValue(bool value) {
         m_radioBox->SetValue(value);
     if (m_checkBox)
         m_checkBox->SetValue(value);
-    SimpleEvent e(EVT_CALIBRATION_TRAY_SELECTION_CHANGED);
-    e.ResumePropagation(wxEVENT_PROPAGATE_MAX);
-    e.SetEventObject(this);
-    GetEventHandler()->ProcessEvent(e);
+    if (send_event) {
+        SimpleEvent e(EVT_CALIBRATION_TRAY_SELECTION_CHANGED);
+        e.ResumePropagation(wxEVENT_PROPAGATE_MAX);
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(e);
+    }
 }
 
 CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -254,6 +256,7 @@ CalibrationWizardPage* CalibrationWizard::create_presets_page(bool need_custom_r
     m_filament_list_panel = new wxPanel(m_presets_panel);
     auto filament_list_sizer = new wxBoxSizer(wxVERTICAL);
     auto filament_list_tips = new wxStaticText(m_filament_list_panel, wxID_ANY, _L("Please select same type of material, because plate temperature might not be compatible with different type of material"), wxDefaultPosition, wxDefaultSize, 0);
+    filament_list_tips->Hide();
     filament_list_tips->SetFont(Label::Body_13);
     filament_list_tips->SetForegroundColour(wxColour(145, 145, 145));
     filament_list_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
@@ -420,11 +423,6 @@ CalibrationWizardPage* CalibrationWizard::create_presets_page(bool need_custom_r
 
     printing_param_sizer->AddSpacer(FromDIP(10));
 
-    auto printing_param_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Printing Parameters"));
-    printing_param_text->SetFont(Label::Head_12);
-    printing_param_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    printing_param_sizer->Add(printing_param_text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-
     auto info_sizer = new wxFlexGridSizer(0, 3, 0, FromDIP(10));
     info_sizer->SetFlexibleDirection(wxBOTH);
     info_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
@@ -436,14 +434,20 @@ CalibrationWizardPage* CalibrationWizard::create_presets_page(bool need_custom_r
     m_nozzle_temp->SetBorderWidth(0);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
     nozzle_temp_sizer->Add(m_nozzle_temp, 0, wxEXPAND);
+    nozzle_temp_text->Hide();
+    m_nozzle_temp->Hide();
 
-    auto bed_temp_sizer = new wxBoxSizer(wxVERTICAL);
+    auto bed_temp_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto printing_param_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Printing Parameters"));
+    printing_param_text->SetFont(Label::Head_12);
+    printing_param_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    bed_temp_sizer->Add(printing_param_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
     auto bed_temp_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Bed temperature"));
     bed_temp_text->SetFont(Label::Body_12);
     m_bed_temp = new TextInput(printing_param_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_bed_temp->SetBorderWidth(0);
-    bed_temp_sizer->Add(bed_temp_text, 0, wxALIGN_LEFT);
-    bed_temp_sizer->Add(m_bed_temp, 0, wxEXPAND);
+    bed_temp_sizer->Add(bed_temp_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
+    bed_temp_sizer->Add(m_bed_temp, 0, wxALIGN_CENTER);
 
     auto max_flow_sizer = new wxBoxSizer(wxVERTICAL);
     auto max_flow_text = new wxStaticText(printing_param_panel, wxID_ANY, _L("Max volumetric speed"));
@@ -452,6 +456,8 @@ CalibrationWizardPage* CalibrationWizard::create_presets_page(bool need_custom_r
     m_max_volumetric_speed->SetBorderWidth(0);
     max_flow_sizer->Add(max_flow_text, 0, wxALIGN_LEFT);
     max_flow_sizer->Add(m_max_volumetric_speed, 0, wxEXPAND);
+    max_flow_text->Hide();
+    m_max_volumetric_speed->Hide();
 
     m_nozzle_temp->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto&) {});
     m_bed_temp->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto&) {});
@@ -851,7 +857,7 @@ void CalibrationWizard::on_click_btn_prev(IntEvent& event)
             msg_dlg.ShowModal();
             return;
         }
-        MessageDialog msg_dlg(nullptr, _L("It will restart to get the results. Do you confirm to recalibrate?"), wxEmptyString, wxICON_WARNING | wxYES | wxNO);
+        MessageDialog msg_dlg(nullptr, _L("It will restart to get the results. Do you confirm to re-calibrate?"), wxEmptyString, wxICON_WARNING | wxYES | wxNO);
         auto answer  = msg_dlg.ShowModal();
         if (answer == wxID_NO)
             return;
@@ -867,7 +873,6 @@ void CalibrationWizard::on_click_btn_prev(IntEvent& event)
 
         init_presets_selections();
         change_ams_select_mode();
-        wxGetApp().preset_bundle->set_calibrate_printer("");
         on_update_ams_filament(false);
         on_switch_ams(m_ams_item_list[0]->m_amsinfo.ams_id);
         for (auto fcb : m_filament_comboBox_list)
@@ -908,7 +913,7 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
             return;
         }
 
-        if (!m_printer_preset || !m_filament_preset || !m_print_preset) {
+        if (!m_printer_preset || m_filament_presets.empty() || !m_print_preset) {
             wxString tips;
             if (!m_printer_preset) {
                 tips = _L("Please select a printer and nozzle for calibration.");
@@ -973,12 +978,11 @@ void CalibrationWizard::init_printer_calib_info_from_appconfig() {
     for (int i = 0; i < infos.size(); i++) {
         if (m_printer_calib_infos.find(infos[i].dev_id) == m_printer_calib_infos.end()) {
             m_printer_calib_infos[infos[i].dev_id].dev_id = infos[i].dev_id;
-            m_printer_calib_infos[infos[i].dev_id].filament_preset = infos[i].filament_preset;
+            m_printer_calib_infos[infos[i].dev_id].filament_presets = infos[i].filament_presets;
             m_printer_calib_infos[infos[i].dev_id].mode = infos[i].mode;
             m_printer_calib_infos[infos[i].dev_id].state = infos[i].state;
             //m_printer_calib_infos[infos[i].dev_id].nozzle_dia = infos[i].nozzle_dia;
             //m_printer_calib_infos[infos[i].dev_id].bed_type = infos[i].bed_type;
-            m_printer_calib_infos[infos[i].dev_id].tray_ids = infos[i].tray_ids;
         }
     }
 }
@@ -987,11 +991,11 @@ void CalibrationWizard::save_to_printer_calib_info(PageType page_type) {
     m_printer_calib_infos[curr_obj->dev_id].dev_id = curr_obj->dev_id;
     m_printer_calib_infos[curr_obj->dev_id].mode = m_mode;
     m_printer_calib_infos[curr_obj->dev_id].state = static_cast<Slic3r::CalibState>(page_type);
-    if (m_filament_preset)
-        m_printer_calib_infos[curr_obj->dev_id].filament_preset = m_filament_preset->name;
+    for (auto filament_preset : m_filament_presets) {
+        m_printer_calib_infos[curr_obj->dev_id].filament_presets[filament_preset.first] = filament_preset.second->name;
+    }
     //m_printer_calib_infos[curr_obj->dev_id].nozzle_dia = stof(m_comboBox_nozzle_dia->GetValue().ToStdString());
     //m_printer_calib_infos[curr_obj->dev_id].bed_type = (int)(m_comboBox_bed_type->GetSelection() + btDefault + 1);
-    m_printer_calib_infos[curr_obj->dev_id].tray_ids = get_selected_tray();
     wxGetApp().app_config->save_printer_cali_infos(m_printer_calib_infos[curr_obj->dev_id]);
 }
 
@@ -1088,9 +1092,9 @@ void CalibrationWizard::update_print_progress()
                         reset_printing_values();
 #ifdef CALIBRATION_DEBUG
                     if (m_curr_page->get_page_type() == PageType::Calibration) 
+#else
+                    if (curr_obj->print_status == "FINISH" && m_curr_page->get_page_type() == PageType::Calibration)
 #endif
-                    // todo: the printer status is not correct
-                    if (/*curr_obj->print_status == "FINISH" &&*/ m_curr_page->get_page_type() == PageType::Calibration)
                     {
                         m_button_abort->Enable(false);
                         m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());
@@ -1198,7 +1202,8 @@ void CalibrationWizard::on_subtask_abort(wxCommandEvent& event)
     if (msg_dlg.ShowModal() == wxID_OK) {
         if (curr_obj) curr_obj->command_task_abort();
         m_btn_recali->Show();
-        Layout();
+        show_page(get_frist_page());
+        save_to_printer_calib_info(PageType::Start);
     }
     //if (abort_dlg == nullptr) {
     //    abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
@@ -1228,14 +1233,14 @@ std::vector<int> CalibrationWizard::get_selected_tray()
     }
     else {
         if (get_ams_select_mode() == FilamentSelectMode::FSMCheckBoxMode) {
-            for (auto fcb : m_filament_comboBox_list) {
+            for (auto& fcb : m_filament_comboBox_list) {
                 if (fcb->GetCheckBox()->GetValue()) {
                     tray_ids.push_back(fcb->get_tray_id());
                 }
             }
         }
         else if (get_ams_select_mode() == FilamentSelectMode::FSMRadioMode) {
-            for (auto fcb : m_filament_comboBox_list) {
+            for (auto& fcb : m_filament_comboBox_list) {
                 if (fcb->GetRadioBox()->GetValue()) {
                     tray_ids.push_back(fcb->get_tray_id());
                 }
@@ -1259,21 +1264,22 @@ void CalibrationWizard::set_selected_tray(const std::vector<int>& tray_ids)
         m_filament_from_ext_spool = false;
         for (int tray_id : tray_ids) {
             if (get_ams_select_mode() == FilamentSelectMode::FSMCheckBoxMode) {
-                for (auto fcb : m_filament_comboBox_list) {
+                for (auto& fcb : m_filament_comboBox_list) {
                     if (fcb->get_tray_id() == tray_id) {
-                        fcb->SetValue(true);
+                        fcb->SetValue(true, false);
                     }
                 }
             }
             else if (get_ams_select_mode() == FilamentSelectMode::FSMRadioMode) {
-                for (auto fcb : m_filament_comboBox_list) {
+                for (auto& fcb : m_filament_comboBox_list) {
                     if (fcb->get_tray_id() == tray_id) {
-                        fcb->SetValue(true);
+                        fcb->SetValue(true, false);
                     }
                 }
             }
         }
     }
+    recommend_input_value();
 }
 
 FilamentComboBoxList CalibrationWizard::get_selected_filament_comboBox()
@@ -1286,14 +1292,14 @@ FilamentComboBoxList CalibrationWizard::get_selected_filament_comboBox()
     }
     else {
         if (get_ams_select_mode() == FilamentSelectMode::FSMCheckBoxMode) {
-            for (auto fcb : m_filament_comboBox_list) {
+            for (auto& fcb : m_filament_comboBox_list) {
                 if (fcb->GetCheckBox()->GetValue()) {
                     fcb_list.push_back(fcb);
                 }
             }
         }
         else if (get_ams_select_mode() == FilamentSelectMode::FSMRadioMode) {
-            for (auto fcb : m_filament_comboBox_list) {
+            for (auto& fcb : m_filament_comboBox_list) {
                 if (fcb->GetRadioBox()->GetValue()) {
                     fcb_list.push_back(fcb);
                 }
@@ -1399,12 +1405,12 @@ void CalibrationWizard::update_printer() {
         if (new_obj != curr_obj) {
             curr_obj = new_obj;
             wxGetApp().sidebar().load_ams_list(new_obj->dev_id, new_obj);
+            wxGetApp().preset_bundle->set_calibrate_printer("");
             init_presets_selections();
             change_ams_select_mode();
-            wxGetApp().preset_bundle->set_calibrate_printer("");
             on_update_ams_filament(false);
             on_switch_ams(m_ams_item_list[0]->m_amsinfo.ams_id);
-            for (auto fcb : m_filament_comboBox_list)
+            for (auto& fcb : m_filament_comboBox_list)
                 fcb->SetValue(false);
             m_virtual_tray_comboBox->SetValue(false);
 
@@ -1417,14 +1423,19 @@ void CalibrationWizard::update_printer() {
             if (it != m_printer_calib_infos.end() && it->second.mode == m_mode) {
                 PresetBundle* preset_bundle = wxGetApp().preset_bundle;
                 if (preset_bundle) {
-                    for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
-                        if (filament_it->name == m_printer_calib_infos[curr_obj->dev_id].filament_preset) {
-                            m_filament_preset = (&*filament_it);
-
+                    for (auto filament_preset : m_printer_calib_infos[curr_obj->dev_id].filament_presets) {
+                        for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+                            if (filament_it->name == filament_preset.second) {
+                                m_filament_presets[filament_preset.first] = (&*filament_it);
+                            }
                         }
                     }
                 }
-                set_selected_tray(it->second.tray_ids);
+                std::vector<int> tray_ids;
+                for (auto filament_preset : it->second.filament_presets) {
+                    tray_ids.push_back(filament_preset.first);
+                }
+                set_selected_tray(tray_ids);
                 jump_to_page(static_cast<PageType>(m_printer_calib_infos[curr_obj->dev_id].state));
             }
             else {
@@ -1502,40 +1513,62 @@ void CalibrationWizard::on_switch_ams(std::string ams_id)
     Layout();
 }
 
+static std::map<std::string, bool> filament_is_high_temp{
+        {"PLA",     false},
+        {"PLA-CF",  false},
+        //{"PETG",    true},
+        {"ABS",     true},
+        {"TPU",     false},
+        {"PA",      true},
+        {"PA-CF",   true},
+        {"PET-CF",  true},
+        {"PC",      true},
+        {"ASA",     true},
+        {"HIPS",    true}
+};
+
 void CalibrationWizard::on_select_tray(SimpleEvent& evt) {
     // when set selection of comboBox or select a checkbox/radio will enter
 
     FilamentComboBoxList fcb_list = get_selected_filament_comboBox();
     if (fcb_list.empty()) {
-        m_filament_preset = nullptr;
+        m_filament_presets.clear();
         m_filaments_incompatible_tips->SetLabel("");
         m_filaments_incompatible_tips->Hide();
         recommend_input_value();
         return;
     }
-
-    auto first_preset = fcb_list[0]->GetComboBox()->get_selected_preset();
-    if(!first_preset) {
-        m_filament_preset = nullptr;
-        recommend_input_value();
-        return;
+    // check compatibility
+    bool has_high_temperature_filament = false;
+    bool has_low_temperature_filament = false;
+    wxString hight_temp_filament_type;
+    wxString low_temp_filament_type;
+    for (auto& fcb : fcb_list) {
+        wxString filament_type = fcb->GetComboBox()->get_selected_preset()->alias;
+        for (auto& item : filament_is_high_temp) {
+            if (filament_type.Contains(item.first)) {
+                if (item.second == true) {
+                    has_high_temperature_filament = true;
+                    hight_temp_filament_type = item.first;
+                }
+                else {
+                    has_low_temperature_filament = true;
+                    low_temp_filament_type = item.first;
+                }
+            }
+        }
     }
-
-    bool all_preset_same = true;
-    for (auto fcb : fcb_list) {
-        auto selected_preset = fcb->GetComboBox()->get_selected_preset();
-        if (selected_preset && selected_preset->filament_id != first_preset->filament_id)
-            all_preset_same = false;
-    }
-    if (!all_preset_same) {
-        m_filament_preset = nullptr;
-        wxString tips = wxString(_L("filaments incompatible, please select same type of material"));
+    if (has_high_temperature_filament && has_low_temperature_filament) {
+        m_filament_presets.clear();
+        wxString tips = wxString::Format(_L("Unable to print %s and %s together. Filaments have large bed temperature difference"), hight_temp_filament_type, low_temp_filament_type);
         m_filaments_incompatible_tips->SetLabel(tips);
         m_filaments_incompatible_tips->Show();
         Layout();
     }
     else {
-        m_filament_preset = const_cast<Preset*>(first_preset);
+        for (auto& fcb : fcb_list) {
+            m_filament_presets[fcb->get_tray_id()] = (const_cast<Preset*>(fcb->GetComboBox()->get_selected_preset()));
+        }
         m_filaments_incompatible_tips->SetLabel("");
         m_filaments_incompatible_tips->Hide();
         Layout();
@@ -1618,7 +1651,7 @@ void CalibrationWizard::on_update_ams_filament(bool dialog)
 }
 
 bool CalibrationWizard::recommend_input_value() {
-    if (!m_filament_preset){
+    if (m_filament_presets.empty()) {
         m_nozzle_temp->GetTextCtrl()->SetValue(wxEmptyString);
         m_bed_temp->GetTextCtrl()->SetValue(wxEmptyString);
         m_max_volumetric_speed->GetTextCtrl()->SetValue(wxEmptyString);
@@ -1627,50 +1660,53 @@ bool CalibrationWizard::recommend_input_value() {
         return false;
     }
 
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     int bed_temp_int = -1;
+    bool bed_temp_compatible = true;
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
-        // update nozzle temperature
-        ConfigOption* opt_nozzle_temp = m_filament_preset->config.option("nozzle_temperature");
-        if (opt_nozzle_temp) {
-            ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_nozzle_temp);
-            if (opt_min_ints) {
-                wxString text_nozzle_temp = wxString::Format("%d", opt_min_ints->get_at(0));
-                m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
+        for (auto& filament_preset : m_filament_presets) {
+            // update nozzle temperature
+            ConfigOption* opt_nozzle_temp = filament_preset.second->config.option("nozzle_temperature");
+            if (opt_nozzle_temp) {
+                ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_nozzle_temp);
+                if (opt_min_ints) {
+                    wxString text_nozzle_temp = wxString::Format("%d", opt_min_ints->get_at(0));
+                    m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
+                }
             }
-        }
-        // update bed temperature
-        bed_temp_int = get_bed_temp(&m_filament_preset->config);
-        wxString bed_temp_text = wxString::Format("%d", bed_temp_int);
-        m_bed_temp->GetTextCtrl()->SetValue(bed_temp_text);
-        // update max flow speed
-        ConfigOption* opt_flow_speed = m_filament_preset->config.option("filament_max_volumetric_speed");
-        if (opt_flow_speed) {
-            ConfigOptionFloats* opt_flow_floats = dynamic_cast<ConfigOptionFloats*>(opt_flow_speed);
-            if (opt_flow_floats) {
-                wxString flow_val_text = wxString::Format("%0.2f", opt_flow_floats->get_at(0));
-                m_max_volumetric_speed->GetTextCtrl()->SetValue(flow_val_text);
+            // update bed temperature
+            bed_temp_int = get_bed_temp(&filament_preset.second->config);
+            wxString bed_temp_text = wxString::Format("%d", bed_temp_int);
+            m_bed_temp->GetTextCtrl()->SetValue(bed_temp_text);
+            // update max flow speed
+            ConfigOption* opt_flow_speed = filament_preset.second->config.option("filament_max_volumetric_speed");
+            if (opt_flow_speed) {
+                ConfigOptionFloats* opt_flow_floats = dynamic_cast<ConfigOptionFloats*>(opt_flow_speed);
+                if (opt_flow_floats) {
+                    wxString flow_val_text = wxString::Format("%0.2f", opt_flow_floats->get_at(0));
+                    m_max_volumetric_speed->GetTextCtrl()->SetValue(flow_val_text);
+                }
             }
-        }
 
-        // check compatibility
-        if (m_bed_temp->GetTextCtrl()->GetValue().compare("0") == 0) {
-            m_nozzle_temp->GetTextCtrl()->SetValue(wxEmptyString);
-            m_bed_temp->GetTextCtrl()->SetValue(wxEmptyString);
-            m_max_volumetric_speed->GetTextCtrl()->SetValue(wxEmptyString);
-            wxString tips = wxString::Format(_L("%s does not support %s"), m_comboBox_bed_type->GetValue(), m_filament_preset->alias);
-            m_bed_type_incompatible_tips->SetLabel(tips);
-            m_bed_type_incompatible_tips->Update();
-            m_bed_type_incompatible_tips->Show();
-            Layout();
-            return false;
-        }
-        else {
-            m_bed_type_incompatible_tips->SetLabel("");
-            m_bed_type_incompatible_tips->Hide();
+            // check compatibility
+            if (m_bed_temp->GetTextCtrl()->GetValue().compare("0") <= 0) {
+                m_nozzle_temp->GetTextCtrl()->SetValue(wxEmptyString);
+                m_bed_temp->GetTextCtrl()->SetValue(wxEmptyString);
+                m_max_volumetric_speed->GetTextCtrl()->SetValue(wxEmptyString);
+                wxString tips = wxString::Format(_L("%s is not compatible with %s"), m_comboBox_bed_type->GetValue(), filament_preset.second->alias);
+                m_bed_type_incompatible_tips->SetLabel(tips);
+                m_bed_type_incompatible_tips->Update();
+                m_bed_type_incompatible_tips->Show();
+                Layout();
+                bed_temp_compatible = false;
+            }
+            else {
+                m_bed_type_incompatible_tips->SetLabel("");
+                m_bed_type_incompatible_tips->Hide();
+            }
         }
     }
-    return true;
+    return bed_temp_compatible;
 }
 
 int CalibrationWizard::get_bed_temp(DynamicPrintConfig* config)
@@ -1683,16 +1719,16 @@ int CalibrationWizard::get_bed_temp(DynamicPrintConfig* config)
     return -1;
 }
 
-bool CalibrationWizard::save_presets(const std::string& config_key, ConfigOption* config_value, const std::string& name)
+bool CalibrationWizard::save_presets(Preset* preset, const std::string& config_key, ConfigOption* config_value, const std::string& name)
 {
     auto filament_presets = &wxGetApp().preset_bundle->filaments;
-    DynamicPrintConfig* filament_config = &m_filament_preset->config;
+    DynamicPrintConfig* filament_config = &preset->config;
 
     bool save_to_project = false;
 
     filament_config->set_key_value(config_key, config_value);
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    filament_presets->save_current_preset(name, false, save_to_project, m_filament_preset);
+    filament_presets->save_current_preset(name, false, save_to_project, preset);
 
     Preset* new_preset = filament_presets->find_preset(name, false, true);
     if (!new_preset) {
@@ -2088,7 +2124,7 @@ void PressureAdvanceWizard::sync_save_page_data() {
     grid_sizer->Add(left_title_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
 
-    for (auto fcb : fcb_list) {
+    for (auto& fcb : fcb_list) {
         bool result_failed = false;
         auto it_result = std::find_if(m_calib_results.begin(), m_calib_results.end(), [fcb](auto& calib_result) {
             return calib_result.tray_id == fcb->get_tray_id();
@@ -2135,7 +2171,7 @@ void PressureAdvanceWizard::sync_save_page_data() {
             static std::vector<PACalibResult> filtered_results;
             filtered_results.clear();
             for (auto history : m_calib_results_history) {
-                if (history.setting_id == m_filament_preset->setting_id) {
+                if (history.setting_id == m_filament_presets[fcb->get_tray_id()]->setting_id) {
                     filtered_results.push_back(history);
                     selections.push_back(history.name);
                 }
@@ -2261,6 +2297,10 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
     int bed_temp = -1;
     float max_volumetric_speed = -1;
 
+    if (m_nozzle_temp->GetTextCtrl()->GetValue().IsEmpty() ||
+        m_bed_temp->GetTextCtrl()->GetValue().IsEmpty() ||
+        m_max_volumetric_speed->GetTextCtrl()->GetValue().IsEmpty())
+        return false;
     nozzle_temp = stoi(m_nozzle_temp->GetTextCtrl()->GetValue().ToStdString());
     bed_temp = stoi(m_bed_temp->GetTextCtrl()->GetValue().ToStdString());
     max_volumetric_speed = stof(m_max_volumetric_speed->GetTextCtrl()->GetValue().ToStdString());
@@ -2275,11 +2315,13 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
         m_calib_results.clear();
         X1CCalibInfos calib_infos;
         for (int tray_id : tray_ids) {
+            if (m_filament_presets.find(tray_id) == m_filament_presets.end())
+                return false;
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id = tray_id;
             calib_info.nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
-            calib_info.filament_id = m_filament_preset->filament_id;
-            calib_info.setting_id = m_filament_preset->setting_id;
+            calib_info.filament_id = m_filament_presets[tray_id]->filament_id;
+            calib_info.setting_id = m_filament_presets[tray_id]->setting_id;
             calib_info.bed_temp = bed_temp;
             calib_info.nozzle_temp = nozzle_temp;
             calib_info.max_volumetric_speed = max_volumetric_speed;
@@ -2297,7 +2339,7 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
         return true;
     }
     else {
-        curr_obj->command_start_extrusion_cali(tray_ids[0], nozzle_temp, bed_temp, max_volumetric_speed, m_filament_preset->setting_id);
+        curr_obj->command_start_extrusion_cali(tray_ids[0], nozzle_temp, bed_temp, max_volumetric_speed, m_filament_presets.begin()->second->setting_id);
         show_page(get_curr_page()->get_next_page());
         return true;
     }
@@ -2381,8 +2423,8 @@ bool PressureAdvanceWizard::save_calibration_result()
         nozzle_temp = stoi(m_nozzle_temp->GetTextCtrl()->GetValue().ToStdString());
         bed_temp = stoi(m_bed_temp->GetTextCtrl()->GetValue().ToStdString());
         max_volumetric_speed = stof(m_max_volumetric_speed->GetTextCtrl()->GetValue().ToStdString());
-        setting_id = m_filament_preset->setting_id;
-        name = m_filament_preset->name;
+        setting_id = m_filament_presets.begin()->second->setting_id;
+        name = m_filament_presets.begin()->second->name;
 
         // send command
         std::vector<int> tray_ids = get_selected_tray();
@@ -2467,8 +2509,8 @@ FlowRateWizard::FlowRateWizard(wxWindow* parent, wxWindowID id, const wxPoint& p
 }
 
 void FlowRateWizard::set_save_name() {
-    if (m_filament_preset) {
-        m_save_name = m_filament_preset->alias + "-Calibrated";
+    if (m_filament_presets.size() > 0) {
+        m_save_name = m_filament_presets.begin()->second->alias + "-Calibrated";
     }
     else { m_save_name = ""; }
     if (!is_high_end_type(curr_obj)) {
@@ -2656,16 +2698,16 @@ void FlowRateWizard::create_low_end_pages() {
     show_page(m_curr_page);
 
     m_optimal_block_coarse->Bind(wxEVT_COMBOBOX, [this](auto& e) {
-        if (m_filament_preset) {
-            DynamicPrintConfig& filament_config = m_filament_preset->config;
+        if (m_filament_presets.begin()->second) {
+            DynamicPrintConfig& filament_config = m_filament_presets.begin()->second->config;
             auto curr_flow_ratio = filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
             m_coarse_calc_result = curr_flow_ratio * (100.0f + stof(m_optimal_block_coarse->GetValue().ToStdString())) / 100.0f;
             m_coarse_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_coarse_calc_result)));
         }
         });
     m_optimal_block_fine->Bind(wxEVT_COMBOBOX, [this](auto& e) {
-        if (m_filament_preset) {
-            DynamicPrintConfig& filament_config = m_filament_preset->config;
+        if (m_filament_presets.begin()->second) {
+            DynamicPrintConfig& filament_config = m_filament_presets.begin()->second->config;
             auto curr_flow_ratio = filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
             m_fine_calc_result = curr_flow_ratio * (100.0f + stof(m_optimal_block_fine->GetValue().ToStdString())) / 100.0f;
             m_fine_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_fine_calc_result)));
@@ -2874,7 +2916,7 @@ void FlowRateWizard::sync_save_page_data() {
     grid_sizer->AddSpacer(COLUMN_GAP);
 
     FilamentComboBoxList fcb_list = get_selected_filament_comboBox();
-    for (auto fcb : fcb_list) {
+    for (auto& fcb : fcb_list) {
         bool result_failed = false;
         auto it_result = std::find_if(m_calib_results.begin(), m_calib_results.end(), [fcb](auto& calib_result) {
             return calib_result.tray_id == fcb->get_tray_id();
@@ -2909,7 +2951,7 @@ void FlowRateWizard::sync_save_page_data() {
             save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, fcb, save_name_input](auto& e) {
                 m_high_end_save_names[fcb->get_tray_id()] = save_name_input->GetTextCtrl()->GetValue().ToStdString();
                 e.Skip();
-        });
+                });
             save_name_input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, fcb, save_name_input](auto& e) {
                 m_high_end_save_names[fcb->get_tray_id()] = save_name_input->GetTextCtrl()->GetValue().ToStdString();
                 });
@@ -2995,6 +3037,10 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
     int bed_temp = -1;
     float max_volumetric_speed = -1;
 
+    if (m_nozzle_temp->GetTextCtrl()->GetValue().IsEmpty() ||
+        m_bed_temp->GetTextCtrl()->GetValue().IsEmpty() ||
+        m_max_volumetric_speed->GetTextCtrl()->GetValue().IsEmpty())
+        return false;
     nozzle_temp = stoi(m_nozzle_temp->GetTextCtrl()->GetValue().ToStdString());
     bed_temp = stoi(m_bed_temp->GetTextCtrl()->GetValue().ToStdString());
     max_volumetric_speed = stof(m_max_volumetric_speed->GetTextCtrl()->GetValue().ToStdString());
@@ -3009,15 +3055,17 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
         m_calib_results.clear();
         X1CCalibInfos calib_infos;
         for (int tray_id : tray_ids) {
+            if (m_filament_presets.find(tray_id) == m_filament_presets.end())
+                return false;
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id = tray_id;
             calib_info.nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
-            calib_info.filament_id = m_filament_preset->filament_id;
-            calib_info.setting_id = m_filament_preset->setting_id;
+            calib_info.filament_id = m_filament_presets.at(tray_id)->filament_id;
+            calib_info.setting_id = m_filament_presets.at(tray_id)->setting_id;
             calib_info.bed_temp = bed_temp;
             calib_info.nozzle_temp = nozzle_temp;
             calib_info.max_volumetric_speed = max_volumetric_speed;
-            calib_info.flow_rate = m_filament_preset->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+            calib_info.flow_rate = m_filament_presets.at(tray_id)->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
             calib_infos.calib_datas.push_back(calib_info);
         }
         std::string error_message;
@@ -3052,7 +3100,7 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
         calib_info.process_bar = m_send_progress_bar;
         calib_info.bed_type = BedType(m_comboBox_bed_type->GetSelection() + btDefault + 1);
         calib_info.printer_prest = m_printer_preset;
-        calib_info.filament_prest = m_filament_preset;
+        calib_info.filament_prest = m_filament_presets.begin()->second;
         calib_info.print_prest = m_print_preset;
 
         std::string error_message;
@@ -3074,12 +3122,12 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
 bool FlowRateWizard::save_calibration_result()
 {
     if (is_high_end_type(curr_obj)) {
-        DynamicPrintConfig& filament_config = m_filament_preset->config;
         for (int i = 0; i < m_calib_results.size(); i++) {
+            DynamicPrintConfig& filament_config = m_filament_presets[m_calib_results[i].tray_id]->config; //todo access overflow
             // todo if names are same, will be covered
             auto it = m_high_end_save_names.find(m_calib_results[i].tray_id);
             if (it != m_high_end_save_names.end() && !it->second.empty()) {
-                save_presets("filament_flow_ratio", new ConfigOptionFloats{ m_calib_results[i].flow_ratio }, it->second);
+                save_presets(m_filament_presets.at(m_calib_results[i].tray_id), "filament_flow_ratio", new ConfigOptionFloats{ m_calib_results[i].flow_ratio }, it->second);
                 return true;
             }
 
@@ -3115,8 +3163,7 @@ bool FlowRateWizard::save_calibration_result()
             msg_dlg.ShowModal();
             return false;
         }
-        DynamicPrintConfig& filament_config = m_filament_preset->config;
-        save_presets("filament_flow_ratio", new ConfigOptionFloats{ result_value }, m_save_name);
+        save_presets(m_filament_presets.begin()->second, "filament_flow_ratio", new ConfigOptionFloats{ result_value }, m_save_name);
         reset_reuse_panels();
         return true;
     }
@@ -3144,6 +3191,7 @@ void FlowRateWizard::reset_print_panel_to_page(CalibrationWizardPage* page, wxBo
 void FlowRateWizard::reset_send_progress_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer)
 {
     m_send_progress_panel->Reparent(page);
+    sizer->Insert(1, m_send_progress_panel, 0, wxALIGN_CENTER, 0);
 }
 
 void FlowRateWizard::on_fine_tune(wxCommandEvent& e) {
@@ -3153,7 +3201,7 @@ void FlowRateWizard::on_fine_tune(wxCommandEvent& e) {
         return;
     }
 
-    DynamicPrintConfig& filament_config = m_filament_preset->config;
+    DynamicPrintConfig& filament_config = m_filament_presets.begin()->second->config;
     filament_config.set_key_value("filament_flow_ratio", new ConfigOptionFloats{ m_coarse_calc_result });
 
     reset_send_progress_to_page(m_low_end_page3, m_low_end_page3->get_btn_hsizer());
@@ -3187,8 +3235,8 @@ MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID 
 }
 
 void MaxVolumetricSpeedWizard::set_save_name() {
-    if (m_filament_preset) {
-        m_save_name = m_filament_preset->alias + "-Calibrated";
+    if (m_filament_presets.begin()->second) {
+        m_save_name = m_filament_presets.begin()->second->alias + "-Calibrated";
     }
     else { m_save_name = ""; }
     m_save_name_input->GetTextCtrl()->SetValue(m_save_name);
@@ -3369,7 +3417,7 @@ bool MaxVolumetricSpeedWizard::start_calibration(std::vector<int> tray_ids)
     calib_info.process_bar = m_send_progress_bar;
     calib_info.bed_type       = BedType(m_comboBox_bed_type->GetSelection() + btDefault + 1);
     calib_info.printer_prest  = m_printer_preset;
-    calib_info.filament_prest = m_filament_preset;
+    calib_info.filament_prest = m_filament_presets.begin()->second;
     calib_info.print_prest    = m_print_preset;
 
     std::string error_message;
@@ -3398,7 +3446,7 @@ bool MaxVolumetricSpeedWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-    save_presets("filament_max_volumetric_speed", new ConfigOptionFloats{ max_volumetric_speed }, m_save_name);
+    save_presets(m_filament_presets.begin()->second, "filament_max_volumetric_speed", new ConfigOptionFloats{ max_volumetric_speed }, m_save_name);
     return true;
 }
 
@@ -3431,8 +3479,8 @@ TemperatureWizard::TemperatureWizard(wxWindow* parent, wxWindowID id, const wxPo
 }
 
 void TemperatureWizard::set_save_name() {
-    if (m_filament_preset) {
-        m_save_name = m_filament_preset->alias + "-Calibrated";
+    if (m_filament_presets.begin()->second) {
+        m_save_name = m_filament_presets.begin()->second->alias + "-Calibrated";
     }
     else { m_save_name = ""; }
     m_save_name_input->GetTextCtrl()->SetValue(m_save_name);
@@ -3603,7 +3651,7 @@ bool TemperatureWizard::start_calibration(std::vector<int> tray_ids)
     calib_info.process_bar = m_send_progress_bar;
     calib_info.bed_type = BedType(m_comboBox_bed_type->GetSelection() + btDefault + 1);
     calib_info.printer_prest  = m_printer_preset;
-    calib_info.filament_prest = m_filament_preset;
+    calib_info.filament_prest = m_filament_presets.begin()->second;
     calib_info.print_prest    = m_print_preset;
 
     std::string error_message;
@@ -3631,7 +3679,7 @@ bool TemperatureWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-    save_presets("nozzle_temperature", new ConfigOptionInts(1, temp), m_save_name);
+    save_presets(m_filament_presets.begin()->second, "nozzle_temperature", new ConfigOptionInts(1, temp), m_save_name);
     return true;
 }
 
@@ -3643,7 +3691,7 @@ bool TemperatureWizard::recommend_input_value()
         return false;
     }
     else {
-        wxString filament_name = m_filament_preset->alias;
+        wxString filament_name = m_filament_presets.begin()->second->alias;
 
         int start, end;
         if (filament_name.Contains("ABS") || filament_name.Contains("ASA")) {//todo supplement
@@ -3695,8 +3743,8 @@ RetractionWizard::RetractionWizard(wxWindow* parent, wxWindowID id, const wxPoin
 }
 
 void RetractionWizard::set_save_name() {
-    if (m_filament_preset) {
-        m_save_name = m_filament_preset->alias + "-Calibrated";
+    if (m_filament_presets.begin()->second) {
+        m_save_name = m_filament_presets.begin()->second->alias + "-Calibrated";
     }
     else { m_save_name = ""; }
     m_save_name_input->GetTextCtrl()->SetValue(m_save_name);
@@ -3866,7 +3914,7 @@ bool RetractionWizard::start_calibration(std::vector<int> tray_ids)
     calib_info.process_bar = m_send_progress_bar;
     calib_info.bed_type = BedType(m_comboBox_bed_type->GetSelection() + btDefault + 1);
     calib_info.printer_prest = m_printer_preset;
-    calib_info.filament_prest = m_filament_preset;
+    calib_info.filament_prest = m_filament_presets.begin()->second;
     calib_info.print_prest = m_print_preset;
 
     std::string error_message;
@@ -3894,7 +3942,7 @@ bool RetractionWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-    save_presets("retraction_length", new ConfigOptionFloats{ length }, m_save_name);
+    save_presets(m_filament_presets.begin()->second, "retraction_length", new ConfigOptionFloats{ length }, m_save_name);
     return true;
 }
 

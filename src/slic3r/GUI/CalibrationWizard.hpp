@@ -41,7 +41,7 @@ public:
     void SetRadioBox(wxRadioButton* btn) { m_radioBox = btn; }
     virtual bool Show(bool show = true);
     virtual bool Enable(bool enable);
-    virtual void SetValue(bool value);
+    virtual void SetValue(bool value, bool send_event = true);
 
 protected:
     int m_tray_id;
@@ -129,7 +129,8 @@ protected:
     ComboBox* m_comboBox_bed_type;
     ComboBox* m_comboBox_process;
     Preset* m_printer_preset{nullptr};
-    Preset* m_filament_preset{ nullptr };
+    //Preset* m_filament_preset{ nullptr };
+    std::map<int, Preset*> m_filament_presets;
     Preset* m_print_preset{ nullptr };
     wxStaticText* m_from_text;
     wxStaticText* m_to_text;
@@ -190,7 +191,7 @@ protected:
     void reset_printing_values();
 
     // save
-    bool save_presets(const std::string& config_key, ConfigOption* config_value, const std::string& name);
+    bool save_presets(Preset* preset, const std::string& config_key, ConfigOption* config_value, const std::string& name);
 
     // event handlers
     void on_select_nozzle(wxCommandEvent& evt);
