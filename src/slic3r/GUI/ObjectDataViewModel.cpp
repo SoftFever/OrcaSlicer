@@ -455,14 +455,12 @@ wxBitmap& ObjectDataViewModel::GetWarningBitmap(const std::string& warning_icon_
 wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString name, bool refresh)
 {
     int  plate_idx  = part_plate ? part_plate->get_index() : -1;
-    wxString plate_name = name;
-    if (plate_name == "") {
-        plate_name                   = _L("Plate");
-        std::string plate_CustomName = part_plate ? part_plate->get_plate_name() : "";
-        if (plate_CustomName.length() > 0) {
-            plate_name << " " << plate_idx + 1 << " (" << plate_CustomName << ")";
-        } else {
-            plate_name << " " << plate_idx + 1;
+    wxString plate_name;
+    if (name.empty()) {
+        plate_name = _L("Plate");
+        plate_name += wxString::Format(" %d", plate_idx + 1);
+        if (!part_plate->get_plate_name().empty()) {
+            plate_name += wxString(" (", wxConvUTF8) + from_u8(part_plate->get_plate_name()) + wxString(")", wxConvUTF8);
         }
     }
     auto plate_node = new ObjectDataViewModelNode(part_plate, plate_name);

@@ -6690,9 +6690,15 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
 
 wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) 
 {
-    std::string plate_index_str = "";
+    wxString curr_project_name = m_project_name;
 
-    auto        plate_name      = partplate_list.get_curr_plate()->get_plate_name();
+    std::string plate_index_str = "";
+    std::string plate_name = partplate_list.get_curr_plate()->get_plate_name();
+
+    // remove unsupported characters in filename
+    curr_project_name = from_u8(filter_characters(curr_project_name.ToUTF8().data(), "<>[]:/\\|?*\""));
+    plate_name = filter_characters(plate_name, "<>[]:/\\|?*\"");
+
     if (!plate_name.empty())
         plate_index_str = (boost::format("_%1%") % plate_name).str();
     else if (partplate_list.get_plate_count() > 1)
@@ -6701,24 +6707,24 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
     if (!m_project_folder.empty()) {
         if (!only_filename) {
             if (export_all) {
-                auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
+                auto full_filename = m_project_folder / std::string((curr_project_name + extension).mb_str(wxConvUTF8));
                 return from_path(full_filename);
             } else {
-                auto full_filename = m_project_folder / std::string((m_project_name + plate_index_str + extension).mb_str(wxConvUTF8));
+                auto full_filename = m_project_folder / std::string((curr_project_name + from_u8(plate_index_str) + extension).mb_str(wxConvUTF8));
                 return from_path(full_filename);
             }
         } else {
             if (export_all)
-                return m_project_name + wxString(plate_index_str) + extension;
+                return curr_project_name + extension;
             else
-                return m_project_name + extension;
+                return curr_project_name + from_u8(plate_index_str) + extension;
         }
     } else {
         if (only_filename) {
             if (export_all)
-                return m_project_name + extension;
+                return curr_project_name + extension;
             else
-                return m_project_name + wxString(plate_index_str) + extension;
+                return curr_project_name + from_u8(plate_index_str) + extension;
         }
         else
             return "";
@@ -9876,7 +9882,6 @@ void Plater::export_gcode_3mf(bool export_all)
 
     //BBS replace gcode extension to .gcode.3mf
     default_output_file = default_output_file.replace_extension(".gcode.3mf");
-    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string(),true));
 
     //Get a last save path
     start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
@@ -11914,7 +11919,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             else
                 dlg.sync_print_seq(0);
 
-            dlg.set_plate_name(curr_plate->get_plate_name());
+            wxString curr_plate_name = from_u8(curr_plate->get_plate_name());
+            dlg.set_plate_name(curr_plate_name);
 
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
@@ -11941,7 +11947,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
                 });
             dlg.ShowModal();
 
-            curr_plate->set_plate_name(dlg.get_plate_name().ToStdString());
+            wxString dlg_plate_name = dlg.get_plate_name();
+            curr_plate->set_plate_name(dlg_plate_name.ToUTF8().data());
 
             this->schedule_background_process();
         }

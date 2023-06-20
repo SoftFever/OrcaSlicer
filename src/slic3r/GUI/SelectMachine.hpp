@@ -455,7 +455,6 @@ public:
     wxWindow*   create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
     wxImage *   LoadImageFromBlob(const unsigned char *data, int size);
     PrintDialogStatus  get_status() { return m_print_status; }
-    std::string filter_characters(const std::string& str, const std::string& filterChars);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
 

@@ -571,6 +571,19 @@ inline std::string get_bbl_remain_time_dhms(float time_in_secs)
 
 bool bbl_calc_md5(std::string &filename, std::string &md5_out);
 
+inline std::string filter_characters(const std::string& str, const std::string& filterChars)
+{
+    std::string filteredStr = str;
+
+    auto removeFunc = [&filterChars](char ch) {
+        return filterChars.find(ch) != std::string::npos;
+    };
+
+    filteredStr.erase(std::remove_if(filteredStr.begin(), filteredStr.end(), removeFunc), filteredStr.end());
+
+    return filteredStr;
+}
+
 } // namespace Slic3r
 
 #if WIN32

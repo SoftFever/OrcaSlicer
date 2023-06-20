@@ -552,7 +552,7 @@ protected:
     bool m_no_check = false;
 
     // current plate name
-    std::string m_plate_name;
+    std::string m_plate_name;   // utf8 string
     // Callback to be evoked regularly to update state of the UI thread.
     status_callback_type                    m_status_callback;
 

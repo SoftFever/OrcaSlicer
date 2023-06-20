@@ -149,7 +149,7 @@ private:
     DynamicPrintConfig m_config;
 
     // part plate name
-    std::string          m_name;
+    std::string          m_name;        // utf8 string
     bool                 m_name_change = false;
     GeometryBuffer       m_plate_name_icon;
     mutable unsigned int m_plate_name_vbo_id{0};
