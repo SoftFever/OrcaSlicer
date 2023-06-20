@@ -1056,7 +1056,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     GCodeProcessor::s_IsBBLPrinter = print->is_BBL_printer();
     print->set_started(psGCodeExport);
 
-
     // check if any custom gcode contains keywords used by the gcode processor to
     // produce time estimation and gcode toolpaths
     std::vector<std::pair<std::string, std::string>> validation_res = DoExport::validate_custom_gcode(*print);
@@ -1435,6 +1434,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
     const bool is_bbl_printers = print.is_BBL_printer();
+
     // resets analyzer's tracking data
     m_last_height  = 0.f;
     m_last_layer_z = 0.f;
@@ -1451,9 +1451,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
-    if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
-        // m_layer_count = CalibPressureAdvancePattern(this).num_layers();
-    } else if (print.config().print_sequence == PrintSequence::ByObject) {
+    if (print.config().print_sequence == PrintSequence::ByObject) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
             //BBS: fix the issue that total layer is not right
@@ -1870,6 +1868,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
+    if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
+        CalibPressureAdvancePattern pa_pattern(print.calib_params(), this);
+
+        Model updated_model = print.model();
+        updated_model.plates_custom_gcodes[print.model().curr_plate_index] = pa_pattern.generate_gcodes();
+        print.set_model(updated_model);
+
+        tool_ordering.assign_custom_gcodes(print);
+    }
+
     // SoftFever: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
@@ -1884,81 +1892,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         auto params = print.calib_params();
 
-        // if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
-                CalibPressureAdvanceLine pa_test(this);
+        CalibPressureAdvanceLine pa_test(this);
 
-                double filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
-                Flow pattern_line = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
-                auto fast_speed = std::min(print.default_region_config().outer_wall_speed.value, filament_max_volumetric_speed / pattern_line.mm3_per_mm());
-                auto slow_speed = std::max(20.0, fast_speed / 10.0);
-                
-                pa_test.set_speed(fast_speed, slow_speed);
-                pa_test.draw_numbers() = print.calib_params().print_numbers;
-                
-                gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
-        // } else if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
-        //         CalibPressureAdvancePattern pa_test(this);
-        //         std::vector<std::string> gcode_layers = pa_test.generate_test(params.start, params.end, params.step);
-
-        //         m_max_layer_z = pa_test.max_layer_z();
-        //         coordf_t print_z;
-        //         bool first_layer;
-
-        //         for (auto i = 0; i < gcode_layers.size(); ++i) {
-        //             m_nominal_z = pa_test.layer_z()[i];
-        //             print_z = m_nominal_z;
-
-        //             first_layer = (i == 0);
-        //             m_writer.set_is_first_layer(first_layer);
-
-        //             // add tag for processor
-        //             gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
-        //             // export layer z
-        //             char buf[64];
-        //             sprintf(buf, print.is_BBL_printer() ? "; Z_HEIGHT: %g\n" : ";Z:%g\n", print_z);
-        //             gcode += buf;
-        //             // export layer height
-        //             float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;
-        //             sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), height);
-        //             gcode += buf;
-        //             // update caches
-        //             m_last_layer_z = static_cast<float>(print_z);
-        //             m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
-        //             m_last_height = height;
-
-        //             if (! print.config().before_layer_change_gcode.value.empty()) {
-        //                 DynamicConfig config;
-        //                 config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index + 1));
-        //                 config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
-        //                 config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-        //                 gcode += this->placeholder_parser_process(
-        //                     "before_layer_change_gcode",
-        //                     print.config().before_layer_change_gcode.value,
-        //                     m_writer.extruder()->id(),
-        //                     &config
-        //                 ) + "\n";
-        //             }
-                    
-        //             gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
-
-        //             if (! print.config().layer_change_gcode.value.empty()) {
-        //                 DynamicConfig config;
-        //                 config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index));
-        //                 config.set_key_value("layer_z",     new ConfigOptionFloat(print_z));
-
-        //                 gcode += this->placeholder_parser_process(
-        //                     "layer_change_gcode",
-        //                     print.config().layer_change_gcode.value,
-        //                     m_writer.extruder()->id(),
-        //                     &config
-        //                 ) + "\n";
-
-        //                 config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-        //             }
-
-        //             gcode += gcode_layers[i];
-        //         }
-        // }
+        double filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
+        Flow pattern_line = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
+        auto fast_speed = std::min(print.default_region_config().outer_wall_speed.value, filament_max_volumetric_speed / pattern_line.mm3_per_mm());
+        auto slow_speed = std::max(20.0, fast_speed / 10.0);
+        
+        pa_test.set_speed(fast_speed, slow_speed);
+        pa_test.draw_numbers() = print.calib_params().print_numbers;
+        
+        gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
 
         file.write(gcode);
     } else {
@@ -3435,6 +3379,21 @@ GCode::LayerResult GCode::process_layer(
                     gcode += m_writer.reset_e(true);
             }
         }
+    }
+
+    if (print.calib_mode() == CalibMode::Calib_PA_Pattern) {
+        gcode += "; start pressure advance pattern for layer\n";
+
+        CalibPressureAdvancePattern pa_pattern(print.calib_params(), this);
+        CustomGCode::Info pa_pattern_info = pa_pattern.generate_gcodes();
+
+        for (CustomGCode::Item i : pa_pattern_info.gcodes) {
+            if (i.print_z == print_z) {
+                gcode += i.extra;
+            }
+        }
+
+        gcode += "; end pressure advance pattern for layer\n";
     }
 
 #if 0

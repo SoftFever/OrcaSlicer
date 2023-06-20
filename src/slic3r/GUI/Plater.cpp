@@ -8149,15 +8149,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params) {
         get_gizmos_manager().get_object_manipulation();
     giz_obj_manip.set_uniform_scaling(false);
     giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
-
-    // auto& fff_print = this->get_partplate_list().get_current_fff_print();
-    // fff_print.apply(model(), full_config);
-    // GCodeWriter writer;
-    // writer.apply_print_config(fff_print.config());
-    // writer.set_extruders({0});
-
-    // CustomGCode::Info custom_info = pa_pattern.generate_gcodes(full_config, writer);
-    // model().plates_custom_gcodes[model().curr_plate_index] = custom_info;
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {
