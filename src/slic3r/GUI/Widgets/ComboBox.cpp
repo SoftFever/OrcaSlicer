@@ -19,7 +19,18 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-ComboBox::ComboBox(wxWindow *      parent,
+static wxWindow *GetScrollParent(wxWindow *pWindow)
+{
+    wxWindow *pWin = pWindow;
+    while (pWin->GetParent()) {
+        auto pWin2 = pWin->GetParent();
+        if (auto top = dynamic_cast<wxScrollHelper *>(pWin2)) return dynamic_cast<wxWindow *>(pWin);
+        pWin = pWin2;
+    }
+    return pWin;
+}
+
+ComboBox::ComboBox(wxWindow *parent,
                    wxWindowID      id,
                    const wxString &value,
                    const wxPoint & pos,
@@ -50,6 +61,8 @@ ComboBox::ComboBox(wxWindow *      parent,
     } else {
         GetTextCtrl()->Bind(wxEVT_KEY_DOWN, &ComboBox::keyDown, this);
     }
+    if (auto scroll = GetScrollParent(this))
+        scroll->Bind(wxEVT_MOVE, &ComboBox::onMove, this);
     drop.Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         SetSelection(e.GetInt());
         e.SetEventObject(this);
@@ -279,6 +292,12 @@ void ComboBox::keyDown(wxKeyEvent& event)
             event.Skip();
             break;
     }
+}
+
+void ComboBox::onMove(wxMoveEvent &event)
+{
+    event.Skip();
+    drop.Hide();
 }
 
 void ComboBox::OnEdit()
