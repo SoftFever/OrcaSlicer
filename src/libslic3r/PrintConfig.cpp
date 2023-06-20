@@ -1333,6 +1333,9 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_vendor", coStrings);
+    def->label = L("Vendor");
+    def->tooltip = L("Vendor of filament. For show only");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
     def->cli = ConfigOptionDef::nocli;
 
