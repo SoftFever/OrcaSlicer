@@ -106,7 +106,7 @@ void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, std::string& error_m
         obj_->command_start_pa_calibration(calib_infos);
 }
 
-void CalibUtils::emit_get_PA_calib_results()
+void CalibUtils::emit_get_PA_calib_results(float nozzle_diameter)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -116,7 +116,7 @@ void CalibUtils::emit_get_PA_calib_results()
     if (obj_ == nullptr)
         return;
 
-    obj_->command_get_pa_calibration_result();
+    obj_->command_get_pa_calibration_result(nozzle_diameter);
 }
 
 bool CalibUtils::get_PA_calib_results(std::vector<PACalibResult>& pa_calib_results)
@@ -133,7 +133,7 @@ bool CalibUtils::get_PA_calib_results(std::vector<PACalibResult>& pa_calib_resul
     return pa_calib_results.size() > 0;
 }
 
-void CalibUtils::emit_get_PA_calib_infos()
+void CalibUtils::emit_get_PA_calib_infos(float nozzle_diameter)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -143,7 +143,7 @@ void CalibUtils::emit_get_PA_calib_infos()
     if (obj_ == nullptr)
         return;
 
-    obj_->command_get_pa_calibration_tab();
+    obj_->command_get_pa_calibration_tab(nozzle_diameter);
 }
 
 bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
@@ -156,8 +156,35 @@ bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
     if (obj_ == nullptr)
         return false;
 
-    pa_calib_infos = obj_->pa_calib_tab;
-    return pa_calib_infos.size() > 0;
+    if (obj_->has_get_pa_calib_tab) {
+        pa_calib_infos.assign(obj_->pa_calib_tab.begin(), obj_->pa_calib_tab.end());
+    }
+    return obj_->has_get_pa_calib_tab;
+}
+
+void CalibUtils::emit_get_PA_calib_info(float nozzle_diameter, const std::string &filament_id)
+{
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) return;
+
+    obj_->command_get_pa_calibration_tab(nozzle_diameter, filament_id);
+}
+
+bool CalibUtils::get_PA_calib_info(PACalibResult & pa_calib_info) {
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return false;
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) return false;
+
+    if (!obj_->pa_calib_tab.empty()) {
+        pa_calib_info = obj_->pa_calib_tab.front();
+        return true;
+    }
+    return false;
 }
 
 void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_values)
@@ -213,7 +240,7 @@ void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::strin
         obj_->command_start_flow_ratio_calibration(calib_infos);
 }
 
-void CalibUtils::emit_get_flow_ratio_calib_results()
+void CalibUtils::emit_get_flow_ratio_calib_results(float nozzle_diameter)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -223,7 +250,7 @@ void CalibUtils::emit_get_flow_ratio_calib_results()
     if (obj_ == nullptr)
         return;
 
-    obj_->command_get_flow_ratio_calibration_result();
+    obj_->command_get_flow_ratio_calibration_result(nozzle_diameter);
 }
 
 bool CalibUtils::get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult>& flow_ratio_calib_results)

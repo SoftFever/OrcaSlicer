@@ -24,6 +24,7 @@ enum class CalibState {
     CoarseSave,
     FineCalibration,
     Save,
+    Finish
 };
 
 struct PrinterCaliInfo

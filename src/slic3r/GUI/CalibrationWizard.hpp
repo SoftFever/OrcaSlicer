@@ -85,6 +85,7 @@ protected:
     virtual void jump_to_page(PageType page_type);
     virtual void change_ams_select_mode() {};
     virtual void init_bitmaps();
+    virtual void check_sync_printer_status() {};
 
 private:
     ScalableBitmap m_bitmap_pause;
@@ -99,7 +100,7 @@ private:
 
 protected:
     std::map<std::string, PrinterCaliInfo> m_printer_calib_infos;
-
+    bool is_between_start_and_runing = false;
     CalibMode m_mode;
     MachineObject* curr_obj{ nullptr };
 
@@ -219,6 +220,7 @@ protected:
     virtual void request_calib_result() override;
     virtual void change_ams_select_mode() override;
     virtual void init_bitmaps() override;
+    virtual void check_sync_printer_status() override;
 
     void sync_history_window_data();
     void sync_save_page_data();
@@ -248,6 +250,13 @@ private:
     std::vector<PACalibResult> m_calib_results;
     std::vector<PACalibResult> m_calib_results_history;
     wxPanel* m_grid_panel;
+
+    bool is_first_time_get_result = true;
+    
+    bool is_history_result_dirty  = true;
+    bool has_get_history_result = false;
+
+    int m_cali_version = -1;
 };
 
 class FlowRateWizard : public CalibrationWizard {
@@ -310,6 +319,7 @@ private:
     float m_fine_calc_result;
     TextInput* m_save_name_input2;
     std::string m_save_name;
+    bool is_first_time_get_result = true;
 
     void reset_print_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);
     void reset_send_progress_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);

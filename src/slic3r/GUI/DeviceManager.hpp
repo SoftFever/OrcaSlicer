@@ -209,6 +209,7 @@ public:
     std::string     uuid;
     float           k = 0.0f;       // k range: 0 ~ 0.5
     float           n = 0.0f;       // k range: 0.6 ~ 2.0
+    int             cali_idx = 0;
 
     wxColour        wx_color;
     bool            is_bbl;
@@ -320,6 +321,7 @@ public:
         std::string filament_id;
         std::string setting_id;
         float max_volumetric_speed;
+        float flow_rate = 0.98f; // for flow ratio
     };
    
     std::vector<X1CCalibInfo> calib_datas;
@@ -329,6 +331,7 @@ class PACalibResult
 {
 public:
     int tray_id;
+    int         cali_idx;
     float       nozzle_diameter;
     std::string filament_id;
     std::string setting_id;
@@ -340,7 +343,7 @@ public:
 struct PACalibIndexInfo
 {
     int         tray_id;
-    int         index;
+    int         cali_idx;
     float       nozzle_diameter;
     std::string filament_id;
 };
@@ -654,6 +657,8 @@ public:
     int     total_layers = 0;
     bool    is_support_layer_num { false };
 
+    int cali_version = -1;
+    bool has_get_pa_calib_tab = false;
     std::vector<PACalibResult> pa_calib_tab;
     std::vector<PACalibResult> pa_calib_results;
     std::vector<FlowRatioCalibResult> flow_ratio_results;
@@ -821,13 +826,13 @@ public:
     int command_start_pa_calibration(const X1CCalibInfos& pa_data);
     int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values);
     int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
-    int command_get_pa_calibration_tab(const std::string& filament_id = "");
-    int command_get_pa_calibration_result();
+    int command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id = "");
+    int command_get_pa_calibration_result(float nozzle_diameter);
     int commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info);
 
     // flow ratio calibration
     int command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data);
-    int command_get_flow_ratio_calibration_result();
+    int command_get_flow_ratio_calibration_result(float nozzle_diameter);
 
     int command_unload_filament();
 

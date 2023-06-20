@@ -775,6 +775,7 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
 
         std::vector<int> tray_ids = get_selected_tray();
         if (start_calibration(tray_ids)) {
+            is_between_start_and_runing = true;
             if (m_mode != CalibMode::Calib_Flow_Rate) {
                 save_to_printer_calib_info(PageType::Calibration);
             }
@@ -851,10 +852,13 @@ void CalibrationWizard::update_print_progress()
         m_staticText_layers->Hide();
     }
 
+    if (curr_obj->print_status == "RUNNING")
+        is_between_start_and_runing = false;
+
     if (curr_obj->is_system_printing()) {
         reset_printing_values();
     }
-    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH") {
+    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH" || curr_obj->print_status == "IDLE" || curr_obj->print_status == "FAILED") {
         if (curr_obj->is_in_prepare() || curr_obj->print_status == "SLICING") {
             reset_printing_values();
 
@@ -895,12 +899,17 @@ void CalibrationWizard::update_print_progress()
                 if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
             }
 
-            if (curr_obj->print_status == "FINISH") {// curr_obj->is_extrusion_cali_finished() also can get in
+            if ((curr_obj->print_status == "FINISH" || curr_obj->print_status == "IDLE" || curr_obj->print_status == "FAILED") &&
+                m_curr_page->get_page_type() == PageType::Calibration) { // curr_obj->is_extrusion_cali_finished() also can get in
+                if (is_between_start_and_runing)
+                    return;
+
                 m_button_abort->Enable(false);
                 m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());
                 m_button_pause_resume->Enable(false);
                 m_button_pause_resume->SetBitmap(m_bitmap_resume_disable.bmp());
                 m_btn_next->Enable(true);
+                request_calib_result();
             }
             else {
                 m_button_abort->Enable(true);
@@ -949,6 +958,9 @@ void CalibrationWizard::update_print_progress()
     else { // "IDLE" or
         reset_printing_values();
     }
+
+    check_sync_printer_status();
+
     m_print_panel->Layout();
 
     m_print_panel->Thaw();
@@ -1542,11 +1554,6 @@ PressureAdvanceWizard::PressureAdvanceWizard(wxWindow* parent, wxWindowID id, co
     set_ams_select_mode(FSMCheckBoxMode);
 
     Bind(EVT_CALIBRATION_NOTIFY_CHANGE_PAGES, &PressureAdvanceWizard::switch_pages, this);
-    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto& e) {
-        if (is_high_end_type(curr_obj))
-            request_calib_result(); // todo evaluate which ways : timer or button event
-        e.Skip();
-        });
 }
 
 void PressureAdvanceWizard::create_save_panel_content(wxBoxSizer* sizer)
@@ -1688,9 +1695,6 @@ CalibrationWizardPage* PressureAdvanceWizard::create_start_page()
     page_prev_btn->SetButtonType(ButtonType::Back);
     page_prev_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
         if (is_high_end_type(curr_obj)) {
-            // todo emit once and loop to get
-            CalibUtils::emit_get_PA_calib_infos();
-            CalibUtils::get_PA_calib_tab(m_calib_results_history);
             sync_history_window_data();
         }
         m_history_page->ShowModal();
@@ -1741,10 +1745,12 @@ void PressureAdvanceWizard::create_history_window()
 void PressureAdvanceWizard::request_calib_result() {
     // todo emit once and loop to get
     if (is_high_end_type(curr_obj)) {
-        CalibUtils::emit_get_PA_calib_results();
+        if (is_first_time_get_result) {
+            float nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
+            CalibUtils::emit_get_PA_calib_results(nozzle_diameter);
+            is_first_time_get_result = false;
+        }
         CalibUtils::get_PA_calib_results(m_calib_results);
-        CalibUtils::emit_get_PA_calib_infos();
-        CalibUtils::get_PA_calib_tab(m_calib_results_history);
         // todo if failed to get result
         // pass m_calib_results info to page3
         if (m_calib_results.size() > 0)
@@ -1960,6 +1966,7 @@ bool PressureAdvanceWizard::start_calibration(std::vector<int> tray_ids)
             msg_dlg.ShowModal();
             return false;
         }
+        is_first_time_get_result = true;
         show_page(get_curr_page()->get_next_page());
         return true;
     }
@@ -2074,6 +2081,58 @@ void PressureAdvanceWizard::init_bitmaps()
 {
     m_print_picture->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400));
     m_record_picture->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400));
+}
+
+void PressureAdvanceWizard::check_sync_printer_status()
+{
+    // todo: sync the printer result
+    DeviceManager *dev  = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (!obj_)
+        return;
+
+    if (!m_printer_preset || !m_filament_preset)
+        return;
+
+    if (m_cali_version != obj_->cali_version) {
+        m_cali_version        = obj_->cali_version;
+        float nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
+        CalibUtils::emit_get_PA_calib_info(nozzle_diameter, m_filament_preset->filament_id);
+    }
+    
+    if (CalibUtils::get_PA_calib_tab(m_calib_results_history)) {
+        has_get_history_result = true;
+
+        DeviceManager *dev         = Slic3r::GUI::wxGetApp().getDeviceManager();
+        MachineObject *obj_        = dev->get_selected_machine();
+        obj_->has_get_pa_calib_tab = false;
+
+        //PACalibIndexInfo cali_info;
+        //PACalibResult result_0 = m_calib_results_history[0];
+
+        //cali_info.tray_id = 0;
+        //cali_info.cali_idx = result_0.cali_idx;
+        //cali_info.nozzle_diameter = result_0.nozzle_diameter;
+        //cali_info.filament_id = result_0.filament_id;
+        //CalibUtils::select_PA_calib_result(cali_info);
+
+        //result_0                  = m_calib_results_history[2];
+        //cali_info.tray_id         = 2;
+        //cali_info.cali_idx        = result_0.cali_idx;
+        //cali_info.nozzle_diameter = result_0.nozzle_diameter;
+        //cali_info.filament_id     = result_0.filament_id;
+        //CalibUtils::select_PA_calib_result(cali_info);
+
+        //result_0                  = m_calib_results_history[3];
+        //cali_info.tray_id         = 3;
+        //cali_info.cali_idx        = result_0.cali_idx;
+        //cali_info.nozzle_diameter = result_0.nozzle_diameter;
+        //cali_info.filament_id     = result_0.filament_id;
+        //CalibUtils::select_PA_calib_result(cali_info);
+    }
 }
 
 FlowRateWizard::FlowRateWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -2325,12 +2384,6 @@ void FlowRateWizard::create_high_end_pages() {
     // link page
     m_page2->chain(m_high_end_page3);
     show_page(m_curr_page);
-
-    m_page2->get_next_btn()->Bind(wxEVT_BUTTON, [this](auto& e) {
-        if (is_high_end_type(curr_obj))
-            request_calib_result(); // todo evaluate which ways : timer or button event
-        e.Skip();
-        });
 }
 
 CalibrationWizardPage* FlowRateWizard::create_start_page()
@@ -2468,11 +2521,18 @@ void FlowRateWizard::create_pages()
 }
 
 void FlowRateWizard::request_calib_result() {
-    // todo emit once and loop to get
-    CalibUtils::emit_get_flow_ratio_calib_results();
-    CalibUtils::get_flow_ratio_calib_results(m_calib_results);
-    // todo if get result failed
-    sync_save_page_data();
+
+    if (is_high_end_type(curr_obj)) {
+        if (is_first_time_get_result) {
+            float nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
+            CalibUtils::emit_get_flow_ratio_calib_results(nozzle_diameter);
+            is_first_time_get_result = false;
+        }
+        CalibUtils::get_flow_ratio_calib_results(m_calib_results);
+        // todo if failed to get result
+        if (m_calib_results.size() > 0)
+            sync_save_page_data();
+    }
 }
 
 void FlowRateWizard::sync_save_page_data() {
@@ -2605,6 +2665,7 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
             calib_info.bed_temp = bed_temp;
             calib_info.nozzle_temp = nozzle_temp;
             calib_info.max_volumetric_speed = max_volumetric_speed;
+            calib_info.flow_rate = m_filament_preset->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
             calib_infos.calib_datas.push_back(calib_info);
         }
         std::string error_message;
@@ -2614,6 +2675,7 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
             msg_dlg.ShowModal();
             return false;
         }
+        is_first_time_get_result = true;
         show_page(get_curr_page()->get_next_page());
         save_to_printer_calib_info(PageType::Calibration);
         return true;
