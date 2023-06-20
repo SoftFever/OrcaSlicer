@@ -185,6 +185,7 @@ protected:
     void init_nozzle_selections();
     void init_bed_type_selections();
     void init_process_selections();
+    void check_has_ams(MachineObject * obj);
     int get_bed_temp(DynamicPrintConfig* config);
     FilamentSelectMode get_ams_select_mode() { if (!m_filament_comboBox_list.empty()) return m_filament_comboBox_list[0]->get_select_mode(); return FilamentSelectMode::FSMRadioMode; }
     void set_ams_select_mode(FilamentSelectMode mode);
@@ -192,6 +193,7 @@ protected:
     void set_selected_tray(const std::vector<int>& tray_ids);
     FilamentComboBoxList get_selected_filament_comboBox();
     void show_send_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    void reset_preset_page();
 
     // print
     void reset_printing_values();
@@ -269,6 +271,7 @@ private:
     wxPanel* m_grid_panel;
 
     bool is_first_time_get_result = true;
+    bool has_get_result = false;
 
     int m_cali_version = -1;
 };
@@ -334,6 +337,7 @@ private:
     TextInput* m_save_name_input2;
     std::string m_save_name;
     bool is_first_time_get_result = true;
+    bool has_get_result = false;
 
     void reset_print_panel_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);
     void reset_send_progress_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer);

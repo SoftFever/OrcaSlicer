@@ -1018,19 +1018,19 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         
         if (tray_id == VIRTUAL_TRAY_ID) {
             AmsTray selected_tray = this->obj->vt_tray;
-            cali_select_idx = CalibUtils::get_selected_calib_idx(this->obj->pa_calib_tab,selected_tray.cali_idx);
+            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,selected_tray.cali_idx);
             m_comboBox_cali_result->SetSelection(cali_select_idx + 1);
         }
         else {
             Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
             AmsTray selected_tray = *selected_ams->trayList[std::to_string(tray_id)];
-            cali_select_idx = CalibUtils::get_selected_calib_idx(this->obj->pa_calib_tab, selected_tray.cali_idx);
+            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray.cali_idx);
             m_comboBox_cali_result->SetSelection(cali_select_idx + 1);
         }
         
         if (cali_select_idx >= 0) {
-            m_input_k_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[cali_select_idx].k_value));
-            m_input_n_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[cali_select_idx].n_coef));
+            m_input_k_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[cali_select_idx].k_value));
+            m_input_n_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[cali_select_idx].n_coef));
         }
     }
 

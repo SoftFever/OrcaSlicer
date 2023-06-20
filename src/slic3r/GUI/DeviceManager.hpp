@@ -660,6 +660,8 @@ public:
 
     int cali_version = -1;
     bool has_get_pa_calib_tab = false;
+    bool has_get_pa_calib_result = false;
+    bool has_get_flow_ratio_result = false;
     std::vector<PACalibResult> pa_calib_tab;
     std::vector<PACalibResult> pa_calib_results;
     std::vector<FlowRatioCalibResult> flow_ratio_results;
