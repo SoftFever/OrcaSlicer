@@ -2913,7 +2913,7 @@ void ObjectList::boolean()
         new_object->add_instance();
 
     ModelObject* object = (*m_objects)[obj_idxs.front()];
-    TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1);
+    TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1, [this](const std::string& msg) {return wxGetApp().notification_manager()->push_plater_error_notification(msg); });
     ModelVolume* new_volume = new_object->add_volume(mesh);
 
     // BBS: ensure on bed but no need to ensure locate in the center around origin
