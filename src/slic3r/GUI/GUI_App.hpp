@@ -338,6 +338,7 @@ public:
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
     void            update_publish_status();
+    bool            has_model_mall();
     void            update_label_colours();
     // update color mode for window
     void            UpdateDarkUI(wxWindow *window, bool highlited = false, bool just_font = false);

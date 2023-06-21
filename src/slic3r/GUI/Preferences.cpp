@@ -1020,8 +1020,18 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
-    sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+    auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
+    auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall] (wxEvent & e) {
+        bool has_model_mall = wxGetApp().has_model_mall();
+        item_title_modelmall->Show(has_model_mall);
+        item_item_modelmall->Show(has_model_mall);
+        Layout();
+        Fit();
+    };
+    wxCommandEvent eee(wxEVT_COMBOBOX);
+    update_modelmall(eee);
+    item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));

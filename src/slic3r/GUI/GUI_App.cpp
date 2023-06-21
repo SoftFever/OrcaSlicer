@@ -1771,7 +1771,7 @@ void GUI_App::restart_networking()
             start_sync_user_preset();
         }
         if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
-            if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(true); }
+            if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(has_model_mall()); }
         }
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
@@ -2993,12 +2993,17 @@ void GUI_App::update_label_colours_from_appconfig()
 
 void GUI_App::update_publish_status()
 {
-    if (app_config->get_country_code() == "CN") {
-        mainframe->show_publish_button(false);
+    mainframe->show_publish_button(has_model_mall());
+    if (app_config->get("staff_pick_switch") == "true") {
+        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
     }
-    else {
-        mainframe->show_publish_button(true);
-    }
+}
+
+bool GUI_App::has_model_mall()
+{
+    if (app_config->get_country_code() == "CN")
+        return false;
+    return true;
 }
 
 void GUI_App::update_label_colours()
