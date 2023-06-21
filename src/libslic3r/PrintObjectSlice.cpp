@@ -675,9 +675,10 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
+    std::atomic<bool> is_replaced = false;
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, buggy_layers.size()),
-        [&layers, &throw_if_canceled, &buggy_layers, &error_msg](const tbb::blocked_range<size_t>& range) {
+        [&layers, &throw_if_canceled, &buggy_layers, &is_replaced](const tbb::blocked_range<size_t>& range) {
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
                 throw_if_canceled();
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
@@ -724,7 +725,7 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
                         }
                     if (!expolys.empty()) {
                         //BBS
-                        error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
+                        is_replaced = true;
                         layerm->slices.set(union_ex(expolys), stInternal);
                     }
                 }
@@ -734,6 +735,9 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
         });
     throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
+
+    if(is_replaced)
+        error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
 
     // remove empty layers from bottom
     while (! layers.empty() && (layers.front()->lslices.empty() || layers.front()->empty())) {
