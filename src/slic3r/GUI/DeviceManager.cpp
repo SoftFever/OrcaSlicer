@@ -2308,6 +2308,10 @@ void MachineObject::reset()
     extruder_axis_status = LOAD;
     nozzle_diameter = 0.0f;
 
+    // reset print_json
+    json empty_j;
+    print_json.diff2all_base_reset(empty_j);
+
     vt_tray.reset();
 
     subtask_ = nullptr;
