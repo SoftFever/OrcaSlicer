@@ -1660,7 +1660,7 @@ public:
     ConfigOptionEnumsGenericTempl& operator= (const ConfigOption* opt) { this->set(opt); return *this; }
     bool                        operator< (const ConfigOptionInts& rhs) const throw() { return this->values < rhs.values; }
 
-    bool                        operator==(const ConfigOptionInts& rhs) const throw()
+    bool                        operator==(const ConfigOptionInts& rhs) const
     {
         if (rhs.type() != this->type())
             throw ConfigurationError("ConfigOptionEnumsGeneric: Comparing incompatible types");
