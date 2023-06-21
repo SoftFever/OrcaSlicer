@@ -162,6 +162,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "inner_wall_acceleration",
         "sparse_infill_acceleration",
         "exclude_object",
+        "use_relative_e_distances"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -973,6 +974,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
 
+        if (! m_config.use_relative_e_distances)
+            return { ("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
         if (m_config.ooze_prevention)
             return { ("Ooze prevention is currently not supported with the prime tower enabled.") };
 

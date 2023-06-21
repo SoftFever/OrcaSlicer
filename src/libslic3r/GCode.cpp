@@ -478,7 +478,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
-                config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
+                config.set_key_value("relative_e_axis", new ConfigOptionBool(full_config.use_relative_e_distances));
                 config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
                 //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
                 //slicing error in old change_filament_gcode in old 3MF
@@ -3198,7 +3198,7 @@ GCode::LayerResult GCode::process_layer(
                         get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
                     reset_e = true;
                 }
-                if (reset_e && !RELATIVE_E_AXIS)
+                if (reset_e && !m_config.use_relative_e_distances)
                     gcode += m_writer.reset_e(true);
 
                 // When starting a new object, use the external motion planner for the first travel move.
@@ -3301,7 +3301,7 @@ GCode::LayerResult GCode::process_layer(
                         get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
                     reset_e = true;
                 }
-                if (reset_e && !RELATIVE_E_AXIS)
+                if (reset_e && !m_config.use_relative_e_distances)
                     gcode += m_writer.reset_e(true);
             }
         }
@@ -4483,7 +4483,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
     dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
     dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
+    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(m_config.use_relative_e_distances));
     dyn_config.set_key_value("toolchange_count", new ConfigOptionInt((int)m_toolchange_count));
     //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
     //slicing error in old change_filament_gcode in old 3MF

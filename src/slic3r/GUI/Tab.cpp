@@ -3068,6 +3068,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("scan_first_layer");
+        optgroup->append_single_option_line("use_relative_e_distances");
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
@@ -3632,6 +3633,7 @@ void TabPrinter::toggle_options()
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
         //BBS: gcode_flavore of BBL printer can't be edited and changed
         toggle_option("gcode_flavor", !is_BBL_printer);
+        toggle_option("use_relative_e_distances", !is_BBL_printer);
 
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;

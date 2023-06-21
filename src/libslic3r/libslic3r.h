@@ -78,10 +78,6 @@ static constexpr double BRIDGE_INFILL_MARGIN = 1;
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define unscale_(val) ((val) * SCALING_FACTOR)
 
-//BBS: BBS only support relative E and can't been changed by user at the moment. because
-//BBS need to support skip object when printing.
-static constexpr bool RELATIVE_E_AXIS = 1;
-
 #define SCALED_EPSILON scale_(EPSILON)
 
 #ifndef UNUSED
