@@ -413,6 +413,11 @@ bool MachineObject::is_lan_mode_printer()
     return result;
 }
 
+bool MachineObject::is_high_printer_type()
+{
+    return this->printer_type == "BL-P001" || this->printer_type == "BL-P002";
+}
+
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
     :dev_name(name),
     dev_id(id),
@@ -1941,7 +1946,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos& pa_data)
         json j;
         j["print"]["command"]     = "extrusion_cali";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["nozzle_diameter"] = std::to_string(pa_data.calib_datas[0].nozzle_diameter);
+        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_data.calib_datas[0].nozzle_diameter);
 
         for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
             j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
@@ -3229,6 +3234,7 @@ int MachineObject::parse_json(std::string payload)
                         if (jj.contains("cali_version")) {
                             cali_version = jj["cali_version"].get<int>();
                         }
+                        std::string str = jj.dump();
                     }
                     catch (...) {
                         ;
@@ -3371,10 +3377,10 @@ int MachineObject::parse_json(std::string payload)
                                         }
                                         if (!curr_tray) continue;
 
-                                        if (curr_tray->hold_count > 0) {
-                                            curr_tray->hold_count--;
-                                            continue;
-                                        }
+                                        //if (curr_tray->hold_count > 0) {
+                                        //    curr_tray->hold_count--;
+                                        //    continue;
+                                        //}
 
                                         curr_tray->id = (*tray_it)["id"].get<std::string>();
                                         if (tray_it->contains("tag_uid"))
@@ -3489,6 +3495,8 @@ int MachineObject::parse_json(std::string payload)
                                                 curr_tray->n = (*tray_it)["n"].get<float>();
                                             }
                                         }
+
+                                        std::string temp = tray_it->dump();
 
                                         if (tray_it->contains("cali_idx")) {
                                             curr_tray->cali_idx = (*tray_it)["cali_idx"].get<int>();

@@ -480,6 +480,7 @@ public:
     void erase_user_access_code();
     std::string get_user_access_code();
     bool is_lan_mode_printer();
+    bool is_high_printer_type();
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */

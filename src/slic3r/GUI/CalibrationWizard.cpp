@@ -1746,8 +1746,7 @@ void PressureAdvanceWizard::request_calib_result() {
     // todo emit once and loop to get
     if (is_high_end_type(curr_obj)) {
         if (is_first_time_get_result) {
-            float nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
-            CalibUtils::emit_get_PA_calib_results(nozzle_diameter);
+            CalibUtils::emit_get_PA_calib_results(curr_obj->nozzle_diameter);
             is_first_time_get_result = false;
         }
         CalibUtils::get_PA_calib_results(m_calib_results);
@@ -2099,15 +2098,10 @@ void PressureAdvanceWizard::check_sync_printer_status()
 
     if (m_cali_version != obj_->cali_version) {
         m_cali_version        = obj_->cali_version;
-        float nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
-        CalibUtils::emit_get_PA_calib_info(nozzle_diameter, m_filament_preset->filament_id);
+        CalibUtils::emit_get_PA_calib_info(obj_->nozzle_diameter, m_filament_preset->filament_id);
     }
     
     if (CalibUtils::get_PA_calib_tab(m_calib_results_history)) {
-        has_get_history_result = true;
-
-        DeviceManager *dev         = Slic3r::GUI::wxGetApp().getDeviceManager();
-        MachineObject *obj_        = dev->get_selected_machine();
         obj_->has_get_pa_calib_tab = false;
 
         //PACalibIndexInfo cali_info;
@@ -2133,6 +2127,17 @@ void PressureAdvanceWizard::check_sync_printer_status()
         //cali_info.filament_id     = result_0.filament_id;
         //CalibUtils::select_PA_calib_result(cali_info);
     }
+
+    //if (m_calib_results_history.size() > 10) {
+    //     PACalibIndexInfo cali_info;
+    //     PACalibResult result_0 = m_calib_results_history[0];
+
+    //     cali_info.tray_id = 0;
+    //     cali_info.cali_idx = result_0.cali_idx;
+    //     cali_info.nozzle_diameter = result_0.nozzle_diameter;
+    //     cali_info.filament_id = result_0.filament_id;
+    //     CalibUtils::delete_PA_calib_result(cali_info);
+    //}
 }
 
 FlowRateWizard::FlowRateWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -2524,8 +2529,7 @@ void FlowRateWizard::request_calib_result() {
 
     if (is_high_end_type(curr_obj)) {
         if (is_first_time_get_result) {
-            float nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter"))->get_at(0);
-            CalibUtils::emit_get_flow_ratio_calib_results(nozzle_diameter);
+            CalibUtils::emit_get_flow_ratio_calib_results(curr_obj->nozzle_diameter);
             is_first_time_get_result = false;
         }
         CalibUtils::get_flow_ratio_calib_results(m_calib_results);

@@ -130,6 +130,7 @@ protected:
     void create_panel_kn(wxWindow* parent);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
+    void on_select_cali_result(wxCommandEvent &evt);
     void on_select_ok(wxCommandEvent &event);
     void on_select_reset(wxCommandEvent &event);
     void on_select_close(wxCommandEvent &event);
@@ -146,6 +147,7 @@ protected:
     wxStaticText *      warning_text;
     //wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
+    wxStaticText *      m_title_pa_profile;
     wxStaticText *      m_title_colour;
     wxStaticText *      m_title_temperature;
     TextInput *         m_input_nozzle_min;
@@ -167,11 +169,14 @@ protected:
     TextInput*          m_input_n_val;
     int                 m_filament_selection;
 
+    int m_pa_cali_select_id = 0;
+
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament;
 #else
     ComboBox *m_comboBox_filament;
 #endif
+    ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 };
 

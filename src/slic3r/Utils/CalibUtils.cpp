@@ -638,6 +638,14 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, std::string &erro
     send_to_print(calib_info, error_message);
 }
 
+int CalibUtils::get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx) {
+    for (int i = 0; i < pa_calib_values.size(); ++i) {
+        if(pa_calib_values[i].cali_idx == cali_idx)
+            return i;
+    }
+    return -1;
+}
+
 void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message)
 {
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;

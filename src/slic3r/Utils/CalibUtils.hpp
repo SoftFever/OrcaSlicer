@@ -56,6 +56,9 @@ public:
     static void calib_VFA(const CalibInfo& calib_info, std::string& error_message);
     static void calib_retraction(const CalibInfo &calib_info, std::string &error_message);
 
+    //help function
+    static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
+
 private:
     static void process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message);
     static void send_to_print(const CalibInfo& calib_info, std::string &error_message);

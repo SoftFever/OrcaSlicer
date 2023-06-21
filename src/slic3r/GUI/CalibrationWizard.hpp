@@ -252,9 +252,6 @@ private:
     wxPanel* m_grid_panel;
 
     bool is_first_time_get_result = true;
-    
-    bool is_history_result_dirty  = true;
-    bool has_get_history_result = false;
 
     int m_cali_version = -1;
 };

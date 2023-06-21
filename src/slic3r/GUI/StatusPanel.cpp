@@ -12,6 +12,7 @@
 #include "libslic3r/Thread.hpp"
 
 #include "RecenterDialog.hpp"
+#include "CalibUtils.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -2011,6 +2012,11 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
+
+    if (obj->is_high_printer_type() && last_cali_version != obj->cali_version) {
+        last_cali_version = obj->cali_version;
+        CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "GFA01"); // todo: get all
+    }
 
     bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
     bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
