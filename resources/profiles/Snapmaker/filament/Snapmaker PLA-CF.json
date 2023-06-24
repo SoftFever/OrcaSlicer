@@ -1,0 +1,16 @@
+{
+    "name": "Snapmaker PLA-CF",
+    "instantiation": "true",
+    "setting_id": "SMFS26",
+    "inherits": "Snapmaker PLA-CF @base",
+    "compatible_printers": [
+        "Snapmaker A250 0.4 nozzle",
+        "Snapmaker A250 0.6 nozzle",
+        "Snapmaker A250 0.8 nozzle",
+        "Snapmaker A350 0.4 nozzle",
+        "Snapmaker A350 0.6 nozzle",
+        "Snapmaker A350 0.8 nozzle"
+    ],
+    "type": "filament",
+    "from": "system"
+}

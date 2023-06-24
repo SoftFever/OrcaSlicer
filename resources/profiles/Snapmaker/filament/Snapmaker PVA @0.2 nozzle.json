@@ -1,0 +1,15 @@
+{
+    "name": "Snapmaker PVA @0.2 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS38",
+    "inherits": "Snapmaker PVA @base",
+    "compatible_printers": [
+        "Snapmaker A250 0.2 nozzle",
+        "Snapmaker A350 0.2 nozzle"
+    ],
+    "filament_max_volumetric_speed": [
+        "0.5"
+    ],
+    "type": "filament",
+    "from": "system"
+}

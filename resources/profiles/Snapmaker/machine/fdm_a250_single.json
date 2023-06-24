@@ -1,0 +1,79 @@
+{
+  "name": "fdm_a250_single",
+  "type": "machine",
+  "from": "system",
+  "inherits": "fdm_common",
+  "instantiation": "false",
+  "single_extruder_multi_material": "1",
+  "extruder_clearance_radius": "75",
+  "extruder_clearance_height_to_rod": "25",
+  "extruder_clearance_height_to_lid": "90",
+  "thumbnails": [
+    "300x150"
+  ],
+  "z_hop_types": [
+    "Normal Lift"
+  ],
+  "printable_area": [
+    "0x0",
+    "230x0",
+    "230x250",
+    "0x250"
+  ],
+  "printable_height": "235",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "machine_max_speed_x": [
+    "200"
+  ],
+  "machine_max_speed_y": [
+    "200"
+  ],
+  "machine_max_speed_z": [
+    "35"
+  ],
+  "machine_max_speed_e": [
+    "40"
+  ],
+  "machine_max_jerk_x": [
+    "5"
+  ],
+  "machine_max_jerk_y": [
+    "5"
+  ],
+  "machine_max_jerk_z": [
+    "1"
+  ],
+  "machine_max_jerk_e": [
+    "2.5"
+  ],
+  "machine_max_acceleration_extruding": [
+    "3500"
+  ],
+  "machine_max_acceleration_retracting": [
+    "3000"
+  ],
+  "machine_max_acceleration_travel": [
+    "3500"
+  ],
+  "machine_max_acceleration_x": [
+    "3500"
+  ],
+  "machine_max_acceleration_y": [
+    "3500"
+  ],
+  "machine_max_acceleration_z": [
+    "500"
+  ],
+  "machine_max_acceleration_e": [
+    "5000"
+  ],
+  "before_layer_change_gcode": "; Before Layer Change >>>\n; ----- layer_num: [layer_num]\nG92 E0\n; <<< Before Layer Change\n",
+  "change_filament_gcode": "",
+  "template_custom_gcode": "",
+  "layer_change_gcode": "",
+  "machine_pause_gcode": "M600 ;pause print",
+  "machine_start_gcode": ";Start GCode begin\n;***** update: 20230131\n;M593 P1 F40\nM140 S[first_layer_bed_temperature]   ;Start warming Bed\nM104 S140 ;Set temporary nozzle temp to prevent oozing during homing\n\nG28 ; home all axes\nG1 Z40.0 F2500\n\nM190 S[first_layer_bed_temperature]   ;Wait For Bed Temperature\nM109 S[first_layer_temperature] ;Wait for Hotend Temperature\n\n;M593 P1 F50\n{if 1==1}\nG1 X-10 Y-10 F3000\nG1 Z0 F1800\nG92 E0\nG1 E20 F200\nG0 X0 Y0 F3000 ;Move to origin\nG0 Z1 F1800 ;Move up to avoid scraping against heated bed\nG92 E0\n{endif}\n;End GCode begin\n",
+  "machine_end_gcode": ";End GCode begin\n;***** update: 20230131\nG92 E0\nG1 E-5 ;Retract the filament a bit before lifting the nozzle, to release some of the pressure\nG92 E0\nM104 S0 ;Extruder heater off\nM140 S0 ;Heated bed heater off\nG1 Z235 F9000\nG1 X110 Y250 F9000\nM107 ;fan off\nM220 S100 ;reset feedrate\nM82       ;reset absolute extrusion mode\nM84       ;disable motors\n\n;End GCode end\n;\n; DON'T REMOVE these lines if you're using the smfix (https://github.com/macdylan/Snapmaker2Slic3rPostProcessor)\n; min_x = [first_layer_print_min_0]\n; min_y = [first_layer_print_min_1]\n; max_x = [first_layer_print_max_0]\n; max_y = [first_layer_print_max_1]\n; max_z = [max_layer_z]\n;\n"
+}

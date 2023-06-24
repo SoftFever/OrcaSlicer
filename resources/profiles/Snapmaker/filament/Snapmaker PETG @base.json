@@ -1,0 +1,8 @@
+{
+    "name": "Snapmaker PETG @base",
+    "instantiation": "false",
+    "filament_id": "SMF16",
+    "inherits": "fdm_filament_petg",
+    "type": "filament",
+    "from": "system"
+}

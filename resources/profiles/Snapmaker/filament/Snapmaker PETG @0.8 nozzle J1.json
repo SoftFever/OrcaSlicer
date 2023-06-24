@@ -1,0 +1,20 @@
+{
+    "name": "Snapmaker PETG @0.8 nozzle J1",
+    "instantiation": "true",
+    "setting_id": "SMFS53",
+    "inherits": "Snapmaker PETG @idex",
+    "compatible_printers": [
+        "Snapmaker J1 0.8 nozzle"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "fan_max_speed": [
+        "60"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "type": "filament",
+    "from": "system"
+}

@@ -1,0 +1,15 @@
+{
+    "name": "PolyTerra PLA @0.2 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS35",
+    "inherits": "PolyTerra PLA @base",
+    "compatible_printers": [
+        "Snapmaker A250 0.2 nozzle",
+        "Snapmaker A350 0.2 nozzle"
+    ],
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "type": "filament",
+    "from": "system"
+}
