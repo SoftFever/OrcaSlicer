@@ -1,0 +1,27 @@
+{
+  "name": "Snapmaker J1 0.8 nozzle",
+  "setting_id": "snapmaker_j1_0.8_nozzle",
+  "inherits": "fdm_idex",
+  "type": "machine",
+  "from": "system",
+  "instantiation": "true",
+  "nozzle_diameter": [
+    "0.8",
+    "0.8"
+  ],
+  "printer_variant": "0.8",
+  "printer_model": "Snapmaker J1",
+  "max_layer_height": [
+    "0.48"
+  ],
+  "min_layer_height": [
+    "0.24"
+  ],
+  "retraction_length": [
+    "0.8"
+  ],
+  "retraction_minimum_travel": [
+    "1"
+  ],
+  "nozzle_type": "stainless_steel"
+}

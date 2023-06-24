@@ -1,0 +1,8 @@
+{
+    "name": "Snapmaker PVA @base",
+    "instantiation": "false",
+    "filament_id": "SMF36",
+    "inherits": "fdm_filament_pva",
+    "type": "filament",
+    "from": "system"
+}

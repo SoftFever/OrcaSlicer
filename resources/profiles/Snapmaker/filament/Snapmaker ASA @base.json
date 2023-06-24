@@ -1,0 +1,8 @@
+{
+    "name": "Snapmaker ASA @base",
+    "instantiation": "false",
+    "filament_id": "SMF11",
+    "inherits": "fdm_filament_asa",
+    "type": "filament",
+    "from": "system"
+}

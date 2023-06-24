@@ -1,0 +1,8 @@
+{
+    "name": "Snapmaker ABS @base",
+    "instantiation": "false",
+    "filament_id": "SMF8",
+    "inherits": "fdm_filament_abs",
+    "type": "filament",
+    "from": "system"
+}

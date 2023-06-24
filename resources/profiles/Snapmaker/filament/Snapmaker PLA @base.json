@@ -1,0 +1,8 @@
+{
+    "name": "Snapmaker PLA @base",
+    "instantiation": "false",
+    "filament_id": "SMF23",
+    "inherits": "fdm_filament_pla",
+    "type": "filament",
+    "from": "system"
+}

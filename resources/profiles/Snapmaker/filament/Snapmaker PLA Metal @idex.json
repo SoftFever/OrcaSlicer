@@ -1,0 +1,23 @@
+{
+    "name": "Snapmaker PLA Metal @idex",
+    "instantiation": "false",
+    "filament_id": "SMF66",
+    "inherits": "fdm_filament_pla",
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "filament_density": [
+        "1.25"
+    ],
+    "filament_max_volumetric_speed": [
+        "21"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "nozzle_temperature": [
+        "220"
+    ],
+    "type": "filament",
+    "from": "system"
+}

@@ -1,0 +1,12 @@
+{
+    "name": "Snapmaker ABS @J1",
+    "instantiation": "true",
+    "setting_id": "SMFS42",
+    "inherits": "Snapmaker ABS @idex",
+    "compatible_printers": [
+        "Snapmaker J1 0.4 nozzle",
+        "Snapmaker J1 0.6 nozzle"
+    ],
+    "type": "filament",
+    "from": "system"
+}

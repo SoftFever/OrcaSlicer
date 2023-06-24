@@ -1,24 +1,40 @@
 {
-    "type": "filament",
     "name": "fdm_filament_common",
-    "from": "system",
     "instantiation": "false",
-    "cool_plate_temp" : [
+    "filament_start_gcode": [
+        ""
+    ],
+    "filament_end_gcode": [
+        ""
+    ],
+    "filament_is_support": [
+        "0"
+    ],
+    "required_nozzle_HRC": [
+        "3"
+    ],
+    "cool_plate_temp": [
         "60"
     ],
-    "eng_plate_temp" : [
+    "eng_plate_temp": [
         "60"
     ],
-    "hot_plate_temp" : [
+    "hot_plate_temp": [
         "60"
     ],
-    "cool_plate_temp_initial_layer" : [
+    "textured_plate_temp": [
         "60"
     ],
-    "eng_plate_temp_initial_layer" : [
+    "cool_plate_temp_initial_layer": [
         "60"
     ],
-    "hot_plate_temp_initial_layer" : [
+    "eng_plate_temp_initial_layer": [
+        "60"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "60"
+    ],
+    "textured_plate_temp_initial_layer": [
         "60"
     ],
     "overhang_fan_threshold": [
@@ -32,9 +48,6 @@
     ],
     "close_fan_the_first_x_layers": [
         "3"
-    ],
-    "filament_end_gcode": [
-        "; filament end gcode \n"
     ],
     "filament_flow_ratio": [
         "1"
@@ -61,7 +74,7 @@
         "0"
     ],
     "filament_minimal_purge_on_wipe_tower": [
-        "15"
+        "5"
     ],
     "filament_retraction_minimum_travel": [
         "nil"
@@ -78,14 +91,14 @@
     "filament_z_hop": [
         "nil"
     ],
+    "filament_z_hop_types": [
+        "nil"
+    ],
     "filament_retract_restart_extra": [
         "nil"
     ],
     "filament_retraction_speed": [
         "nil"
-    ],
-    "filament_settings_id": [
-        ""
     ],
     "filament_soluble": [
         "0"
@@ -94,7 +107,7 @@
         "PLA"
     ],
     "filament_vendor": [
-        "Generic"
+        "Snapmaker"
     ],
     "filament_wipe": [
         "nil"
@@ -102,11 +115,14 @@
     "filament_wipe_distance": [
         "nil"
     ],
-    "bed_type": [
-        "Cool Plate"
-    ],
     "nozzle_temperature_initial_layer": [
         "200"
+    ],
+    "nozzle_temperature": [
+        "200"
+    ],
+    "temperature_vitrification": [
+        "160"
     ],
     "full_fan_speed_layer": [
         "0"
@@ -123,13 +139,12 @@
     "slow_down_layer_time": [
         "8"
     ],
-    "filament_start_gcode": [
-        "; Filament gcode\n"
+    "enable_pressure_advance": [
+        "0"
     ],
-    "nozzle_temperature": [
-        "200"
+    "pressure_advance": [
+        "0.04"
     ],
-    "temperature_vitrification": [
-        "100"
-    ]
+    "type": "filament",
+    "from": "system"
 }

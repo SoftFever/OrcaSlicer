@@ -1,0 +1,14 @@
+{
+    "name": "Snapmaker PLA @J1",
+    "instantiation": "true",
+    "setting_id": "SMFS61",
+    "inherits": "Snapmaker PLA @idex",
+    "compatible_printers": [
+        "Snapmaker J1 0.2 nozzle",
+        "Snapmaker J1 0.4 nozzle",
+        "Snapmaker J1 0.6 nozzle",
+        "Snapmaker J1 0.8 nozzle"
+    ],
+    "type": "filament",
+    "from": "system"
+}

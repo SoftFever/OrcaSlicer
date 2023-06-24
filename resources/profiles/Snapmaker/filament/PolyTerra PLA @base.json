@@ -1,0 +1,23 @@
+{
+    "name": "PolyTerra PLA @base",
+    "instantiation": "false",
+    "filament_id": "SMF33",
+    "inherits": "fdm_filament_pla",
+    "filament_cost": [
+        "80"
+    ],
+    "filament_density": [
+        "1.31"
+    ],
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "filament_max_volumetric_speed": [
+        "22"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "type": "filament",
+    "from": "system"
+}

@@ -1,0 +1,13 @@
+{
+    "name": "Snapmaker TPU @J1",
+    "instantiation": "true",
+    "setting_id": "SMFS83",
+    "inherits": "Snapmaker TPU @idex",
+    "compatible_printers": [
+        "Snapmaker J1 0.4 nozzle",
+        "Snapmaker J1 0.6 nozzle",
+        "Snapmaker J1 0.8 nozzle"
+    ],
+    "type": "filament",
+    "from": "system"
+}

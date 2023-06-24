@@ -1,0 +1,15 @@
+{
+    "name": "Snapmaker ASA @0.2 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS13",
+    "inherits": "Snapmaker ASA @base",
+    "compatible_printers": [
+        "Snapmaker A250 0.2 nozzle",
+        "Snapmaker A350 0.2 nozzle"
+    ],
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "type": "filament",
+    "from": "system"
+}

@@ -1,0 +1,46 @@
+{
+  "name": "fdm_common",
+  "type": "machine",
+  "from": "system",
+  "instantiation": "false",
+  "gcode_flavor": "marlin",
+  "use_firmware_retraction": "0",
+  "use_relative_e_distances": "1",
+  "single_extruder_multi_material": "1",
+  "wipe": [
+    "1"
+  ],
+  "wipe_distance": [
+    "2"
+  ],
+  "retraction_speed": [
+    "30"
+  ],
+  "deretraction_speed": [
+    "30"
+  ],
+  "fan_speedup_time": [
+    "0.3"
+  ],
+  "fan_speedup_overhangs": [
+    "0"
+  ],
+  "z_hop": [
+    "0.4"
+  ],
+  "z_hop_types": [
+    "Auto Lift"
+  ],
+  "retraction_length": [
+    "0.8"
+  ],
+  "retraction_when_changing_layer": [
+    "1"
+  ],
+  "retract_before_wipe": [
+    "0%"
+  ],
+  "retraction_minimum_travel": [
+    "1"
+  ]
+}
