@@ -2938,7 +2938,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     if (obj && !obj->get_lan_mode_connection_state()) {
         obj->command_get_version();
         obj->command_request_push_all();
-        if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
+        if (!dev->get_selected_machine()) {
+            dev->set_selected_machine(m_printer_last_select, true);
+        }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
             dev->set_selected_machine(m_printer_last_select, true);
         }
         // Has changed machine unrecoverably

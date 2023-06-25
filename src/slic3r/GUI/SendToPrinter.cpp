@@ -978,10 +978,16 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         }
     }
 
-    if (obj) {
+    if (obj && !obj->get_lan_mode_connection_state()) {
         obj->command_get_version();
-        dev->set_selected_machine(m_printer_last_select);
-    } else {
+        obj->command_request_push_all();
+        if (!dev->get_selected_machine()) {
+            dev->set_selected_machine(m_printer_last_select, true);
+        }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
+            dev->set_selected_machine(m_printer_last_select, true);
+        }
+    }
+    else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
         return;
     }
