@@ -865,6 +865,7 @@ void MainFrame::update_title()
 void MainFrame::show_publish_button(bool show)
 {
     m_publish_btn->Show(show);
+    Layout();
 }
 
 void MainFrame::update_title_colour_after_set_title()
