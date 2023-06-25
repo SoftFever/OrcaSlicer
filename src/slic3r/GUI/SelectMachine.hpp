@@ -334,9 +334,7 @@ protected:
     Button*                             m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
     ScalableButton *                    m_rename_button{nullptr};
-    CheckBox*                           m_ams_check{ nullptr };
     ComboBox*                           m_comboBox_printer{ nullptr };
-    ComboBox*                           m_comboBox_bed{ nullptr };
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
     wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
     wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };

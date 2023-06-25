@@ -1340,7 +1340,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
     sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
 
-
     m_sizer_scrollable_region->Add(m_rename_switch_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(8));
     m_sizer_scrollable_region->Add(m_sizer_thumbnail_area, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1360,7 +1359,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(13));
     m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT, FromDIP(25));
     m_sizer_main->Add(m_sizer_backup, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(6));
@@ -1523,9 +1521,9 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     wxBoxSizer *sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_check    = new wxBoxSizer(wxVERTICAL);
 
-    m_ams_check = new ::CheckBox(checkbox);
+    auto check = new ::CheckBox(checkbox);
 
-    sizer_check->Add(m_ams_check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
+    sizer_check->Add(check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
 
     sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
     sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(11));
@@ -1566,13 +1564,15 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
 
-    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
-        m_ams_check->SetValue(m_ams_check->GetValue() ? false : true);
+    text->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent& event) {
+        check->SetValue(check->GetValue() ? false : true);
         });
 
-    checkbox->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
-        m_ams_check->SetValue(m_ams_check->GetValue() ? false : true);
+    checkbox->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent& event) {
+        check->SetValue(check->GetValue() ? false : true);
         });
+
+    m_checkbox_list["use_ams"] = check;
     return checkbox;
 }
 
@@ -2287,7 +2287,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
     }
 
-    if (has_prohibited_filament && obj_->has_ams() && m_ams_check->GetValue()) {
+    if (has_prohibited_filament && obj_->has_ams() && m_checkbox_list["use_ams"]->GetValue()) {
         wxString tpu_tips = prohibited_error;
         show_errors(tpu_tips);
         return;
@@ -2419,7 +2419,7 @@ void SelectMachineDialog::on_send_print()
     // get ams_mapping_result
     std::string ams_mapping_array;
     std::string ams_mapping_info;
-    if (m_ams_check->GetValue())
+    if (m_checkbox_list["use_ams"]->GetValue())
         get_ams_mapping_result(ams_mapping_array, ams_mapping_info);
     else {
         json mapping_info_json = json::array();
@@ -2527,7 +2527,7 @@ void SelectMachineDialog::on_send_print()
         true);
 
     if (obj_->has_ams()) {
-        m_print_job->task_use_ams = m_ams_check->GetValue();
+        m_print_job->task_use_ams = m_checkbox_list["use_ams"]->GetValue();
     } else {
         m_print_job->task_use_ams = false;
     }
@@ -2886,6 +2886,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             m_ams_backup_tip->Hide();
             img_ams_backup->Hide();
              Layout();
+             Fit();
         }
     }
     else {
@@ -2893,6 +2894,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
             m_ams_backup_tip->Show();
             img_ams_backup->Show();
             Layout();
+            Fit();
         }
     }
 }
@@ -3048,7 +3050,7 @@ void SelectMachineDialog::update_show_status()
     bool clean_ams_mapping = false;
     if (obj_->has_ams() && m_ams_mapping_result.empty()) {
         if (obj_->ams_support_use_ams) {
-            if (m_ams_check->GetValue()) {
+            if (m_checkbox_list["use_ams"]->GetValue()) {
                 do_ams_mapping(obj_);
             } else {
                 clean_ams_mapping = true;
@@ -3056,7 +3058,7 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (!obj_->has_ams() || !m_ams_check->GetValue()) {
+    if (!obj_->has_ams() || !m_checkbox_list["use_ams"]->GetValue()) {
         clean_ams_mapping = true;
     }
 
@@ -3104,14 +3106,14 @@ void SelectMachineDialog::update_show_status()
     }
 
     // no ams
-    if (!obj_->has_ams() || !m_ams_check->GetValue()) {
+    if (!obj_->has_ams() || !m_checkbox_list["use_ams"]->GetValue()) {
         if (!has_tips(obj_))
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
     }
 
     if (obj_->ams_support_use_ams) {
-        if (!m_ams_check->GetValue()) {
+        if (!m_checkbox_list["use_ams"]->GetValue()) {
             m_ams_mapping_result.clear();
             sync_ams_mapping_result(m_ams_mapping_result);
             show_status(PrintDialogStatus::PrintStatusDisableAms);
@@ -3283,7 +3285,6 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     for (auto checkpire : m_checkbox_list) { 
         checkpire.second->Rescale();
     }
-    m_ams_check->Rescale();
 
     for (auto material1 : m_materialList) { 
         material1.second->item->msw_rescale();
@@ -3418,7 +3419,7 @@ void SelectMachineDialog::set_default()
         m_checkbox_list["timelapse"]->SetValue(true);
     }
 
-    m_ams_check->SetValue(true);
+    m_checkbox_list["use_ams"]->SetValue(true);
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
        set_default_normal();
@@ -3532,7 +3533,7 @@ void SelectMachineDialog::set_default_normal()
 
                 if (obj_ &&
                     obj_->has_ams() &&
-                    m_ams_check->GetValue() &&
+                    m_checkbox_list["use_ams"]->GetValue() &&
                     obj_->dev_id == m_printer_last_select)
                 {
                     m_mapping_popup.set_parent_item(item);
@@ -3695,7 +3696,7 @@ void SelectMachineDialog::set_default_from_sdcard()
 
                 if (obj_ &&
                     obj_->has_ams() &&
-                    m_ams_check->GetValue() &&
+                    m_checkbox_list["use_ams"]->GetValue() &&
                     obj_->dev_id == m_printer_last_select)
                 {
                     m_mapping_popup.set_parent_item(item);
@@ -3814,7 +3815,6 @@ bool SelectMachineDialog::Show(bool show)
         wxGetApp().reset_to_active();
         set_default();
         update_user_machine_list();
-        //update_lan_machine_list();
     }
     else {
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -3834,7 +3834,6 @@ bool SelectMachineDialog::Show(bool show)
     } else {
         m_refresh_timer->Stop();
     }
-
     Layout();
     Fit();
     if (show) { CenterOnParent(); }
