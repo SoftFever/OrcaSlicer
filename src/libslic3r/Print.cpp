@@ -885,7 +885,8 @@ static std::map<std::string, bool> filament_is_high_temp {
         {"PA-CF",   true},
         {"PET-CF",  true},
         {"PC",      true},
-        {"ASA",     true}
+        {"ASA",     true},
+        {"HIPS",    true}
 };
 
 //BBS: this function is used to check whether multi filament can be printed

@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.06.00.13",
+    "version": "01.06.00.14",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -288,6 +288,14 @@
         {
             "name": "fdm_filament_pa",
             "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "fdm_filament_hips",
+            "sub_path": "filament/fdm_filament_hips.json"
+        },
+        {
+            "name": "Generic HIPS @base",
+            "sub_path": "filament/Generic HIPS @base.json"
         },
         {
             "name": "Bambu TPU 95A @base",
@@ -972,6 +980,14 @@
         {
             "name": "Bambu ASA @BBL X1C 0.4 nozzle",
             "sub_path": "filament/Bambu ASA @BBL X1C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic HIPS @BBL X1C",
+            "sub_path": "filament/Generic HIPS @BBL X1C.json"
+        },
+        {
+            "name": "Generic HIPS @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Generic HIPS @BBL X1C 0.2 nozzle.json"
         }
     ],
     "machine_list": [

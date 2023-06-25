@@ -701,7 +701,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               only_one_wall_top))
     ((ConfigOptionBool,               only_one_wall_first_layer))
     // OrcaSlicer
-    ((ConfigOptionFloat,              seam_gap))
+    ((ConfigOptionPercent,            seam_gap))
     ((ConfigOptionPercent,            wipe_speed))
 )
 

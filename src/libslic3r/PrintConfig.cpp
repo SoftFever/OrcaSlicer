@@ -1031,7 +1031,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
     def                = this->add("internal_solid_infill_pattern", coEnum);
-    def->label         = L("Internal solid infill Pattern");
+    def->label         = L("Internal solid infill pattern");
     def->category      = L("Strength");
     def->tooltip       = L("Line pattern of internal solid infill. if the detect nattow internal solid infill be enabled, the concentric pattern will be used for the small area.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
@@ -1293,6 +1293,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PETG-CF");
     def->enum_values.push_back("PVA");
+    def->enum_values.push_back("HIPS");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -2475,13 +2476,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SeamPosition>(spAligned));
 
-    def = this->add("seam_gap", coFloat);
+    def = this->add("seam_gap", coPercent);
     def->label = L("Seam gap");
-    def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 0.15");
-    def->sidetext = L("mm");
+    def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount as a percentage of the current extruder diameter. The default value for this parameter is 15");
+    def->sidetext = L("%");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0.15));
+    def->set_default_value(new ConfigOptionPercent(15));
 
     def = this->add("wipe_speed", coPercent);
     def->label = L("Wipe speed");
