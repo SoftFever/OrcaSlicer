@@ -3616,6 +3616,11 @@ int MachineObject::parse_json(std::string payload)
                                     vt_tray.color = "";
                                 }
 
+                                if (jj["vt_tray"].contains("cali_idx"))
+                                    vt_tray.cali_idx = jj["vt_tray"]["cali_idx"].get<int>();
+                                else
+                                    vt_tray.cali_idx = -1;
+
                                 vt_tray.cols.clear();
                                 if (jj["vt_tray"].contains("cols")) {
                                     if (jj["vt_tray"].is_array()) {

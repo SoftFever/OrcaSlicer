@@ -7,7 +7,7 @@
 
 namespace Slic3r { namespace GUI {
 
-//#define CALIBRATION_DEBUG
+#define CALIBRATION_DEBUG
 
 #define PRESET_GAP                         FromDIP(25)
 #define CALIBRATION_COMBOX_SIZE            wxSize(FromDIP(500), FromDIP(24))
@@ -836,13 +836,14 @@ void CalibrationWizard::show_page(CalibrationWizardPage* page) {
 
 void CalibrationWizard::on_click_btn_prev(IntEvent& event)
 {
+    bool recalibration = false;
     ButtonType button_type = static_cast<ButtonType>(event.get_data());
     switch (button_type)
     {
     case Slic3r::GUI::Back:
         show_page(get_curr_page()->get_prev_page());
         break;
-    case Slic3r::GUI::Recalibrate:
+    case Slic3r::GUI::Recalibrate: {
         if (!curr_obj ||
             curr_obj->is_system_printing() ||
             curr_obj->is_in_printing()) {
@@ -850,7 +851,20 @@ void CalibrationWizard::on_click_btn_prev(IntEvent& event)
             msg_dlg.ShowModal();
             return;
         }
+        MessageDialog msg_dlg(nullptr, _L("It will restart to get the results. Do you confirm to recalibrate?"), wxEmptyString, wxICON_WARNING | wxYES | wxNO);
+        auto answer  = msg_dlg.ShowModal();
+        if (answer == wxID_NO)
+            return;
+        recalibration = true;
+    }
     case Slic3r::GUI::Restart:
+        if (!recalibration) {
+            MessageDialog msg_dlg(nullptr, _L("It will restart to get the results. Do you confirm to restart?"), wxEmptyString, wxICON_WARNING | wxYES | wxNO);
+            auto answer  = msg_dlg.ShowModal();
+            if (answer == wxID_NO)
+                return;
+        }
+
         init_presets_selections();
         change_ams_select_mode();
         wxGetApp().preset_bundle->set_calibrate_printer("");
@@ -913,6 +927,15 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
         if (curr_obj->is_system_printing() ||
             curr_obj->is_in_printing()) {
             MessageDialog msg_dlg(nullptr, _L("Is in printing. Please wait for printing to complete"), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+
+        std::string nozzle_temp_str = m_nozzle_temp->GetTextCtrl()->GetValue().ToStdString();
+        std::string bed_temp_str    = m_bed_temp->GetTextCtrl()->GetValue().ToStdString();
+        std::string max_volumetric_speed_str = m_max_volumetric_speed->GetTextCtrl()->GetValue().ToStdString();
+        if (nozzle_temp_str.empty() || bed_temp_str.empty() || max_volumetric_speed_str.empty()) {
+            MessageDialog msg_dlg(nullptr, _L("The printing parameters is empty, please reselect nozzle and plate type."), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
         }
@@ -1066,7 +1089,8 @@ void CalibrationWizard::update_print_progress()
 #ifdef CALIBRATION_DEBUG
                     if (m_curr_page->get_page_type() == PageType::Calibration) 
 #endif
-                    if (curr_obj->print_status == "FINISH" && m_curr_page->get_page_type() == PageType::Calibration)
+                    // todo: the printer status is not correct
+                    if (/*curr_obj->print_status == "FINISH" &&*/ m_curr_page->get_page_type() == PageType::Calibration)
                     {
                         m_button_abort->Enable(false);
                         m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());
