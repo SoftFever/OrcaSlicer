@@ -305,6 +305,12 @@ static const t_config_enum_values s_keys_map_ZHopType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
 
+static const t_config_enum_values s_keys_map_ExtruderType = {
+    { "DirectDrive",   etDirectDrive },
+    { "Bowden",        etBowden }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ExtruderType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -2425,6 +2431,17 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSpiral });
+
+    def = this->add("extruder_type", coEnums);
+    def->label = L("Type");
+    def->tooltip = ("This setting is only used for initial value of manual calibration of presure advance. Bowden extruder usually has larger pa value. This setting doesn't influence normal slicing");
+    def->enum_keys_map = &ConfigOptionEnum<ExtruderType>::get_enum_values();
+    def->enum_values.push_back("DirectDrive");
+    def->enum_values.push_back("Bowden");
+    def->enum_labels.push_back(L("Direct drive"));
+    def->enum_labels.push_back(L("Bowden"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnumsGeneric{ ExtruderType::etDirectDrive });
 
     def = this->add("retract_restart_extra", coFloats);
     //def->label = L("Extra length on restart");

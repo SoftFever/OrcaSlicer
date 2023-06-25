@@ -7,6 +7,9 @@
 	"inherits": "fdm_creality_common",
 	"printer_model": "Creality CR-10 V2",
 	"default_print_profile": "0.20mm Standard @Creality CR10V2",
+	"extruder_type": [
+		"Bowden"
+	],
 	"nozzle_diameter": [
         "0.4"
 	],

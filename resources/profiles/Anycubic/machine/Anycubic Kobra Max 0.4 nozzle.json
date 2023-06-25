@@ -7,6 +7,9 @@
 	"inherits": "fdm_machine_common",
 	"printer_model": "Anycubic Kobra Max",
 	"default_print_profile": "0.20mm Standard @Anycubic KobraMax",
+	"extruder_type": [
+		"Bowden"
+	],
 	"nozzle_diameter": [
 		"0.4"
 	],

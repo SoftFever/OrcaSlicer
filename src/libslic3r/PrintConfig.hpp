@@ -212,6 +212,12 @@ enum ZHopType {
     zhtCount
 };
 
+// BBS
+enum ExtruderType {
+    etDirectDrive = 0,
+    etBowden
+};
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -864,6 +870,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                auxiliary_fan))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
+    ((ConfigOptionEnumsGeneric,        extruder_type))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

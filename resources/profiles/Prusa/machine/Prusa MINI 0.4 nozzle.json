@@ -10,6 +10,9 @@
       "Generic PLA @Prusa"
   ],
   "default_print_profile": "0.20mm Standard @MINI",
+  "extruder_type": [
+    "Bowden"
+  ],
   "nozzle_diameter": [
       "0.4"
   ],

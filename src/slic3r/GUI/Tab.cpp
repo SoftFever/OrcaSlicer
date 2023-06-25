@@ -3415,7 +3415,8 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         auto page = add_options_page(page_name, "empty", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Size"), L"param_diameter", -1, true);
+            auto optgroup = page->new_optgroup(L("Type"), L"param_type", -1, true);
+            optgroup->append_single_option_line("extruder_type", "", extruder_idx);
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
@@ -3654,7 +3655,7 @@ void TabPrinter::toggle_options()
         bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
 
         //BBS
-        for (auto el : { "nozzle_diameter", "extruder_offset"})
+        for (auto el : {"extruder_type" , "nozzle_diameter", "extruder_offset"})
             toggle_option(el, !is_BBL_printer, i);
 
         // user can customize travel length if we have retraction length or we"re using

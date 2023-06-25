@@ -7,6 +7,9 @@
 	"inherits": "fdm_creality_common",
 	"printer_model": "Creality Ender-6",
 	"default_print_profile": "0.20mm Standard @Creality Ender6",
+	"extruder_type": [
+		"Bowden"
+	],
 	"nozzle_diameter": [
         "0.4"
 	],
