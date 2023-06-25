@@ -1254,13 +1254,12 @@ wxDataViewItem ObjectDataViewModel::GetItemByPlateId(int plate_idx)
 void ObjectDataViewModel::SetCurSelectedPlateFullNmae(int plate_idx, const std::string & custom_name) { 
     for (auto plate : m_plates) {
         if (plate->m_plate_idx == plate_idx) { 
-            wxString plate_full_name=_L("Plate");
-            if (custom_name.length() > 0) {
-                plate_full_name << " " << plate_idx + 1 << " (" << custom_name << ")";
-            } else {
-                plate_full_name << " " << plate_idx + 1;
+            wxString plate_full_name =_L("Plate");
+            plate_full_name += wxString::Format(" %d", plate_idx + 1);
+            if (!custom_name.empty()) {
+                plate_full_name += wxString(" (", wxConvUTF8) + from_u8(custom_name) + wxString(")", wxConvUTF8);
             }
-            plate->SetName(plate_full_name); 
+            plate->SetName(plate_full_name);
         }
     }
 }

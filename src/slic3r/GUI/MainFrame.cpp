@@ -933,9 +933,11 @@ void MainFrame::init_tabpanel()
                 wxString url;
                 if (cfg.has("print_host_webui") && !cfg.opt_string("print_host_webui").empty()) {
                     url = cfg.opt_string("print_host_webui");
+                } else if (cfg.has("print_host") && !cfg.opt_string("print_host").empty()) {
+                    url = cfg.opt_string("print_host");
                 }
                 else {
-                    url = cfg.opt_string("print_host");
+                    ;
                 }
                 if (url.empty()) {
                     wxString url = wxString::Format("file://%s/web/device/missing_connection.html", from_u8(resources_dir()));

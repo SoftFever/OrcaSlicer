@@ -1059,9 +1059,12 @@ void Sidebar::update_all_preset_comboboxes()
         wxString url;
         if (cfg.has("print_host_webui") && !cfg.opt_string("print_host_webui").empty()) {
             url = cfg.opt_string("print_host_webui");
-        } else {
+        } else if (cfg.has("print_host") && !cfg.opt_string("print_host").empty()) {
             url = cfg.opt_string("print_host");
+        } else {
+            ;
         }
+
         if(!url.empty()) 
         {
             if(!url.Lower().starts_with("http"))
