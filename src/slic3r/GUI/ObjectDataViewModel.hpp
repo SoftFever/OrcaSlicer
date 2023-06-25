@@ -361,7 +361,7 @@ public:
     void DeleteVolumeChildren(wxDataViewItem& parent);
     void DeleteSettings(const wxDataViewItem& parent);
     wxDataViewItem GetItemByPlateId(int plate_idx);
-    void           SetCurSelectedPlateFullNmae(int plate_idx,const std::string &);
+    void           SetCurSelectedPlateFullName(int plate_idx,const std::string &);
     wxDataViewItem GetItemById(int obj_idx);
     wxDataViewItem GetItemById(const int obj_idx, const int sub_obj_idx, const ItemType parent_type);
     wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);

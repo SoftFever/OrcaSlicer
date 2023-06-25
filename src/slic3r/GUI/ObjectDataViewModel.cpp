@@ -1251,7 +1251,7 @@ wxDataViewItem ObjectDataViewModel::GetItemByPlateId(int plate_idx)
     return wxDataViewItem(nullptr);
 }
 
-void ObjectDataViewModel::SetCurSelectedPlateFullNmae(int plate_idx, const std::string & custom_name) { 
+void ObjectDataViewModel::SetCurSelectedPlateFullName(int plate_idx, const std::string & custom_name) { 
     for (auto plate : m_plates) {
         if (plate->m_plate_idx == plate_idx) { 
             wxString plate_full_name =_L("Plate");

@@ -2133,6 +2133,7 @@ struct Plater::priv
     void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
+    void on_plate_name_change(SimpleEvent &);
     void on_right_click(RBtnEvent&);
     //BBS: add model repair
     void on_repair_model(wxCommandEvent &event);
@@ -2424,6 +2425,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
             });
         view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
+        view3D_canvas->Bind(EVT_GLCANVAS_PLATE_NAME_CHANGE, &priv::on_plate_name_change, this);
         view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
         //BBS: add part plate related logic
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
@@ -6419,6 +6421,11 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
 {
+    wxGetApp().obj_list()->update_selections();
+    selection_changed();
+}
+
+void Plater::priv::on_plate_name_change(SimpleEvent &) {
     wxGetApp().obj_list()->update_selections();
     selection_changed();
 }

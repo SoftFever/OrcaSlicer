@@ -1635,7 +1635,7 @@ void PartPlate::set_plate_name(const std::string &name)
     if (m_plater) {
         ObjectList *obj_list = wxGetApp().obj_list();
         if (obj_list) { 
-			obj_list->GetModel()->SetCurSelectedPlateFullNmae(m_plate_index, m_name);
+			obj_list->GetModel()->SetCurSelectedPlateFullName(m_plate_index, m_name);
 		}
     }
 

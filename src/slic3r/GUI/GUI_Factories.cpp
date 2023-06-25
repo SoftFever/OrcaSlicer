@@ -1677,6 +1677,7 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
             {
                 plater()->select_plate_by_hover_id(hover_idx, false, true);
             } 
+            plater()->get_current_canvas3D()->post_event(SimpleEvent(EVT_GLCANVAS_PLATE_NAME_CHANGE));
         },
         "", nullptr, []() { return true; }, m_parent);
 
