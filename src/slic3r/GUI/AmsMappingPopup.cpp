@@ -1314,7 +1314,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
              }
          }
 
-         if (is_in_tray) {
+         if (is_in_tray || m_tray_used.size() <= 0) {
              m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
              group_index++;
          } 
