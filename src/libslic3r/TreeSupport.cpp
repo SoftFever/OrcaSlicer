@@ -688,6 +688,11 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
         ipConcentric :
         (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
+    // Check if set to zero, use default if so.
+    if (m_support_params.support_extrusion_width <= 0.0) {
+        const auto nozzle_diameter = object.print()->config().nozzle_diameter.get_at(object.config().support_interface_filament - 1);
+        m_support_params.support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float)nozzle_diameter);
+    }
     is_slim                                  = is_tree_slim(support_type, support_style);
     is_strong = is_tree(support_type) && support_style == smsTreeStrong;
     MAX_BRANCH_RADIUS                        = 10.0;
@@ -2106,11 +2111,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const size_t   top_interface_layers = config.support_interface_top_layers.value;
     const size_t   bottom_interface_layers = config.support_interface_bottom_layers.value;
     const double diameter_angle_scale_factor = tan(tree_support_branch_diameter_angle * M_PI / 180.);// * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
-    const coordf_t line_width = config.support_line_width;
-    const coordf_t line_width_scaled           = scale_(line_width);
 
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
+    const coordf_t line_width_scaled = scale_(support_extrusion_width);
     const float tree_brim_width = config.tree_support_brim_width.value;
 
     const PrintObjectConfig& object_config = m_object->config();
@@ -2286,7 +2290,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 if (SQUARE_SUPPORT) {
                     // simplify support contours
                     ExPolygons base_areas_simplified;
-                    for (auto &area : base_areas) { area.simplify(scale_(line_width / 2), &base_areas_simplified); }
+                    for (auto &area : base_areas) { area.simplify(scale_(support_extrusion_width / 2), &base_areas_simplified); }
                     base_areas = std::move(base_areas_simplified);
                 }
                 //Subtract support floors. We can only compute floor_areas here instead of with roof_areas,
@@ -2578,7 +2582,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             if (angle > 30.0 && node->radius > MIN_BRANCH_RADIUS)
                 angle = (node->radius - MIN_BRANCH_RADIUS) / (MAX_BRANCH_RADIUS - MIN_BRANCH_RADIUS) * (config.tree_support_branch_angle.value - 30.0) + 30.0;
             double tan_angle           = tan(angle * M_PI / 180);
-            int wall_count_     = node->radius > 2 * config.support_line_width ? wall_count : 1;
+            int wall_count_     = node->radius > 2 * support_extrusion_width ? wall_count : 1;
             node->max_move_dist = (angle < 90) ? (coordf_t) (tan_angle * node->height) * wall_count_ : std::numeric_limits<coordf_t>::max();
             node->max_move_dist        = std::min(node->max_move_dist, support_extrusion_width);
             move_dist           = node->max_move_dist;
