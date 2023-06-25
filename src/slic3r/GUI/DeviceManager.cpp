@@ -2058,8 +2058,7 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             j["print"]["filaments"][i]["filament_id"]          = calib_data.calib_datas[i].filament_id;
             j["print"]["filaments"][i]["setting_id"]           = calib_data.calib_datas[i].setting_id;
             j["print"]["filaments"][i]["nozzle_temp"]          = calib_data.calib_datas[i].nozzle_temp;
-            // todo: new version need
-            //j["print"]["filaments"][i]["def_flow_ratio"]       = std::to_string(calib_data.calib_datas[i].flow_rate);
+            j["print"]["filaments"][i]["def_flow_ratio"]       = std::to_string(calib_data.calib_datas[i].flow_rate);
             j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(calib_data.calib_datas[i].max_volumetric_speed);
         }
 
@@ -3909,7 +3908,7 @@ int MachineObject::parse_json(std::string payload)
                                 flow_ratio_calib_result.tray_id     = (*it)["tray_id"].get<int>();
                                 flow_ratio_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
                                 flow_ratio_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
-                                flow_ratio_calib_result.nozzle_diameter = stof((*it)["nozzle_diameter"].get<std::string>().c_str());
+                                flow_ratio_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
                                 flow_ratio_calib_result.flow_ratio  = stof((*it)["flow_ratio"].get<std::string>().c_str());
 
                                 flow_ratio_results.push_back(flow_ratio_calib_result);

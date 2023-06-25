@@ -2015,7 +2015,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (obj->is_high_printer_type() && last_cali_version != obj->cali_version) {
         last_cali_version = obj->cali_version;
-        CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "GFA01"); // todo: get all
+        CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
     }
 
     bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);

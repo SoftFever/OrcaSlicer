@@ -2390,12 +2390,9 @@ void PressureAdvanceWizard::check_sync_printer_status()
     if (!obj_)
         return;
 
-    if (!m_printer_preset || !m_filament_preset)
-        return;
-
     if (m_cali_version != obj_->cali_version) {
         m_cali_version        = obj_->cali_version;
-        CalibUtils::emit_get_PA_calib_info(obj_->nozzle_diameter, m_filament_preset->filament_id);
+        CalibUtils::emit_get_PA_calib_info(obj_->nozzle_diameter, "");
     }
     
     if (CalibUtils::get_PA_calib_tab(m_calib_results_history)) {
@@ -2888,7 +2885,7 @@ void FlowRateWizard::sync_save_page_data() {
             save_name_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, fcb, save_name_input](auto& e) {
                 m_high_end_save_names[fcb->get_tray_id()] = save_name_input->GetTextCtrl()->GetValue().ToStdString();
                 e.Skip();
-                });
+        });
             save_name_input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, fcb, save_name_input](auto& e) {
                 m_high_end_save_names[fcb->get_tray_id()] = save_name_input->GetTextCtrl()->GetValue().ToStdString();
                 });
