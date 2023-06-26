@@ -106,6 +106,9 @@ func_track_event                    NetworkAgent::track_event_ptr = nullptr;
 func_track_header                   NetworkAgent::track_header_ptr = nullptr;
 func_track_update_property          NetworkAgent::track_update_property_ptr = nullptr;
 func_track_get_property             NetworkAgent::track_get_property_ptr = nullptr;
+func_put_model_mall_rating_url      NetworkAgent::put_model_mall_rating_url_ptr = nullptr;
+func_get_oss_config                 NetworkAgent::get_oss_config_ptr = nullptr;
+func_put_rating_picture_oss         NetworkAgent::put_rating_picture_oss_ptr = nullptr;
 
 
 NetworkAgent::NetworkAgent()
@@ -258,6 +261,9 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     track_header_ptr                  =  reinterpret_cast<func_track_header>(get_network_function("bambu_network_track_header"));
     track_update_property_ptr         = reinterpret_cast<func_track_update_property>(get_network_function("bambu_network_track_update_property"));
     track_get_property_ptr            = reinterpret_cast<func_track_get_property>(get_network_function("bambu_network_track_get_property"));
+    put_model_mall_rating_url_ptr     = reinterpret_cast<func_put_model_mall_rating_url>(get_network_function("bambu_network_put_model_mall_rating"));
+    get_oss_config_ptr                = reinterpret_cast<func_get_oss_config>(get_network_function("bambu_network_get_oss_config"));
+    put_rating_picture_oss_ptr        = reinterpret_cast<func_put_rating_picture_oss>(get_network_function("bambu_network_put_rating_picture_oss"));
 
     return 0;
 }
@@ -363,6 +369,9 @@ int NetworkAgent::unload_network_module()
     track_header_ptr                  =  nullptr;
     track_update_property_ptr         =  nullptr;
     track_get_property_ptr            =  nullptr;
+    get_oss_config_ptr                =  nullptr;
+    put_rating_picture_oss_ptr        =  nullptr;
+    put_model_mall_rating_url_ptr     =  nullptr;
 
     return 0;
 }
@@ -1265,6 +1274,37 @@ int NetworkAgent::track_get_property(std::string name, std::string& value, std::
         ret = track_get_property_ptr(network_agent, name, value, type);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::put_model_mall_rating(
+    int design_id, int score, std::string content, std::vector<std::string> images, unsigned int &http_code, std::string &http_error)
+{
+    int ret = 0;
+    if (network_agent && get_model_publish_url_ptr) {
+        ret = put_model_mall_rating_url_ptr(network_agent, design_id, score, content, images, http_code, http_error);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_oss_config(std::string &config, std::string country_code, unsigned int &http_code, std::string &http_error)
+{
+    int ret = 0;
+    if (network_agent && get_oss_config_ptr) {
+        ret = get_oss_config_ptr(network_agent, config, country_code, http_code, http_error);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::put_rating_picture_oss(std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error)
+{
+    int ret = 0;
+    if (network_agent && put_rating_picture_oss_ptr) {
+        ret = put_rating_picture_oss_ptr(network_agent, config, pic_oss_path, model_id, profile_id, http_code, http_error);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }
