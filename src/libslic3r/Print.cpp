@@ -911,7 +911,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
 
-    if (extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
+    if (extruders.size() > 1 && m_config.single_extruder_multi_material && m_config.print_sequence != PrintSequence::ByObject) {
         auto ret = check_multi_filament_valid(*this);
         if (!ret.string.empty())
             return ret;
