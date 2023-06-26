@@ -103,7 +103,7 @@ public:
                wxString temp_min = wxEmptyString, wxString temp_max = wxEmptyString,
                wxString k = wxEmptyString, wxString n = wxEmptyString);
 
-    void post_select_event();
+    void post_select_event(int index);
     void msw_rescale();
     void set_color(wxColour color);
     void set_empty_color(wxColour color);
@@ -125,6 +125,7 @@ public:
     std::string    m_filament_type;
     ColorPickerPopup m_color_picker_popup;
     ColorPicker *       m_clr_picker;
+    std::vector<PACalibResult>  m_pa_profile_items;
 
 protected:
     void create_panel_normal(wxWindow* parent);

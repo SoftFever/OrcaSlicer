@@ -279,6 +279,8 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     wxBoxSizer *m_sizer_cali_resutl = new wxBoxSizer(wxHORIZONTAL);
     // pa profile
     m_title_pa_profile = new wxStaticText(parent, wxID_ANY, _L("PA Profile"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_pa_profile->SetMinSize(wxSize(FromDIP(80), -1));
+    m_title_pa_profile->SetMaxSize(wxSize(FromDIP(80), -1));
     m_title_pa_profile->SetFont(::Label::Body_13);
     m_title_pa_profile->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_pa_profile->Wrap(-1);
@@ -295,14 +297,16 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
 
     // k params input
     m_k_param = new wxStaticText(parent, wxID_ANY, _L("Factor K"), wxDefaultPosition, wxDefaultSize, 0);
+    m_k_param->SetMinSize(wxSize(FromDIP(80), -1));
+    m_k_param->SetMaxSize(wxSize(FromDIP(80), -1));
     m_k_param->SetFont(::Label::Body_13);
     m_k_param->SetForegroundColour(wxColour(50, 58, 61));
     m_k_param->Wrap(-1);
-    kn_val_sizer->Add(m_k_param, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    kn_val_sizer->Add(m_k_param, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
 
     m_input_k_val = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_k_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    kn_val_sizer->Add(m_input_k_val, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    kn_val_sizer->Add(m_input_k_val, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(0));
 
     // n params input
     wxBoxSizer* n_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -314,6 +318,8 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_input_n_val = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_n_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     kn_val_sizer->Add(m_input_n_val, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    m_n_param->Hide();
+    m_input_n_val->Hide();
 
     // hide n (P1P old logic)
     //if (!this->obj || !this->obj->is_high_printer_type()) {
@@ -419,6 +425,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     m_input_nozzle_max->GetTextCtrl()->SetValue("");
     ams_filament_id = "";
     ams_setting_id = "";
+    m_filament_selection = -1;
     wxString k_text = "0.000";
     wxString n_text = "0.000";
     m_filament_type = "";
@@ -430,7 +437,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
 
     if (obj) {
         // set filament
-        if (obj->is_support_filament_edit_virtual_tray || !is_virtual_tray()) {
+        if (!is_virtual_tray()) {
             if (is_virtual_tray()) {
                 obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
             }
@@ -467,32 +474,101 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
 
 void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 {
+    //get filament id
+    ams_filament_id = "";
+    ams_setting_id = "";
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+
+            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+
+
+                //check is it in the filament blacklist
+                if (!is_virtual_tray() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+                    bool in_blacklist = false;
+                    std::string action;
+                    std::string info;
+                    std::string filamnt_type;
+                    it->get_filament_type(filamnt_type);
+
+                    if (it->vendor) {
+                        DeviceManager::check_filaments_in_blacklist(it->vendor->name, filamnt_type, in_blacklist, action, info);
+                    }
+
+                    if (in_blacklist) {
+                        if (action == "prohibition") {
+                            MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
+                            msg_wingow.ShowModal();
+                            //m_comboBox_filament->SetSelection(m_filament_selection);
+                            return;
+                        }
+                        else if (action == "warning") {
+                            MessageDialog msg_wingow(nullptr, info, _L("Warning"), wxICON_INFORMATION | wxOK);
+                            msg_wingow.ShowModal();
+                        }
+                    }
+                }
+
+                ams_filament_id = it->filament_id;
+                ams_setting_id = it->setting_id;
+                break;
+            }
+        }
+    }
+
+    wxString nozzle_temp_min = m_input_nozzle_min->GetTextCtrl()->GetValue();
+    auto     filament = m_comboBox_filament->GetValue();
+
+    wxString nozzle_temp_max = m_input_nozzle_max->GetTextCtrl()->GetValue();
+
+    long nozzle_temp_min_int, nozzle_temp_max_int;
+    nozzle_temp_min.ToLong(&nozzle_temp_min_int);
+    nozzle_temp_max.ToLong(&nozzle_temp_max_int);
+    wxColour color = m_clr_picker->m_colour;
+    char col_buf[10];
+    sprintf(col_buf, "%02X%02X%02X%02X", (int)color.Red(), (int)color.Green(), (int)color.Blue(), (int)color.Alpha());
+
+    if (ams_filament_id.empty() || nozzle_temp_min.empty() || nozzle_temp_max.empty() || m_filament_type.empty()) {
+        BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
+        MessageDialog msg_dlg(nullptr, _L("You need to select the material type and color first."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    if (ams_filament_id.empty() || nozzle_temp_min.empty() || nozzle_temp_max.empty() || m_filament_type.empty()) {
+        BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
+        MessageDialog msg_dlg(nullptr, _L("You need to select the material type and color first."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
+
+    // set filament
+    if (!is_virtual_tray()) {
+        if (is_virtual_tray()) {
+            obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+        }
+        else {
+            obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+        }
+    }
+
+
+    //reset param
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
-    if (obj && obj->is_high_printer_type()) {
-        PACalibIndexInfo select_index_info;
-        select_index_info.tray_id = tray_id;
-        select_index_info.nozzle_diameter = obj->nozzle_diameter;
-        if (m_pa_cali_select_id > 0) {
-            select_index_info.cali_idx    = obj->pa_calib_tab[m_pa_cali_select_id - 1].cali_idx;
-            select_index_info.filament_id = obj->pa_calib_tab[m_pa_cali_select_id - 1].filament_id;
-        } else { // default item
-            select_index_info.cali_idx = -1;
-            select_index_info.filament_id = obj->pa_calib_tab[0].filament_id;
-        }
-
-        CalibUtils::select_PA_calib_result(select_index_info);
+    if (!ExtrusionCalibration::check_k_validation(k_text)) {
+        wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
+        wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
+        MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
     }
 
-    if (is_virtual_tray() && obj && !obj->is_support_filament_edit_virtual_tray) {
-        if (!ExtrusionCalibration::check_k_validation(k_text)) {
-            wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
-            wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
-            MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
-            return;
-        }
+    // set k / n value
+    if (is_virtual_tray()) {
         double k = 0.0;
         try {
             k_text.ToDouble(&k);
@@ -507,153 +583,63 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         catch (...) {
             ;
         }
-        obj->command_extrusion_cali_set(VIRTUAL_TRAY_ID, "", "", k, n);
-        Close();
-    }
-    else {
-        if (!m_is_third) {
-            // check and set k n
-            if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
-                if (!ExtrusionCalibration::check_k_validation(k_text)) {
-                    wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
-                    wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
-                    MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
-                    msg_dlg.ShowModal();
-                    return;
-                }
+
+        if (obj->is_high_printer_type()) {
+            PACalibIndexInfo select_index_info;
+            select_index_info.tray_id = tray_id;
+            select_index_info.nozzle_diameter = obj->nozzle_diameter;
+
+            
+            if (m_pa_cali_select_id > 0) {
+                select_index_info.cali_idx = m_pa_profile_items[m_pa_cali_select_id].cali_idx;
+                select_index_info.filament_id = m_pa_profile_items[m_pa_cali_select_id].filament_id;
+            }
+            else { // default item
+                select_index_info.cali_idx = -1;
+                select_index_info.filament_id = ams_filament_id;
             }
 
-
-            // set k / n value
-            if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
-                // set extrusion cali ratio
-                int cali_tray_id = ams_id * 4 + tray_id;
-
-                double k = 0.0;
-                try {
-                    k_text.ToDouble(&k);
-                }
-                catch (...) {
-                    ;
-                }
-
-                double n = 0.0;
-                try {
-                    n_text.ToDouble(&n);
-                }
-                catch (...) {
-                    ;
-                }
-                obj->command_extrusion_cali_set(cali_tray_id, "", "", k, n);
-            }
-            Close();
-            return;
-        }
-        wxString nozzle_temp_min = m_input_nozzle_min->GetTextCtrl()->GetValue();
-        auto     filament = m_comboBox_filament->GetValue();
-
-        wxString nozzle_temp_max = m_input_nozzle_max->GetTextCtrl()->GetValue();
-
-        long nozzle_temp_min_int, nozzle_temp_max_int;
-        nozzle_temp_min.ToLong(&nozzle_temp_min_int);
-        nozzle_temp_max.ToLong(&nozzle_temp_max_int);
-        wxColour color = m_clr_picker->m_colour;
-        char col_buf[10];
-        sprintf(col_buf, "%02X%02X%02X%02X", (int)color.Red(), (int)color.Green(), (int)color.Blue(), (int)color.Alpha());
-        ams_filament_id = "";
-        ams_setting_id = "";
-
-        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-        if (preset_bundle) {
-            for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-
-                if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
-
-
-                    //check is it in the filament blacklist
-                    if (!is_virtual_tray() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
-                        bool in_blacklist = false;
-                        std::string action;
-                        std::string info;
-                        std::string filamnt_type;
-                        it->get_filament_type(filamnt_type);
-
-                        if (it->vendor) {
-                            DeviceManager::check_filaments_in_blacklist(it->vendor->name, filamnt_type, in_blacklist, action, info);
-                        }
-
-                        if (in_blacklist) {
-                            if (action == "prohibition") {
-                                MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
-                                msg_wingow.ShowModal();
-                                //m_comboBox_filament->SetSelection(m_filament_selection);
-                                return;
-                            }
-                            else if (action == "warning") {
-                                MessageDialog msg_wingow(nullptr, info, _L("Warning"), wxICON_INFORMATION | wxOK);
-                                msg_wingow.ShowModal();
-                            }
-                        }
-                    }
-
-                    ams_filament_id = it->filament_id;
-                    ams_setting_id = it->setting_id;
-                    break;
-                }
-            }
-        }
-
-        if (ams_filament_id.empty() || nozzle_temp_min.empty() || nozzle_temp_max.empty() || m_filament_type.empty()) {
-            BOOST_LOG_TRIVIAL(trace) << "Invalid Setting id";
-            MessageDialog msg_dlg(nullptr, _L("You need to select the material type and color first."), wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
-            return;
+            CalibUtils::select_PA_calib_result(select_index_info);
         }
         else {
-            if (obj) {
-                if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
-                    if (!ExtrusionCalibration::check_k_validation(k_text)) {
-                        wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
-                        wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
-                        MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
-                        msg_dlg.ShowModal();
-                        return;
-                    }
-                }
+            obj->command_extrusion_cali_set(VIRTUAL_TRAY_ID, "", "", k, n);
+        }
+    }
+    else {
+        int cali_tray_id = ams_id * 4 + tray_id;
+        double k = 0.0;
+        try {
+            k_text.ToDouble(&k);
+        }
+        catch (...) {
+            ;
+        }
 
-                // set filament
-                if (obj->is_support_filament_edit_virtual_tray || !is_virtual_tray()) {
-                    if (is_virtual_tray()) {
-                        obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-                    }
-                    else {
-                        obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
-                    }
-                }
+        double n = 0.0;
+        try {
+            n_text.ToDouble(&n);
+        }
+        catch (...) {
+            ;
+        }
 
-                // set k / n value
-                if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
-                    // set extrusion cali ratio
-                    int cali_tray_id = ams_id * 4 + tray_id;
-
-                    double k = 0.0;
-                    try {
-                        k_text.ToDouble(&k);
-                    }
-                    catch (...) {
-                        ;
-                    }
-
-                    double n = 0.0;
-                    try {
-                        n_text.ToDouble(&n);
-                    }
-                    catch (...) {
-                        ;
-                    }
-                    obj->command_extrusion_cali_set(cali_tray_id, "", "", k, n);
-                }
+        if (obj->is_high_printer_type()) {
+            PACalibIndexInfo select_index_info;
+            select_index_info.tray_id = tray_id;
+            select_index_info.nozzle_diameter = obj->nozzle_diameter;
+            if (m_pa_cali_select_id > 0) {
+                select_index_info.cali_idx = m_pa_profile_items[m_pa_cali_select_id].cali_idx;
+                select_index_info.filament_id = m_pa_profile_items[m_pa_cali_select_id].filament_id;
             }
+            else { // default item
+                select_index_info.cali_idx = -1;
+                select_index_info.filament_id = ams_filament_id;
+            }
+
+            CalibUtils::select_PA_calib_result(select_index_info);
+        }
+        else {
+            obj->command_extrusion_cali_set(cali_tray_id, "", "", k, n);
         }
     }
     Close();
@@ -725,7 +711,7 @@ void AMSMaterialsSetting::update_widgets()
 {
     // virtual tray
     if (is_virtual_tray()) {
-        if (obj && obj->is_support_filament_edit_virtual_tray)
+        if (obj)
             m_panel_normal->Show();
         else
             m_panel_normal->Hide();
@@ -777,7 +763,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
-    if (is_virtual_tray() && obj && !obj->is_support_filament_edit_virtual_tray) {
+    if (is_virtual_tray() && obj) {
         m_button_reset->Show();
         m_button_confirm->Show();
         update();
@@ -891,39 +877,13 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             }
             m_comboBox_filament->Set(filament_items);
             m_comboBox_filament->SetSelection(selection_idx);
-            post_select_event();
+            post_select_event(selection_idx);
+
+            if (selection_idx < 0) {
+                m_comboBox_filament->SetValue(wxEmptyString);
+            }
         }
     }
-
-    wxArrayString items;
-    if (this->obj && this->obj->is_high_printer_type()) {
-        std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
-        items.push_back("default");
-        for (auto cali_item : cali_history) {
-            items.push_back(cali_item.name);
-        }
-        m_comboBox_cali_result->Set(items);
-
-        Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
-        AmsTray* selected_tray = selected_ams->trayList[std::to_string(tray_id)];
-        int select_idx = CalibUtils::get_selected_calib_idx(this->obj->pa_calib_tab, selected_tray->cali_idx);
-        m_comboBox_cali_result->SetSelection(select_idx + 1);
-
-        if (select_idx >= 0) {
-            m_input_k_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[select_idx].k_value));
-            m_input_n_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[select_idx].n_coef));
-        } else { // default value
-            m_input_k_val->GetTextCtrl()->SetValue("0.00");
-            m_input_n_val->GetTextCtrl()->SetValue("0.00");
-        }
-        m_input_k_val->Enable(false);
-        m_input_n_val->Enable(false);
-    }
-    else {
-        m_input_k_val->Enable(true);
-        m_input_n_val->Enable(true);
-    }
-
 
     update();
     Layout();
@@ -931,8 +891,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     ShowModal();
 }
 
-void AMSMaterialsSetting::post_select_event() {
+void AMSMaterialsSetting::post_select_event(int index) {
     wxCommandEvent event(wxEVT_COMBOBOX);
+    event.SetInt(index);
     event.SetEventObject(m_comboBox_filament);
     wxPostEvent(m_comboBox_filament, event);
 }
@@ -1006,6 +967,78 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     }
 
     m_filament_selection = evt.GetSelection();
+
+    //reset cali
+    int cali_select_idx;
+
+    if ( !this->obj || m_filament_selection < 0) {
+        m_input_k_val->GetTextCtrl()->SetValue("0.00");
+        m_input_n_val->GetTextCtrl()->SetValue("0.00");
+        m_input_k_val->Enable(false);
+        m_input_n_val->Enable(false);
+        m_button_confirm->Disable();
+        m_button_confirm->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+        m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        m_comboBox_cali_result->Clear();
+        m_comboBox_cali_result->SetValue(wxEmptyString);
+        return;
+    }
+
+    m_button_confirm->Enable();
+    m_button_confirm->SetBackgroundColor(m_btn_bg_green);
+    m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+    m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
+
+    //filament id
+    ams_filament_id = "";
+    ams_setting_id = "";
+
+    if (preset_bundle) {
+        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+                ams_filament_id = it->filament_id;
+                ams_setting_id = it->setting_id;
+                break;
+            }
+        }
+    }
+
+    wxArrayString items;
+    m_pa_profile_items.clear();
+
+    if (this->obj->is_high_printer_type()) {
+        std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
+        items.push_back("default");
+        for (auto cali_item : cali_history) {
+            if (cali_item.filament_id == ams_filament_id) {
+                items.push_back(cali_item.name);
+                m_pa_profile_items.push_back(cali_item);
+            }
+        }
+        m_comboBox_cali_result->Set(items);
+
+        
+        if (tray_id == VIRTUAL_TRAY_ID) {
+            AmsTray selected_tray = this->obj->vt_tray;
+            cali_select_idx = CalibUtils::get_selected_calib_idx(this->obj->pa_calib_tab,selected_tray.cali_idx);
+            m_comboBox_cali_result->SetSelection(cali_select_idx + 1);
+        }
+        else {
+            Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
+            AmsTray selected_tray = *selected_ams->trayList[std::to_string(tray_id)];
+            cali_select_idx = CalibUtils::get_selected_calib_idx(this->obj->pa_calib_tab, selected_tray.cali_idx);
+            m_comboBox_cali_result->SetSelection(cali_select_idx + 1);
+        }
+        
+        if (cali_select_idx >= 0) {
+            m_input_k_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[cali_select_idx].k_value));
+            m_input_n_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[cali_select_idx].n_coef));
+        }
+    }
+    else {
+        m_input_k_val->Enable(true);
+        m_input_n_val->Enable(true);
+    }
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
