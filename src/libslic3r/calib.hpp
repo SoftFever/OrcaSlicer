@@ -30,7 +30,7 @@ struct Calib_Params {
 
 class CalibPressureAdvance {
 protected:
-    CalibPressureAdvance() : mp_gcodegen(nullptr) { };
+    CalibPressureAdvance() { };
     CalibPressureAdvance(GCode* gcodegen);
     ~CalibPressureAdvance() { };
 
@@ -39,7 +39,7 @@ protected:
         Bottom_To_Top
     };
 
-    bool  is_delta() const;
+    bool        is_delta() const;
     void        delta_scale_bed_ext(BoundingBoxf& bed_ext) { bed_ext.scale(1.0f / 1.41421f); }
 
     std::string move_to(Vec2d pt, std::string comment = std::string());
@@ -70,16 +70,16 @@ protected:
         double layer_height
     );
 
-    GCode* mp_gcodegen;
+    GCode* mp_gcodegen {nullptr};
 
     DrawDigitMode m_draw_digit_mode {DrawDigitMode::Left_To_Right};
-    double m_digit_segment_len {2};
-    double m_digit_gap_len {1};
-    std::string::size_type m_max_number_len {5};
+    const double m_digit_segment_len {2};
+    const double m_digit_gap_len {1};
+    const std::string::size_type m_max_number_len {5};
 
-    double m_nozzle_diameter;
-    double m_line_width;
-    double m_height_layer;
+    double m_nozzle_diameter {-1};
+    double m_line_width {-1};
+    double m_height_layer {-1};
 };
 
 class CalibPressureAdvanceLine : public CalibPressureAdvance {
@@ -117,7 +117,10 @@ friend class CalibPressureAdvancePattern;
 friend struct DrawLineOptArgs;
 friend struct DrawBoxOptArgs;
 private:
-    PatternSettings(const CalibPressureAdvancePattern& cpap);
+    PatternSettings() { };
+    PatternSettings(const CalibPressureAdvancePattern* cpap);
+
+    PatternSettings& operator= (const PatternSettings& rhs) =default;
 
     double anchor_line_width;
     int anchor_perimeters;
@@ -132,7 +135,7 @@ private:
 struct DrawLineOptArgs {
 friend class CalibPressureAdvancePattern;
 private:
-    DrawLineOptArgs(const PatternSettings ps) {
+    DrawLineOptArgs(const PatternSettings& ps) {
         height = ps.layer_height;
         line_width = ps.line_width;
         speed = ps.perim_speed;
@@ -147,7 +150,7 @@ private:
 struct DrawBoxOptArgs {
 friend class CalibPressureAdvancePattern;
 private:
-    DrawBoxOptArgs(const PatternSettings ps) {
+    DrawBoxOptArgs(const PatternSettings& ps) {
         num_perimeters = ps.anchor_perimeters;
         height = ps.first_layer_height;
         line_width = ps.anchor_line_width;
@@ -161,19 +164,66 @@ private:
     double speed;
 };
 
-class CalibPressureAdvancePattern : public CalibPressureAdvance {
-friend struct PatternSettings;
+// the bare minimum needed to plate this calibration test
+class CalibPressureAdvancePatternPlate : public CalibPressureAdvance {
 public:
-    CalibPressureAdvancePattern(const Calib_Params& params);
-    CalibPressureAdvancePattern(const Calib_Params& params, GCode* gcodegen);
-    ~CalibPressureAdvancePattern() { };
-
-    CustomGCode::Info generate_gcodes();
-
-    double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
+    CalibPressureAdvancePatternPlate(const Calib_Params& params) :
+        CalibPressureAdvance(),
+        m_start_pa(params.start),
+        m_end_pa(params.end),
+        m_step_pa(params.step)
+    {
+        this->m_height_layer = 0.2;
+    };
+    CalibPressureAdvancePatternPlate(
+        const Calib_Params& params,
+        GCode* gcodegen
+    ) :
+        CalibPressureAdvance(gcodegen),
+        m_start_pa(params.start),
+        m_end_pa(params.end),
+        m_step_pa(params.step)
+    {
+        this->m_height_layer = 0.2;
+    };
 
     double height_first_layer() const { return m_height_first_layer; };
     double height_layer() const { return m_height_layer; };
+    double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
+
+    double handle_xy_size() { return m_handle_xy_size; };
+protected:
+    const double m_start_pa;
+    const double m_end_pa;
+    const double m_step_pa;
+
+    const double m_handle_xy_size {5};
+
+    const int m_num_layers {4};
+    const double m_height_first_layer {0.25};
+};
+
+/* Remaining definition. Separated because it requires fully setup GCode object, 
+which is not available at the time of plating */
+class CalibPressureAdvancePattern : public CalibPressureAdvancePatternPlate {
+friend struct PatternSettings;
+public:
+    CalibPressureAdvancePattern(
+        const Calib_Params& params,
+        GCode* gcodegen,
+        const Vec2d starting_point
+    ) :
+        CalibPressureAdvancePatternPlate(params, gcodegen),
+        m_starting_point(starting_point)
+    {
+        this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
+        this->m_line_width = line_width();
+
+        this->m_pattern_settings = PatternSettings(this);
+    };
+    ~CalibPressureAdvancePattern() { };
+
+    CustomGCode::Info generate_gcodes();
 protected:
     double line_width() const { return m_nozzle_diameter * m_line_ratio / 100; };
     double line_width_anchor() const { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
@@ -216,27 +266,24 @@ private:
     double pattern_start_x();
     double pattern_start_y();
 
-    const double m_start_pa;
-    const double m_end_pa;
-    const double m_step_pa;
+    PatternSettings m_pattern_settings;
+    const Vec2d m_starting_point;
 
-    double m_line_ratio {112.5};
-    int m_num_layers {4};
-    double m_height_first_layer {0.25};
-    double m_speed_first_layer {30};
-    double m_speed_perimeter {100};
+    const double m_line_ratio {112.5};
+    const int m_anchor_layer_line_ratio {140};
+    const int m_anchor_perimeters {4};
     
-    int m_anchor_perimeters {4};
-    int m_anchor_layer_line_ratio {140};
+    const double m_speed_first_layer {30};
+    const double m_speed_perimeter {100};
     
-    double m_prime_zone_buffer {10};
-    int m_wall_count {3};
-    double m_wall_side_length {30.0};
-    int m_corner_angle {90};
-    int m_pattern_spacing {2};
-    double m_encroachment {1. / 3.};
+    const double m_prime_zone_buffer {10};
+    const int m_wall_count {3};
+    const double m_wall_side_length {30.0};
+    const int m_corner_angle {90};
+    const int m_pattern_spacing {2};
+    const double m_encroachment {1. / 3.};
 
-    double m_glyph_padding_horizontal {1};
-    double m_glyph_padding_vertical {1};
+    const double m_glyph_padding_horizontal {1};
+    const double m_glyph_padding_vertical {1};
 };
 } // namespace Slic3r

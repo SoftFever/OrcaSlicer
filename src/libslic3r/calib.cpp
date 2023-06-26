@@ -6,12 +6,9 @@
 
 namespace Slic3r {
 CalibPressureAdvance::CalibPressureAdvance(GCode* gcodegen) :
-    mp_gcodegen(gcodegen)
-{
-    if (gcodegen != nullptr) {
-        m_nozzle_diameter = gcodegen->config().nozzle_diameter.get_at(0);
-    }
-};
+    mp_gcodegen(gcodegen),
+    m_nozzle_diameter(gcodegen->config().nozzle_diameter.get_at(0))
+{ };
 
 bool CalibPressureAdvance::is_delta() const
 {
@@ -335,31 +332,16 @@ void CalibPressureAdvanceLine::delta_modify_start(double& startx, double& starty
     starty = -(count * m_space_y) / 2;
 }
 
-PatternSettings::PatternSettings(const CalibPressureAdvancePattern& cpap) {    
-    anchor_line_width = cpap.line_width_anchor();
-    anchor_perimeters = cpap.anchor_perimeters();
-    encroachment = cpap.encroachment();
-    first_layer_height = cpap.height_first_layer();
-    first_layer_speed = cpap.speed_adjust(cpap.speed_first_layer());
-    layer_height = cpap.height_layer();
-    line_width = cpap.line_width();
-    perim_speed = cpap.speed_adjust(cpap.speed_perimeter());
-}
-
-CalibPressureAdvancePattern::CalibPressureAdvancePattern(const Calib_Params& params) :
-    CalibPressureAdvancePattern(params, nullptr)
+PatternSettings::PatternSettings(const CalibPressureAdvancePattern* cpap) :    
+    anchor_line_width(cpap->line_width_anchor()),
+    anchor_perimeters(cpap->anchor_perimeters()),
+    encroachment(cpap->encroachment()),
+    first_layer_height(cpap->height_first_layer()),
+    first_layer_speed(cpap->speed_adjust(cpap->speed_first_layer())),
+    layer_height(cpap->height_layer()),
+    line_width(cpap->line_width()),
+    perim_speed(cpap->speed_adjust(cpap->speed_perimeter()))
 { };
-
-CalibPressureAdvancePattern::CalibPressureAdvancePattern(const Calib_Params& params, GCode* gcodegen) :
-    CalibPressureAdvance(gcodegen),
-    m_start_pa(params.start),
-    m_end_pa(params.end),
-    m_step_pa(params.step)
-{    
-    this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
-    this->m_line_width = line_width();
-    this->m_height_layer = 0.2;
-}
 
 CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 {
@@ -368,15 +350,13 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
     std::stringstream gcode;
     GCodeWriter& writer = mp_gcodegen->writer();
 
-    gcode << writer.travel_to_xyz(
-        Vec3d(pattern_start_x(), pattern_start_y(), m_height_first_layer),
-        "Move to start position"
-    );
+    gcode << "; start pressure advance pattern for layer\n";
 
+    gcode << move_to(Vec2d(pattern_start_x(), pattern_start_y()), "Move to start XY position");
+    gcode << writer.travel_to_z(m_height_first_layer, "Move to start Z position");
     gcode << writer.set_pressure_advance(m_start_pa);
 
-    const PatternSettings pattern_settings(*this);
-    const DrawBoxOptArgs default_box_opt_args(pattern_settings);
+    const DrawBoxOptArgs default_box_opt_args(m_pattern_settings);
 
     // create anchor frame
     gcode << draw_box(
@@ -400,19 +380,21 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
     );
 
     std::vector<CustomGCode::Item> gcode_items;
-
-    const DrawLineOptArgs default_line_opt_args(pattern_settings);
+    const DrawLineOptArgs default_line_opt_args(m_pattern_settings);
     const int num_patterns = get_num_patterns(); // "cache" for use in loops
 
     // draw pressure advance pattern
     for (int i = 0; i < m_num_layers; ++i) {
         if (i > 0) {
+            gcode << "; end pressure advance pattern for layer\n";
             CustomGCode::Item item;
-            item.print_z = i == 1 ? m_height_first_layer : m_height_layer;
+            item.print_z = m_height_first_layer + (i - 1) * m_height_layer;
             item.type = CustomGCode::Type::Custom;
             item.extra = gcode.str();
             gcode_items.push_back(item);
+
             gcode = std::stringstream(); // reset for next layer contents
+            gcode << "; start pressure advance pattern for layer\n";
         }
 
         // // line numbering
@@ -509,14 +491,13 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
         }
     }
 
-    // set pressure advance back to start value
     gcode << writer.set_pressure_advance(m_start_pa);
+    gcode << "; end pressure advance pattern for layer\n";
 
     CustomGCode::Item item;
-    item.print_z = m_height_layer;
+    item.print_z = max_layer_z();
     item.type = CustomGCode::Type::Custom;
     item.extra = gcode.str();
-
     gcode_items.push_back(item);
 
     CustomGCode::Info info;
@@ -528,6 +509,8 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 
 std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, DrawLineOptArgs opt_args)
 {
+    assert(mp_gcodegen != nullptr);
+
     std::stringstream gcode;
 
     const double e_per_mm = CalibPressureAdvance::e_per_mm(
@@ -537,6 +520,7 @@ std::string CalibPressureAdvancePattern::draw_line(double to_x, double to_y, Dra
         mp_gcodegen->config().filament_flow_ratio.get_at(0)
     );
 
+    // TODO: this seems to always be (0, 0)
     const Point last_pos = mp_gcodegen->last_pos();
     const double length = get_distance(last_pos.x(), last_pos.y(), to_x, to_y);
     auto dE = e_per_mm * length;
@@ -570,8 +554,7 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
 
     gcode << move_to(Vec2d(min_x, min_y), "Move to box start");
 
-    PatternSettings ps(*this);
-    DrawLineOptArgs line_opt_args(ps);
+    DrawLineOptArgs line_opt_args(m_pattern_settings);
     line_opt_args.height = opt_args.height;
     line_opt_args.line_width = opt_args.line_width;
     line_opt_args.speed = opt_args.speed;
@@ -742,6 +725,7 @@ double CalibPressureAdvancePattern::get_distance(double cur_x, double cur_y, dou
 
 Point CalibPressureAdvancePattern::bed_center()
 {
+    assert(mp_gcodegen != nullptr);
     BoundingBoxf bed_ext = get_extents(mp_gcodegen->config().printable_area.values);
     
     if (is_delta()) {
@@ -836,26 +820,42 @@ double CalibPressureAdvancePattern::pattern_shift()
 
 double CalibPressureAdvancePattern::pattern_start_x()
 {
-    double pattern_start_x =
-        bed_center().x() -
-        (object_size_x() + pattern_shift()) / 2
-    ;
+    // double pattern_start_x =
+    //     bed_center().x() -
+    //     (object_size_x() + pattern_shift()) / 2
+    // ;
+
+    // if (is_delta()) {
+    //     pattern_start_x = -pattern_start_x;
+    // }
+
+    // return pattern_start_x;
+
+    double x = m_starting_point.x();
 
     if (is_delta()) {
-        pattern_start_x = -pattern_start_x;
+        x = -x;
     }
 
-    return pattern_start_x;
+    return x;
 };
 
 double CalibPressureAdvancePattern::pattern_start_y()
 {
-    double pattern_start_y = bed_center().y() - object_size_y() / 2;
+    // double pattern_start_y = bed_center().y() - object_size_y() / 2;
+
+    // if (is_delta()) {
+    //     pattern_start_y = -(frame_size_y() / 2);
+    // }
+
+    // return pattern_start_y;
+
+    double y = m_starting_point.y();
 
     if (is_delta()) {
-        pattern_start_y = -(frame_size_y() / 2);
+        y -= (frame_size_y() / 2);
     }
 
-    return pattern_start_y;
+    return y;
 };
 } // namespace Slic3r

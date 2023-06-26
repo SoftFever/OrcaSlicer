@@ -8125,11 +8125,14 @@ void Plater::calib_pa(const Calib_Params& params)
 }
 
 void Plater::_calib_pa_pattern(const Calib_Params& params) {
-    add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+    sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
     orient();
 
     DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    CalibPressureAdvancePattern pa_pattern(params);
+    DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    CalibPressureAdvancePatternPlate pa_pattern(params);
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.height_layer()));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.height_first_layer()));
@@ -8147,8 +8150,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params) {
 
     GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
         get_gizmos_manager().get_object_manipulation();
+    giz_obj_manip.set_uniform_scaling(true);
+    giz_obj_manip.on_change("size", 0, pa_pattern.handle_xy_size());
     giz_obj_manip.set_uniform_scaling(false);
     giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
+    center_selection();
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {
