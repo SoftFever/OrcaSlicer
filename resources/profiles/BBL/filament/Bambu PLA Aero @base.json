@@ -5,6 +5,9 @@
     "instantiation": "false",
     "inherits": "fdm_filament_pla",
     "filament_id": "GFA11",
+    "filament_type":[
+        "PLA-AERO"
+    ],
     "filament_flow_ratio": [
         "0.6"
     ],
