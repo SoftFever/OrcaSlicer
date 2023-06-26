@@ -1392,7 +1392,7 @@ BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std
         auto layer = get_layer(0);
         layer_height = layer->height;
         // only work for object with single instance
-        auto shift = instances()[0].shift;
+        auto shift = instances()[0].shift_without_plate_offset();
         for (auto bb : layer->lslices_bboxes)
         {
             bb.translate(shift.x(), shift.y());
@@ -3518,6 +3518,14 @@ Polygon PrintInstance::get_convex_hull_2d() {
     Polygon poly = print_object->model_object()->convex_hull_2d(model_instance->get_matrix());
     poly.douglas_peucker(0.1);
     return poly;
+}
+
+//BBS: instance_shift is too large because of multi-plate, apply without plate offset.
+Point PrintInstance::shift_without_plate_offset() const
+{
+    const Print* print = print_object->print();
+    const Vec3d plate_offset = print->get_plate_origin();
+    return shift - Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
 }
 
 } // namespace Slic3r

@@ -2790,8 +2790,6 @@ int CLI::run(int argc, char **argv)
                 BBoxData data;
                 auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
                 auto bb = unscaled(bb_scaled);
-                bb.min -= orig2d;
-                bb.max -= orig2d;
                 bbox_all.merge(bb);
                 data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
                 data.id = obj->id().id;

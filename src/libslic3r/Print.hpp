@@ -201,6 +201,9 @@ struct PrintInstance
     // 
     // instance id
     size_t               id;
+
+    //BBS: instance_shift is too large because of multi-plate, apply without plate offset.
+    Point shift_without_plate_offset() const;
 };
 
 typedef std::vector<PrintInstance> PrintInstances;
