@@ -61,6 +61,84 @@ enum PrintingTaskType {
     CALIBRATION,
 };
 
+struct ScoreData
+{
+    int                                            design_id;
+    int                                            job_id;
+    std::string                                    model_id;
+    int                                            profile_id;
+    int                                            star_count;
+    wxString                                       comment_text;
+    std::vector<std::string>                       image_url_paths;
+    std::set<wxString>                             need_upload_images;
+    wxArrayString                                  image;
+    std::unordered_map<wxString, std::string>      local_to_url_image;
+};
+
+class ScoreDialog : public GUI::DPIDialog
+{
+public:
+    ScoreDialog(wxWindow *parent, int design_id, int job_id, std::string model_id, int profile_id, int star_count = 0);
+    ScoreDialog(wxWindow *parent, ScoreData *score_data);
+    ~ScoreDialog();
+
+    int get_job_id() { return m_job_id;}
+    ScoreData get_score_data();
+
+protected:
+    enum StatusCode { 
+        UPLOAD_PROGRESS = 0, 
+        UPLOAD_EXIST_ISSUE, 
+        UPLOAD_IMG_FAILED,
+        CODE_NUMBER 
+    };
+
+    const int                m_photo_nums = 5;
+    int                      m_design_id;
+    int                      m_job_id;
+    std::string              m_model_id;
+    int                      m_profile_id;
+    int                      m_star_count;
+    std::vector<std::string> m_image_url_paths;
+    std::set<wxString>    m_need_upload_images;
+    std::string              m_upload_error_info;
+    StatusCode               m_upload_status_code;
+
+    struct ImageMsg
+    {
+        wxString          local_image_url;
+        vector<wxPanel *> image_broad;
+        bool              is_selected;
+        bool              is_uploaded;
+        wxBoxSizer *      image_tb_broad = nullptr;
+    };
+
+    std::vector<ScalableButton *>                  m_score_star;
+    wxTextCtrl *                                   m_comment_text  = nullptr;
+    Button *                                       m_button_ok     = nullptr;
+    Button *                                       m_button_cancel = nullptr;
+    Label *                                        m_add_photo     = nullptr;
+    Label *                                        m_delete_photo  = nullptr;
+    wxBoxSizer *                                   m_image_sizer   = nullptr;
+    std::unordered_map<wxStaticBitmap *, ImageMsg> m_image;
+    std::unordered_set<wxStaticBitmap *>           m_selected_image_list;
+    std::unordered_map<wxString, std::string>      m_local_to_url_image;
+
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void OnBitmapClicked(wxMouseEvent &event);
+    void add_need_upload_imgs();
+
+    void init();
+    wxBoxSizer *get_score_sizer();
+    wxBoxSizer *get_star_sizer();
+    wxBoxSizer *get_comment_text_sizer();
+    void        create_comment_text(const wxString& comment = "");
+    wxBoxSizer *get_photo_btn_sizer();
+    wxBoxSizer *get_button_sizer();
+    void        load_photo(const wxArrayString &filePaths);
+    wxBoxSizer *get_main_sizer(const wxArrayString &images = wxArrayString(), const wxString &comment = "");
+};
+
 class PrintingTaskPanel : public wxPanel
 {
 public:
@@ -96,6 +174,10 @@ private:
     ScalableButton* m_button_abort;
     Button*         m_button_market_scoring;
     Button*         m_button_clean;
+    wxPanel *                     m_score_subtask_info;
+    wxPanel *                     m_score_staticline;
+    int                           m_star_count;
+    std::vector<ScalableButton *> m_score_star;
 
     ProgressBar*    m_gauge_progress;
     Label* m_error_text;
@@ -120,6 +202,8 @@ public:
     void update_layers_num(bool show, wxString num = wxEmptyString);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
     void show_profile_info(bool show, wxString profile = wxEmptyString);
+    void market_scoring_show();
+    void market_scoring_hide();
     
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
@@ -127,6 +211,7 @@ public:
     Button* get_market_scoring_button() {return m_button_market_scoring;};
     Button* get_clean_button() {return m_button_clean;};
     wxStaticBitmap* get_bitmap_thumbnail() {return m_bitmap_thumbnail;};
+    int get_star_count() { return m_star_count; }
 };
 
 class StatusBasePanel : public wxScrolledWindow
@@ -370,6 +455,8 @@ protected:
     std::map<std::string, std::string> m_print_connect_types;
     std::vector<Button *>       m_buttons;
     int last_status;
+    ScoreData *m_score_data;
+
     void init_scaled_buttons();
     void create_tasklist_info();
     void show_task_list_info(bool show = true);
@@ -382,7 +469,6 @@ protected:
     void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "");
     void error_info_reset();
     void show_recenter_dialog();
-    void market_model_scoring_page(int design_id);
 
     /* axis control */
     bool check_axis_z_at_home(MachineObject* obj);

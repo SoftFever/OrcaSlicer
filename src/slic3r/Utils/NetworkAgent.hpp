@@ -87,6 +87,11 @@ typedef int (*func_track_event)(void *agent, std::string evt_key, std::string co
 typedef int (*func_track_header)(void *agent, std::string header);
 typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
 typedef int (*func_track_get_property)(void *agent, std::string name, std::string& value, std::string type);
+typedef int (*func_put_model_mall_rating_url)(
+    void *agent, int design_id, int score, std::string content, std::vector<std::string> images, unsigned int &http_code, std::string &http_error);
+typedef int (*func_get_oss_config)(void *agent, std::string &config, std::string country_code, unsigned int &http_code, std::string &http_error);
+typedef int (*func_put_rating_picture_oss)(
+    void *agent, std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
 
 
 //the NetworkAgent class
@@ -182,6 +187,9 @@ public:
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
     int track_get_property(std::string name, std::string& value, std::string type = "string");
+    int put_model_mall_rating(int design_id, int score, std::string content, std::vector<std::string> images, unsigned int &http_code, std::string &http_error);
+    int get_oss_config(std::string &config, std::string country_code, unsigned int &http_code, std::string &http_error);
+    int         put_rating_picture_oss(std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
     bool get_track_enable() { return enable_track; }
 private:
     bool enable_track = false;
@@ -267,6 +275,9 @@ private:
     static func_track_header                   track_header_ptr;
     static func_track_update_property          track_update_property_ptr;
     static func_track_get_property             track_get_property_ptr;
+    static func_put_model_mall_rating_url      put_model_mall_rating_url_ptr;
+    static func_get_oss_config                 get_oss_config_ptr;
+    static func_put_rating_picture_oss         put_rating_picture_oss_ptr;
 };
 
 }
