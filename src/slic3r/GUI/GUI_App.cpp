@@ -3001,7 +3001,7 @@ void GUI_App::update_publish_status()
 
 bool GUI_App::has_model_mall()
 {
-    if (app_config->get_country_code() == "CN")
+    if (auto cc = app_config->get_country_code(); cc == "CN" || cc == "")
         return false;
     return true;
 }
