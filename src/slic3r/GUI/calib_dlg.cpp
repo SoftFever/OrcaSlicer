@@ -5,6 +5,9 @@
 #include <wx/dcgraph.h>
 #include "MainFrame.hpp"
 #include <string>
+#include "libslic3r/Config.hpp"
+#include "libslic3r/PrintConfig.hpp"
+
 namespace Slic3r { namespace GUI {
     
 wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
@@ -40,12 +43,14 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     SetSizer(v_sizer);
 	wxBoxSizer* choice_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxString m_rbExtruderTypeChoices[] = { _L("DDE"), _L("Bowden") };
-	int m_rbExtruderTypeNChoices = sizeof(m_rbExtruderTypeChoices) / sizeof(wxString);
-	m_rbExtruderType = new wxRadioBox(this, wxID_ANY, _L("Extruder type"), wxDefaultPosition, wxDefaultSize, m_rbExtruderTypeNChoices, m_rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
-	m_rbExtruderType->SetSelection(0);
-	choice_sizer->Add(m_rbExtruderType, 0, wxALL, 5);
-	choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
+    // BBS: get from printer preset
+    //wxString m_rbExtruderTypeChoices[] = { _L("DDE"), _L("Bowden") };
+	//int m_rbExtruderTypeNChoices = sizeof(m_rbExtruderTypeChoices) / sizeof(wxString);
+	//m_rbExtruderType = new wxRadioBox(this, wxID_ANY, _L("Extruder type"), wxDefaultPosition, wxDefaultSize, m_rbExtruderTypeNChoices, m_rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
+	//m_rbExtruderType->SetSelection(0);
+	//choice_sizer->Add(m_rbExtruderType, 0, wxALL, 5);
+	//choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
+
 	wxString m_rbMethodChoices[] = { _L("PA Tower"), _L("PA Line") };
 	int m_rbMethodNChoices = sizeof(m_rbMethodChoices) / sizeof(wxString);
 	m_rbMethod = new wxRadioBox(this, wxID_ANY, _L("Method"), wxDefaultPosition, wxDefaultSize, m_rbMethodNChoices, m_rbMethodChoices, 2, wxRA_SPECIFY_COLS);
@@ -116,10 +121,22 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 	v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(5));
 
     // Connect Events
-    m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
+    //m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
     //wxGetApp().UpdateDlgDarkUI(this);
+
+    Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+    int extruder_type  = printer_preset.config.opt_enum("extruder_type", 0);
+    if (extruder_type == ExtruderType::etBowden) {
+        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
+        m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
+        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.02));
+    } else {
+        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.1));
+        m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
+        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
+    }
 
     Layout();
     Fit();
@@ -127,7 +144,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 
 PA_Calibration_Dlg::~PA_Calibration_Dlg() {
     // Disconnect Events
-    m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
+    //m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PA_Calibration_Dlg::on_start), NULL, this);
 }
