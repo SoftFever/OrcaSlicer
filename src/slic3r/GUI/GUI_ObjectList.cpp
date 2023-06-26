@@ -382,7 +382,8 @@ void ObjectList::create_objects_ctrl()
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
     bmp_choice_renderer->set_has_default_extruder([this]() {
-        return m_objects_model->GetVolumeType(GetSelection()) == ModelVolumeType::PARAMETER_MODIFIER;
+        return m_objects_model->GetVolumeType(GetSelection()) == ModelVolumeType::PARAMETER_MODIFIER ||
+               m_objects_model->GetItemType(GetSelection()) == itLayer;
     });
     AppendColumn(new wxDataViewColumn(_L("Fila."), bmp_choice_renderer,
         colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
@@ -2968,7 +2969,7 @@ DynamicPrintConfig ObjectList::get_default_layer_config(const int obj_idx)
     int extruder = object(obj_idx)->config.has("extruder") ?
         object(obj_idx)->config.opt_int("extruder") :
         wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("extruder");
-    config.set_key_value("extruder",    new ConfigOptionInt(extruder));
+    config.set_key_value("extruder",    new ConfigOptionInt(0));
 
     return config;
 }
@@ -5613,6 +5614,9 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
                     continue;
             }
         }
+
+        if (type & itLayerRoot)
+            continue;
 
         ModelConfig& config = get_item_config(item);
         if (config.has("extruder"))

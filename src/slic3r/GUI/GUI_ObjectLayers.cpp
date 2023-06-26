@@ -44,8 +44,8 @@ void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_ed
 #ifdef __WXOSX__
         wxTheApp->CallAfter([editor]() {
 #endif
-        editor->SetFocus();
-        editor->SelectAll();
+        //editor->SetFocus();
+        //editor->SelectAll();
 #ifdef __WXOSX__
         });
 #endif

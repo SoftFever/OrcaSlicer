@@ -375,6 +375,10 @@ void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= "
             m_extruder_bmp = *get_default_extruder_color_icon();
             return;
         }
+        else if (m_type & itLayer) {
+            m_extruder_bmp = *get_default_extruder_color_icon();
+            return;
+        }
         else {
             m_extruder_bmp = wxNullBitmap;
             return;

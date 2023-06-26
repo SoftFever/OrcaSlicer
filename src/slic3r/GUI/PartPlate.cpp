@@ -1304,7 +1304,8 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 		// layer range
         for (auto layer_range : mo->layer_config_ranges) {
             if (layer_range.second.has("extruder")) {
-				plate_extruders.push_back(layer_range.second.option("extruder")->getInt());
+                if (auto id = layer_range.second.option("extruder")->getInt(); id > 0)
+					plate_extruders.push_back(id);
 			}
 		}
 
