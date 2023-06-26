@@ -30,6 +30,10 @@ struct VolumeInfo {
         volume_idx = -1;
         trafo = Transform3d::Identity();
     };
+    template<class Archive>
+    void serialize(Archive& ar) {
+        ar(volume_idx, trafo);
+    }
 };
 class GLGizmoMeshBoolean : public GLGizmoBase
 {
@@ -62,6 +66,9 @@ protected:
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
+
+    void on_load(cereal::BinaryInputArchive &ar) override;
+    void on_save(cereal::BinaryOutputArchive &ar) const override;
 
 private:
     bool m_enable{ false };

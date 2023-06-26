@@ -381,7 +381,23 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     ImGuiWrapper::pop_toolbar_style();
 }
 
+void GLGizmoMeshBoolean::on_load(cereal::BinaryInputArchive &ar)
+{
+    ar(m_enable, m_operation_mode, m_selecting_state, m_diff_delete_input, m_inter_delete_input, m_src, m_tool);
+    ModelObject *curr_model_object = m_c->selection_info() ? m_c->selection_info()->model_object() : nullptr;
+    m_src.mv = curr_model_object == nullptr ? nullptr : m_src.volume_idx < 0 ? nullptr : curr_model_object->volumes[m_src.volume_idx];
+    m_tool.mv = curr_model_object == nullptr ? nullptr : m_tool.volume_idx < 0 ? nullptr : curr_model_object->volumes[m_tool.volume_idx];
+}
+
+void GLGizmoMeshBoolean::on_save(cereal::BinaryOutputArchive &ar) const
+{
+    ar(m_enable, m_operation_mode, m_selecting_state, m_diff_delete_input, m_inter_delete_input, m_src, m_tool);
+}
+
 void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMesh& mesh_result) {
+
+    wxGetApp().plater()->take_snapshot("Mesh Boolean");
+
     ModelObject* curr_model_object = m_c->selection_info()->model_object();
 
     // generate new volume
