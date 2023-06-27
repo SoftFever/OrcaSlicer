@@ -1728,7 +1728,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
 
-    std::vector<unsigned char> is_extruder_used(print.config().filament_diameter.size(), 0);
+    // PlaceholderParser currently substitues non-existent vector values with the zero'th value, which is harmful in the
+    // case of "is_extruder_used[]" as Slicer may lie about availability of such non-existent extruder. We rather
+    // sacrifice 256B of memory before we change the behavior of the PlaceholderParser, which should really only fill in
+    // the non-existent vector elements for filament parameters.
+    std::vector<unsigned char> is_extruder_used(std::max(size_t(255), print.config().filament_diameter.size()), 0);
     for (unsigned int extruder : tool_ordering.all_extruders())
         is_extruder_used[extruder] = true;
     m_placeholder_parser.set("is_extruder_used", new ConfigOptionBools(is_extruder_used));
@@ -4017,6 +4021,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                  (double)_layer / m_config.slow_down_layers));
             }
         }
+    }
+    // Override skirt speed if set
+    if (path.role() == erSkirt) {
+        const double skirt_speed = m_config.get_abs_value("skirt_speed");
+        if (skirt_speed > 0.0)
+        speed = skirt_speed;
     }
     //BBS: remove this config
     //else if (this->object_layer_over_raft())

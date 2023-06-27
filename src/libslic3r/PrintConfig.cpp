@@ -1008,7 +1008,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("internal_bridge_support_thickness", coFloat);
     def->label = L("Internal bridge support thickness");
     def->category = L("Strength");
-    def->tooltip = L("If enabled, Studio will generate support loops under the contours of internal bridges."
+    def->tooltip = L("If enabled, support loops will be generated under the contours of internal bridges."
                      "These support loops could prevent internal bridges from extruding over the air and improve the top surface quality, especially when the sparse infill density is low."
                      "This value determines the thickness of the support loops. 0 means disable this feature");
     def->sidetext = L("mm");
@@ -2690,6 +2690,15 @@ void PrintConfigDef::init_fff_params()
     def->max = 10;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("skirt_speed", coFloat);
+    def->label = L("Skirt speed");
+    def->full_label = L("Skirt speed");
+    def->tooltip = L("Speed of skirt, in mm/s. Zero means use default layer extrusion speed.");
+    def->min = 0;
+    def->sidetext = L("mm/s");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("slow_down_layer_time", coFloats);
     def->label = L("Layer time");
