@@ -12045,7 +12045,12 @@ void Plater::show_object_info()
 
     if (selCount > 1) {
         notify_manager->bbl_close_objectsinfo_notification();
-        info_text += (boost::format(_utf8(L("Number of currently selected: %1%\n"))) % selCount).str();
+        if (selection.get_mode() == Selection::EMode::Volume) {
+            info_text += (boost::format(_utf8(L("Number of currently selected parts: %1%\n"))) % selCount).str();
+        } else if (selection.get_mode() == Selection::EMode::Instance) {
+            int content_count = selection.get_content().size();
+            info_text += (boost::format(_utf8(L("Number of currently selected objects: %1%\n"))) % content_count).str();
+        }
         notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D));
         return;
     }
