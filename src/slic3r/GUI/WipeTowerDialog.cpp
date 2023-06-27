@@ -154,6 +154,8 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
             button_item.second->SetCornerRadius(FromDIP(12));
         }
     }
+    m_panel_wiping->msw_rescale();
+    this->Refresh();
 };
 
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
@@ -224,8 +226,9 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
         panel->SetSizer(sizer);
 
         wxButton* icon = new wxButton(panel, wxID_ANY, {}, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
-        icon->SetBitmap(*get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), 16, 16));
+        icon->SetBitmap(*get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), FromDIP(16), FromDIP(16)));
         icon->SetCanFocus(false);
+        icon_list2.push_back(icon);
 
         sizer->AddSpacer(ROW_BEG_PADDING);
         sizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, ROW_VERT_PADDING);
@@ -324,9 +327,10 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     header_line_sizer->AddSpacer(HEADER_BEG_PADDING);
     for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
         wxButton* icon = new wxButton(header_line_panel, wxID_ANY, {}, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
-        icon->SetBitmap(*get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), 16, 16));
+        icon->SetBitmap(*get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), FromDIP(16), FromDIP(16)));
         icon->SetCanFocus(false);
-
+        icon_list1.push_back(icon);
+        
         header_line_sizer->AddSpacer(ICON_GAP);
         header_line_sizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, HEADER_VERT_PADDING);
     }
@@ -569,6 +573,14 @@ void WipingPanel::calc_flushing_volumes()
     this->update_warning_texts();
 }
 
+void WipingPanel::msw_rescale()
+{
+    for (unsigned int i = 0; i < icon_list1.size(); ++i) {
+        auto bitmap = *get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), FromDIP(16), FromDIP(16));
+        icon_list1[i]->SetBitmap(bitmap);
+        icon_list2[i]->SetBitmap(bitmap);
+    }
+}
 
 // Reads values from the (advanced) wiping matrix:
 std::vector<float> WipingPanel::read_matrix_values() {

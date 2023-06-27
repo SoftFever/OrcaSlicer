@@ -21,6 +21,7 @@ public:
     void toggle_advanced(bool user_action = false);
     void create_panels(wxWindow* parent, const int num);
     void calc_flushing_volumes();
+    void msw_rescale();
 
     float get_flush_multiplier()
     {
@@ -50,6 +51,8 @@ private:
     wxBoxSizer* m_sizer_advanced = nullptr;
     wxGridSizer* m_gridsizer_advanced = nullptr;
     wxButton* m_widget_button     = nullptr;
+    std::vector<wxButton *> icon_list1;
+    std::vector<wxButton *> icon_list2;
 
     const int m_min_flush_volume;
     const int m_max_flush_volume;
