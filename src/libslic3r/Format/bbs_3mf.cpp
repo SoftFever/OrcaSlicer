@@ -142,10 +142,9 @@ const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/plate_1.png";
 const std::string THUMBNAIL_FOR_PRINTER_FILE = "Metadata/bbl_thumbnail.png";
-const std::string THUMBNAILS_DIR = ".thumbnails";
-const std::string PRINTER_THUMBNAIL_SMALL_FILE = "thumbnail_small.png";
-const std::string PRINTER_THUMBNAIL_MIDDLE_FILE = "thumbnail_middle.png";
-const std::string _3MF_COVER_FILE = "thumbnail_3mf.png";
+const std::string PRINTER_THUMBNAIL_SMALL_FILE = "/Auxiliaries/.thumbnails/thumbnail_small.png";
+const std::string PRINTER_THUMBNAIL_MIDDLE_FILE = "/Auxiliaries/.thumbnails/thumbnail_middle.png";
+const std::string _3MF_COVER_FILE = "/Auxiliaries/.thumbnails/thumbnail_3mf.png";
 //const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 //const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string BBS_PRINT_CONFIG_FILE = "Metadata/print_profile.config";
@@ -1643,6 +1642,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         m_model->model_info = std::make_shared<ModelInfo>();
         m_model->model_info->load(model_info);
+        if (!m_thumbnail_small.empty()) m_model->model_info->metadata_items.emplace("Thumbnail_Small", m_thumbnail_small);
+        if (!m_thumbnail_middle.empty()) m_model->model_info->metadata_items.emplace("Thumbnail_Middle", m_thumbnail_middle);
 
         //got project id
         if (project) {
@@ -5164,6 +5165,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool m_skip_auxiliary { false };    // skip normal axuiliary files
         bool m_use_loaded_id { false };        // whether to use loaded id for identify_id
         bool m_share_mesh { false };        // whether to share mesh between objects
+        std::string m_thumbnail_middle = PRINTER_THUMBNAIL_MIDDLE_FILE;
+        std::string m_thumbnail_small  = PRINTER_THUMBNAIL_SMALL_FILE;
         std::map<void const *, std::pair<ObjectData*, ModelVolume const *>> m_shared_meshes;
         std::map<ModelVolume const *, std::pair<std::string, int>> m_volume_paths;
     public:
@@ -5258,6 +5261,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         m_use_loaded_id = store_params.strategy & SaveStrategy::UseLoadedId;
 
+        if (auto info = store_params.model->model_info) {
+            if (auto iter = info->metadata_items.find("Thumbnail_Small"); iter != info->metadata_items.end())
+                m_thumbnail_small = iter->second;
+            if (auto iter = info->metadata_items.find("Thumbnail_Middle"); iter != info->metadata_items.end())
+                m_thumbnail_middle = iter->second;
+        }
         boost::system::error_code ec;
         std::string filename = std::string(store_params.path);
         boost::filesystem::remove(filename + ".tmp", ec);
@@ -7429,32 +7438,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
             std::string dst_in_3mf;
             if (boost::filesystem::is_directory(dir_entry.path()))
             {
-                if (dir_entry.path().filename() == THUMBNAILS_DIR) {
-                    boost::filesystem::directory_iterator iterator(dir_entry.path());
-                    for (auto &file_entry : iterator) {
-                        if (boost::filesystem::is_regular_file(file_entry.path())) {
-                            // BBS generate thumbnails
-                            // copy to /Metadata folder
-                            src_file = file_entry.path().string();
-                            /* save to .thumbnails */
-                            dst_in_3mf = file_entry.path().string();
-                            dst_in_3mf.replace(0, root_dir_len, AUXILIARY_DIR);
-                            std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
-                            if (file_entry.path().filename() == _3MF_COVER_FILE) {
-                                data._3mf_thumbnail = dst_in_3mf;
-                            } else if (file_entry.path().filename() == PRINTER_THUMBNAIL_SMALL_FILE) {
-                                data._3mf_printer_thumbnail_small = dst_in_3mf;
-                            } else if (file_entry.path().filename() == PRINTER_THUMBNAIL_MIDDLE_FILE) {
-                                data._3mf_printer_thumbnail_middle = dst_in_3mf;
-                            }
-
-                            result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
-                        }
-                    }
-                }
-                else {
-                    directories.push_back(dir_entry.path());
-                }
+                directories.push_back(dir_entry.path());
                 continue;
             }
             if (boost::filesystem::is_regular_file(dir_entry.path()) && !m_skip_auxiliary)
@@ -7463,6 +7447,13 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                 dst_in_3mf = dir_entry.path().string();
                 dst_in_3mf.replace(0, root_dir_len, AUXILIARY_DIR);
                 std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
+                if (_3MF_COVER_FILE.compare(1, _3MF_COVER_FILE.length() - 1, dst_in_3mf) == 0) {
+                    data._3mf_thumbnail = dst_in_3mf;
+                } else if (m_thumbnail_small.compare(1, m_thumbnail_small.length() - 1, dst_in_3mf) == 0) {
+                    data._3mf_printer_thumbnail_small = dst_in_3mf;
+                } else if (m_thumbnail_middle.compare(1, m_thumbnail_small.length() - 1, dst_in_3mf) == 0) {
+                    data._3mf_printer_thumbnail_middle = dst_in_3mf;
+                }
                 result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
             }
         }
