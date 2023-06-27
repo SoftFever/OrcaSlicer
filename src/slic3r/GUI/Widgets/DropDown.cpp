@@ -89,6 +89,7 @@ void DropDown::SetSelection(int n)
         n = -1;
     if (selection == n) return;
     selection = n;
+    messureSize();
     paintNow();
 }
 
