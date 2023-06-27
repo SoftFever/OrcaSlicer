@@ -95,6 +95,7 @@ class MainFrame : public DPIFrame
 
     wxMenuBar*  m_menubar{ nullptr };
     //wxMenu* publishMenu{ nullptr };
+    wxMenu *    m_calib_menu{nullptr};
 
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
@@ -250,6 +251,7 @@ public:
     void        set_max_recent_count(int max);
 
     void        show_publish_button(bool show);
+    void        show_calibration_button(bool show);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);

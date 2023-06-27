@@ -54,6 +54,8 @@ public:
 
     void SaveNormalRect();
 
+    void ShowCalibrationButton(bool show = true);
+
 private:
     wxFrame* m_frame;
     wxAuiToolBarItem* m_file_menu_item;

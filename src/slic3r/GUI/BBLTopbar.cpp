@@ -382,6 +382,15 @@ void BBLTopbar::SaveNormalRect()
     m_normalRect = m_frame->GetRect();
 }
 
+void BBLTopbar::ShowCalibrationButton(bool show)
+{
+    m_calib_item->GetSizerItem()->Show(show);
+    m_sizer->Layout();
+    if (!show)
+        m_calib_item->GetSizerItem()->SetDimension({-1000, 0}, {0, 0});
+    Refresh();
+}
+
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
 {
     //GUI::wxGetApp().load_url(wxString(wxGetApp().app_config->get_web_host_url() + MODEL_STORE_URL));
