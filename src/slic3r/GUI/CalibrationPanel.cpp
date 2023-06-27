@@ -15,6 +15,23 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MLIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MLIST, wxCommandEvent);
 
+wxString get_calibration_type_name(CalibrationType cali_type)
+{
+    switch (cali_type) {
+    case CalibrationType::CALI_TYPE_PA:
+        return _L("Pressure Adavance");
+    case CalibrationType::CALI_TYPE_FLOW:
+        return _L("Flow Rate");
+    case CalibrationType::CALI_TYPE_VOLUMETRIC:
+        return _L("Max Volumetric Speed");
+    case CalibrationType::CALI_TYPE_TEMPERATURE:
+        return _L("Temperature");
+    case CalibrationType::CALI_TYPE_RETRACTION:
+        return _L("Retraction");
+    default:
+        return "";
+    }
+}
 
 MObjectPanel::MObjectPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
 {
@@ -451,22 +468,23 @@ void CalibrationPanel::init_tabpanel() {
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(*wxWHITE);
 
-    m_pa_panel = new PressureAdvanceWizard(m_tabpanel);
-    m_tabpanel->AddPage(m_pa_panel, _L("Pressure Adavance"), "", true);
+    m_cali_panels[(int)CalibrationType::CALI_TYPE_PA] = new PressureAdvanceWizard(m_tabpanel);
+    m_cali_panels[(int)CalibrationType::CALI_TYPE_FLOW] = new FlowRateWizard(m_tabpanel);
+    m_cali_panels[(int)CalibrationType::CALI_TYPE_VOLUMETRIC] = new MaxVolumetricSpeedWizard(m_tabpanel);
+    m_cali_panels[(int)CalibrationType::CALI_TYPE_TEMPERATURE] = new TemperatureWizard(m_tabpanel);
+    m_cali_panels[(int)CalibrationType::CALI_TYPE_RETRACTION] = new RetractionWizard(m_tabpanel);
 
-    m_flow_panel = new FlowRateWizard(m_tabpanel);
-    m_tabpanel->AddPage(m_flow_panel, _L("Flow Rate"), "", false);
+    for (int i = 0; i < (int)CalibrationType::CALI_MAX_COUNT; i++) {
+        bool selected = false;
+        if (i == 0)
+            selected = true;
+        m_tabpanel->AddPage(m_cali_panels[i],
+            get_calibration_type_name(static_cast<CalibrationType>(i)),
+            "",
+            selected);
+    }
 
-    m_volumetric_panel = new MaxVolumetricSpeedWizard(m_tabpanel);
-    m_tabpanel->AddPage(m_volumetric_panel, _L("Max Volumetric Speed"), "", false);
-
-    m_temp_panel = new TemperatureWizard(m_tabpanel);
-    m_tabpanel->AddPage(m_temp_panel, _L("Temperature"), "", false);
-
-    m_retraction_panel = new RetractionWizard(m_tabpanel);
-    m_tabpanel->AddPage(m_retraction_panel, _L("Retraction"), "", false);
-
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < (int)CalibrationType::CALI_MAX_COUNT; i++)
         m_tabpanel->SetPageImage(i, "");
 
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent&) {
@@ -496,30 +514,10 @@ void CalibrationPanel::update_print_error_info(int code, std::string msg, std::s
 }
 
 void CalibrationPanel::update_all() {
-    if (m_pa_panel) {
-        m_pa_panel->update_printer();
-        if (m_pa_panel->IsShown())
-            m_pa_panel->update_print_progress();
-    }
-    if (m_flow_panel) {
-        m_flow_panel->update_printer();
-        if (m_flow_panel->IsShown())
-            m_flow_panel->update_print_progress();
-    }
-    if (m_volumetric_panel) {
-        m_volumetric_panel->update_printer();
-        if (m_volumetric_panel->IsShown())
-            m_volumetric_panel->update_print_progress();
-    }
-    if (m_temp_panel) {
-        m_temp_panel->update_printer();
-        if (m_temp_panel->IsShown())
-            m_temp_panel->update_print_progress();
-    }
-    if (m_retraction_panel) {
-        m_retraction_panel->update_printer();
-        if (m_retraction_panel->IsShown())
-            m_retraction_panel->update_print_progress();
+    for (int i = 0; i < (int)CalibrationType::CALI_MAX_COUNT; i++) {
+        m_cali_panels[i]->update_printer();
+        if (m_cali_panels[i]->IsShown())
+            m_cali_panels[i]->update_print_progress();
     }
 
     NetworkAgent* m_agent = wxGetApp().getAgent();
