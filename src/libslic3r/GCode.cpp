@@ -1541,8 +1541,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         std::sort(m_label_objects_ids.begin(), m_label_objects_ids.end());
 
         std::string objects_id_list = "; model label id: ";
-        for (size_t id : m_label_objects_ids)
-            objects_id_list += (std::to_string(id) + (id != m_label_objects_ids.back() ? "," : "\n"));
+        for (auto it = m_label_objects_ids.begin(); it != m_label_objects_ids.end(); it++)
+            objects_id_list += (std::to_string(*it) + (it != m_label_objects_ids.end() - 1 ? "," : "\n"));
         file.writeln(objects_id_list);
     }
     else {
