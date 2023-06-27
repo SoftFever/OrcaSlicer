@@ -97,7 +97,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_device_busy = false;
     }
     if (machine == m_machine) {
-        if (m_last_state == MEDIASTATE_IDLE)
+        if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();
         return;
     }
@@ -113,7 +113,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_streaming = false;
     }
     if (m_last_state != MEDIASTATE_IDLE)
-        Stop();
+        Stop(" ");
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid state conflict
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2 * m_failed_retry);
     else
