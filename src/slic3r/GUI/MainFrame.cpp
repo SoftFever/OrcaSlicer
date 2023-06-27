@@ -871,7 +871,7 @@ void MainFrame::show_publish_button(bool show)
 void MainFrame::show_calibration_button(bool show)
 {
 #ifdef __APPLE__
-    bool shown = m_menubar->FindMenu(_L("Calibration"));
+    bool shown = m_menubar->FindMenu(_L("Calibration")) != wxNOT_FOUND;
     if (shown == show) return;
     if (show) m_menubar->Insert(3, m_calib_menu, wxString::Format("&%s", _L("Calibration")));
     else m_menubar->Remove(3);

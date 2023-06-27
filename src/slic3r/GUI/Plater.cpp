@@ -1153,6 +1153,9 @@ void Sidebar::update_presets(Preset::Type preset_type)
         if (printer_tab) {
             printer_tab->update();
         }
+
+        bool isBBL = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+        wxGetApp().mainframe->show_calibration_button(!isBBL);
         break;
     }
 
@@ -2408,8 +2411,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         // Preset change event
         sidebar->Bind(wxEVT_COMBOBOX, &priv::on_combobox_select, this);
         sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
-        bool isBBL = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
-        main_frame->show_calibration_button(!isBBL);
         // BBS: should bind BACKGROUND_PROCESS event to plater
         q->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
         // jump to found option from SearchDialog
@@ -5728,9 +5729,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         //wxWindowUpdateLocker noUpdates1(sidebar->print_panel());
         wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
         wxGetApp().get_tab(preset_type)->select_preset(preset_name);
-
-        bool isBBL = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
-        main_frame->show_calibration_button(!isBBL);
     }
 
     // update plater with new config
