@@ -437,7 +437,7 @@ void NotificationManager::PopNotification::count_spaces()
 	m_window_width_offset = m_left_indentation + m_line_height * 3.f;
     if (m_data.level == NotificationLevel::ErrorNotificationLevel || m_data.level == NotificationLevel::SeriousWarningNotificationLevel) {
 		m_left_indentation = 32 + m_line_height;
-		m_window_width_offset = 150.f;
+		m_window_width_offset = 90.f;
 	}
 	m_window_width = m_line_height * 25;
 }
