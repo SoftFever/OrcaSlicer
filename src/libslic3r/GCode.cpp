@@ -890,7 +890,7 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
             ordering.emplace_back(ordering_item);
         }
     }
-    
+
     if (!errors.empty()) { throw Slic3r::SlicingErrors(errors); }
 
     std::sort(ordering.begin(), ordering.end(), [](const OrderingItem& oi1, const OrderingItem& oi2) { return oi1.print_z < oi2.print_z; });
@@ -1048,7 +1048,7 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
-void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
+void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb, bool using_identify_id)
 {
     PROFILE_CLEAR();
 
@@ -1108,7 +1108,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     try {
         m_placeholder_parser_failed_templates.clear();
-        this->_do_export(*print, file, thumbnail_cb);
+        this->_do_export(*print, file, thumbnail_cb, using_identify_id);
         file.flush();
         if (file.is_error()) {
             file.close();
@@ -1437,7 +1437,7 @@ static BambuBedType to_bambu_bed_type(BedType type)
     return bambu_bed_type;
 }
 
-void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb)
+void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb, bool using_identify_id)
 {
     PROFILE_FUNC();
 
@@ -1530,7 +1530,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_label_objects_ids.reserve(print.num_object_instances());
         for (const PrintObject* print_object : print.objects())
             for (const PrintInstance& print_instance : print_object->instances())
-                m_label_objects_ids.push_back(print_instance.model_instance->id().id);
+            {
+                size_t instance_identify_id;
+                if (using_identify_id && print_instance.model_instance->loaded_id > 0)
+                    instance_identify_id = print_instance.model_instance->loaded_id;
+                else
+                    instance_identify_id = print_instance.model_instance->id().id;
+                m_label_objects_ids.push_back(instance_identify_id);
+            }
         std::sort(m_label_objects_ids.begin(), m_label_objects_ids.end());
 
         std::string objects_id_list = "; model label id: ";
@@ -4257,7 +4264,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
 
         for (size_t i = 0; i < idx_of_object_sorted.size();i++) {
             size_t idx = idx_of_object_sorted[i];
-            
+
             BoundingBox obj_bbox    = boundingBox_for_objects[idx];
             BoundingBox travel_bbox = get_extents(travel);
             obj_bbox.offset(scale_(EPSILON));

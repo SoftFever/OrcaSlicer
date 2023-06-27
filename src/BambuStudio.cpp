@@ -2217,7 +2217,7 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                    outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
+                                    outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr, true);
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
                                 }/* else {
