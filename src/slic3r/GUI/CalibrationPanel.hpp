@@ -14,16 +14,10 @@ namespace Slic3r { namespace GUI {
 #define SELECT_MACHINE_REMIND wxColour(255,111,0)
 #define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
 
-enum class CalibrationType {
-    CALI_TYPE_PA = 0,
-    CALI_TYPE_FLOW,
-    CALI_TYPE_VOLUMETRIC,
-    CALI_TYPE_TEMPERATURE,
-    CALI_TYPE_RETRACTION,
-    CALI_MAX_COUNT,
-};
+#define CALI_MODE_COUNT  5
 
-wxString get_calibration_type_name(CalibrationType cali_type);
+
+wxString get_calibration_type_name(CalibMode cali_mode);
 
 class MObjectPanel : public wxPanel
 {
@@ -125,7 +119,7 @@ private:
     Tabbook*    m_tabpanel{ nullptr };
     SelectMObjectPopup m_mobjectlist_popup;
 
-    CalibrationWizard* m_cali_panels[(int)CalibrationType::CALI_MAX_COUNT];
+    CalibrationWizard* m_cali_panels[CALI_MODE_COUNT];
 
     wxTimer* m_refresh_timer = nullptr;
 };

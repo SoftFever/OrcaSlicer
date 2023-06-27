@@ -21,6 +21,10 @@ enum FilamentSelectMode {
     FSMCheckBoxMode,
     FSMRadioMode
 };
+
+
+wxString get_calibration_wiki_page(CalibMode cali_mode);
+
 class FilamentComboBox : public wxPanel
 {
 public:
@@ -99,6 +103,8 @@ private:
     ScalableBitmap m_bitmap_abort_disable;
 
 protected:
+    wxString m_wiki_url;
+
     std::map<std::string, PrinterCaliInfo> m_printer_calib_infos;
     bool is_between_start_and_runing = false;
     CalibMode m_mode;
@@ -243,7 +249,6 @@ private:
 
     // start page
     CalibrationWizardPage* m_page0{ nullptr };
-    std::string m_wiki_url;
 
     // preset page
     CalibrationWizardPage* m_page1{ nullptr };
@@ -292,7 +297,6 @@ protected:
 private:
     // start page
     CalibrationWizardPage* m_page0{ nullptr };
-    std::string m_wiki_url;
 
     // preset page
     CalibrationWizardPage* m_page1{ nullptr };
@@ -352,7 +356,6 @@ protected:
 private:
     // start page
     CalibrationWizardPage* m_page0;
-    std::string m_wiki_url;
 
     // preset page
     CalibrationWizardPage* m_page1;
@@ -386,7 +389,6 @@ protected:
 private:
     // start page
     CalibrationWizardPage* m_page0;
-    std::string m_wiki_url;
 
     // preset page
     CalibrationWizardPage* m_page1;
@@ -418,7 +420,6 @@ protected:
 private:
     // start page
     CalibrationWizardPage* m_page0;
-    std::string m_wiki_url;
 
     // preset page
     CalibrationWizardPage* m_page1;

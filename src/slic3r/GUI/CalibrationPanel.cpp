@@ -15,18 +15,18 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_FINISHED_UPDATE_MLIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MLIST, wxCommandEvent);
 
-wxString get_calibration_type_name(CalibrationType cali_type)
+wxString get_calibration_type_name(CalibMode cali_mode)
 {
-    switch (cali_type) {
-    case CalibrationType::CALI_TYPE_PA:
+    switch (cali_mode) {
+    case CalibMode::Calib_PA_Line:
         return _L("Pressure Adavance");
-    case CalibrationType::CALI_TYPE_FLOW:
+    case CalibMode::Calib_Flow_Rate:
         return _L("Flow Rate");
-    case CalibrationType::CALI_TYPE_VOLUMETRIC:
+    case CalibMode::Calib_Vol_speed_Tower:
         return _L("Max Volumetric Speed");
-    case CalibrationType::CALI_TYPE_TEMPERATURE:
+    case CalibMode::Calib_Temp_Tower:
         return _L("Temperature");
-    case CalibrationType::CALI_TYPE_RETRACTION:
+    case CalibMode::Calib_Retraction_tower:
         return _L("Retraction");
     default:
         return "";
@@ -468,23 +468,23 @@ void CalibrationPanel::init_tabpanel() {
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(*wxWHITE);
 
-    m_cali_panels[(int)CalibrationType::CALI_TYPE_PA] = new PressureAdvanceWizard(m_tabpanel);
-    m_cali_panels[(int)CalibrationType::CALI_TYPE_FLOW] = new FlowRateWizard(m_tabpanel);
-    m_cali_panels[(int)CalibrationType::CALI_TYPE_VOLUMETRIC] = new MaxVolumetricSpeedWizard(m_tabpanel);
-    m_cali_panels[(int)CalibrationType::CALI_TYPE_TEMPERATURE] = new TemperatureWizard(m_tabpanel);
-    m_cali_panels[(int)CalibrationType::CALI_TYPE_RETRACTION] = new RetractionWizard(m_tabpanel);
+    m_cali_panels[0] = new PressureAdvanceWizard(m_tabpanel);
+    m_cali_panels[1] = new FlowRateWizard(m_tabpanel);
+    m_cali_panels[2] = new MaxVolumetricSpeedWizard(m_tabpanel);
+    m_cali_panels[3] = new TemperatureWizard(m_tabpanel);
+    m_cali_panels[4] = new RetractionWizard(m_tabpanel);
 
-    for (int i = 0; i < (int)CalibrationType::CALI_MAX_COUNT; i++) {
+    for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
         bool selected = false;
         if (i == 0)
             selected = true;
         m_tabpanel->AddPage(m_cali_panels[i],
-            get_calibration_type_name(static_cast<CalibrationType>(i)),
+            get_calibration_type_name(m_cali_panels[i]->get_calibration_mode()),
             "",
             selected);
     }
 
-    for (int i = 0; i < (int)CalibrationType::CALI_MAX_COUNT; i++)
+    for (int i = 0; i < (int)CALI_MODE_COUNT; i++)
         m_tabpanel->SetPageImage(i, "");
 
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent&) {
@@ -514,7 +514,7 @@ void CalibrationPanel::update_print_error_info(int code, std::string msg, std::s
 }
 
 void CalibrationPanel::update_all() {
-    for (int i = 0; i < (int)CalibrationType::CALI_MAX_COUNT; i++) {
+    for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
         m_cali_panels[i]->update_printer();
         if (m_cali_panels[i]->IsShown())
             m_cali_panels[i]->update_print_progress();

@@ -34,6 +34,24 @@ static bool is_high_end_type(MachineObject* obj) {
     return false;
 }
 
+wxString get_calibration_wiki_page(CalibMode cali_mode)
+{
+    switch (cali_mode) {
+    case CalibMode::Calib_PA_Line:
+        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa");
+    case CalibMode::Calib_Flow_Rate:
+        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_flow_rate");
+    case CalibMode::Calib_Vol_speed_Tower:
+        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_volumetric");
+    case CalibMode::Calib_Temp_Tower:
+        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_temperature");
+    case CalibMode::Calib_Retraction_tower:
+        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_retraction");
+    default:
+        return "";
+    }
+}
+
 FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, wxID_ANY, pos, size, wxTAB_TRAVERSAL)
 {
@@ -133,6 +151,8 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
     : wxPanel(parent, id, pos, size, style) 
     , m_mode(mode)
 {
+    m_wiki_url = get_calibration_wiki_page(m_mode);
+
     SetBackgroundColour(wxColour(0xEEEEEE));
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
