@@ -1190,7 +1190,7 @@ void AmsReplaceMaterialDialog::create()
     auto label_title = new Label(this, _L("Auto Refill"));
     label_title->SetFont(Label::Head_14);
     label_title->SetForegroundColour(0x00AE42);
-    auto label_txt = new Label(this, _L("When the current material run out, the printer will continue to print in the following order."));
+    label_txt = new Label(this, _L("When the current material run out, the printer will continue to print in the following order."));
     label_txt->SetFont(Label::Body_13);
     label_txt->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
     label_txt->SetMinSize(wxSize(FromDIP(380), -1));
@@ -1330,6 +1330,9 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
         }
         m_scrollview_groups->SetMinSize(wxSize(FromDIP(400), height));
         m_scrollview_groups->SetMaxSize(wxSize(FromDIP(400), height));
+    } else {
+        if (label_txt)
+            label_txt->SetLabelText(_L("There are currently no identical spare consumables available, and automatic replenishment is currently not possible. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
     }
    
     m_scrollview_groups->Layout();

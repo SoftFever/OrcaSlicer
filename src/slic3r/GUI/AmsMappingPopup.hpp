@@ -297,6 +297,7 @@ public:
     wxWrapSizer* m_groups_sizer{ nullptr };
     MachineObject* m_obj{ nullptr };
     std::vector<std::string> m_tray_used;
+    Label* label_txt{nullptr};
 };
 
 

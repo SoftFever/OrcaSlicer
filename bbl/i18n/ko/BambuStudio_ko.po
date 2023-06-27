@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-15 16:05+0800\n"
+"POT-Creation-Date: 2023-06-27 18:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1455,8 +1455,8 @@ msgstr "비어 있음"
 msgid "AMS"
 msgstr "AMS"
 
-msgid "Ams filament backup"
-msgstr "AMS filament backup"
+msgid "Auto Refill"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS not connected"
@@ -1887,6 +1887,9 @@ msgstr "Setting AMS slot information while printing is not supported"
 msgid "Factors of dynamic flow cali"
 msgstr "Factors of dynamic flow cali"
 
+msgid "PA Profile"
+msgstr ""
+
 msgid "Factor K"
 msgstr "Factor K"
 
@@ -1899,14 +1902,14 @@ msgstr "Setting Virtual slot information while printing is not supported"
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Are you sure you want to clear the filament information?"
 
+msgid "You need to select the material type and color first."
+msgstr "You need to select the material type and color first."
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Please input a valid value (K in 0~0.5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-
-msgid "You need to select the material type and color first."
-msgstr "You need to select the material type and color first."
 
 msgid "Other Color"
 msgstr "Other Color"
@@ -1941,14 +1944,14 @@ msgstr "Bed Temperature"
 msgid "Max volumetric speed"
 msgstr "최대 체적 속도"
 
-msgid "\\u2103"
-msgstr "\\u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "베드 온도"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -2068,12 +2071,6 @@ msgstr "Print with filament in AMS"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Print with filament on external spool"
 
-msgid "Filaments Auto refill"
-msgstr "Filament Auto-refill"
-
-msgid "Auto refill"
-msgstr "Auto refill"
-
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
@@ -2081,6 +2078,13 @@ msgstr ""
 
 msgid "Group"
 msgstr "Group"
+
+msgid ""
+"There are currently no identical spare consumables available, and automatic "
+"replenishment is currently not possible. \n"
+"(Currently supporting automatic supply of consumables with the same brand, "
+"material type, and color)"
+msgstr ""
 
 msgid "AMS Settings"
 msgstr "AMS 설정"
@@ -2152,6 +2156,9 @@ msgstr ""
 
 msgid "File"
 msgstr "파일"
+
+msgid "Calibration"
+msgstr "캘리브레이션"
 
 msgid ""
 "Failed to download the plug-in. Please check your firewall settings and vpn "
@@ -2998,9 +3005,6 @@ msgstr ""
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 
-msgid "Calibration"
-msgstr "캘리브레이션"
-
 msgid "Calibration step selection"
 msgstr "Calibration step selection"
 
@@ -3092,9 +3096,6 @@ msgstr "준비"
 msgid "Preview"
 msgstr "미리보기"
 
-msgid "3D Models"
-msgstr "3D Models"
-
 msgid "Device"
 msgstr "장치"
 
@@ -3109,6 +3110,9 @@ msgstr "아니요"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "will be closed before creating a new model. Do you want to continue?"
+
+msgid "Upload"
+msgstr ""
 
 msgid "Slice plate"
 msgstr "플레이트 슬라이스"
@@ -3367,6 +3371,51 @@ msgstr "보기"
 
 msgid "Help"
 msgstr "도움말"
+
+msgid "Temperature Calibration"
+msgstr ""
+
+msgid "Pass 1"
+msgstr ""
+
+msgid "Flow rate test - Pass 1"
+msgstr ""
+
+msgid "Pass 2"
+msgstr ""
+
+msgid "Flow rate test - Pass 2"
+msgstr ""
+
+msgid "Flow rate"
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid "Retraction test"
+msgstr ""
+
+msgid "Max flowrate"
+msgstr ""
+
+msgid "VFA"
+msgstr ""
+
+msgid "More..."
+msgstr ""
+
+msgid "Tutorial"
+msgstr ""
+
+msgid "Calibration help"
+msgstr ""
+
+msgid "Orca Tolerance Test"
+msgstr ""
+
+msgid "More calibrations"
+msgstr ""
 
 msgid "&Open G-code"
 msgstr "&G 코드 열기"
@@ -4522,7 +4571,11 @@ msgid "Plate Settings"
 msgstr "Plate Settings"
 
 #, boost-format
-msgid "Number of currently selected: %1%\n"
+msgid "Number of currently selected parts: %1%\n"
+msgstr "Number of currently selected parts: %1%\n"
+
+#, boost-format
+msgid "Number of currently selected objects: %1%\n"
 msgstr ""
 
 #, boost-format
@@ -5004,12 +5057,6 @@ msgstr "\"%1%\"로 전환하기만 하면 됩니다."
 msgid "Task canceled"
 msgstr "작업 취소됨"
 
-msgid "Online"
-msgstr "온라인"
-
-msgid "Offline"
-msgstr "오프라인"
-
 msgid "(LAN)"
 msgstr "(LAN)"
 
@@ -5019,6 +5066,9 @@ msgstr "내 장치"
 msgid "Other Device"
 msgstr "기타 장치"
 
+msgid "Online"
+msgstr "온라인"
+
 msgid "Input access code"
 msgstr "액세스 코드 입력"
 
@@ -5027,6 +5077,9 @@ msgstr "Can't find devices?"
 
 msgid "Log out successful."
 msgstr "로그아웃 성공"
+
+msgid "Offline"
+msgstr "오프라인"
 
 msgid "Busy"
 msgstr "Busy"
@@ -5205,6 +5258,14 @@ msgstr "비정상적인 출력 파일입니다. 다시 슬라이스하세요."
 
 msgid "The name length exceeds the limit."
 msgstr "The name length exceeds the limit."
+
+msgid ""
+"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
+"scattered surface."
+msgstr ""
+
+msgid "Automatic flow calibration using Micro Lidar"
+msgstr ""
 
 msgid "Modifying the device name"
 msgstr "장치 이름 수정"
@@ -5409,13 +5470,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 
 msgid "Line width"
 msgstr "선 폭"
@@ -5434,6 +5495,9 @@ msgstr "벽"
 
 msgid "Top/bottom shells"
 msgstr "상/하단"
+
+msgid "Sparse infill"
+msgstr "내부채움"
 
 msgid "Initial layer speed"
 msgstr "첫 레이어 속도"
@@ -5458,6 +5522,9 @@ msgstr "이동 속도"
 
 msgid "Acceleration"
 msgstr "가속도"
+
+msgid "Jerk(XY)"
+msgstr ""
 
 msgid "Raft"
 msgstr "Raft"
@@ -6397,9 +6464,6 @@ msgstr "외벽"
 msgid "Overhang wall"
 msgstr "오버행 벽"
 
-msgid "Sparse infill"
-msgstr "내부채움"
-
 msgid "Internal solid infill"
 msgstr "내부면채움"
 
@@ -6958,6 +7022,20 @@ msgstr ""
 "이 값을 약간 줄이면 (예: 0.9) 브릿지에서 압출되는 필라멘트의 양이 줄어들어 처"
 "짐을 방지할 수 있습니다."
 
+msgid "Top surface flow ratio"
+msgstr ""
+
+msgid ""
+"This factor affects the amount of material for top solid infill. You can "
+"decrease it slightly to have smooth surface finish"
+msgstr ""
+
+msgid "Bottom surface flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr ""
+
 msgid "Only one wall on top surfaces"
 msgstr "상단면 벽 하나"
 
@@ -7185,6 +7263,14 @@ msgstr "바닥 표면 패턴"
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "이것은 브릿지 채우기를 제외한 바닥 표면 채우기의 선 패턴입니다."
 
+msgid "Internal solid infill pattern"
+msgstr ""
+
+msgid ""
+"Line pattern of internal solid infill. if the detect nattow internal solid "
+"infill be enabled, the concentric pattern will be used for the small area."
+msgstr ""
+
 msgid "Line width of outer wall"
 msgstr "외벽 선폭"
 
@@ -7291,9 +7377,6 @@ msgid ""
 "enabled. Useless for Bambu Printer"
 msgstr ""
 
-msgid "Pressure advance"
-msgstr ""
-
 msgid ""
 "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
 "Bambu Printer"
@@ -7359,9 +7442,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "와이프타워에 최소 짜내기"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "필라멘트 로드 시간"
@@ -7434,6 +7514,12 @@ msgstr "필라멘트 가격은 통계 목적으로만 사용됩니다."
 msgid "money/kg"
 msgstr "원/kg"
 
+msgid "Vendor"
+msgstr ""
+
+msgid "Vendor of filament. For show only"
+msgstr ""
+
 msgid "(Undefined)"
 msgstr "(정의되지 않음)"
 
@@ -7498,12 +7584,60 @@ msgstr ""
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
 msgstr "Acceleration of outer wall: using a lower value can improve quality."
 
+msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
+msgstr ""
+
+msgid ""
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
+msgstr ""
+
+msgid "mm/s² or %"
+msgstr ""
+
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr ""
 "첫 레이어의 출력 가속도입니다. 제한된 가속을 사용하면 베드 안착력을 향상시킬 "
 "수 있습니다."
+
+msgid "Enable accel_to_decel"
+msgstr ""
+
+msgid "Klipper's max_accel_to_decel will be adjusted automatically"
+msgstr ""
+
+msgid "accel_to_decel"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgstr ""
+
+msgid "Default jerk"
+msgstr ""
+
+msgid "Jerk of outer walls"
+msgstr ""
+
+msgid "Jerk of inner walls"
+msgstr ""
+
+msgid "Jerk of infill"
+msgstr ""
+
+msgid "Jerk of top surface"
+msgstr ""
+
+msgid "First layer"
+msgstr ""
+
+msgid "Jerk of first layer"
+msgstr ""
+
+msgid "Jerk of travel"
+msgstr ""
 
 msgid "Line width of initial layer"
 msgstr "첫레이어 선폭"
@@ -7570,6 +7704,14 @@ msgid ""
 "The average diatance between the random points introducded on each line "
 "segment"
 msgstr "각 선 꺽이는 위치에 도입된 임의의 점 사이의 평균 거리입니다."
+
+msgid "Filter out tiny gaps"
+msgstr ""
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't "
+"affact top/bottom layers"
+msgstr ""
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -7648,6 +7790,14 @@ msgstr "G-code flavor"
 
 msgid "What kind of gcode the printer is compatible with"
 msgstr "프린터와 호환되는 G 코드의 종류"
+
+msgid "Exclude objects"
+msgstr ""
+
+msgid ""
+"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
+"firmware printer"
+msgstr ""
 
 msgid "Infill combination"
 msgstr "내부채움 묶음"
@@ -8138,6 +8288,12 @@ msgstr "Slope"
 msgid "Spiral"
 msgstr "Spiral"
 
+msgid "Direct drive"
+msgstr ""
+
+msgid "Bowden"
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "리트랙션 속도"
 
@@ -8178,8 +8334,8 @@ msgstr ""
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current extruder diameter. The default value for this parameter is 0.15"
+"This amount as a percentage of the current extruder diameter. The default "
+"value for this parameter is 15"
 msgstr ""
 
 msgid "Wipe speed"
@@ -8641,6 +8797,14 @@ msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "이것은 이동이 완료되는 속도입니다."
+
+msgid "Use relative E distances"
+msgstr ""
+
+msgid ""
+"If your firmware requires relative E values, check this, otherwise leave it "
+"unchecked. Must use relative e distance for Bambu printer"
+msgstr ""
 
 msgid "Wipe while retracting"
 msgstr "리트랙션시 와이프"
@@ -9141,6 +9305,320 @@ msgstr "The file contains invalid vertex index."
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "This OBJ file couldn't be read because it's empty."
 
+msgid "Preset"
+msgstr ""
+
+msgid "Record"
+msgstr ""
+
+msgid "Pressure Adavance"
+msgstr ""
+
+msgid "Flow Rate"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr ""
+
+msgid "Plate Type"
+msgstr "Plate Type"
+
+msgid "Filament From"
+msgstr ""
+
+msgid "External Spool"
+msgstr ""
+
+msgid "Filament For Calibration"
+msgstr ""
+
+msgid ""
+"Please select same type of material, because plate temperature might not be "
+"compatible with different type of material"
+msgstr ""
+
+msgid ""
+"A test model will be printed. Please clear the build plate and place it back "
+"to the hot bed before calibration."
+msgstr ""
+
+msgid "Printing Parameters"
+msgstr ""
+
+msgid "Restart"
+msgstr ""
+
+msgid "Calibrate"
+msgstr ""
+
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
+msgstr ""
+
+msgid "Re-Calibrate"
+msgstr ""
+
+msgid "Is in printing. Please wait for printing to complete"
+msgstr ""
+
+msgid "It will restart to get the results. Do you confirm to re-calibrate?"
+msgstr ""
+
+msgid "It will restart to get the results. Do you confirm to restart?"
+msgstr ""
+
+msgid "No Printer Connected!"
+msgstr ""
+
+msgid "Printer is not connected yet."
+msgstr ""
+
+msgid "Please select a printer and nozzle for calibration."
+msgstr ""
+
+msgid "No print preset"
+msgstr ""
+
+msgid "Please select filament for calibration."
+msgstr ""
+
+msgid ""
+"The printing parameters is empty, please reselect nozzle and plate type."
+msgstr ""
+
+msgid "Saved success."
+msgstr ""
+
+msgid ""
+"Are you sure you want to cancel this calibration? It will return to start "
+"page"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Unable to print %s and %s together. Filaments have large bed temperature "
+"difference"
+msgstr ""
+
+msgid "No AMS filaments. Please select a printer to load AMS info."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s"
+msgstr ""
+
+msgid "Please find the best line on your plate"
+msgstr ""
+
+msgid "We found the best Pressure Advance Factor"
+msgstr ""
+
+msgid "When you need Pressure Advance Calibration"
+msgstr ""
+
+msgid "uneven extrusion"
+msgstr ""
+
+msgid "About this calibration"
+msgstr ""
+
+msgid ""
+"After calibration, the linear compensation factor(K) will be recorded and "
+"applied to printing. This factor would be different if device, degree of "
+"usage, material, and material family type are different"
+msgstr ""
+
+msgid "Wiki"
+msgstr ""
+
+msgid "Manage Result"
+msgstr ""
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Pressure Advance"
+msgstr ""
+
+msgid "Material"
+msgstr ""
+
+msgid "K"
+msgstr ""
+
+msgid "N"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "FactorK"
+msgstr ""
+
+msgid "FactorN"
+msgstr ""
+
+msgid "Brand Name"
+msgstr ""
+
+msgid "Failed"
+msgstr "Failed"
+
+msgid ""
+"Make sure bed_temp > 0 \n"
+"nozzle_temp > 0\n"
+"max_volumetric_speed > 0"
+msgstr ""
+
+msgid "Please find the best object on your plate"
+msgstr ""
+
+msgid "Fill in the value above the block with smoothest top surface"
+msgstr ""
+
+msgid "Save to Filament Preset"
+msgstr ""
+
+msgid "Skip Calibration2"
+msgstr ""
+
+#, c-format, boost-format
+msgid "flow ratio : %s "
+msgstr ""
+
+msgid "We found the best flow ratio for you"
+msgstr ""
+
+msgid "When you need Flow Rate Calibration"
+msgstr ""
+
+msgid "Over-extrusion or under extrusion"
+msgstr ""
+
+msgid "Flow Rate calibration is recommended when you print with:"
+msgstr ""
+
+msgid "material with significant thermal shrinkage/expansion, such as..."
+msgstr ""
+
+msgid "materials with inaccurate filament diameter"
+msgstr ""
+
+msgid "Complete Calibration"
+msgstr ""
+
+msgid "Fine Calibration based on flow ratio"
+msgstr ""
+
+msgid "Flow Ratio"
+msgstr ""
+
+msgid "Input name of filament preset to save"
+msgstr ""
+
+msgid "Choose a block with smoothest top surface."
+msgstr ""
+
+#, c-format, boost-format
+msgid "max volumetric speed : %s "
+msgstr ""
+
+msgid "When you need Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Under-extrusion"
+msgstr ""
+
+msgid "What will happen if the Max Volumetric Speed is not set up properly"
+msgstr ""
+
+msgid ""
+"Under-extrusion: If the value is set too high, under-extrusion will happen "
+"and cause poor apperance on the printed model"
+msgstr ""
+
+msgid ""
+"Print speed is limited: If the value is set too low, the print speed will be "
+"limited and make the print time longer. Take the model on the right picture "
+"for example. max volumetric speed [n] mm^3/s costs [x] minutes. max "
+"volumetric speed [m] mm^3/s costs [y] minutes"
+msgstr ""
+
+msgid "Input Value"
+msgstr ""
+
+msgid "From Volumetric Speed"
+msgstr ""
+
+msgid "To Volumetric Speed"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"From > 0\n"
+"To < 60\n"
+"Step >= 0\n"
+"To > From + Step"
+msgstr ""
+
+msgid "Input a value."
+msgstr ""
+
+msgid "When you need Temperature Calibration"
+msgstr ""
+
+msgid "Model stringing"
+msgstr ""
+
+msgid "Layer adhesion problem"
+msgstr ""
+
+msgid "Warping(overhang)"
+msgstr ""
+
+msgid "Bridging"
+msgstr ""
+
+msgid "Optimal Temp"
+msgstr ""
+
+msgid "From Temp"
+msgstr ""
+
+msgid "To Temp"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"From temp: >= 180\n"
+"To temp: <= 350\n"
+"From temp <= To temp - Step\n"
+" From temp - To temp < 120"
+msgstr ""
+
+msgid "Input an optiaml temperature."
+msgstr ""
+
+msgid "Optimal Retraction Length"
+msgstr ""
+
+msgid "Retraction Calibration"
+msgstr ""
+
+msgid "From Retraction Length"
+msgstr ""
+
+msgid "To Retraction Length"
+msgstr ""
+
+msgid "Input an optiaml retraction length."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -9407,6 +9885,24 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid "Ams filament backup"
+#~ msgstr "AMS filament backup"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
+#~ msgid "Filaments Auto refill"
+#~ msgstr "Filament Auto-refill"
+
+#~ msgid "Auto refill"
+#~ msgstr "Auto refill"
+
+#~ msgid "3D Models"
+#~ msgstr "3D Models"
 
 #~ msgid ""
 #~ "\n"
@@ -9747,9 +10243,6 @@ msgstr ""
 #~ "Extrusion compensation calibration is not supported when using the "
 #~ "Textured PEI Plate."
 
-#~ msgid "Failed"
-#~ msgstr "Failed"
-
 #~ msgid ""
 #~ "Failed to connect to the printer through LAN. Please enter the correct "
 #~ "printer IP address and access code."
@@ -10048,9 +10541,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Note: The location of IP and access code on the machine is as follows:"
 
-#~ msgid "Number of currently selected parts: %1%\n"
-#~ msgstr "Number of currently selected parts: %1%\n"
-
 #~ msgid ""
 #~ "One object has empty initial layer and can't be printed. Please Cut the "
 #~ "bottom or enable supports."
@@ -10099,9 +10589,6 @@ msgstr ""
 
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
 #~ msgstr "Plate %d: %s does not support filament %s (%s).\n"
-
-#~ msgid "Plate Type"
-#~ msgstr "Plate Type"
 
 #~ msgid "Plate type"
 #~ msgstr "Plate type"
@@ -10297,9 +10784,6 @@ msgstr ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "
 #~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
 #~ "traditional"
-
-#~ msgid "Start"
-#~ msgstr "Start"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Stop printing when Spaghetti or Excess Chute Pileup is detected"

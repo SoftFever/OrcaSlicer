@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-15 16:05+0800\n"
+"POT-Creation-Date: 2023-06-27 18:30+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -825,13 +825,13 @@ msgid "Cone"
 msgstr "锥体"
 
 msgid "Bambu Cube"
-msgstr ""
+msgstr "Bambu方块"
 
 msgid "3DBenchy"
-msgstr ""
+msgstr "小船"
 
 msgid "ksr FDMTest"
-msgstr ""
+msgstr "欧特克FDM测试"
 
 msgid "Height range Modifier"
 msgstr "高度范围修改器"
@@ -1442,8 +1442,8 @@ msgstr "空"
 msgid "AMS"
 msgstr "AMS"
 
-msgid "Ams filament backup"
-msgstr "AMS耗材丝备份"
+msgid "Auto Refill"
+msgstr "自动补给"
 
 msgid "AMS not connected"
 msgstr "AMS未连接"
@@ -1850,6 +1850,9 @@ msgstr "不支持在打印时设置AMS槽位信息"
 msgid "Factors of dynamic flow cali"
 msgstr "动态流量标定系数"
 
+msgid "PA Profile"
+msgstr ""
+
 msgid "Factor K"
 msgstr "系数K"
 
@@ -1862,14 +1865,14 @@ msgstr "不支持在打印时设置虚拟槽位信息"
 msgid "Are you sure you want to clear the filament information?"
 msgstr "您确定要清除耗材丝信息吗？"
 
+msgid "You need to select the material type and color first."
+msgstr "您需要先选择材料类型和颜色。"
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "请输入有效的数值 (K的范围为0~0.5）"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "请输入有效的数值 (K的范围为0~0.5, N的范围为0.6~2.0）"
-
-msgid "You need to select the material type and color first."
-msgstr "您需要先选择材料类型和颜色。"
 
 msgid "Other Color"
 msgstr "其他颜色"
@@ -1903,14 +1906,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2022,12 +2025,6 @@ msgstr "采用AMS里的材料打印"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "采用挂载在机箱背部的材料打印"
 
-msgid "Filaments Auto refill"
-msgstr "耗材丝自动补给"
-
-msgid "Auto refill"
-msgstr "自动补给"
-
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
@@ -2035,6 +2032,13 @@ msgstr "当前材料耗尽时，打印机将按照以下顺序继续打印。"
 
 msgid "Group"
 msgstr "组"
+
+msgid ""
+"There are currently no identical spare consumables available, and automatic "
+"replenishment is currently not possible. \n"
+"(Currently supporting automatic supply of consumables with the same brand, "
+"material type, and color)"
+msgstr "当前无相同的备用耗材，暂时无法自动补给。\n（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -2101,6 +2105,9 @@ msgstr "AMS料材丝耗尽后将自动切换到属性完全相同的耗材丝"
 
 msgid "File"
 msgstr "文件"
+
+msgid "Calibration"
+msgstr "校准"
 
 msgid ""
 "Failed to download the plug-in. Please check your firewall settings and vpn "
@@ -2923,9 +2930,6 @@ msgstr ""
 "对象被放置在打印板的边界上或超过高度限制。\n"
 "请通过将其完全移动到打印板内或打印板外，并确认高度在构建空间以内来解决问题。"
 
-msgid "Calibration"
-msgstr "校准"
-
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
 
@@ -3016,9 +3020,6 @@ msgstr "准备"
 msgid "Preview"
 msgstr "预览"
 
-msgid "3D Models"
-msgstr "3D模型"
-
 msgid "Device"
 msgstr "设备"
 
@@ -3033,6 +3034,9 @@ msgstr "否"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
+
+msgid "Upload"
+msgstr ""
 
 msgid "Slice plate"
 msgstr "切片单盘"
@@ -3291,6 +3295,51 @@ msgstr "视图"
 
 msgid "Help"
 msgstr "帮助"
+
+msgid "Temperature Calibration"
+msgstr ""
+
+msgid "Pass 1"
+msgstr ""
+
+msgid "Flow rate test - Pass 1"
+msgstr ""
+
+msgid "Pass 2"
+msgstr ""
+
+msgid "Flow rate test - Pass 2"
+msgstr ""
+
+msgid "Flow rate"
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid "Retraction test"
+msgstr ""
+
+msgid "Max flowrate"
+msgstr ""
+
+msgid "VFA"
+msgstr ""
+
+msgid "More..."
+msgstr ""
+
+msgid "Tutorial"
+msgstr ""
+
+msgid "Calibration help"
+msgstr ""
+
+msgid "Orca Tolerance Test"
+msgstr ""
+
+msgid "More calibrations"
+msgstr ""
 
 msgid "&Open G-code"
 msgstr "打开G-code"
@@ -4410,8 +4459,12 @@ msgid "Plate Settings"
 msgstr "盘参数设置"
 
 #, boost-format
-msgid "Number of currently selected: %1%\n"
+msgid "Number of currently selected parts: %1%\n"
 msgstr "当前选择的零件数量: %1%\n"
+
+#, boost-format
+msgid "Number of currently selected objects: %1%\n"
+msgstr "当前选择的对象数量: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -4883,12 +4936,6 @@ msgstr "直接切换到“%1%”"
 msgid "Task canceled"
 msgstr "任务已取消"
 
-msgid "Online"
-msgstr "在线"
-
-msgid "Offline"
-msgstr "离线"
-
 msgid "(LAN)"
 msgstr "（局域网）"
 
@@ -4898,6 +4945,9 @@ msgstr "我的设备"
 msgid "Other Device"
 msgstr "其他设备"
 
+msgid "Online"
+msgstr "在线"
+
 msgid "Input access code"
 msgstr "输入访问码"
 
@@ -4906,6 +4956,9 @@ msgstr "无法找到我的设备？"
 
 msgid "Log out successful."
 msgstr "登出成功。"
+
+msgid "Offline"
+msgstr "离线"
 
 msgid "Busy"
 msgstr "忙碌"
@@ -5075,6 +5128,14 @@ msgstr "打印文件数据异常，请重新切片"
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
 
+msgid ""
+"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
+"scattered surface."
+msgstr "小心使用！纹理PEI板上的流量校准可能会因表面散射而失败。"
+
+msgid "Automatic flow calibration using Micro Lidar"
+msgstr "使用微型激光雷达进行自动流量校准"
+
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
 
@@ -5138,8 +5199,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -5288,6 +5349,9 @@ msgstr "墙"
 msgid "Top/bottom shells"
 msgstr "顶部/底部外壳"
 
+msgid "Sparse infill"
+msgstr "稀疏填充"
+
 msgid "Initial layer speed"
 msgstr "首层速度"
 
@@ -5310,6 +5374,9 @@ msgstr "空驶速度"
 
 msgid "Acceleration"
 msgstr "加速度"
+
+msgid "Jerk(XY)"
+msgstr ""
 
 msgid "Raft"
 msgstr "筏层"
@@ -6215,9 +6282,6 @@ msgstr "外墙"
 msgid "Overhang wall"
 msgstr "悬空墙"
 
-msgid "Sparse infill"
-msgstr "稀疏填充"
-
 msgid "Internal solid infill"
 msgstr "内部实心填充"
 
@@ -6717,6 +6781,21 @@ msgid ""
 "material for bridge, to improve sag"
 msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂。"
 
+msgid "Top surface flow ratio"
+msgstr "顶部表面流量比例"
+
+msgid ""
+"This factor affects the amount of material for top solid infill. You can "
+"decrease it slightly to have smooth surface finish"
+msgstr ""
+"这个因素影响着顶部实心填充的材料用量。您可以略微减小它，以获得光滑的表面质感"
+
+msgid "Bottom surface flow ratio"
+msgstr "底部表面流量比例"
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr "这个因素影响底部实心填充的材料用量"
+
 msgid "Only one wall on top surfaces"
 msgstr "顶面单层墙"
 
@@ -6937,6 +7016,14 @@ msgstr "底面图案"
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "除了桥接外的底面填充的走线图案"
 
+msgid "Internal solid infill pattern"
+msgstr ""
+
+msgid ""
+"Line pattern of internal solid infill. if the detect nattow internal solid "
+"infill be enabled, the concentric pattern will be used for the small area."
+msgstr ""
+
 msgid "Line width of outer wall"
 msgstr "外墙的线宽"
 
@@ -7032,9 +7119,6 @@ msgid ""
 "enabled. Useless for Bambu Printer"
 msgstr ""
 
-msgid "Pressure advance"
-msgstr ""
-
 msgid ""
 "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
 "Bambu Printer"
@@ -7098,9 +7182,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -7160,6 +7241,12 @@ msgstr "耗材丝的价格。只用于统计信息。"
 
 msgid "money/kg"
 msgstr "money/kg"
+
+msgid "Vendor"
+msgstr ""
+
+msgid "Vendor of filament. For show only"
+msgstr ""
 
 msgid "(Undefined)"
 msgstr "（未定义）"
@@ -7223,10 +7310,58 @@ msgstr "顶面填充的加速度。使用较低值可能会改善顶面质量"
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
 msgstr "外墙加速度。使用较小的值可以提高质量。"
 
+msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
+msgstr ""
+
+msgid ""
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
+msgstr ""
+
+msgid "mm/s² or %"
+msgstr ""
+
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr "首层加速度。使用较低值可以改善和打印板的粘接。"
+
+msgid "Enable accel_to_decel"
+msgstr ""
+
+msgid "Klipper's max_accel_to_decel will be adjusted automatically"
+msgstr ""
+
+msgid "accel_to_decel"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgstr ""
+
+msgid "Default jerk"
+msgstr ""
+
+msgid "Jerk of outer walls"
+msgstr ""
+
+msgid "Jerk of inner walls"
+msgstr ""
+
+msgid "Jerk of infill"
+msgstr ""
+
+msgid "Jerk of top surface"
+msgstr ""
+
+msgid "First layer"
+msgstr "首层"
+
+msgid "Jerk of first layer"
+msgstr ""
+
+msgid "Jerk of travel"
+msgstr ""
 
 msgid "Line width of initial layer"
 msgstr "首层的线宽"
@@ -7289,6 +7424,14 @@ msgid ""
 "The average diatance between the random points introducded on each line "
 "segment"
 msgstr "产生绒毛表面时，插入的随机点之间的平均距离"
+
+msgid "Filter out tiny gaps"
+msgstr ""
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't "
+"affact top/bottom layers"
+msgstr ""
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -7357,6 +7500,14 @@ msgstr "G-code风格"
 
 msgid "What kind of gcode the printer is compatible with"
 msgstr "打印机兼容的G-code风格'"
+
+msgid "Exclude objects"
+msgstr ""
+
+msgid ""
+"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
+"firmware printer"
+msgstr ""
 
 msgid "Infill combination"
 msgstr "合并填充"
@@ -7818,6 +7969,12 @@ msgstr "斜向"
 msgid "Spiral"
 msgstr "螺旋"
 
+msgid "Direct drive"
+msgstr ""
+
+msgid "Bowden"
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "回抽速度"
 
@@ -7851,17 +8008,19 @@ msgid "Random"
 msgstr "随机"
 
 msgid "Seam gap"
-msgstr ""
+msgstr "接缝间隔"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current extruder diameter. The default value for this parameter is 0.15"
+"This amount as a percentage of the current extruder diameter. The default "
+"value for this parameter is 15"
 msgstr ""
+"为了减少闭环挤出中接缝的可见性，循环会被中断并缩短指定的长度。\n"
+"这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
 
 msgid "Wipe speed"
-msgstr ""
+msgstr "擦拭速度"
 
 msgid ""
 "The wipe speed is determined by the speed setting specified in this "
@@ -7869,6 +8028,8 @@ msgid ""
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 msgstr ""
+"擦拭速度是根据此配置中指定的速度设置确定的。如果该值以百分比形式表示（例如"
+"80%），则将根据上方的移动速度设置进行计算。该参数的默认值为80%。"
 
 msgid "Skirt distance"
 msgstr "Skirt距离"
@@ -8294,6 +8455,14 @@ msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "空驶的速度。空驶是无挤出量的快速移动。"
+
+msgid "Use relative E distances"
+msgstr ""
+
+msgid ""
+"If your firmware requires relative E values, check this, otherwise leave it "
+"unchecked. Must use relative e distance for Bambu printer"
+msgstr ""
 
 msgid "Wipe while retracting"
 msgstr "回抽时擦拭"
@@ -8766,6 +8935,322 @@ msgstr "文件包含无效的顶点索引。"
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "无法读取此OBJ文件，因为它是空的。"
 
+msgid "Preset"
+msgstr "预设"
+
+msgid "Record"
+msgstr "记录"
+
+msgid "Pressure Adavance"
+msgstr "压力提升"
+
+msgid "Flow Rate"
+msgstr "流速"
+
+msgid "Max Volumetric Speed"
+msgstr "最大容积速度"
+
+msgid "Plate Type"
+msgstr "热床类型"
+
+msgid "Filament From"
+msgstr "耗材丝来源"
+
+msgid "External Spool"
+msgstr "外部线轴"
+
+msgid "Filament For Calibration"
+msgstr "校准用耗材"
+
+msgid ""
+"Please select same type of material, because plate temperature might not be "
+"compatible with different type of material"
+msgstr "请选择相同类型的材料，因为热床温度可能与不同类型的材料不兼容。"
+
+msgid ""
+"A test model will be printed. Please clear the build plate and place it back "
+"to the hot bed before calibration."
+msgstr "将打印一份测试模型。在校准之前，请清理打印平台并将其放回热床上。"
+
+msgid "Printing Parameters"
+msgstr "打印参数"
+
+msgid "Restart"
+msgstr "重新开始"
+
+msgid "Calibrate"
+msgstr "校准"
+
+msgid "Error desc"
+msgstr "错误描述"
+
+msgid "Extra info"
+msgstr "额外信息"
+
+msgid "Re-Calibrate"
+msgstr "重新校准"
+
+msgid "Is in printing. Please wait for printing to complete"
+msgstr "正在打印中，请等待打印完成。"
+
+msgid "It will restart to get the results. Do you confirm to re-calibrate?"
+msgstr "将重新启动以获取结果。您确定要重新校准吗？"
+
+msgid "It will restart to get the results. Do you confirm to restart?"
+msgstr "将重新启动以获取结果。您确定要重新启动吗？"
+
+msgid "No Printer Connected!"
+msgstr "没有连接打印机！"
+
+msgid "Printer is not connected yet."
+msgstr "打印机尚未连接。"
+
+msgid "Please select a printer and nozzle for calibration."
+msgstr "请选择用于校准的打印机和喷嘴。"
+
+msgid "No print preset"
+msgstr "没有打印预设。"
+
+msgid "Please select filament for calibration."
+msgstr "请选择用于校准的打印材料。"
+
+msgid ""
+"The printing parameters is empty, please reselect nozzle and plate type."
+msgstr "打印参数为空，请重新选择喷嘴和打印板类型。"
+
+msgid "Saved success."
+msgstr "保存成功"
+
+msgid ""
+"Are you sure you want to cancel this calibration? It will return to start "
+"page"
+msgstr "您确定要取消此次校准吗？这将返回到开始页面。"
+
+#, c-format, boost-format
+msgid ""
+"Unable to print %s and %s together. Filaments have large bed temperature "
+"difference"
+msgstr "无法同时打印 %s 和 %s。打印材料的打印床温度差异较大。"
+
+msgid "No AMS filaments. Please select a printer to load AMS info."
+msgstr "没有 AMS 材料。请先选择一个打印机以加载 AMS 信息。"
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s"
+msgstr "%s 与 %s 不兼容"
+
+msgid "Please find the best line on your plate"
+msgstr "请在您的打印板上找到最佳线条"
+
+msgid "We found the best Pressure Advance Factor"
+msgstr "我们找到了最佳的压力提升因子"
+
+msgid "When you need Pressure Advance Calibration"
+msgstr "当您需要进行压力提升校准时"
+
+msgid "uneven extrusion"
+msgstr "不均匀挤出"
+
+msgid "About this calibration"
+msgstr "关于此校准"
+
+msgid ""
+"After calibration, the linear compensation factor(K) will be recorded and "
+"applied to printing. This factor would be different if device, degree of "
+"usage, material, and material family type are different"
+msgstr ""
+"校准完成后，线性补偿系数(K) 将被记录并应用于打印中。如果设备、使用程度、材料"
+"和材料类型不同，这个系数也会有所不同。"
+
+msgid "Wiki"
+msgstr "Wiki"
+
+msgid "Manage Result"
+msgstr "管理结果"
+
+msgid "Start"
+msgstr "首层"
+
+msgid "Pressure Advance"
+msgstr "压力提升"
+
+msgid "Material"
+msgstr "材料"
+
+msgid "K"
+msgstr ""
+
+msgid "N"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "FactorK"
+msgstr ""
+
+msgid "FactorN"
+msgstr ""
+
+msgid "Brand Name"
+msgstr ""
+
+msgid "Failed"
+msgstr "失败"
+
+msgid ""
+"Make sure bed_temp > 0 \n"
+"nozzle_temp > 0\n"
+"max_volumetric_speed > 0"
+msgstr ""
+
+msgid "Please find the best object on your plate"
+msgstr ""
+
+msgid "Fill in the value above the block with smoothest top surface"
+msgstr ""
+
+msgid "Save to Filament Preset"
+msgstr ""
+
+msgid "Skip Calibration2"
+msgstr ""
+
+#, c-format, boost-format
+msgid "flow ratio : %s "
+msgstr ""
+
+msgid "We found the best flow ratio for you"
+msgstr ""
+
+msgid "When you need Flow Rate Calibration"
+msgstr ""
+
+msgid "Over-extrusion or under extrusion"
+msgstr ""
+
+msgid "Flow Rate calibration is recommended when you print with:"
+msgstr ""
+
+msgid "material with significant thermal shrinkage/expansion, such as..."
+msgstr ""
+
+msgid "materials with inaccurate filament diameter"
+msgstr ""
+
+msgid "Complete Calibration"
+msgstr ""
+
+msgid "Fine Calibration based on flow ratio"
+msgstr ""
+
+msgid "Flow Ratio"
+msgstr ""
+
+msgid "Input name of filament preset to save"
+msgstr ""
+
+msgid "Choose a block with smoothest top surface."
+msgstr ""
+
+#, c-format, boost-format
+msgid "max volumetric speed : %s "
+msgstr ""
+
+msgid "When you need Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Under-extrusion"
+msgstr ""
+
+msgid "What will happen if the Max Volumetric Speed is not set up properly"
+msgstr ""
+
+msgid ""
+"Under-extrusion: If the value is set too high, under-extrusion will happen "
+"and cause poor apperance on the printed model"
+msgstr ""
+
+msgid ""
+"Print speed is limited: If the value is set too low, the print speed will be "
+"limited and make the print time longer. Take the model on the right picture "
+"for example. max volumetric speed [n] mm^3/s costs [x] minutes. max "
+"volumetric speed [m] mm^3/s costs [y] minutes"
+msgstr ""
+
+msgid "Input Value"
+msgstr ""
+
+msgid "From Volumetric Speed"
+msgstr ""
+
+msgid "To Volumetric Speed"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"From > 0\n"
+"To < 60\n"
+"Step >= 0\n"
+"To > From + Step"
+msgstr ""
+
+msgid "Input a value."
+msgstr ""
+
+msgid "When you need Temperature Calibration"
+msgstr ""
+
+msgid "Model stringing"
+msgstr ""
+
+msgid "Layer adhesion problem"
+msgstr ""
+
+msgid "Warping(overhang)"
+msgstr ""
+
+msgid "Bridging"
+msgstr ""
+
+msgid "Optimal Temp"
+msgstr ""
+
+msgid "From Temp"
+msgstr ""
+
+msgid "To Temp"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"From temp: >= 180\n"
+"To temp: <= 350\n"
+"From temp <= To temp - Step\n"
+" From temp - To temp < 120"
+msgstr ""
+
+msgid "Input an optiaml temperature."
+msgstr ""
+
+msgid "Optimal Retraction Length"
+msgstr ""
+
+msgid "Retraction Calibration"
+msgstr ""
+
+msgid "From Retraction Length"
+msgstr ""
+
+msgid "To Retraction Length"
+msgstr ""
+
+msgid "Input an optiaml retraction length."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -9011,6 +9496,22 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
+#~ msgid "Ams filament backup"
+#~ msgstr "AMS耗材丝备份"
+
+#~ msgid "Filaments Auto refill"
+#~ msgstr "耗材丝自动补给"
+
+#~ msgid "Auto refill"
+#~ msgstr "自动补给"
+
+#~ msgid "3D Models"
+#~ msgstr "3D模型"
+
+#, boost-format
+#~ msgid "Number of currently selected: %1%\n"
+#~ msgstr "当前选择的零件数量: %1%\n"
+
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "组合所选零件为单个零件"
 
@@ -9056,9 +9557,6 @@ msgstr ""
 #~ msgstr ""
 #~ "由于启用了LAN模式，已与打印机[%s]断开连接。请通过输入访问码重新连接打印"
 #~ "机，访问码可从打印机屏幕上获取。"
-
-#~ msgid "Number of currently selected parts: %1%\n"
-#~ msgstr "当前选择的零件数量: %1%\n"
 
 #~ msgid " plate %1%:"
 #~ msgstr "盘%1%："
@@ -9244,9 +9742,6 @@ msgstr ""
 
 #~ msgid "Add/Edit connectors"
 #~ msgstr "添加/编辑连接件"
-
-#~ msgid "Start"
-#~ msgstr "首层"
 
 #~ msgid "Shortcut key %1%"
 #~ msgstr "快捷键 %1%"
@@ -9882,9 +10377,6 @@ msgstr ""
 
 #~ msgid "Waiting"
 #~ msgstr "等待中"
-
-#~ msgid "Failed"
-#~ msgstr "失败"
 
 #~ msgid "Finished"
 #~ msgstr "完成"
@@ -10587,9 +11079,6 @@ msgstr ""
 
 #~ msgid "Nozzle cleaning..."
 #~ msgstr "挤出头端面清理中..."
-
-#~ msgid "First layer"
-#~ msgstr "首层"
 
 #~ msgid "Material for support"
 #~ msgstr "支撑材料"
