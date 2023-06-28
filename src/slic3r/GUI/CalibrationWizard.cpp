@@ -34,6 +34,92 @@ static bool is_high_end_type(MachineObject* obj) {
     return false;
 }
 
+static bool validate_input_flow_ratio(wxString flow_ratio, float* output_value) {
+    float default_flow_ratio = 1.0f;
+
+    if (flow_ratio.IsEmpty()) {
+        *output_value = default_flow_ratio;
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 0.2)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    double flow_ratio_value = 0.0;
+    try {
+        flow_ratio.ToDouble(&flow_ratio_value);
+    }
+    catch (...) {
+        ;
+    }
+
+    if (flow_ratio_value <= 0.0 || flow_ratio_value >= 2.0) {
+        *output_value = default_flow_ratio;
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 0.2)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    *output_value = flow_ratio_value;
+    return true;
+}
+
+static bool validate_input_k_value(wxString k_text, float* output_value)
+{
+    float default_k = 0.0f;
+    if (k_text.IsEmpty()) {
+        *output_value = default_k;
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    double k_value = 0.0;
+    try {
+        k_text.ToDouble(&k_value);
+    }
+    catch (...) {
+        ;
+    }
+
+    if (k_value < 0 || k_value > 0.5) {
+        *output_value = default_k;
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    *output_value = k_value;
+    return true;
+};
+
+static bool validate_input_n_value(wxString n_text, float* output_value) {
+    float default_n = 1.0f;
+    if (n_text.IsEmpty()) {
+        *output_value = default_n;
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (N in 0.6~2.0)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    double n_value = 0.0;
+    try {
+        n_text.ToDouble(&n_value);
+    }
+    catch (...) {
+        ;
+    }
+
+    if (n_value < 0.6 || n_value > 2.0) {
+        *output_value = default_n;
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (N in 0.6~2.0)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    *output_value = n_value;
+    return true;
+}
+
 wxString get_calibration_wiki_page(CalibMode cali_mode)
 {
     switch (cali_mode) {
@@ -1058,13 +1144,16 @@ void CalibrationWizard::update_print_progress()
         m_staticText_layers->Hide();
     }
 
-    if (curr_obj->print_status == "RUNNING")
+    if (curr_obj->print_status == "RUNNING") {
         is_between_start_and_runing = false;
+        m_btn_recali->Hide();
+        m_print_panel->GetParent()->Layout();
+    }
 
     if (curr_obj->is_system_printing()) {
         reset_printing_values();
     }
-    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH" || curr_obj->print_status == "IDLE" || curr_obj->print_status == "FAILED") {
+    else if (curr_obj->is_in_printing() || curr_obj->print_status == "FINISH" || curr_obj->print_status == "IDLE") {
         if (curr_obj->is_in_prepare() || curr_obj->print_status == "SLICING") {
             reset_printing_values();
 
@@ -1105,7 +1194,7 @@ void CalibrationWizard::update_print_progress()
                 if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
             }
 
-            if ((curr_obj->print_status == "FINISH" || curr_obj->print_status == "IDLE" || curr_obj->print_status == "FAILED")) {
+            if ((curr_obj->print_status == "FINISH" || curr_obj->print_status == "IDLE")) {
                 if (is_between_start_and_runing) {
                     // just entering, fake status
                     reset_printing_values();
@@ -1115,22 +1204,22 @@ void CalibrationWizard::update_print_progress()
                 else {
                     // true status
                     m_btn_recali->Show();
-                    if (curr_obj->print_status == "FAILED" || curr_obj->print_status == "IDLE")
+                    if (curr_obj->print_status == "IDLE")
                         reset_printing_values();
-#ifdef CALIBRATION_DEBUG
+
                     if (m_curr_page->get_page_type() == PageType::Calibration || m_curr_page->get_page_type() == PageType::Save)
-#else
-                    if (curr_obj->print_status == "FINISH" && (m_curr_page->get_page_type() == PageType::Calibration || m_curr_page->get_page_type() == PageType::Save))
-#endif
+                    {
+                        request_calib_result();
+                    }
+                    if (curr_obj->print_status == "FINISH")
                     {
                         m_button_abort->Enable(false);
                         m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());
                         m_button_pause_resume->Enable(false);
                         m_button_pause_resume->SetBitmap(m_bitmap_resume_disable.bmp());
                         m_btn_next->Enable(true);
-                        request_calib_result();
                     }
-                    Layout();
+                    m_print_panel->GetParent()->Layout();
                 }
             }
             else {
@@ -1179,11 +1268,15 @@ void CalibrationWizard::update_print_progress()
     }
     else {
         reset_printing_values();
+        if (curr_obj->print_status == "FAILED" && !is_between_start_and_runing) {
+            m_btn_recali->Show();
+            m_printing_stage_value->SetLabelText(_L("FAILED"));
+        }
     }
 
     if (is_between_start_and_runing) {
         m_btn_recali->Hide();
-        Layout();
+        m_print_panel->GetParent()->Layout();
     }
 
     check_sync_printer_status();
@@ -1210,7 +1303,7 @@ void CalibrationWizard::reset_printing_values()
     m_staticText_progress_left_time->SetLabelText(NA_STR);
     m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
     m_staticText_progress_percent->SetLabelText(NA_STR);
-    Layout();
+    m_print_panel->Layout();
 }
 
 void CalibrationWizard::on_subtask_pause_resume(wxCommandEvent& event)
@@ -1229,6 +1322,10 @@ void CalibrationWizard::on_subtask_abort(wxCommandEvent& event)
     if (msg_dlg.ShowModal() == wxID_OK) {
         if (curr_obj) curr_obj->command_task_abort();
         m_btn_recali->Show();
+        if (m_mode == CalibMode::Calib_Flow_Rate) {
+            auto flow_rate_wizard = static_cast<FlowRateWizard*>(this);
+            flow_rate_wizard->reset_reuse_panels();
+        }
         show_page(get_frist_page());
         save_to_printer_calib_info(PageType::Start);
     }
@@ -2218,32 +2315,19 @@ void PressureAdvanceWizard::sync_save_page_data() {
 
         k_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, result_failed, index, fcb, k_value](auto& e) {
             if (!result_failed) {
-                if (k_value->GetTextCtrl()->GetValue().IsEmpty()) {
-                    k_value->GetTextCtrl()->SetValue("0.0");
-                    m_calib_results[index].k_value = 0.0;
-                    wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
-                    MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
-                    msg_dlg.ShowModal();
-                    return;
-                }
-                double k = 0.0;
-                k_value->GetTextCtrl()->GetValue().ToDouble(&k);
+                float k = 0.0f;
+                validate_input_k_value(k_value->GetTextCtrl()->GetValue(), &k);
+                wxString k_str = wxString::Format("%.3f", k);
+                k_value->GetTextCtrl()->SetValue(k_str);
                 m_calib_results[index].k_value = k;
             }
             });
         k_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, result_failed, index, fcb, k_value](auto& e) {
             if (!result_failed) {
-                if (k_value->GetTextCtrl()->GetValue().IsEmpty()) {
-                    k_value->GetTextCtrl()->SetValue("0.0");
-                    m_calib_results[index].k_value = 0.0;
-                    wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
-                    MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
-                    msg_dlg.ShowModal();
-                    e.Skip();
-                    return;
-                }
-                double k = 0.0;
-                k_value->GetTextCtrl()->GetValue().ToDouble(&k);
+                float k = 0.0f;
+                validate_input_k_value(k_value->GetTextCtrl()->GetValue(), &k);
+                wxString k_str = wxString::Format("%.3f", k);
+                k_value->GetTextCtrl()->SetValue(k_str);
                 m_calib_results[index].k_value = k;
             }
             e.Skip();
@@ -2330,7 +2414,7 @@ void PressureAdvanceWizard::sync_save_page_data() {
     }
     m_grid_panel->SetSizer(grid_sizer, true);
     m_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        SetFocusIgnoringChildren();
+        m_grid_panel->SetFocusIgnoringChildren();
         });
     Layout();
 }
@@ -2438,61 +2522,10 @@ bool PressureAdvanceWizard::save_calibration_result()
         return true;
     }
     else {
-        auto check_k_validation = [](wxString k_text)
-        {
-            if (k_text.IsEmpty())
-                return false;
-            double k = 0.0;
-            try {
-                k_text.ToDouble(&k);
-            }
-            catch (...) {
-                ;
-            }
-
-            if (k < 0 || k > 0.5)
-                return false;
-            return true;
-        };
-
-        auto check_k_n_validation = [](wxString k_text, wxString n_text)
-        {
-            if (k_text.IsEmpty() || n_text.IsEmpty())
-                return false;
-            double k = 0.0;
-            try {
-                k_text.ToDouble(&k);
-            }
-            catch (...) {
-                ;
-            }
-
-            double n = 0.0;
-            try {
-                n_text.ToDouble(&n);
-            }
-            catch (...) {
-                ;
-            }
-            if (k < 0 || k > 0.5)
-                return false;
-            if (n < 0.6 || n > 2.0)
-                return false;
-            return true;
-        };
-
-        wxString k_text = m_k_val->GetTextCtrl()->GetValue();
-        wxString n_text = m_n_val->GetTextCtrl()->GetValue();
-        if (!check_k_validation(k_text)) {
-            wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
-            //wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
-            MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
-            return false;
-        }
-
-        double k = 0.0;
-        k_text.ToDouble(&k);
+        float k = 0.0f;
+        validate_input_k_value(m_k_val->GetTextCtrl()->GetValue(), &k);
+        wxString k_str = wxString::Format("%.3f", k);
+        m_k_val->GetTextCtrl()->SetValue(k_str);
 
         double n = 0.0;
         //n_text.ToDouble(&n);
@@ -2730,7 +2763,8 @@ void FlowRateWizard::create_low_end_pages() {
     save_panel->Hide();
 
     auto page3_prev_btn = m_low_end_page3->get_prev_btn();
-    page3_prev_btn->Hide();
+    page3_prev_btn->SetLabel(_L("Restart"));
+    page3_prev_btn->SetButtonType(ButtonType::Restart);
 
     auto page3_next_btn = m_low_end_page3->get_next_btn();
     page3_next_btn->SetLabel(_L("Calibrate"));
@@ -2937,19 +2971,36 @@ void FlowRateWizard::create_pages()
         choose_step_sizer->Add(m_fine_radioBox);
         choose_step_sizer->AddSpacer(FromDIP(10));
         TextInput* flow_ratio_input = new TextInput(m_choose_step_panel, wxEmptyString,"", "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
+        flow_ratio_input->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        float default_flow_ratio = 1.0f;
+        auto flow_ratio_str = wxString::Format("%.3f", default_flow_ratio);
+        flow_ratio_input->GetTextCtrl()->SetValue(flow_ratio_str);
         flow_ratio_input->Hide();
         choose_step_sizer->Add(flow_ratio_input, 0, wxLEFT, FromDIP(18));
-        flow_ratio_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this, flow_ratio_input](auto& e) {
-            if (flow_ratio_input->GetTextCtrl()->GetValue().IsEmpty())
-                flow_ratio_input->GetTextCtrl()->SetValue("1");
-            m_coarse_calc_result = stof(flow_ratio_input->GetTextCtrl()->GetValue().ToStdString());
+        flow_ratio_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, flow_ratio_input](auto& e) {
+            float flow_ratio = 0.0f;
+            validate_input_flow_ratio(flow_ratio_input->GetTextCtrl()->GetValue(), &flow_ratio);
+            auto flow_ratio_str = wxString::Format("%.3f", flow_ratio);
+            flow_ratio_input->GetTextCtrl()->SetValue(flow_ratio_str);
+            m_coarse_calc_result = flow_ratio;
+            });
+        flow_ratio_input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, flow_ratio_input](auto& e) {
+            float flow_ratio = 0.0f;
+            validate_input_flow_ratio(flow_ratio_input->GetTextCtrl()->GetValue(), &flow_ratio);
+            auto flow_ratio_str = wxString::Format("%.3f", flow_ratio);
+            flow_ratio_input->GetTextCtrl()->SetValue(flow_ratio_str);
+            m_coarse_calc_result = flow_ratio;
+            e.Skip();
+            });
+        m_page1->Bind(wxEVT_LEFT_DOWN, [this](auto&e) {
+            m_page1->SetFocusIgnoringChildren();
             });
         m_complete_radioBox->Bind(wxEVT_RADIOBUTTON, [this, flow_ratio_input](auto& e) {
-            flow_ratio_input->Show(m_fine_radioBox->GetValue());
+            flow_ratio_input->Show(false);
             this->Layout();
             });
         m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this, flow_ratio_input](auto& e) {
-            flow_ratio_input->Show(m_fine_radioBox->GetValue());
+            flow_ratio_input->Show();
             this->Layout();
             });
 
@@ -3038,13 +3089,17 @@ void FlowRateWizard::sync_save_page_data() {
             flow_ratio_value->GetTextCtrl()->SetValue(flow_ratio_str);
         }
         flow_ratio_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, fcb, flow_ratio_value, index](auto& e) {
-            double flow_ratio = 0.0;
-            flow_ratio_value->GetTextCtrl()->GetValue().ToDouble(&flow_ratio);
+            float flow_ratio = 0.0f;
+            validate_input_flow_ratio(flow_ratio_value->GetTextCtrl()->GetValue(), &flow_ratio);
+            auto flow_ratio_str = wxString::Format("%.3f", flow_ratio);
+            flow_ratio_value->GetTextCtrl()->SetValue(flow_ratio_str);
             m_calib_results[index].flow_ratio = flow_ratio;
             });
         flow_ratio_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, fcb, flow_ratio_value, index](auto& e) {
-            double flow_ratio = 0.0;
-            flow_ratio_value->GetTextCtrl()->GetValue().ToDouble(&flow_ratio);
+            float flow_ratio = 0.0f;
+            validate_input_flow_ratio(flow_ratio_value->GetTextCtrl()->GetValue(), &flow_ratio);
+            auto flow_ratio_str = wxString::Format("%.3f", flow_ratio);
+            flow_ratio_value->GetTextCtrl()->SetValue(flow_ratio_str);
             m_calib_results[index].flow_ratio = flow_ratio;
             e.Skip();
             });
@@ -3092,7 +3147,7 @@ void FlowRateWizard::sync_save_page_data() {
         grid_sizer->AddSpacer(COLUMN_GAP);
     }
     m_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        SetFocusIgnoringChildren();
+        m_grid_panel->SetFocusIgnoringChildren();
         });
     m_grid_panel->SetSizer(grid_sizer, true);
     Layout();
@@ -3219,6 +3274,8 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
         if (m_fine_radioBox->GetValue()) {
             m_curr_page = m_low_end_page3;
             reset_print_panel_to_page(m_low_end_page4, m_low_end_page4->get_content_vsizer());
+            DynamicPrintConfig* filament_config = &m_filament_presets.begin()->second->config;
+            filament_config->set_key_value("filament_flow_ratio", new ConfigOptionFloats{ m_coarse_calc_result });
         }
         if (get_curr_page() == m_page1) {
             pass = 1;
@@ -3256,6 +3313,13 @@ bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
 bool FlowRateWizard::save_calibration_result()
 {
     if (is_high_end_type(curr_obj)) {
+        for (auto& result : m_calib_results) {
+            if (result.flow_ratio <= 0 || result.flow_ratio >= 2) {
+                MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 0.2)"), wxEmptyString, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+                return false;
+            }
+        }
         for (int i = 0; i < m_calib_results.size(); i++) {
             auto it = m_high_end_save_names.find(m_calib_results[i].tray_id);
             if (it != m_high_end_save_names.end() && !it->second.empty()) {
@@ -3276,15 +3340,22 @@ bool FlowRateWizard::save_calibration_result()
     else {
         bool valid = true;
         float result_value;
-        if (m_checkBox_skip_calibration->GetValue()) {
-            result_value = m_coarse_calc_result;
-            if (m_optimal_block_coarse->GetValue().IsEmpty())
+        if (m_fine_radioBox->GetValue()) {
+            result_value = m_fine_calc_result;
+            if (m_optimal_block_fine->GetValue().IsEmpty())
                 valid = false;
         }
         else {
-            result_value = m_fine_calc_result;
-            if (m_optimal_block_coarse->GetValue().IsEmpty() || m_optimal_block_fine->GetValue().IsEmpty())
-                valid = false;
+            if (m_checkBox_skip_calibration->GetValue()) {
+                result_value = m_coarse_calc_result;
+                if (m_optimal_block_coarse->GetValue().IsEmpty())
+                    valid = false;
+            }
+            else {
+                result_value = m_fine_calc_result;
+                if (m_optimal_block_coarse->GetValue().IsEmpty() || m_optimal_block_fine->GetValue().IsEmpty())
+                    valid = false;
+            }
         }
         if (!valid)
         {
@@ -3319,13 +3390,17 @@ void FlowRateWizard::reset_print_panel_to_page(CalibrationWizardPage* page, wxBo
     m_btn_next = page->get_next_btn();
     m_btn_recali = page->get_prev_btn();
     m_print_panel->Reparent(page);
+    sizer->Remove(sizer->GetItemCount() - 1);
     sizer->Add(m_print_panel, 0, wxALIGN_CENTER, 0);
+    Layout();
 }
 
 void FlowRateWizard::reset_send_progress_to_page(CalibrationWizardPage* page, wxBoxSizer* sizer)
 {
     m_send_progress_panel->Reparent(page);
+    sizer->Remove(1);
     sizer->Insert(1, m_send_progress_panel, 0, wxALIGN_CENTER, 0);
+    Layout();
 }
 
 void FlowRateWizard::on_fine_tune(wxCommandEvent& e) {
@@ -3507,8 +3582,8 @@ void MaxVolumetricSpeedWizard::create_pages()
     m_from_value->SetLabel(_L("mm\u00B3/s"));
     m_to_value->SetLabel(_L("mm\u00B3/s"));
     m_step->SetLabel(_L("mm\u00B3/s"));
-    auto step_str = wxString::Format("%1.1f", 0.5);
-    m_step->GetTextCtrl()->SetLabel(step_str);
+    auto step_str = wxString::Format("%1.1f", 0.5f);
+    m_step->GetTextCtrl()->SetValue(step_str);
 
     m_all_pages_sizer->Add(m_page1, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -3589,11 +3664,14 @@ bool MaxVolumetricSpeedWizard::recommend_input_value()
     if (!CalibrationWizard::recommend_input_value()) {
         m_from_value->GetTextCtrl()->SetValue(wxEmptyString);
         m_to_value->GetTextCtrl()->SetValue(wxEmptyString);
+        m_step->GetTextCtrl()->SetValue(wxEmptyString);
         return false;
     }
     else {
         m_from_value->GetTextCtrl()->SetValue("5");
         m_to_value->GetTextCtrl()->SetValue("20");
+        auto step_str = wxString::Format("%1.1f", 0.5f);
+        m_step->GetTextCtrl()->SetValue(step_str);
         return true;
     }
 }
@@ -3822,6 +3900,7 @@ bool TemperatureWizard::recommend_input_value()
     if (!CalibrationWizard::recommend_input_value()) {
         m_from_value->GetTextCtrl()->SetValue(wxEmptyString);
         m_to_value->GetTextCtrl()->SetValue(wxEmptyString);
+        m_step->GetTextCtrl()->SetValue(wxEmptyString);
         return false;
     }
     else {
@@ -3858,6 +3937,7 @@ bool TemperatureWizard::recommend_input_value()
         }
         m_from_value->GetTextCtrl()->SetValue(std::to_string(start));
         m_to_value->GetTextCtrl()->SetValue(std::to_string(end));
+        m_step->GetTextCtrl()->SetValue("5");
 
         return true;
     }
@@ -4002,8 +4082,8 @@ void RetractionWizard::create_pages()
     m_from_value->SetLabel(_L("mm"));
     m_to_value->SetLabel(_L("mm"));
     m_step->SetLabel(_L("mm"));
-    auto step_str = wxString::Format("%1.1f", 0.1);
-    m_step->GetTextCtrl()->SetLabel(step_str);
+    auto step_str = wxString::Format("%1.1f", 0.1f);
+    m_step->GetTextCtrl()->SetValue(step_str);
 
     m_all_pages_sizer->Add(m_page1, 1, wxEXPAND | wxALL, FromDIP(25));
 
@@ -4085,11 +4165,14 @@ bool RetractionWizard::recommend_input_value()
     if (!CalibrationWizard::recommend_input_value()) {
         m_from_value->GetTextCtrl()->SetValue(wxEmptyString);
         m_to_value->GetTextCtrl()->SetValue(wxEmptyString);
+        m_step->GetTextCtrl()->SetValue(wxEmptyString);
         return false;
     }
     else {
         m_from_value->GetTextCtrl()->SetValue("0");
         m_to_value->GetTextCtrl()->SetValue("2");
+        auto step_str = wxString::Format("%1.1f", 0.1f);
+        m_step->GetTextCtrl()->SetValue(step_str);
         return true;
     }
 }

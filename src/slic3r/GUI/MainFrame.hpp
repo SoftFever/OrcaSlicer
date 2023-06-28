@@ -223,8 +223,9 @@ public:
         tpPreview = 2,
         tpMonitor = 3,
         tpProject = 4,
-        tpCalibration = 5,
-        toDebugTool = 6,
+        tpAuxiliary = 5,
+        tpCalibration = 6,
+        toDebugTool = 7,
     };
 
     //BBS: add slice&&print status update logic
