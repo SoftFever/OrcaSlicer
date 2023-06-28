@@ -228,7 +228,6 @@ private:
     double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
     double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
 
-    Vec2d bed_center();
     double object_size_x();
     double object_size_y();
     double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };

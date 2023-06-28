@@ -731,20 +731,6 @@ double CalibPressureAdvancePattern::get_distance(Vec2d from, Vec2d to)
     return std::hypot((to.x() - from.x()), (to.y() - from.y()));
 }
 
-Vec2d CalibPressureAdvancePattern::bed_center()
-{
-    BoundingBoxf bed_ext = get_extents(m_config.printable_area.values);
-    
-    if (is_delta()) {
-        delta_scale_bed_ext(bed_ext);
-    }
-
-    double center_x = bed_ext.size().x() / 2;
-    double center_y = bed_ext.size().y() / 2;
-
-    return Vec2d(center_x, center_y);
-}
-
 double CalibPressureAdvancePattern::object_size_x()
 {
     return get_num_patterns() * ((m_wall_count - 1) * line_spacing_angle()) +
@@ -765,8 +751,7 @@ double CalibPressureAdvancePattern::object_size_y()
 double CalibPressureAdvancePattern::glyph_start_x()
 {
     return
-        bed_center().x() -
-        object_size_x() / 2 +
+        m_starting_point.x() +
         (((m_wall_count - 1) / 2) * line_spacing_angle() - 2)
     ;
 }
@@ -774,8 +759,7 @@ double CalibPressureAdvancePattern::glyph_start_x()
 double CalibPressureAdvancePattern::glyph_end_x()
 {
     return
-        bed_center().x() -
-        object_size_x() / 2 +
+        m_starting_point.x() +
         (get_num_patterns() - 1) * (m_pattern_spacing + line_width()) +
         (get_num_patterns() - 1) * ((m_wall_count - 1) * line_spacing_angle()) +
         4
@@ -813,8 +797,7 @@ double CalibPressureAdvancePattern::max_numbering_height()
 double CalibPressureAdvancePattern::pattern_shift()
 {
     auto shift =
-        bed_center().x() -
-        object_size_x() / 2 -
+        m_starting_point.x() -
         glyph_start_x() +
         m_glyph_padding_horizontal
     ;
