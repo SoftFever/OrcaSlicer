@@ -497,7 +497,7 @@ int CLI::run(int argc, char **argv)
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
     int arrange_option;
-    int plate_to_slice = 0, filament_count = 0;
+    int plate_to_slice = 0, filament_count = 0, duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
@@ -1544,6 +1544,20 @@ int CLI::run(int argc, char **argv)
             }
             m_models.clear();
             m_models.emplace_back(std::move(m));*/
+        }
+        else if (opt_key == "repetitions") {
+            int repetitions_count = m_config.option<ConfigOptionInt>("repetitions")->value;
+            if (repetitions_count <= 1)
+            {
+                BOOST_LOG_TRIVIAL(info) << "invalid repetitions value " << repetitions_count << ", just skip\n";
+            }
+            else {
+                //todo
+                //copy model objects and instances
+                BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << ", will copy model object first\n";
+                need_arrange = true;
+                duplicate_count = repetitions_count - 1;
+            }
         }
         else if (opt_key == "convert_unit") {
             for (auto& model : m_models) {

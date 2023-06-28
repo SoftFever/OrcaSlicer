@@ -1462,7 +1462,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(50));
-    
+
     def = this->add("default_jerk", coFloat);
     def->label = L("Default");
     def->tooltip = L("Default jerk");
@@ -1622,7 +1622,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers");
     def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0));
-    
+
     def = this->add("gap_infill_speed", coFloat);
     def->label = L("Gap infill");
     def->category = L("Speed");
@@ -5042,6 +5042,12 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->cli_params = "option";
     //def->cli = "arrange|a";
     def->set_default_value(new ConfigOptionInt(0));
+
+    def = this->add("repetitions", coInt);
+    def->label = L("Repetions count");
+    def->tooltip = L("Repetions count of the whole model");
+    def->cli_params = "count";
+    def->set_default_value(new ConfigOptionInt(1));
 
     /*def = this->add("ensure_on_bed", coBool);
     def->label = L("Ensure on bed");
