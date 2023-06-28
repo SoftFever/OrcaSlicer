@@ -11,7 +11,6 @@
 #include "Print.hpp"
 #include "Utils.hpp"
 #include "ClipperUtils.hpp"
-#include "libslic3r.h"
 #include "LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
 #include "Time.hpp"
@@ -1867,23 +1866,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->m_objSupportsWithBrim.insert(iter->first);
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
-
-    if (print.calib_params().mode == CalibMode::Calib_PA_Pattern) {
-        const double max_layer_z = CalibPressureAdvancePatternPlate(print.calib_params()).max_layer_z();
-        BoundingBoxf bbox_print;
-        for (const PrintObject* obj : print.objects()) {
-            bbox_print.merge(get_print_object_extrusions_extents(*obj, max_layer_z));
-        }
-        const Vec2d starting_point(bbox_print.min.x(), bbox_print.max.y());
-
-        CalibPressureAdvancePattern pa_pattern(print.calib_params(), this, starting_point);
-
-        Model updated_model = print.model();
-        updated_model.plates_custom_gcodes[print.model().curr_plate_index] = pa_pattern.generate_gcodes();
-        print.set_model(updated_model);
-
-        tool_ordering.assign_custom_gcodes(print);
-    }
 
     // SoftFever: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {

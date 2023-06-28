@@ -8103,7 +8103,7 @@ std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3& bbox, const double& cut_
 }
 
 void Plater::calib_pa(const Calib_Params& params)
-{    
+{
     const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -8124,29 +8124,30 @@ void Plater::calib_pa(const Calib_Params& params)
     p->background_process.fff_print()->set_calib_params(params);
 }
 
-void Plater::_calib_pa_pattern(const Calib_Params& params) {
+void Plater::_calib_pa_pattern(const Calib_Params& params)
+{
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
     orient();
-
-    DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-
-    CalibPressureAdvancePatternPlate pa_pattern(params);
-
-    print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.height_layer()));
-    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.height_first_layer()));
-
     changed_objects({ 0 });
-    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
-
-    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
-
     _calib_pa_select_added_objects();
+
+    Print* print = p->background_process.fff_print();
+    print->apply(this->model(), wxGetApp().preset_bundle->full_config());
+
+    GCodeWriter writer;
+    const Vec3d origin = print->get_plate_origin();
+    writer.set_xy_offset(origin(0), origin(1));
+    writer.set_is_bbl_machine(print->is_BBL_printer());
+    writer.apply_print_config(print->config());
+
+    writer.set_extruders({0});
+    writer.set_extruder(0);
+
+    CalibPressureAdvancePattern pa_pattern(
+        params,
+        print->config(),
+        writer
+    );
 
     GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
         get_gizmos_manager().get_object_manipulation();
@@ -8155,6 +8156,31 @@ void Plater::_calib_pa_pattern(const Calib_Params& params) {
     giz_obj_manip.set_uniform_scaling(false);
     giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
     center_selection();
+
+    BoundingBoxf3 bbox;
+    for (const ModelObject* obj : print->model().objects) {
+        for (size_t i = 0; i < obj->instances.size(); ++i) {
+            bbox.merge(obj->instance_bounding_box(i, false));
+        }
+    }
+    pa_pattern.set_starting_point(Vec2d(bbox.min.x(), bbox.max.y()));
+
+    DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.height_layer()));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.height_first_layer()));
+
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+
+    model().plates_custom_gcodes[model().curr_plate_index] = pa_pattern.generate_gcodes();
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {

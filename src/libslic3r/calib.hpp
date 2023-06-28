@@ -4,7 +4,6 @@
 #include <string>
 #include "CustomGCode.hpp"
 #include "GCodeWriter.hpp"
-#include "Point.hpp"
 #include "PrintConfig.hpp"
 namespace Slic3r {
 
@@ -39,10 +38,10 @@ protected:
         Bottom_To_Top
     };
 
-    bool        is_delta() const;
-    void        delta_scale_bed_ext(BoundingBoxf& bed_ext) { bed_ext.scale(1.0f / 1.41421f); }
+    virtual bool is_delta() const =0;
+    void delta_scale_bed_ext(BoundingBoxf& bed_ext) { bed_ext.scale(1.0f / 1.41421f); }
 
-    std::string move_to(Vec2d pt, std::string comment = std::string());
+    std::string move_to(Vec2d pt, GCodeWriter& writer, std::string comment = std::string());
     double      e_per_mm(
         double line_width,
         double layer_height,
@@ -59,7 +58,8 @@ protected:
         char c,
         CalibPressureAdvance::DrawDigitMode mode,
         double line_width,
-        double e_per_mm
+        double e_per_mm,
+        GCodeWriter& writer
     );
     std::string draw_number(
         double startx,
@@ -67,10 +67,12 @@ protected:
         double value,
         CalibPressureAdvance::DrawDigitMode mode,
         double line_width,
-        double layer_height
+        double layer_height,
+        GCodeWriter& writer
     );
 
     GCode* mp_gcodegen {nullptr};
+    Vec2d m_last_pos;
 
     DrawDigitMode m_draw_digit_mode {DrawDigitMode::Left_To_Right};
     const double m_digit_segment_len {2};
@@ -88,13 +90,14 @@ public:
     ~CalibPressureAdvanceLine() { };
 
     std::string generate_test(double start_pa = 0, double step_pa = 0.002, int count = 50);
-    
+
     void set_speed(double fast = 100.0, double slow = 20.0) {
         m_slow_speed = slow;
         m_fast_speed = fast;
     }
     
     double& line_width() { return m_line_width; };
+    bool    is_delta() const;
     bool&   draw_numbers() { return m_draw_numbers; }
 
 private:
@@ -164,64 +167,40 @@ private:
     double speed;
 };
 
-// the bare minimum needed to plate this calibration test
-class CalibPressureAdvancePatternPlate : public CalibPressureAdvance {
-public:
-    CalibPressureAdvancePatternPlate(const Calib_Params& params) :
-        CalibPressureAdvance(),
-        m_start_pa(params.start),
-        m_end_pa(params.end),
-        m_step_pa(params.step)
-    {
-        this->m_height_layer = 0.2;
-    };
-    CalibPressureAdvancePatternPlate(
-        const Calib_Params& params,
-        GCode* gcodegen
-    ) :
-        CalibPressureAdvance(gcodegen),
-        m_start_pa(params.start),
-        m_end_pa(params.end),
-        m_step_pa(params.step)
-    {
-        this->m_height_layer = 0.2;
-    };
-
-    double height_first_layer() const { return m_height_first_layer; };
-    double height_layer() const { return m_height_layer; };
-    double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
-
-    double handle_xy_size() { return m_handle_xy_size; };
-protected:
-    const double m_start_pa;
-    const double m_end_pa;
-    const double m_step_pa;
-
-    const double m_handle_xy_size {5};
-
-    const int m_num_layers {4};
-    const double m_height_first_layer {0.25};
-};
-
-/* Remaining definition. Separated because it requires fully setup GCode object, 
-which is not available at the time of plating */
-class CalibPressureAdvancePattern : public CalibPressureAdvancePatternPlate {
+class CalibPressureAdvancePattern : public CalibPressureAdvance {
 friend struct PatternSettings;
 public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
-        GCode* gcodegen,
-        const Vec2d starting_point
+        const PrintConfig& config,
+        GCodeWriter& writer
     ) :
-        CalibPressureAdvancePatternPlate(params, gcodegen),
-        m_starting_point(starting_point)
+        CalibPressureAdvance(),
+        m_params(params),
+        m_config(config),
+        m_writer(writer)
     {
+        this->m_nozzle_diameter = config.nozzle_diameter.get_at(0);
+        this->m_height_layer = 0.2;
         this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
         this->m_line_width = line_width();
 
         this->m_pattern_settings = PatternSettings(this);
     };
-    ~CalibPressureAdvancePattern() { };
+    // ~CalibPressureAdvancePattern() { }; TODO
+
+    bool is_delta() const
+    {
+        return m_config.printable_area.values.size() > 4;
+    }
+
+    double handle_xy_size() { return m_handle_xy_size; };
+
+    double height_first_layer() const { return m_height_first_layer; };
+    double height_layer() const { return m_height_layer; };
+    double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
+
+    void set_starting_point(Vec2d pt) { m_starting_point = pt; };
 
     CustomGCode::Info generate_gcodes();
 protected:
@@ -235,21 +214,21 @@ protected:
 private:
     int get_num_patterns() const
     {
-        return std::ceil((m_end_pa - m_start_pa) / m_step_pa + 1);
+        return std::ceil((m_params.end - m_params.start) / m_params.step + 1);
     }
 
-    std::string draw_line(double to_x, double to_y, DrawLineOptArgs opt_args);
+    std::string draw_line(Vec2d to_pt, DrawLineOptArgs opt_args);
     std::string draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args);
 
     double to_radians(double degrees) const { return degrees * M_PI / 180; };
-    double get_distance(double cur_x, double cur_y, double to_x, double to_y);
+    double get_distance(Vec2d from, Vec2d to);
     
     // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
     double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
     double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
     double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
 
-    Point bed_center();
+    Vec2d bed_center();
     double object_size_x();
     double object_size_y();
     double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
@@ -266,8 +245,16 @@ private:
     double pattern_start_x();
     double pattern_start_y();
 
+    const Calib_Params& m_params;
+    const PrintConfig& m_config;
+    GCodeWriter& m_writer;
+    Vec2d m_starting_point;
     PatternSettings m_pattern_settings;
-    const Vec2d m_starting_point;
+
+    const double m_handle_xy_size {5};
+
+    const int m_num_layers {4};
+    const double m_height_first_layer {0.25};
 
     const double m_line_ratio {112.5};
     const int m_anchor_layer_line_ratio {140};
