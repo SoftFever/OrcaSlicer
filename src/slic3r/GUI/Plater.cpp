@@ -1673,6 +1673,10 @@ bool Sidebar::show_object_list(bool show) const
 {
     if (!p->m_object_list->Show(show))
         return false;
+    if (!show)
+        p->object_layers->Show(false);
+    else
+        p->m_object_list->part_selection_changed();
     p->scrolled->Layout();
     return true;
 }
