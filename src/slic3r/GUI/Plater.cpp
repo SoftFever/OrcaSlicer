@@ -8137,7 +8137,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     GCodeWriter writer;
     const Vec3d origin = print->get_plate_origin();
     writer.set_xy_offset(origin(0), origin(1));
-    writer.set_is_bbl_machine(print->is_BBL_printer());
+    writer.set_is_bbl_machine(print->is_BBL_printer()); // TODO: make sure this is correctly set!
     writer.apply_print_config(print->config());
 
     writer.set_extruders({0});

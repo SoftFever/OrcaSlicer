@@ -346,13 +346,23 @@ PatternSettings::PatternSettings(const CalibPressureAdvancePattern* cpap) :
     perim_speed(cpap->speed_adjust(cpap->speed_perimeter()))
 { };
 
+void CalibPressureAdvancePattern::set_starting_point(Vec2d pt)
+{
+    if (is_delta()) {
+        pt.x() *= -1;
+        pt.y() -= (frame_size_y() / 2);
+    }
+
+    m_starting_point = pt;
+};
+
 CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 {
     std::stringstream gcode;
 
     gcode << "; start pressure advance pattern for layer\n";
 
-    gcode << move_to(Vec2d(pattern_start_x(), pattern_start_y()), m_writer, "Move to start XY position");
+    gcode << move_to(m_starting_point, m_writer, "Move to start XY position");
     gcode << m_writer.travel_to_z(m_height_first_layer, "Move to start Z position");
     gcode << m_writer.set_pressure_advance(m_params.start);
 
@@ -360,8 +370,8 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 
     // create anchor frame
     gcode << draw_box(
-        pattern_start_x(),
-        pattern_start_y(),
+        m_starting_point.x(),
+        m_starting_point.y(),
         print_size_x(),
         frame_size_y(),
         default_box_opt_args
@@ -372,9 +382,9 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
     draw_box_opt_args.is_filled = true;
     draw_box_opt_args.num_perimeters = m_anchor_perimeters;
     gcode << draw_box(
-        pattern_start_x(),
-        pattern_start_y() + frame_size_y() + line_spacing_anchor(),
-        glyph_tab_max_x() - pattern_start_x(),
+        m_starting_point.x(),
+        m_starting_point.y() + frame_size_y() + line_spacing_anchor(),
+        glyph_tab_max_x() - m_starting_point.x(),
         max_numbering_height() + line_spacing_anchor() + m_glyph_padding_vertical * 2,
         draw_box_opt_args
     );
@@ -404,7 +414,7 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
             // glyph on every other line
             for (int j = 0; j < num_patterns; j += 2) {
                 double current_glyph_start_x =
-                    pattern_start_x() +
+                    m_starting_point.x() +
                     (j * (m_pattern_spacing + line_width())) +
                     (j * ((m_wall_count - 1) * line_spacing_angle())) // this aligns glyph starts with first pattern perim
                 ;
@@ -416,7 +426,7 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 
                 gcode << draw_number(
                     current_glyph_start_x,
-                    pattern_start_y() + frame_size_y() + m_glyph_padding_vertical + line_width(),
+                    m_starting_point.y() + frame_size_y() + m_glyph_padding_vertical + line_width(),
                     m_params.start + (j * m_params.step),
                     DrawDigitMode::Bottom_To_Top,
                     m_line_width,
@@ -428,8 +438,8 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 
         DrawLineOptArgs draw_line_opt_args = default_line_opt_args;
 
-        double to_x = pattern_start_x() + pattern_shift();
-        double to_y = pattern_start_y();
+        double to_x = m_starting_point.x() + pattern_shift();
+        double to_y = m_starting_point.y();
         double side_length = m_wall_side_length;
 
         if (i == 0) {
@@ -814,45 +824,4 @@ double CalibPressureAdvancePattern::pattern_shift()
     }
     return 0;
 }
-
-double CalibPressureAdvancePattern::pattern_start_x()
-{
-    // double pattern_start_x =
-    //     bed_center().x() -
-    //     (object_size_x() + pattern_shift()) / 2
-    // ;
-
-    // if (is_delta()) {
-    //     pattern_start_x = -pattern_start_x;
-    // }
-
-    // return pattern_start_x;
-
-    double x = m_starting_point.x();
-
-    if (is_delta()) {
-        x = -x;
-    }
-
-    return x;
-};
-
-double CalibPressureAdvancePattern::pattern_start_y()
-{
-    // double pattern_start_y = bed_center().y() - object_size_y() / 2;
-
-    // if (is_delta()) {
-    //     pattern_start_y = -(frame_size_y() / 2);
-    // }
-
-    // return pattern_start_y;
-
-    double y = m_starting_point.y();
-
-    if (is_delta()) {
-        y -= (frame_size_y() / 2);
-    }
-
-    return y;
-};
 } // namespace Slic3r

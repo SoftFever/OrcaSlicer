@@ -200,7 +200,7 @@ public:
     double height_layer() const { return m_height_layer; };
     double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
 
-    void set_starting_point(Vec2d pt) { m_starting_point = pt; };
+    void set_starting_point(Vec2d pt);
 
     CustomGCode::Info generate_gcodes();
 protected:
@@ -241,9 +241,6 @@ private:
     double pattern_shift();
     double print_size_x() { return object_size_x() + pattern_shift(); };
     double print_size_y() { return object_size_y(); };
-
-    double pattern_start_x();
-    double pattern_start_y();
 
     const Calib_Params& m_params;
     const PrintConfig& m_config;
