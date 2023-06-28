@@ -12,6 +12,11 @@ Cmake, git, gettext can be installed from brew(brew install cmake git gettext)
 
 ## building the deps
 You need to build the dependence of BambuStudio first. (Only needs for the first time)  
+Next, for arm64 architecture:
+```shell
+cmake ../ -DDESTDIR="/Users/username/work/projects/BambuStudio_dep" -DOPENSSL_ARCH="darwin64-arm64-cc"
+make
+```
 
 Suppose you download the codes into /Users/_username_/work/projects/BambuStudio  
 create a directory to store the dependence built: /Users/_username_/work/projects/BambuStudio_dep  
@@ -20,8 +25,6 @@ create a directory to store the dependence built: /Users/_username_/work/project
 `cd BambuStudio/deps`  
 `mkdir build;cd build`  
 
-for arm64 architecture  
-`cmake ../ -DDESTDIR="/Users/username/work/projects/BambuStudio_dep" -DOPENSSL_ARCH="darwin64-arm64-cc"`  
 for x86 architeccture  
 `cmake ../ -DDESTDIR="/Users/username/work/projects/BambuStudio_dep" -DOPENSSL_ARCH="darwin64-x86_64-cc"`  
 `make -jN`  (N can be a number between 1 and the max cpu number)  
