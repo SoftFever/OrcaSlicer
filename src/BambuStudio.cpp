@@ -1173,7 +1173,7 @@ int CLI::run(int argc, char **argv)
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
         BOOST_LOG_TRIVIAL(info) << boost::format("update process config to newest, different size %1%")%different_keys_set.size();
-        int ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
+        int ret = update_full_config(m_print_config, load_process_config, different_keys_set);
         if (ret)
             flush_and_exit(ret);
     }
