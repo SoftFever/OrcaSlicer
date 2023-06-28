@@ -828,6 +828,10 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
 
             double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
+            // raft contact distance should not trigger any warning
+            if(last_extrusion_layer && last_extrusion_layer->support_layer)
+                extra_gap = std::max(extra_gap, object.config().raft_contact_distance.value);
+
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
                 + std::max(0., extra_gap);

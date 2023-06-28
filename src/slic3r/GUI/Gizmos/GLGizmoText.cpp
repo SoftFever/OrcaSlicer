@@ -1318,7 +1318,7 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     }
 
     TriangleMesh mesh       = slice_meshs;
-    std::vector<double> mesh_values(m_position_points.size(), 1'000'000'000);
+    std::vector<double> mesh_values(m_position_points.size(), 1e9);
     m_normal_points.resize(m_position_points.size());
     auto point_in_triangle_delete_area = [](const Vec3d &point, const Vec3d &point0, const Vec3d &point1, const Vec3d &point2) {
         Vec3d p0_p  = point - point0;
