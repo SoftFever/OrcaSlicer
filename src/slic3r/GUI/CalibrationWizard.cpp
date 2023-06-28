@@ -1009,6 +1009,7 @@ void CalibrationWizard::on_click_btn_next(IntEvent& event)
         show_page(get_curr_page()->get_next_page());
         break;
     case Slic3r::GUI::Next:
+        set_save_name();
         show_page(get_curr_page()->get_next_page());
         save_to_printer_calib_info(m_curr_page->get_page_type());
         break;
@@ -1720,7 +1721,6 @@ void CalibrationWizard::on_select_tray(SimpleEvent& evt) {
         Layout();
     }
 
-    set_save_name();
     recommend_input_value();
 }
 
@@ -1995,8 +1995,8 @@ void HistoryWindow::create() {
     SetSizer(main_sizer);
     Layout();
     Fit();
-    SetMinSize(wxSize(FromDIP(800), FromDIP(600)));
-    SetSize(wxSize(FromDIP(800), FromDIP(600)));
+    SetMinSize(wxSize(FromDIP(960), FromDIP(720)));
+    SetSize(wxSize(FromDIP(960), FromDIP(720)));
     CenterOnParent();
 }
 
@@ -2222,7 +2222,7 @@ void PressureAdvanceWizard::sync_history_window_data() {
     history_data_panel->DestroyChildren();
 
     wxGridBagSizer* gbSizer;
-    gbSizer = new wxGridBagSizer(FromDIP(0), FromDIP(80));
+    gbSizer = new wxGridBagSizer(FromDIP(15), FromDIP(0));
     gbSizer->SetFlexibleDirection(wxBOTH);
     gbSizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
@@ -2230,23 +2230,24 @@ void PressureAdvanceWizard::sync_history_window_data() {
 
     auto title_nozzle = new wxStaticText(history_data_panel, wxID_ANY, _L("Nozzle Diameter"));
     title_nozzle->SetFont(Label::Head_14);
-    gbSizer->Add(title_nozzle, { 0, 0 }, {1, 1}, wxBOTTOM, FromDIP(25));
+    gbSizer->Add(title_nozzle, { 0, 0 }, {1, 1}, wxRIGHT, FromDIP(80));
 
     auto title_material = new wxStaticText(history_data_panel, wxID_ANY, _L("Material"));
     title_material->SetFont(Label::Head_14);
-    gbSizer->Add(title_material, { 0, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(25));
+    gbSizer->Add(title_material, { 0, 1 }, { 1, 1 }, wxRIGHT, FromDIP(80));
 
     auto title_k = new wxStaticText(history_data_panel, wxID_ANY, _L("K"));
     title_k->SetFont(Label::Head_14);
-    gbSizer->Add(title_k, { 0, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(25));
+    gbSizer->Add(title_k, { 0, 2 }, { 1, 1 }, wxRIGHT, FromDIP(80));
 
-    auto title_n = new wxStaticText(history_data_panel, wxID_ANY, _L("N"));
-    title_n->SetFont(Label::Head_14);
-    gbSizer->Add(title_n, { 0, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(25));
+    // Hide
+    //auto title_n = new wxStaticText(history_data_panel, wxID_ANY, _L("N"));
+    //title_n->SetFont(Label::Head_14);
+    //gbSizer->Add(title_n, { 0, 3 }, { 1, 1 }, wxRIGHT, FromDIP(80));
 
     auto title_action = new wxStaticText(history_data_panel, wxID_ANY, _L("Action"));
     title_action->SetFont(Label::Head_14);
-    gbSizer->Add(title_action, { 0, 4 }, { 1, 1 }, wxBOTTOM, FromDIP(25));
+    gbSizer->Add(title_action, { 0, 3 }, { 1, 1 });
 
     int i = 1;
     for (auto& result : m_calib_results_history) {
@@ -2259,6 +2260,7 @@ void PressureAdvanceWizard::sync_history_window_data() {
         auto n_str = wxString::Format("%.3f", result.n_coef);
         auto k_value = new wxStaticText(history_data_panel, wxID_ANY, k_str);
         auto n_value = new wxStaticText(history_data_panel, wxID_ANY, n_str);
+        n_value->Hide();
         auto delete_button = new PageButton(history_data_panel, _L("Delete"), ButtonType::Back);
         delete_button->Bind(wxEVT_BUTTON, [gbSizer, i, history_data_panel, &result](auto &e) {
             for (int j = 0; j < 5; j++) {
@@ -2270,12 +2272,32 @@ void PressureAdvanceWizard::sync_history_window_data() {
             history_data_panel->Fit();
             CalibUtils::delete_PA_calib_result({result.tray_id, result.cali_idx, result.nozzle_diameter, result.filament_id});
             });
+        auto edit_button = new PageButton(history_data_panel, _L("Edit"), ButtonType::Next);
+        edit_button->Bind(wxEVT_BUTTON, [this, &result, nozzle_dia_str, k_value, n_value, material_name_value](auto& e) {
+            EditCalibrationHistoryDialog dlg(m_history_page, k_value->GetLabel(), n_value->GetLabel(), material_name_value->GetLabel(), nozzle_dia_str);
+            if (dlg.ShowModal() == wxID_OK) {
+                float k = 0.0f;
+                k = dlg.get_k_value();
+                wxString new_k_str = wxString::Format("%.3f", k);
 
-        gbSizer->Add(nozzle_dia_value, { i, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(10));
-        gbSizer->Add(material_name_value, { i, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(10));
-        gbSizer->Add(k_value, { i, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(10));
-        gbSizer->Add(n_value, { i, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(10));
-        gbSizer->Add(delete_button, { i, 4 }, { 1, 1 }, wxBOTTOM, FromDIP(10));
+                wxString new_material_name = dlg.get_material_name_value();
+
+                k_value->SetLabel(new_k_str);
+                material_name_value->SetLabel(new_material_name);
+                PACalibResult new_result = result;
+                new_result.tray_id = -1;
+                new_result.name = new_material_name.ToStdString();
+                new_result.k_value = k;
+                CalibUtils::set_PA_calib_result({ new_result });
+            }
+            });
+
+        gbSizer->Add(nozzle_dia_value, { i, 0 }, { 1, 1 }, wxRIGHT, FromDIP(80));
+        gbSizer->Add(material_name_value, { i, 1 }, { 1, 1 }, wxRIGHT, FromDIP(80));
+        gbSizer->Add(k_value, { i, 2 }, { 1, 1 }, wxRIGHT, FromDIP(80));
+        //gbSizer->Add(n_value, { i, 3 }, { 1, 1 }, wxRIGHT, FromDIP(80));
+        gbSizer->Add(delete_button, { i, 3 }, { 1, 1 }, wxRIGHT, FromDIP(25));
+        gbSizer->Add(edit_button, { i, 4 }, { 1, 1 });
         i++;
     }
 

@@ -9,6 +9,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "SavePresetDialog.hpp"
 #include "PresetComboBoxes.hpp"
+#include "EditCalibrationHistoryDialog.hpp"
 #include "../slic3r/Utils/CalibUtils.hpp"
 
 namespace Slic3r { namespace GUI {
