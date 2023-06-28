@@ -1409,8 +1409,11 @@ void SelectMachineDialog::init_bind()
         if (e.GetInt() == 0) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) return;
-            if (dev->get_selected_machine()->dev_id == e.GetString()) {
-                m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
+            MachineObject* obj = dev->get_selected_machine();
+            if (!obj) return;
+
+            if (obj->dev_id == e.GetString()) {
+                m_comboBox_printer->SetValue(obj->dev_name + "(LAN)");
             }
         }else if(e.GetInt() == 1){
             on_send_print();
@@ -1429,9 +1432,11 @@ void SelectMachineDialog::init_bind()
             if (!dev) return;
             ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
             dlg.go_connect_printer(false);
-            dlg.set_machine_object(dev->get_selected_machine());
-            if (dlg.ShowModal() == wxID_OK) {
-                this->connect_printer_mqtt();
+            if (dev->get_selected_machine()) {
+                dlg.set_machine_object(dev->get_selected_machine());
+                if (dlg.ShowModal() == wxID_OK) {
+                    this->connect_printer_mqtt();
+                }
             }
         }
     }); 
