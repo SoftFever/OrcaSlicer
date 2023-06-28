@@ -442,12 +442,12 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         if (is_virtual_tray()) {
             obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
-        else {
+        else if(m_is_third){
             obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
 
         // set k / n value
-        if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
+        if (!obj->is_high_printer_type()) {
             // set extrusion cali ratio
             int cali_tray_id = ams_id * 4 + tray_id;
 
@@ -467,6 +467,14 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
                 ;
             }
             obj->command_extrusion_cali_set(cali_tray_id, "", "", k, n);
+        }
+        else {
+            PACalibIndexInfo select_index_info;
+            select_index_info.tray_id = tray_id;
+            select_index_info.nozzle_diameter = obj->nozzle_diameter;
+            select_index_info.cali_idx = -1;
+            select_index_info.filament_id = ams_filament_id;
+            CalibUtils::select_PA_calib_result(select_index_info);
         }
     }
     Close();
@@ -626,7 +634,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = tray_id;
             select_index_info.nozzle_diameter = obj->nozzle_diameter;
-            if (m_pa_cali_select_id > 0) {
+            if (m_pa_cali_select_id >= 0) {
                 select_index_info.cali_idx = m_pa_profile_items[m_pa_cali_select_id].cali_idx;
                 select_index_info.filament_id = m_pa_profile_items[m_pa_cali_select_id].filament_id;
             }
@@ -836,49 +844,39 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         m_comboBox_filament->SetValue(wxEmptyString);
     }
 
-    if (is_virtual_tray() && obj) {
-        m_button_reset->Show();
-        m_button_confirm->Show();
-        update();
-        Layout();
-        Fit();
-        ShowModal();
-        return;
-    } else {
-        if (!m_is_third) {
-            m_button_reset->Hide();
-            if (obj && obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
-                m_button_confirm->Show();
-            } else {
-                m_button_confirm->Hide();
-            }
+    if (!sn.empty()) {
+        m_sn_number->SetLabel(sn);
+        m_panel_SN->Show();
+    }
+    else {
+        m_panel_SN->Hide();
+    }
 
-            m_sn_number->SetLabel(sn);
-            m_panel_SN->Show();
+    if (obj) {
+        if (!m_is_third) {
             m_comboBox_filament->Hide();
             m_readonly_filament->Show();
-            //m_readonly_filament->GetTextCtrl()->SetLabel("Bambu " + filament);
             m_readonly_filament->SetLabel("Bambu " + filament);
             m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
             m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
+        }
+        else {
+            m_comboBox_filament->Show();
+            m_readonly_filament->Hide();
+        }
+
+        if (obj->is_high_printer_type()) {
+            m_title_pa_profile->Show();
+            m_comboBox_cali_result->Show();
+        }
+        else {
             m_title_pa_profile->Hide();
             m_comboBox_cali_result->Hide();
-
-            update();
-            Layout();
-            Fit();
-            ShowModal();
-            return;
         }
 
         m_button_reset->Show();
-        m_button_confirm->Show();
-        m_panel_SN->Hide();
-        m_comboBox_filament->Show();
-        m_readonly_filament->Hide();
-        m_title_pa_profile->Show();
-        m_comboBox_cali_result->Show();
-    }
+        m_button_confirm->Show(); 
+    } 
 
     update();
     Layout();
@@ -901,9 +899,9 @@ void AMSMaterialsSetting::msw_rescale()
 void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
-    if (m_pa_cali_select_id > 0) {
-        m_input_k_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[m_pa_cali_select_id - 1].k_value));
-        m_input_n_val->GetTextCtrl()->SetValue(std::to_string(this->obj->pa_calib_tab[m_pa_cali_select_id - 1].n_coef));
+    if (m_pa_cali_select_id >= 0) {
+        m_input_k_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[m_pa_cali_select_id].k_value));
+        m_input_n_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[m_pa_cali_select_id].n_coef));
     }
     else{
         m_input_k_val->GetTextCtrl()->SetValue(std::to_string(0.00));
@@ -978,11 +976,12 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_comboBox_cali_result->SetValue(wxEmptyString);
         return;
     }
-
-    m_button_confirm->Enable();
-    m_button_confirm->SetBackgroundColor(m_btn_bg_green);
-    m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
-    m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
+    else {
+        m_button_confirm->SetBackgroundColor(m_btn_bg_green);
+        m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+        m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
+        m_button_confirm->Enable(true);
+    }
 
     //filament id
     ams_filament_id = "";
@@ -1000,32 +999,46 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
     wxArrayString items;
     m_pa_profile_items.clear();
-
-    m_input_k_val->Enable(true);
-    m_input_n_val->Enable(true);
-
+    m_comboBox_cali_result->SetValue(wxEmptyString);
+    
     if (this->obj->is_high_printer_type()) {
+        m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
-        items.push_back("default");
         for (auto cali_item : cali_history) {
             if (cali_item.filament_id == ams_filament_id) {
                 items.push_back(cali_item.name);
                 m_pa_profile_items.push_back(cali_item);
             }
         }
+
         m_comboBox_cali_result->Set(items);
 
+        if (items.size() <= 0) {
+            m_button_confirm->Disable();
+            m_button_confirm->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        }
+        else {
+            m_button_confirm->Enable();
+            m_button_confirm->SetBackgroundColor(m_btn_bg_green);
+            m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+            m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
+        }
         
         if (tray_id == VIRTUAL_TRAY_ID) {
             AmsTray selected_tray = this->obj->vt_tray;
             cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,selected_tray.cali_idx);
-            m_comboBox_cali_result->SetSelection(cali_select_idx + 1);
+            if (cali_select_idx >= 0) {
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            }
         }
         else {
             Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
             AmsTray selected_tray = *selected_ams->trayList[std::to_string(tray_id)];
             cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray.cali_idx);
-            m_comboBox_cali_result->SetSelection(cali_select_idx + 1);
+            if (cali_select_idx >= 0) {
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            }
         }
         
         if (cali_select_idx >= 0) {
@@ -1033,7 +1046,16 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             m_input_n_val->GetTextCtrl()->SetValue(std::to_string(m_pa_profile_items[cali_select_idx].n_coef));
         }
     }
-
+    else {
+        if (!ams_filament_id.empty()) {
+            m_input_k_val->GetTextCtrl()->SetValue("0.00");
+            m_input_k_val->Enable(true);
+        }
+        else {
+            m_input_k_val->GetTextCtrl()->SetValue("0.00");
+            m_input_k_val->Disable();
+        }
+    }
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) 
