@@ -89,9 +89,13 @@ This is a test designed to calibrate the maximum volumetric speed of the specifi
 
 You will be promted to enter the settings for the test: start volumetric speed, end volumentric speed, and step. It is recommended to use the default values (5mm³/s start, 20mm³/s end, with a step of 0.5), unless you already have an idea of the lower or upper limit for your filament. Select "OK", slice the plate, and send it to the printer. 
 
-Once printed, take note of where the layers begin to fail or where the quality begins to suffer. Using calipers or a ruler, measure the height of the print at that point. Use the following calculation to determine the correct max flow value: `start + (height-measured * step)` . For example, if the print quality began to suffer at 12mm measured, then the calculation would be: `5 + (12 * 0.5)` , or `11mm³/s` using the default values. Enter this number into the  "Max volumetric speed" value in the filament settings.
+Once printed, take note of where the layers begin to fail and where the quality begins to suffer. Pay attention to changes from matte to shiny as well. 
 
-![image](./images/max_volumetric_flow.jpg)
+![image](./images/vmf_measurement_point.jpg)
+
+Using calipers or a ruler, measure the height of the print at that point. Use the following calculation to determine the correct max flow value: `start + (height-measured * step)` . For example in the photo below, the print quality began to suffer at 19mm measured, then the calculation would be: `5 + (19 * 0.5)` , or `13mm³/s` using the default values. Enter your number into the  "Max volumetric speed" value in the filament settings.
+
+![image](./images/caliper_sample_mvf.jpg)
 
  ##### *NOTE You may also choose to conservatively reduce the flow by 5-10% to ensure print quality.*
 
