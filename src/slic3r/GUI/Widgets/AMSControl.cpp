@@ -2647,7 +2647,8 @@ void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool supp
     if (!support_extrustion_cali)
         m_button_extrusion_cali->Hide();
     else {
-        m_button_extrusion_cali->Show();
+        //m_button_extrusion_cali->Show();
+        m_button_extrusion_cali->Hide();
     }
 
     show?ExitNoneAMSMode() : EnterNoneAMSMode(support_vt_load);
