@@ -489,12 +489,32 @@ wxString get_fail_reason(int code)
      this->Disconnect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDialog::on_update_message), NULL, this);
  }
 
+ wxString BindMachineDialog::get_print_error(wxString str)
+ {
+     wxString extra;
+     try {
+         json j = json::parse(str.ToStdString());
+         if (j.contains("err_code")) {
+             int error_code = j["err_code"].get<int>();
+             extra = wxGetApp().get_hms_query()->query_print_error_msg(error_code);
+         }
+     }
+     catch (...) {
+         ;
+     }
+
+     if (extra.empty())
+         extra = str;
+
+     return extra;
+ }
+
  void BindMachineDialog::show_bind_failed_info(bool show, int code, wxString description, wxString extra)
  {
      if (show) {
          if (!m_sw_bind_failed_info->IsShown()) {
              m_sw_bind_failed_info->Show(true);
-
+             extra = get_print_error(extra.ToStdString());
              m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_result_code));
              m_st_txt_error_desc->SetLabelText( wxGetApp().filter_string(m_result_info));
              m_st_txt_extra_info->SetLabelText( wxGetApp().filter_string(m_result_extra));

@@ -94,6 +94,7 @@ public:
     void     on_show(wxShowEvent &event);
     void     on_close(wxCloseEvent& event);
     void     on_destroy();
+    wxString get_print_error(wxString str);
 };
 
 class UnBindMachineDialog : public DPIDialog
