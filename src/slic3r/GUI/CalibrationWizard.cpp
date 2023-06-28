@@ -3211,12 +3211,13 @@ void FlowRateWizard::switch_pages(SimpleEvent& evt) {
 }
 
 void FlowRateWizard::change_ams_select_mode() {
-    if (is_high_end_type(curr_obj)) {
-        set_ams_select_mode(FSMCheckBoxMode);
-    }
-    else {
-        set_ams_select_mode(FSMRadioMode);
-    }
+    //if (is_high_end_type(curr_obj)) {
+    //    set_ams_select_mode(FSMCheckBoxMode);
+    //}
+    //else {
+    //    set_ams_select_mode(FSMRadioMode);
+    //}
+    set_ams_select_mode(FSMRadioMode);
 }
 
 bool FlowRateWizard::start_calibration(std::vector<int> tray_ids)
