@@ -75,5 +75,10 @@
             "support_mqtt_alive":true,
             "support_tunnel_mqtt":true
         }
+    },
+    "01.04.50.01": {
+        "file": {
+            "remote": "enabled"
+        }
     }
 }

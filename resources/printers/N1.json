@@ -48,5 +48,10 @@
         "printer_series":"series_p1p",
         "has_cali_line":false,
         "printer_is_enclosed":false
+    }, 
+    "01.01.50.01": {
+        "file": {
+            "remote": "enabled"
+        }
     }
 }
