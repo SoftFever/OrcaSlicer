@@ -1227,8 +1227,17 @@ public:
     ModelInstanceEPrintVolumeState print_volume_state;
     // Whether or not this instance is printable
     bool printable;
+    bool use_loaded_id_for_label {false};
     int arrange_order = 0; // BBS
     size_t loaded_id = 0; // BBS
+
+    size_t get_labeled_id() const
+    {
+        if (use_loaded_id_for_label && (loaded_id > 0))
+            return loaded_id;
+        else
+            return id().id;
+    }
 
     ModelObject* get_object() const { return this->object; }
 

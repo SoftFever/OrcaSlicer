@@ -1048,7 +1048,7 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
-void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb, bool using_identify_id)
+void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     PROFILE_CLEAR();
 
@@ -1108,7 +1108,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     try {
         m_placeholder_parser_failed_templates.clear();
-        this->_do_export(*print, file, thumbnail_cb, using_identify_id);
+        this->_do_export(*print, file, thumbnail_cb);
         file.flush();
         if (file.is_error()) {
             file.close();
@@ -1437,7 +1437,7 @@ static BambuBedType to_bambu_bed_type(BedType type)
     return bambu_bed_type;
 }
 
-void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb, bool using_identify_id)
+void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     PROFILE_FUNC();
 
@@ -1530,14 +1530,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_label_objects_ids.reserve(print.num_object_instances());
         for (const PrintObject* print_object : print.objects())
             for (const PrintInstance& print_instance : print_object->instances())
-            {
-                size_t instance_identify_id;
-                if (using_identify_id && print_instance.model_instance->loaded_id > 0)
-                    instance_identify_id = print_instance.model_instance->loaded_id;
-                else
-                    instance_identify_id = print_instance.model_instance->id().id;
-                m_label_objects_ids.push_back(instance_identify_id);
-            }
+                m_label_objects_ids.push_back(print_instance.model_instance->get_labeled_id());
+
         std::sort(m_label_objects_ids.begin(), m_label_objects_ids.end());
 
         std::string objects_id_list = "; model label id: ";
@@ -2473,7 +2467,7 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
             const PrintObject *print_object = layers[layer_id].original_object;
             //const PrintObject *print_object = layers[layer_id].object();
             if (print_object)
-                out.emplace_back(object_by_extruder, layer_id, *print_object, single_object_instance_idx, print_object->instances()[single_object_instance_idx].model_instance->id().id);
+                out.emplace_back(object_by_extruder, layer_id, *print_object, single_object_instance_idx, print_object->instances()[single_object_instance_idx].model_instance->get_labeled_id());
         }
     } else {
         // Create mapping from PrintObject* to ObjectByExtruder*.
@@ -2501,7 +2495,7 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
                 auto it = std::lower_bound(sorted.begin(), sorted.end(), key);
                 if (it != sorted.end() && it->first == &print_object)
                     // ObjectByExtruder for this PrintObject was found.
-                    out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance - print_object.instances().data(), instance->model_instance->id().id);
+                    out.emplace_back(*it->second, it->second - objects_by_extruder.data(), print_object, instance - print_object.instances().data(), instance->model_instance->get_labeled_id());
             }
         }
     }

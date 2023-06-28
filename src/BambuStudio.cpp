@@ -2072,6 +2072,7 @@ int CLI::run(int argc, char **argv)
                             for (ModelObject* model_object : model.objects)
                                 for (ModelInstance *i : model_object->instances)
                                 {
+                                    i->use_loaded_id_for_label = true;
                                     if (skip_maps.find(i->loaded_id) != skip_maps.end()) {
                                         skip_maps[i->loaded_id] = true;
                                         i->printable = false;
@@ -2178,6 +2179,22 @@ int CLI::run(int argc, char **argv)
                                     }
                                 }
 #endif
+                                //check whether it is bbl printer
+                                std::string& printer_model_string = new_print_config.opt_string("printer_model", true);
+                                bool is_bbl_vendor_preset = false;
+
+                                if (!printer_model_string.empty()) {
+                                    is_bbl_vendor_preset = (printer_model_string.compare(0, 9, "Bambu Lab") == 0);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("printer_model_string: %1%, is_bbl_vendor_preset %2%")%printer_model_string %is_bbl_vendor_preset;
+                                }
+                                else {
+                                    if (!new_printer_name.empty())
+                                        is_bbl_vendor_preset = (new_printer_name.compare(0, 9, "Bambu Lab") == 0);
+                                    else if (!current_printer_system_name.empty())
+                                        is_bbl_vendor_preset = (current_printer_system_name.compare(0, 9, "Bambu Lab") == 0);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("new_printer_name: %1%, current_printer_system_name %2%, is_bbl_vendor_preset %3%")%new_printer_name %current_printer_system_name %is_bbl_vendor_preset;
+                                }
+                                (dynamic_cast<Print*>(print))->set_BBL_Printer(is_bbl_vendor_preset);
                                 if (load_slicedata) {
                                     std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
                                     int ret = print->load_cached_data(plate_dir);
@@ -2217,7 +2234,7 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                    outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr, true);
+                                    outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
                                 }/* else {

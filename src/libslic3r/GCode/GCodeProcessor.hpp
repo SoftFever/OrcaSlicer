@@ -257,7 +257,7 @@ namespace Slic3r {
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
-        // checks the given gcode for reserved tags and returns true when finding the 1st (which is returned into found_tag) 
+        // checks the given gcode for reserved tags and returns true when finding the 1st (which is returned into found_tag)
         static bool contains_reserved_tag(const std::string& gcode, std::string& found_tag);
         // checks the given gcode for reserved tags and returns true when finding any
         // (the first max_count found tags are returned into found_tag)
@@ -365,7 +365,7 @@ namespace Slic3r {
                 AxisCoords axis_feedrate; // mm/s
                 AxisCoords abs_axis_feedrate; // mm/s
 
-                //BBS: unit vector of enter speed and exit speed in x-y-z space. 
+                //BBS: unit vector of enter speed and exit speed in x-y-z space.
                 //For line move, there are same. For arc move, there are different.
                 Vec3f enter_direction;
                 Vec3f exit_direction;
