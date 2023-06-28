@@ -3357,6 +3357,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
 
+    update_http_extra_header();
+
     mainframe->shutdown();
 
     ProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
