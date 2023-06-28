@@ -9448,8 +9448,12 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
             wxGetApp().app_config->set("save_project_choise", result == wxID_YES ? "yes" : "no");
         if (result == wxID_YES) {
             result = save_project();
-            if (result == wxID_CANCEL)
-                return result;
+            if (result == wxID_CANCEL) {
+                if (choise.empty())
+                    return result;
+                else
+                    result = wxID_NO;
+            }
         }
     }
 
