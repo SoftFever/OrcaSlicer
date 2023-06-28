@@ -872,12 +872,23 @@ void MainFrame::show_calibration_button(bool show)
 {
 #ifdef __APPLE__
     bool shown = m_menubar->FindMenu(_L("Calibration")) != wxNOT_FOUND;
-    if (shown == show) return;
-    if (show) m_menubar->Insert(3, m_calib_menu, wxString::Format("&%s", _L("Calibration")));
-    else m_menubar->Remove(3);
+    if (shown == show)
+        ;
+    else if (show)
+        m_menubar->Insert(3, m_calib_menu, wxString::Format("&%s", _L("Calibration")));
+    else
+        m_menubar->Remove(3);
 #else
     topbar()->ShowCalibrationButton(show);
 #endif
+    show = !show;
+    auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
+    if (shown2 == show)
+        ;
+    else if (show)
+        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
+    else
+        m_tabpanel->RemovePage(tpCalibration);
 }
 
 void MainFrame::update_title_colour_after_set_title()
