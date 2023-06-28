@@ -81,6 +81,7 @@ public:
                     profile->Release();
                     return true;
                 }
+                webView2_13->Release();
             }
             return false;
         }

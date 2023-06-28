@@ -300,6 +300,8 @@ void DropDown::render(wxDC &dc)
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
+                if (i == hover_item)
+                    SetToolTip(text);
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
             }
@@ -444,8 +446,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
         if (hover >= (int) texts.size()) hover = -1;
         if (hover == hover_item) return;
         hover_item = hover;
-        if (hover >= 0)
-            SetToolTip(texts[hover]);
+        SetToolTip("");
     }
     paintNow();
 }
