@@ -324,8 +324,14 @@ std::vector<unsigned int> Print::object_extruders() const
 
         // layer range
         for (auto layer_range : mo->layer_config_ranges) {
-            if (layer_range.second.has("extruder"))
-                extruders.push_back(layer_range.second.option("extruder")->getInt() - 1);
+            if (layer_range.second.has("extruder")) {
+                //BBS: actually when user doesn't change filament by height range(value is default 0), height range should not save key "extruder".
+                //Don't know why height range always save key "extruder" because of no change(should only save difference)...
+                //Add protection here to avoid overflow
+                auto value = layer_range.second.option("extruder")->getInt();
+                if (value > 0)
+                    extruders.push_back(value - 1);
+            }
         }
     }
 #endif
