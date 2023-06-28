@@ -1398,8 +1398,8 @@ void MachineObject::parse_version_func()
                 }
 
                 is_support_remote_tunnel = true;
-                is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.04.01.04") >= 0
-                    || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.20.30") >= 0));
+                is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.05.06.06") >= 0
+                    || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.21.20") >= 0));
             }
             local_camera_proto       = local_rtsp_url.empty() ? -1 : local_rtsp_url == "disable" ? 0 
                                         : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;

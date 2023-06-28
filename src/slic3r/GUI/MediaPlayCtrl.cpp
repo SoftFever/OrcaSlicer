@@ -150,8 +150,6 @@ void MediaPlayCtrl::Play()
 
     m_last_state = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
-    SetStatus(_L("Initializing..."));
-
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
     if (m_lan_proto > 0 && (m_lan_mode ||!m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
@@ -162,6 +160,7 @@ void MediaPlayCtrl::Play()
             m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
         else if (m_lan_proto == 3)
             m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << m_url;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
@@ -199,6 +198,8 @@ void MediaPlayCtrl::Play()
     }
 
     m_failed_code = 0;
+    SetStatus(_L("Initializing..."));
+
     if (agent) {
         agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
@@ -301,6 +302,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 
 void MediaPlayCtrl::TogglePlay()
 {
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::TogglePlay";
     if (m_last_state != MEDIASTATE_IDLE) {
         m_next_retry = wxDateTime();
         Stop();
