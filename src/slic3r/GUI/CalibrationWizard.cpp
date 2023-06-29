@@ -1213,7 +1213,7 @@ void CalibrationWizard::update_print_progress()
                     {
                         request_calib_result();
                     }
-                    if (curr_obj->print_status == "FINISH")
+                    if (curr_obj->print_status == "FINISH" || curr_obj->print_status == "IDLE")
                     {
                         m_button_abort->Enable(false);
                         m_button_abort->SetBitmap(m_bitmap_abort_disable.bmp());

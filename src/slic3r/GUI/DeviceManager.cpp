@@ -1940,7 +1940,7 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
     }
 }
 
-int MachineObject::command_start_pa_calibration(const X1CCalibInfos& pa_data)
+int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, bool is_manual)
 {
     pa_calib_results.clear();
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
@@ -1948,6 +1948,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos& pa_data)
         j["print"]["command"]     = "extrusion_cali";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_data.calib_datas[0].nozzle_diameter);
+        j["print"]["manual"]          = is_manual;
 
         for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
             j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
@@ -1973,7 +1974,8 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& 
         j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_values[0].nozzle_diameter);
 
         for (int i = 0; i < pa_calib_values.size(); ++i) {
-            j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
+            if (pa_calib_values[i].tray_id >= 0)
+                j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
             j["print"]["filaments"][i]["filament_id"] = pa_calib_values[i].filament_id;
             j["print"]["filaments"][i]["setting_id"]  = pa_calib_values[i].setting_id;
             j["print"]["filaments"][i]["name"]        = pa_calib_values[i].name;
@@ -3905,6 +3907,8 @@ int MachineObject::parse_json(std::string payload)
                                     pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
                                 else if ((*it)["n_coef"].is_string())
                                     pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
+
+                                pa_calib_result.confidence = (*it)["confidence"].get<int>();
 
                                 pa_calib_results.push_back(pa_calib_result);
                             }

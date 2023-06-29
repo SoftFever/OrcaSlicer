@@ -338,6 +338,7 @@ public:
     std::string name;
     float       k_value;
     float       n_coef;
+    int         confidence;
 };
 
 struct PACalibIndexInfo
@@ -826,7 +827,7 @@ public:
     int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
 
     // PA calibration
-    int command_start_pa_calibration(const X1CCalibInfos& pa_data);
+    int command_start_pa_calibration(const X1CCalibInfos& pa_data, bool is_manual = false);
     int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values);
     int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
     int command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id = "");

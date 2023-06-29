@@ -30,7 +30,7 @@ public:
 
     static CalibMode get_calib_mode_by_name(const std::string &name);
 
-    static void calib_PA(const X1CCalibInfos& calib_infos, std::string& error_message);
+    static void calib_PA(const X1CCalibInfos &calib_infos, std::string &error_message, bool is_manual = false);
     
     static void emit_get_PA_calib_results(float nozzle_diameter);
     static bool get_PA_calib_results(std::vector<PACalibResult> &pa_calib_results);

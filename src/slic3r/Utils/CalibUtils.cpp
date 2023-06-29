@@ -92,7 +92,7 @@ CalibMode CalibUtils::get_calib_mode_by_name(const std::string &name)
     return CalibMode::Calib_None;
 }
 
-void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, std::string& error_message)
+void CalibUtils::calib_PA(const X1CCalibInfos &calib_infos, std::string &error_message, bool is_manual)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -103,7 +103,7 @@ void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, std::string& error_m
         return;
 
     if (calib_infos.calib_datas.size() > 0)
-        obj_->command_start_pa_calibration(calib_infos);
+        obj_->command_start_pa_calibration(calib_infos, is_manual);
 }
 
 void CalibUtils::emit_get_PA_calib_results(float nozzle_diameter)
