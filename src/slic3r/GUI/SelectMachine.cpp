@@ -2899,7 +2899,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if(!dev) return;
     MachineObject* obj_ = dev->get_selected_machine();
     if(!obj_) return;
-    if (!obj_ || obj_->amsList.empty() || obj_->ams_exist_bits == 0 || !obj_->ams_auto_switch_filament_flag || !obj_->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP)) {
+    if (!obj_ 
+        || obj_->amsList.empty() 
+        || obj_->ams_exist_bits == 0 
+        || !obj_->ams_auto_switch_filament_flag 
+        || !obj_->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP)
+        || !m_checkbox_list["use_ams"]->GetValue() ) {
         if (m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
             img_ams_backup->Hide();
