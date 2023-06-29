@@ -857,6 +857,13 @@ void MainFrame::shutdown()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown exit";
 }
 
+void MainFrame::update_filament_tab_ui()
+{
+    wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT)->update_tab_ui();
+}
+
 void MainFrame::update_title()
 {
     return;

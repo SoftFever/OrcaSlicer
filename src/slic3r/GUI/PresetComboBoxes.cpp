@@ -1515,10 +1515,18 @@ void GUI::CalibrateFilamentComboBox::update()
 
 void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
 {
+    auto marker = reinterpret_cast<Marker>(this->GetClientData(evt.GetSelection()));
+    if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
+        this->SetSelection(evt.GetSelection() + 1);
+        return;
+    }
     m_is_compatible = true;
     static_cast<FilamentComboBox*>(m_parent)->Enable(true);
-    std::string preset_name = m_collection->get_preset_name_by_alias(evt.GetString().ToUTF8().data());
-    m_selected_preset       = m_collection->find_preset(preset_name);
+    std::string selected_name = evt.GetString().ToUTF8().data();
+    selected_name = Preset::remove_suffix_modified(selected_name);
+    m_selected_preset = m_collection->find_preset(selected_name);
+    std::string preset_name   = m_collection->get_preset_name_by_alias(selected_name);
+    m_selected_preset         = m_collection->find_preset(preset_name);
     SimpleEvent e(EVT_CALIBRATION_TRAY_SELECTION_CHANGED);
     auto cali_tab = wxGetApp().mainframe->m_calibration->get_tabpanel();
     auto calibration_wizard = static_cast<CalibrationWizard*>(cali_tab->GetPage(cali_tab->GetSelection()));

@@ -248,6 +248,9 @@ public:
     // BBS
     BBLTopbar* topbar() { return m_topbar; }
 
+    // for cali to update tab when save new preset
+    void update_filament_tab_ui();
+
     void        update_title();
     void        set_max_recent_count(int max);
 

@@ -199,7 +199,7 @@ protected:
     void reset_printing_values();
 
     // save
-    bool save_presets(Preset* preset, const std::string& config_key, ConfigOption* config_value, const std::string& name);
+    bool save_presets(Preset* preset, const std::string& config_key, ConfigOption* config_value, const std::string& name, std::string& message);
 
     // event handlers
     void on_select_nozzle(wxCommandEvent& evt);

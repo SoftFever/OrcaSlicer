@@ -4,6 +4,7 @@
 #include "MsgDialog.hpp"
 #include "../../libslic3r/Calib.hpp"
 #include "Tabbook.hpp"
+#include "MainFrame.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1864,38 +1865,70 @@ int CalibrationWizard::get_bed_temp(DynamicPrintConfig* config)
     return -1;
 }
 
-bool CalibrationWizard::save_presets(Preset* preset, const std::string& config_key, ConfigOption* config_value, const std::string& name)
+bool CalibrationWizard::save_presets(Preset *preset, const std::string &config_key, ConfigOption *config_value, const std::string &new_preset_name, std::string& message)
 {
-    auto filament_presets = &wxGetApp().preset_bundle->filaments;
-    DynamicPrintConfig* filament_config = &preset->config;
+    PresetCollection* filament_presets = &wxGetApp().preset_bundle->filaments;
 
-    bool save_to_project = false;
+    std::string new_name = filament_presets->get_preset_name_by_alias(new_preset_name);
+    std::string curr_preset_name = preset->name;
+    preset = filament_presets->find_preset(curr_preset_name);
+    Preset temp_preset = *preset;
 
-    filament_config->set_key_value(config_key, config_value);
+    bool exist_preset = false;
+    // If name is current, get the editing preset
+    Preset *new_preset = filament_presets->find_preset(new_name);
+    if (new_preset) {
+        if (new_preset->is_system) {
+            message = "The name cannot be the same as the system preset name.";
+            return false;
+        }
+
+        if (new_preset != preset) {
+            message = "The name is the same as another existing preset name";
+            return false;
+        }
+        if (new_preset != &filament_presets->get_edited_preset())
+            new_preset = &temp_preset;
+        exist_preset = true;
+    } else {
+        new_preset = &temp_preset;
+    }
+
+    new_preset->config.set_key_value(config_key, config_value);
+
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    filament_presets->save_current_preset(name, false, save_to_project, preset);
+    filament_presets->save_current_preset(new_name, false, false, new_preset);
 
-    Preset* new_preset = filament_presets->find_preset(name, false, true);
+    // BBS create new settings
+    new_preset = filament_presets->find_preset(new_name, false, true);
+    // Preset* preset = &m_presets.preset(it - m_presets.begin(), true);
     if (!new_preset) {
         BOOST_LOG_TRIVIAL(info) << "create new preset failed";
         return false;
     }
 
-    new_preset->sync_info = "create";
-    if (wxGetApp().is_user_login())
-        new_preset->user_id = wxGetApp().getAgent()->get_user_id();
-    BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
-
+    // set sync_info for sync service
+    if (exist_preset) {
+        new_preset->sync_info = "update";
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: update preset = " << new_preset->name;
+    } else {
+        new_preset->sync_info = "create";
+        if (wxGetApp().is_user_login()) new_preset->user_id = wxGetApp().getAgent()->get_user_id();
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
+    }
     new_preset->save_info();
 
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
-    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
+    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are
+    // no more compatible.
     wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
 
-    // update current comboBox selected preset
-    std::string curr_preset_name = filament_presets->get_edited_preset().name;
-    wxGetApp().plater()->sidebar().update_presets_from_to(Preset::TYPE_FILAMENT, curr_preset_name, new_preset->name);
+    // BBS if create a new prset name, preset changed from preset name to new preset name
+    if (!exist_preset) {
+        wxGetApp().plater()->sidebar().update_presets_from_to(Preset::Type::TYPE_FILAMENT, curr_preset_name, new_preset->name);
+    }
 
+    wxGetApp().mainframe->update_filament_tab_ui();
     return true;
 }
 
@@ -3326,8 +3359,14 @@ bool FlowRateWizard::save_calibration_result()
             if (it != m_high_end_save_names.end() && !it->second.empty()) {
                 if (m_filament_presets.find(m_calib_results[i].tray_id) == m_filament_presets.end())
                     return false;
-                save_presets(m_filament_presets.at(m_calib_results[i].tray_id), "filament_flow_ratio", new ConfigOptionFloats{ m_calib_results[i].flow_ratio }, it->second);
-                return true;
+                std::string message;
+                if(save_presets(m_filament_presets.at(m_calib_results[i].tray_id), "filament_flow_ratio", new ConfigOptionFloats{ m_calib_results[i].flow_ratio }, it->second, message))
+                    return true;
+                else {
+                    MessageDialog msg_dlg(nullptr, _L(message), wxEmptyString, wxICON_WARNING | wxOK);
+                    msg_dlg.ShowModal();
+                    return false;
+                }
             }
 
             if (it != m_high_end_save_names.end() && it->second.empty()) {
@@ -3369,7 +3408,12 @@ bool FlowRateWizard::save_calibration_result()
             msg_dlg.ShowModal();
             return false;
         }
-        save_presets(m_filament_presets.begin()->second, "filament_flow_ratio", new ConfigOptionFloats{ result_value }, m_save_name);
+        std::string message;
+        if (!save_presets(m_filament_presets.begin()->second, "filament_flow_ratio", new ConfigOptionFloats{ result_value }, m_save_name, message)) {
+            MessageDialog msg_dlg(nullptr, _L(message), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return false;
+        }
         reset_reuse_panels();
         return true;
     }
@@ -3656,7 +3700,12 @@ bool MaxVolumetricSpeedWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-    save_presets(m_filament_presets.begin()->second, "filament_max_volumetric_speed", new ConfigOptionFloats{ max_volumetric_speed }, m_save_name);
+    std::string message;
+    if (!save_presets(m_filament_presets.begin()->second, "filament_max_volumetric_speed", new ConfigOptionFloats{ max_volumetric_speed }, m_save_name, message)) {
+        MessageDialog msg_dlg(nullptr, _L(message), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
     return true;
 }
 
@@ -3892,7 +3941,12 @@ bool TemperatureWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-    save_presets(m_filament_presets.begin()->second, "nozzle_temperature", new ConfigOptionInts(1, temp), m_save_name);
+    std::string message;
+    if (!save_presets(m_filament_presets.begin()->second, "nozzle_temperature", new ConfigOptionInts(1, temp), m_save_name, message)) {
+        MessageDialog msg_dlg(nullptr, _L(message), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
     return true;
 }
 
@@ -4157,7 +4211,12 @@ bool RetractionWizard::save_calibration_result()
         msg_dlg.ShowModal();
         return false;
     }
-    save_presets(m_filament_presets.begin()->second, "retraction_length", new ConfigOptionFloats{ length }, m_save_name);
+    std::string message;
+    if (!save_presets(m_filament_presets.begin()->second, "retraction_length", new ConfigOptionFloats{ length }, m_save_name, message)) {
+        MessageDialog msg_dlg(nullptr, _L(message), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
     return true;
 }
 
