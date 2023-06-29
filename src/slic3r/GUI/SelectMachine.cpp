@@ -3113,7 +3113,7 @@ void SelectMachineDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusInSystemPrinting);
         return;
     }
-    else if (obj_->is_in_printing()) {
+    else if (obj_->is_in_printing() || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         show_status(PrintDialogStatus::PrintStatusInPrinting);
         return;
     }
