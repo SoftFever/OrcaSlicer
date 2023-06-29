@@ -89,7 +89,10 @@ void DropDown::SetSelection(int n)
         n = -1;
     if (selection == n) return;
     selection = n;
-    messureSize();
+    if (need_sync) { // for icon Size
+        messureSize();
+        need_sync = true;
+    }
     paintNow();
 }
 
