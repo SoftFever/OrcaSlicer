@@ -96,7 +96,7 @@ class ObjectDataViewModelNode
     bool                            m_has_lock{false};  // for cut object icon
 
     std::string                     m_action_icon_name = "";
-    ModelVolumeType                 m_volume_type;
+    ModelVolumeType                 m_volume_type = ModelVolumeType(-1);
     InfoItemType                    m_info_item_type {InfoItemType::Undef};
     bool                            m_action_enable = false; // can undo all settings
     // BBS
