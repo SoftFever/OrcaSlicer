@@ -404,8 +404,8 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
         m_tip_readonly->Hide(); 
     }
     else {
-        m_comboBox_filament->Show(en);
-        m_readonly_filament->Show(!en);
+        //m_comboBox_filament->Show(en);
+        //m_readonly_filament->Show(!en);
 
         if ( !is_virtual_tray() ) {
             m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
@@ -566,7 +566,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
-    if (!ExtrusionCalibration::check_k_validation(k_text)) {
+    if (!obj->is_high_printer_type() && !ExtrusionCalibration::check_k_validation(k_text)) {
         wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
         wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
         MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
@@ -596,10 +596,10 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             select_index_info.tray_id = tray_id;
             select_index_info.nozzle_diameter = obj->nozzle_diameter;
 
-            
-            if (m_pa_cali_select_id > 0) {
-                select_index_info.cali_idx = m_pa_profile_items[m_pa_cali_select_id].cali_idx;
-                select_index_info.filament_id = m_pa_profile_items[m_pa_cali_select_id].filament_id;
+            auto cali_select_id = m_comboBox_cali_result->GetSelection();
+            if (m_pa_profile_items.size() > 0 && cali_select_id >= 0) {
+                select_index_info.cali_idx = m_pa_profile_items[cali_select_id].cali_idx;
+                select_index_info.filament_id = m_pa_profile_items[cali_select_id].filament_id;
             }
             else { // default item
                 select_index_info.cali_idx = -1;
@@ -634,9 +634,11 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = tray_id;
             select_index_info.nozzle_diameter = obj->nozzle_diameter;
-            if (m_pa_cali_select_id >= 0) {
-                select_index_info.cali_idx = m_pa_profile_items[m_pa_cali_select_id].cali_idx;
-                select_index_info.filament_id = m_pa_profile_items[m_pa_cali_select_id].filament_id;
+
+            auto cali_select_id = m_comboBox_cali_result->GetSelection();
+            if (m_pa_profile_items.size() > 0 && cali_select_id >= 0) {
+                select_index_info.cali_idx = m_pa_profile_items[cali_select_id].cali_idx;
+                select_index_info.filament_id = m_pa_profile_items[cali_select_id].filament_id;
             }
             else { // default item
                 select_index_info.cali_idx = -1;
@@ -836,14 +838,6 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
     }
 
-    m_comboBox_filament->Set(filament_items);
-    m_comboBox_filament->SetSelection(selection_idx);
-    post_select_event(selection_idx);
-
-    if (selection_idx < 0) {
-        m_comboBox_filament->SetValue(wxEmptyString);
-    }
-
     if (!sn.empty()) {
         m_sn_number->SetLabel(sn);
         m_panel_SN->Show();
@@ -877,6 +871,14 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         m_button_reset->Show();
         m_button_confirm->Show(); 
     } 
+
+    m_comboBox_filament->Set(filament_items);
+    m_comboBox_filament->SetSelection(selection_idx);
+    post_select_event(selection_idx);
+
+    if (selection_idx < 0) {
+        m_comboBox_filament->SetValue(wxEmptyString);
+    }
 
     update();
     Layout();
@@ -1012,19 +1014,6 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         m_comboBox_cali_result->Set(items);
-
-        if (items.size() <= 0) {
-            m_button_confirm->Disable();
-            m_button_confirm->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-        }
-        else {
-            m_button_confirm->Enable();
-            m_button_confirm->SetBackgroundColor(m_btn_bg_green);
-            m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
-            m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
-        }
-        
         if (tray_id == VIRTUAL_TRAY_ID) {
             AmsTray selected_tray = this->obj->vt_tray;
             cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,selected_tray.cali_idx);
