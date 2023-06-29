@@ -11808,7 +11808,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     int action, plate_index;
 
     plate_index = hover_id / PartPlate::GRABBER_COUNT;
-    action      = isModidyPlateName?5:hover_id % PartPlate::GRABBER_COUNT;
+    action      = isModidyPlateName ? PartPlate::PLATE_NAME_HOVER_ID : hover_id % PartPlate::GRABBER_COUNT;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, hover_id %1%, plate_index %2%, action %3%")%hover_id % plate_index %action;
     if (action == 0)
@@ -11952,8 +11952,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             else
                 dlg.sync_print_seq(0);
 
-            wxString curr_plate_name = from_u8(curr_plate->get_plate_name());
-            dlg.set_plate_name(curr_plate_name);
 
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
@@ -11980,12 +11978,30 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
                 });
             dlg.ShowModal();
 
+            this->schedule_background_process();
+        }
+        else {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+            ret = -1;
+        }
+    }
+    else if ((action == 6) && (!right_click)) {
+        // set the plate type
+        ret = select_plate(plate_index);
+        if (!ret) {
+            PlateNameEditDialog dlg(this, wxID_ANY, _L("Edit Plate Name"));
+            PartPlate *         curr_plate = p->partplate_list.get_curr_plate();
+   
+            wxString curr_plate_name = from_u8(curr_plate->get_plate_name());
+            dlg.set_plate_name(curr_plate_name);
+
+            dlg.ShowModal();
+
             wxString dlg_plate_name = dlg.get_plate_name();
             curr_plate->set_plate_name(dlg_plate_name.ToUTF8().data());
 
             this->schedule_background_process();
-        }
-        else {
+        } else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
             ret = -1;
         }

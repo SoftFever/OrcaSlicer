@@ -55,6 +55,7 @@ static const int PARTPLATE_ICON_GAP_Y = 5;
 static const int PARTPLATE_TEXT_OFFSET_X1 = 3;
 static const int PARTPLATE_TEXT_OFFSET_X2 = 1;
 static const int PARTPLATE_TEXT_OFFSET_Y = 1;
+static const int PARTPLATE_PLATENAME_OFFSET_Y  = 10;
 std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 
 namespace Slic3r {
@@ -423,11 +424,11 @@ void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GeometryBuffer &b
         float     offset_x = 1;
         w                  = int(factor * (texture.get_width() * 16) / texture.get_height());
         h                  = int(factor * 16);
-        Vec2d p            = bed_ext[3] + Vec2d(0, 1 + h * texture.m_original_height / texture.get_height());
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y)});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h + PARTPLATE_TEXT_OFFSET_Y)});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y)});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - PARTPLATE_TEXT_OFFSET_Y)});
+		Vec2d p            = bed_ext[3] + Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h * texture.m_original_height / texture.get_height());
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
 
         auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
         if (!buffer.set_from_triangles(triangles, GROUND_Z)) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
@@ -436,6 +437,46 @@ void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GeometryBuffer &b
             glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
             m_plate_name_vbo_id = 0;
         }
+	}
+}
+
+void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GeometryBuffer &buffer) {
+    auto    bed_ext = get_extents(m_shape);
+    auto    factor  = bed_ext.size()(1) / 200.0;
+    wxCoord w, h;
+    h = int(factor * 16);
+    ExPolygon poly;
+    Vec2d     p        = bed_ext[3];
+    float     offset_x = 1;
+    const int plate_name_edit_icon_height = 12;
+    const int plate_name_edit_icon_width = 12;
+    h   = plate_name_edit_icon_height;
+    p += Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h);
+    if (texture && texture->get_width() > 0 && texture->get_height()) {
+        w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
+      
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + plate_name_edit_icon_width), scale_(p(1) - h )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + plate_name_edit_icon_width), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
+
+        auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+        if (!buffer.set_from_triangles(triangles, GROUND_Z)) 
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+    } else {
+
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x+ plate_name_edit_icon_width), scale_(p(1) - h )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x+ plate_name_edit_icon_width), scale_(p(1) )});
+        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+
+        auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+        if (!buffer.set_from_triangles(triangles, GROUND_Z))
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+    }
+	if (m_plate_name_edit_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_plate_name_edit_vbo_id));
+		m_plate_name_edit_vbo_id = 0;
 	}
 }
 
@@ -795,12 +836,18 @@ void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const Ge
 void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 {
     if (m_name.length() == 0) { 
+		if (m_name_change) { 
+			m_name_change = false;
+			calc_vertex_for_plate_name_edit_icon(nullptr, 0, m_plate_name_edit_icon);
+		}
 		return;
 	}
     if (m_name_texture.get_id() == 0 || m_name_change) {
         m_name_change = false;
         generate_plate_name_texture();
         calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
+        
+		calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
     }
 
     if (m_plate_name_vbo_id == 0 && m_plate_name_icon.get_vertices_data_size() > 0) {
@@ -871,7 +918,12 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
                     render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
             }
 
-            if (m_partplate_list->render_plate_settings) {
+			if (hover_id == 6)
+				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture, m_plate_name_edit_vbo_id);
+			else
+				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture, m_plate_name_edit_vbo_id);
+            
+			if (m_partplate_list->render_plate_settings) {
                 if (hover_id == 5) {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
@@ -1223,6 +1275,14 @@ void PartPlate::on_render_for_picking() const {
 	m_grabber_color[3] = color[3];
     if (m_partplate_list->render_plate_settings)
         render_rectangle_for_picking(m_plate_settings_icon, m_grabber_color);
+	hover_id           = 6;
+	color              = picking_color_component(hover_id);
+	m_grabber_color[0] = color[0];
+	m_grabber_color[1] = color[1];
+	m_grabber_color[2] = color[2];
+	m_grabber_color[3] = color[3];
+    // render_left_arrow(m_grabber_color, false);
+    render_rectangle_for_picking(m_plate_name_edit_icon, m_grabber_color);
 }
 
 std::array<float, 4> PartPlate::picking_color_component(int idx) const
@@ -1270,6 +1330,10 @@ void PartPlate::release_opengl_resource()
     if (m_plate_name_vbo_id > 0) {
         glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
         m_plate_name_vbo_id = 0;
+    }
+    if (m_plate_name_edit_vbo_id > 0) {
+        glsafe(::glDeleteBuffers(1, &m_plate_name_edit_vbo_id));
+        m_plate_name_edit_vbo_id = 0;
     }
 }
 
@@ -2273,6 +2337,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 	    calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);//if (generate_plate_name_texture())
+		calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
 	}
 	calc_height_limit();
 
@@ -2819,6 +2884,21 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	// if (m_plate_name_edit_texture.get_id() == 0)
+	{
+		file_name = path + (m_is_dark ? "plate_name_edit_dark.svg" : "plate_name_edit.svg");
+		if (!m_plate_name_edit_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		 }
+	}
+    // if (m_plate_name_edit_hovered_texture.get_id() == 0)
+	{
+		file_name = path + (m_is_dark ? "plate_name_edit_hover_dark.svg" : "plate_name_edit_hover.svg");
+		if (!m_plate_name_edit_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
 	auto is_font_suitable = [](std::string text_str, wxFont& font, int max_size) {
 		wxMemoryDC memDC;
 		wxCoord w, h;
@@ -2878,7 +2958,8 @@ void PartPlateList::release_icon_textures()
 	m_plate_settings_texture.reset();
 	m_plate_settings_texture.reset();
 	m_plate_settings_hovered_texture.reset();
-
+	m_plate_name_edit_texture.reset();
+	m_plate_name_edit_hovered_texture.reset();
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
 		m_idx_textures[i].reset();
 	}

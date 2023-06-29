@@ -125,6 +125,7 @@ private:
     GeometryBuffer m_height_limit_bottom;
     GeometryBuffer m_height_limit_top;
     GeometryBuffer m_del_icon;
+    GeometryBuffer m_plate_name_edit_icon;
     //GeometryBuffer m_del_and_background_icon;
     mutable unsigned int m_del_vbo_id{ 0 };
     GeometryBuffer m_arrange_icon;
@@ -137,6 +138,7 @@ private:
     mutable unsigned int m_plate_settings_vbo_id{ 0 };
     GeometryBuffer m_plate_idx_icon;
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
+    mutable unsigned int m_plate_name_edit_vbo_id{0};
     GLTexture m_texture;
 
     mutable float m_grabber_color[4];
@@ -167,6 +169,7 @@ private:
     void calc_height_limit();
     void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
     void calc_vertex_for_plate_name(GLTexture& texture, GeometryBuffer &buffer);
+    void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
@@ -193,7 +196,8 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT = 6;
+    static const unsigned int PLATE_NAME_HOVER_ID = 6;
+    static const unsigned int GRABBER_COUNT = 7;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -518,6 +522,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_plate_settings_changed_texture;
     GLTexture m_plate_settings_hovered_texture;
     GLTexture m_plate_settings_changed_hovered_texture;
+    GLTexture m_plate_name_edit_texture;
+    GLTexture m_plate_name_edit_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
     // set render option
     bool render_bedtype_logo = true;
