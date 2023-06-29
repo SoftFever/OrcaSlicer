@@ -1374,7 +1374,8 @@ void PerimeterGenerator::process_arachne()
 
         bool is_outer_wall_first =
             this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-            this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+            this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
+            this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
         if (is_outer_wall_first) {
             start_perimeter = 0;
             end_perimeter = int(perimeters.size());
@@ -1501,17 +1502,49 @@ void PerimeterGenerator::process_arachne()
             }
         }
 
-        
-        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill)
-            if (ordered_extrusions.size() > 1) {
-                int last_outer = 0;
-                int outer      = 0;
-                for (; outer < ordered_extrusions.size(); ++outer)
-                    if (ordered_extrusions[outer].extrusion->inset_idx == 0 && outer - last_outer > 1) {
-                        std::swap(ordered_extrusions[outer], ordered_extrusions[outer - 1]);
-                        last_outer = outer;
+
+        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
+            if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
+                int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
+                int arr_i = 0;    // index to run through the walls
+                int outer, first_internal, second_internal; // allocate index values
+                // run the re-ordering for all wall loops in the same island
+                while (position < ordered_extrusions.size()) {
+                    outer = first_internal = second_internal = -1; // initialise all index values to -1
+                    // run through the walls to get the index values that need re-ordering until the first one for each
+                    // is found. Start at "position" index to enable the for loop to iterate for multiple external
+                    // perimeters in a single island
+                    for (arr_i = position; arr_i < ordered_extrusions.size(); ++arr_i) {
+                        switch (ordered_extrusions[arr_i].extrusion->inset_idx) {
+                        case 0: // external perimeter
+                            if (outer == -1)
+                                outer = arr_i;
+                            break;
+                        case 1: // first internal wall
+                            if (first_internal == -1 && arr_i > outer)
+                                first_internal = arr_i;
+                            break;
+                        case 2: // second internal wall
+                            if (ordered_extrusions[arr_i].extrusion->inset_idx == 2 && second_internal == -1 &&
+                                arr_i > first_internal)
+                                second_internal = arr_i;
+                            break;
+                        }
+                        if (second_internal != -1)
+                            break; // found all three perimeters to re-order
                     }
+                    if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
+                        const auto temp = ordered_extrusions[second_internal];
+                        ordered_extrusions[second_internal] = ordered_extrusions[first_internal];
+                        ordered_extrusions[first_internal] = ordered_extrusions[outer];
+                        ordered_extrusions[outer] = temp;
+                    } else
+                        break; // did not find any more candidates to re-order, so stop the while loop early
+                    // go to the next perimeter to continue scanning for external walls in the same island
+                    position = arr_i + 1;
+                }
             }
+        }
 
         
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions); !extrusion_coll.empty())
