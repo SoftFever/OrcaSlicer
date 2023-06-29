@@ -3720,6 +3720,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Importer::_handle_start_config_object(const char** attributes, unsigned int num_attributes)
     {
+        if (m_parsing_slice_info)
+            return true;
         int object_id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
         IdToMetadataMap::iterator object_item = m_objects_metadata.find(object_id);
         if (object_item != m_objects_metadata.end()) {
