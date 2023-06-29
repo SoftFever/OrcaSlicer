@@ -594,6 +594,8 @@ wxString get_fail_reason(int code)
      m_result_code = 0;
      m_result_extra = "";
      m_result_info = "";
+     m_link_show_error->Hide();
+     m_static_bitmap_show_error->Hide();
      show_bind_failed_info(false);
 
      //check isset info
