@@ -374,7 +374,8 @@ class GLCanvas3D
         SlaSupportsOutside,
         SomethingNotShown,
         ObjectClashed,
-        GCodeConflict
+        GCodeConflict,
+        ToolHeightOutside
     };
 
     class RenderStats

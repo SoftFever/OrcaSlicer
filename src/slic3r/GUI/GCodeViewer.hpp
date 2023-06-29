@@ -830,10 +830,12 @@ public:
     bool can_export_toolpaths() const;
     std::vector<int> get_plater_extruder();
 
+    const float                get_max_print_height() const { return m_max_print_height; }
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
     const BoundingBoxf3& get_shell_bounding_box() const { return m_shell_bounding_box; }
     const std::vector<double>& get_layers_zs() const { return m_layers.get_zs(); }
+    const std::array<unsigned int,2> &get_layers_z_range() const { return m_layers_z_range; }
 
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
     void update_sequential_view_current(unsigned int first, unsigned int last);

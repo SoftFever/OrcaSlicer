@@ -2758,6 +2758,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
     if (wxGetApp().is_editor()) {
         //BBS: always load shell at preview, do this in load_shells
         //m_gcode_viewer.update_shells_color_by_extruder(m_config);
+        _set_warning_notification_if_needed(EWarning::ToolHeightOutside);
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
     }
@@ -8870,14 +8871,19 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
     if (!m_volumes.empty()) {
         show = _is_any_volume_outside();
         show &= m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
-    }
-    else {
+    } else {
         if (wxGetApp().is_editor()) {
-            if (current_printer_technology() != ptSLA)
-                if (warning == EWarning::ToolpathOutside)
-                    show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
-                else if (warning==EWarning::GCodeConflict)
+            if (current_printer_technology() != ptSLA) {
+                unsigned int max_z_layer = m_gcode_viewer.get_layers_z_range().back();
+                if (warning == EWarning::ToolHeightOutside)  // check if max z_layer height exceed max print height
+                    show = m_gcode_viewer.has_data() && (m_gcode_viewer.get_layers_zs()[max_z_layer] - m_gcode_viewer.get_max_print_height() >= 1e-6);
+                else if (warning == EWarning::ToolpathOutside) { // check if max x,y coords exceed bed area
+                    show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed() &&
+                           (m_gcode_viewer.get_max_print_height() -m_gcode_viewer.get_layers_zs()[max_z_layer] >= 1e-6);
+                }
+                else if (warning == EWarning::GCodeConflict)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
+            }
         }
     }
 
@@ -8936,6 +8942,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
     case EWarning::ObjectOutside:      text = _u8L("An object is layed over the boundary of plate."); break;
+    case EWarning::ToolHeightOutside:  text = _u8L("A G-code path goes beyond the max print height."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the boundary of plate."); error = ErrorType::SLICING_ERROR; break;
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
