@@ -1127,8 +1127,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
     img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
 
-    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); on_rename_enter(); });
-    img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {popup_filament_backup(); });
+    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) { if (!m_is_in_sending_mode) {popup_filament_backup(); on_rename_enter();}  });
+    img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {if (!m_is_in_sending_mode) popup_filament_backup();on_rename_enter(); });
 
     m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_ams_msg->SetFont(::Label::Body_13);
@@ -1684,6 +1684,7 @@ void SelectMachineDialog::prepare_mode()
 {
     // disable combobox
     m_comboBox_printer->Enable();
+    Enable_Auto_Refill(true);
     show_print_failed_info(false);
 
     m_is_in_sending_mode = false;
@@ -1715,6 +1716,7 @@ void SelectMachineDialog::sending_mode()
 {
     // disable combobox
     m_comboBox_printer->Disable();
+    Enable_Auto_Refill(false);
 
     m_is_in_sending_mode = true;
     if (m_simplebook->GetSelection() != 1){
@@ -2343,6 +2345,17 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             this->on_send_print();
         }
     }
+}
+
+void SelectMachineDialog::Enable_Auto_Refill(bool enable)
+{
+    if (enable) {
+        m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
+    }
+    else {
+        m_ams_backup_tip->SetForegroundColour(wxColour(0x90, 0x90, 0x90));
+    }
+    m_ams_backup_tip->Refresh();
 }
 
 void SelectMachineDialog::connect_printer_mqtt()
