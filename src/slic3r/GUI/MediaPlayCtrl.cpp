@@ -488,6 +488,13 @@ void MediaPlayCtrl::media_proc()
             m_cond.wait(lock);
         }
         wxString url = m_tasks.front();
+        if (m_tasks.size() >= 2 && !url.IsEmpty() && url[0] != '<' && m_tasks[1] == "<stop>") {
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: busy skip url" << url;
+            m_tasks.pop_front();
+            m_tasks.pop_front();
+            lock.unlock();
+            continue;
+        }
         lock.unlock();
         if (url.IsEmpty()) {
             break;

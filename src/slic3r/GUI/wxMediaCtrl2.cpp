@@ -170,10 +170,9 @@ void wxMediaCtrl2::Play() { wxMediaCtrl::Play(); }
 
 void wxMediaCtrl2::Stop()
 {
+    wxMediaCtrl::Stop();
 #ifdef __WIN32__
     wxMediaCtrl::Load(wxURI());
-#else
-    wxMediaCtrl::Stop();
 #endif
 }
 
