@@ -5154,7 +5154,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
-    def = this->add("skip_objects", coStrings);
+    def = this->add("skip_objects", coInts);
     def->label = L("Skip Objects");
     def->tooltip = L("Skip some objects in this print");
     def->cli_params = "\"3,5,10,77\"";
