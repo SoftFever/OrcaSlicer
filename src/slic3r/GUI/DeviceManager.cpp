@@ -1946,7 +1946,7 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
     }
 }
 
-int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, bool is_manual)
+int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, int mode)
 {
     pa_calib_results.clear();
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
@@ -1954,7 +1954,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, bo
         j["print"]["command"]     = "extrusion_cali";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_data.calib_datas[0].nozzle_diameter);
-        j["print"]["manual"]          = is_manual;
+        j["print"]["mode"]          = mode;
 
         for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
             j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
@@ -3914,7 +3914,8 @@ int MachineObject::parse_json(std::string payload)
                                 else if ((*it)["n_coef"].is_string())
                                     pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
 
-                                pa_calib_result.confidence = (*it)["confidence"].get<int>();
+                                if ((*it).contains("confidence"))
+                                    pa_calib_result.confidence = (*it)["confidence"].get<int>();
 
                                 pa_calib_results.push_back(pa_calib_result);
                             }
