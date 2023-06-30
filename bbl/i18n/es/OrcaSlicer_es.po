@@ -20,7 +20,7 @@ msgid "Section view"
 msgstr "Vista de la sección"
 
 msgid "Reset direction"
-msgstr ""
+msgstr "Reiniciar dirección"
 
 msgid "Ctrl + Mouse wheel"
 msgstr "Ctrl + Rueda del ratón"
@@ -53,13 +53,13 @@ msgid "Highlight overhang areas"
 msgstr "Resaltar las zonas de voladizos"
 
 msgid "Gap fill"
-msgstr ""
+msgstr "Rellenar hueco"
 
 msgid "Perform"
 msgstr "Realizar"
 
 msgid "Gap area"
-msgstr ""
+msgstr "Rellenar área"
 
 msgid "Tool type"
 msgstr "Tipo de herramienta"
@@ -68,7 +68,7 @@ msgid "Smart fill angle"
 msgstr "Ángulo de relleno inteligente"
 
 msgid "On overhangs only"
-msgstr ""
+msgstr "Solo voladizos"
 
 msgid "Auto support threshold angle: "
 msgstr "Ángulo del umbral de soporte automático: "
@@ -83,11 +83,11 @@ msgid "Fill"
 msgstr "Llenar"
 
 msgid "Gap Fill"
-msgstr ""
+msgstr "Rellenar hueco"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
-msgstr ""
+msgstr "Permite pintar solo las facetas seleccionadas por: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Resalte las caras según el ángulo del voladizo."
@@ -150,7 +150,7 @@ msgid "Ctrl + Shift + Enter"
 msgstr ""
 
 msgid "Toggle Wireframe"
-msgstr ""
+msgstr "Alternar soporte"
 
 msgid "Shortcut Key "
 msgstr "Tecla de acceso directo "
@@ -248,70 +248,70 @@ msgid "uniform scale"
 msgstr "Escala uniforme"
 
 msgid "Left click"
-msgstr ""
+msgstr "Click izquierdo"
 
 msgid "Add connector"
-msgstr ""
+msgstr "Añadir conector"
 
 msgid "Right click"
-msgstr ""
+msgstr "Click derecho"
 
 msgid "Remove connector"
-msgstr ""
+msgstr "Borrar conector"
 
 msgid "Drag"
-msgstr ""
+msgstr "Soltar"
 
 msgid "Move connector"
-msgstr ""
+msgstr "Mover conector"
 
 msgid "Add connector to selection"
-msgstr ""
+msgstr "Añadir conector a la selección"
 
 msgid "Remove connector from selection"
-msgstr ""
+msgstr "Borrar conector de la selección"
 
 msgid "Select all connectors"
-msgstr ""
+msgstr "Seleccionar todos los conectores"
 
 msgid "Cut"
 msgstr "Cortar"
 
 msgid "Connector"
-msgstr ""
+msgstr "Conector"
 
 msgid "Movement:"
 msgstr "Movimiento:"
 
 msgid "Movement"
-msgstr ""
+msgstr "Movimiento"
 
 msgid "Height"
-msgstr ""
+msgstr "Altura"
 
 msgid "Edit connectors"
-msgstr ""
+msgstr "Editar conectores"
 
 msgid "Add connectors"
-msgstr ""
+msgstr "Añadir conectores"
 
 msgid "Upper part"
-msgstr ""
+msgstr "Parte alta"
 
 msgid "Lower part"
-msgstr ""
+msgstr "Parte baja"
 
 msgid "Keep"
-msgstr ""
+msgstr "Mantener"
 
 msgid "Place on cut"
-msgstr ""
+msgstr "Colocar en la posición de corte"
 
 msgid "Flip"
-msgstr ""
+msgstr "Girar"
 
 msgid "After cut"
-msgstr ""
+msgstr "Después del corte"
 
 msgid "Cut to parts"
 msgstr "Cortar por partes"
@@ -326,7 +326,7 @@ msgid "Reset"
 msgstr "Reiniciar"
 
 msgid "Connectors"
-msgstr ""
+msgstr "conectores"
 
 msgid "Type"
 msgstr "Tipo"
@@ -338,25 +338,25 @@ msgid "Shape"
 msgstr "Forma"
 
 msgid "Depth ratio"
-msgstr ""
+msgstr "Relación de profundidad"
 
 msgid "Remove connectors"
-msgstr ""
+msgstr "Borrar conectores"
 
 msgid "Prizm"
-msgstr ""
+msgstr "Prisma"
 
 msgid "Frustum"
-msgstr ""
+msgstr "Tronco de cono"
 
 msgid "Square"
-msgstr ""
+msgstr "Cuadrado"
 
 msgid "Hexagon"
-msgstr ""
+msgstr "Hexágono"
 
 msgid "Confirm connectors"
-msgstr ""
+msgstr "Confirmar conectores"
 
 msgid "Cancel"
 msgstr "Cancelar"
@@ -365,30 +365,31 @@ msgid "Warning"
 msgstr "Peligro"
 
 msgid "Invalid connectors detected"
-msgstr ""
+msgstr "Conectores inválidos detectados"
 
 msgid "connector is out of cut contour"
-msgstr ""
+msgstr "el conector está fuera del contorno de corte"
 
 msgid "connectors are out of cut contour"
-msgstr ""
+msgstr "los conectores están fuera del contorno de corte"
 
 msgid "connector is out of object"
-msgstr ""
+msgstr "el conector está fuera del objeto"
 
 msgid "connectors is out of object"
-msgstr ""
+msgstr "los conectores están fuera del objeto"
 
 msgid "Some connectors are overlapped"
-msgstr ""
+msgstr "Algunos conectores están solapados"
 
 msgid ""
 "Invalid state. \n"
 "No one part is selected for keep after cut"
 msgstr ""
+"Niguna parte seleccionada para mantener después del corte
 
 msgid "Plug"
-msgstr ""
+msgstr "Conectar"
 
 msgid "Dowel"
 msgstr ""
@@ -829,10 +830,10 @@ msgid "3DBenchy"
 msgstr ""
 
 msgid "Autodesk FDM Test"
-msgstr ""
+msgstr "Prueba Autodesk FDM"
 
 msgid "Voron Cube"
-msgstr ""
+msgstr "Cubo de Vorón"
 
 msgid "Cube"
 msgstr "Cubo"
@@ -844,7 +845,7 @@ msgid "Cone"
 msgstr "Cono"
 
 msgid "Height range Modifier"
-msgstr ""
+msgstr "Modificador de rango de altura"
 
 msgid "Add settings"
 msgstr "Añadir ajustes"
@@ -1029,7 +1030,7 @@ msgid "auto rotate current plate"
 msgstr "Auto rotación de la placa actual"
 
 msgid "Delete Plate"
-msgstr ""
+msgstr "Borrar Cama"
 
 msgid "Remove the selected plate"
 msgstr "Retirar la placa seleccionada"
@@ -1038,13 +1039,13 @@ msgid "Clone"
 msgstr "Clonar"
 
 msgid "Simplify Model"
-msgstr ""
+msgstr "Simplificar Modelo"
 
 msgid "Center"
-msgstr ""
+msgstr "Centrar"
 
 msgid "Edit Process Settings"
-msgstr ""
+msgstr "Editar Ajustes de Procesado"
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
@@ -1292,7 +1293,7 @@ msgid "to"
 msgstr "a"
 
 msgid "Remove height range"
-msgstr ""
+msgstr "Borrar rango de altura"
 
 msgid "Add height range"
 msgstr ""
@@ -1735,7 +1736,7 @@ msgid "Quick"
 msgstr ""
 
 msgid "Importing SLA archive"
-msgstr ""
+msgstr "Importando archivo SLA"
 
 msgid ""
 "The SLA archive doesn't contain any presets. Please activate some SLA "
@@ -1743,10 +1744,10 @@ msgid ""
 msgstr ""
 
 msgid "Importing canceled."
-msgstr ""
+msgstr "Importación cancelada."
 
 msgid "Importing done."
-msgstr ""
+msgstr "Importación realizada."
 
 msgid ""
 "The imported SLA archive did not contain any presets. The current SLA "
@@ -3876,13 +3877,13 @@ msgid "ERROR"
 msgstr ""
 
 msgid "CANCELED"
-msgstr ""
+msgstr "CANCELADO"
 
 msgid "COMPLETED"
-msgstr ""
+msgstr "COMPLETADO"
 
 msgid "Cancel upload"
-msgstr ""
+msgstr "carga cancelada"
 
 msgid "Slice ok."
 msgstr "Rebanado correcto."
@@ -4893,7 +4894,7 @@ msgid "Offline"
 msgstr "Fuera de línea"
 
 msgid "(LAN)"
-msgstr ""
+msgstr "(Red local)"
 
 msgid "My Device"
 msgstr "Mi dispositivo"
@@ -4905,7 +4906,7 @@ msgid "Input access code"
 msgstr "Introducir el código de acceso"
 
 msgid "Can't find my devices?"
-msgstr ""
+msgstr "No puedo encontrar mis dispositivos?"
 
 msgid "Log out successful."
 msgstr "Cierre de sesión con éxito."
@@ -4951,7 +4952,7 @@ msgstr ""
 "Finalización del tiempo de sincronización de la información del dispositivo"
 
 msgid "Cannot send the print job when the printer is updating firmware"
-msgstr ""
+msgstr "No es posible enviar el trabajo cuando la impresora está actualizando el firmware"
 
 msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
@@ -4967,11 +4968,16 @@ msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
 "firmware to support AMS slot assignment."
 msgstr ""
+"El %s del filamento excede el número de ranuras AMS. Por favor actualice el firmware"
+"impresora para que soporte la asignación de ranuras AMS."
+
 
 msgid ""
 "Filament exceeds the number of AMS slots. Please update the printer firmware "
 "to support AMS slot assignment."
 msgstr ""
+"El %s del filamento excede el número de ranuras AMS. Por favor actualice el firmware"
+"impresora para que soporte la asignación de ranuras AMS."
 
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
@@ -4992,49 +4998,59 @@ msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
 "printer firmware to support AMS slot assignment."
 msgstr ""
+"El %s del filamento excede el número de ranuras AMS. Por favor actualice el firmware"
+"impresora para que soporte la asignación de ranuras AMS."
 
 msgid ""
 "Filament does not match the filament in AMS slot. Please update the printer "
 "firmware to support AMS slot assignment."
 msgstr ""
+"El %s del filamento excede el número de ranuras AMS. Por favor actualice el firmware"
+"impresora para que soporte la asignación de ranuras AMS."
 
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
 msgstr ""
+"El firmware de la impresora solo soporta el mapeo secuencial de filamento => ranura "
+"AMS."
 
 msgid "An SD card needs to be inserted before printing."
-msgstr ""
+msgstr "Es necesario introducir una tarjeta SD antes de imprimir."
 
 msgid "An SD card needs to be inserted to record timelapse."
-msgstr ""
+msgstr "Es necesario insertar una tarjeta SD para guardar el intervalo de tiempo."
+
 
 msgid ""
 "Cannot send the print job to a printer whose firmware is required to get "
 "updated."
-msgstr ""
+msgstr "No es posible enviar el trabajo de impresión a una impresora la cual necesita una actualización de firmware"
 
 msgid "Cannot send the print job for empty plate"
-msgstr ""
+msgstr "No es posible enviar el trabajo de impresión a una cama vacía"
 
 msgid "This printer does not support printing all plates"
-msgstr ""
+msgstr "Esta impresora no soporta la impresión en todas las camas."
 
 msgid "Errors"
-msgstr ""
+msgstr "Errores"
 
 msgid "Please check the following:"
-msgstr ""
+msgstr "Por favor compruebe lo siguiente:"
 
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
 "type for slicing."
 msgstr ""
+"El tipo de impresora seleccionado cuando se genera el G-Code no tiene consistencia "
+"con la impresora seleccionada actualmente. Es recomendable que use el mismo tipo de impresora "
+"para rebanar."
 
 #, c-format, boost-format
 msgid "%s is not supported by AMS."
-msgstr ""
+msgstr "%s no está soportado por el AMS."
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -5053,7 +5069,7 @@ msgid "Modifying the device name"
 msgstr "Modificar el nombre del dispositivo"
 
 msgid "Send to Printer SD card"
-msgstr ""
+msgstr "Enviar a la tarjeta SD de la impresora"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
@@ -5061,13 +5077,13 @@ msgstr ""
 "curso"
 
 msgid "An SD card needs to be inserted before send to printer SD card."
-msgstr ""
+msgstr "Es necesario insertar una tarjeta SD antes de enviar a la tarjeta SD de la impresora."
 
 msgid "The printer is required to be in the same LAN as Orca Slicer."
-msgstr ""
+msgstr "Es necesaria que la impresora esté en la misma red local que Orca Slicer."
 
 msgid "The printer does not support sending to printer SD card."
-msgstr ""
+msgstr "La impresora no soporta el envio directo a la tarjeta SD."
 
 msgid "Log in printer"
 msgstr "Iniciar sesión en la impresora"
@@ -5104,38 +5120,51 @@ msgid "Delete this preset"
 msgstr "Borra este ajuste"
 
 msgid "Search in preset"
-msgstr ""
+msgstr "Buscar en los ajustes por defecto"
 
 msgid "Click to reset all settings to the last saved preset."
-msgstr ""
+msgstr "Presionar para reiniciar todos los ajustes a los últimos ajustes por defecto."
 
 msgid ""
 "Prime tower is required for smooth timeplase. There may be flaws on the "
 "model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
+"Es necesario imprimir una torre de purga para un intervalo de tiempo fino. Pueden aparecer imperfecciones 
+"en el modelo si se desactiva la torre de purga. ¿Está seguro de desactivar la torre de purga?
 
 msgid ""
 "Prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
 msgstr ""
+"Es necesario imprimir una torre de purga para un intervalo de tiempo fino. Pueden aparecer imperfecciones 
+"en el modelo si se desactiva la torre de purga. ¿Está seguro de activar la torre de purga?
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
 "support volume but weaker strength.\n"
 "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
 msgstr ""
+"Hemos añadido al estilo esperimental \"Árboles Delgados\" que presenta volumenes de soporte"
+"más pequeños con menos fuerza.\n"
+"Recomendamos usarlo con: 0 capas de interfaz, 0 distancia superior, 2 muros."
 
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
+"Cambiar estos ajustes automaticamente? \n"
+"Sí - Cambiar estos ajustes automaticamente\n"
+"No - No cambiar estos ajustes"
 
 msgid ""
 "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
 "settings: at least 2 interface layers, at least 0.1mm top z distance or "
 "using support materials on interface."
 msgstr ""
+"Para \"Árboles fuertes\" y \"Árboles Híbridos\", recomendamos lo siguiente "
+"ajustes: al menos 2 capas de interfaz, al menos 0.1mm de distancia superior en z o "
+"usar materiales de soporte en la interfaz"
 
 msgid ""
 "When using support material for the support interface, We recommend the "
@@ -5143,6 +5172,8 @@ msgid ""
 "0 top z distance, 0 interface spacing, concentric pattern and disable "
 "independent support layer height"
 msgstr ""
+"Cuando se user material de soporte para las interfaces de soporte, recomendamos "
+"los siguientes ajustes:\n"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -5150,6 +5181,8 @@ msgid ""
 "by right-click the empty position of build plate and choose \"Add "
 "Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
+"Cuando grabamos intervalos de tiempo sin cabezal de impresión, es recomendable añadir un "
+"\"Torre de Purga de Intervalo\"  \n"
 
 msgid "Line width"
 msgstr "Ancho de línea"
@@ -5161,7 +5194,7 @@ msgid "Precision"
 msgstr "Precisión"
 
 msgid "Wall generator"
-msgstr ""
+msgstr "Generador de paredes"
 
 msgid "Walls"
 msgstr "Paredes"
@@ -5195,10 +5228,10 @@ msgid "Acceleration"
 msgstr "Aceleración"
 
 msgid "Jerk(XY)"
-msgstr ""
+msgstr "Sacudida(XY)"
 
 msgid "Raft"
-msgstr ""
+msgstr "Base de impresión"
 
 msgid "Support filament"
 msgstr "Filamento de soporte"
@@ -5210,10 +5243,10 @@ msgid "Special mode"
 msgstr "Modo especial"
 
 msgid "G-code output"
-msgstr ""
+msgstr "G-code de salida"
 
 msgid "Post-processing Scripts"
-msgstr ""
+msgstr "Script de Post-procesado"
 
 msgid "Frequent"
 msgstr "Frecuente"
@@ -5357,13 +5390,13 @@ msgid "Printable space"
 msgstr "Espacio imprimible"
 
 msgid "Cooling Fan"
-msgstr ""
+msgstr "Ventilador de enfriamento"
 
 msgid "Fan speed-up time"
-msgstr ""
+msgstr "Tiempo de aumento de velocidad del ventilador"
 
 msgid "Extruder Clearance"
-msgstr ""
+msgstr "Margen del extrusor"
 
 msgid "Accessory"
 msgstr "Accesorio"
@@ -5420,7 +5453,7 @@ msgid ""
 msgstr ""
 
 msgid "Firmware Retraction"
-msgstr ""
+msgstr "Retracción de firmware"
 
 msgid "Detached"
 msgstr "Separado"
@@ -5541,12 +5574,18 @@ msgid ""
 "Would you like to keep these changed settings (new value) after switching "
 "preset?"
 msgstr ""
+"Has modificado algunos ajustes del perfil \"%1%\". \n"
+"¿Deseas mantener estas modificaciones en los ajustes (nuevo valor) después de cambiar "
+"de perfil?"
 
 msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings (new value) after switching "
 "preset?"
 msgstr ""
+"Has cambiado algunos ajustes de perfil. \n"
+"¿Deseas mantener estas modificaciones en los ajustes (nuevo valor) después de cambiar "
+"de perfil?"
 
 msgid "Extruders count"
 msgstr "Contador de extrusores"
@@ -5558,13 +5597,13 @@ msgid "Capabilities"
 msgstr "Capacidades"
 
 msgid "Select presets to compare"
-msgstr ""
+msgstr "Seleccionar perfiles para comparar"
 
 msgid "Show all presets (including incompatible)"
-msgstr ""
+msgstr "Mostrar todos los perfiles (incluyendo los compatibles)"
 
 msgid "Add File"
-msgstr ""
+msgstr "Añadir archivo"
 
 msgid "Set as cover"
 msgstr "Ajustar como cubierta"
@@ -5589,7 +5628,7 @@ msgid "Assembly Guide"
 msgstr "Guía de montaje"
 
 msgid "Author"
-msgstr ""
+msgstr "Autor"
 
 msgid "Model Name"
 msgstr "Nombre del modelo"
@@ -5647,18 +5686,18 @@ msgid "Flushing volumes for filament change"
 msgstr "Volúmenes de limpieza para el cambio de filamentos"
 
 msgid "Multiplier"
-msgstr ""
+msgstr "Multiplicador"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Volumen de limpieza (mm³) para cada par de filamentos."
 
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
-msgstr ""
+msgstr "Sugerencias: "
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
-msgstr ""
+msgstr "El multiplicador debería estar en el rango [%.2f, %.2f]."
 
 msgid "unloaded"
 msgstr "descargado"
@@ -5692,7 +5731,7 @@ msgid "Objects list"
 msgstr "Lista de objetos"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
-msgstr ""
+msgstr "Importar datos de geometría de los archivos STL/STEP/3MF/OBJ/AMF"
 
 msgid "⌘+Shift+G"
 msgstr ""
@@ -5707,7 +5746,7 @@ msgid "Paste from clipboard"
 msgstr "Pegar desde el portapapeles"
 
 msgid "Show/Hide 3Dconnexion devices settings dialog"
-msgstr ""
+msgstr "Mostrar/Ocultar el diálogo de ajustes de los dispositivos 3Dconnexion"
 
 msgid "Show keyboard shortcuts list"
 msgstr "Muestra lista de atajos de teclado"
@@ -5716,16 +5755,16 @@ msgid "Global shortcuts"
 msgstr "Atajos globales"
 
 msgid "Rotate View"
-msgstr ""
+msgstr "Rotar Vista"
 
 msgid "Pan View"
-msgstr ""
+msgstr "Vista Panorámica"
 
 msgid "Mouse wheel"
-msgstr ""
+msgstr "Rueda de ratón"
 
 msgid "Zoom View"
-msgstr ""
+msgstr "Vista de Zoom"
 
 msgid "Shift+A"
 msgstr ""
@@ -5755,13 +5794,13 @@ msgid "Movement in camera space"
 msgstr "Movimiento en el espacio de la cámara"
 
 msgid "⌥+Left mouse button"
-msgstr ""
+msgstr "Botón de ratón ⌥+Left"
 
 msgid "Select a part"
-msgstr ""
+msgstr "Seleccionar una parte"
 
 msgid "⌘+Left mouse button"
-msgstr ""
+msgstr "⌘+botón izquierdo de ratón"
 
 msgid "Select multiple objects"
 msgstr "Seleccionar varios objetos"
@@ -5770,13 +5809,13 @@ msgid "Ctrl+Any arrow"
 msgstr "Ctrl+Cualquier flecha"
 
 msgid "Alt+Left mouse button"
-msgstr ""
+msgstr "Alt+Botón izquierdo de ratón"
 
 msgid "Ctrl+Left mouse button"
-msgstr ""
+msgstr "Ctrl+Botón izquierdo de ratón"
 
 msgid "Shift+Left mouse button"
-msgstr ""
+msgstr "Shift+Left+Botón izquierdo de ratón"
 
 msgid "Select objects by rectangle"
 msgstr "Seleccionar objetos por rectángulo"
@@ -5842,22 +5881,22 @@ msgid "Select all objects"
 msgstr "Seleccionar todos los objetos"
 
 msgid "Gizmo move"
-msgstr ""
+msgstr "Movimiento Gizmo"
 
 msgid "Gizmo scale"
-msgstr ""
+msgstr "Escala Gizmo"
 
 msgid "Gizmo rotate"
-msgstr ""
+msgstr "Rotación Gizmo"
 
 msgid "Gizmo cut"
-msgstr ""
+msgstr "Corte Gizmo"
 
 msgid "Gizmo Place face on bed"
-msgstr ""
+msgstr "Situar cara en cama en modo Gizmo"
 
 msgid "Gizmo SLA support points"
-msgstr ""
+msgstr "Puntos de soporte SLA Gizmo"
 
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
@@ -5940,108 +5979,117 @@ msgid "Move slider 5x faster"
 msgstr "Mover el deslizador 5 veces más rápido"
 
 msgid "Shift+Mouse wheel"
-msgstr ""
+msgstr "Shit+Rueda de ratón"
 
 msgid "Release Note"
-msgstr ""
+msgstr "Notas de lanzamiento"
 
 #, c-format, boost-format
 msgid "version %s update information :"
-msgstr ""
+msgstr "información de actualización de la versión %s"
 
 msgid "Network plug-in update"
-msgstr ""
+msgstr "Actualizar plug-in de red"
 
 msgid ""
 "Click OK to update the Network plug-in when Orca Slicer launches next time."
-msgstr ""
+msgstr "Click en Aceptar para actualizar el plug-in de red cuando Orca Slicer vuelva a iniciarse."
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
-msgstr ""
+msgstr "Un nuevo plug-in de red(%s) está disponible. ¿Desea instalarlo?"
 
 msgid "New version of Orca Slicer"
 msgstr "Nueva versión de Orca Slicer"
 
 msgid "Don't remind me of this version again"
-msgstr ""
+msgstr "No volver a recordarme está versión otra vez"
 
 msgid "Done"
-msgstr ""
+msgstr "Hecho"
 
 msgid "LAN Connection Failed (Sending print file)"
-msgstr ""
+msgstr "Conexión de red fallida (Mandando archivo de impresión)"
 
 msgid ""
 "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-msgstr ""
+msgstr "Paso 1, por favor confirmar que Orca Slicer y tu impresora se encuentran en la misma red local."
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr ""
+msgstr "Paso 2, si la IP y el Código de Acceso de abajo son diferentes de los valores actuales "
+"de tu impresora, por favor corríjalos.
 
 msgid "IP"
 msgstr ""
 
 msgid "Access Code"
-msgstr ""
+msgstr "Código de Acceso"
 
 msgid "Where to find your printer's IP and Access Code?"
-msgstr ""
+msgstr "¿Dónde encontrar la IP de su impresora y el Código de Acceso?"
 
 msgid "Error: IP or Access Code are not correct"
-msgstr ""
+msgstr "Error: la IP o el Código de Acceso no son correctos"
 
 msgid "Model:"
-msgstr ""
+msgstr "Modelo:"
 
 msgid "Serial:"
-msgstr ""
+msgstr "Número de serie:"
 
 msgid "Version:"
-msgstr ""
+msgstr "Versión"
 
 msgid "Update firmware"
-msgstr ""
+msgstr "Actualizar firmware"
 
 msgid "Printing"
-msgstr ""
+msgstr "Imprimendo"
 
 msgid "Idle"
-msgstr ""
+msgstr "Inactivo"
 
 msgid "Latest version"
-msgstr ""
+msgstr "Última versión"
 
 msgid "Updating"
-msgstr ""
+msgstr "Actualizando"
 
 msgid "Updating failed"
-msgstr ""
+msgstr "Fallo Actualizando"
 
 msgid "Updating successful"
-msgstr ""
+msgstr "Actualización exitosa"
 
 msgid ""
 "Are you sure you want to update? This will take about 10 minutes. Do not "
 "turn off the power while the printer is updating."
 msgstr ""
+"¿Estás seguro que deseas actualizar? Esto puede llevar sobre 10 minutos. No "
+"desconecte la alimentación mientras la impresora está actualizando.
 
 msgid ""
 "An important update was detected and needs to be run before printing can "
 "continue. Do you want to update now? You can also update later from 'Upgrade "
 "firmware'."
 msgstr ""
+"Una actualización importante fue detectada y necesita ejecutarse antes de que "
+la impresión continue. ¿Quieres actualizar ahora? Puede actualizar despues desde "
+"'Actualizar firmware'."
 
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
 "update next time starting the studio."
 msgstr ""
+"La versión de firmware es anormal. Es necesario reparar y actualizar antes de "
+"imprimir. ¿Quieres actualizar ahora? Puedes actualizar al iniciar en el siguiente "
+"arranque de la impresora o cuando arranque Orca Slicer."
 
 msgid "Extension Board"
-msgstr ""
+msgstr "Placa de ampliación"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "El guardado de objetos en el 3mf no ha funcionado."
@@ -6287,6 +6335,7 @@ msgstr "La llamada de recuperación de la escritura ha fallado"
 msgid ""
 "%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
+"%1% está muy cerca del área de exclusión, puede conllevar colisiones cuando se imprime."
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
@@ -6297,10 +6346,10 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% es demasiado alto, y se producirán colisiones."
 
 msgid " is too close to others, there may be collisions when printing."
-msgstr ""
+msgstr " está muy cerca de otros, puede conllevar colisiones cuando se imprime"
 
 msgid " is too close to exclusion area, there may be collisions when printing."
-msgstr ""
+msgstr " está muy cerca del área de exclusión, puede conllevar colisiones cuando se imprime."
 
 msgid "Prime Tower"
 msgstr "Torre principal"
