@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 18:30+0800\n"
+"POT-Creation-Date: 2023-06-30 19:27+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3056,6 +3056,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "Er bevind zich een object buiten de grenzen van de printplaat."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Een G-code pad treedt buiten de grenzen van de printplaat."
 
@@ -3604,9 +3607,6 @@ msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr ""
 "De printer is bezig met downloaden. Wacht tot het downloaden is voltooid."
 
-msgid "Initializing..."
-msgstr "Initialiseren..."
-
 msgid "Loading..."
 msgstr "Laden..."
 
@@ -3618,6 +3618,9 @@ msgstr "Initialisatie mislukt (niet toegankelijk in alleen LAN-modus)!"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialisatie is mislukt (LAN-IP van de printer ontbreekt)!"
+
+msgid "Initializing..."
+msgstr "Initialiseren..."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -9440,6 +9443,12 @@ msgstr "Rangschik opties"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Rangschik opties: 0-uitzetten, 1-aanzetten, anders-automatisch"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Eenheid converteren"
 
@@ -9633,6 +9642,12 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgstr ""
+
+msgid "Please input a valid value (N in 0.6~2.0)"
+msgstr ""
+
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -9704,6 +9719,9 @@ msgstr ""
 msgid "Saved success."
 msgstr ""
 
+msgid "FAILED"
+msgstr ""
+
 msgid ""
 "Are you sure you want to cancel this calibration? It will return to start "
 "page"
@@ -9759,9 +9777,6 @@ msgid "Material"
 msgstr ""
 
 msgid "K"
-msgstr ""
-
-msgid "N"
 msgstr ""
 
 msgid "Action"

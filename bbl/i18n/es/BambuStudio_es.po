@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 18:30+0800\n"
+"POT-Creation-Date: 2023-06-30 19:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3063,6 +3063,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "Un objeto está sobre el límite de la placa."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Una ruta de código G va más allá del límite de la placa."
 
@@ -3611,9 +3614,6 @@ msgstr ""
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr "La impresora está descargando; espere a que finalice la descarga."
 
-msgid "Initializing..."
-msgstr "Iniciando..."
-
 msgid "Loading..."
 msgstr "Cargando..."
 
@@ -3625,6 +3625,9 @@ msgstr "Error de inicialización (no se puede acceder en modo LAN)."
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "¡Fallo en la inicialización (falta la IP LAN de la impresora)!"
+
+msgid "Initializing..."
+msgstr "Iniciando..."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -9418,6 +9421,12 @@ msgstr "Opciones de posicionamiento"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Opciones de posicionamiento: 0-desactivar, 1-activar, otras-auto"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Convertir Unidad"
 
@@ -9611,6 +9620,12 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgstr ""
+
+msgid "Please input a valid value (N in 0.6~2.0)"
+msgstr ""
+
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -9682,6 +9697,9 @@ msgstr ""
 msgid "Saved success."
 msgstr ""
 
+msgid "FAILED"
+msgstr ""
+
 msgid ""
 "Are you sure you want to cancel this calibration? It will return to start "
 "page"
@@ -9737,9 +9755,6 @@ msgid "Material"
 msgstr ""
 
 msgid "K"
-msgstr ""
-
-msgid "N"
 msgstr ""
 
 msgid "Action"

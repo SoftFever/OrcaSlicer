@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 18:30+0800\n"
+"POT-Creation-Date: 2023-06-30 19:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2989,6 +2989,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "객체가 빌드 플레이트 경계 위에 놓여 있습니다."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "G코드 경로가 빌드플레이트 경계를 넘어갑니다."
 
@@ -3534,9 +3537,6 @@ msgstr "Initialization failed (No Camera Device)!"
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr "Printer is busy downloading; please wait for the download to finish."
 
-msgid "Initializing..."
-msgstr "초기화 중 ..."
-
 msgid "Loading..."
 msgstr "로드 중…"
 
@@ -3548,6 +3548,9 @@ msgstr "Initialization failed (Not accessible in LAN-only mode)!"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialization failed (Missing LAN IP of printer)!"
+
+msgid "Initializing..."
+msgstr "초기화 중 ..."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -9129,6 +9132,12 @@ msgstr "정렬 옵션"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "정렬 옵션: 0 비활성화, 1 활성화, 기타 - 자동"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "단위 변환"
 
@@ -9320,6 +9329,12 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgstr ""
+
+msgid "Please input a valid value (N in 0.6~2.0)"
+msgstr ""
+
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -9391,6 +9406,9 @@ msgstr ""
 msgid "Saved success."
 msgstr ""
 
+msgid "FAILED"
+msgstr ""
+
 msgid ""
 "Are you sure you want to cancel this calibration? It will return to start "
 "page"
@@ -9446,9 +9464,6 @@ msgid "Material"
 msgstr ""
 
 msgid "K"
-msgstr ""
-
-msgid "N"
 msgstr ""
 
 msgid "Action"

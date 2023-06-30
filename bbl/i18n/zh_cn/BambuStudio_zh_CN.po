@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 18:30+0800\n"
+"POT-Creation-Date: 2023-06-30 19:27+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2038,7 +2038,9 @@ msgid ""
 "replenishment is currently not possible. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
-msgstr "当前无相同的备用耗材，暂时无法自动补给。\n（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
+msgstr ""
+"当前无相同的备用耗材，暂时无法自动补给。\n"
+"（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -2916,6 +2918,9 @@ msgstr "发现gcode路径在层%d处的冲突。请将有冲突的对象分离�
 msgid "An object is layed over the boundary of plate."
 msgstr "检测到有对象放在盘的边界上。"
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "检测超出热床边界的G-code路径。"
 
@@ -3458,9 +3463,6 @@ msgstr "初始化失败（没有摄像头）"
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr "打印机正在下载，请等待下载结束。"
 
-msgid "Initializing..."
-msgstr "正在初始化……"
-
 msgid "Loading..."
 msgstr "正在加载视频……"
 
@@ -3472,6 +3474,9 @@ msgstr "初始化失败（在局域网模式中不可访问）！"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初始化失败（未找到打印机的局域网地址）！"
+
+msgid "Initializing..."
+msgstr "正在初始化……"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3594,7 +3599,7 @@ msgstr "加载失败 [%d]"
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] "您将从打印机中删除%u个文件。你确定要继续吗？"
+msgstr[0] "您将从打印机中删除%u个文件。确定要继续吗？"
 
 msgid "Delete files"
 msgstr "删除文件"
@@ -8765,6 +8770,12 @@ msgstr "摆放选项"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "摆放选项：0-关闭，1-开启，其他-自动"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "转换单位"
 
@@ -8950,6 +8961,12 @@ msgstr "流速"
 msgid "Max Volumetric Speed"
 msgstr "最大容积速度"
 
+msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgstr ""
+
+msgid "Please input a valid value (N in 0.6~2.0)"
+msgstr ""
+
 msgid "Plate Type"
 msgstr "热床类型"
 
@@ -9021,6 +9038,9 @@ msgstr "打印参数为空，请重新选择喷嘴和打印板类型。"
 msgid "Saved success."
 msgstr "保存成功"
 
+msgid "FAILED"
+msgstr ""
+
 msgid ""
 "Are you sure you want to cancel this calibration? It will return to start "
 "page"
@@ -9078,9 +9098,6 @@ msgid "Material"
 msgstr "材料"
 
 msgid "K"
-msgstr ""
-
-msgid "N"
 msgstr ""
 
 msgid "Action"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 18:30+0800\n"
+"POT-Creation-Date: 2023-06-30 19:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3042,6 +3042,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "Egy objektum a tálca határvonalán túlra került."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "A G-kód útvonala túlmegy a tálca peremén."
 
@@ -3591,9 +3594,6 @@ msgstr ""
 "A nyomtató a letöltéssel van elfoglalva; kérjük, várd meg, amíg a letöltés "
 "befejeződik."
 
-msgid "Initializing..."
-msgstr "Inicializálás…"
-
 msgid "Loading..."
 msgstr "Betöltés…"
 
@@ -3605,6 +3605,9 @@ msgstr "Sikertelen inicializálás (nem elérhető LAN-módban)!"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Az inicializálás sikertelen (hiányzó nyomtató LAN IP-cím)!"
+
+msgid "Initializing..."
+msgstr "Inicializálás…"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -9349,6 +9352,12 @@ msgstr "Elrendezési lehetőségek"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Elrendezési lehetőségek: 0-letiltás, 1-engedélyezés, egyéb-auto"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Mértékegység átváltása"
 
@@ -9540,6 +9549,12 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgstr ""
+
+msgid "Please input a valid value (N in 0.6~2.0)"
+msgstr ""
+
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -9611,6 +9626,9 @@ msgstr ""
 msgid "Saved success."
 msgstr ""
 
+msgid "FAILED"
+msgstr ""
+
 msgid ""
 "Are you sure you want to cancel this calibration? It will return to start "
 "page"
@@ -9666,9 +9684,6 @@ msgid "Material"
 msgstr ""
 
 msgid "K"
-msgstr ""
-
-msgid "N"
 msgstr ""
 
 msgid "Action"

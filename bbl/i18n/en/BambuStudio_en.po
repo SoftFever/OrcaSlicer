@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 18:30+0800\n"
+"POT-Creation-Date: 2023-06-30 19:27+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3008,6 +3008,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "An object is laid over the boundary of the plate."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "A G-code path goes beyond plate boundaries."
 
@@ -3555,9 +3558,6 @@ msgstr "Initialization failed (No Camera Device)!"
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr "Printer is busy downloading; please wait for the download to finish."
 
-msgid "Initializing..."
-msgstr "Initializing..."
-
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -3569,6 +3569,9 @@ msgstr "Initialization failed (Not accessible in LAN-only mode)!"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialization failed (Missing LAN IP of printer)!"
+
+msgid "Initializing..."
+msgstr "Initializing..."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -9231,6 +9234,12 @@ msgstr "Arrange Options"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Arrange options: 0-disable, 1-enable, others-auto"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Convert Unit"
 
@@ -9422,6 +9431,12 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgstr ""
+
+msgid "Please input a valid value (N in 0.6~2.0)"
+msgstr ""
+
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -9493,6 +9508,9 @@ msgstr ""
 msgid "Saved success."
 msgstr ""
 
+msgid "FAILED"
+msgstr ""
+
 msgid ""
 "Are you sure you want to cancel this calibration? It will return to start "
 "page"
@@ -9548,9 +9566,6 @@ msgid "Material"
 msgstr ""
 
 msgid "K"
-msgstr ""
-
-msgid "N"
 msgstr ""
 
 msgid "Action"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-27 18:30+0800\n"
+"POT-Creation-Date: 2023-06-30 19:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3084,6 +3084,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "Ein Objekt ragt über die Begrenzung der Druckplatte."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Ein G-Code-Pfad geht über die Begrenzung der Druckplatte hinaus."
 
@@ -3640,9 +3643,6 @@ msgstr ""
 "Der Drucker ist mit dem Herunterladen beschäftigt; Bitte warten Sie, bis der "
 "Download beendet ist."
 
-msgid "Initializing..."
-msgstr "Initialisieren..."
-
 msgid "Loading..."
 msgstr "Laden..."
 
@@ -3654,6 +3654,9 @@ msgstr "Initialisierung fehlgeschlagen (Kein Zugriff im reinen LAN-Modus)!"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialisierung fehlgeschlagen (Fehlende LAN IP des Druckers)!"
+
+msgid "Initializing..."
+msgstr "Initialisieren..."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -9487,6 +9490,12 @@ msgstr "Anordnungsoptionen"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Anordnungsoptionen: 0-deaktiviert; 1-aktiviert; andere-automatisch"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Einheit umrechnen"
 
@@ -9682,6 +9691,12 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgstr ""
+
+msgid "Please input a valid value (N in 0.6~2.0)"
+msgstr ""
+
 msgid "Plate Type"
 msgstr "Druckbetttyp"
 
@@ -9753,6 +9768,9 @@ msgstr ""
 msgid "Saved success."
 msgstr ""
 
+msgid "FAILED"
+msgstr ""
+
 msgid ""
 "Are you sure you want to cancel this calibration? It will return to start "
 "page"
@@ -9808,9 +9826,6 @@ msgid "Material"
 msgstr ""
 
 msgid "K"
-msgstr ""
-
-msgid "N"
 msgstr ""
 
 msgid "Action"
