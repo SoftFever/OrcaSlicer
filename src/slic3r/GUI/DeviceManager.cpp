@@ -1473,13 +1473,19 @@ int MachineObject::command_get_version(bool with_retry)
     return this->publish_json(j.dump(), 1);
 }
 
-int MachineObject::command_request_push_all()
+int MachineObject::command_request_push_all(bool request_now)
 {
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_push);
     if (diff.count() < REQUEST_PUSH_MIN_TIME) {
-        BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << dev_id;
-        return -1;
+        if (request_now) {
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << dev_id;
+            last_request_push = std::chrono::system_clock::now();
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all: send request too fast, dev_id=" << dev_id;
+            return -1;
+        }
     } else {
         BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << dev_id;
         last_request_push = std::chrono::system_clock::now();

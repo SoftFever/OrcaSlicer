@@ -775,7 +775,7 @@ public:
     bool is_studio_cmd(int seq);
     /* command commands */
     int command_get_version(bool with_retry = true);
-    int command_request_push_all();
+    int command_request_push_all(bool request_now = false);
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
 

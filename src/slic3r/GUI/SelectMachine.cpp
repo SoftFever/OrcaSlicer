@@ -2958,7 +2958,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         }
     }
 
-    if (obj && !obj->get_lan_mode_connection_state()) {
+    if (obj) {
         obj->command_get_version();
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
