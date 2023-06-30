@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.07.00.02",
+    "version": "01.07.00.03",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -16,6 +16,10 @@
         {
             "name": "Bambu Lab P1P",
             "sub_path": "machine/Bambu Lab P1P.json"
+        },
+        {
+            "name": "Bambu Lab P1S",
+            "sub_path": "machine/Bambu Lab P1S.json"
         }
     ],
     "process_list": [
@@ -1046,6 +1050,22 @@
         {
             "name": "Bambu Lab P1P 0.8 nozzle",
             "sub_path": "machine/Bambu Lab P1P 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.2 nozzle",
+            "sub_path": "machine/Bambu Lab P1S 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.6 nozzle",
+            "sub_path": "machine/Bambu Lab P1S 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.8 nozzle",
+            "sub_path": "machine/Bambu Lab P1S 0.8 nozzle.json"
         }
     ]
 }
