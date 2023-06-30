@@ -42,3 +42,28 @@ jobs:
         with:
           name: BambuStudio_Linux
           path: './build/BambuStudio_ubu64.AppImage'
+
+  appimage-builder-u2004:
+    name: Linux AppImage Build Ubuntu 20.04
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+      - name: Build
+        shell: bash
+        run: |
+          rm -rf build
+          podman buildx build -t bambu-studio-builder:latest .
+          podman run -d -it --name bambu-studio-builder bambu-studio-builder:latest /bin/bash -c 'tail -f /dev/null'
+          podman cp bambu-studio-builder:/BambuStudio/build/BambuStudio_ubu64.AppImage ./
+          podman stop bambu-studio-builder
+          podman rm bambu-studio-builder
+      - uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio_Linux
+          path: './BambuStudio_ubu64.AppImage'
