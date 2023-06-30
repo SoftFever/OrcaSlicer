@@ -406,6 +406,9 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 
             gcode = std::stringstream(); // reset for next layer contents
             gcode << "; start pressure advance pattern for layer\n";
+            
+            double layer_height = m_height_first_layer + (i * m_height_layer);
+            gcode << m_writer.travel_to_z(layer_height, "Move to layer height");
         }
 
         // // line numbering
