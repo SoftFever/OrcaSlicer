@@ -20,6 +20,7 @@ namespace Slic3r
 {
 class PrintObject;
 class TreeSupport;
+class SupportLayer;
 
 struct LayerHeightData
 {
@@ -494,6 +495,14 @@ private:
     Polygons contact_nodes_to_polygon(const std::vector<Node*>& contact_nodes, Polygons layer_contours, int layer_nr, std::vector<double>& radiis, std::vector<bool>& is_interface);
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);
     coordf_t calc_branch_radius(coordf_t base_radius, coordf_t mm_to_top, double diameter_angle_scale_factor);
+
+    // similar to SupportMaterial::trim_support_layers_by_object
+    Polygons get_trim_support_regions(
+        const PrintObject& object,
+        SupportLayer* support_layer_ptr,
+        const coordf_t       gap_extra_above,
+        const coordf_t       gap_extra_below,
+        const coordf_t       gap_xy);
 };
 
 }

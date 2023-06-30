@@ -2834,41 +2834,10 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
     return bottom_contacts;
 }
 
-// FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
-// Find the first item with Z value >= of an internal threshold of fn_higher_equal.
-// If no vec item with Z value >= of an internal threshold of fn_higher_equal is found, return vec.size()
-// If the initial idx is size_t(-1), then use binary search.
-// Otherwise search linearly upwards.
-template<typename IteratorType, typename IndexType, typename FN_HIGHER_EQUAL>
-IndexType idx_higher_or_equal(IteratorType begin, IteratorType end, IndexType idx, FN_HIGHER_EQUAL fn_higher_equal)
-{
-    auto size = int(end - begin);
-    if (size == 0) {
-        idx = 0;
-    } else if (idx == IndexType(-1)) {
-        // First of the batch of layers per thread pool invocation. Use binary search.
-        int idx_low  = 0;
-        int idx_high = std::max(0, size - 1);
-        while (idx_low + 1 < idx_high) {
-            int idx_mid  = (idx_low + idx_high) / 2;
-            if (fn_higher_equal(begin[idx_mid]))
-                idx_high = idx_mid;
-            else
-                idx_low  = idx_mid;
-        }
-        idx =  fn_higher_equal(begin[idx_low])  ? idx_low  :
-              (fn_higher_equal(begin[idx_high]) ? idx_high : size);
-    } else {
-        // For the other layers of this batch of layers, search incrementally, which is cheaper than the binary search.
-        while (int(idx) < size && ! fn_higher_equal(begin[idx]))
-            ++ idx;
-    }
-    return idx;
-}
 template<typename T, typename IndexType, typename FN_HIGHER_EQUAL>
 IndexType idx_higher_or_equal(const std::vector<T>& vec, IndexType idx, FN_HIGHER_EQUAL fn_higher_equal)
 {
-    return idx_higher_or_equal(vec.begin(), vec.end(), idx, fn_higher_equal);
+    return Layer::idx_higher_or_equal(vec.begin(), vec.end(), idx, fn_higher_equal);
 }
 
 // FN_LOWER_EQUAL: the provided object pointer has a Z value <= of an internal threshold.
@@ -3353,7 +3322,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 assert(! support_layer.polygons.empty() && support_layer.print_z >= m_slicing_params.raft_contact_top_z + EPSILON);
                 // Find the overlapping object layers including the extra above / below gap.
                 coordf_t z_threshold = support_layer.bottom_print_z() - gap_extra_below + EPSILON;
-                idx_object_layer_overlapping = idx_higher_or_equal(
+                idx_object_layer_overlapping = Layer::idx_higher_or_equal(
                     object.layers().begin(), object.layers().end(), idx_object_layer_overlapping,
                     [z_threshold](const Layer *layer){ return layer->print_z >= z_threshold; });
                 // Collect all the object layers intersecting with this layer.

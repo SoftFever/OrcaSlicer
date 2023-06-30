@@ -196,6 +196,40 @@ public:
     //BBS: this function calculate the maximum void grid area of sparse infill of this layer. Just estimated value
     coordf_t get_sparse_infill_max_void_area();
 
+    // FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
+    // Find the first item with Z value >= of an internal threshold of fn_higher_equal.
+    // If no vec item with Z value >= of an internal threshold of fn_higher_equal is found, return vec.size()
+    // If the initial idx is size_t(-1), then use binary search.
+    // Otherwise search linearly upwards.
+    template<typename IteratorType, typename IndexType, typename FN_HIGHER_EQUAL>
+    static IndexType idx_higher_or_equal(IteratorType begin, IteratorType end, IndexType idx, FN_HIGHER_EQUAL fn_higher_equal)
+    {
+        auto size = int(end - begin);
+        if (size == 0) {
+            idx = 0;
+            }
+        else if (idx == IndexType(-1)) {
+            // First of the batch of layers per thread pool invocation. Use binary search.
+            int idx_low = 0;
+            int idx_high = std::max(0, size - 1);
+            while (idx_low + 1 < idx_high) {
+                int idx_mid = (idx_low + idx_high) / 2;
+                if (fn_higher_equal(begin[idx_mid]))
+                    idx_high = idx_mid;
+                else
+                    idx_low = idx_mid;
+                }
+            idx = fn_higher_equal(begin[idx_low]) ? idx_low :
+                (fn_higher_equal(begin[idx_high]) ? idx_high : size);
+            }
+        else {
+            // For the other layers of this batch of layers, search incrementally, which is cheaper than the binary search.
+            while (int(idx) < size && !fn_higher_equal(begin[idx]))
+                ++idx;
+            }
+        return idx;
+    }
+
 protected:
     friend class PrintObject;
     friend std::vector<Layer*> new_layers(PrintObject*, const std::vector<coordf_t>&);

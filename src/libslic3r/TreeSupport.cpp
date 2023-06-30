@@ -1959,7 +1959,8 @@ coordf_t TreeSupport::calc_branch_radius(coordf_t base_radius, coordf_t mm_to_to
     return radius;
 }
 
-ExPolygons avoid_object_remove_extra_small_parts(ExPolygons &expolys, const ExPolygons &avoid_region) {
+template<typename RegionType> // RegionType could be ExPolygons or Polygons
+ExPolygons avoid_object_remove_extra_small_parts(ExPolygons &expolys, const RegionType&avoid_region) {
     ExPolygons expolys_out;
     for (auto expoly : expolys) {
         auto  expolys_avoid = diff_ex(expoly, avoid_region);
@@ -1975,6 +1976,82 @@ ExPolygons avoid_object_remove_extra_small_parts(ExPolygons &expolys, const ExPo
         if (idx_max_area >= 0) expolys_out.emplace_back(std::move(expolys_avoid[idx_max_area]));
     }
     return expolys_out;
+}
+
+Polygons TreeSupport::get_trim_support_regions(
+    const PrintObject& object,
+    SupportLayer* support_layer_ptr,
+    const coordf_t       gap_extra_above,
+    const coordf_t       gap_extra_below,
+    const coordf_t       gap_xy)
+{
+    static const double sharp_tail_xy_gap = 0.2f;
+    static const double no_overlap_xy_gap = 0.2f;
+    double gap_xy_scaled = scale_(gap_xy);
+    SupportLayer& support_layer = *support_layer_ptr;
+    auto m_print_config = object.print()->config();
+
+    size_t idx_object_layer_overlapping = size_t(-1);
+
+    auto is_layers_overlap = [](const SupportLayer& support_layer, const Layer& object_layer, coordf_t bridging_height = 0.f) -> bool {
+        if (std::abs(support_layer.print_z - object_layer.print_z) < EPSILON)
+            return true;
+
+        coordf_t object_lh = bridging_height > EPSILON ? bridging_height : object_layer.height;
+        if (support_layer.print_z < object_layer.print_z && support_layer.print_z > object_layer.print_z - object_lh)
+            return true;
+
+        if (support_layer.print_z > object_layer.print_z && support_layer.bottom_z() < object_layer.print_z - EPSILON)
+            return true;
+
+        return false;
+        };
+
+    // Find the overlapping object layers including the extra above / below gap.
+    coordf_t z_threshold = support_layer.bottom_z() - gap_extra_below + EPSILON;
+    idx_object_layer_overlapping = Layer::idx_higher_or_equal(
+        object.layers().begin(), object.layers().end(), idx_object_layer_overlapping,
+        [z_threshold](const Layer* layer) { return layer->print_z >= z_threshold; });
+    // Collect all the object layers intersecting with this layer.
+    Polygons polygons_trimming;
+    size_t i = idx_object_layer_overlapping;
+    for (; i < object.layers().size(); ++i) {
+        const Layer& object_layer = *object.layers()[i];
+        if (object_layer.bottom_z() > support_layer.print_z + gap_extra_above - EPSILON)
+            break;
+
+        bool is_overlap = is_layers_overlap(support_layer, object_layer);
+        for (const ExPolygon& expoly : object_layer.lslices) {
+            // BBS
+            bool is_sharptail = !intersection_ex({ expoly }, object_layer.sharp_tails).empty();
+            coordf_t trimming_offset = is_sharptail ? scale_(sharp_tail_xy_gap) :
+                is_overlap ? gap_xy_scaled :
+                scale_(no_overlap_xy_gap);
+            polygons_append(polygons_trimming, offset({ expoly }, trimming_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+            }
+        }
+    if (!m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
+        // Collect all bottom surfaces, which will be extruded with a bridging flow.
+        for (; i < object.layers().size(); ++i) {
+            const Layer& object_layer = *object.layers()[i];
+            bool some_region_overlaps = false;
+            for (LayerRegion* region : object_layer.regions()) {
+                coordf_t bridging_height = region->region().bridging_height_avg(m_print_config);
+                if (object_layer.print_z - bridging_height > support_layer.print_z + gap_extra_above - EPSILON)
+                    break;
+                some_region_overlaps = true;
+
+                bool is_overlap = is_layers_overlap(support_layer, object_layer, bridging_height);
+                coordf_t trimming_offset = is_overlap ? gap_xy_scaled : scale_(no_overlap_xy_gap);
+                polygons_append(polygons_trimming,
+                    offset(region->fill_surfaces.filter_by_type(stBottomBridge), trimming_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                }
+            if (!some_region_overlaps)
+                break;
+            }
+        }
+
+    return polygons_trimming;
 }
 
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)
@@ -2171,7 +2248,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 roof_1st_layer = std::move(offset2_ex(roof_1st_layer, contact_dist_scaled, -contact_dist_scaled));
 
                 // avoid object
-                auto avoid_region_interface = m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr);
+                //ExPolygons avoid_region_interface = m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr);
+                Polygons avoid_region_interface = get_trim_support_regions(*m_object, ts_layer, m_slicing_params.gap_object_support, m_slicing_params.gap_support_object, m_ts_data->m_xy_distance);
                 if (has_circle_node) {
                     roof_areas = avoid_object_remove_extra_small_parts(roof_areas, avoid_region_interface);
                     roof_1st_layer = avoid_object_remove_extra_small_parts(roof_1st_layer, avoid_region_interface);
@@ -2248,7 +2326,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             }
         });
 
-#if 1
+
         if (with_lightning_infill)
         {
             const bool global_lightning_infill = true;
@@ -2320,7 +2398,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         else if (!with_infill) {
             // move the holes to contour so they can be well supported
 
-        // check if poly's contour intersects with expoly's contour
+            // check if poly's contour intersects with expoly's contour
             auto intersects_contour = [](Polygon poly, ExPolygon expoly, Point& pt_on_poly, Point& pt_on_expoly, Point& pt_far_on_poly, float dist_thresh = 0.01) {
                 float min_dist = std::numeric_limits<float>::max();
                 float max_dist = 0;
@@ -2433,7 +2511,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     }
                 }
             }
-#endif
+
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
     for (int layer_nr = m_object->layer_count() - 1; layer_nr >= 0; layer_nr--) {
