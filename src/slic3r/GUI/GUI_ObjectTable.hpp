@@ -571,6 +571,7 @@ public:
     void sort_by_default() { m_object_grid_table->sort_by_default(); }
     wxSize get_init_size();
     void resetAllValuesInSideWindow(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category);
+    void msw_rescale();
 
     //set ObjectGridTable as friend
     friend class     ObjectGridTable;

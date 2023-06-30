@@ -2763,7 +2763,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     //m_page_sizer->Add(m_page_top_sizer, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxALL, 2 );
 
-    auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1,-1), wxTAB_TRAVERSAL);
+    auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(2, -1), wxTAB_TRAVERSAL);
     m_line_left->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
 
 
@@ -3255,6 +3255,10 @@ void ObjectTablePanel::resetAllValuesInSideWindow(int row, bool is_object, Model
     m_object_settings->resetAllValues(row, is_object, object, config, category);
 }
 
+void ObjectTablePanel::msw_rescale() { 
+    m_object_grid->HideRowLabels();
+}
+
 // ----------------------------------------------------------------------------
 // ObjectTableDialog
 // ----------------------------------------------------------------------------
@@ -3294,7 +3298,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     //top line
-    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 2), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
 
@@ -3365,6 +3369,8 @@ void ObjectTableDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     const wxSize& size = wxSize(40 * em, 30 * em);
     SetMinSize(size);
+    m_obj_panel->msw_rescale();
+    
 
     Fit();
     Refresh();
