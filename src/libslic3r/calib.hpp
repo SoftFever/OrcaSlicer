@@ -223,7 +223,12 @@ private:
     double to_radians(double degrees) const { return degrees * M_PI / 180; };
     double get_distance(Vec2d from, Vec2d to);
     
-    // from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
+    /* 
+    from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
+    "spacing" = center-to-center distance of adjacent extrusions, which partially overlap
+        https://manual.slic3r.org/advanced/flow-math
+        https://ellis3dp.com/Print-Tuning-Guide/articles/misconceptions.html#two-04mm-perimeters--08mm
+    */
     double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
     double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
     double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
@@ -232,8 +237,8 @@ private:
     double object_size_y();
     double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
 
-    double glyph_start_x();
-    double glyph_end_x();
+    double glyph_start_x(int pattern_num = 0);
+    double glyph_length_x();
     double glyph_tab_max_x();
     double max_numbering_height();
 
@@ -244,7 +249,7 @@ private:
     const Calib_Params& m_params;
     const PrintConfig& m_config;
     GCodeWriter& m_writer;
-    Vec2d m_starting_point;
+    Vec2d m_starting_point {-1, -1};
     PatternSettings m_pattern_settings;
 
     const double m_handle_xy_size {5};

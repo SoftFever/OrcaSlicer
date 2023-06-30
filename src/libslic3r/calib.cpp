@@ -354,6 +354,7 @@ void CalibPressureAdvancePattern::set_starting_point(Vec2d pt)
     }
 
     m_starting_point = pt;
+    m_last_pos = pt;
 };
 
 CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
@@ -413,22 +414,11 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 
             // glyph on every other line
             for (int j = 0; j < num_patterns; j += 2) {
-                double current_glyph_start_x =
-                    m_starting_point.x() +
-                    (j * (m_pattern_spacing + line_width())) +
-                    (j * ((m_wall_count - 1) * line_spacing_angle())) // this aligns glyph starts with first pattern perim
-                ;
-                // shift glyph center to middle of pattern walls. m_digit_segment_len = half of x width of glyph
-                current_glyph_start_x +=
-                    (((m_wall_count - 1) / 2) * line_spacing_angle()) - m_digit_segment_len
-                ;
-                current_glyph_start_x += pattern_shift();
-
                 gcode << draw_number(
-                    current_glyph_start_x,
+                    glyph_start_x(j),
                     m_starting_point.y() + frame_size_y() + m_glyph_padding_vertical + line_width(),
                     m_params.start + (j * m_params.step),
-                    DrawDigitMode::Bottom_To_Top,
+                    m_draw_digit_mode,
                     m_line_width,
                     m_height_layer,
                     m_writer
@@ -442,8 +432,8 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
         double to_y = m_starting_point.y();
         double side_length = m_wall_side_length;
 
+        // shrink first layer to fit inside frame
         if (i == 0) {
-            // shrink first layer to fit inside frame
             double shrink =
                 (
                     line_spacing_anchor() * (m_anchor_perimeters - 1) +
@@ -748,30 +738,55 @@ double CalibPressureAdvancePattern::object_size_y()
         line_width_anchor();
 }
 
-double CalibPressureAdvancePattern::glyph_start_x()
+double CalibPressureAdvancePattern::glyph_start_x(int pattern_i)
 {
-    return
+    // note that pattern_i is zero-based!
+    // align glyph's start with first perimeter of specified pattern
+    double x =
+        // starting offset
         m_starting_point.x() +
-        (((m_wall_count - 1) / 2) * line_spacing_angle() - 2)
+        pattern_shift() +
+
+        // width of pattern extrusions
+        pattern_i * (m_wall_count - 1) * line_spacing_angle() + // center to center distance of extrusions
+        pattern_i * line_width() + // endcaps. center to end on either side = 1 line width
+
+        // space between each pattern
+        pattern_i * m_pattern_spacing
     ;
+
+    // align to middle of pattern walls
+    x += m_wall_count * line_spacing_angle() / 2;
+
+    // shift so glyph is centered on pattern
+    // m_digit_segment_len = half of X length of glyph
+    x -= (glyph_length_x() / 2);
+
+    return x;
 }
 
-double CalibPressureAdvancePattern::glyph_end_x()
-{
-    return
-        m_starting_point.x() +
-        (get_num_patterns() - 1) * (m_pattern_spacing + line_width()) +
-        (get_num_patterns() - 1) * ((m_wall_count - 1) * line_spacing_angle()) +
-        4
-    ;
+double CalibPressureAdvancePattern::glyph_length_x() {
+    // half of line_width sticks out on each side
+    return line_width() + (2 * m_digit_segment_len);
 }
 
 double CalibPressureAdvancePattern::glyph_tab_max_x()
 {
+    // only every other glyph is shown, starting with 1
+    int num = get_num_patterns();
+    int max_num =
+        (num % 2 == 0)
+        ? num - 1
+        : num
+    ;
+
+    // padding at end should be same as padding at start
+    double padding = glyph_start_x(0) - m_starting_point.x();
+    
     return
-        glyph_end_x() +
-        m_glyph_padding_horizontal +
-        line_width_anchor() / 2
+        glyph_start_x(max_num - 1) + // glyph_start_x is zero-based
+        (glyph_length_x() - line_width() / 2) +
+        padding
     ;
 }
 
@@ -796,15 +811,10 @@ double CalibPressureAdvancePattern::max_numbering_height()
 
 double CalibPressureAdvancePattern::pattern_shift()
 {
-    auto shift =
-        m_starting_point.x() -
-        glyph_start_x() +
+    return
+        (m_anchor_perimeters - 1) * line_spacing_anchor() +
+        line_width_anchor() +
         m_glyph_padding_horizontal
     ;
-
-    if (shift > 0) {
-        return shift + line_width_anchor() / 2;
-    }
-    return 0;
 }
 } // namespace Slic3r
