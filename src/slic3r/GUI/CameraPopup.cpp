@@ -297,11 +297,20 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
         auto curr_res = to_resolution_msg_string(CameraResolution(i));
         std::vector <std::string> ::iterator it = std::find(resolution_supported.begin(), resolution_supported.end(), curr_res);
         if ((it == resolution_supported.end())||(support_count <= 1) || !obj->is_support_1080dpi)
-            m_resolution_options[i] -> Hide();
+            m_resolution_options[i]->Hide();
+        else {
+            m_resolution_options[i]->Show();
+            if (m_obj->camera_resolution == curr_res) {
+                resolution_rbtns[i]->SetValue(true);
+            }
+        }
     }
     //hide resolution if there is only one choice
     if (support_count <= 1 || !obj->is_support_1080dpi) {
         m_text_resolution->Hide();
+    }
+    else {
+        m_text_resolution->Show();
     }
 }
 

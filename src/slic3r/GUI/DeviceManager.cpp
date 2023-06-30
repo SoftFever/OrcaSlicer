@@ -2336,7 +2336,7 @@ void MachineObject::reset()
     camera_recording = false;
     camera_recording_when_printing = false;
     camera_timelapse = false;
-    camera_resolution = "";
+    //camera_resolution = "";
     printing_speed_mag = 100;
     gcode_file_prepare_percent = 0;
     iot_print_status = "";
