@@ -880,41 +880,51 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     return {};
 }
 
-//BBS
-static std::map<std::string, bool> filament_is_high_temp {
-        {"PLA",     false},
-        {"PLA-CF",  false},
-        //{"PETG",    true},
-        {"ABS",     true},
-        {"TPU",     false},
-        {"PA",      true},
-        {"PA-CF",   true},
-        {"PET-CF",  true},
-        {"PC",      true},
-        {"ASA",     true},
-        {"HIPS",    true}
-};
-
-//BBS: this function is used to check whether multi filament can be printed
-StringObjectException Print::check_multi_filament_valid(const Print& print)
+bool Print::check_multi_filaments_compatibility(const std::vector<std::string>& filament_types)
 {
+    static std::map<std::string, bool> filament_is_high_temp{
+            {"PLA",     false},
+            {"PLA-CF",  false},
+            //{"PETG",    true},
+            {"ABS",     true},
+            {"TPU",     false},
+            {"PA",      true},
+            {"PA-CF",   true},
+            {"PET-CF",  true},
+            {"PC",      true},
+            {"ASA",     true},
+            {"HIPS",    true}
+    };
+
     bool has_high_temperature_filament = false;
     bool has_low_temperature_filament = false;
 
-    auto print_config = print.config();
-    std::vector<unsigned int> extruders = print.extruders();
-
-    for (const auto& extruder_idx : extruders) {
-        std::string filament_type = print_config.filament_type.get_at(extruder_idx);
-        if (filament_is_high_temp.find(filament_type) != filament_is_high_temp.end()) {
-            if (filament_is_high_temp[filament_type])
+    for (const auto& type : filament_types)
+        if (filament_is_high_temp.find(type) != filament_is_high_temp.end()) {
+            if (filament_is_high_temp[type])
                 has_high_temperature_filament = true;
             else
                 has_low_temperature_filament = true;
         }
-    }
 
     if (has_high_temperature_filament && has_low_temperature_filament)
+        return false;
+
+    return true;
+}
+
+//BBS: this function is used to check whether multi filament can be printed
+StringObjectException Print::check_multi_filament_valid(const Print& print)
+{
+    auto print_config = print.config();
+    std::vector<unsigned int> extruders = print.extruders();
+    std::vector<std::string> filament_types;
+    filament_types.reserve(extruders.size());
+
+    for (const auto& extruder_idx : extruders)
+        filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
+
+    if (!check_multi_filaments_compatibility(filament_types))
         return { L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
 
     return {std::string()};

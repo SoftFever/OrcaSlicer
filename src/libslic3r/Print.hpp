@@ -819,6 +819,8 @@ public:
     // scaled point
     Vec2d translate_to_print_space(const Point& point) const;
 
+    static bool check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
+
 protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
