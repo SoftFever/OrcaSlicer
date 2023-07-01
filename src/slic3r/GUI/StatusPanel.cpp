@@ -2132,14 +2132,11 @@ void StatusPanel::update_ams(MachineObject *obj)
         } else {
             // wait to heat hotend
             if (obj->ams_status_sub == 0x02) {
-                if (curr_ams_id == obj->m_ams_id) {
-                    if (!obj->is_ams_unload()) {
-                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_LOAD);
-                    } else {
-                        m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_UNLOAD);
-                    }
-                } else {
-                    m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_LOAD);
+                }
+                else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (obj->ams_status_sub == 0x03) {
                 if (!obj->is_ams_unload()) {
