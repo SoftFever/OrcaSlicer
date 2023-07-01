@@ -1028,15 +1028,15 @@ void GUI_App::post_init()
                 if ( boost::starts_with(input_str, "http://") ||  boost::starts_with(input_str, "https://")) {
                     download_url = input_str;
                 }
- 
+
             }
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("download_url %1%") % download_url;
-            
+
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url).ToStdString();
             }
- 
+
         }
         else {
             switch_to_3d = true;
@@ -2259,7 +2259,7 @@ bool GUI_App::OnInit()
 class wxBoostLog : public wxLog
 {
     void DoLogText(const wxString &msg) override {
-        
+
         BOOST_LOG_TRIVIAL(warning) << msg.ToUTF8().data();
     }
     ~wxBoostLog() override
@@ -2749,7 +2749,7 @@ bool GUI_App::on_init_inner()
             }
 
             update_publish_status();
-            
+
         }
     });
 
@@ -4939,13 +4939,14 @@ bool GUI_App::select_language()
 // based on the "language" key stored in the application config.
 bool GUI_App::load_language(wxString language, bool initial)
 {
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: language %2%, initial: %3%") %__FUNCTION__ %language %initial;
     if (initial) {
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by BambuStudio.conf: %1%") % language;
+        	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by BambuStudio.conf: %1%") % language;
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
@@ -4959,7 +4960,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                 if (auto info = wxLocale::FindLanguageInfo(lang))
                     m_language_info_system = info;
 #endif
-                BOOST_LOG_TRIVIAL(trace) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
+                BOOST_LOG_TRIVIAL(info) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
                 // BBS set language to app config
                 app_config->set("language", m_language_info_system->CanonicalName.ToUTF8().data());
             } else {
@@ -4977,7 +4978,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                     wxString best_language = wxTranslations::Get()->GetBestTranslation(SLIC3R_APP_KEY, wxLANGUAGE_ENGLISH);
                     if (!best_language.IsEmpty()) {
                         m_language_info_best = wxLocale::FindLanguageInfo(best_language);
-                        BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") %
+                        BOOST_LOG_TRIVIAL(info) << boost::format("Best translation language detected (may be different from user locales): %1%") %
                                                         m_language_info_best->CanonicalName.ToUTF8().data();
                         app_config->set("language", m_language_info_best->CanonicalName.ToUTF8().data());
                     }
@@ -5002,7 +5003,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 	}
 
 	if (language_info != nullptr && language_info->LayoutDirection == wxLayout_RightToLeft) {
-    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by BambuStudio: %1%") % language_info->CanonicalName.ToUTF8().data();
+    	BOOST_LOG_TRIVIAL(info) << boost::format("The following language code requires right to left layout, which is not supported by BambuStudio: %1%") % language_info->CanonicalName.ToUTF8().data();
 		language_info = nullptr;
 	}
 
@@ -5016,7 +5017,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 			language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_US);
     }
 
-	BOOST_LOG_TRIVIAL(trace) << boost::format("Switching wxLocales to %1%") % language_info->CanonicalName.ToUTF8().data();
+	BOOST_LOG_TRIVIAL(info) << boost::format("Switching wxLocales to %1%") % language_info->CanonicalName.ToUTF8().data();
 
     // Select language for locales. This language may be different from the language of the dictionary.
     //if (language_info == m_language_info_best || language_info == m_language_info_system) {
@@ -5033,7 +5034,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     if (language_info->CanonicalName.BeforeFirst('_') == "sk") {
     	// Slovaks understand Czech well. Give them the Czech translation.
     	language_dict = wxLANGUAGE_CZECH;
-		BOOST_LOG_TRIVIAL(trace) << "Using Czech dictionaries for Slovak language";
+		BOOST_LOG_TRIVIAL(info) << "Using Czech dictionaries for Slovak language";
     }
 
 #ifdef __linux__
@@ -5042,7 +5043,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     if (! wxLocale::IsAvailable(language_info->Language) && m_language_info_system) {
         std::string original_lang = into_u8(language_info->CanonicalName);
         language_info = linux_get_existing_locale_language(language_info, m_language_info_system);
-        BOOST_LOG_TRIVIAL(trace) << boost::format("Can't switch language to %1% (missing locales). Using %2% instead.")
+        BOOST_LOG_TRIVIAL(info) << boost::format("Can't switch language to %1% (missing locales). Using %2% instead.")
                                     % original_lang % language_info->CanonicalName.ToUTF8().data();
     }
 #endif
@@ -5191,8 +5192,8 @@ void GUI_App::update_mode()
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
-void GUI_App::update_internal_development() { 
-    mainframe->m_webview->update_mode(); 
+void GUI_App::update_internal_development() {
+    mainframe->m_webview->update_mode();
 }
 
 void GUI_App::show_ip_address_enter_dialog(wxString title)
