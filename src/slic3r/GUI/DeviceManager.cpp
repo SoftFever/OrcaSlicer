@@ -2326,6 +2326,7 @@ void MachineObject::reset()
     print_status = "";
     last_mc_print_stage = -1;
     m_new_ver_list_exist = false;
+    m_is_support_show_bak = false;
     extruder_axis_status = LOAD;
     nozzle_diameter = 0.0f;
 
@@ -2938,12 +2939,16 @@ int MachineObject::parse_json(std::string payload)
                     /*get filam_bak*/
                     try {
                         if (jj.contains("filam_bak")) {
+                            m_is_support_show_bak = true;
                             filam_bak.clear();
                             if (jj["filam_bak"].is_array()) {
                                 for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
                                     filam_bak.push_back(it.value().get<int>());
                                 }
                             }
+                        }
+                        else {
+                            m_is_support_show_bak = false;
                         }
                     }
                     catch (...) {

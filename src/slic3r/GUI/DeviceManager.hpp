@@ -495,6 +495,7 @@ public:
     std::string product_name;       // set by iot service, get /user/print
 
     std::vector<int> filam_bak;
+    bool m_is_support_show_bak{false};
 
     std::string bind_user_name;
     std::string bind_user_id;
