@@ -492,7 +492,6 @@ void MediaPlayCtrl::media_proc()
             BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: busy skip url" << url;
             m_tasks.pop_front();
             m_tasks.pop_front();
-            lock.unlock();
             continue;
         }
         lock.unlock();
