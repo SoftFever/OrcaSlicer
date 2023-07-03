@@ -428,6 +428,7 @@ public:
     void         set_shared_object(PrintObject *object);
     void         clear_shared_object();
     void         copy_layers_from_shared_object();
+    void         copy_layers_overhang_from_shared_object();
 
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;

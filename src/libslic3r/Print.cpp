@@ -1398,6 +1398,20 @@ void  PrintObject::copy_layers_from_shared_object()
     }
 }
 
+void  PrintObject::copy_layers_overhang_from_shared_object()
+{
+    if (m_shared_object) {
+        for (size_t index = 0; index <  m_layers.size() && index <  m_shared_object->m_layers.size(); index++)
+        {
+            Layer* layer_src = m_layers[index];
+            layer_src->loverhangs = m_shared_object->m_layers[index]->loverhangs;
+            layer_src->loverhangs_bbox = m_shared_object->m_layers[index]->loverhangs_bbox;
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layer overhang from object %2%")%this%m_shared_object;
+    }
+}
+
+
 // BBS
 BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std::string& name)
 {
@@ -1499,6 +1513,7 @@ void Print::process(bool use_cache)
     };
     int object_count = m_objects.size();
     std::set<PrintObject*> need_slicing_objects;
+    std::set<PrintObject*> re_slicing_objects;
     if (!use_cache) {
         for (int index = 0; index < object_count; index++)
         {
@@ -1535,8 +1550,12 @@ void Print::process(bool use_cache)
                     }
                 }
                 if (!found_shared) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("Also can not find the shared object, identify_id %1%")%obj->model_object()->instances[0]->loaded_id;
-                    throw Slic3r::SlicingError("Can not find the cached data.");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("Also can not find the shared object, identify_id %1%, maybe shared object is skipped")%obj->model_object()->instances[0]->loaded_id;
+                    //throw Slic3r::SlicingError("Can not find the cached data.");
+                    //don't report errot, set use_cache to false, and reslice these objects
+                    need_slicing_objects.insert(obj);
+                    re_slicing_objects.insert(obj);
+                    //use_cache = false;
                 }
             }
         }
@@ -1594,18 +1613,26 @@ void Print::process(bool use_cache)
     }
     else {
         for (PrintObject *obj : m_objects) {
-            if (obj->set_started(posSlice))
-                obj->set_done(posSlice);
-            if (obj->set_started(posPerimeters))
-                obj->set_done(posPerimeters);
-            if (obj->set_started(posPrepareInfill))
-                obj->set_done(posPrepareInfill);
-            if (obj->set_started(posInfill))
-                obj->set_done(posInfill);
-            if (obj->set_started(posIroning))
-                obj->set_done(posIroning);
-            if (obj->set_started(posSupportMaterial))
-                obj->set_done(posSupportMaterial);
+            if (re_slicing_objects.count(obj) == 0) {
+                if (obj->set_started(posSlice))
+                    obj->set_done(posSlice);
+                if (obj->set_started(posPerimeters))
+                    obj->set_done(posPerimeters);
+                if (obj->set_started(posPrepareInfill))
+                    obj->set_done(posPrepareInfill);
+                if (obj->set_started(posInfill))
+                    obj->set_done(posInfill);
+                if (obj->set_started(posIroning))
+                    obj->set_done(posIroning);
+                if (obj->set_started(posSupportMaterial))
+                    obj->set_done(posSupportMaterial);
+            }
+            else {
+                obj->make_perimeters();
+                obj->infill();
+                obj->ironing();
+                obj->generate_support_material();
+            }
         }
     }
 
@@ -1718,7 +1745,8 @@ void Print::process(bool use_cache)
     }
     //BBS
     for (PrintObject *obj : m_objects) {
-        if ((!use_cache)&&(need_slicing_objects.count(obj) != 0)) {
+        if (((!use_cache)&&(need_slicing_objects.count(obj) != 0))
+            || (use_cache &&(re_slicing_objects.count(obj) != 0))){
             obj->simplify_extrusion_path();
         }
         else {
@@ -1737,6 +1765,7 @@ void Print::process(bool use_cache)
             obj->detect_overhangs_for_lift();
         }
         else {
+            obj->copy_layers_overhang_from_shared_object();
             if (obj->set_started(posDetectOverhangsForLift))
                 obj->set_done(posDetectOverhangsForLift);
         }
