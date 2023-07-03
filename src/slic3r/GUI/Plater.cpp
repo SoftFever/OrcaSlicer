@@ -10026,6 +10026,8 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
     return mesh;
 }
 
+// BBS export with/without boolean, however, stil merge mesh
+#define EXPORT_WITH_BOOLEAN 0
 void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
@@ -10035,12 +10037,44 @@ void Plater::export_stl(bool extended, bool selection_only)
     const std::string path_u8 = into_u8(path);
 
     wxBusyCursor wait;
-
-    const auto &selection = p->get_selection();
+    const auto& selection = p->get_selection();
     const auto obj_idx = selection.get_object_idx();
+
+#if EXPORT_WITH_BOOLEAN
     if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
         return;
+#else
+    // BBS support selecting multiple objects
+    if (selection_only && selection.is_wipe_tower()) return;
 
+    // BBS
+    if (selection_only) {
+        // only support selection single full object and mulitiple full object
+        if (!selection.is_single_full_object() && !selection.is_multiple_full_object()) return;
+    }
+
+    // Following lambda generates a combined mesh for export with normals pointing outwards.
+    auto mesh_to_export_fff_no_boolean = [](const ModelObject &mo, int instance_id) {
+        TriangleMesh mesh;
+        for (const ModelVolume *v : mo.volumes)
+            if (v->is_model_part()) {
+                TriangleMesh vol_mesh(v->mesh());
+                vol_mesh.transform(v->get_matrix(), true);
+                mesh.merge(vol_mesh);
+            }
+        if (instance_id == -1) {
+            TriangleMesh vols_mesh(mesh);
+            mesh = TriangleMesh();
+            for (const ModelInstance *i : mo.instances) {
+                TriangleMesh m = vols_mesh;
+                m.transform(i->get_matrix(), true);
+                mesh.merge(m);
+            }
+        } else if (0 <= instance_id && instance_id < int(mo.instances.size()))
+            mesh.transform(mo.instances[instance_id]->get_matrix(), true);
+        return mesh;
+    };
+#endif
     auto mesh_to_export_sla = [&, this](const ModelObject& mo, int instance_id) {
         TriangleMesh mesh;
 
@@ -10112,24 +10146,37 @@ void Plater::export_stl(bool extended, bool selection_only)
         mesh_to_export;
 
     if (p->printer_technology == ptFFF)
+#if EXPORT_WITH_BOOLEAN
         mesh_to_export = [this](const ModelObject& mo, int instance_id) {return Plater::combine_mesh_fff(mo, instance_id,
             [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); }); };
+#else
+        mesh_to_export = mesh_to_export_fff_no_boolean;
+#endif
     else
         mesh_to_export = mesh_to_export_sla;
 
     TriangleMesh mesh;
     if (selection_only) {
-        const ModelObject* model_object = p->model.objects[obj_idx];
-        if (selection.get_mode() == Selection::Instance)
-            mesh = mesh_to_export(*model_object, (selection.is_single_full_object() && model_object->instances.size() > 1) ? -1 : selection.get_instance_idx());
-        else {
-            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-            mesh = model_object->volumes[volume->volume_idx()]->mesh();
-            mesh.transform(volume->get_volume_transformation().get_matrix(), true);
-        }
+        if (selection.is_single_full_object()) {
+            const auto obj_idx = selection.get_object_idx();
+            const ModelObject* model_object = p->model.objects[obj_idx];
+            if (selection.get_mode() == Selection::Instance)
+                mesh = mesh_to_export(*model_object, (model_object->instances.size() > 1) ? -1 : selection.get_instance_idx());
+            else {
+                const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+                mesh = model_object->volumes[volume->volume_idx()]->mesh();
+                mesh.transform(volume->get_volume_transformation().get_matrix(), true);
+            }
 
-        if (!selection.is_single_full_object() || model_object->instances.size() == 1)
-            mesh.translate(-model_object->origin_translation.cast<float>());
+            if (model_object->instances.size() == 1) mesh.translate(-model_object->origin_translation.cast<float>());
+        }
+        else if (selection.is_multiple_full_object()) {
+            const std::set<std::pair<int, int>>& instances_idxs = p->get_selection().get_selected_object_instances();
+            for (const std::pair<int, int>& i : instances_idxs) {
+                ModelObject* object = p->model.objects[i.first];
+                mesh.merge(mesh_to_export(*object, i.second));
+            }
+        }
     }
     else {
         for (const ModelObject* o : p->model.objects) {
