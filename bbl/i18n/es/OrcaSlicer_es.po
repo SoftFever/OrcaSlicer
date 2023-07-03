@@ -467,6 +467,7 @@ msgid "Perform Recognition"
 msgstr "Realizar el reconocimiento"
 
 msgid "Brush size"
+<<<<<<< Updated upstream
 msgstr "Tamaño de pincel"
 
 msgid "Brush shape"
@@ -480,6 +481,21 @@ msgstr "Bloquear uniones"
 
 msgid "Seam painting"
 msgstr "Pintar uniones"
+=======
+msgstr "Tamaño del pincel"
+
+msgid "Brush shape"
+msgstr "Forma del pincel"
+
+msgid "Enforce seam"
+msgstr "Reforzar costura"
+
+msgid "Block seam"
+msgstr "Bloquear costura"
+
+msgid "Seam painting"
+msgstr "Pintar costura"
+>>>>>>> Stashed changes
 
 msgid "Remove selection"
 msgstr "Borrar selección"
@@ -491,7 +507,11 @@ msgid "Rotate text"
 msgstr "Rotar texto"
 
 msgid "Text shape"
+<<<<<<< Updated upstream
 msgstr "Forma de texto"
+=======
+msgstr "Forma del texto"
+>>>>>>> Stashed changes
 
 msgid "Font"
 msgstr "Fuente"
@@ -522,7 +542,11 @@ msgid "Surface"
 msgstr "Superficie"
 
 msgid "Horizontal text"
+<<<<<<< Updated upstream
 msgstr "Texto horizontal"
+=======
+msgstr "texto Horizontal"
+>>>>>>> Stashed changes
 
 msgid "Ctrl+"
 msgstr ""
@@ -599,7 +623,11 @@ msgstr "Contraseña incorrecta"
 
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
+<<<<<<< Updated upstream
 msgstr "Conexión %s fallida! [SN:%s, code=%s]"
+=======
+msgstr "¡Conexión %s fallida! [SN:%s, code=%s]"
+>>>>>>> Stashed changes
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -684,7 +712,11 @@ msgid "Login information expired. Please login again."
 msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
 
 msgid "Privacy Policy Update"
+<<<<<<< Updated upstream
 msgstr "Actualización de política de privacidad"
+=======
+msgstr "Actualización de Políticas de Privacidad"
+>>>>>>> Stashed changes
 
 msgid "Loading"
 msgstr "Cargando"
@@ -1304,7 +1336,7 @@ msgid "Remove height range"
 msgstr "Borrar rango de altura"
 
 msgid "Add height range"
-msgstr ""
+msgstr "Añadir rango de altura"
 
 msgid "Invalid numeric."
 msgstr "Numérico inválido."
@@ -1440,7 +1472,7 @@ msgid "Delete Custom G-code"
 msgstr ""
 
 msgid "Delete Filament Change"
-msgstr ""
+msgstr "Borrar Cambio de Filamento"
 
 msgid "No printer"
 msgstr "Sin impresión"
@@ -1511,7 +1543,7 @@ msgid "Pull back current filament"
 msgstr "Extraer el filamento actual"
 
 msgid "Push new filament into extruder"
-msgstr ""
+msgstr "Introducir nuevo filamento en el extrusor"
 
 msgid "Purge old filament"
 msgstr "Purgar el filamento viejo"
@@ -2022,33 +2054,34 @@ msgstr ""
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
 msgstr ""
+"La configuración de ranura la cual debe ser usada para el filamento es usada en el trabajo de impresión"
 
 msgid "Filament used in this print job"
-msgstr ""
+msgstr "Filamento usado en este trabajo de impresión"
 
 msgid "AMS slot used for this filament"
-msgstr ""
+msgstr "Ranura AMS usada para este filamento"
 
 msgid "Click to select AMS slot manually"
-msgstr ""
+msgstr "Presiona para seleccionar la ranura AMS automaticamente"
 
 msgid "Do not Enable AMS"
-msgstr ""
+msgstr "No Activar AMS"
 
 msgid "Print using materials mounted on the back of the case"
-msgstr ""
+msgstr "Imprimir usando materiales montados en la parte de atras de la carcasa"
 
 msgid "Print with filaments in ams"
-msgstr ""
+msgstr "Imprimir usando filamentos en AMS"
 
 msgid "Print with filaments mounted on the back of the chassis"
-msgstr ""
+msgstr "Imprimir con filamentos montados en la parte de atrás del chasis"
 
 msgid "Filaments replace"
-msgstr ""
+msgstr "Reemplazar filamentos"
 
 msgid "Group"
-msgstr ""
+msgstr "Agrupar"
 
 msgid "AMS Settings"
 msgstr "Ajustes del AMS"
@@ -2099,21 +2132,26 @@ msgstr ""
 "último apagado."
 
 msgid "Update remaining capacity"
-msgstr ""
+msgstr "actualizar capacidad restante"
 
 msgid ""
 "The AMS will estimate Bambu filament's remaining capacity after the filament "
 "info is updated. During printing, remaining capacity will be updated "
 "automatically."
 msgstr ""
+"El AMS estimará la capacidad del filamento Bambú restante después de que "
+"la información sea actualizada. Durante la impresión, la capacidad restante "
+"será actualizada automaticamente."
 
 msgid "AMS filament backup"
-msgstr ""
+msgstr "Copia de seguridad del filamento AMS"
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
 "automatically when current filament runs out"
 msgstr ""
+"El AMS continuará con otra bobina con las mismas propiedades de filamento "
+"automaticamente cuando el filamento se termine"
 
 msgid "File"
 msgstr "Archivo"
@@ -2125,25 +2163,30 @@ msgid ""
 "Failed to download the plug-in. Please check your firewall settings and vpn "
 "software, check and retry."
 msgstr ""
+"Fallo al descargar el complemento. Por favor, compruebe el cortafuegos y la vpn, "
+"e inténtelo de nuevo"
 
 msgid ""
 "Failed to install the plug-in. Please check whether it is blocked or deleted "
 "by anti-virus software."
-msgstr ""
+msgstr "Fallo al instalar el complemento. Por favor, compruebe si ha sido bloqueado "
+" o borrado por un antivirus."
 
 msgid "click here to see more info"
-msgstr ""
+msgstr "Presiona aquí para mostrar más información"
 
 msgid "Please home all axes (click "
-msgstr ""
+msgstr "Por favor, mandar a inicio todos los ejes (presione)"
 
 msgid ""
 ") to locate the toolhead's position. This prevents device moving beyond the "
 "printable boundary and causing equipment wear."
 msgstr ""
+") para localizar la posición del cabezal. Esto previene que el dispositivo "
+"se mueva más allá de los limites de impresión y cause desgaste en el equipo."
 
 msgid "Go Home"
-msgstr ""
+msgstr "Ir al Inicio"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2200,17 +2243,15 @@ msgid "Succeed to export G-code to %1%"
 msgstr "Exportación de código G a %1% con éxito"
 
 msgid "Running post-processing scripts"
-msgstr ""
+msgstr "Ejecutando scripts de post-procesado"
 
 msgid "Copying of the temporary G-code to the output G-code failed"
-msgstr ""
+msgstr "Copiado del G-code temporal al G-code de salida fallido"
 
 #, boost-format
 msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
-msgstr ""
-
-msgid "Origin"
-msgstr "Origen"
+msgstr "Programación de la carga a %1%. Mire la Ventana -> Cola de Impresión "
+"del Anfitrión"
 
 msgid "Diameter"
 msgstr "Diámetro"
@@ -2321,6 +2362,10 @@ msgid ""
 "Please keep the printer open during the printing process to ensure air "
 "circulation or reduce the temperature of the hot bed"
 msgstr ""
+"La temperatura de capa es superior que la temperatura de vitrificación de este "
+"filamento. \n Esto podría causar que la boquilla se bloquee y produzca un fallo de impresión."
+"Por favor, mantenga la impresora abierta durante el proceso para garantizar "
+"la circulación de aire o reducir la temperatura de la cama caliente."
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -2551,13 +2596,13 @@ msgid "Update failed."
 msgstr "Actualización fallida."
 
 msgid "Failed to start printing job"
-msgstr ""
+msgstr "Fallo iniciando el trabajo de impresión"
 
 msgid "default"
 msgstr "por defecto"
 
 msgid "parameter name"
-msgstr ""
+msgstr "nombre del parámetro"
 
 msgid "N/A"
 msgstr "N/A"
@@ -2609,31 +2654,31 @@ msgid "Tool"
 msgstr "Herramienta"
 
 msgid "Layer Time"
-msgstr ""
+msgstr "Tiempo de capa"
 
 msgid "Layer Time (log)"
-msgstr ""
+msgstr "Tiempo de capa (log)"
 
 msgid "Height: "
-msgstr ""
+msgstr "Altura: "
 
 msgid "Width: "
-msgstr ""
+msgstr "Anchura: "
 
 msgid "Speed: "
-msgstr ""
+msgstr "Velocidad: "
 
 msgid "Flow: "
-msgstr ""
+msgstr "Flujo: "
 
 msgid "Layer Time: "
-msgstr ""
+msgstr "Tiempo de Capa: "
 
 msgid "Fan Speed: "
-msgstr ""
+msgstr "Velocidad del Ventilador: "
 
 msgid "Temperature: "
-msgstr ""
+msgstr "Temperatura: "
 
 msgid "Loading G-codes"
 msgstr "Carga de códigos G"
@@ -2645,22 +2690,22 @@ msgid "Generating geometry index data"
 msgstr "Generación de datos de índices geométricos"
 
 msgid "Statistics of All Plates"
-msgstr ""
+msgstr "Estadísticas de todas las camas"
 
 msgid "Display"
 msgstr "Pantalla"
 
 msgid "Flushed"
-msgstr ""
+msgstr "Descargado"
 
 msgid "Total"
 msgstr "Total"
 
 msgid "Total Time Estimation"
-msgstr ""
+msgstr "Tiempo Total Estimado"
 
 msgid "Total time"
-msgstr ""
+msgstr "Tiempo total"
 
 msgid "up to"
 msgstr "hasta"
@@ -2753,7 +2798,7 @@ msgid "Total Estimation"
 msgstr "Estimación total"
 
 msgid "Time Estimation"
-msgstr ""
+msgstr "Estimación de Tiempo"
 
 msgid "Normal mode"
 msgstr "Modo normal"
@@ -2771,52 +2816,52 @@ msgid "Switch to normal mode"
 msgstr "Cambiar al modo normal"
 
 msgid "Variable layer height"
-msgstr ""
+msgstr "Altura de capa variable"
 
 msgid "Adaptive"
-msgstr ""
+msgstr "Adaptativo"
 
 msgid "Quality / Speed"
-msgstr ""
+msgstr "Calidad / Velocidad"
 
 msgid "Smooth"
-msgstr ""
+msgstr "Suave"
 
 msgid "Radius"
 msgstr "Radio"
 
 msgid "Keep min"
-msgstr ""
+msgstr "Mantener el mínimo"
 
 msgid "Left mouse button:"
-msgstr ""
+msgstr "Botón izquiero del ratón: "
 
 msgid "Add detail"
-msgstr ""
+msgstr "Añadir detalle"
 
 msgid "Right mouse button:"
-msgstr ""
+msgstr "Botón derecho del ratón"
 
 msgid "Remove detail"
-msgstr ""
+msgstr "Borrar detalle"
 
 msgid "Shift + Left mouse button:"
-msgstr ""
+msgstr "Shift + botón izquierdo del ratón:"
 
 msgid "Reset to base"
-msgstr ""
+msgstr "Volver a la base"
 
 msgid "Shift + Right mouse button:"
 msgstr ""
 
 msgid "Smoothing"
-msgstr ""
+msgstr "Suavidad"
 
 msgid "Mouse wheel:"
-msgstr ""
+msgstr "Rueda del ratón:"
 
 msgid "Increase/decrease edit area"
-msgstr ""
+msgstr ""Increentar/decrementar el área de edición"
 
 msgid "Sequence"
 msgstr "Secuencia"
@@ -2828,7 +2873,7 @@ msgid "Tool Move"
 msgstr "Herramienta Mover"
 
 msgid "Tool Rotate"
-msgstr ""
+msgstr "Herramienta Rotar"
 
 msgid "Move Object"
 msgstr "Mover Objeto"
@@ -2900,10 +2945,10 @@ msgid "Explosion Ratio"
 msgstr "Ratio de Explosión"
 
 msgid "Section View"
-msgstr ""
+msgstr "Vista de Sección"
 
 msgid "Assemble Control"
-msgstr ""
+msgstr "Control de Ensamblado"
 
 msgid "Total Volume:"
 msgstr "Volumen total:"
@@ -2945,16 +2990,16 @@ msgid "ERROR:"
 msgstr ""
 
 msgid "Calibration step selection"
-msgstr ""
+msgstr "Seleccionar paso de calibración"
 
 msgid "Micro lidar calibration"
-msgstr ""
+msgstr "Calibración Micro lidar"
 
 msgid "Bed leveling"
-msgstr ""
+msgstr "Nivelación de la cama"
 
 msgid "Resonance frequency identification"
-msgstr ""
+msgstr "Identificación de frecuencia de resonancia"
 
 msgid "Calibration program"
 msgstr "Programa de calibración"
@@ -2975,22 +3020,22 @@ msgid "Start Calibration"
 msgstr "Iniciar Calibración"
 
 msgid "Completed"
-msgstr ""
+msgstr "Completado"
 
 msgid "Calibrating"
 msgstr "Calibrando"
 
 msgid "Auto-record Monitoring"
-msgstr ""
+msgstr "Monitorización de Auto-Grabado"
 
 msgid "Go Live"
-msgstr ""
+msgstr "Ir A En Vivo"
 
 msgid "Resolution"
 msgstr "Resolución"
 
 msgid "Show \"Live Video\" guide page."
-msgstr ""
+msgstr "Mostrar guía de \"Video En vivo\"."
 
 msgid "720p"
 msgstr ""
@@ -3012,13 +3057,13 @@ msgstr ""
 "en la impresora, como se muestra en la figura:"
 
 msgid "Invalid input."
-msgstr ""
+msgstr "Introducción inválida."
 
 msgid "New Window"
-msgstr ""
+msgstr "Nueva Ventana"
 
 msgid "Open a new window"
-msgstr ""
+msgstr "Abrir nueva ventana"
 
 msgid "Application is closing"
 msgstr "La aplicación se está cerrando"
@@ -3054,28 +3099,28 @@ msgid "Slice plate"
 msgstr "Laminar placa"
 
 msgid "Print plate"
-msgstr ""
+msgstr "Cama de impresión"
 
 msgid "Slice all"
 msgstr "Laminar todo"
 
 msgid "Export G-code file"
-msgstr ""
+msgstr "Exportar archivo G-code"
 
 msgid "Send"
 msgstr "Enviar"
 
 msgid "Export plate sliced file"
-msgstr ""
+msgstr "Exporar archivo de rebanado de cama de impresión"
 
 msgid "Export all sliced file"
-msgstr ""
+msgstr "Exportar todos los archivos de rebanado"
 
 msgid "Print all"
 msgstr "Imprimir todo"
 
 msgid "Send all"
-msgstr ""
+msgstr "Mandar todo"
 
 msgid "Keyboard Shortcuts"
 msgstr "Atajos de teclado"
@@ -3090,23 +3135,23 @@ msgid "Show Configuration Folder"
 msgstr "Mostrar Carpeta de Configuración"
 
 msgid "Show Tip of the Day"
-msgstr ""
+msgstr "Mostrar Consejo Diario"
 
 msgid "Check for Update"
 msgstr "Comprobar Actualicaciones"
 
 msgid "Open Network Test"
-msgstr ""
+msgstr "Arir Test de Red"
 
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Acerca de %s"
 
 msgid "Upload Models"
-msgstr ""
+msgstr "Cargar Modelos"
 
 msgid "Download Models"
-msgstr ""
+msgstr "Descargar Modelos"
 
 msgid "Default View"
 msgstr "Vista por Defecto"
@@ -3150,7 +3195,7 @@ msgid "Right View"
 msgstr "Vista derecha"
 
 msgid "Start a new window"
-msgstr ""
+msgstr "Abrir nueva ventana"
 
 msgid "New Project"
 msgstr "Nuevo proyecto"
@@ -3204,22 +3249,22 @@ msgid "Export 3mf file without using some 3mf-extensions"
 msgstr "Exporte el archivo 3mf sin usar algunas de las extensiones"
 
 msgid "Export current sliced file"
-msgstr ""
+msgstr "Exportar archivo de rebanado actual"
 
 msgid "Export all plate sliced file"
-msgstr ""
+msgstr "Exportar todos los archivos de rebanado de cama"
 
 msgid "Export G-code"
 msgstr "Exportar código G"
 
 msgid "Export current plate as G-code"
-msgstr ""
+msgstr "Exportar cama actual cómo G-code"
 
 msgid "Export &Configs"
 msgstr "Exportar & Configuración"
 
 msgid "Export current configuration to files"
-msgstr ""
+msgstr "Exportar configuración actual a archivos"
 
 msgid "Export"
 msgstr "Exportar"
@@ -3285,10 +3330,10 @@ msgid "Use Orthogonal View"
 msgstr "Utilizar Vista Ortogonal"
 
 msgid "Show &Labels"
-msgstr ""
+msgstr "Mostrar &Etiquetas"
 
 msgid "Show object labels in 3D scene"
-msgstr ""
+msgstr "Mostrar etiquetas en escena 3D"
 
 msgid "Preferences"
 msgstr "Preferencias"
@@ -3300,52 +3345,52 @@ msgid "Help"
 msgstr "Ayuda"
 
 msgid "Temperature Calibration"
-msgstr ""
+msgstr "Calibración de temperatura"
 
 msgid "Pass 1"
-msgstr ""
+msgstr "Paso 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr ""
+msgstr "Test de caudal - Paso 1"
 
 msgid "Pass 2"
-msgstr ""
+msgstr "Paso 2"
 
 msgid "Flow rate test - Pass 2"
-msgstr ""
+msgstr "Test de Caudal - Paso 2"
 
 msgid "Flow rate"
-msgstr ""
+msgstr "Test de caudal"
 
 msgid "Pressure advance"
-msgstr ""
+msgstr "Avance de presión"
 
 msgid "Retraction test"
-msgstr ""
+msgstr "Test de retracción"
 
 msgid "Orca Tolerance Test"
-msgstr ""
+msgstr "Test de Tolerancia Orca"
 
 msgid "Max flowrate"
-msgstr ""
+msgstr "Máximo caudal"
 
 msgid "VFA"
 msgstr ""
 
 msgid "More..."
-msgstr ""
+msgstr "Más..."
 
 msgid "Tutorial"
 msgstr ""
 
 msgid "Calibration help"
-msgstr ""
+msgstr "Ayuda de calibración"
 
 msgid "More calibrations"
-msgstr ""
+msgstr "Más calibraciones"
 
 msgid "3D Models"
-msgstr ""
+msgstr "Modelos 3D"
 
 msgid "&Open G-code"
 msgstr "Abrir código G (&O)"
@@ -3366,10 +3411,10 @@ msgid "Export toolpaths as OBJ"
 msgstr "Exportar trayectorias de herramientas como OBJ"
 
 msgid "Open &Studio"
-msgstr ""
+msgstr "Abrir $Studio"
 
 msgid "Open Studio"
-msgstr ""
+msgstr "Abrir Studio"
 
 msgid "&Quit"
 msgstr "Sa&lir"
@@ -3389,11 +3434,11 @@ msgstr "Ayu&da"
 
 #, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
-msgstr ""
+msgstr "Existe un archivo con el mismo nombre: %s, ¿desea sobreescribirlo?."
 
 #, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to override it."
-msgstr ""
+msgstr "Existe unaconfiguración con el mismo nombre: %s, ¿desea sobreescribirla?."
 
 msgid "Overwrite file"
 msgstr "Sobrescribir archivo"
@@ -3405,7 +3450,7 @@ msgid "No to All"
 msgstr "No a todo"
 
 msgid "Choose a directory"
-msgstr ""
+msgstr "Elegir un directorio"
 
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
@@ -3417,7 +3462,7 @@ msgid "Export result"
 msgstr "Exportar resultado"
 
 msgid "Select profile to load:"
-msgstr ""
+msgstr "Seleccionar perfil a cargar:"
 
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
@@ -3444,7 +3489,11 @@ msgid ""
 "1. The Process presets\n"
 "2. The Filament presets\n"
 "3. The Printer presets"
-msgstr ""
+msgstr "¿Quieres sincronizar tus datos personales desde la nube Bambú? \n"
+"Esta contiene la siguiente información:\n"
+"1. Los Preajustes de Proceso\n"
+"2. Los Preajustes de Filamento\n"
+""
 
 msgid "Synchronization"
 msgstr "Sincronización"
@@ -3462,30 +3511,30 @@ msgid "Loading..."
 msgstr "Cargando..."
 
 msgid "Initialize failed (Not supported with LAN-only mode)!"
-msgstr ""
+msgstr "Inicialización fallida (No soportada con el modo Solo Red Local)"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
-msgstr ""
+msgstr "Inicialización fallida (No accesible en el modo solo Red Local)"
 
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
-msgstr ""
+msgstr "La impresora está ocupada descargando. Por favor, espere a que finalice."
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
-msgstr ""
+msgstr "Inicialización fallida (Perdida la IP de red de la impresora)"
 
 msgid "Initialize failed (Not supported by printer)!"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
-msgstr ""
+msgstr "¡Fallo al inicializar (%s)!"
 
 msgid "Network unreachable"
-msgstr ""
+msgstr "Red inalcanzable"
 
 #, c-format, boost-format
 msgid "Stopped [%d]!"
-msgstr ""
+msgstr "Parado [%d]"
 
 msgid "Stopped."
 msgstr "Detenido."
