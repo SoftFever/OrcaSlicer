@@ -1477,6 +1477,7 @@ int MachineObject::command_request_push_all(bool request_now)
 {
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_push);
+
     if (diff.count() < REQUEST_PUSH_MIN_TIME) {
         if (request_now) {
             BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << dev_id;
@@ -1490,6 +1491,7 @@ int MachineObject::command_request_push_all(bool request_now)
         BOOST_LOG_TRIVIAL(trace) << "static: command_request_push_all, dev_id=" << dev_id;
         last_request_push = std::chrono::system_clock::now();
     }
+
     json j;
     j["pushing"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["pushing"]["command"]     = "pushall";

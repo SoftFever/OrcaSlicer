@@ -1408,14 +1408,6 @@ void StatusPanel::init_scaled_buttons()
     m_bpButton_e_down_10->SetCornerRadius(FromDIP(12));
 }
 
-void StatusPanel::clean_tasklist_info()
-{
-    m_tasklist_info_sizer = new wxGridBagSizer(4, 8);
-    for (int i = 0; i < slice_info_list.size(); i++) { delete slice_info_list[i]; }
-    slice_info_list.clear();
-    show_task_list_info(false);
-}
-
 void StatusPanel::create_tasklist_info()
 {
     m_tasklist_caption_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1449,8 +1441,6 @@ void StatusPanel::show_task_list_info(bool show)
 
 void StatusPanel::update_tasklist_info()
 {
-    clean_tasklist_info();
-
     // BBS do not show tasklist
     return;
 }
@@ -3552,7 +3542,6 @@ void StatusPanel::set_default()
     m_ams_control->Hide();
     m_ams_control_box->Hide();
     m_ams_control->Reset();
-    clean_tasklist_info();
     error_info_reset();
 }
 
@@ -3679,12 +3668,6 @@ void StatusPanel::msw_rescale()
     init_scaled_buttons();
 
     m_gauge_progress->Rescale();
-
-    for (int i = 0; i < slice_info_list.size(); i++) {
-        slice_info_list[i]->SetImages(m_bitmap_item_prediction, m_bitmap_item_cost, m_bitmap_item_print);
-        slice_info_list[i]->msw_rescale();
-    }
-
     m_bpButton_xy->Rescale();
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_nozzle->Rescale();

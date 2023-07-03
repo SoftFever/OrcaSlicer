@@ -268,7 +268,6 @@ protected:
     std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
     std::shared_ptr<ImageTransientPopup> m_image_popup;
     std::shared_ptr<CameraPopup> m_camera_popup;
-    std::vector<SliceInfoPanel *> slice_info_list;
     std::set<int> rated_model_id;
     AMSSetting *m_ams_setting_dlg{nullptr};
     PrintOptionsDialog*  print_options_dlg { nullptr };
@@ -311,7 +310,6 @@ protected:
     void init_scaled_buttons();
     void update_error_message();
     void create_tasklist_info();
-    void clean_tasklist_info();
     void show_task_list_info(bool show = true);
     void update_tasklist_info();
 

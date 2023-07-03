@@ -108,42 +108,7 @@ wxString get_fail_reason(int code)
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
-
-     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
-         switch (evt.GetState()) {
-             // Request completed
-         case wxWebRequest::State_Completed: {
-             wxImage avatar_stream = *evt.GetResponse().GetStream();
-             if (avatar_stream.IsOk()) {
-                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
-                 auto bitmap = new wxBitmap(avatar_stream);
-                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
-                 m_avatar->SetBitmap(*bitmap);
-                 Layout();
-             }
-             break;
-         }
-                                           // Request failed
-         case wxWebRequest::State_Failed: {
-             break;
-         }
-         }
-    });
-
-     if (wxGetApp().is_user_login()) {
-        wxString username_text = from_u8(wxGetApp().getAgent()->get_user_nickanme());
-        m_user_name->SetLabelText(username_text);
-
-         m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
-
-         web_request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->get_user_avatar());
-         if (!web_request.IsOk()) {
-             // todo request fail
-         }
-         // Start the request
-         web_request.Start();
-     }
-
+     m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
      m_sizer_right_v->Add(0, 0, 0, wxTOP, 7);
      m_sizer_right_v->Add(m_user_name, 0, wxALIGN_CENTER, 0);
@@ -467,8 +432,27 @@ wxString get_fail_reason(int code)
      Centre(wxBOTH);
 
      Bind(wxEVT_SHOW, &BindMachineDialog::on_show, this);
-
      Bind(wxEVT_CLOSE_WINDOW, &BindMachineDialog::on_close, this);
+     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
+         switch (evt.GetState()) {
+             // Request completed
+         case wxWebRequest::State_Completed: {
+             wxImage avatar_stream = *evt.GetResponse().GetStream();
+             if (avatar_stream.IsOk()) {
+                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
+                 auto bitmap = new wxBitmap(avatar_stream);
+                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
+                 m_avatar->SetBitmap(*bitmap);
+                 Layout();
+             }
+             break;
+         }
+                                           // Request failed
+         case wxWebRequest::State_Failed: {
+             break;
+         }
+         }
+         });
 
      m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_bind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_cancel), NULL, this);
@@ -661,6 +645,18 @@ void BindMachineDialog::on_show(wxShowEvent &event)
         m_printer_img->Show();
 
         m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+
+        if (wxGetApp().is_user_login()) {
+            wxString username_text = from_u8(wxGetApp().getAgent()->get_user_nickanme());
+            m_user_name->SetLabelText(username_text);
+            web_request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->get_user_avatar());
+            if (!web_request.IsOk()) {
+                // todo request fail
+            }
+            // Start the request
+            web_request.Start();
+        }
+
         Layout();
         event.Skip();
     }
@@ -720,42 +716,6 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
      m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
-
-     if (wxGetApp().is_user_login()) {
-         wxString username_text = from_u8(wxGetApp().getAgent()->get_user_name());
-         m_user_name->SetLabelText(username_text);
-         wxString avatar_url = wxGetApp().getAgent()->get_user_avatar();
-         wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
-         if (!request.IsOk()) {
-             // todo request fail
-         }
-         request.Start();
-     }
-
-
-     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent &evt) {
-         switch (evt.GetState()) {
-         // Request completed
-         case wxWebRequest::State_Completed: {
-             wxImage avatar_stream = *evt.GetResponse().GetStream();
-             if (avatar_stream.IsOk()) {
-                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
-                 auto bitmap = new wxBitmap(avatar_stream);
-                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
-                 m_avatar->SetBitmap(*bitmap);
-                 Layout();
-             }
-             break;
-         }
-         // Request failed
-         case wxWebRequest::State_Failed: {
-             break;
-         }
-         }
-     });
-
-
-
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
      m_sizer_right_v->Add(0, 0, 0, wxTOP, 7);
      m_sizer_right_v->Add(m_user_name, 0, wxALIGN_CENTER, 0);
@@ -817,6 +777,28 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      Bind(wxEVT_SHOW, &UnBindMachineDialog::on_show, this);
      m_button_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
+
+     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
+         switch (evt.GetState()) {
+             // Request completed
+         case wxWebRequest::State_Completed: {
+             wxImage avatar_stream = *evt.GetResponse().GetStream();
+             if (avatar_stream.IsOk()) {
+                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
+                 auto bitmap = new wxBitmap(avatar_stream);
+                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
+                 m_avatar->SetBitmap(*bitmap);
+                 Layout();
+             }
+             break;
+         }
+                                           // Request failed
+         case wxWebRequest::State_Failed: {
+             break;
+         }
+         }
+     });
+
      wxGetApp().UpdateDlgDarkUI(this);
  }
 
@@ -885,6 +867,19 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
         m_printer_img->Show();
 
         m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+
+
+        if (wxGetApp().is_user_login()) {
+            wxString username_text = from_u8(wxGetApp().getAgent()->get_user_name());
+            m_user_name->SetLabelText(username_text);
+            wxString avatar_url = wxGetApp().getAgent()->get_user_avatar();
+            wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
+            if (!request.IsOk()) {
+                // todo request fail
+            }
+            request.Start();
+        }
+
         Layout();
         event.Skip();
     } 
