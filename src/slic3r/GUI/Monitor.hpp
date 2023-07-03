@@ -83,9 +83,6 @@ private:
     MediaFilePanel*     m_media_file_panel;
     UpgradePanel*       m_upgrade_panel;
     HMSPanel*           m_hms_panel;
-    Button *            m_connection_info{nullptr};
-    wxWindow *          m_side_error_panel{nullptr};
-    wxHyperlinkCtrl* m_hyperlink{nullptr};
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};
@@ -94,12 +91,6 @@ private:
     wxStaticText*   m_staticText_printer_name;
     wxStaticBitmap* m_bitmap_wifi_signal;
     wxBoxSizer *    m_side_tools_sizer;
-
-    Label* m_link_network_state;
-    Label* m_st_txt_error_code;
-    Label* m_st_txt_error_desc;
-    Label* m_st_txt_extra_info;
-
     SelectMachinePopup m_select_machine;
 
 	/* images */
@@ -110,15 +101,10 @@ private:
     wxBitmap m_printer_img;
     wxBitmap m_arrow_img;
 
-    ScalableButton* m_more_button;
-    bool m_more_err_state{false};
-    ScalableBitmap m_more_err_open;
-    ScalableBitmap m_more_err_close;
-
     int last_wifi_signal = -1;
-    wxTimer* m_refresh_timer = nullptr;
     int last_status;
     bool m_initialized { false };
+    wxTimer* m_refresh_timer = nullptr;
 
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
@@ -136,7 +122,6 @@ public:
 	void init_bitmap();
     void init_timer();
     void init_tabpanel();
-    void update_connect_err_info(int code, wxString desc, wxString info);
     Tabbook* get_tabpanel() { return m_tabpanel; };
     void set_default();
     wxWindow* create_side_tools();
@@ -152,7 +137,6 @@ public:
     void on_size(wxSizeEvent &event);
 
     /* update apis */
-    void update_status(MachineObject* obj);
     //void update_ams(MachineObject* obj);
     void update_all();
 
@@ -164,6 +148,7 @@ public:
     MachineObject *obj { nullptr };
     std::string last_conn_type = "undedefined";
 };
+
 
 } // GUI
 } // Slic3r

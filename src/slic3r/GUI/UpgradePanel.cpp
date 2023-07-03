@@ -1,4 +1,5 @@
 #include "UpgradePanel.hpp"
+#include <slic3r/GUI/Widgets/SideTools.hpp>
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include <slic3r/GUI/I18N.hpp>
 #include "GUI.hpp"

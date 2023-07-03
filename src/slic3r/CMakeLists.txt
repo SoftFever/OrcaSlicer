@@ -392,14 +392,22 @@ set(SLIC3R_GUI_SOURCES
     GUI/ReleaseNote.cpp
     GUI/SingleChoiceDialog.hpp
     GUI/SingleChoiceDialog.cpp
+    GUI/CaliHistoryDialog.hpp
+    GUI/CaliHistoryDialog.cpp
     GUI/CalibrationPanel.hpp
     GUI/CalibrationPanel.cpp
     GUI/CalibrationWizard.hpp
     GUI/CalibrationWizard.cpp
-    GUI/EditCalibrationHistoryDialog.cpp
-    GUI/EditCalibrationHistoryDialog.hpp
     GUI/CalibrationWizardPage.cpp
     GUI/CalibrationWizardPage.hpp
+	GUI/CalibrationWizardStartPage.cpp
+    GUI/CalibrationWizardStartPage.hpp
+	GUI/CalibrationWizardPresetPage.cpp
+    GUI/CalibrationWizardPresetPage.hpp
+	GUI/CalibrationWizardCaliPage.cpp
+    GUI/CalibrationWizardCaliPage.hpp
+	GUI/CalibrationWizardSavePage.cpp
+    GUI/CalibrationWizardSavePage.hpp
     GUI/calib_dlg.cpp
     GUI/calib_dlg.hpp
     GUI/Calibration.hpp

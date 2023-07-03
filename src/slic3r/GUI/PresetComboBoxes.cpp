@@ -1522,16 +1522,12 @@ void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
     }
     m_is_compatible = true;
     static_cast<FilamentComboBox*>(m_parent)->Enable(true);
-    std::string selected_name = evt.GetString().ToUTF8().data();
-    selected_name = Preset::remove_suffix_modified(selected_name);
-    m_selected_preset = m_collection->find_preset(selected_name);
-    std::string preset_name   = m_collection->get_preset_name_by_alias(selected_name);
-    m_selected_preset         = m_collection->find_preset(preset_name);
-    SimpleEvent e(EVT_CALIBRATION_TRAY_SELECTION_CHANGED);
-    auto cali_tab = wxGetApp().mainframe->m_calibration->get_tabpanel();
-    auto calibration_wizard = static_cast<CalibrationWizard*>(cali_tab->GetPage(cali_tab->GetSelection()));
-    e.SetEventObject(calibration_wizard);
-    wxPostEvent(calibration_wizard, e);
+    std::string preset_name = m_collection->get_preset_name_by_alias(evt.GetString().ToUTF8().data());
+    m_selected_preset       = m_collection->find_preset(preset_name);
+
+    wxCommandEvent e(EVT_CALI_TRAY_CHANGED);
+    e.SetEventObject(m_parent);
+    wxPostEvent(m_parent, e);
 }
 
 } // namespace Slic3r

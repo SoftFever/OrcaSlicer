@@ -1,0 +1,284 @@
+#ifndef slic3r_GUI_CalibrationWizardSavePage_hpp_
+#define slic3r_GUI_CalibrationWizardSavePage_hpp_
+
+#include "CalibrationWizardPage.hpp"
+#include "Widgets/TextInput.hpp"
+
+namespace Slic3r { namespace GUI {
+
+enum CaliSaveStyle {
+    CALI_SAVE_P1P_STYLE = 0,
+    CALI_SAVE_X1_STYLE,
+};
+
+
+class CalibrationCommonSavePage : public CalibrationWizardPage
+{
+public:
+    CalibrationCommonSavePage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+
+protected:
+    wxBoxSizer* m_top_sizer;
+};
+
+class PAColumnDataPanel : wxPanel {
+public:
+    PAColumnDataPanel(
+        wxWindow* parent,
+        bool is_failed,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+
+    bool is_failed() { return m_is_failed; }
+    int get_col_idx() { return m_col_idx; }
+    wxString get_k_str();
+    wxString get_n_str();
+    wxString get_name();
+    void set_data(wxString k_str, wxString n_str, wxString name);
+
+private:
+    wxBoxSizer* m_top_sizer;
+    TextInput* m_k_value_input;
+    TextInput* m_n_value_input;
+    ComboBox* m_comboBox_tray_name;
+    int m_col_idx;
+    bool m_is_failed;
+};
+
+class CaliSavePresetValuePanel : public wxPanel
+{
+protected:
+    wxBoxSizer* m_top_sizer;
+    wxStaticBitmap* m_record_picture;
+    wxStaticText* m_value_title;
+    wxStaticText* m_save_name_title;
+    ::TextInput* m_input_value;
+    ::TextInput* m_input_name;
+
+
+public:
+    CaliSavePresetValuePanel(
+        wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+
+    void create_panel(wxWindow* parent);
+
+    void set_img(const std::string& bmp_name_in);
+    void set_value_title(const wxString& title);
+    void set_save_name_title(const wxString& title);
+    void get_value(double& value);
+    void get_save_name(std::string& name);
+    void set_save_name(const std::string& name);
+};
+
+
+class CaliPASaveAutoPanel : public wxPanel
+{
+public:
+    CaliPASaveAutoPanel(
+        wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+
+    void create_panel(wxWindow* parent);
+
+    void set_machine_obj(MachineObject* obj) { m_obj = obj; }
+
+    void sync_cali_result(const std::vector<PACalibResult>& cali_result);
+    void save_to_result_from_widgets(wxWindow* window, bool* out_is_valid);
+    bool get_result(std::vector<PACalibResult>& out_result);
+
+protected:
+    wxBoxSizer* m_top_sizer;
+    wxPanel*    m_grid_panel{ nullptr };
+    std::vector<PACalibResult> m_calib_results;
+
+    MachineObject* m_obj;
+};
+
+class CaliPASaveManualPanel : public wxPanel
+{
+public:
+    CaliPASaveManualPanel(
+        wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+    void create_panel(wxWindow* parent);
+    void set_save_img();
+
+    void set_machine_obj(MachineObject* obj) { m_obj = obj; }
+
+    void set_default_name(const wxString& name);
+
+    bool get_result(PACalibResult& out_result);
+
+    virtual bool Show(bool show = true) override;
+
+protected:
+    wxBoxSizer* m_top_sizer;
+    wxStaticBitmap* m_record_picture;
+    ::TextInput* m_save_name_input;
+    ::TextInput* m_k_val;
+    ::TextInput* m_n_val;
+
+    MachineObject* m_obj;
+};
+
+class CaliPASaveP1PPanel : public wxPanel
+{
+public:
+    CaliPASaveP1PPanel(
+        wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+    void create_panel(wxWindow* parent);
+    void set_save_img();
+
+    bool get_result(float* out_k, float* out_n);
+
+protected:
+    wxBoxSizer* m_top_sizer;
+    wxStaticBitmap* m_record_picture;
+    ::TextInput* m_k_val;
+    ::TextInput* m_n_val;
+};
+
+class CalibrationPASavePage : public CalibrationCommonSavePage
+{
+public:
+    CalibrationPASavePage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+
+    void create_page(wxWindow* parent);
+    void set_cali_method(CalibrationMethod method) override;
+    // sync widget value from obj cali result
+    void sync_cali_result(MachineObject* obj);
+    bool get_auto_result(std::vector<PACalibResult>& result) { return m_auto_panel->get_result(result); }
+    bool get_manual_result(PACalibResult& result) { return m_manual_panel->get_result(result); }
+    bool get_p1p_result(float* k, float* n) { return m_p1p_panel->get_result(k, n); }
+
+    void show_panels(CalibrationMethod method, const std::string& printer_type);
+
+    void on_device_connected(MachineObject* obj);
+
+    void update(MachineObject* obj) override;
+
+protected:
+    CaliPageStepGuide*  m_step_panel { nullptr };
+    CaliPASaveAutoPanel*  m_auto_panel { nullptr };
+    CaliPASaveManualPanel* m_manual_panel { nullptr };
+    CaliPASaveP1PPanel* m_p1p_panel{ nullptr };
+
+    CaliSaveStyle m_save_style;
+
+    std::vector<PACalibResult> m_calib_results_history;
+};
+
+class CalibrationFlowX1SavePage : public CalibrationCommonSavePage
+{
+public:
+    CalibrationFlowX1SavePage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+
+    void create_page(wxWindow* parent);
+
+    // sync widget value from cali flow rate result
+    void sync_cali_result(const std::vector<FlowRatioCalibResult>& cali_result);
+    void save_to_result_from_widgets(wxWindow* window, bool* out_is_valid);
+    bool get_result(std::vector<std::pair<wxString, float>>& out_results);
+
+protected:
+    CaliPageStepGuide* m_step_panel{ nullptr };
+    wxPanel*           m_grid_panel{ nullptr };
+
+    std::map<int, std::pair<wxString, float>> m_save_results; // map<tray_id, <name, flow ratio>>
+};
+
+class CalibrationFlowCoarseSavePage : public CalibrationCommonSavePage
+{
+public:
+    CalibrationFlowCoarseSavePage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+
+    void create_page(wxWindow* parent);
+    void set_save_img();
+
+    void set_default_name(const wxString& name);
+
+    bool is_skip_fine_calibration();
+
+    void set_curr_flow_ratio(float value);
+
+    bool get_result(float* out_value, wxString* out_name);
+
+    virtual bool Show(bool show = true) override;
+
+protected:
+    CaliPageStepGuide* m_step_panel{ nullptr };
+    wxStaticBitmap*    m_record_picture;
+    ComboBox*          m_optimal_block_coarse;
+    TextInput*         m_save_name_input;
+
+    bool m_skip_fine_calibration = false;
+    float m_curr_flow_ratio;
+    float m_coarse_flow_ratio;
+};
+
+class CalibrationFlowFineSavePage : public CalibrationCommonSavePage
+{
+public:
+    CalibrationFlowFineSavePage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+
+    void create_page(wxWindow* parent);
+    void set_save_img();
+
+    void set_default_name(const wxString& name);
+
+    void set_curr_flow_ratio(float value);
+
+    bool get_result(float* out_value, wxString* out_name);
+
+    virtual bool Show(bool show = true) override;
+
+protected:
+    CaliPageStepGuide* m_step_panel{ nullptr };
+    wxStaticBitmap*    m_record_picture;
+    ComboBox*          m_optimal_block_fine;
+    TextInput*         m_save_name_input;
+
+    float m_curr_flow_ratio;
+    float m_fine_flow_ratio;
+};
+
+class CalibrationMaxVolumetricSpeedSavePage : public CalibrationCommonSavePage
+{
+public:
+    CalibrationMaxVolumetricSpeedSavePage(wxWindow *parent, wxWindowID id = wxID_ANY,
+        const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+
+    void create_page(wxWindow *parent);
+    void set_save_img();
+
+    bool get_save_result(double &value, std::string &name);
+
+    void set_prest_name(const std::string &name) { m_save_preset_panel->set_save_name(name); };
+
+    virtual bool Show(bool show = true) override;
+
+protected:
+    CaliPageStepGuide *m_step_panel{nullptr};
+    CaliSavePresetValuePanel *m_save_preset_panel;
+};
+
+
+}} // namespace Slic3r::GUI
+
+#endif

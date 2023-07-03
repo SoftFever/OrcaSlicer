@@ -459,20 +459,19 @@ CalibrationPanel::CalibrationPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
 void CalibrationPanel::init_tabpanel() {
     m_side_tools = new SideTools(this, wxID_ANY);
-    m_side_tools->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CalibrationPanel::on_printer_clicked), NULL, this);
+    m_side_tools->get_panel()->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CalibrationPanel::on_printer_clicked), NULL, this);
 
 
     wxBoxSizer* sizer_side_tools = new wxBoxSizer(wxVERTICAL);
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
 
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+    m_side_tools->set_table_panel(m_tabpanel);
     m_tabpanel->SetBackgroundColour(*wxWHITE);
 
     m_cali_panels[0] = new PressureAdvanceWizard(m_tabpanel);
     m_cali_panels[1] = new FlowRateWizard(m_tabpanel);
     m_cali_panels[2] = new MaxVolumetricSpeedWizard(m_tabpanel);
-    //m_cali_panels[3] = new TemperatureWizard(m_tabpanel);
-    //m_cali_panels[4] = new RetractionWizard(m_tabpanel);
 
     for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
         bool selected = false;
@@ -487,11 +486,7 @@ void CalibrationPanel::init_tabpanel() {
     for (int i = 0; i < (int)CALI_MODE_COUNT; i++)
         m_tabpanel->SetPageImage(i, "");
 
-    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent&) {
-        wxCommandEvent e (EVT_CALIBRATION_TAB_CHANGED);
-        e.SetEventObject(m_tabpanel->GetCurrentPage());
-        wxPostEvent(m_tabpanel->GetCurrentPage(), e);
-        }, m_tabpanel->GetId());
+    m_initialized = true;
 }
 
 void CalibrationPanel::init_timer()
@@ -507,60 +502,137 @@ void CalibrationPanel::on_timer(wxTimerEvent& event) {
 }
 
 void CalibrationPanel::update_print_error_info(int code, std::string msg, std::string extra) {
-    for (int i = 0; i < m_tabpanel->GetPageCount(); i++) {
-        if(m_tabpanel->GetPage(i))
-            static_cast<CalibrationWizard*>(m_tabpanel->GetPage(i))->update_print_error_info(code, msg, extra);
+    // update current wizard only
+    int curr_selected = m_tabpanel->GetSelection();
+    if (curr_selected >= 0 && curr_selected < CALI_MODE_COUNT) {
+        if (m_cali_panels[curr_selected]) {
+            auto page = m_cali_panels[curr_selected]->get_curr_step()->page;
+            if(page && page->get_page_type() == CaliPageType::CALI_PAGE_PRESET){
+                auto preset_page = static_cast<CalibrationPresetPage*>(page);
+                if (preset_page->get_page_status() == CaliPresetPageStatus::CaliPresetStatusSending)
+                    preset_page->update_print_error_info(code, msg, extra);
+            }
+        }
     }
 }
 
 void CalibrationPanel::update_all() {
-    for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
-        m_cali_panels[i]->update_printer();
-        if (m_cali_panels[i]->IsShown())
-            m_cali_panels[i]->update_print_progress();
-    }
 
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev)
+    if (!dev) return;
+    obj = dev->get_selected_machine();
+
+    // update current wizard only
+    int curr_selected = m_tabpanel->GetSelection();
+
+    if (curr_selected >= 0 && curr_selected < CALI_MODE_COUNT) {
+        if (m_cali_panels[curr_selected])
+            m_cali_panels[curr_selected]->update(obj);
+    }
+
+    // check valid machine
+    if (obj && dev->get_my_machine(obj->dev_id) == nullptr) {
+        dev->set_selected_machine("");
+        if (m_agent)
+            m_agent->set_user_selected_machine("");
+        show_status((int)MONITOR_NO_PRINTER);
         return;
-    MachineObject* obj = dev->get_selected_machine();
+    }
+
+    if (wxGetApp().is_user_login()) {
+        dev->check_pushing();
+        try {
+            m_agent->refresh_connection();
+        }
+        catch (...) {
+            ;
+        }
+    }
+
+    if (obj) {
+        wxGetApp().reset_to_active();
+        if (obj->connection_type() != last_conn_type) {
+            last_conn_type = obj->connection_type();
+        }
+    }
+
+    m_side_tools->update_status(obj);
 
     if (!obj) {
-        m_side_tools->set_none_printer_mode();
+        show_status((int)MONITOR_NO_PRINTER);
         return;
     }
 
-    /* Update Device Info */
-    m_side_tools->set_current_printer_name(obj->dev_name);
+    if (obj->is_connecting()) {
+        show_status(MONITOR_CONNECTING);
+        return;
+    }
+    else if (!obj->is_connected()) {
+        int server_status = 0;
+        // only disconnected server in cloud mode
+        if (obj->connection_type() != "lan") {
+            if (m_agent) {
+                server_status = m_agent->is_server_connected() ? 0 : (int)MONITOR_DISCONNECTED_SERVER;
+            }
+        }
+        show_status((int)MONITOR_DISCONNECTED + server_status);
+        return;
+    }
 
-    // update wifi signal image
-    int wifi_signal_val = 0;
-    if (!obj->is_connected() || obj->is_connecting()) {
-        m_side_tools->set_current_printer_signal(WifiSignal::NONE);
-    }
-    else {
-        if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
-            try {
-                wifi_signal_val = std::stoi(obj->wifi_signal.substr(0, obj->wifi_signal.size() - 3));
-            }
-            catch (...) {
-                ;
-            }
-            if (wifi_signal_val > -45) {
-                m_side_tools->set_current_printer_signal(WifiSignal::STRONG);
-            }
-            else if (wifi_signal_val <= -45 && wifi_signal_val >= -60) {
-                m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
-            }
-            else {
-                m_side_tools->set_current_printer_signal(WifiSignal::WEAK);
+    show_status(MONITOR_NORMAL);
+}
+
+void CalibrationPanel::show_status(int status)
+{
+    if (!m_initialized) return;
+    if (last_status == status)return;
+    if (last_status & (int)MonitorStatus::MONITOR_CONNECTING != 0) {
+        NetworkAgent* agent = wxGetApp().getAgent();
+        json j;
+        j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
+        if (status & (int)MonitorStatus::MONITOR_DISCONNECTED != 0) {
+            j["result"] = "failed";
+            if (agent) {
+                agent->track_event("connect_dev", j.dump());
             }
         }
-        else {
-            m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
+        else if (status & (int)MonitorStatus::MONITOR_NORMAL != 0) {
+            j["result"] = "success";
+            if (agent) {
+                agent->track_event("connect_dev", j.dump());
+            }
         }
     }
+    last_status = status;
+
+    BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
+
+
+    Freeze();
+    // update panels
+    if (m_side_tools) { m_side_tools->show_status(status); };
+
+    if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
+        set_default();
+        m_tabpanel->Layout();
+    }
+    else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0))
+    {
+
+        if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+            || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+            || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0))
+        {
+            set_default();
+        }
+        m_tabpanel->Layout();
+    }
+    Layout();
+    Thaw();
 }
 
 bool CalibrationPanel::Show(bool show) {
@@ -596,8 +668,15 @@ void CalibrationPanel::on_printer_clicked(wxMouseEvent& event)
     }
 }
 
+void CalibrationPanel::set_default()
+{
+    obj = nullptr;
+    last_conn_type = "undefined";
+    wxGetApp().sidebar().load_ams_list({}, {});
+}
+
 CalibrationPanel::~CalibrationPanel() {
-    m_side_tools->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CalibrationPanel::on_printer_clicked), NULL, this);
+    m_side_tools->get_panel()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CalibrationPanel::on_printer_clicked), NULL, this);
     if (m_refresh_timer)
         m_refresh_timer->Stop();
     delete m_refresh_timer;

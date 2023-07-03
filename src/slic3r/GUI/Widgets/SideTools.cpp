@@ -1,18 +1,23 @@
 #include "SideTools.hpp"
+#include "bambu_networking.hpp"
 #include <wx/dcmemory.h>
 #include <wx/dcgraph.h>
 #include "Label.hpp"
 #include "StateColor.hpp"
+#include "../GUI_App.hpp"
 #include "../wxExtensions.hpp"
 #include "../I18N.hpp"
 #include "../GUI.hpp"
 
 namespace Slic3r { namespace GUI {
-	SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
+	SideToolsPanel::SideToolsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    wxPanel::Create(parent, id, pos, wxSize(0, FromDIP(50)));
-    Bind(wxEVT_PAINT, &SideTools::OnPaint, this);
+    wxPanel::Create(parent, id, pos, size);
 
+    SetMinSize(wxSize(-1, FromDIP(50)));
+    SetMaxSize(wxSize(-1, FromDIP(50)));
+
+    Bind(wxEVT_PAINT, &SideToolsPanel::OnPaint, this);
     SetBackgroundColour(wxColour("#FEFFFF"));
 
     m_printing_img = ScalableBitmap(this, "printer", 16);
@@ -30,33 +35,33 @@ namespace Slic3r { namespace GUI {
     m_intetval_timer = new wxTimer();
     m_intetval_timer->SetOwner(this);
 
-    this->Bind(wxEVT_TIMER, &SideTools::stop_interval, this);
-    this->Bind(wxEVT_ENTER_WINDOW, &SideTools::on_mouse_enter, this);
-    this->Bind(wxEVT_LEAVE_WINDOW, &SideTools::on_mouse_leave, this);
-    this->Bind(wxEVT_LEFT_DOWN, &SideTools::on_mouse_left_down, this);
-    this->Bind(wxEVT_LEFT_UP, &SideTools::on_mouse_left_up, this);
+    this->Bind(wxEVT_TIMER, &SideToolsPanel::stop_interval, this);
+    this->Bind(wxEVT_ENTER_WINDOW, &SideToolsPanel::on_mouse_enter, this);
+    this->Bind(wxEVT_LEAVE_WINDOW, &SideToolsPanel::on_mouse_leave, this);
+    this->Bind(wxEVT_LEFT_DOWN, &SideToolsPanel::on_mouse_left_down, this);
+    this->Bind(wxEVT_LEFT_UP, &SideToolsPanel::on_mouse_left_up, this);
 }
 
-SideTools::~SideTools() { delete m_intetval_timer; }
+SideToolsPanel::~SideToolsPanel() { delete m_intetval_timer; }
 
-void SideTools::set_none_printer_mode() 
+void SideToolsPanel::set_none_printer_mode() 
 { 
     m_none_printer = true;
     Refresh();
 }
 
-void SideTools::on_timer(wxTimerEvent &event)
+void SideToolsPanel::on_timer(wxTimerEvent &event)
 {
 }
 
-void SideTools::set_current_printer_name(std::string dev_name) 
+void SideToolsPanel::set_current_printer_name(std::string dev_name) 
 {
      m_none_printer = false;
      m_dev_name     = from_u8(dev_name);
      Refresh();
 }
 
-void SideTools::set_current_printer_signal(WifiSignal sign) 
+void SideToolsPanel::set_current_printer_signal(WifiSignal sign) 
 {
      if (last_printer_signal == sign) return;
     
@@ -66,36 +71,36 @@ void SideTools::set_current_printer_signal(WifiSignal sign)
      Refresh();
 }
 
-void SideTools::start_interval() 
+void SideToolsPanel::start_interval() 
 { 
     m_intetval_timer->Start(SIDE_TOOL_CLICK_INTERVAL); 
     m_is_in_interval = true;
 }
 
-void SideTools::stop_interval(wxTimerEvent& event)
+void SideToolsPanel::stop_interval(wxTimerEvent& event)
 {
     m_is_in_interval = false;
     m_intetval_timer->Stop();
 }
 
 
-bool SideTools::is_in_interval() 
+bool SideToolsPanel::is_in_interval() 
 {
     return m_is_in_interval;
 }
 
-void SideTools::msw_rescale() 
+void SideToolsPanel::msw_rescale() 
 { 
     Refresh();
 }
 
-void SideTools::OnPaint(wxPaintEvent &event)
+void SideToolsPanel::OnPaint(wxPaintEvent &event)
 {
     wxPaintDC dc(this);
     doRender(dc);
 }
 
-void SideTools::render(wxDC &dc)
+void SideToolsPanel::render(wxDC &dc)
 {
 #ifdef __WXMSW__
     wxSize     size = GetSize();
@@ -116,7 +121,7 @@ void SideTools::render(wxDC &dc)
 #endif
 }
 
-void SideTools::doRender(wxDC &dc)
+void SideToolsPanel::doRender(wxDC &dc)
 {
     auto   left = FromDIP(15);
     wxSize size = GetSize();
@@ -208,27 +213,335 @@ void SideTools::doRender(wxDC &dc)
     }
 }
 
-void SideTools::on_mouse_left_down(wxMouseEvent &evt)
+void SideToolsPanel::on_mouse_left_down(wxMouseEvent &evt)
 {
     m_click = true;
     Refresh();
 }
 
-void SideTools::on_mouse_left_up(wxMouseEvent &evt) 
+void SideToolsPanel::on_mouse_left_up(wxMouseEvent &evt) 
 {
      m_click = false;
      Refresh();
 }
 
-void SideTools::on_mouse_enter(wxMouseEvent &evt)
+void SideToolsPanel::on_mouse_enter(wxMouseEvent &evt)
 {
     m_hover = true;
     Refresh();
 }
 
-void SideTools::on_mouse_leave(wxMouseEvent &evt)
+void SideToolsPanel::on_mouse_leave(wxMouseEvent &evt)
 {
     m_hover = false;
     Refresh();
 }
+
+SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
+{
+    wxPanel::Create(parent, id, pos, size);
+    SetBackgroundColour(wxColour("#FEFFFF"));
+
+    m_side_tools = new SideToolsPanel(this, wxID_ANY);
+
+    m_connection_info = new Button(this, wxEmptyString);
+    m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
+    m_connection_info->SetBorderColor(wxColour(255, 111, 0));
+    m_connection_info->SetTextColor(*wxWHITE);
+    m_connection_info->SetFont(::Label::Body_13);
+    m_connection_info->SetCornerRadius(0);
+    m_connection_info->SetSize(wxSize(FromDIP(-1), FromDIP(25)));
+    m_connection_info->SetMinSize(wxSize(FromDIP(-1), FromDIP(25)));
+    m_connection_info->SetMaxSize(wxSize(FromDIP(-1), FromDIP(25)));
+
+
+    wxBoxSizer* connection_sizer_V = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* connection_sizer_H = new wxBoxSizer(wxHORIZONTAL);
+
+    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
+
+    m_more_err_open = ScalableBitmap(this, "monitir_err_open", 16);
+    m_more_err_close = ScalableBitmap(this, "monitir_err_close", 16);
+    m_more_button = new ScalableButton(m_connection_info, wxID_ANY, "monitir_err_open");
+    m_more_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_more_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+    m_more_button->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (!m_more_err_state) {
+            m_more_button->SetBitmap(m_more_err_close.bmp());
+            Freeze();
+            m_side_error_panel->Show();
+            m_more_err_state = true;
+            m_tabpanel->Refresh();
+            m_tabpanel->Layout();
+            Thaw();
+        }
+        else {
+            m_more_button->SetBitmap(m_more_err_open.bmp());
+            Freeze();
+            m_side_error_panel->Hide();
+            m_more_err_state = false;
+            m_tabpanel->Refresh();
+            m_tabpanel->Layout();
+            Thaw();
+        }
+
+        });
+
+    connection_sizer_H->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+    connection_sizer_H->Add(m_more_button, 0, wxALIGN_CENTER | wxALL, 3);
+    connection_sizer_V->Add(connection_sizer_H, 0, wxALIGN_CENTER, 0);
+
+    m_connection_info->SetSizer(connection_sizer_V);
+    m_connection_info->Layout();
+    connection_sizer_V->Fit(m_connection_info);
+
+    m_side_error_panel = new wxWindow(this, wxID_ANY);
+    m_side_error_panel->SetBackgroundColour(wxColour(255, 232, 214));
+    m_side_error_panel->SetMinSize(wxSize(-1, -1));
+    m_side_error_panel->SetMaxSize(wxSize(-1, -1));
+
+    m_side_error_panel->Hide();
+    m_more_button->Hide();
+    m_connection_info->Hide();
+
+    wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
+    m_side_error_panel->SetSizer(sizer_print_failed_info);
+
+    wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
+
+    m_link_network_state = new Label(m_side_error_panel, _L("Check cloud service status"), wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END);
+    m_link_network_state->SetMinSize(wxSize(FromDIP(220), -1));
+    m_link_network_state->SetMaxSize(wxSize(FromDIP(220), -1));
+    m_link_network_state->SetForegroundColour(0x00AE42);
+    m_link_network_state->SetFont(::Label::Body_12);
+    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
+    m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
+    m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
+
+    auto st_title_error_code = new wxStaticText(m_side_error_panel, wxID_ANY, _L("code"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto st_title_error_code_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
+    m_st_txt_error_code = new Label(m_side_error_panel, wxEmptyString);
+    st_title_error_code->SetForegroundColour(0x909090);
+    st_title_error_code_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_code->SetForegroundColour(0x909090);
+    st_title_error_code->SetFont(::Label::Body_12);
+    st_title_error_code_doc->SetFont(::Label::Body_12);
+    m_st_txt_error_code->SetFont(::Label::Body_12);
+    st_title_error_code->SetMinSize(wxSize(FromDIP(32), -1));
+    st_title_error_code->SetMaxSize(wxSize(FromDIP(32), -1));
+    m_st_txt_error_code->SetMinSize(wxSize(FromDIP(175), -1));
+    m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(175), -1));
+    sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
+    sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
+    sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
+
+
+    auto st_title_error_desc = new wxStaticText(m_side_error_panel, wxID_ANY, wxT("desc"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto st_title_error_desc_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
+    m_st_txt_error_desc = new Label(m_side_error_panel, wxEmptyString);
+    st_title_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc->SetFont(::Label::Body_12);
+    st_title_error_desc_doc->SetFont(::Label::Body_12);
+    m_st_txt_error_desc->SetFont(::Label::Body_12);
+    st_title_error_desc->SetMinSize(wxSize(FromDIP(32), -1));
+    st_title_error_desc->SetMaxSize(wxSize(FromDIP(32), -1));
+    m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(175), -1));
+    m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(175), -1));
+    sizer_error_desc->Add(st_title_error_desc, 0, wxALL, 0);
+    sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
+    sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
+
+    auto st_title_extra_info = new wxStaticText(m_side_error_panel, wxID_ANY, wxT("info"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto st_title_extra_info_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
+    m_st_txt_extra_info = new Label(m_side_error_panel, wxEmptyString);
+    st_title_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info_doc->SetForegroundColour(0x909090);
+    m_st_txt_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info->SetFont(::Label::Body_12);
+    st_title_extra_info_doc->SetFont(::Label::Body_12);
+    m_st_txt_extra_info->SetFont(::Label::Body_12);
+    st_title_extra_info->SetMinSize(wxSize(FromDIP(32), -1));
+    st_title_extra_info->SetMaxSize(wxSize(FromDIP(32), -1));
+    m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(175), -1));
+    m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(175), -1));
+    sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
+    sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
+    sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
+
+    sizer_print_failed_info->Add(m_link_network_state, 0, wxALIGN_CENTER, 3);
+    sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_error_desc, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
+
+    m_st_txt_error_desc->SetLabel("");
+    m_st_txt_error_desc->Wrap(FromDIP(170));
+
+    wxBoxSizer* m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    m_main_sizer->Add(m_connection_info, 0, wxEXPAND, 0);
+    m_main_sizer->Add(m_side_error_panel, 0, wxEXPAND, 0);
+    m_main_sizer->Add(m_side_tools, 1, wxEXPAND, 0);
+    SetSizer(m_main_sizer);
+    Layout();
+    Fit();
+}
+
+void SideTools::msw_rescale() 
+{
+    m_side_tools->msw_rescale();
+    m_connection_info->SetCornerRadius(0);
+    m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
+}
+
+bool SideTools::is_in_interval()
+{
+    return m_side_tools->is_in_interval();
+}
+
+void SideTools::set_current_printer_name(std::string dev_name)
+{
+    m_side_tools->set_current_printer_name(dev_name);
+}
+
+void SideTools::set_current_printer_signal(WifiSignal sign)
+{
+    m_side_tools->set_current_printer_signal(sign);
+}
+
+void SideTools::set_none_printer_mode()
+{
+    m_side_tools->set_none_printer_mode();
+}
+
+void SideTools::start_interval()
+{
+    m_side_tools->start_interval();
+}
+
+void SideTools::update_connect_err_info(int code, wxString desc, wxString info)
+{
+    m_st_txt_error_code->SetLabelText(wxString::Format("%d", code));
+    m_st_txt_error_desc->SetLabelText(desc);
+    m_st_txt_extra_info->SetLabelText(info);
+
+    m_st_txt_error_code->Wrap(FromDIP(175));
+    m_st_txt_error_desc->Wrap(FromDIP(175));
+    m_st_txt_extra_info->Wrap(FromDIP(175));
+
+    if (code == BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED) {
+        m_link_network_state->Hide();
+    }
+    else if (code == BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED) {
+        m_link_network_state->Show();
+    }
+}
+
+void SideTools::update_status(MachineObject* obj)
+{
+    if (!obj) return;
+
+    /* Update Device Info */
+    m_side_tools->set_current_printer_name(obj->dev_name);
+
+    // update wifi signal image
+    int wifi_signal_val = 0;
+    if (!obj->is_connected() || obj->is_connecting()) {
+        m_side_tools->set_current_printer_signal(WifiSignal::NONE);
+    }
+    else {
+        if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
+            try {
+                wifi_signal_val = std::stoi(obj->wifi_signal.substr(0, obj->wifi_signal.size() - 3));
+            }
+            catch (...) {
+                ;
+            }
+            if (wifi_signal_val > -45) {
+                m_side_tools->set_current_printer_signal(WifiSignal::STRONG);
+            }
+            else if (wifi_signal_val <= -45 && wifi_signal_val >= -60) {
+                m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
+            }
+            else {
+                m_side_tools->set_current_printer_signal(WifiSignal::WEAK);
+            }
+        }
+        else {
+            m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
+        }
+    }
+}
+
+void SideTools::show_status(int status)
+{
+    if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
+        if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER)) {
+            m_hyperlink->SetLabel(_L("Failed to connect to the server"));
+            update_connect_err_info(BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED,
+                _L("Failed to connect to cloud service"),
+                _L("Please click on the hyperlink above to view the cloud service status"));
+        }
+        else {
+            m_hyperlink->SetLabel(_L("Failed to connect to the printer"));
+            update_connect_err_info(BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED,
+                _L("Connection to printer failed"),
+                _L("Please check the network connection of the printer and Studio."));
+        }
+
+        m_hyperlink->Show();
+        m_connection_info->SetLabel(wxEmptyString);
+        m_connection_info->SetBackgroundColor(0xFF6F00);
+        m_connection_info->SetBorderColor(0xFF6F00);
+        m_connection_info->Show();
+        m_more_button->Show();
+
+    }
+    else if ((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) {
+        m_connection_info->Hide();
+        m_more_button->Hide();
+        m_side_error_panel->Hide();
+    }
+    else if ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
+        m_hyperlink->Hide();
+        m_connection_info->SetLabel(_L("Connecting..."));
+        m_connection_info->SetBackgroundColor(0x00AE42);
+        m_connection_info->SetBorderColor(0x00AE42);
+        m_connection_info->Show();
+        m_more_button->Hide();
+        m_side_error_panel->Hide();
+    }
+
+    if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
+        m_side_tools->set_none_printer_mode();
+        m_connection_info->Hide();
+        m_side_error_panel->Hide();
+        m_more_button->Hide();
+    }
+    else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
+        ) {
+        if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+            || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+            || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)) {
+            m_side_tools->set_current_printer_signal(WifiSignal::NONE);
+        }
+    }
+    Layout();
+    Fit();
+}
+
+SideTools::~SideTools()
+{
+}
+
 }}

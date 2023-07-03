@@ -4,6 +4,8 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StepCtrl.hpp"
+#include "Widgets/SideTools.hpp"
+
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 
@@ -101,6 +103,510 @@ static std::vector<std::string> message_containing_retry{
 #define AXIS_MIN_SIZE (wxSize(FromDIP(220), FromDIP(220)))
 #define EXTRUDER_IMAGE_SIZE (wxSize(FromDIP(48), FromDIP(76)))
 
+PrintingTaskPanel::PrintingTaskPanel(wxWindow* parent, PrintingTaskType type)
+    : wxPanel(parent, wxID_ANY,wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
+{
+    m_type = type;
+    create_panel(this);
+    SetBackgroundColour(*wxWHITE);
+}
+
+PrintingTaskPanel::~PrintingTaskPanel()
+{
+}
+
+
+void PrintingTaskPanel::create_panel(wxWindow* parent)
+{
+    wxBoxSizer *sizer                 = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *bSizer_printing_title = new wxBoxSizer(wxHORIZONTAL);
+
+    m_panel_printing_title = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, PAGE_TITLE_HEIGHT), wxTAB_TRAVERSAL);
+    m_panel_printing_title->SetBackgroundColour(STATUS_TITLE_BG);
+
+    m_staticText_printing = new wxStaticText(m_panel_printing_title, wxID_ANY ,_L("Printing Progress"));
+    m_staticText_printing->Wrap(-1);
+    m_staticText_printing->SetFont(PAGE_TITLE_FONT);
+    m_staticText_printing->SetForegroundColour(PAGE_TITLE_FONT_COL);
+
+    bSizer_printing_title->Add(m_staticText_printing, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
+    bSizer_printing_title->Add(0, 0, 1, wxEXPAND, 0);
+
+    m_panel_printing_title->SetSizer(bSizer_printing_title);
+    m_panel_printing_title->Layout();
+    bSizer_printing_title->Fit(m_panel_printing_title);
+
+    m_bitmap_thumbnail = new wxStaticBitmap(parent, wxID_ANY, m_thumbnail_placeholder.bmp(), wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
+
+    
+
+    wxBoxSizer *bSizer_subtask_info = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *bSizer_task_name = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *bSizer_task_name_hor = new wxBoxSizer(wxHORIZONTAL);
+    wxPanel*    task_name_panel      = new wxPanel(parent);
+
+    m_staticText_subtask_value = new wxStaticText(task_name_panel, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_staticText_subtask_value->Wrap(-1);
+    #ifdef __WXOSX_MAC__
+    m_staticText_subtask_value->SetFont(::Label::Body_13);
+    #else
+    m_staticText_subtask_value->SetFont(wxFont(13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    #endif
+    m_staticText_subtask_value->SetForegroundColour(wxColour(44, 44, 46));
+
+    m_bitmap_static_use_time = new wxStaticBitmap(task_name_panel, wxID_ANY, m_bitmap_use_time.bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+
+    m_staticText_consumption_of_time = new wxStaticText(task_name_panel, wxID_ANY, "0m", wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_consumption_of_time->SetFont(::Label::Body_12);
+    m_staticText_consumption_of_time->SetForegroundColour(wxColour(0x68, 0x68, 0x68));
+    m_staticText_consumption_of_time->Wrap(-1);
+
+
+    m_bitmap_static_use_weight = new wxStaticBitmap(task_name_panel, wxID_ANY, m_bitmap_use_weight.bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+
+
+    m_staticText_consumption_of_weight = new wxStaticText(task_name_panel, wxID_ANY, "0g", wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_consumption_of_weight->SetFont(::Label::Body_12);
+    m_staticText_consumption_of_weight->SetForegroundColour(wxColour(0x68, 0x68, 0x68));
+    m_staticText_consumption_of_weight->Wrap(-1);
+
+    bSizer_task_name_hor->Add(m_staticText_subtask_value, 1, wxALL | wxEXPAND, 0);
+    bSizer_task_name_hor->Add(0, 0, 1, wxEXPAND, 0);
+    bSizer_task_name_hor->Add(m_bitmap_static_use_time, 0, wxALIGN_CENTER_VERTICAL, 0);
+    bSizer_task_name_hor->Add(m_staticText_consumption_of_time, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, FromDIP(3));
+    bSizer_task_name_hor->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    bSizer_task_name_hor->Add(m_bitmap_static_use_weight, 0, wxALIGN_CENTER_VERTICAL, 0);
+    bSizer_task_name_hor->Add(m_staticText_consumption_of_weight, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
+    bSizer_task_name_hor->Add(0, 0, 0, wxRIGHT, FromDIP(10));
+
+
+    task_name_panel->SetSizer(bSizer_task_name_hor);
+    task_name_panel->Layout();
+    task_name_panel->Fit();
+
+    bSizer_task_name->Add(task_name_panel, 0, wxEXPAND, FromDIP(5));
+
+
+   /* wxFlexGridSizer *fgSizer_task = new wxFlexGridSizer(2, 2, 0, 0);
+     fgSizer_task->AddGrowableCol(0);
+     fgSizer_task->SetFlexibleDirection(wxVERTICAL);
+     fgSizer_task->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);*/
+
+    m_printing_stage_value = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_printing_stage_value->Wrap(-1);
+    #ifdef __WXOSX_MAC__
+    m_printing_stage_value->SetFont(::Label::Body_11);
+    #else
+    m_printing_stage_value->SetFont(wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    #endif
+
+    m_printing_stage_value->SetForegroundColour(STAGE_TEXT_COL);
+
+
+    m_staticText_profile_value = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_staticText_profile_value->Wrap(-1);
+#ifdef __WXOSX_MAC__
+    m_staticText_profile_value->SetFont(::Label::Body_11);
+#else
+    m_staticText_profile_value->SetFont(wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+#endif
+
+    m_staticText_profile_value->SetForegroundColour(0x6B6B6B);
+
+
+    auto m_panel_progress = new wxPanel(parent, wxID_ANY);
+    m_panel_progress->SetBackgroundColour(*wxWHITE);
+    auto m_sizer_progressbar = new wxBoxSizer(wxHORIZONTAL);
+    m_gauge_progress = new ProgressBar(m_panel_progress, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize);
+    m_gauge_progress->SetValue(0);
+    m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
+    m_gauge_progress->SetMaxSize(wxSize(FromDIP(600), -1));
+    m_panel_progress->SetSizer(m_sizer_progressbar);
+    m_panel_progress->Layout();
+    m_panel_progress->SetSize(wxSize(-1, FromDIP(24)));
+    m_panel_progress->SetMaxSize(wxSize(-1, FromDIP(24)));
+
+    wxBoxSizer *bSizer_task_btn = new wxBoxSizer(wxHORIZONTAL);
+
+    bSizer_task_btn->Add(FromDIP(10), 0, 0);
+
+    m_button_pause_resume = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
+
+    m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
+            m_button_pause_resume->SetBitmap_("print_control_pause_hover");
+        }
+
+        if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
+            m_button_pause_resume->SetBitmap_("print_control_resume_hover");
+        }
+    });
+
+    m_button_pause_resume->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+        auto        buf = m_button_pause_resume->GetClientData();
+        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
+            m_button_pause_resume->SetBitmap_("print_control_pause");
+        }
+
+        if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
+            m_button_pause_resume->SetBitmap_("print_control_resume");
+        }
+    });
+
+    m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_button_abort->SetToolTip(_L("Stop"));
+
+    m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        m_button_abort->SetBitmap_("print_control_stop_hover");
+    });
+
+    m_button_abort->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+        m_button_abort->SetBitmap_("print_control_stop"); }
+    );
+
+    m_sizer_progressbar->Add(m_gauge_progress, 1, wxALIGN_CENTER_VERTICAL, 0);
+    m_sizer_progressbar->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(18));
+    m_sizer_progressbar->Add(m_button_pause_resume, 0, wxALL, FromDIP(5));
+    m_sizer_progressbar->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(18));
+    m_sizer_progressbar->Add(m_button_abort, 0, wxALL, FromDIP(5));
+
+    wxBoxSizer *bSizer_buttons = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *bSizer_text = new wxBoxSizer(wxHORIZONTAL);
+    wxPanel* penel_bottons = new wxPanel(parent);
+    wxPanel* penel_text = new wxPanel(penel_bottons);
+
+    penel_text->SetBackgroundColour(*wxWHITE);
+    penel_bottons->SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer *sizer_percent = new wxBoxSizer(wxVERTICAL);
+    sizer_percent->Add(0, 0, 1, wxEXPAND, 0);
+
+    wxBoxSizer *sizer_percent_icon  = new wxBoxSizer(wxVERTICAL);
+    sizer_percent_icon->Add(0, 0, 1, wxEXPAND, 0);
+
+
+    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, L("0"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent->SetFont(::Label::Head_18);
+    m_staticText_progress_percent->SetMaxSize(wxSize(-1, FromDIP(20)));
+    m_staticText_progress_percent->SetForegroundColour(wxColour(0, 174, 66));
+
+    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, L("%"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent_icon->SetFont(::Label::Body_11);
+    m_staticText_progress_percent_icon->SetMaxSize(wxSize(-1, FromDIP(13)));
+    m_staticText_progress_percent_icon->SetForegroundColour(wxColour(0, 174, 66));
+
+    sizer_percent->Add(m_staticText_progress_percent, 0, 0, 0);
+
+    #ifdef __WXOSX_MAC__
+    sizer_percent_icon->Add(m_staticText_progress_percent_icon, 0, wxBOTTOM, FromDIP(2));
+    #else
+    sizer_percent_icon->Add(m_staticText_progress_percent_icon, 0, 0, 0);
+    #endif
+
+
+    m_staticText_progress_left = new wxStaticText(penel_text, wxID_ANY, L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_left->Wrap(-1);
+    m_staticText_progress_left->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
+
+    //fgSizer_task->Add(bSizer_buttons, 0, wxEXPAND, 0);
+    //fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
+
+    wxPanel* panel_button_block = new wxPanel(penel_bottons, wxID_ANY);
+    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 4, -1));
+    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 4, -1));
+    panel_button_block->SetSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 2, -1));
+    panel_button_block->SetBackgroundColour(*wxWHITE);
+
+    m_staticText_layers = new wxStaticText(penel_text, wxID_ANY, _L("Layer: N/A"));
+    m_staticText_layers->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_layers->SetForegroundColour(wxColour(146, 146, 146));
+    m_staticText_layers->Hide();
+
+    //bSizer_text->Add(m_staticText_progress_percent, 0,  wxALL, 0);
+    bSizer_text->Add(sizer_percent, 0, wxEXPAND, 0);
+    bSizer_text->Add(sizer_percent_icon, 0, wxEXPAND, 0);
+    bSizer_text->Add(0, 0, 1, wxEXPAND, 0);
+    bSizer_text->Add(m_staticText_layers, 0, wxALIGN_CENTER | wxALL, 0);
+    bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER | wxALL, 0);
+
+    penel_text->SetMaxSize(wxSize(FromDIP(600), -1));
+    penel_text->SetSizer(bSizer_text);
+    penel_text->Layout();
+
+    bSizer_buttons->Add(penel_text, 1, wxEXPAND | wxALL, 0);
+    bSizer_buttons->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
+
+    penel_bottons->SetSizer(bSizer_buttons);
+    penel_bottons->Layout();
+
+    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
+
+    m_button_market_scoring = new Button(parent, _L("Immediately score"));
+    m_button_market_scoring->SetBackgroundColor(btn_bg_green);
+    m_button_market_scoring->SetBorderColor(btn_bd_green);
+    m_button_market_scoring->SetTextColor(wxColour("#FFFFFE"));
+    m_button_market_scoring->SetSize(wxSize(FromDIP(128), FromDIP(26)));
+    m_button_market_scoring->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_button_market_scoring->SetCornerRadius(FromDIP(13));
+
+    wxBoxSizer *bSizer_market_scoring = new wxBoxSizer(wxHORIZONTAL);
+    bSizer_market_scoring->Add(m_button_market_scoring);
+    bSizer_market_scoring->Add(0, 0, 1, wxEXPAND, 0);
+    m_button_market_scoring->Hide();
+
+    bSizer_subtask_info->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
+    bSizer_subtask_info->Add(bSizer_task_name, 0, wxEXPAND|wxRIGHT, FromDIP(18));
+    bSizer_subtask_info->Add(m_staticText_profile_value, 0, wxEXPAND | wxTOP, FromDIP(5));
+    bSizer_subtask_info->Add(m_printing_stage_value, 0, wxEXPAND | wxTOP, FromDIP(5));
+    bSizer_subtask_info->Add(bSizer_market_scoring, 0, wxEXPAND | wxTOP, FromDIP(5));
+    bSizer_subtask_info->Add(penel_bottons, 0, wxEXPAND | wxTOP, FromDIP(10));
+    bSizer_subtask_info->Add(m_panel_progress, 0, wxEXPAND|wxRIGHT, FromDIP(25));
+
+
+    m_printing_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
+    m_printing_sizer->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(12));
+    m_printing_sizer->Add(FromDIP(8), 0, 0, wxEXPAND, 0);
+    m_printing_sizer->Add(bSizer_subtask_info, 1, wxALL | wxEXPAND, 0);
+
+
+    m_staticline = new wxPanel( parent, wxID_ANY);
+    m_staticline->SetBackgroundColour(wxColour(238,238,238));
+    m_staticline->Layout();
+    m_staticline->Hide();
+
+    m_panel_error_txt = new wxPanel(parent, wxID_ANY);
+    m_panel_error_txt->SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer *static_text_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_error_text = new ErrorMsgStaticText(m_panel_error_txt);
+    m_error_text->SetForegroundColour(wxColour(255, 0, 0));
+    text_sizer->Add(m_error_text, 1, wxEXPAND|wxLEFT, FromDIP(17));
+
+    m_button_clean = new Button(m_panel_error_txt, _L("Clear"));
+    StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor clean_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    StateColor clean_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+
+    m_button_clean->SetBackgroundColor(clean_bg);
+    m_button_clean->SetBorderColor(clean_bd);
+    m_button_clean->SetTextColor(clean_text);
+    m_button_clean->SetFont(Label::Body_10);
+    m_button_clean->SetMinSize(TASK_BUTTON_SIZE2);
+
+    static_text_sizer->Add(text_sizer, 1, wxEXPAND, 0);
+    static_text_sizer->Add( FromDIP(10), 0, 0, 0, 0 );
+    static_text_sizer->Add(m_button_clean, 0, wxALIGN_CENTRE_VERTICAL|wxRIGHT, FromDIP(5));
+
+    m_panel_error_txt->SetSizer(static_text_sizer);
+    m_panel_error_txt->Hide();
+
+    sizer->Add(m_panel_printing_title, 0, wxEXPAND | wxALL, 0);
+    sizer->Add(0, FromDIP(12), 0);
+    sizer->Add(m_printing_sizer, 0, wxEXPAND | wxALL, 0);
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(m_staticline, 0, wxEXPAND | wxALL, FromDIP(10));
+    sizer->Add(m_panel_error_txt, 0, wxEXPAND | wxALL, 0);
+    sizer->Add(0, FromDIP(12), 0);
+
+    if (m_type == CALIBRATION) {
+        m_panel_printing_title->Hide();
+        m_bitmap_thumbnail->Hide();
+        task_name_panel->Hide();
+        m_staticText_profile_value->Hide();
+    }
+
+    parent->SetSizer(sizer);
+    parent->Layout();
+    parent->Fit();
+}
+
+void PrintingTaskPanel::msw_rescale()
+{
+    m_panel_printing_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
+    m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
+    m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
+    m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
+    m_gauge_progress->Rescale();
+    m_button_abort->msw_rescale();
+    m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
+}
+
+void PrintingTaskPanel::init_bitmaps()
+{
+    m_thumbnail_placeholder     = ScalableBitmap(this, "monitor_placeholder", 120);
+    m_bitmap_use_time           = ScalableBitmap(this, "print_info_time", 16);
+    m_bitmap_use_weight         = ScalableBitmap(this, "print_info_weight", 16);
+}
+
+void PrintingTaskPanel::init_scaled_buttons()
+{
+    m_button_clean->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_clean->SetCornerRadius(FromDIP(12));
+}
+
+void PrintingTaskPanel::error_info_reset()
+{
+    if (m_panel_error_txt->IsShown()) {
+        m_staticline->Hide();
+        m_panel_error_txt->Hide();
+        m_panel_error_txt->GetParent()->Layout();
+        m_error_text->SetLabel(wxEmptyString);
+    }
+}
+
+void PrintingTaskPanel::show_error_msg(wxString msg)
+{
+    m_staticline->Show();
+    m_panel_error_txt->Show();
+    m_error_text->SetLabel(msg);
+}
+
+void PrintingTaskPanel::reset_printing_value()
+{
+    m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());
+}
+
+void PrintingTaskPanel::enable_pause_resume_button(bool enable, std::string type)
+{
+    if (!enable) {
+        m_button_pause_resume->Enable(false);
+
+        if (type == "pause_disable") {
+            m_button_pause_resume->SetBitmap_("print_control_pause_disable");
+        }
+        else if (type == "resume_disable") {
+            m_button_pause_resume->SetBitmap_("print_control_resume_disable");
+        }
+    }
+    else {
+        m_button_pause_resume->Enable(true);
+        if (type == "resume") {
+        m_button_pause_resume->SetBitmap_("print_control_resume");
+        if (m_button_pause_resume->GetToolTipText() != _L("Resume")) { m_button_pause_resume->SetToolTip(_L("Resume")); }
+        }
+        else if (type == "pause") {
+        m_button_pause_resume->SetBitmap_("print_control_pause");
+        if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
+        }
+    }
+}
+
+void PrintingTaskPanel::enable_abort_button(bool enable)
+{
+    if (!enable) {
+        m_button_abort->Enable(false);
+        m_button_abort->SetBitmap_("print_control_stop_disable");
+    }
+    else {
+        m_button_abort->Enable(true);
+        m_button_abort->SetBitmap_("print_control_stop");
+    }
+}
+
+void PrintingTaskPanel::update_subtask_name(wxString name)
+{
+    m_staticText_subtask_value->SetLabelText(name);
+}
+
+void PrintingTaskPanel::update_stage_value(wxString stage, int val)
+{
+    m_printing_stage_value->SetLabelText(stage);
+    m_gauge_progress->SetValue(val);
+}
+
+void PrintingTaskPanel::update_progress_percent(wxString percent, wxString icon)
+{
+    m_staticText_progress_percent->SetLabelText(percent);
+    m_staticText_progress_percent_icon->SetLabelText(icon);
+}
+
+void PrintingTaskPanel::update_left_time(wxString time)
+{
+    m_staticText_progress_left->SetLabelText(time);
+}
+
+void PrintingTaskPanel::update_left_time(int mc_left_time)
+{
+    // update gcode progress
+    std::string left_time;
+    wxString    left_time_text = NA_STR;
+
+    try {
+        left_time = get_bbl_monitor_time_dhm(mc_left_time);
+    }
+    catch (...) {
+        ;
+    }
+
+    if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
+    update_left_time(left_time_text);
+}
+
+void PrintingTaskPanel::update_layers_num(bool show, wxString num)
+{
+    if (show) {
+        m_staticText_layers->Show(true);
+        m_staticText_layers->SetLabelText(num);
+    }
+    else {
+        m_staticText_layers->Show(false);
+        m_staticText_layers->SetLabelText(num);
+    }
+}
+
+void PrintingTaskPanel::show_priting_use_info(bool show, wxString time /*= wxEmptyString*/, wxString weight /*= wxEmptyString*/)
+{
+    if (show) {
+        if (!m_staticText_consumption_of_time->IsShown()) {
+            m_bitmap_static_use_time->Show();
+            m_staticText_consumption_of_time->Show();
+        }
+
+        if (!m_staticText_consumption_of_weight->IsShown()) {
+            m_bitmap_static_use_weight->Show();
+            m_staticText_consumption_of_weight->Show();
+        }
+
+        m_staticText_consumption_of_time->SetLabelText(time);
+        m_staticText_consumption_of_weight->SetLabelText(weight);
+    }
+    else {
+        m_staticText_consumption_of_time->SetLabelText("0m");
+        m_staticText_consumption_of_weight->SetLabelText("0g");
+        if (m_staticText_consumption_of_time->IsShown()) {
+            m_bitmap_static_use_time->Hide();
+            m_staticText_consumption_of_time->Hide();
+        }
+
+        if (m_staticText_consumption_of_weight->IsShown()) {
+            m_bitmap_static_use_weight->Hide();
+            m_staticText_consumption_of_weight->Hide();
+        }    }
+}
+
+
+void PrintingTaskPanel::show_profile_info(bool show, wxString profile /*= wxEmptyString*/)
+{
+    if (show) {
+        if (!m_staticText_profile_value->IsShown()) { m_staticText_profile_value->Show(); }
+        m_staticText_profile_value->SetLabelText(profile);
+    }
+    else {
+        m_staticText_profile_value->SetLabelText(wxEmptyString);
+        m_staticText_profile_value->Hide();
+    }
+}
+
 StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : wxScrolledWindow(parent, id, pos, size, wxHSCROLL | wxVSCROLL)
 {
@@ -136,13 +642,8 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     m_panel_separotor1->SetMaxSize(wxSize(-1, PAGE_SPACING));
     m_monitoring_sizer->Add(m_panel_separotor1, 0, wxEXPAND, 0);
 
-    m_project_task_panel = new wxPanel(this);
-    m_project_task_panel->SetBackgroundColour(*wxWHITE);
-
-    auto m_project_task_sizer = create_project_task_page(m_project_task_panel);
-    m_project_task_panel->SetSizer(m_project_task_sizer);
-    m_project_task_panel->Layout();
-    m_project_task_sizer->Fit(m_project_task_panel);
+    m_project_task_panel = new PrintingTaskPanel(this, PrintingTaskType::PRINGINT);
+    m_project_task_panel->init_bitmaps();
     m_monitoring_sizer->Add(m_project_task_panel, 0, wxALL | wxEXPAND , 0);
 
 //    auto m_panel_separotor2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -191,7 +692,6 @@ StatusBasePanel::~StatusBasePanel()
 void StatusBasePanel::init_bitmaps()
 {
     static Slic3r::GUI::BitmapCache cache;
-    m_item_placeholder       = create_scaled_bitmap("monitor_placeholder", nullptr, 60);
     m_bitmap_item_prediction = create_scaled_bitmap("monitor_item_prediction", nullptr, 16);
     m_bitmap_item_cost       = create_scaled_bitmap("monitor_item_cost", nullptr, 16);
     m_bitmap_item_print      = create_scaled_bitmap("monitor_item_print", nullptr, 18);
@@ -202,9 +702,7 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_fan_off         = ScalableBitmap(this, "monitor_fan_off", 22);
     m_bitmap_speed           = ScalableBitmap(this, "monitor_speed", 24);
     m_bitmap_speed_active    = ScalableBitmap(this, "monitor_speed_active", 24);
-    m_bitmap_use_time        = ScalableBitmap(this, "print_info_time", 16);
-    m_bitmap_use_weight      = ScalableBitmap(this, "print_info_weight", 16);
-    m_thumbnail_placeholder  = ScalableBitmap(this, "monitor_placeholder", 120);
+    
     m_thumbnail_brokenimg    = ScalableBitmap(this, "monitor_brokenimg", 120);
     m_thumbnail_sdcard       = ScalableBitmap(this, "monitor_sdcard_thumbnail", 120);
     //m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
@@ -311,332 +809,6 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 //    media_ctrl_panel->Layout();
 //
 //    sizer->Add(media_ctrl_panel, 1, wxEXPAND | wxALL, 1);
-    return sizer;
-}
-
-wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
-{
-    wxBoxSizer *sizer                 = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *bSizer_printing_title = new wxBoxSizer(wxHORIZONTAL);
-
-    m_panel_printing_title = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, PAGE_TITLE_HEIGHT), wxTAB_TRAVERSAL);
-    m_panel_printing_title->SetBackgroundColour(STATUS_TITLE_BG);
-
-    m_staticText_printing = new Label(m_panel_printing_title, _L("Printing Progress"));
-    m_staticText_printing->Wrap(-1);
-    m_staticText_printing->SetFont(PAGE_TITLE_FONT);
-    m_staticText_printing->SetForegroundColour(PAGE_TITLE_FONT_COL);
-    bSizer_printing_title->Add(m_staticText_printing, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
-
-    bSizer_printing_title->Add(0, 0, 1, wxEXPAND, 0);
-
-    m_panel_printing_title->SetSizer(bSizer_printing_title);
-    m_panel_printing_title->Layout();
-    bSizer_printing_title->Fit(m_panel_printing_title);
-
-    sizer->Add(m_panel_printing_title, 0, wxEXPAND | wxALL, 0);
-    sizer->Add(0, FromDIP(12), 0);
-
-    m_printing_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
-    m_bitmap_thumbnail = new wxStaticBitmap(parent, wxID_ANY, m_thumbnail_placeholder.bmp(), wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
-
-    m_printing_sizer->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(12));
-
-    m_printing_sizer->Add(FromDIP(8), 0, 0, wxEXPAND, 0);
-
-    wxBoxSizer *bSizer_subtask_info = new wxBoxSizer(wxVERTICAL);
-
-    wxBoxSizer *bSizer_task_name = new wxBoxSizer(wxVERTICAL);
-
-    wxBoxSizer *bSizer_task_name_hor = new wxBoxSizer(wxHORIZONTAL);
-    wxPanel*    task_name_panel      = new wxPanel(parent);
-
-    m_staticText_subtask_value = new wxStaticText(task_name_panel, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
-    m_staticText_subtask_value->Wrap(-1);
-    #ifdef __WXOSX_MAC__
-    m_staticText_subtask_value->SetFont(::Label::Body_13);
-    #else
-    m_staticText_subtask_value->SetFont(wxFont(13, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
-    #endif
-    m_staticText_subtask_value->SetForegroundColour(wxColour(44, 44, 46));
-
-    m_bitmap_static_use_time = new wxStaticBitmap(task_name_panel, wxID_ANY, m_bitmap_use_time.bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
-
-    m_staticText_consumption_of_time = new wxStaticText(task_name_panel, wxID_ANY, "0m", wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_consumption_of_time->SetFont(::Label::Body_12);
-    m_staticText_consumption_of_time->SetForegroundColour(wxColour(0x68, 0x68, 0x68));
-    m_staticText_consumption_of_time->Wrap(-1);
-
-
-    m_bitmap_static_use_weight = new wxStaticBitmap(task_name_panel, wxID_ANY, m_bitmap_use_weight.bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
-
-
-    m_staticText_consumption_of_weight = new wxStaticText(task_name_panel, wxID_ANY, "0g", wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_consumption_of_weight->SetFont(::Label::Body_12);
-    m_staticText_consumption_of_weight->SetForegroundColour(wxColour(0x68, 0x68, 0x68));
-    m_staticText_consumption_of_weight->Wrap(-1);
-
-    bSizer_task_name_hor->Add(m_staticText_subtask_value, 1, wxALL | wxEXPAND, 0);
-    bSizer_task_name_hor->Add(0, 0, 1, wxEXPAND, 0);
-    bSizer_task_name_hor->Add(m_bitmap_static_use_time, 0, wxALIGN_CENTER_VERTICAL, 0);
-    bSizer_task_name_hor->Add(m_staticText_consumption_of_time, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, FromDIP(3));
-    bSizer_task_name_hor->Add(0, 0, 0, wxLEFT, FromDIP(20));
-    bSizer_task_name_hor->Add(m_bitmap_static_use_weight, 0, wxALIGN_CENTER_VERTICAL, 0);
-    bSizer_task_name_hor->Add(m_staticText_consumption_of_weight, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
-    bSizer_task_name_hor->Add(0, 0, 0, wxRIGHT, FromDIP(10));
-
-
-    task_name_panel->SetSizer(bSizer_task_name_hor);
-    task_name_panel->Layout();
-    task_name_panel->Fit();
-
-    bSizer_task_name->Add(task_name_panel, 0, wxEXPAND, FromDIP(5));
-
-
-   /* wxFlexGridSizer *fgSizer_task = new wxFlexGridSizer(2, 2, 0, 0);
-     fgSizer_task->AddGrowableCol(0);
-     fgSizer_task->SetFlexibleDirection(wxVERTICAL);
-     fgSizer_task->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);*/
-
-    m_printing_stage_value = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
-    m_printing_stage_value->Wrap(-1);
-    #ifdef __WXOSX_MAC__
-    m_printing_stage_value->SetFont(::Label::Body_11);
-    #else
-    m_printing_stage_value->SetFont(wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
-    #endif
-
-    m_printing_stage_value->SetForegroundColour(STAGE_TEXT_COL);
-
-
-    m_staticText_profile_value = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
-    m_staticText_profile_value->Wrap(-1);
-#ifdef __WXOSX_MAC__
-    m_staticText_profile_value->SetFont(::Label::Body_11);
-#else
-    m_staticText_profile_value->SetFont(wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
-#endif
-
-    m_staticText_profile_value->SetForegroundColour(0x6B6B6B);
-
-
-    auto m_panel_progress = new wxPanel(parent, wxID_ANY);
-    m_panel_progress->SetBackgroundColour(*wxWHITE);
-    auto m_sizer_progressbar = new wxBoxSizer(wxHORIZONTAL);
-    m_gauge_progress = new ProgressBar(m_panel_progress, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize);
-    m_gauge_progress->SetValue(0);
-    m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
-    m_gauge_progress->SetMaxSize(wxSize(FromDIP(600), -1));
-    m_panel_progress->SetSizer(m_sizer_progressbar);
-    m_panel_progress->Layout();
-    m_panel_progress->SetSize(wxSize(-1, FromDIP(24)));
-    m_panel_progress->SetMaxSize(wxSize(-1, FromDIP(24)));
-
-    wxBoxSizer *bSizer_task_btn = new wxBoxSizer(wxHORIZONTAL);
-
-    bSizer_task_btn->Add(FromDIP(10), 0, 0);
-
-   /* m_button_report = new Button(m_panel_progress, _L("Report"));
-     StateColor report_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                          std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-     m_button_report->SetBackgroundColor(report_bg);
-     m_button_report->SetMinSize(TASK_BUTTON_SIZE2);
-     StateColor report_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-     m_button_report->SetBorderColor(report_bd);
-     StateColor report_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-     m_button_report->SetTextColor(report_text);
-     m_button_report->SetFont(Label::Body_10);
-     m_button_report->Hide();
-     m_sizer_progressbar->Add(m_button_report, 0, wxALL, FromDIP(5));*/
-
-    m_button_pause_resume = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
-
-    m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
-            m_button_pause_resume->SetBitmap_("print_control_pause_hover");
-        }
-
-        if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
-            m_button_pause_resume->SetBitmap_("print_control_resume_hover");
-        }
-    });
-
-    m_button_pause_resume->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-        auto        buf = m_button_pause_resume->GetClientData();
-        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
-            m_button_pause_resume->SetBitmap_("print_control_pause");
-        }
-
-        if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
-            m_button_pause_resume->SetBitmap_("print_control_resume");
-        }
-    });
-
-    m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
-    m_button_abort->SetToolTip(_L("Stop"));
-
-    m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        m_button_abort->SetBitmap_("print_control_stop_hover");
-    });
-
-    m_button_abort->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-        m_button_abort->SetBitmap_("print_control_stop"); }
-    );
-
-    m_sizer_progressbar->Add(m_gauge_progress, 1, wxALIGN_CENTER_VERTICAL, 0);
-    m_sizer_progressbar->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(18));
-    m_sizer_progressbar->Add(m_button_pause_resume, 0, wxALL, FromDIP(5));
-    m_sizer_progressbar->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(18));
-    m_sizer_progressbar->Add(m_button_abort, 0, wxALL, FromDIP(5));
-
-    //fgSizer_task->Add(bSizer_task_btn, 0, wxEXPAND, 0);
-
-    wxBoxSizer *bSizer_buttons = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *bSizer_text = new wxBoxSizer(wxHORIZONTAL);
-    wxPanel* penel_bottons = new wxPanel(parent);
-    wxPanel* penel_text = new wxPanel(penel_bottons);
-
-    penel_text->SetBackgroundColour(*wxWHITE);
-    penel_bottons->SetBackgroundColour(*wxWHITE);
-
-    wxBoxSizer *sizer_percent = new wxBoxSizer(wxVERTICAL);
-    sizer_percent->Add(0, 0, 1, wxEXPAND, 0);
-
-    wxBoxSizer *sizer_percent_icon  = new wxBoxSizer(wxVERTICAL);
-    sizer_percent_icon->Add(0, 0, 1, wxEXPAND, 0);
-
-
-    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, L("0"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_progress_percent->SetFont(::Label::Head_18);
-    m_staticText_progress_percent->SetMaxSize(wxSize(-1, FromDIP(20)));
-    m_staticText_progress_percent->SetForegroundColour(wxColour(0, 174, 66));
-
-    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, L("%"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_progress_percent_icon->SetFont(::Label::Body_11);
-    m_staticText_progress_percent_icon->SetMaxSize(wxSize(-1, FromDIP(13)));
-    m_staticText_progress_percent_icon->SetForegroundColour(wxColour(0, 174, 66));
-
-    sizer_percent->Add(m_staticText_progress_percent, 0, 0, 0);
-
-    #ifdef __WXOSX_MAC__
-    sizer_percent_icon->Add(m_staticText_progress_percent_icon, 0, wxBOTTOM, FromDIP(2));
-    #else
-    sizer_percent_icon->Add(m_staticText_progress_percent_icon, 0, 0, 0);
-    #endif
-
-
-    m_staticText_progress_left = new wxStaticText(penel_text, wxID_ANY, L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_progress_left->Wrap(-1);
-    m_staticText_progress_left->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
-    m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
-
-    //fgSizer_task->Add(bSizer_buttons, 0, wxEXPAND, 0);
-    //fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
-
-    wxPanel* panel_button_block = new wxPanel(penel_bottons, wxID_ANY);
-    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 4, -1));
-    panel_button_block->SetMinSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 4, -1));
-    panel_button_block->SetSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 2, -1));
-    panel_button_block->SetBackgroundColour(*wxWHITE);
-
-    m_staticText_layers = new wxStaticText(penel_text, wxID_ANY, _L("Layer: N/A"));
-    m_staticText_layers->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
-    m_staticText_layers->SetForegroundColour(wxColour(146, 146, 146));
-    m_staticText_layers->Hide();
-
-    //bSizer_text->Add(m_staticText_progress_percent, 0,  wxALL, 0);
-    bSizer_text->Add(sizer_percent, 0, wxEXPAND, 0);
-    bSizer_text->Add(sizer_percent_icon, 0, wxEXPAND, 0);
-    bSizer_text->Add(0, 0, 1, wxEXPAND, 0);
-    bSizer_text->Add(m_staticText_layers, 0, wxALIGN_CENTER | wxALL, 0);
-    bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
-    bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER | wxALL, 0);
-
-    penel_text->SetMaxSize(wxSize(FromDIP(600), -1));
-    penel_text->SetSizer(bSizer_text);
-    penel_text->Layout();
-
-    bSizer_buttons->Add(penel_text, 1, wxEXPAND | wxALL, 0);
-    bSizer_buttons->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
-
-    penel_bottons->SetSizer(bSizer_buttons);
-    penel_bottons->Layout();
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
-
-    m_button_market_scoring = new Button(parent, _L("Immediately score"));
-    m_button_market_scoring->SetBackgroundColor(btn_bg_green);
-    m_button_market_scoring->SetBorderColor(btn_bd_green);
-    m_button_market_scoring->SetTextColor(wxColour("#FFFFFE"));
-    m_button_market_scoring->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    m_button_market_scoring->SetMinSize(wxSize(-1, FromDIP(26)));
-    m_button_market_scoring->SetCornerRadius(FromDIP(13));
-
-    wxBoxSizer *bSizer_market_scoring = new wxBoxSizer(wxHORIZONTAL);
-    bSizer_market_scoring->Add(m_button_market_scoring);
-    bSizer_market_scoring->Add(0, 0, 1, wxEXPAND, 0);
-    m_button_market_scoring->Hide();
-
-    bSizer_subtask_info->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
-    bSizer_subtask_info->Add(bSizer_task_name, 0, wxEXPAND|wxRIGHT, FromDIP(18));
-    bSizer_subtask_info->Add(m_staticText_profile_value, 0, wxEXPAND | wxTOP, FromDIP(5));
-    bSizer_subtask_info->Add(m_printing_stage_value, 0, wxEXPAND | wxTOP, FromDIP(5));
-    bSizer_subtask_info->Add(bSizer_market_scoring, 0, wxEXPAND | wxTOP, FromDIP(5));
-    bSizer_subtask_info->Add(penel_bottons, 0, wxEXPAND | wxTOP, FromDIP(10));
-    bSizer_subtask_info->Add(m_panel_progress, 0, wxEXPAND|wxRIGHT, FromDIP(25));
-
-    m_printing_sizer->Add(bSizer_subtask_info, 1, wxALL | wxEXPAND, 0);
-
-    sizer->Add(m_printing_sizer, 0, wxEXPAND | wxALL, 0);
-
-    m_staticline = new wxPanel( parent, wxID_ANY);
-    m_staticline->SetBackgroundColour(wxColour(238,238,238));
-    m_staticline->Layout();
-    m_staticline->Hide();
-
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
-    sizer->Add(m_staticline, 0, wxEXPAND|wxALL, FromDIP(10));
-
-    m_panel_error_txt = new wxPanel(parent, wxID_ANY);
-    m_panel_error_txt->SetBackgroundColour(*wxWHITE);
-
-    wxBoxSizer *static_text_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_error_text = new ErrorMsgStaticText(m_panel_error_txt);
-    m_error_text->SetForegroundColour(wxColour(255, 0, 0));
-    text_sizer->Add(m_error_text, 1, wxEXPAND|wxLEFT, FromDIP(17));
-
-    m_button_clean = new Button(m_panel_error_txt, _L("Clear"));
-    StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    StateColor clean_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    StateColor clean_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-
-
-    m_button_clean->SetBackgroundColor(clean_bg);
-    m_button_clean->SetBorderColor(clean_bd);
-    m_button_clean->SetTextColor(clean_text);
-    m_button_clean->SetFont(Label::Body_10);
-    m_button_clean->SetMinSize(TASK_BUTTON_SIZE2);
-
-    static_text_sizer->Add(text_sizer, 1, wxEXPAND, 0);
-    static_text_sizer->Add( FromDIP(10), 0, 0, 0, 0 );
-    static_text_sizer->Add(m_button_clean, 0, wxALIGN_CENTRE_VERTICAL|wxRIGHT, FromDIP(5));
-
-    m_panel_error_txt->SetSizer(static_text_sizer);
-    m_panel_error_txt->Hide();
-    sizer->Add(m_panel_error_txt, 0, wxEXPAND | wxALL,0);
-    sizer->Add(0, FromDIP(12), 0);
-
-    m_tasklist_sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(m_tasklist_sizer, 0, wxEXPAND | wxALL, 0);
     return sizer;
 }
 
@@ -1247,16 +1419,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     : StatusBasePanel(parent, id, pos, size, style)
     , m_fan_control_popup(new FanControlPopup(this))
 {
-    create_tasklist_info();
-    update_tasklist_info();
-
     init_scaled_buttons();
-
-    //m_buttons.push_back(m_button_report);
-    //m_buttons.push_back(m_button_pause_resume);
-    //m_buttons.push_back(m_button_abort);
     m_buttons.push_back(m_button_unload);
-    m_buttons.push_back(m_button_clean);
     m_buttons.push_back(m_bpButton_z_10);
     m_buttons.push_back(m_bpButton_z_1);
     m_buttons.push_back(m_bpButton_z_down_1);
@@ -1272,11 +1436,9 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_switch_cham_fan->SetValue(false);
 
     /* set default enable state */
-    m_button_pause_resume->Enable(false);
-    m_button_pause_resume->SetBitmap_("print_control_resume_disable");
+    m_project_task_panel->enable_pause_resume_button(false, "resume_disable");
+    m_project_task_panel->enable_abort_button(false);
 
-    m_button_abort->Enable(false);
-    m_button_abort->SetBitmap_("print_control_stop_disable");
 
     Bind(wxEVT_WEBREQUEST_STATE, &StatusPanel::on_webrequest_state, this);
 
@@ -1291,16 +1453,14 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
 
     // Connect Events
-    //m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
-    //m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
-    m_bitmap_thumbnail->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::refresh_thumbnail_webrequest), NULL, this);
+    m_project_task_panel->get_bitmap_thumbnail()->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::refresh_thumbnail_webrequest), NULL, this);
+    m_project_task_panel->get_pause_resume_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
+    m_project_task_panel->get_abort_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
+    m_project_task_panel->get_market_scoring_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
+    m_project_task_panel->get_clean_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
+
     m_setting_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
     m_setting_button->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
-    m_project_task_panel->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
-    m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
-    m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
-    m_button_clean->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
-    m_button_market_scoring->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -1339,15 +1499,14 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 StatusPanel::~StatusPanel()
 {
     // Disconnect Events
-    //m_bitmap_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
-    //m_bitmap_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
-    m_bitmap_thumbnail->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::refresh_thumbnail_webrequest), NULL, this);
+    m_project_task_panel->get_bitmap_thumbnail()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::refresh_thumbnail_webrequest), NULL, this);
+    m_project_task_panel->get_pause_resume_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
+    m_project_task_panel->get_abort_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
+    m_project_task_panel->get_market_scoring_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
+    m_project_task_panel->get_clean_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
+
     m_setting_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
     m_setting_button->Disconnect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
-    m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
-    m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
-    m_button_clean->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
-    m_button_market_scoring->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -1384,14 +1543,7 @@ StatusPanel::~StatusPanel()
 
 void StatusPanel::init_scaled_buttons()
 {
-   // m_button_report->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-   // m_button_report->SetCornerRadius(FromDIP(12));
-    //m_button_pause_resume->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    //m_button_pause_resume->SetCornerRadius(FromDIP(12));
-    //m_button_abort->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    //m_button_abort->SetCornerRadius(FromDIP(12));
-    m_button_clean->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_clean->SetCornerRadius(FromDIP(12));
+    m_project_task_panel->init_scaled_buttons();
     m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_unload->SetCornerRadius(FromDIP(12));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
@@ -1406,43 +1558,6 @@ void StatusPanel::init_scaled_buttons()
     m_bpButton_e_10->SetCornerRadius(FromDIP(12));
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
     m_bpButton_e_down_10->SetCornerRadius(FromDIP(12));
-}
-
-void StatusPanel::create_tasklist_info()
-{
-    m_tasklist_caption_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_text_tasklist_caption  = new wxStaticText(this, wxID_ANY, _L("Printing List"), wxDefaultPosition, wxDefaultSize, 0);
-    m_text_tasklist_caption->Wrap(-1);
-    m_text_tasklist_caption->SetFont(Label::Body_16);
-    m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
-
-    m_tasklist_caption_sizer->Add(m_text_tasklist_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LEFT_MARGIN);
-
-    auto staticline = new StaticLine(this);
-    staticline->SetLineColour(GROUP_STATIC_LINE_COL);
-    m_tasklist_caption_sizer->Add(staticline, 1, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LINE_MARGIN);
-    m_tasklist_caption_sizer->Add(GROUP_TITLE_RIGHT_MARGIN - GROUP_TITLE_LINE_MARGIN, 0, 0, wxEXPAND, 0);
-
-    m_tasklist_sizer->Add(m_tasklist_caption_sizer, 0, wxEXPAND | wxALL, 0);
-
-    show_task_list_info(false);
-}
-
-void StatusPanel::show_task_list_info(bool show)
-{
-    if (show) {
-        m_tasklist_sizer->Show(m_tasklist_caption_sizer);
-    } else {
-        m_tasklist_sizer->Hide(m_tasklist_caption_sizer);
-    }
-    Layout();
-
-}
-
-void StatusPanel::update_tasklist_info()
-{
-    // BBS do not show tasklist
-    return;
 }
 
 void StatusPanel::on_market_scoring(wxCommandEvent &event) { 
@@ -1475,10 +1590,7 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 
 void StatusPanel::error_info_reset()
 {
-    m_staticline->Hide();
-    m_panel_error_txt->Hide();
-    m_panel_error_txt->GetParent()->Layout();
-    m_error_text->SetLabel("");
+    m_project_task_panel->error_info_reset();
     before_error_code = 0;
 }
 
@@ -1499,15 +1611,15 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
     case wxWebRequest::State_Completed: {
         wxImage img(*evt.GetResponse().GetStream());
         img_list.insert(std::make_pair(m_request_url, img));
-        wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y, wxIMAGE_QUALITY_HIGH);
-        m_bitmap_thumbnail->SetBitmap(resize_img);
+        wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y, wxIMAGE_QUALITY_HIGH);
+        m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(resize_img);
         task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
         break;
     }
     case wxWebRequest::State_Failed:
     case wxWebRequest::State_Cancelled:
     case wxWebRequest::State_Unauthorized: {
-        m_bitmap_thumbnail->SetBitmap(m_thumbnail_brokenimg.bmp());
+        m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(m_thumbnail_brokenimg.bmp());
         task_thumbnail_state = ThumbnailState::BROKEN_IMG;
         break;
     }
@@ -1516,6 +1628,24 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
     default: break;
     }
 }
+
+void StatusPanel::refresh_thumbnail_webrequest(wxMouseEvent& event)
+{
+    if (!obj) return;
+    if (task_thumbnail_state != ThumbnailState::BROKEN_IMG) return;
+
+    if (obj->slice_info) {
+        m_request_url = wxString(obj->slice_info->thumbnail_url);
+        if (!m_request_url.IsEmpty()) {
+            web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
+            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << m_request_url;
+            if (web_request.GetState() == wxWebRequest::State_Idle)
+                web_request.Start();
+            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = " << m_request_url;
+        }
+    }
+}
+
 
 bool StatusPanel::is_task_changed(MachineObject* obj)
 {
@@ -1553,10 +1683,7 @@ void StatusPanel::update(MachineObject *obj)
     update_temp_ctrl(obj);
     update_misc_ctrl(obj);
 
-    // BBS hide tasklist info
-    // update_tasklist(obj);
     update_ams(obj);
-
     update_cali(obj);
 
     if (obj) {
@@ -1680,18 +1807,9 @@ void StatusPanel::market_model_scoring_page(int design_id)
 void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str)
 {
     if (msg.IsEmpty()) {
-        if (m_panel_error_txt->IsShown()) {
-            error_info_reset();
-        }
-        if (m_print_error_dlg != nullptr) {
-            /*if (m_print_error_dlg->IsShown()) {
-                m_print_error_dlg->on_hide();
-            }*/
-        }
+        error_info_reset();
     } else {
-        m_error_text->SetLabel(msg);
-        m_staticline->Show();
-        m_panel_error_txt->Show();
+        m_project_task_panel->show_error_msg(msg);
 
         auto it = std::find(message_containing_retry.begin(), message_containing_retry.end(), print_error_str);
 
@@ -1788,7 +1906,6 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_switch_printing_fan->Enable();
         m_switch_cham_fan->Enable();
         m_bpButton_xy->Enable();
-        m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
         m_bpButton_z_10->Enable();
         m_bpButton_z_1->Enable();
         m_bpButton_z_down_1->Enable();
@@ -2320,23 +2437,6 @@ void StatusPanel::update_cali(MachineObject *obj)
     }
 }
 
-void StatusPanel::update_left_time(int mc_left_time)
-{
-    // update gcode progress
-    std::string left_time;
-    wxString    left_time_text = NA_STR;
-
-    try {
-        left_time = get_bbl_monitor_time_dhm(mc_left_time);
-    } catch (...) {
-        ;
-    }
-    if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
-
-    // update current subtask progress
-    m_staticText_progress_left->SetLabelText(left_time_text);
-}
-
 void StatusPanel::update_basic_print_data(bool def)
 {
     if (def) {
@@ -2345,31 +2445,10 @@ void StatusPanel::update_basic_print_data(bool def)
         wxString prediction = wxString::Format("%s", get_bbl_time_dhms(obj->slice_info->prediction));
         wxString weight = wxString::Format("%.2fg", obj->slice_info->weight);
 
-        if (!m_staticText_consumption_of_time->IsShown()) {
-            m_bitmap_static_use_time->Show();
-            m_staticText_consumption_of_time->Show();
-        }
-
-        if (!m_staticText_consumption_of_weight->IsShown()) {
-            m_bitmap_static_use_weight->Show();
-            m_staticText_consumption_of_weight->Show();
-        }
-
-        m_staticText_consumption_of_time->SetLabelText(prediction);
-        m_staticText_consumption_of_weight->SetLabelText(weight);
-    } else {
-        if (m_staticText_consumption_of_time->IsShown()) {
-            m_bitmap_static_use_time->Hide();
-            m_staticText_consumption_of_time->Hide();
-        }
-
-        if (m_staticText_consumption_of_weight->IsShown()) {
-            m_bitmap_static_use_weight->Hide();
-            m_staticText_consumption_of_weight->Hide();
-        }
-
-        m_staticText_consumption_of_time->SetLabelText("0m");
-        m_staticText_consumption_of_weight->SetLabelText("0g");
+        m_project_task_panel->show_priting_use_info(true, prediction, weight);
+    }
+    else {
+        m_project_task_panel->show_priting_use_info(false, "0m", "0g");
     }
 }
 
@@ -2398,10 +2477,10 @@ void StatusPanel::update_subtask(MachineObject *obj)
     if (!obj) return;
 
     if (obj->is_support_layer_num) {
-        m_staticText_layers->Show();
+        m_project_task_panel->update_layers_num(true);
     }
     else {
-        m_staticText_layers->Hide();
+        m_project_task_panel->update_layers_num(false);
     }
 
     update_model_info();
@@ -2411,12 +2490,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
         reset_printing_values();
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
         if (obj->is_in_prepare() || obj->print_status == "SLICING") {
-            m_button_market_scoring->Hide();
-            m_button_abort->Enable(false);
-            m_button_abort->SetBitmap_("print_control_stop_disable");
-
-            m_button_pause_resume->Enable(false);
-            m_button_pause_resume->SetBitmap_("print_control_pause_disable");
+            m_project_task_panel->get_market_scoring_button()->Hide();
+            m_project_task_panel->enable_abort_button(false);
+            m_project_task_panel->enable_pause_resume_button(false, "pause_disable");
             wxString prepare_text;
             bool show_percent = true;
 
@@ -2435,99 +2511,86 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
             if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100 && show_percent)
                 prepare_text += wxString::Format("(%d%%)", obj->gcode_file_prepare_percent);
-            m_printing_stage_value->SetLabelText(prepare_text);
-            m_gauge_progress->SetValue(0);
-            m_staticText_progress_percent->SetLabelText(NA_STR);
-            m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
-            m_staticText_progress_left->SetLabel(NA_STR);
-            m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
-            wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
-            m_staticText_subtask_value->SetLabelText(subtask_text);
+
+            m_project_task_panel->update_stage_value(prepare_text, 0);
+            m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
+            m_project_task_panel->update_left_time(NA_STR);
+            m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+            m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
 
 
             if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-                if (!m_staticText_profile_value->IsShown()) { m_staticText_profile_value->Show(); }
-                m_staticText_profile_value->SetLabelText(wxString::FromUTF8(obj->get_modeltask()->profile_name));
+                m_project_task_panel->show_profile_info(true, wxString::FromUTF8(obj->get_modeltask()->profile_name));
             }
             else {
-                m_staticText_profile_value->SetLabelText(wxEmptyString);
-                m_staticText_profile_value->Hide();
+                m_project_task_panel->show_profile_info(false);
             }
 
             update_basic_print_data(false);
         } else {
             if (obj->can_resume()) {
-                m_button_pause_resume->SetBitmap_("print_control_resume");
-                if (m_button_pause_resume->GetToolTipText() != _L("Resume")) { m_button_pause_resume->SetToolTip(_L("Resume")); }
+                m_project_task_panel->enable_pause_resume_button(true, "resume");
+               
             } else {
-                m_button_pause_resume->SetBitmap_("print_control_pause");
-                if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
+                 m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
             if (obj->print_status == "FINISH") {
-                m_button_abort->Enable(false);
-                m_button_abort->SetBitmap_("print_control_stop_disable");
-                m_button_pause_resume->Enable(false);
-                m_button_pause_resume->SetBitmap_("print_control_resume_disable");
-                if (wxGetApp().has_model_mall()) {
-                    bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
-                    if (is_market_task) {
-                        m_button_market_scoring->Show();
-                        BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
-                        if (!m_print_finish && IsShownOnScreen()) {
-                            m_print_finish = true;
-                            int job_id     = obj->get_modeltask()->job_id;
-                            if (wxGetApp().app_config->get("not_show_score_dialog") != "1" && rated_model_id.find(job_id) == rated_model_id.end()) {
-                                MessageDialog dlg(this, _L("Please give a score for your favorite Bambu Market model."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"),
-                                                  wxYES_NO | wxYES_DEFAULT | wxCENTRE);
-                                dlg.show_dsa_button();
-                                int  old_design_id = obj->get_modeltask()->design_id;
-                                auto res           = dlg.ShowModal();
-                                if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
-                                if (res == wxID_YES) { market_model_scoring_page(old_design_id); }
-                                rated_model_id.insert(job_id);
-                                BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_DLG: design_id [" << old_design_id << "] print_finish [" << m_print_finish << "] not_show ["
-                                                        << wxGetApp().app_config->get("not_show_score_dialog") << "] job_id [" << job_id << "]";
-                            }
+
+                m_project_task_panel->enable_abort_button(false);
+                m_project_task_panel->enable_pause_resume_button(false, "resume_disable");
+
+                bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
+                if (is_market_task) { 
+                    m_project_task_panel->get_market_scoring_button()->Show(); 
+                    BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
+                    if (!m_print_finish && IsShownOnScreen()) {
+                        m_print_finish = true;
+                        int job_id = obj->get_modeltask()->job_id;
+                        if (wxGetApp().app_config->get("not_show_score_dialog") != "1" && rated_model_id.find(job_id) == rated_model_id.end()) {
+                            MessageDialog dlg(this, _L("Please give a score for your favorite Bambu Market model."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"),
+                                              wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+                            dlg.show_dsa_button();
+                            int  old_design_id = obj->get_modeltask()->design_id;
+                            auto res           = dlg.ShowModal();
+                            if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
+                            if (res == wxID_YES) { market_model_scoring_page(old_design_id); }
+                            rated_model_id.insert(job_id);
+                            BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_DLG: design_id [" << old_design_id << "] print_finish [" << m_print_finish << "] not_show ["
+                                                    << wxGetApp().app_config->get("not_show_score_dialog") << "] job_id [" << job_id << "]";
                         }
-                    } else {
-                        m_button_market_scoring->Hide();
                     }
+                } else {
+                    m_project_task_panel->get_market_scoring_button()->Hide();
                 }
             } else {
-                m_button_abort->Enable(true);
-                m_button_abort->SetBitmap_("print_control_stop");
-                m_button_pause_resume->Enable(true);
-                m_button_market_scoring->Hide();
+                m_project_task_panel->enable_abort_button(true);
+                m_project_task_panel->get_market_scoring_button()->Hide();
                 if (m_print_finish) { 
                     m_print_finish = false;
                 }
             }
             // update printing stage
-            m_printing_stage_value->SetLabelText(obj->get_curr_stage());
-            update_left_time(obj->mc_left_time);
+            
+            m_project_task_panel->update_left_time(obj->mc_left_time);
             if (obj->subtask_) {
-                m_gauge_progress->SetValue(obj->subtask_->task_progress);
-                m_staticText_progress_percent->SetLabelText(wxString::Format("%d", obj->subtask_->task_progress));
-                m_staticText_progress_percent_icon->SetLabelText("%");
-                m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
+                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
 
             } else {
-                m_gauge_progress->SetValue(0);
-                m_staticText_progress_percent->SetLabelText(NA_STR);
-                m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
-                m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
+                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
             }
         }
-        wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
-        m_staticText_subtask_value->SetLabelText(subtask_text);
+
+        m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
 
         if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-            if(!m_staticText_profile_value->IsShown()){ m_staticText_profile_value->Show();}
-            m_staticText_profile_value->SetLabelText(wxString::FromUTF8(obj->get_modeltask()->profile_name));
+            m_project_task_panel->show_profile_info(wxString::FromUTF8(obj->get_modeltask()->profile_name));
         }
         else {
-            m_staticText_profile_value->SetLabelText(wxEmptyString);
-            m_staticText_profile_value->Hide();
+            m_project_task_panel->show_profile_info(false);
         }
 
         //update thumbnail
@@ -2569,8 +2632,8 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                 std::map<wxString, wxImage>::iterator it = img_list.find(m_request_url);
                 if (it != img_list.end()) {
                     img                = it->second;
-                    wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
-                    m_bitmap_thumbnail->SetBitmap(resize_img);
+                    wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y);
+                    m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(resize_img);
                     task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
                     BOOST_LOG_TRIVIAL(trace) << "web_request: use cache image";
                 } else {
@@ -2589,7 +2652,7 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
     if (!obj) return;
 
     if (!m_load_sdcard_thumbnail) {
-        m_bitmap_thumbnail->SetBitmap(m_thumbnail_sdcard.bmp());
+        m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(m_thumbnail_sdcard.bmp());
         task_thumbnail_state = ThumbnailState::SDCARD_THUMBNAIL;
         m_load_sdcard_thumbnail = true;
     }
@@ -2597,24 +2660,21 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 
 void StatusPanel::reset_printing_values()
 {
-    m_button_pause_resume->Enable(false);
-    m_button_pause_resume->SetBitmap_("print_control_pause_disable");
+    m_project_task_panel->enable_pause_resume_button(false, "pause_disable");
+    m_project_task_panel->enable_abort_button(false);
+    m_project_task_panel->reset_printing_value();
+    m_project_task_panel->update_subtask_name(NA_STR);
+    m_project_task_panel->show_profile_info(false);
+    m_project_task_panel->update_stage_value(wxEmptyString, 0);
+    m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
 
-    m_button_abort->Enable(false);
-    m_button_abort->SetBitmap_("print_control_stop_disable");
 
-    m_gauge_progress->SetValue(0);
-    m_staticText_subtask_value->SetLabelText(NA_STR);
-    m_staticText_profile_value->SetLabelText(wxEmptyString);
-    m_staticText_profile_value->Hide();
-    m_button_market_scoring->Hide();
+    m_project_task_panel->get_market_scoring_button()->Hide();
     update_basic_print_data(false);
-    m_printing_stage_value->SetLabelText("");
-    m_staticText_progress_left->SetLabelText(NA_STR);
-    m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
-    m_staticText_progress_percent->SetLabelText(NA_STR);
-    m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
-    m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());
+    m_project_task_panel->update_left_time(NA_STR);
+    m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+    
+    
     task_thumbnail_state = ThumbnailState::PLACE_HOLDER;
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;
@@ -3373,54 +3433,6 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
     }
 }
 
-void StatusPanel::on_thumbnail_enter(wxMouseEvent &event)
-{
-    if (obj) {
-        if (!obj->slice_info || !obj->subtask_) return;
-        /* do not popup when print status is failed */
-        if (obj->print_status.compare("FAILED") == 0) {
-            return;
-        }
-
-        if (m_slice_info_popup && m_slice_info_popup->IsShown())
-            return;
-        if (obj->slice_info) {
-            m_slice_info_popup = std::make_shared<SliceInfoPopup>(this, m_bitmap_thumbnail->GetBitmap(), obj->slice_info);
-            wxWindow *ctrl     = (wxWindow *) event.GetEventObject();
-            wxPoint   pos      = ctrl->ClientToScreen(wxPoint(0, 0));
-            wxSize    sz       = ctrl->GetSize();
-            m_slice_info_popup->Position(pos, wxSize(sz.x / 2, sz.y / 2));
-            m_slice_info_popup->Popup();
-        }
-    }
-}
-
-void StatusPanel::on_thumbnail_leave(wxMouseEvent &event)
-{
-    if (obj && m_slice_info_popup) {
-        if (!m_bitmap_thumbnail->GetRect().Contains(event.GetPosition())) {
-            m_slice_info_popup->Dismiss();
-        }
-    }
-}
-
-void StatusPanel::refresh_thumbnail_webrequest(wxMouseEvent &event)
-{
-    if (!obj) return;
-    if (task_thumbnail_state != ThumbnailState::BROKEN_IMG) return;
-
-    if (obj->slice_info) {
-        m_request_url = wxString(obj->slice_info->thumbnail_url);
-        if (!m_request_url.IsEmpty()) {
-            web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
-            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << m_request_url;
-            if (web_request.GetState() == wxWebRequest::State_Idle)
-                web_request.Start();
-            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = "<< m_request_url;
-        }
-    }
-}
-
 void StatusPanel::on_switch_vcamera(wxMouseEvent &event)
 {
     //if (!obj) return;
@@ -3558,7 +3570,6 @@ void StatusPanel::show_status(int status)
      || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
      || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0)
         ) {
-        m_text_tasklist_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
         show_printing_status(false, false);
         m_calibration_btn->Disable();
         m_options_btn->Disable();
@@ -3636,7 +3647,7 @@ void StatusPanel::rescale_camera_icons()
 
 void StatusPanel::on_sys_color_changed()
 {
-    m_button_abort->msw_rescale();
+    m_project_task_panel->msw_rescale();
     m_bitmap_speed.msw_rescale();
     m_bitmap_speed_active.msw_rescale();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
@@ -3649,15 +3660,11 @@ void StatusPanel::on_sys_color_changed()
 void StatusPanel::msw_rescale()
 {
     init_bitmaps();
-
+    m_project_task_panel->init_bitmaps();
+    m_project_task_panel->msw_rescale();
     m_panel_monitoring_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
     m_staticText_monitoring->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_bmToggleBtn_timelapse->Rescale();
-    m_panel_printing_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
-    m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
-    m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
-    m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
-    m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     m_panel_control_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
     m_staticText_control->SetMinSize(wxSize(-1, PAGE_TITLE_HEIGHT));
     m_bpButton_xy->SetBitmap(m_bitmap_axis_home);
@@ -3670,7 +3677,7 @@ void StatusPanel::msw_rescale()
     for (Button *btn : m_buttons) { btn->Rescale(); }
     init_scaled_buttons();
 
-    m_gauge_progress->Rescale();
+
     m_bpButton_xy->Rescale();
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_nozzle->Rescale();

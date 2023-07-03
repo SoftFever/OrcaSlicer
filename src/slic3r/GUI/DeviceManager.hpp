@@ -327,10 +327,26 @@ public:
     std::vector<X1CCalibInfo> calib_datas;
 };
 
+class CaliPresetInfo
+{
+public:
+    int         tray_id;
+    float       nozzle_diameter;
+    std::string filament_id;
+    std::string setting_id;
+    std::string name;
+};
+
+
 class PACalibResult
 {
 public:
-    int tray_id;
+    enum CalibResult {
+        CALI_RESULT_SUCCESS = 0,
+        CALI_RESULT_PROBLEM = 1,
+        CALI_RESULT_FAILED = 2,
+    };
+    int         tray_id;
     int         cali_idx;
     float       nozzle_diameter;
     std::string filament_id;
@@ -338,7 +354,7 @@ public:
     std::string name;
     float       k_value;
     float       n_coef;
-    int         confidence = -1;
+    int         confidence = -1;  // 0: success  1: uncertain  2: failed
 };
 
 struct PACalibIndexInfo
@@ -357,6 +373,7 @@ public:
     std::string filament_id;
     std::string setting_id;
     float       flow_ratio;
+    int         confidence; // 0: success  1: uncertain  2: failed
 };
 
 #define UpgradeNoError          0
@@ -661,12 +678,37 @@ public:
     bool    is_support_layer_num { false };
 
     int cali_version = -1;
-    bool has_get_pa_calib_tab = false;
-    bool has_get_pa_calib_result = false;
-    bool has_get_flow_ratio_result = false;
+    float                      cali_selected_nozzle_dia { 0.0 };
+    // 1: record when start calibration in preset page
+    // 2: reset when start calibration in start page
+    // 3: save tray_id, filament_id, setting_id, and name, nozzle_dia
+    std::vector<CaliPresetInfo> selected_cali_preset;
+
+    bool                       has_get_pa_calib_tab{ false };
     std::vector<PACalibResult> pa_calib_tab;
+    float                      pa_calib_tab_nozzle_dia;
+    bool                       get_pa_calib_result { false };
     std::vector<PACalibResult> pa_calib_results;
+    bool                       get_flow_calib_result { false };
     std::vector<FlowRatioCalibResult> flow_ratio_results;
+    void reset_pa_cali_history_result()
+    {
+        pa_calib_tab_nozzle_dia = 0.4f;
+        has_get_pa_calib_tab = false;
+        pa_calib_tab.clear();
+    }
+
+    void reset_pa_cali_result() {
+        get_pa_calib_result = false;
+        pa_calib_results.clear();
+    }
+
+    void reset_flow_rate_cali_result() {
+        get_flow_calib_result = false;
+        flow_ratio_results.clear();
+    }
+
+    bool check_pa_result_validation(PACalibResult& result);
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;

@@ -1186,6 +1186,14 @@ bool MachineObject::is_system_printing()
     return false;
 }
 
+bool MachineObject::check_pa_result_validation(PACalibResult& result)
+{
+    if (result.k_value < 0 || result.k_value > 10)
+        return false;
+
+    return true;
+}
+
 bool MachineObject::is_axis_at_home(std::string axis)
 {
     if (home_flag < 0)
@@ -1247,6 +1255,8 @@ bool MachineObject::is_in_calibration()
     }
     return false;
 }
+
+
 
 bool MachineObject::is_calibration_done()
 {
@@ -1983,7 +1993,10 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& 
 
         for (int i = 0; i < pa_calib_values.size(); ++i) {
             if (pa_calib_values[i].tray_id >= 0)
-                j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
+                j["print"]["filaments"][i]["tray_id"] = pa_calib_values[i].tray_id;
+            if (pa_calib_values[i].cali_idx >= 0)
+                j["print"]["filaments"][i]["cali_idx"] = pa_calib_values[i].cali_idx;
+            j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
             j["print"]["filaments"][i]["filament_id"] = pa_calib_values[i].filament_id;
             j["print"]["filaments"][i]["setting_id"]  = pa_calib_values[i].setting_id;
             j["print"]["filaments"][i]["name"]        = pa_calib_values[i].name;
@@ -2016,6 +2029,8 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
 
 int MachineObject::command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id)
 {
+    reset_pa_cali_history_result();
+
     if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
         json j;
         j["print"]["command"]     = "extrusion_cali_get";
@@ -3852,13 +3867,31 @@ int MachineObject::parse_json(std::string payload)
                     extrusion_cali_set_hold_start = std::chrono::system_clock::now();
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
-#ifdef CALI_DEBUG
-                    std::string str = jj.dump();
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << str;
-#endif
-                    if (jj["filaments"].is_array()) {
+                    reset_pa_cali_history_result();
+                    has_get_pa_calib_tab = true;
+
+                    if (jj.contains("nozzle_diameter")) {
+                        if (jj["nozzle_diameter"].is_number_float()) {
+                            pa_calib_tab_nozzle_dia = jj["nozzle_diameter"].get<float>();
+                        }
+                        else if (jj["nozzle_diameter"].is_string()) {
+                            pa_calib_tab_nozzle_dia = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                        }
+                        else {
+                            assert(false);
+                        }
+                    }
+                    else {
+                        assert(false);
+                    }
+
+                    if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-                            pa_calib_tab.clear();
+#ifdef CALI_DEBUG
+                            std::string str = jj.dump();
+                            BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << str;
+#endif
+
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
@@ -3882,23 +3915,31 @@ int MachineObject::parse_json(std::string payload)
                                 else if ((*it)["n_coef"].is_string())
                                     pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
 
-                                pa_calib_tab.push_back(pa_calib_result);
+                                if (check_pa_result_validation(pa_calib_result))
+                                    pa_calib_tab.push_back(pa_calib_result);
+                                else {
+                                    BOOST_LOG_TRIVIAL(info) << "pa result is invalid";
+                                }
                             }
-                            has_get_pa_calib_tab = true;
+
                         }
                         catch (...) {
 
                         }
                     }
+                    // notify cali history to update
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
-#ifdef CALI_DEBUG
-                    std::string str = jj.dump();
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << str;
-#endif
-                    if (jj["filaments"].is_array()) {
+                    reset_pa_cali_result();
+                    get_pa_calib_result = true;
+
+                    if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-                            pa_calib_results.clear();
+#ifdef CALI_DEBUG
+                            std::string str = jj.dump();
+                            BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << str;
+#endif
+
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.tray_id     = (*it)["tray_id"].get<int>();
@@ -3921,23 +3962,35 @@ int MachineObject::parse_json(std::string payload)
                                 else if ((*it)["n_coef"].is_string())
                                     pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
 
-                                if ((*it).contains("confidence"))
+                                if (it->contains("confidence")) {
                                     pa_calib_result.confidence = (*it)["confidence"].get<int>();
+                                } else {
+                                    pa_calib_result.confidence = 0;
+                                }
 
-                                pa_calib_results.push_back(pa_calib_result);
+                                if (check_pa_result_validation(pa_calib_result))
+                                    pa_calib_results.push_back(pa_calib_result);
+                                else {
+                                    BOOST_LOG_TRIVIAL(info) << "pa result is invalid";
+                                }
                             }
-                            has_get_pa_calib_result = true;
                         } catch (...) {}
+                    }
+
+                    if (pa_calib_results.empty()) {
+                        BOOST_LOG_TRIVIAL(info) << "no pa calib result";
                     }
                 }
                 else if (jj["command"].get<std::string>() == "flowrate_get_result") {
-#ifdef CALI_DEBUG
-                    std::string str = jj.dump();
-                    BOOST_LOG_TRIVIAL(info) << "flowrate_get_result: " << str;
-#endif
-                    if (jj["filaments"].is_array()) {
+                    this->reset_flow_rate_cali_result();
+
+                    get_flow_calib_result = true;
+                    if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-                            flow_ratio_results.clear();
+#ifdef CALI_DEBUG
+                            std::string str = jj.dump();
+                            BOOST_LOG_TRIVIAL(info) << "flowrate_get_result: " << str;
+#endif
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 FlowRatioCalibResult flow_ratio_calib_result;
                                 flow_ratio_calib_result.tray_id     = (*it)["tray_id"].get<int>();
@@ -3945,10 +3998,15 @@ int MachineObject::parse_json(std::string payload)
                                 flow_ratio_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
                                 flow_ratio_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
                                 flow_ratio_calib_result.flow_ratio  = stof((*it)["flow_ratio"].get<std::string>().c_str());
+                                if (it->contains("confidence")) {
+                                    flow_ratio_calib_result.confidence = (*it)["confidence"].get<int>();
+                                } else {
+                                    flow_ratio_calib_result.confidence = 0;
+                                }
 
                                 flow_ratio_results.push_back(flow_ratio_calib_result);
                             }
-                            has_get_flow_ratio_result = true;
+
                         } catch (...) {}
                     }
                 }

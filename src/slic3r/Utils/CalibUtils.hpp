@@ -28,9 +28,9 @@ public:
     CalibUtils(){};
     static std::shared_ptr<PrintJob> print_job;
 
-    static CalibMode get_calib_mode_by_name(const std::string &name);
+    static CalibMode get_calib_mode_by_name(const std::string name, int &cali_stage);
 
-    static void calib_PA(const X1CCalibInfos &calib_infos, std::string &error_message, int mode = 0); // 0: automatic mode; 1: manual mode. default: automatic mode
+    static void calib_PA(const X1CCalibInfos& calib_infos, int mode, std::string& error_message);
     
     static void emit_get_PA_calib_results(float nozzle_diameter);
     static bool get_PA_calib_results(std::vector<PACalibResult> &pa_calib_results);
@@ -59,9 +59,12 @@ public:
     //help function
     static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
 
+    static bool validate_input_k_value(wxString k_text, float* output_value);
+    static bool validate_input_flow_ratio(wxString flow_ratio, float* output_value);
+
 private:
     static void process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message);
-    static void send_to_print(const CalibInfo& calib_info, std::string &error_message);
+    static void send_to_print(const CalibInfo &calib_info, std::string& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
 
 }

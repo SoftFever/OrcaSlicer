@@ -86,7 +86,7 @@ private:
     wxBoxSizer*                         m_sizer_my_devices{ nullptr };
     wxScrolledWindow*                   m_scrolledWindow{ nullptr };
     wxTimer*                            m_refresh_timer{ nullptr };
-    std::vector<MPanel*>          m_user_list_machine_panel;
+    std::vector<MPanel*>                m_user_list_machine_panel;
     boost::thread*                      get_print_info_thread{ nullptr };
     std::string                         m_print_info;
     std::map<std::string, MachineObject*> m_bind_machine_list;
@@ -107,21 +107,25 @@ public:
     Tabbook* get_tabpanel() { return m_tabpanel; };
     void update_print_error_info(int code, std::string msg, std::string extra);
     void update_all();
+    void show_status(int status);
     bool Show(bool show);
     void on_printer_clicked(wxMouseEvent& event);
+    void set_default();
 protected:
     void init_tabpanel();
     void init_timer();
     void on_timer(wxTimerEvent& event);
 
-private:
-    SideTools* m_side_tools{ nullptr };
-    Tabbook*    m_tabpanel{ nullptr };
-    SelectMObjectPopup m_mobjectlist_popup;
 
-    CalibrationWizard* m_cali_panels[CALI_MODE_COUNT];
-
-    wxTimer* m_refresh_timer = nullptr;
+    int                     last_status;
+    bool                    m_initialized { false };
+    std::string             last_conn_type = "undedefined";
+    MachineObject*          obj{ nullptr };
+    SideTools*              m_side_tools{ nullptr };
+    Tabbook*                m_tabpanel{ nullptr };
+    SelectMObjectPopup      m_mobjectlist_popup;
+    CalibrationWizard*      m_cali_panels[CALI_MODE_COUNT];
+    wxTimer*                m_refresh_timer = nullptr;
 };
 }} // namespace Slic3r::GUI
 

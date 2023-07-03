@@ -24,13 +24,101 @@ static std::string MachineBedTypeString[5] = {
     "pte"
 };
 
-static std::map<CalibMode, std::string> calib_mode_to_name = {
-    {CalibMode::Calib_Flow_Rate,           "flow_rate_calib_mode"},
-    {CalibMode::Calib_Temp_Tower,          "temp_tower_calib_mode"},
-    {CalibMode::Calib_Vol_speed_Tower,     "vol_speed_tower_calib_mode"},
-    {CalibMode::Calib_VFA_Tower,           "vfa_tower_calib_mode"},
-    {CalibMode::Calib_Retraction_tower,    "retration_tower_calib_mode"}
+
+std::string get_calib_mode_name(CalibMode cali_mode, int stage)
+{
+    switch(cali_mode) {
+    case CalibMode::Calib_Flow_Rate:
+        if (stage == 1)
+            return "flow_rate_coarse_calib_mode";
+        else if (stage == 2)
+            return "flow_rate_fine_calib_mode";
+        else
+            return "flow_rate_coarse_calib_mode";
+    case CalibMode::Calib_Temp_Tower:
+        return "temp_tower_calib_mode";
+    case CalibMode::Calib_Vol_speed_Tower:
+        return "vol_speed_tower_calib_mode";
+    case CalibMode::Calib_VFA_Tower:
+        return "vfa_tower_calib_mode";
+    case CalibMode::Calib_Retraction_tower:
+        return "retration_tower_calib_mode";
+    default:
+        assert(false);
+        return "";
+    }
+}
+
+CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_stage)
+{
+    if (name == "flow_rate_coarse_calib_mode") {
+        cali_stage = 1;
+        return CalibMode::Calib_Flow_Rate;
+    }
+    else if (name == "flow_rate_fine_calib_mode") {
+        cali_stage = 2;
+        return CalibMode::Calib_Flow_Rate;
+    }
+    else if (name == "temp_tower_calib_mode")
+        return CalibMode::Calib_Temp_Tower;
+    else if (name == "vol_speed_tower_calib_mode")
+        return CalibMode::Calib_Vol_speed_Tower;
+    else if (name == "vfa_tower_calib_mode")
+        return CalibMode::Calib_VFA_Tower;
+    else if (name == "retration_tower_calib_mode")
+        return CalibMode::Calib_Retraction_tower;
+    return CalibMode::Calib_None;
+}
+
+bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
+{
+    float default_k = 0.0f;
+    if (k_text.IsEmpty()) {
+        *output_value = default_k;
+        return false;
+    }
+
+    double k_value = 0.0;
+    try {
+        k_text.ToDouble(&k_value);
+    }
+    catch (...) {
+        ;
+    }
+
+    if (k_value < 0 || k_value > 0.5) {
+        *output_value = default_k;
+        return false;
+    }
+
+    *output_value = k_value;
+    return true;
 };
+
+bool CalibUtils::validate_input_flow_ratio(wxString flow_ratio, float* output_value) {
+    float default_flow_ratio = 1.0f;
+
+    if (flow_ratio.IsEmpty()) {
+        *output_value = default_flow_ratio;
+        return false;
+    }
+
+    double flow_ratio_value = 0.0;
+    try {
+        flow_ratio.ToDouble(&flow_ratio_value);
+    }
+    catch (...) {
+        ;
+    }
+
+    if (flow_ratio_value <= 0.0 || flow_ratio_value >= 2.0) {
+        *output_value = default_flow_ratio;
+        return false;
+    }
+
+    *output_value = flow_ratio_value;
+    return true;
+}
 
 static void cut_model(Model &model, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
 {
@@ -82,17 +170,7 @@ std::array<Vec3d, 4> get_cut_plane_points(const BoundingBoxf3 &bbox, const doubl
     return plane_pts;
 }
 
-CalibMode CalibUtils::get_calib_mode_by_name(const std::string &name)
-{
-    for (auto iter = calib_mode_to_name.begin(); iter != calib_mode_to_name.end(); ++iter) {
-        if (iter->second == name) {
-            return iter->first;
-        }
-    }
-    return CalibMode::Calib_None;
-}
-
-void CalibUtils::calib_PA(const X1CCalibInfos &calib_infos, std::string &error_message, int mode)
+void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, int mode, std::string& error_message)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -572,7 +650,7 @@ void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_messa
         cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
     }
     else {
-        error_message = "The start, end or step is not valid value.";
+        error_message = L("The start, end or step is not valid value.");
         return;
     }
 
@@ -681,7 +759,7 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     BuildVolume build_volume(bedfs, print_height);
     unsigned int count = model->update_print_volume_state(build_volume);
     if (count == 0) {
-        error_message = "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small";
+        error_message = L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
         return;
     }
 
@@ -729,7 +807,7 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     success           = Slic3r::store_bbs_3mf(store_params);
 }
 
-void CalibUtils::send_to_print(const CalibInfo& calib_info, std::string &error_message)
+void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_message, int flow_ratio_mode)
 {
     std::string dev_id = calib_info.dev_id;
     std::string select_ams = calib_info.select_ams;
@@ -738,35 +816,35 @@ void CalibUtils::send_to_print(const CalibInfo& calib_info, std::string &error_m
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
-        error_message = "Need select printer";
+        error_message = L("Need select printer");
         return;
     }
 
     MachineObject* obj_ = dev->get_selected_machine();
     if (obj_ == nullptr) {
-        error_message = "Need select printer";
+        error_message = L("Need select printer");
         return;
     }
 
     if (obj_->is_in_printing()) {
-        error_message = "Cannot send the print job when the printer is updating firmware";
+        error_message = L("Cannot send the print job when the printer is updating firmware");
         return;
     }
     else if (obj_->is_system_printing()) {
-        error_message = "The printer is executing instructions. Please restart printing after it ends";
+        error_message = L("The printer is executing instructions. Please restart printing after it ends");
         return;
     }
     else if (obj_->is_in_printing()) {
-        error_message = "The printer is busy on other print job";
+        error_message = L("The printer is busy on other print job");
         return;
     }
     else if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_WITHOUT_SD) && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
-        error_message = "An SD card needs to be inserted before printing.";
+        error_message = L("An SD card needs to be inserted before printing.");
         return;
     }
     if (obj_->is_lan_mode_printer()) {
         if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
-            error_message = "An SD card needs to be inserted before printing via LAN.";
+            error_message = L("An SD card needs to be inserted before printing via LAN.");
             return;
         }
     }
@@ -809,7 +887,9 @@ void CalibUtils::send_to_print(const CalibInfo& calib_info, std::string &error_m
     print_job->task_ams_mapping = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_use_ams = select_ams == "[254]" ? false : true;
-    print_job->m_project_name = calib_mode_to_name[calib_info.params.mode];
+
+    CalibMode cali_mode = calib_info.params.mode;
+    print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
 
     print_job->has_sdcard = obj_->has_sdcard();
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
