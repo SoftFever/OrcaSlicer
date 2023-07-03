@@ -182,7 +182,8 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
     auto onShowHide = [this](auto &e) {
         e.Skip();
-        if (m_isBeingDeleted) return;
+        if (auto w = dynamic_cast<wxWindow *>(e.GetEventObject()); !w || w->IsBeingDeleted())
+            return;
         CallAfter([this] {
             auto fs = m_image_grid ? m_image_grid->GetFileSystem() : nullptr;
             if (fs) IsShownOnScreen() ? fs->Start() : fs->Stop();
