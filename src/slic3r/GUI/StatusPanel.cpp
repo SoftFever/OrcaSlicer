@@ -2015,9 +2015,6 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (!obj
         || !obj->is_connected()
         || obj->amsList.empty()
-        || !is_support_filament_backup
-        || !obj->ams_auto_switch_filament_flag
-        || !obj->m_is_support_show_bak
         || obj->ams_exist_bits == 0) {
         if (!obj || !obj->is_connected()) {
             last_tray_exist_bits = -1;
@@ -2034,7 +2031,13 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     else {
         show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali, obj->is_support_filament_edit_virtual_tray);
-        m_ams_control->show_auto_refill(true); 
+
+        if (!obj->m_is_support_show_bak || !is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
+            m_ams_control->show_auto_refill(false); 
+        }
+        else {
+            m_ams_control->show_auto_refill(true); 
+        }
     }
 
 
