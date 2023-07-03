@@ -844,10 +844,10 @@ void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 	}
     if (m_name_texture.get_id() == 0 || m_name_change) {
         m_name_change = false;
-        generate_plate_name_texture();
-        calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
-        
-		calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
+		if (generate_plate_name_texture()) {
+			calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
+			calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
+		}
     }
 
     if (m_plate_name_vbo_id == 0 && m_plate_name_icon.get_vertices_data_size() > 0) {
@@ -1677,13 +1677,34 @@ Vec3d PartPlate::get_center_origin()
 
 bool PartPlate::generate_plate_name_texture()
 {
-    // generate m_name_texture texture from m_name with generate_from_text_string
-    m_name_texture.reset();
-    auto *font = &Label::Head_32;
-    wxColour NumberForeground(PlateTextureForeground[0], PlateTextureForeground[1], PlateTextureForeground[2], PlateTextureForeground[3]);
-    if (!m_name_texture.generate_from_text_string(m_name, *font, *wxBLACK, NumberForeground)) {
-        BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
-        return false;
+	// generate m_name_texture texture from m_name with generate_from_text_string
+	m_name_texture.reset();
+	auto *font = &Label::Head_32;
+	wxColour NumberForeground(PlateTextureForeground[0], PlateTextureForeground[1], PlateTextureForeground[2], PlateTextureForeground[3]);
+	if (!m_name_texture.generate_from_text_string(m_name, *font, *wxBLACK, NumberForeground)) {
+		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
+		return false;
+	}
+	auto bed_ext       = get_extents(m_shape);
+	auto factor        = bed_ext.size()(1) / 200.0;
+	int  bed_width     = bed_ext.size()(1);
+	const int  ellipsis_width = 10;
+	int cur_width          = int(factor * (m_name_texture.get_original_width() * 16) / m_name_texture.get_height()) + 1;
+	if (cur_width > bed_width) {
+		wxString cur_plate_name = from_u8(m_name);
+		for (size_t i = cur_plate_name.size() - 1 - 1; i >= 0; i--) 
+		{
+			wxString tempName = cur_plate_name.substr(0, i) + "...";
+			m_name_texture.reset();
+			if (!m_name_texture.generate_from_text_string(tempName.ToUTF8().data(), *font, *wxBLACK, NumberForeground)) {
+				BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
+				return false;
+			}
+			cur_width = int(factor * (m_name_texture.get_original_width() * 16) / m_name_texture.get_height()) + 1;
+			if (cur_width < bed_width - ellipsis_width) { 
+				return true;
+			}
+        }
 	}
     return true;
 }
