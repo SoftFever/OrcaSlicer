@@ -3821,7 +3821,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("modelmall_model_advise_get") == 0) {
                 if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
                     if (mainframe->m_webview) {
-                        mainframe->m_webview->SendDesignStaffpick(true);
+                        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
                     }
                 }
             }
