@@ -699,6 +699,12 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
         m_custom_range_panel = new CaliPresetCustomRangePanel(parent);
     }
 
+    m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_PRESET);
+
+    m_statictext_printer_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    m_statictext_printer_msg->SetFont(::Label::Body_13);
+    m_statictext_printer_msg->Hide();
+
     m_top_sizer->Add(m_selection_panel, 0);
     m_top_sizer->Add(m_filament_list_panel, 0);
     m_top_sizer->Add(m_ext_spool_panel, 0);
@@ -708,16 +714,91 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
         m_top_sizer->AddSpacer(PRESET_GAP);
     }
     m_top_sizer->Add(m_tips_panel, 0);
-
     m_top_sizer->Add(m_sending_panel, 0);
-
     m_top_sizer->AddSpacer(PRESET_GAP);
-
-    m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_PRESET);
-
+    m_top_sizer->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
 
     Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
+}
+
+void CalibrationPresetPage::update_print_status_msg(wxString msg, bool is_warning)
+{
+    update_priner_status_msg(msg, is_warning);
+}
+
+wxString CalibrationPresetPage::format_text(wxString& m_msg)
+{
+    if (wxGetApp().app_config->get("language") != "zh_CN") { return m_msg; }
+
+    wxString out_txt = m_msg;
+    wxString count_txt = "";
+    int      new_line_pos = 0;
+
+    for (int i = 0; i < m_msg.length(); i++) {
+        auto text_size = m_statictext_printer_msg->GetTextExtent(count_txt);
+        if (text_size.x < (FromDIP(600))) {
+            count_txt += m_msg[i];
+        }
+        else {
+            out_txt.insert(i - 1, '\n');
+            count_txt = "";
+        }
+    }
+    return out_txt;
+}
+
+void CalibrationPresetPage::stripWhiteSpace(std::string& str)
+{
+    if (str == "") { return; }
+
+    string::iterator cur_it;
+    cur_it = str.begin();
+
+    while (cur_it != str.end()) {
+        if ((*cur_it) == '\n' || (*cur_it) == ' ') {
+            cur_it = str.erase(cur_it);
+        }
+        else {
+            cur_it++;
+        }
+    }
+}
+
+void CalibrationPresetPage::update_priner_status_msg(wxString msg, bool is_warning)
+{
+    auto colour = is_warning ? wxColour(0xFF, 0x6F, 0x00) : wxColour(0x6B, 0x6B, 0x6B);
+    m_statictext_printer_msg->SetForegroundColour(colour);
+
+    if (msg.empty()) {
+        if (!m_statictext_printer_msg->GetLabel().empty()) {
+            m_statictext_printer_msg->SetLabel(wxEmptyString);
+            m_statictext_printer_msg->Hide();
+            Layout();
+            Fit();
+        }
+    }
+    else {
+        msg = format_text(msg);
+
+        auto str_new = msg.ToStdString();
+        stripWhiteSpace(str_new);
+
+        auto str_old = m_statictext_printer_msg->GetLabel().ToStdString();
+        stripWhiteSpace(str_old);
+
+        if (str_new != str_old) {
+            if (m_statictext_printer_msg->GetLabel() != msg) {
+                m_statictext_printer_msg->SetLabel(msg);
+                m_statictext_printer_msg->SetMinSize(wxSize(FromDIP(600), -1));
+                m_statictext_printer_msg->SetMaxSize(wxSize(FromDIP(600), -1));
+                m_statictext_printer_msg->Wrap(FromDIP(600));
+                m_statictext_printer_msg->Show();
+                Layout();
+                Fit();
+            }
+        }
+    }
 }
 
 void CalibrationPresetPage::on_select_nozzle(wxCommandEvent& evt)
@@ -914,16 +995,227 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
     select_default_compatible_filament();
 }
 
+bool CalibrationPresetPage::is_blocking_printing()
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return true;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) return true;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    auto target_model = obj_->printer_type;
+
+    if (source_model != target_model) {
+        std::vector<std::string> compatible_machine = dev->get_compatible_machine(target_model);
+        vector<std::string>::iterator it = find(compatible_machine.begin(), compatible_machine.end(), source_model);
+        if (it == compatible_machine.end()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void CalibrationPresetPage::update_show_status()
+{
+    if (get_status() == CaliPresetPageStatus::CaliPresetStatusSending)
+        return;
+
+    if (get_status() == CaliPresetPageStatus::CaliPresetStatusSendingCanceled)
+        return;
+
+    NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!agent) {return;}
+    if (!dev) return;
+    dev->check_pushing();
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (!obj_) {
+        if (agent->is_user_login()) {
+            show_status(CaliPresetPageStatus::CaliPresetStatusInvalidPrinter);
+        }
+        else {
+            show_status(CaliPresetPageStatus::CaliPresetStatusNoUserLogin);
+        }
+        return;
+    }
+
+    if (!obj_->is_lan_mode_printer()) {
+        if (!agent->is_server_connected()) {
+            agent->refresh_connection();
+            show_status(CaliPresetPageStatus::CaliPresetStatusConnectingServer);
+            return;
+        }
+    }
+
+    if (wxGetApp().app_config && wxGetApp().app_config->get("internal_debug").empty()) {
+        if (obj_->upgrade_force_upgrade) {
+            show_status(CaliPresetPageStatus::CaliPresetStatusNeedForceUpgrading);
+            return;
+        }
+
+        if (obj_->upgrade_consistency_request) {
+            show_status(CaliPresetStatusNeedConsistencyUpgrading);
+            return;
+        }
+    }
+
+    if (is_blocking_printing()) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusUnsupportedPrinter);
+        return;
+    }
+    else if (obj_->is_in_upgrading()) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusInUpgrading);
+        return;
+    }
+    else if (obj_->is_system_printing()) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusInSystemPrinting);
+        return;
+    }
+    else if (obj_->is_in_printing()) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusInPrinting);
+        return;
+    }
+    else if (need_check_sdcard(obj_) && obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusNoSdcard);
+        return;
+    }
+
+    // check sdcard when if lan mode printer
+    if (obj_->is_lan_mode_printer()) {
+        if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+            show_status(CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard);
+            return;
+        }
+    }
+
+    show_status(CaliPresetPageStatus::CaliPresetStatusNormal);
+}
+
+
+bool CalibrationPresetPage::need_check_sdcard(MachineObject* obj)
+{
+    bool need_check = false;
+    if (obj->printer_type == "BL-P001" || obj->printer_type == "BL-P002") {
+        if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
+            need_check = true;
+        }
+        else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL)
+        {
+            need_check =  true;
+        }
+    }
+    else if (obj->printer_type == "C11" || obj->printer_type == "C12") {
+        if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
+            need_check =  true;
+        }
+        else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
+            need_check =  true;
+        }
+    }
+
+    return need_check;
+}
+
 void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
 {
     if (status == CaliPresetPageStatus::CaliPresetStatusSending) {
-        m_sending_panel->Show();
+        sending_mode();
     }
     else {
-        m_sending_panel->Hide();
+        prepare_mode();
+    }
+
+    if (m_page_status != status)
+        //BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: show_status = " << status << "(" << get_print_status_info(status) << ")";
+    m_page_status = status;
+
+    // other
+    if (status == CaliPresetPageStatus::CaliPresetStatusInit) {
+        update_print_status_msg(wxEmptyString, false);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusNormal) {
+        update_print_status_msg(wxEmptyString, false);
+        Enable_Send_Button(true);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusNoUserLogin) {
+        wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
+        update_print_status_msg(msg_text, false);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusInvalidPrinter) {
+        update_print_status_msg(wxEmptyString, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusConnectingServer) {
+        wxString msg_text = _L("Connecting to server");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusInUpgrading) {
+        wxString msg_text = _L("Cannot send the print job when the printer is updating firmware");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusInSystemPrinting) {
+        wxString msg_text = _L("The printer is executing instructions. Please restart printing after it ends");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusInPrinting) {
+        wxString msg_text = _L("The printer is busy on other print job");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusSending) {
+         m_sending_panel->Show();
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusSendingCanceled) {
+        Enable_Send_Button(true);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard) {
+        wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(true);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusNoSdcard) {
+        wxString msg_text = _L("An SD card needs to be inserted before printing.");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusNeedForceUpgrading) {
+        wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusNeedConsistencyUpgrading) {
+        wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
+        update_print_status_msg(msg_text, true);
+        Enable_Send_Button(false);
     }
     Layout();
 }
+
+void CalibrationPresetPage::Enable_Send_Button(bool enable)
+{
+    m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_CALI, enable);
+}
+
+void CalibrationPresetPage::prepare_mode()
+{
+    Enable_Send_Button(true);
+}
+
+void CalibrationPresetPage::sending_mode()
+{
+    Enable_Send_Button(false);
+}
+
 
 float CalibrationPresetPage::get_nozzle_value()
 {
@@ -942,6 +1234,10 @@ float CalibrationPresetPage::get_nozzle_value()
 void CalibrationPresetPage::update(MachineObject* obj)
 {
     curr_obj = obj;
+    
+    //update printer status
+    update_show_status();
+
 }
 
 void CalibrationPresetPage::on_device_connected(MachineObject* obj)

@@ -875,7 +875,6 @@ static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     "pe",
 };
 
-
 void SelectMachineDialog::stripWhiteSpace(std::string& str)
 {
     if (str == "") { return; }

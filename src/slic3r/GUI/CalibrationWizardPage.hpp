@@ -249,6 +249,7 @@ protected:
     wxWindow*             m_parent { nullptr };
     CaliPageCaption*      m_page_caption { nullptr };
     CaliPageActionPanel*  m_action_panel { nullptr };
+    wxStaticText*         m_statictext_printer_msg{ nullptr };
 
 private:
     CalibrationWizardPage* m_prev_page {nullptr};

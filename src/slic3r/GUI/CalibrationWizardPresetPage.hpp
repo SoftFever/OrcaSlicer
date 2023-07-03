@@ -101,6 +101,18 @@ enum CaliPresetPageStatus
     CaliPresetStatusInit = 0,
     CaliPresetStatusNormal,
     CaliPresetStatusSending,
+    CaliPresetStatusNoUserLogin,
+    CaliPresetStatusInvalidPrinter,
+    CaliPresetStatusConnectingServer,
+    CaliPresetStatusInUpgrading,
+    CaliPresetStatusInSystemPrinting,
+    CaliPresetStatusInPrinting,
+    CaliPresetStatusSendingCanceled,
+    CaliPresetStatusLanModeNoSdcard,
+    CaliPresetStatusNoSdcard,
+    CaliPresetStatusNeedForceUpgrading,
+    CaliPresetStatusNeedConsistencyUpgrading,
+    CaliPresetStatusUnsupportedPrinter,
 };
 
 class CalibrationPresetPage : public CalibrationWizardPage
@@ -116,6 +128,10 @@ public:
 
     void create_page(wxWindow* parent);
 
+    void update_print_status_msg(wxString msg, bool is_warning);
+    wxString format_text(wxString& m_msg);
+    void stripWhiteSpace(std::string& str);
+    void update_priner_status_msg(wxString msg, bool is_warning);
     void update(MachineObject* obj) override;
 
     void on_device_connected(MachineObject* obj) override;
@@ -188,13 +204,20 @@ protected:
         std::string& incompatiable_filament_name,
         std::string& error_tips);
 
-    void update_combobox_filaments(MachineObject* obj);
-
     float get_nozzle_value();
 
+    void update_combobox_filaments(MachineObject* obj);
+    void update_show_status();
     void show_status(CaliPresetPageStatus status);
+    void Enable_Send_Button(bool enable);
+    void prepare_mode();
+    void sending_mode();
+    bool is_blocking_printing();
+    bool need_check_sdcard(MachineObject* obj);
+    
+    CaliPresetPageStatus  get_status() { return m_page_status; }
 
-    CaliPageStepGuide*        m_step_panel { nullptr };
+    CaliPageStepGuide* m_step_panel{ nullptr };
     CaliPresetCaliStagePanel* m_cali_stage_panel { nullptr };
     wxPanel*                  m_selection_panel { nullptr };
     wxPanel*                  m_filament_from_panel { nullptr };
@@ -238,7 +261,6 @@ protected:
     CaliPresetPageStatus    m_page_status { CaliPresetPageStatus::CaliPresetStatusInit };
 
     bool m_show_custom_range { false };
-
     MachineObject* curr_obj { nullptr };
 };
 
