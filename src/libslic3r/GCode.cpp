@@ -1528,7 +1528,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
     //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
     if (print.extruders(true).size() == 1 &&                  //Don't support multi-color
-        print.num_object_instances() <= g_max_label_object) {  //Don't support too many objects on one plate
+        print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
+        print.calib_params().mode == CalibMode::Calib_None) { //Don't support skipping in cali mode
         m_enable_label_object = true;
         m_label_objects_ids.clear();
         m_label_objects_ids.reserve(print.num_object_instances());
