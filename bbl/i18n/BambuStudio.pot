@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-30 19:27+0800\n"
+"POT-Creation-Date: 2023-07-03 16:14+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1055,7 +1055,7 @@ msgstr ""
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
-msgid "Edit plate settings"
+msgid "Edit Plate Name"
 msgstr ""
 
 msgid "Name"
@@ -4697,9 +4697,6 @@ msgstr ""
 msgid "Print sequence"
 msgstr ""
 
-msgid "Plate name"
-msgstr ""
-
 msgid "Same as Global Plate Type"
 msgstr ""
 
@@ -4710,6 +4707,9 @@ msgid "By Layer"
 msgstr ""
 
 msgid "By Object"
+msgstr ""
+
+msgid "Plate name"
 msgstr ""
 
 msgid "Accept"

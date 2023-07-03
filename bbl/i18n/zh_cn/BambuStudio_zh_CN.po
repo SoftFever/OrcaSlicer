@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-30 19:27+0800\n"
+"POT-Creation-Date: 2023-07-03 16:14+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1062,8 +1062,8 @@ msgstr "铺满打印板"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "用选定对象的副本填充床的剩余区域"
 
-msgid "Edit plate settings"
-msgstr "编辑盘设置"
+msgid "Edit Plate Name"
+msgstr "编辑盘名"
 
 msgid "Name"
 msgstr "名称"
@@ -4812,9 +4812,6 @@ msgstr "跟随全局打印顺序"
 msgid "Print sequence"
 msgstr "打印顺序"
 
-msgid "Plate name"
-msgstr "盘名称"
-
 msgid "Same as Global Plate Type"
 msgstr "跟随全局打印板类型"
 
@@ -4826,6 +4823,9 @@ msgstr "逐层"
 
 msgid "By Object"
 msgstr "逐件"
+
+msgid "Plate name"
+msgstr "盘名称"
 
 msgid "Accept"
 msgstr "接受"
@@ -9512,6 +9512,9 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Edit plate settings"
+#~ msgstr "编辑盘设置"
 
 #~ msgid "Ams filament backup"
 #~ msgstr "AMS耗材丝备份"

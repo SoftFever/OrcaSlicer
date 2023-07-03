@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-30 19:27+0800\n"
+"POT-Creation-Date: 2023-07-03 16:14+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1073,7 +1073,7 @@ msgstr "Riempi il piano di copie"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Riempi l'area rimanente del piano con copie dell'oggetto selezionato"
 
-msgid "Edit plate settings"
+msgid "Edit Plate Name"
 msgstr ""
 
 msgid "Name"
@@ -5025,9 +5025,6 @@ msgstr "Uguale a Sequenza stampa globale"
 msgid "Print sequence"
 msgstr "Sequenza di stampa"
 
-msgid "Plate name"
-msgstr "Nome Piatto"
-
 msgid "Same as Global Plate Type"
 msgstr "Same as Global Plate Type"
 
@@ -5039,6 +5036,9 @@ msgstr "Per layer"
 
 msgid "By Object"
 msgstr "Per oggetto"
+
+msgid "Plate name"
+msgstr "Nome Piatto"
 
 msgid "Accept"
 msgstr "Accetta"
