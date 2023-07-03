@@ -681,6 +681,9 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 	int bed_type_idx = (int)curr_bed_type;
 	// render bed textures
 	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
+		auto curr = wxGetApp().preset_bundle->printers.get_selected_preset();
+		if (curr.name.find("Bambu Lab N1")==0)
+			break;
 		if (part.texture) {
 			if (part.buffer && part.buffer->get_vertices_count() > 0
 				//&& part.vbo_id != 0
