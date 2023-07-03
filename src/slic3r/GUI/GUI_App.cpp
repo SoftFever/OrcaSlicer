@@ -3022,7 +3022,7 @@ bool GUI_App::has_model_mall()
 {
     if (auto cc = app_config->get_country_code(); cc == "CN" || cc == "")
         return false;
-    return false;
+    return true;
 }
 
 void GUI_App::update_label_colours()
