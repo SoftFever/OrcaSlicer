@@ -372,7 +372,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
     // BBS: support resize by fill border
-    if (scale_in_center > 0) {
+    if (scale_in_center > 0 && scale_in_center < svg_scale) {
         int w = (int)(image->width * scale_in_center);
         int h = (int)(image->height * scale_in_center);
         ::nsvgRasterize(rast, image, 0, 0, scale_in_center, data.data() + int(height - h) / 2 * width * 4 + int(width - w) / 2 * 4, w, h, width * 4);
