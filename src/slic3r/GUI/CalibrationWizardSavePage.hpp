@@ -91,15 +91,19 @@ public:
 
     void set_machine_obj(MachineObject* obj) { m_obj = obj; }
 
-    void sync_cali_result(const std::vector<PACalibResult>& cali_result);
+    void sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result);
     void save_to_result_from_widgets(wxWindow* window, bool* out_is_valid);
     bool get_result(std::vector<PACalibResult>& out_result);
+    bool is_all_failed() { return m_is_all_failed; }
 
 protected:
     wxBoxSizer* m_top_sizer;
+    wxPanel* m_complete_text_panel;
+    wxPanel* m_part_failed_panel;
     wxPanel*    m_grid_panel{ nullptr };
     std::vector<PACalibResult> m_calib_results;
-
+    std::vector<PACalibResult> m_history_results;
+    bool m_is_all_failed{ true };
     MachineObject* m_obj;
 };
 
@@ -164,6 +168,7 @@ public:
     // sync widget value from obj cali result
     void sync_cali_result(MachineObject* obj);
     bool get_auto_result(std::vector<PACalibResult>& result) { return m_auto_panel->get_result(result); }
+    bool is_all_failed() { return m_auto_panel->is_all_failed(); }
     bool get_manual_result(PACalibResult& result) { return m_manual_panel->get_result(result); }
     bool get_p1p_result(float* k, float* n) { return m_p1p_panel->get_result(k, n); }
 
@@ -182,8 +187,6 @@ protected:
     CaliPASaveP1PPanel* m_p1p_panel{ nullptr };
 
     CaliSaveStyle m_save_style;
-
-    std::vector<PACalibResult> m_calib_results_history;
 };
 
 class CalibrationFlowX1SavePage : public CalibrationCommonSavePage
@@ -197,12 +200,15 @@ public:
     void sync_cali_result(const std::vector<FlowRatioCalibResult>& cali_result);
     void save_to_result_from_widgets(wxWindow* window, bool* out_is_valid);
     bool get_result(std::vector<std::pair<wxString, float>>& out_results);
+    bool is_all_failed() { return m_is_all_failed; }
 
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };
+    wxPanel* m_complete_text_panel;
+    wxPanel* m_part_failed_panel;
     wxPanel*           m_grid_panel{ nullptr };
-
     std::map<int, std::pair<wxString, float>> m_save_results; // map<tray_id, <name, flow ratio>>
+    bool m_is_all_failed{ true };
 };
 
 class CalibrationFlowCoarseSavePage : public CalibrationCommonSavePage

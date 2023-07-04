@@ -1599,6 +1599,7 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
         const ConfigOptionFloats* flow_ratio_opt = selected_filaments.begin()->second->config.option<ConfigOptionFloats>("filament_flow_ratio");
         if (flow_ratio_opt) {
             m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
+            value = flow_ratio_opt->get_at(0);
         }
     }
 }

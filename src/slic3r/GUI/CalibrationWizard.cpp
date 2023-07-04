@@ -473,6 +473,13 @@ void PressureAdvanceWizard::on_cali_save()
                 if (!save_page->get_auto_result(new_pa_cali_results)) {
                     return;
                 }
+                if (save_page->is_all_failed()) {
+                    MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxICON_WARNING | wxOK);
+                    msg_dlg.ShowModal();
+                    show_step(start_step);
+                    return;
+                }
+
                 CalibUtils::set_PA_calib_result(new_pa_cali_results);
             }
             else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -767,6 +774,12 @@ void FlowRateWizard::on_cali_save()
             std::vector<std::pair<wxString, float>> new_results;
             auto save_page = static_cast<CalibrationFlowX1SavePage*>(save_step->page);
             if (!save_page->get_result(new_results)) {
+                return;
+            }
+            if (save_page->is_all_failed()) {
+                MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+                show_step(start_step);
                 return;
             }
 

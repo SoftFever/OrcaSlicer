@@ -106,14 +106,29 @@ CaliPASaveAutoPanel::CaliPASaveAutoPanel(
 
 void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
 {
-    auto complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_complete_text_panel->Hide();
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("We found the best Dynamic Pressure Control Factor"));
+    auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best Dynamic Pressure Control Factor"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
-    complete_text_panel->SetSizer(complete_text_sizer);
-    m_top_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
+    m_complete_text_panel->SetSizer(complete_text_sizer);
+
+    m_part_failed_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_part_failed_panel->SetBackgroundColour(wxColour(238, 238, 238));
+    wxBoxSizer* part_failed_sizer = new wxBoxSizer(wxVERTICAL);
+    m_part_failed_panel->SetSizer(part_failed_sizer);
+    part_failed_sizer->AddSpacer(FromDIP(10));
+    auto part_failed_text = new wxStaticText(m_part_failed_panel, wxID_ANY, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
+    part_failed_text->SetFont(Label::Body_14);
+    part_failed_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    part_failed_sizer->Add(part_failed_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
+    part_failed_sizer->AddSpacer(FromDIP(10));
+
+    m_top_sizer->Add(m_complete_text_panel, 0, wxALIGN_CENTER, 0);
+
+    m_top_sizer->Add(m_part_failed_panel, 0, wxALIGN_CENTER, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -121,9 +136,10 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     m_top_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
 }
 
-void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cali_result)
+void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
 {
-    m_calib_results = cali_result;
+    m_history_results = history_result;
+    m_calib_results.clear();
     m_grid_panel->DestroyChildren();
     auto grid_sizer = new wxBoxSizer(wxHORIZONTAL);
     const int COLUMN_GAP = FromDIP(50);
@@ -144,11 +160,17 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     grid_sizer->Add(left_title_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
 
-    int index = 0;
+    m_is_all_failed = true;
+    bool part_failed = false;
     for (auto& item : cali_result) {
         bool result_failed = false;
-        if (item.confidence != 0)
+        if (item.confidence != 0) {
             result_failed = true;
+            part_failed = true;
+        }
+        else {
+            m_is_all_failed = false;
+        }
 
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
@@ -170,13 +192,14 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         wxArrayString selections;
         static std::vector<PACalibResult> filtered_results;
         filtered_results.clear();
-        // TODO get history
-        //for (auto history : m_calib_results_history) {
-        //    if (history.setting_id == m_filament_presets[fcb->get_tray_id()]->setting_id) {
-        //        filtered_results.push_back(history);
-        //        selections.push_back(history.name);
-        //    }
-        //}
+        for (auto history : history_result) {
+            for (auto& info : m_obj->selected_cali_preset) {
+                if (history.filament_id == info.filament_id) {
+                    filtered_results.push_back(history);
+                    selections.push_back(history.name);
+                }
+            }
+        }
         comboBox_tray_name->Set(selections);
 
         column_data_sizer->Add(tray_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
@@ -230,10 +253,9 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
                 }
             }
 
-            comboBox_tray_name->Bind(wxEVT_COMBOBOX, [this, index, comboBox_tray_name, k_value, n_value](auto& e) {
+            comboBox_tray_name->Bind(wxEVT_COMBOBOX, [this, comboBox_tray_name, k_value, n_value](auto& e) {
                 int selection = comboBox_tray_name->GetSelection();
                 auto history = filtered_results[selection];
-                m_calib_results[index].name = history.name;
                 });
         }
         else {
@@ -242,13 +264,25 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
 
         grid_sizer->Add(column_data_sizer);
         grid_sizer->AddSpacer(COLUMN_GAP);
-        index++;
     }
 
     m_grid_panel->SetSizer(grid_sizer, true);
     m_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
         SetFocusIgnoringChildren();
         });
+
+    if (part_failed) {
+        m_part_failed_panel->Show();
+        m_complete_text_panel->Show();
+        if (m_is_all_failed) {
+            m_complete_text_panel->Hide();
+        }
+    }
+    else {
+        m_complete_text_panel->Show();
+        m_part_failed_panel->Hide();
+    }
+
     Layout();
 }
 
@@ -297,10 +331,38 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
 };
 
 bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
-    // Check if the value is valid and save to m_calib_results
     bool is_valid = true;
+    // Check if the input value is valid and save to m_calib_results
     save_to_result_from_widgets(m_grid_panel, &is_valid);
     if (is_valid) {
+        // Check for duplicate names
+        struct PACalibResult {
+            size_t operator()(const std::pair<std::string ,std::string>& item) const {
+                return std::hash<string>()(item.first) * std::hash<string>()(item.second);
+            }
+        };
+        std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
+        for (auto& result : m_calib_results) {
+            if (!set.insert({ result.name, result.filament_id }).second) {
+                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overrides the other results?"), wxEmptyString, wxICON_WARNING | wxID_YES | wxID_NO);
+                if (msg_dlg.ShowModal() != wxID_YES) {
+                    return false;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        // Check for duplicate names from history
+        for (auto& result : m_history_results) {
+            if (!set.insert({ result.name, result.filament_id }).second) {
+                MessageDialog msg_dlg(nullptr, wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name is saved. Are you sure you want to overrides the historical result?"), result.name), wxEmptyString, wxICON_WARNING | wxID_YES | wxID_NO);
+                if (msg_dlg.ShowModal() != wxID_YES) {
+                    return false;
+                }
+            }
+        }
+
         out_result = m_calib_results;
         return true;
     }
@@ -632,10 +694,10 @@ void CalibrationPASavePage::sync_cali_result(MachineObject* obj)
 {
     // only auto need sync cali_result
     if (obj && m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-        m_auto_panel->sync_cali_result(obj->pa_calib_results);
+        m_auto_panel->sync_cali_result(obj->pa_calib_results, obj->pa_calib_tab);
     } else {
         std::vector<PACalibResult> empty_result;
-        m_auto_panel->sync_cali_result(empty_result);
+        m_auto_panel->sync_cali_result(empty_result, empty_result);
     }
 }
 
@@ -726,14 +788,29 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     m_step_panel->set_steps(2);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
-    auto complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_complete_text_panel->Hide();
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("We found the best flow ratio for you"));
+    auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best flow ratio for you"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
-    complete_text_panel->SetSizer(complete_text_sizer);
-    m_top_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
+    m_complete_text_panel->SetSizer(complete_text_sizer);
+
+    m_part_failed_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_part_failed_panel->SetBackgroundColour(wxColour(238, 238, 238));
+    wxBoxSizer* part_failed_sizer = new wxBoxSizer(wxVERTICAL);
+    m_part_failed_panel->SetSizer(part_failed_sizer);
+    part_failed_sizer->AddSpacer(FromDIP(10));
+    auto part_failed_text = new wxStaticText(m_part_failed_panel, wxID_ANY, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
+    part_failed_text->SetFont(Label::Body_14);
+    part_failed_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    part_failed_sizer->Add(part_failed_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
+    part_failed_sizer->AddSpacer(FromDIP(10));
+
+    m_top_sizer->Add(m_complete_text_panel, 0, wxALIGN_CENTER, 0);
+
+    m_top_sizer->Add(m_part_failed_panel, 0, wxALIGN_CENTER, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -762,10 +839,17 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
     grid_sizer->Add(left_title_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
 
+    m_is_all_failed = true;
+    bool part_failed = false;
     for (auto& item : cali_result) {
         bool result_failed = false;
-        if (item.confidence != 0)
+        if (item.confidence != 0) {
             result_failed = true;
+            part_failed = true;
+        }
+        else {
+            m_is_all_failed = false;
+        }
 
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
@@ -831,6 +915,19 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         m_grid_panel->SetFocusIgnoringChildren();
         });
     m_grid_panel->SetSizer(grid_sizer, true);
+
+    if (part_failed) {
+        m_part_failed_panel->Show();
+        m_complete_text_panel->Show();
+        if (m_is_all_failed) {
+            m_complete_text_panel->Hide();
+        }
+    }
+    else {
+        m_complete_text_panel->Show();
+        m_part_failed_panel->Hide();
+    }
+
     Layout();
 }
 
@@ -870,8 +967,8 @@ void CalibrationFlowX1SavePage::save_to_result_from_widgets(wxWindow* window, bo
 
 bool CalibrationFlowX1SavePage::get_result(std::vector<std::pair<wxString, float>>& out_results)
 {
-    // Check if the value is valid and save to m_calib_results
     bool is_valid = true;
+    // Check if the value is valid and save to m_calib_results
     save_to_result_from_widgets(m_grid_panel, &is_valid);
     if (is_valid) {
         // obj->cali_result contain failure results, so use m_save_results to record value
