@@ -222,8 +222,8 @@ public:
         tpPreview       = 2,
         tpMonitor       = 3,
         tpProject       = 4,
-        tpAuxiliary     = 5,
-        tpCalibration   = 6,
+        tpCalibration   = 5,
+        tpAuxiliary     = 6,
         toDebugTool     = 7,
     };
 
