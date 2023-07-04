@@ -978,6 +978,8 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
 
 void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
 {
+    if (!obj) return;
+
     //step 1: update combobox filament list
     float nozzle_value = get_nozzle_value();
     obj->cali_selected_nozzle_dia = nozzle_value;
@@ -1104,6 +1106,8 @@ void CalibrationPresetPage::update_show_status()
 
 bool CalibrationPresetPage::need_check_sdcard(MachineObject* obj)
 {
+    if (!obj) return false;
+
     bool need_check = false;
     if (obj->printer_type == "BL-P001" || obj->printer_type == "BL-P002") {
         if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -1121,6 +1125,10 @@ bool CalibrationPresetPage::need_check_sdcard(MachineObject* obj)
         else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             need_check =  true;
         }
+    }
+    else {
+        assert(false);
+        return false;
     }
 
     return need_check;
@@ -1382,9 +1390,9 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 
 void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 {
-    std::map<int, DynamicPrintConfig> full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
-
     if (!obj) return;
+
+    std::map<int, DynamicPrintConfig> full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
 
     // sync filament_ams_list from obj ams list
     filament_ams_list.clear();
@@ -1672,7 +1680,7 @@ Preset* CalibrationPresetPage::get_print_preset()
 {
     Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
 
-    Preset* print_preset;
+    Preset* print_preset = nullptr;
     wxArrayString print_items;
 
     // get default print profile

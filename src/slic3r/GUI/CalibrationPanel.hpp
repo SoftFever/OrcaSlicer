@@ -121,6 +121,7 @@ protected:
     bool                    m_initialized { false };
     std::string             last_conn_type = "undedefined";
     MachineObject*          obj{ nullptr };
+    MachineObject*          last_obj { nullptr };
     SideTools*              m_side_tools{ nullptr };
     Tabbook*                m_tabpanel{ nullptr };
     SelectMObjectPopup      m_mobjectlist_popup;

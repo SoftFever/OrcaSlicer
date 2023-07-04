@@ -88,12 +88,6 @@ void CalibrationWizard::update(MachineObject* obj)
                 m_page_steps[i]->page->on_reset_page();
         }
     }
-    else {
-        if (last_obj != obj && obj->is_info_ready()) {
-            this->on_device_connected(obj);
-            last_obj = obj;
-        }
-    }
 
     // update all page steps
     for (int i = 0; i < m_page_steps.size(); i++) {

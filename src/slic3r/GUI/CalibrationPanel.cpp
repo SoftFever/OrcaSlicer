@@ -531,6 +531,15 @@ void CalibrationPanel::update_all() {
             m_cali_panels[curr_selected]->update(obj);
     }
 
+    if (obj) {
+        if (last_obj != obj && obj->is_info_ready()) {
+            for (int i = 0; i < CALI_MODE_COUNT; i++) {
+                m_cali_panels[i]->on_device_connected(obj);
+            }
+            last_obj = obj;
+        }
+    }
+
     // check valid machine
     if (obj && dev->get_my_machine(obj->dev_id) == nullptr) {
         dev->set_selected_machine("");
