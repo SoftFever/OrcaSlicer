@@ -244,7 +244,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         fs->Bind(EVT_FILE_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
-            if (m_image_grid->GetFileSystem() != fs) // canceled
+            if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled
                 return;
             m_time_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             //m_manage_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
@@ -255,7 +255,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         fs->Bind(EVT_SELECT_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
-            if (m_image_grid->GetFileSystem() != fs) // canceled
+            if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled
                 return;
             m_button_delete->Enable(e.GetInt() > 0);
             m_button_download->Enable(e.GetInt() > 0);
@@ -264,7 +264,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto& e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
-            if (m_image_grid->GetFileSystem() != fs) // canceled
+            if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled
                 return;
             ScalableBitmap icon;
             wxString msg;
@@ -306,7 +306,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         fs->Bind(EVT_DOWNLOAD, [this, wfs = boost::weak_ptr(fs)](auto& e) {
             e.Skip();
             boost::shared_ptr fs(wfs.lock());
-            if (m_image_grid->GetFileSystem() != fs) // canceled
+            if (fs == nullptr || m_image_grid->GetFileSystem() != fs) // canceled
                 return;
 
             int result = e.GetExtraLong();
