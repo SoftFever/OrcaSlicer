@@ -17,7 +17,7 @@ namespace GUI {
 #define HISTORY_WINDOW_ITEMS_COUNT         4
 
 HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history)
-    : DPIDialog(parent, wxID_ANY, _L("Pressure Advance Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("Dynamic Pressure Control Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_calib_results_history(calib_results_history)
 {
     this->SetBackgroundColour(*wxWHITE);
@@ -183,7 +183,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
         float nozzle_value = get_nozzle_value();
         if (nozzle_value > 0) {
             CalibUtils::emit_get_PA_calib_infos(nozzle_value);
-            m_tips->SetLabel("Refreshing the historical pressure advance records");
+            m_tips->SetLabel("Refreshing the historical Dynamic Pressure Control records");
             BOOST_LOG_TRIVIAL(info) << "request calib history";
         }
     }
@@ -299,7 +299,7 @@ float HistoryWindow::get_nozzle_value()
 
 
 EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, const PACalibResult& result)
-    : DPIDialog(parent, wxID_ANY, _L("Edit Pressure Advance"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("Edit Dynamic Pressure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_new_result(result)
 {
     this->SetBackgroundColour(*wxWHITE);

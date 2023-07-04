@@ -147,7 +147,7 @@ void CaliPresetWarningPanel::create_panel(wxWindow* parent)
     m_warning_text->SetFont(Label::Body_13);
     m_warning_text->SetForegroundColour(wxColour(230, 92, 92));
     m_warning_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    m_top_sizer->Add(m_warning_text, 0, wxEXPAND);
+    m_top_sizer->Add(m_warning_text, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
 }
 
 void CaliPresetWarningPanel::set_warning(wxString text)
@@ -366,24 +366,27 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
     auto nozzle_combo_text = new wxStaticText(parent, wxID_ANY, _L("Please select the nozzle diameter of your printer"), wxDefaultPosition, wxDefaultSize, 0);
-    nozzle_combo_text->Wrap(-1);
     nozzle_combo_text->SetFont(Label::Head_14);
+    nozzle_combo_text->Wrap(-1);
     panel_sizer->Add(nozzle_combo_text, 0, wxALL, 0);
+    panel_sizer->AddSpacer(FromDIP(10));
     m_comboBox_nozzle_dia = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
     panel_sizer->Add(m_comboBox_nozzle_dia, 0, wxALL, 0);
 
     panel_sizer->AddSpacer(PRESET_GAP);
 
     auto plate_type_combo_text = new wxStaticText(parent, wxID_ANY, _L("Please select the plate type of your printer"), wxDefaultPosition, wxDefaultSize, 0);
-    plate_type_combo_text->Wrap(-1);
     plate_type_combo_text->SetFont(Label::Head_14);
+    plate_type_combo_text->Wrap(-1);
     panel_sizer->Add(plate_type_combo_text, 0, wxALL, 0);
+    panel_sizer->AddSpacer(FromDIP(10));
     m_comboBox_bed_type = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
     panel_sizer->Add(m_comboBox_bed_type, 0, wxALL, 0);
 
     panel_sizer->AddSpacer(PRESET_GAP);
 
     m_filament_from_panel = new wxPanel(parent);
+    m_filament_from_panel->Hide();
     auto filament_from_sizer = new wxBoxSizer(wxVERTICAL);
     auto filament_from_text = new wxStaticText(m_filament_from_panel, wxID_ANY, _L("filament position"));
     filament_from_text->SetFont(Label::Head_14);
@@ -391,18 +394,13 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     auto raioBox_sizer = new wxFlexGridSizer(2, 1, 0, FromDIP(10));
     m_ams_radiobox = new wxRadioButton(m_filament_from_panel, wxID_ANY, _L("AMS"));
     m_ams_radiobox->SetValue(true);
-    filament_from_text->Hide();
-    m_ams_radiobox->Hide();
 
     raioBox_sizer->Add(m_ams_radiobox, 0);
     m_ext_spool_radiobox = new wxRadioButton(m_filament_from_panel, wxID_ANY, _L("External Spool"));
-    m_ext_spool_radiobox->Hide();
     raioBox_sizer->Add(m_ext_spool_radiobox, 0);
     filament_from_sizer->Add(raioBox_sizer, 0);
     m_filament_from_panel->SetSizer(filament_from_sizer);
-    panel_sizer->Add(m_filament_from_panel, 0);
-
-    panel_sizer->AddSpacer(PRESET_GAP);
+    panel_sizer->Add(m_filament_from_panel, 0, wxBOTTOM, PRESET_GAP);
 
     auto filament_for_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto filament_for_text = new wxStaticText(parent, wxID_ANY, _L("Filament For Calibration"), wxDefaultPosition, wxDefaultSize, 0);
@@ -456,13 +454,12 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto filament_list_tips = new wxStaticText(parent, wxID_ANY, _L("Please select same type of material, because plate temperature might not be compatible with different type of material"), wxDefaultPosition, wxDefaultSize, 0);
-    filament_list_tips->Hide();
-    filament_list_tips->SetFont(Label::Body_13);
-    filament_list_tips->SetForegroundColour(wxColour(145, 145, 145));
-    filament_list_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    panel_sizer->Add(filament_list_tips);
-    panel_sizer->AddSpacer(FromDIP(10));
+    m_filament_list_tips = new wxStaticText(parent, wxID_ANY, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"), wxDefaultPosition, wxDefaultSize, 0);
+    m_filament_list_tips->Hide();
+    m_filament_list_tips->SetFont(Label::Body_13);
+    m_filament_list_tips->SetForegroundColour(wxColour(145, 145, 145));
+    m_filament_list_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    panel_sizer->Add(m_filament_list_tips, 0, wxBOTTOM, FromDIP(10));
 
     // ams panel
     m_multi_ams_panel = new wxPanel(parent);
@@ -716,7 +713,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_warning_panel, 0);
     if (m_show_custom_range) {
         m_top_sizer->Add(m_custom_range_panel, 0);
-        m_top_sizer->AddSpacer(PRESET_GAP);
+        m_top_sizer->AddSpacer(FromDIP(15));
     }
     m_top_sizer->Add(m_tips_panel, 0);
     m_top_sizer->Add(m_sending_panel, 0);
@@ -918,11 +915,9 @@ void CalibrationPresetPage::check_filament_compatible()
             wxString tips = wxString::Format(_L("%s is not compatible with %s"), m_comboBox_bed_type->GetValue(), incompatiable_filament_name);
             m_warning_panel->set_warning(tips);
         }
-        m_warning_panel->Show();
     } else {
         m_tips_panel->set_params(0, bed_temp, 0);
         m_warning_panel->set_warning("");
-        m_warning_panel->Hide();
     }
 
     Layout();
@@ -1311,6 +1306,13 @@ void CalibrationPresetPage::set_cali_filament_mode(CalibrationFilamentMode mode)
     for (int i = 0; i < m_filament_comboBox_list.size(); i++) {
         m_filament_comboBox_list[i]->set_select_mode(mode);
     }
+
+    if (mode == CALI_MODEL_MULITI) {
+        m_filament_list_tips->Show();
+    }
+    else {
+        m_filament_list_tips->Hide();
+    }
 }
 
 void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
@@ -1428,8 +1430,6 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     // update filament from panel, display only obj has ams
     // update multi ams panel, display only obj has multi ams
     if (obj->has_ams()) {
-        m_filament_from_panel->Show();
-
         if (obj->amsList.size() > 1) {
             m_multi_ams_panel->Show();
             on_switch_ams(obj->amsList.begin()->first);
@@ -1440,7 +1440,6 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     }
     else {
         m_multi_ams_panel->Hide();
-        m_filament_from_panel->Hide();
     }
 
     std::vector<AMSinfo> ams_info;

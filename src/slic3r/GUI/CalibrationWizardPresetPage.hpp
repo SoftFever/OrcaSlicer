@@ -221,6 +221,7 @@ protected:
     CaliPresetCaliStagePanel* m_cali_stage_panel { nullptr };
     wxPanel*                  m_selection_panel { nullptr };
     wxPanel*                  m_filament_from_panel { nullptr };
+    wxStaticText*             m_filament_list_tips{ nullptr };
     wxPanel*                  m_multi_ams_panel { nullptr };
     wxPanel*                  m_filament_list_panel { nullptr };
     wxPanel*                  m_ext_spool_panel { nullptr };

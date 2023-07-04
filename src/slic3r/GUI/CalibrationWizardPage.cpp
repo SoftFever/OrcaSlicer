@@ -24,11 +24,11 @@ CalibrationStyle get_cali_style(MachineObject* obj)
 wxString get_cali_mode_caption_string(CalibMode mode)
 {
     if (mode == CalibMode::Calib_PA_Line)
-        return _L("Pressure Advance Calibration");
+        return _L("Dynamic Pressure Control Calibration");
     if (mode == CalibMode::Calib_Flow_Rate)
         return _L("Flow Rate Calibration");
     if (mode == CalibMode::Calib_Vol_speed_Tower)
-        return _L("Max Volumetric Speed");
+        return _L("Max Volumetric Speed Calibration");
     return "no cali_mode_caption";
 }
 

@@ -108,7 +108,7 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
 {
     auto complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("We found the best Pressure Advance Factor"));
+    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("We found the best Dynamic Pressure Control Factor"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
