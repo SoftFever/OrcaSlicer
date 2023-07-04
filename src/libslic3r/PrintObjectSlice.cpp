@@ -1177,7 +1177,12 @@ void PrintObject::apply_conical_overhang() {
         return;
     }
 
-    const double angle_radians = 62. * M_PI / 180.;
+    if (!this->config().make_overhang_printable) {
+        return;
+    }
+
+    const double conical_overhang_angle = this->config().make_overhang_printable_angle;
+    const double angle_radians = conical_overhang_angle * M_PI / 180.;
     const double max_hole_area = 0.;
     const double tan_angle = tan(angle_radians); // the XY-component of the angle
     BOOST_LOG_TRIVIAL(info) << "angle " << angle_radians << " maxHoleArea " << max_hole_area << " tan_angle "
@@ -1195,7 +1200,7 @@ void PrintObject::apply_conical_overhang() {
         //layer->export_region_slices_to_svg_debug("layer_before_conical_overhang");
         //upper_layer->export_region_slices_to_svg_debug("upper_layer_before_conical_overhang");
 
-        
+
         auto merged_poly = upper_layer->merged(float(SCALED_EPSILON));
         merged_poly = union_ex(merged_poly);
         merged_poly = offset_ex(merged_poly, -float(scale_(max_dist_from_lower_layer)));
@@ -1204,10 +1209,10 @@ void PrintObject::apply_conical_overhang() {
             // export_to_svg(
             //     debug_out_path("Surface-layer-%d-region-%d.svg", layer->id(), region_id).c_str(),
             //               layer->m_regions[region_id]->slices.surfaces);
-            
+
             ExPolygons layer_polygons = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
             // ExPolygons upper_layer_polygons = to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces);
-            
+
             // if (std::abs(max_dist_from_lower_layer) < 5) {
             //     constexpr coord_t safe_dist = 20;
             //     ExPolygons diff = diff_ex(upper_layer_polygons, offset_ex(layer_polygons, -safe_dist));
@@ -1218,7 +1223,7 @@ void PrintObject::apply_conical_overhang() {
                 if (max_hole_area > 0.0) {
                     for (auto layer_polygon : layer_polygons) {
                         for (auto hole : layer_polygon.holes) {
-            
+
                         }
                     }
                 }

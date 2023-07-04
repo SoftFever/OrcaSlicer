@@ -706,6 +706,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                wall_distribution_count))
     ((ConfigOptionPercent,            min_feature_size))
     ((ConfigOptionPercent,            min_bead_width))
+
+    // SoftFever
+    ((ConfigOptionBool,               make_overhang_printable))
+    ((ConfigOptionFloat,              make_overhang_printable_angle))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

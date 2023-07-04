@@ -464,7 +464,6 @@ private:
     void simplify_extrusion_path();
 
     void slice_volumes();
-    void apply_conical_overhang();
     //BBS
     ExPolygons _shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const;
     // BBS
@@ -522,6 +521,7 @@ private:
     // 
     // object id
     size_t               m_id;
+    void apply_conical_overhang();
 
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.
