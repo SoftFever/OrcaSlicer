@@ -434,7 +434,7 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
     if (!error_message.empty())
         return;
 
-    send_to_print(calib_info, error_message);
+    send_to_print(calib_info, error_message, pass);
 }
 
 void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &error_message)
