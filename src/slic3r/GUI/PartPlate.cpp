@@ -4077,8 +4077,7 @@ bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& r
 	bool added = false;
 
 	std::vector<BoundingBoxf> nonprefered_regions;
-	nonprefered_regions.emplace_back(Vec2d{ 45,0 }, Vec2d{ 225,25 }); // extrusion calibration region
-	nonprefered_regions.emplace_back(Vec2d{ 25,0 }, Vec2d{ 50,60 });  // hand-eye calibration region
+	nonprefered_regions.emplace_back(Vec2d{ 18,0 }, Vec2d{ 240,15 }); // new extrusion & hand-eye calibration region
 
 	//has exclude areas
 	PartPlate* plate = m_plate_list[0];
