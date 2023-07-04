@@ -632,7 +632,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
         if (obj->is_high_printer_type()) {
             PACalibIndexInfo select_index_info;
-            select_index_info.tray_id = tray_id;
+            select_index_info.tray_id = cali_tray_id;
             select_index_info.nozzle_diameter = obj->nozzle_diameter;
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
@@ -641,7 +641,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                 select_index_info.filament_id = m_pa_profile_items[cali_select_id].filament_id;
             }
             else { // default item
-                select_index_info.cali_idx = -1;
+                select_index_info.cali_idx    = -1;
                 select_index_info.filament_id = ams_filament_id;
             }
 
@@ -862,10 +862,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         if (obj->is_high_printer_type()) {
             m_title_pa_profile->Show();
             m_comboBox_cali_result->Show();
+            m_input_k_val->Disable();
         }
         else {
             m_title_pa_profile->Hide();
             m_comboBox_cali_result->Hide();
+            m_input_k_val->Enable();
         }
 
         m_button_reset->Show();
