@@ -1463,7 +1463,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
 
             Preset* preset = const_cast<Preset *>(fcb->GetComboBox()->get_selected_preset());
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
-                if (is_filaments_compatiable({preset})) {
+                if (preset && is_filaments_compatiable({preset})) {
                     fcb->GetRadioBox()->SetValue(true);
                     wxCommandEvent event(wxEVT_RADIOBUTTON);
                     event.SetEventObject(this);
@@ -1473,6 +1473,10 @@ void CalibrationPresetPage::select_default_compatible_filament()
                 } else
                     fcb->GetRadioBox()->SetValue(false);
             } else if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_MULITI) {
+                if (!preset) {
+                    fcb->GetCheckBox()->SetValue(false);
+                    continue;
+                }
                 multi_select_filaments.push_back(preset);
                 if (!is_filaments_compatiable(multi_select_filaments)) {
                     multi_select_filaments.pop_back();
@@ -1490,7 +1494,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
     }
     else if (m_ext_spool_radiobox->GetValue()){
         Preset *preset = const_cast<Preset *>(m_virtual_tray_comboBox->GetComboBox()->get_selected_preset());
-        if (is_filaments_compatiable({preset})) {
+        if (preset && is_filaments_compatiable({preset})) {
             m_virtual_tray_comboBox->GetRadioBox()->SetValue(true);
         } else
             m_virtual_tray_comboBox->GetRadioBox()->SetValue(false);

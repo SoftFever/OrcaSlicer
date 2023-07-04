@@ -826,6 +826,7 @@ void FlowRateWizard::on_cali_save()
             if (!save_preset(old_preset_name, new_preset_name.ToStdString(), key_value_map, message)) {
                 MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                 error_msg_dlg.ShowModal();
+                return;
             }
 
             MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxICON_WARNING | wxOK);
@@ -1077,7 +1078,11 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     if (!save_preset(old_preset_name, new_preset_name, key_value_map, message)) {
         MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
         error_msg_dlg.ShowModal();
+        return;
     }
+
+    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxICON_WARNING | wxOK);
+    msg_dlg.ShowModal();
 }
 
 void MaxVolumetricSpeedWizard::on_cali_job_finished(wxString evt_data)

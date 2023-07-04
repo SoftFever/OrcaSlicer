@@ -826,7 +826,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
         return;
     }
 
-    if (obj_->is_in_printing()) {
+    if (obj_->is_in_upgrading()) {
         error_message = L("Cannot send the print job when the printer is updating firmware");
         return;
     }
