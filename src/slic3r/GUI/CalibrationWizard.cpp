@@ -51,7 +51,7 @@ CalibrationWizard::~CalibrationWizard()
 
 void CalibrationWizard::on_cali_job_finished(wxCommandEvent& event)
 {
-    this->on_cali_job_finished();
+    this->on_cali_job_finished(event.GetString());
     event.Skip();
 }
 
@@ -196,6 +196,29 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     // todo: zhimin
     // wxGetApp().mainframe->update_filament_tab_ui();
     return true;
+}
+
+void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
+{
+    if (!obj) return;
+
+    CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
+
+    std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
+
+    obj->selected_cali_preset.clear();
+    for (auto& item : selected_filaments) {
+        CaliPresetInfo result;
+        result.tray_id = item.first;
+        result.nozzle_diameter = nozzle_dia;
+        result.filament_id = item.second->filament_id;
+        result.setting_id = item.second->setting_id;
+        result.name = item.second->name;
+        obj->selected_cali_preset.push_back(result);
+    }
+
+    CaliPresetStage stage;
+    preset_page->get_cali_stage(stage, obj->cache_flow_ratio);
 }
 
 void CalibrationWizard::on_cali_go_home()
@@ -370,22 +393,13 @@ void PressureAdvanceWizard::on_cali_start()
     std::string setting_id;
     BedType plate_type = BedType::btDefault;
 
+    // save preset info to machine object
     CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
-
     std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
 
-    curr_obj->selected_cali_preset.clear();
-    for (auto& item : selected_filaments) {
-        CaliPresetInfo result;
-        result.tray_id          = item.first;
-        result.nozzle_diameter  = nozzle_dia;
-        result.filament_id      = item.second->filament_id;
-        result.setting_id       = item.second->setting_id;
-        result.name             = item.second->name;
-        curr_obj->selected_cali_preset.push_back(result);
-    }
-
     preset_page->get_preset_info(nozzle_dia, plate_type);
+
+    CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
 
     if (nozzle_dia < 0 || plate_type == BedType::btDefault) {
         BOOST_LOG_TRIVIAL(error) << "CaliPreset: get preset info, nozzle and plate type error";
@@ -667,6 +681,8 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value)
 
     std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
 
+    CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
+
     if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
         X1CCalibInfos calib_infos;
         for (auto& item : selected_filaments) {
@@ -894,11 +910,26 @@ void FlowRateWizard::set_cali_method(CalibrationMethod method)
     CalibrationWizard::set_cali_method(method);
 }
 
-void FlowRateWizard::on_cali_job_finished()
+void FlowRateWizard::on_cali_job_finished(wxString evt_data)
 {
+    int       cali_stage = 0;
+    CalibMode obj_cali_mode = CalibUtils::get_calib_mode_by_name(evt_data.ToStdString(), cali_stage);
+
+    if (obj_cali_mode == m_mode) {
+        if (cali_stage == 1) {
+            if (m_curr_step != cali_coarse_step)
+                show_step(cali_coarse_step);
+        }
+        else if (cali_stage == 2) {
+            if (m_curr_step != cali_fine_step) {
+                show_step(cali_fine_step);
+            }
+        }
+        else
+            show_step(cali_coarse_step);
+    }
+    // change ui, hide
     static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
- 
-    show_step(m_curr_step->next);
 }
 
 
@@ -979,6 +1010,8 @@ void MaxVolumetricSpeedWizard::on_cali_start()
 
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
+    CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
+
     wxArrayString values = preset_page->get_custom_range_values();
     Calib_Params  params;
     if (values.size() != 3) {
@@ -1047,12 +1080,20 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     }
 }
 
-void MaxVolumetricSpeedWizard::on_cali_job_finished()
+void MaxVolumetricSpeedWizard::on_cali_job_finished(wxString evt_data)
 {
-    static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
+    int       cali_stage = 0;
+    CalibMode obj_cali_mode = CalibUtils::get_calib_mode_by_name(evt_data.ToStdString(), cali_stage);
 
-    show_step(m_curr_step->next);
+    if (obj_cali_mode == m_mode) {
+        if (m_curr_step != cali_step) {
+            show_step(cali_step);
+        }
+    }
+    // change ui, hide
+    static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
 }
+
 void MaxVolumetricSpeedWizard::on_device_connected(MachineObject *obj)
 {
     CalibrationWizard::on_device_connected(obj);

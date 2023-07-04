@@ -480,13 +480,16 @@ void PrintJob::process()
 
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
+        if (!m_completed_evt_data.empty())
+            evt->SetString(m_completed_evt_data);
+        else
+            evt->SetString(m_dev_id);
         if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {
             int sel = wxGetApp().mainframe->get_calibration_curr_tab();
             if (sel >= 0) {
                 evt->SetInt(sel);
             }
         }
-        evt->SetString(m_dev_id);
         wxQueueEvent(m_plater, evt);
         m_job_finished = true;
     }

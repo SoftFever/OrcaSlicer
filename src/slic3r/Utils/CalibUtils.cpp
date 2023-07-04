@@ -865,7 +865,6 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
 
     print_job->connection_type  = obj_->connection_type();
     print_job->cloud_print_only = obj_->is_cloud_print_only;
-    print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event());
 
     PrintPrepareData job_data;
     job_data.is_from_plater = false;
@@ -893,6 +892,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
 
     print_job->has_sdcard = obj_->has_sdcard();
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
+    print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
     print_job->start();
 }

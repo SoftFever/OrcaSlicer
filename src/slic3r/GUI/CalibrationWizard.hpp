@@ -42,7 +42,7 @@ public:
 
     void on_cali_job_finished(wxCommandEvent& event);
 
-    virtual void on_cali_job_finished() {}
+    virtual void on_cali_job_finished(wxString evt_data) {}
 
     CalibrationWizardPageStep* get_curr_step() { return m_curr_step; }
 
@@ -61,6 +61,8 @@ public:
     CalibMode get_calibration_mode() { return m_mode; }
 
     bool save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, std::string& message);
+
+    virtual void cache_preset_info(MachineObject* obj, float nozzle_dia);
 
 protected:
     void on_cali_go_home();
@@ -121,7 +123,7 @@ public:
 
     void set_cali_method(CalibrationMethod method) override;
 
-    void on_cali_job_finished() override;
+    void on_cali_job_finished(wxString evt_data) override;
 
 protected:
     void create_pages();
@@ -142,7 +144,7 @@ public:
     MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~MaxVolumetricSpeedWizard() {};
 
-    void on_cali_job_finished() override;
+    void on_cali_job_finished(wxString evt_data) override;
 
 protected:
     void create_pages();

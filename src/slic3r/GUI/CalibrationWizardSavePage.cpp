@@ -344,25 +344,18 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    auto value_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto k_value_text = new wxStaticText(parent, wxID_ANY, _L("Factor K"), wxDefaultPosition, wxDefaultSize, 0);
-    k_value_text->Wrap(-1);
     k_value_text->SetFont(::Label::Head_14);
+    k_value_text->Wrap(-1);
     auto n_value_text = new wxStaticText(parent, wxID_ANY, _L("Factor N"), wxDefaultPosition, wxDefaultSize, 0);
-    n_value_text->Wrap(-1);
     n_value_text->SetFont(::Label::Head_14);
+    n_value_text->Wrap(-1);
+    n_value_text->Hide();
     m_k_val = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
     m_n_val = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
-    n_value_text->Hide();
     m_n_val->Hide();
-    value_sizer->Add(k_value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
-    value_sizer->AddSpacer(FromDIP(10));
-    value_sizer->Add(m_k_val, 0);
-    value_sizer->AddSpacer(FromDIP(50));
-    value_sizer->Add(n_value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
-    value_sizer->AddSpacer(FromDIP(10));
-    value_sizer->Add(m_n_val, 0);
-    m_top_sizer->Add(value_sizer, 0, wxALIGN_CENTER);
+    m_top_sizer->Add(k_value_text, 0);
+    m_top_sizer->Add(m_k_val, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -372,6 +365,8 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_save_name_input = new TextInput(parent, "", "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
     m_top_sizer->Add(m_save_name_input, 0, 0, 0);
+
+    m_top_sizer->AddSpacer(FromDIP(20));
 
     Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
         SetFocusIgnoringChildren();
@@ -554,13 +549,14 @@ void CaliSavePresetValuePanel::create_panel(wxWindow *parent)
 
     m_top_sizer->Add(m_record_picture, 0, wxALIGN_CENTER);
     m_top_sizer->AddSpacer(FromDIP(20));
-    m_top_sizer->Add(m_value_title, 0, wxALIGN_CENTER);
+    m_top_sizer->Add(m_value_title, 0);
     m_top_sizer->AddSpacer(FromDIP(10));
-    m_top_sizer->Add(m_input_value, 0, wxALIGN_CENTER);
+    m_top_sizer->Add(m_input_value, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
-    m_top_sizer->Add(m_save_name_title, 0, wxALIGN_CENTER);
+    m_top_sizer->Add(m_save_name_title, 0);
     m_top_sizer->AddSpacer(FromDIP(10));
-    m_top_sizer->Add(m_input_name, 0, wxALIGN_CENTER);
+    m_top_sizer->Add(m_input_name, 0);
+    m_top_sizer->AddSpacer(FromDIP(20));
 }
 
 void CaliSavePresetValuePanel::set_img(const std::string& bmp_name_in)
@@ -624,9 +620,9 @@ void CalibrationPASavePage::create_page(wxWindow* parent)
     m_auto_panel = new CaliPASaveAutoPanel(parent, wxID_ANY);
     m_p1p_panel = new CaliPASaveP1PPanel(parent, wxID_ANY);
 
-    m_top_sizer->Add(m_manual_panel, 0);
-    m_top_sizer->Add(m_auto_panel, 0);
-    m_top_sizer->Add(m_p1p_panel, 0);
+    m_top_sizer->Add(m_manual_panel, 0, wxEXPAND);
+    m_top_sizer->Add(m_auto_panel, 0, wxEXPAND);
+    m_top_sizer->Add(m_p1p_panel, 0, wxEXPAND);
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_PA_SAVE);
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
@@ -837,7 +833,7 @@ void CalibrationFlowX1SavePage::save_to_result_from_widgets(wxWindow* window, bo
         if (input->get_type() == GridTextInputType::FlowRatio) {
             float flow_ratio = 0.0f;
             if (!CalibUtils::validate_input_flow_ratio(input->GetTextCtrl()->GetValue(), &flow_ratio)) {
-                MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 0.2)"), wxEmptyString, wxICON_WARNING | wxOK);
+                MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 2.0)"), wxEmptyString, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
                 *out_is_valid = false;
             }
@@ -909,7 +905,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     auto complete_text = new wxStaticText(parent, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(-1);
-    m_top_sizer->Add(complete_text, 0, 0, 0);
+    m_top_sizer->Add(complete_text, 0, wxALIGN_CENTER, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
     m_record_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
@@ -966,6 +962,8 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 
     m_top_sizer->Add(save_panel, 0, 0, 0);
     save_panel->Hide();
+
+    m_top_sizer->AddSpacer(FromDIP(20));
 
     checkBox_skip_calibration->Bind(wxEVT_TOGGLEBUTTON, [this, save_panel, checkBox_skip_calibration](wxCommandEvent& e) {
         if (checkBox_skip_calibration->GetValue()) {
@@ -1037,6 +1035,7 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
             if (!curr_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(curr_obj->selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
                 set_default_name(default_name);
+                set_curr_flow_ratio(curr_obj->cache_flow_ratio);
             }
         }
         else {
@@ -1079,7 +1078,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
     auto complete_text = new wxStaticText(parent, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(-1);
-    m_top_sizer->Add(complete_text, 0, 0, 0);
+    m_top_sizer->Add(complete_text, 0, wxALIGN_CENTER, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
     m_record_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
@@ -1112,6 +1111,8 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 
     m_save_name_input = new TextInput(parent, "", "", "", wxDefaultPosition, {CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24)}, 0);
     m_top_sizer->Add(m_save_name_input, 0, 0, 0);
+
+    m_top_sizer->AddSpacer(FromDIP(20));
 
     m_optimal_block_fine->Bind(wxEVT_COMBOBOX, [this, fine_calc_result_text](auto& e) {
         m_fine_flow_ratio = m_curr_flow_ratio * (100.0f + stof(m_optimal_block_fine->GetValue().ToStdString())) / 100.0f;
@@ -1158,6 +1159,7 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
             if (!curr_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(curr_obj->selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
                 set_default_name(default_name);
+                set_curr_flow_ratio(curr_obj->cache_flow_ratio);
             }
         }
         else {
@@ -1205,7 +1207,7 @@ void CalibrationMaxVolumetricSpeedSavePage::create_page(wxWindow *parent)
 
     set_save_img();
 
-    m_top_sizer->Add(m_save_preset_panel, 0);
+    m_top_sizer->Add(m_save_preset_panel, 0, wxEXPAND);
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_COMMON_SAVE);
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);

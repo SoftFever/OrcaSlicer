@@ -38,6 +38,7 @@ class PrintJob : public PlaterJob
     std::string         m_dev_id;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
+    wxString            m_completed_evt_data;
     std::function<void()> m_enter_ip_address_fun_fail{ nullptr };
     std::function<void()> m_enter_ip_address_fun_success{ nullptr };
 
@@ -90,7 +91,10 @@ public:
     }
 
     bool is_finished() { return m_job_finished;  }
-    void set_print_job_finished_event(int event_id) { m_print_job_completed_id = event_id; }
+    void set_print_job_finished_event(int event_id, wxString evt_data = wxEmptyString) {
+        m_print_job_completed_id = event_id;
+        m_completed_evt_data = evt_data;
+    }
     void on_success(std::function<void()> success);
     void process() override;
     void finalize() override;

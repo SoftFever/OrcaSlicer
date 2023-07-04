@@ -51,7 +51,7 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
     flow_ratio_input = new TextInput(input_panel, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
     flow_ratio_input->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     float default_flow_ratio = 1.0f;
-    auto flow_ratio_str = wxString::Format("%.3f", default_flow_ratio);
+    auto flow_ratio_str = wxString::Format("%.2f", default_flow_ratio);
     flow_ratio_input->GetTextCtrl()->SetValue(flow_ratio_str);
     input_sizer->AddSpacer(FromDIP(18));
     input_sizer->Add(flow_ratio_input, 0, wxTOP, FromDIP(10));
@@ -73,7 +73,7 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
     flow_ratio_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this](auto& e) {
         float flow_ratio = 0.0f;
         if (!CalibUtils::validate_input_flow_ratio(flow_ratio_input->GetTextCtrl()->GetValue(), &flow_ratio)) {
-            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 0.2)"), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 2.0)"), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
         }
         auto flow_ratio_str = wxString::Format("%.3f", flow_ratio);
@@ -83,7 +83,7 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
     flow_ratio_input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this](auto& e) {
         float flow_ratio = 0.0f;
         if (!CalibUtils::validate_input_flow_ratio(flow_ratio_input->GetTextCtrl()->GetValue(), &flow_ratio)) {
-            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 0.2)"), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 2.0)"), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
         }
         auto flow_ratio_str = wxString::Format("%.3f", flow_ratio);
@@ -499,6 +499,8 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
         filament_comboBox_sizer->Add(fcb, 0, wxALIGN_CENTER);
         filament_fgSizer->Add(filament_comboBox_sizer, 0);
 
+        fcb->Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
+
         radio_btn->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& evt) {
             wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
             event.SetEventObject(this);
@@ -532,6 +534,8 @@ void CalibrationPresetPage::create_ext_spool_panel(wxWindow* parent)
     m_virtual_tray_comboBox->SetCheckBox(check_box);
     m_virtual_tray_comboBox->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
     radio_btn->SetValue(true);
+
+    m_virtual_tray_comboBox->Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
 
     panel_sizer->Add(radio_btn, 0, wxALIGN_CENTER);
     panel_sizer->Add(check_box, 0, wxALIGN_CENTER);
@@ -785,7 +789,7 @@ void CalibrationPresetPage::on_recommend_input_value()
         Preset *selected_filament_preset = selected_filaments.begin()->second;
         if (selected_filament_preset) {
             float flow_ratio = selected_filament_preset->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
-            m_cali_stage_panel->set_flow_ratio_value(float_to_string(flow_ratio));
+            m_cali_stage_panel->set_flow_ratio_value(wxString::Format("%.2f", flow_ratio));
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
@@ -794,9 +798,9 @@ void CalibrationPresetPage::on_recommend_input_value()
             double max_volumetric_speed = selected_filament_preset->config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
             if (m_custom_range_panel) {
                 wxArrayString values;
-                values.push_back(float_to_string(max_volumetric_speed - 5));
-                values.push_back(float_to_string(max_volumetric_speed + 5));
-                values.push_back("0.5");
+                values.push_back(wxString::Format("%.2f", max_volumetric_speed - 5));
+                values.push_back(wxString::Format("%.2f", max_volumetric_speed + 5));
+                values.push_back(wxString::Format("%.2f", 0.5f));
                 m_custom_range_panel->set_values(values);
             }
         }
@@ -818,11 +822,12 @@ void CalibrationPresetPage::check_filament_compatible()
         m_tips_panel->set_params(0, 0, 0.0f);
         if (!error_tips.empty()) {
             wxString tips = from_u8(error_tips);
+            m_warning_panel->set_warning(tips);
         } else {
             wxString tips = wxString::Format(_L("%s is not compatible with %s"), m_comboBox_bed_type->GetValue(), incompatiable_filament_name);
             m_warning_panel->set_warning(tips);
-            m_warning_panel->Show();
         }
+        m_warning_panel->Show();
     } else {
         m_tips_panel->set_params(0, bed_temp, 0);
         m_warning_panel->set_warning("");
@@ -917,6 +922,7 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
     else {
         m_sending_panel->Hide();
     }
+    Layout();
 }
 
 float CalibrationPresetPage::get_nozzle_value()
@@ -1154,12 +1160,12 @@ void CalibrationPresetPage::select_default_compatible_filament()
         return;
 
     if (m_ams_radiobox->GetValue()) {
+        std::vector<Preset*> multi_select_filaments;
         for (auto &fcb : m_filament_comboBox_list) {
             if (!fcb->GetRadioBox()->IsEnabled())
                 continue;
 
             Preset* preset = const_cast<Preset *>(fcb->GetComboBox()->get_selected_preset());
-            std::vector<Preset *> multi_select_filaments;
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
                 if (is_filaments_compatiable({preset})) {
                     fcb->GetRadioBox()->SetValue(true);
