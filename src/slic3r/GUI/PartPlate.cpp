@@ -4950,7 +4950,7 @@ void PartPlateList::load_bedtype_textures()
 
 void PartPlateList::init_cali_texture_info()
 {
-	BedTextureInfo::TexturePart cali_line(1, -3, 256, 70, "bbl_cali_lines.svg");
+	BedTextureInfo::TexturePart cali_line(18, 2, 224, 16, "bbl_cali_lines.svg");
 	cali_texture_info.parts.push_back(cali_line);
 
 	for (int j = 0; j < cali_texture_info.parts.size(); j++) {
