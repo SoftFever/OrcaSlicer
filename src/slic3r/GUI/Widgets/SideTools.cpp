@@ -323,7 +323,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
 
     auto st_title_error_code = new wxStaticText(m_side_error_panel, wxID_ANY, _L("code"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     auto st_title_error_code_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
-    m_st_txt_error_code = new Label(m_side_error_panel, wxEmptyString);
+    m_st_txt_error_code = new Label(m_side_error_panel, wxEmptyString, LB_AUTO_WRAP);
     st_title_error_code->SetForegroundColour(0x909090);
     st_title_error_code_doc->SetForegroundColour(0x909090);
     m_st_txt_error_code->SetForegroundColour(0x909090);
@@ -341,7 +341,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
 
     auto st_title_error_desc = new wxStaticText(m_side_error_panel, wxID_ANY, wxT("desc"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     auto st_title_error_desc_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
-    m_st_txt_error_desc = new Label(m_side_error_panel, wxEmptyString);
+    m_st_txt_error_desc = new Label(m_side_error_panel, wxEmptyString, LB_AUTO_WRAP);
     st_title_error_desc->SetForegroundColour(0x909090);
     st_title_error_desc_doc->SetForegroundColour(0x909090);
     m_st_txt_error_desc->SetForegroundColour(0x909090);
@@ -358,7 +358,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
 
     auto st_title_extra_info = new wxStaticText(m_side_error_panel, wxID_ANY, wxT("info"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     auto st_title_extra_info_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");
-    m_st_txt_extra_info = new Label(m_side_error_panel, wxEmptyString);
+    m_st_txt_extra_info = new Label(m_side_error_panel, wxEmptyString, LB_AUTO_WRAP);
     st_title_extra_info->SetForegroundColour(0x909090);
     st_title_extra_info_doc->SetForegroundColour(0x909090);
     m_st_txt_extra_info->SetForegroundColour(0x909090);
@@ -381,7 +381,6 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
 
     m_st_txt_error_desc->SetLabel("");
-    m_st_txt_error_desc->Wrap(FromDIP(170));
 
     wxBoxSizer* m_main_sizer = new wxBoxSizer(wxVERTICAL);
     m_main_sizer->Add(m_connection_info, 0, wxEXPAND, 0);
@@ -431,10 +430,6 @@ void SideTools::update_connect_err_info(int code, wxString desc, wxString info)
     m_st_txt_error_code->SetLabelText(wxString::Format("%d", code));
     m_st_txt_error_desc->SetLabelText(desc);
     m_st_txt_extra_info->SetLabelText(info);
-
-    m_st_txt_error_code->Wrap(FromDIP(175));
-    m_st_txt_error_desc->Wrap(FromDIP(175));
-    m_st_txt_extra_info->Wrap(FromDIP(175));
 
     if (code == BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED) {
         m_link_network_state->Hide();

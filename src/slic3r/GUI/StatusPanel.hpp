@@ -31,7 +31,7 @@
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FanControl.hpp"
 #include "HMS.hpp"
-#include "Widgets/ErrorMsgStaticText.hpp"
+
 class StepIndicator;
 
 #define COMMAND_TIMEOUT_U0      15
@@ -98,7 +98,7 @@ private:
     Button*         m_button_clean;
 
     ProgressBar*    m_gauge_progress;
-    ErrorMsgStaticText* m_error_text;
+    Label* m_error_text;
     PrintingTaskType m_type;
 
 public:
@@ -263,7 +263,7 @@ protected:
     wxBoxSizer *    m_tasklist_caption_sizer;
     wxPanel*        m_panel_error_txt;
     wxPanel*        m_staticline;
-    ErrorMsgStaticText *  m_error_text;
+    Label *         m_error_text;
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;

@@ -383,11 +383,10 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_panel_error_txt->SetBackgroundColour(*wxWHITE);
 
     wxBoxSizer *static_text_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_error_text = new ErrorMsgStaticText(m_panel_error_txt);
+    m_error_text = new Label(m_panel_error_txt, "", LB_AUTO_WRAP);
     m_error_text->SetForegroundColour(wxColour(255, 0, 0));
-    text_sizer->Add(m_error_text, 1, wxEXPAND|wxLEFT, FromDIP(17));
+    static_text_sizer->Add(m_error_text, 1, wxEXPAND | wxLEFT, FromDIP(17));
 
     m_button_clean = new Button(m_panel_error_txt, _L("Clear"));
     StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
@@ -403,7 +402,6 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_button_clean->SetFont(Label::Body_10);
     m_button_clean->SetMinSize(TASK_BUTTON_SIZE2);
 
-    static_text_sizer->Add(text_sizer, 1, wxEXPAND, 0);
     static_text_sizer->Add( FromDIP(10), 0, 0, 0, 0 );
     static_text_sizer->Add(m_button_clean, 0, wxALIGN_CENTRE_VERTICAL|wxRIGHT, FromDIP(5));
 

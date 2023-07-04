@@ -5,6 +5,7 @@
 
 #define LB_HYPERLINK 0x0020
 #define LB_PROPAGATE_MOUSE_EVENT 0x0040
+#define LB_AUTO_WRAP 0x0080
 
 
 class Label : public wxStaticText
@@ -21,8 +22,13 @@ public:
 	void Wrap(int width);
 
 private:
-    wxFont font;
-    wxColour color;
+	void OnSize(wxSizeEvent & evt);
+
+private:
+    wxFont m_font;
+    wxColour m_color;
+	wxString m_text;
+	bool m_skip_size_evt = false;
 
 public:
     static wxFont Head_48;

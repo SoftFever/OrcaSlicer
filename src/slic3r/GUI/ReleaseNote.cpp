@@ -59,10 +59,9 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString);
+    m_text_up_info = new Label(this, wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetFont(::Label::Head_14);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
-    m_text_up_info->Wrap(-1);
     m_sizer_right->Add(m_text_up_info, 0, 0, 0);
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
@@ -95,10 +94,9 @@ void ReleaseNoteDialog::update_release_note(wxString release_note, std::string v
 {
     m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
     wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new ::Label(m_vebview_release_note, release_note);
+    auto        m_staticText_release_note = new ::Label(m_vebview_release_note, release_note, LB_AUTO_WRAP);
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(530), -1));
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(530), -1));
-    m_staticText_release_note->Wrap(FromDIP(530));
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     m_vebview_release_note->Layout();
@@ -128,18 +126,16 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     wxBoxSizer* m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString);
+    m_text_up_info = new Label(this,wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetFont(::Label::Head_13);
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
-    m_text_up_info->Wrap(FromDIP(260));
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
 
 
-    operation_tips = new ::Label(this, _L("Click OK to update the Network plug-in when Bambu Studio launches next time."));
+    operation_tips = new ::Label(this, _L("Click OK to update the Network plug-in when Bambu Studio launches next time."), LB_AUTO_WRAP);
     operation_tips->SetFont(::Label::Body_12);
     operation_tips->SetMinSize(wxSize(FromDIP(260), -1));
     operation_tips->SetMaxSize(wxSize(FromDIP(260), -1));
-    operation_tips->Wrap(FromDIP(260));
 
     m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_vebview_release_note->SetScrollRate(5, 5);
@@ -238,13 +234,11 @@ void UpdatePluginDialog::update_info(std::string json_path)
     m_text_up_info->SetLabel(wxString::Format(_L("A new Network plug-in(%s) available, Do you want to install it?"), version));
     m_text_up_info->SetMinSize(wxSize(FromDIP(260), -1));
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
-    m_text_up_info->Wrap(FromDIP(260));
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_text_label = new ::Label(m_vebview_release_note, description);
+    auto        m_text_label = new ::Label(m_vebview_release_note, description, LB_AUTO_WRAP);
     m_text_label->SetFont(::Label::Body_13);
     m_text_label->SetMinSize(wxSize(FromDIP(235), -1));
     m_text_label->SetMaxSize(wxSize(FromDIP(235), -1));
-    m_text_label->Wrap(FromDIP(235));
 
     sizer_text_release_note->Add(m_text_label, 0, wxALL, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
@@ -279,10 +273,9 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString);
+    m_text_up_info = new Label(this,wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetFont(::Label::Head_14);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
-    m_text_up_info->Wrap(-1);
 
     
 
@@ -502,10 +495,9 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_simplebook_release_note->SetSelection(0);
         m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
         wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-        auto        m_staticText_release_note = new ::Label(m_scrollwindows_release_note, release_note);
+        auto        m_staticText_release_note = new ::Label(m_scrollwindows_release_note, release_note, LB_AUTO_WRAP);
         m_staticText_release_note->SetMinSize(wxSize(FromDIP(560), -1));
         m_staticText_release_note->SetMaxSize(wxSize(FromDIP(560), -1));
-        m_staticText_release_note->Wrap(FromDIP(530));
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
         m_scrollwindows_release_note->SetSizer(sizer_text_release_note);
         m_scrollwindows_release_note->Layout();
@@ -680,34 +672,29 @@ void SecondaryCheckDialog::update_text(wxString text)
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
 
     if (!m_staticText_release_note) {
-        m_staticText_release_note = new Label(m_vebview_release_note, text);
+        m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
+        wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
+        sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->Wrap(FromDIP(330));
+    m_vebview_release_note->Layout();
 
-    wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-
-    sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
-    sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    m_vebview_release_note->SetSizer(sizer_text_release_note);
-    auto text_size = m_staticText_release_note->GetSize();
+    auto text_size = m_staticText_release_note->GetBestSize();
     if (text_size.y < FromDIP(360))
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
     else {
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
-        m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetLabelText(text);
-        m_staticText_release_note->Wrap(FromDIP(330));
     }
 
-    m_vebview_release_note->Layout();
     Layout();
     Fit();
 }
@@ -909,34 +896,29 @@ void ConfirmBeforeSendDialog::update_text(wxString text)
 {
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     if (!m_staticText_release_note){
-        m_staticText_release_note = new Label(m_vebview_release_note, text);
+        m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
+        wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
+        sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->Wrap(FromDIP(330));
+    m_vebview_release_note->Layout();
 
-    wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-
-    sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
-    sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    m_vebview_release_note->SetSizer(sizer_text_release_note);
-    auto text_size = m_staticText_release_note->GetSize();
+    auto text_size = m_staticText_release_note->GetBestSize();
     if (text_size.y < FromDIP(360))
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
     else {
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
-        m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetLabelText(text);
-        m_staticText_release_note->Wrap(FromDIP(330));
     }
 
-    m_vebview_release_note->Layout();
     Layout();
     Fit();
 }
@@ -1019,8 +1001,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     comfirm_after_enter_text = _L("Step 2, if the IP and Access Code below are different from the actual values on your printer, please correct them.");
 
 
-    m_tip1 = new Label(this, comfirm_before_enter_text);
-    m_tip1->SetFont(::Label::Body_13);
+    m_tip1 = new Label(this, ::Label::Body_13, comfirm_before_enter_text, LB_AUTO_WRAP);
     m_tip1->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip1->SetMaxSize(wxSize(FromDIP(352), -1));
     m_tip1->Wrap(FromDIP(352));
@@ -1028,11 +1009,9 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     auto        m_line_tips = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_tips->SetBackgroundColour(wxColour(0xEEEEEE));
 
-    m_tip2 = new Label(this, comfirm_after_enter_text);
-    m_tip2->SetFont(::Label::Body_13);
+    m_tip2 = new Label(this, ::Label::Body_13, comfirm_after_enter_text, LB_AUTO_WRAP);
     m_tip2->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip2->SetMaxSize(wxSize(FromDIP(352), -1));
-    m_tip2->Wrap(FromDIP(352));
 
     auto m_input_tip_area = new wxBoxSizer(wxHORIZONTAL);
     auto m_input_area = new wxBoxSizer(wxHORIZONTAL);
@@ -1063,16 +1042,15 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_input_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
     m_input_area->Add(m_input_access_code, 0, wxALIGN_CENTER, 0);
 
-    m_error_msg = new Label(this, wxEmptyString);
+    m_error_msg = new Label(this, wxEmptyString, LB_AUTO_WRAP);
     m_error_msg->SetFont(::Label::Body_13);
     m_error_msg->SetForegroundColour(wxColour(208,27,27));
     m_error_msg->Hide();
 
-    m_tip3 = new Label(this, _L("Where to find your printer's IP and Access Code?"));
+    m_tip3 = new Label(this, _L("Where to find your printer's IP and Access Code?"), LB_AUTO_WRAP);
     m_tip3->SetFont(::Label::Body_12);
     m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
-    m_tip3->Wrap(FromDIP(352));
 
     m_img_help1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_accesscode_help1", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(198)), 0);
     
@@ -1152,8 +1130,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_sizer_step_icon_panel2->Add(m_img_step2, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
 
-    m_step_icon_panel1->SetMinSize(wxSize(-1, m_tip1->GetSize().y));
-    m_step_icon_panel1->SetMaxSize(wxSize(-1, m_tip1->GetSize().y));
+    m_step_icon_panel1->SetMinSize(wxSize(-1, m_tip1->GetBestSize().y));
+    m_step_icon_panel1->SetMaxSize(wxSize(-1, m_tip1->GetBestSize().y));
 
     m_sizer_main_left->Add(m_step_icon_panel1, 0, wxEXPAND, 0);
     m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
@@ -1271,7 +1249,6 @@ void InputIpAddressDialog::update_error_msg(wxString msg)
          m_error_msg->SetLabelText(msg);
          m_error_msg->SetMinSize(wxSize(FromDIP(352), -1));
          m_error_msg->SetMaxSize(wxSize(FromDIP(352), -1));
-         m_error_msg->Wrap(FromDIP(352));
     }
 
     Layout();
