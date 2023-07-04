@@ -1144,6 +1144,7 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         Enable_Send_Button(false);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusNormal) {
+        m_sending_panel->Show(false);
         update_print_status_msg(wxEmptyString, false);
         Enable_Send_Button(true);
     }
