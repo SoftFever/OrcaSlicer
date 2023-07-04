@@ -90,12 +90,7 @@ void CalibrationWizard::update(MachineObject* obj)
     }
     else {
         if (last_obj != obj && obj->is_info_ready()) {
-            for (int i = 0; i < m_page_steps.size(); i++) {
-                if (m_page_steps[i]->page)
-                    m_page_steps[i]->page->on_device_connected(obj);
-            }
             this->on_device_connected(obj);
-
             last_obj = obj;
         }
     }
@@ -111,6 +106,11 @@ void CalibrationWizard::on_device_connected(MachineObject* obj)
 {
     if (!m_page_steps.empty())
         show_step(m_page_steps.front());
+
+    for (int i = 0; i < m_page_steps.size(); i++) {
+        if (m_page_steps[i]->page)
+            m_page_steps[i]->page->on_device_connected(obj);
+    }
 }
 
 void CalibrationWizard::set_cali_method(CalibrationMethod method)

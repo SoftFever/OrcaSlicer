@@ -657,6 +657,11 @@ void CalibrationPASavePage::show_panels(CalibrationMethod method, const std::str
         m_auto_panel->Show(false);
         m_manual_panel->Show(false);
         m_p1p_panel->Show();
+    } else {
+        m_auto_panel->Show(false);
+        m_manual_panel->Show(false);
+        m_p1p_panel->Show();
+        assert(false);
     }
     Layout();
 }
@@ -671,7 +676,9 @@ void CalibrationPASavePage::set_cali_method(CalibrationMethod method)
 
 void CalibrationPASavePage::on_device_connected(MachineObject* obj)
 {
-    ;
+    curr_obj = obj;
+    if (curr_obj)
+        show_panels(m_cali_method, curr_obj->printer_type);
 }
 
 void CalibrationPASavePage::update(MachineObject* obj)

@@ -224,7 +224,7 @@ public:
 
     virtual void update(MachineObject* obj) { curr_obj = obj; }
     /* device changed and connected */
-    virtual void on_device_connected(MachineObject* obj) {}
+    virtual void on_device_connected(MachineObject* obj) { curr_obj = obj; }
 
     virtual void on_reset_page() {}
 
