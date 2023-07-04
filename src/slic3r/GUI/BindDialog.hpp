@@ -108,6 +108,7 @@ protected:
     MachineObject *m_machine_info{nullptr};
     wxStaticBitmap *m_avatar;
     wxStaticBitmap *m_printer_img;
+    wxWebRequest    web_request;
 
 public:
     UnBindMachineDialog(Plater *plater = nullptr);

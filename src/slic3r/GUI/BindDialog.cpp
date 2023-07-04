@@ -804,6 +804,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
 
  UnBindMachineDialog::~UnBindMachineDialog()
  {
+     web_request.Cancel();
      m_button_unbind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
      m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
  }
@@ -873,11 +874,11 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
             wxString username_text = from_u8(wxGetApp().getAgent()->get_user_name());
             m_user_name->SetLabelText(username_text);
             wxString avatar_url = wxGetApp().getAgent()->get_user_avatar();
-            wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
-            if (!request.IsOk()) {
+            web_request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
+            if (!web_request.IsOk()) {
                 // todo request fail
             }
-            request.Start();
+            web_request.Start();
         }
 
         Layout();
