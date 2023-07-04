@@ -176,6 +176,7 @@ struct PrintParams {
     int             origin_profile_id = 0;
     std::string     origin_model_id;
     std::string     print_type;
+    std::string     dst_file;
 
     /* access options */
     std::string     dev_ip;

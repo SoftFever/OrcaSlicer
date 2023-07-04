@@ -2267,7 +2267,7 @@ struct Plater::priv
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
     void on_action_send_to_printer(bool isall = false);
-    int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);
+    int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
 private:
     bool layers_height_allowed() const;
 
@@ -6312,10 +6312,10 @@ void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
     m_select_machine_dlg->ShowModal();
 }
 
-int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path)
 {
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
-    return m_select_machine_dlg->update_print_required_data(config, model, plate_data_list, file_name);
+    return m_select_machine_dlg->update_print_required_data(config, model, plate_data_list, file_name, file_path);
 }
 
 void Plater::priv::on_action_send_to_printer(bool isall)
@@ -10961,9 +10961,9 @@ bool Plater::undo_redo_string_getter(const bool is_undo, int idx, const char** o
     return false;
 }
 
-int Plater::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+int Plater::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path)
 {
-    return p->update_print_required_data(config, model, plate_data_list, file_name);
+    return p->update_print_required_data(config, model, plate_data_list, file_name, file_path);
 }
 
 

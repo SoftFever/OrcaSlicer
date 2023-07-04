@@ -61,6 +61,7 @@ public:
     std::string task_ams_mapping_info;
     std::string connection_type;
     std::string m_print_type;
+    std::string m_dst_path;
 
     int         m_print_from_sdc_plate_idx = 0;
     
@@ -99,6 +100,7 @@ public:
     void process() override;
     void finalize() override;
     void set_project_name(std::string name);
+    void set_dst_name(std::string path);
     void on_check_ip_address_fail(std::function<void()> func);
     void on_check_ip_address_success(std::function<void()> func);
     void connect_to_local_mqtt();

@@ -510,8 +510,10 @@ void MediaFilePanel::doAction(size_t index, int action)
                             _L("Error"), wxOK).ShowModal();
                         return;
                     }
+
+                    
                     auto &file = fs->GetFile(index);
-                    int gcode_file_count = Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, from_u8(file.name).ToStdString());
+                    int gcode_file_count = Slic3r::GUI::wxGetApp().plater()->update_print_required_data(config, model, plate_data_list, from_u8(file.name).ToStdString(), file.path);
 
                     if (gcode_file_count > 0) {
                         wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));

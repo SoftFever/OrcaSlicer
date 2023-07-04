@@ -315,6 +315,7 @@ private:
     Slic3r::Model                       m_required_data_model; 
     Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
     std::string                         m_required_data_file_name;
+    std::string                         m_required_data_file_path;
 
 protected:
     PrintFromType                       m_print_type{FROM_NORMAL};
@@ -446,7 +447,7 @@ public:
     bool is_blocking_printing();
     bool has_tips(MachineObject* obj);
     bool is_timeout();
-    int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);
+    int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);

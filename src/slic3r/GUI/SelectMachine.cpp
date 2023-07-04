@@ -1416,16 +1416,16 @@ void SelectMachineDialog::init_bind()
             if (obj->dev_id == e.GetString()) {
                 m_comboBox_printer->SetValue(obj->dev_name + "(LAN)");
             }
-        }else if(e.GetInt() == 1){
+        }else if(e.GetInt() == 1 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)){
             on_send_print();
         }
-        else if (e.GetInt() == -2) {
+        else if (e.GetInt() == -2 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
             show_status(PrintDialogStatus::PrintStatusSendingCanceled);
             prepare_mode();
             MessageDialog msg_wingow(nullptr, _L("Printer local connection failed, please try again."), "", wxAPPLY | wxOK);
             msg_wingow.ShowModal();
         }
-        else if (e.GetInt() == 5) {
+        else if (e.GetInt() == 5 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
             show_status(PrintDialogStatus::PrintStatusSendingCanceled);
             prepare_mode();
 
@@ -2239,6 +2239,8 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
+    bool has_slice_warnings = false;
+
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
     MachineObject* obj_ = dev->get_selected_machine();
@@ -2248,17 +2250,15 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     std::vector<wxString> confirm_text;
     confirm_text.push_back(_L("Please check the following:") + "\n\n");
 
-#if 1
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
-    if (!is_same_printer_type)
+    if (!is_same_printer_type && (m_print_type == PrintFromType::FROM_NORMAL)) {
         confirm_text.push_back(_L("The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.") + "\n");
-#else
-    bool is_same_printer_type = true;
-#endif
 
-    //Check slice warnings
-    bool has_slice_warnings = false;
+        has_slice_warnings = true;
+    }
+
+
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
    
     for (auto warning : plate->get_slice_result()->warnings) {
@@ -2334,7 +2334,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_text.push_back(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.") + "\n");
     }
 
-    if (!is_same_printer_type || has_slice_warnings) {
+    if (has_slice_warnings) {
         wxString confirm_title = _L("Warning");
         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, confirm_title);
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
@@ -2542,13 +2542,20 @@ void SelectMachineDialog::on_send_print()
 
         try {
             m_print_job->m_print_from_sdc_plate_idx = m_required_data_plate_data_list[m_print_plate_idx]->plate_index + 1;
+            m_print_job->set_dst_name(m_required_data_file_path);
         }
         catch (...) {}
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_plate_idx =" << m_print_job->m_print_from_sdc_plate_idx;
 
-        auto input_str_arr = wxGetApp().split_str(m_required_data_file_name,".gcode.3mf");
-        if (input_str_arr.size() > 1) {
-            m_print_job->set_project_name(input_str_arr[0]);
+        auto input_str_arr = wxGetApp().split_str(m_required_data_file_name, ".gcode.3mf");
+        if (input_str_arr.size() <= 1) {
+            input_str_arr = wxGetApp().split_str(m_required_data_file_name, ".3mf");
+            if (input_str_arr.size() > 1) {
+                m_print_job->set_project_name(wxString(input_str_arr[0]).utf8_string());
+            }
+        }
+        else {
+            m_print_job->set_project_name(wxString(input_str_arr[0]).utf8_string());
         }
     }
 
@@ -2695,7 +2702,7 @@ bool  SelectMachineDialog::is_timeout()
     return false;
 }
 
-int SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name)
+int SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path)
 {
     m_required_data_plate_data_list.clear();
     m_required_data_config = config;
@@ -2708,6 +2715,7 @@ int SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig c
     }
 
     m_required_data_file_name = file_name;
+    m_required_data_file_path = file_path;
     return m_required_data_plate_data_list.size();
 }
 

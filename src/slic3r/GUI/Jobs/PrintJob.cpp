@@ -235,6 +235,11 @@ void PrintJob::process()
     params.task_bed_type        = this->task_bed_type;
     params.print_type           = this->m_print_type;
 
+    if (m_print_type == "from_sdcard_view") {
+        params.dst_file = m_dst_path;
+    }
+
+
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();
         auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
@@ -270,7 +275,7 @@ void PrintJob::process()
     }
     
 
-    if (params.preset_name.empty()) { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
+    if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
 
     wxString error_text;
@@ -505,6 +510,12 @@ void PrintJob::set_project_name(std::string name)
 {
     m_project_name = name;
 }
+
+void PrintJob::set_dst_name(std::string path)
+{
+    m_dst_path = path;
+}
+
 
 void PrintJob::on_check_ip_address_fail(std::function<void()> func)
 {
