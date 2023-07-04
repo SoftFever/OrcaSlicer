@@ -1022,9 +1022,6 @@ void CalibrationFlowCoarseSavePage::set_curr_flow_ratio(const float value) {
 }
 
 bool CalibrationFlowCoarseSavePage::get_result(float* out_value, wxString* out_name) {
-    if (!m_skip_fine_calibration)
-        return false;
-
     // Check if the value is valid
     if (m_coarse_flow_ratio <= 0.0 || m_coarse_flow_ratio >= 2.0) {
         MessageDialog msg_dlg(nullptr, _L("Please choose a block with smoothest top surface"), wxEmptyString, wxICON_WARNING | wxOK);
