@@ -270,6 +270,11 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
             SetValue(false);
         }
     }
+
+    // check compatibility
+    wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
+    event.SetEventObject(GetParent());
+    wxPostEvent(GetParent(), event);
 }
 
 void FilamentComboBox::update_from_preset() { m_comboBox->update(); }
