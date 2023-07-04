@@ -2,6 +2,7 @@
 #include "MeshBoolean.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/TryCatchSignal.hpp"
+#include "libslic3r/format.hpp"
 #undef PI
 
 // Include igl first. It defines "L" macro which then clashes with our localization
@@ -25,6 +26,7 @@
 #include <CGAL/boost/graph/Face_filtered_graph.h>
 // BBS: for boolean using mcut
 #include "mcut/include/mcut/mcut.h"
+#include "boost/log/trivial.hpp"
 
 namespace Slic3r {
 namespace MeshBoolean {
@@ -554,12 +556,76 @@ TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh)
     return out;
 }
 
+void merge_mcut_meshes(McutMesh& src, const McutMesh& cut) {
+    indexed_triangle_set all_its;
+    TriangleMesh tri_src = mcut_to_triangle_mesh(src);
+    TriangleMesh tri_cut = mcut_to_triangle_mesh(cut);
+    its_merge(all_its, tri_src.its);
+    its_merge(all_its, tri_cut.its);
+    src = *triangle_mesh_to_mcut(all_its);
+    }
+
+MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
+    McDebugType type,
+    unsigned int id,
+    McDebugSeverity severity,
+    size_t length,
+    const char* message,
+    const void* userParam)
+{
+    BOOST_LOG_TRIVIAL(debug)<<Slic3r::format("mcut mcDebugOutput message ( %d ): %s ", id, message);
+
+    switch (source) {
+        case MC_DEBUG_SOURCE_API:
+            BOOST_LOG_TRIVIAL(debug)<<("Source: API");
+            break;
+        case MC_DEBUG_SOURCE_KERNEL:
+            BOOST_LOG_TRIVIAL(debug)<<("Source: Kernel");
+            break;
+        }
+
+    switch (type) {
+        case MC_DEBUG_TYPE_ERROR:
+            BOOST_LOG_TRIVIAL(debug)<<("Type: Error");
+            break;
+        case MC_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            BOOST_LOG_TRIVIAL(debug)<<("Type: Deprecated Behaviour");
+            break;
+        case MC_DEBUG_TYPE_OTHER:
+            BOOST_LOG_TRIVIAL(debug)<<("Type: Other");
+            break;
+        }
+
+    switch (severity) {
+        case MC_DEBUG_SEVERITY_HIGH:
+            BOOST_LOG_TRIVIAL(debug)<<("Severity: high");
+            break;
+        case MC_DEBUG_SEVERITY_MEDIUM:
+            BOOST_LOG_TRIVIAL(debug)<<("Severity: medium");
+            break;
+        case MC_DEBUG_SEVERITY_LOW:
+            BOOST_LOG_TRIVIAL(debug)<<("Severity: low");
+            break;
+        case MC_DEBUG_SEVERITY_NOTIFICATION:
+            BOOST_LOG_TRIVIAL(debug)<<("Severity: notification");
+            break;
+        }
+}
+
+
 void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts)
 {
     // create context
     McContext context = MC_NULL_HANDLE;
     McResult  err     = mcCreateContext(&context, static_cast<McFlags>(MC_DEBUG));
-
+    // add debug callback according to https://cutdigital.github.io/mcut.site/tutorials/debugging/
+    mcDebugMessageCallback(context, mcDebugOutput, nullptr);
+    mcDebugMessageControl(
+        context,
+        MC_DEBUG_SOURCE_ALL,
+        MC_DEBUG_TYPE_ALL,
+        MC_DEBUG_SEVERITY_ALL,
+        true);
     // We can either let MCUT compute all possible meshes (including patches etc.), or we can
     // constrain the library to compute exactly the boolean op mesh we want. This 'constrained' case
     // is done with the following flags.
@@ -577,6 +643,7 @@ void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &b
 
     if (srcMesh.vertexCoordsArray.empty() && (boolean_opts == "UNION" || boolean_opts == "B_NOT_A")) {
         srcMesh = cutMesh;
+        mcReleaseContext(context);
         return;
     }
 
@@ -590,10 +657,43 @@ void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &b
                      // cut mesh
                      reinterpret_cast<const void *>(cutMesh.vertexCoordsArray.data()), cutMesh.faceIndicesArray.data(), cutMesh.faceSizesArray.data(),
                      static_cast<uint32_t>(cutMesh.vertexCoordsArray.size() / 3), static_cast<uint32_t>(cutMesh.faceSizesArray.size()));
+    if (err != MC_NO_ERROR) {
+        BOOST_LOG_TRIVIAL(debug) << "MCUT mcDispatch fails! err=" << err;
+        mcReleaseContext(context);
+        if (boolean_opts == "UNION") {
+            merge_mcut_meshes(srcMesh, cutMesh);
+        }
+        else {
+            // when src mesh has multiple connected components, mcut refuses to work.
+            // But we can force it to work by spliting the src mesh into disconnected components,
+            // and do booleans seperately, then merge all the results.
+            indexed_triangle_set all_its;
+            TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
+            std::vector<indexed_triangle_set> src_parts = its_split(tri_src.its);
+            for (size_t i = 0; i < src_parts.size(); i++)
+            {
+                auto part = triangle_mesh_to_mcut(src_parts[i]);
+                do_boolean(*part, cutMesh, boolean_opts);
+                TriangleMesh tri_part = mcut_to_triangle_mesh(*part);
+                its_merge(all_its, tri_part.its);
+            }
+            srcMesh = *triangle_mesh_to_mcut(all_its);
+        }
+
+        return;
+    }
 
     // query the number of available connected component
     uint32_t numConnComps;
     err = mcGetConnectedComponents(context, MC_CONNECTED_COMPONENT_TYPE_FRAGMENT, 0, NULL, &numConnComps);
+    if (err != MC_NO_ERROR || numConnComps==0) {
+        BOOST_LOG_TRIVIAL(debug) << "MCUT mcGetConnectedComponents fails! err=" << err << ", numConnComps" << numConnComps;
+        mcReleaseContext(context);
+        if (numConnComps == 0 && boolean_opts == "UNION") {
+            merge_mcut_meshes(srcMesh, cutMesh);
+        }
+        return;
+    }
 
     std::vector<McConnectedComponent> connectedComponents(numConnComps, MC_NULL_HANDLE);
     err = mcGetConnectedComponents(context, MC_CONNECTED_COMPONENT_TYPE_FRAGMENT, (uint32_t) connectedComponents.size(), connectedComponents.data(), NULL);
@@ -658,7 +758,7 @@ void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &b
     }
 
     // free connected component data
-    err = mcReleaseConnectedComponents(context, (uint32_t) connectedComponents.size(), connectedComponents.data());
+    err = mcReleaseConnectedComponents(context, 0, NULL);
 
     // destroy context
     err = mcReleaseContext(context);
@@ -674,7 +774,14 @@ std::vector<TriangleMesh> make_boolean(const McutMesh &srcMesh, const McutMesh &
     // create context
     McContext context = MC_NULL_HANDLE;
     McResult  err     = mcCreateContext(&context, static_cast<McFlags>(MC_DEBUG));
-
+    // add debug callback according to https://cutdigital.github.io/mcut.site/tutorials/debugging/
+    mcDebugMessageCallback(context, mcDebugOutput, nullptr);
+    mcDebugMessageControl(
+        context,
+        MC_DEBUG_SOURCE_ALL,
+        MC_DEBUG_TYPE_ALL,
+        MC_DEBUG_SEVERITY_ALL,
+        true);
     // We can either let MCUT compute all possible meshes (including patches etc.), or we can
     // constrain the library to compute exactly the boolean op mesh we want. This 'constrained' case
     // is done with the following flags.
@@ -779,7 +886,9 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
     McutMesh srcMesh, cutMesh;
     triangle_mesh_to_mcut(src_mesh, srcMesh);
     triangle_mesh_to_mcut(cut_mesh, cutMesh);
-    dst_mesh = make_boolean(srcMesh, cutMesh, boolean_opts);
+    //dst_mesh = make_boolean(srcMesh, cutMesh, boolean_opts);
+    do_boolean(srcMesh, cutMesh, boolean_opts);
+    dst_mesh.push_back(mcut_to_triangle_mesh(srcMesh));
 }
 
 } // namespace mcut

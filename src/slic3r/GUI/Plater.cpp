@@ -9988,14 +9988,11 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 
     if (csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }) == csgmesh.end()) {
         try {
-            // mcut can't handle splitable positive volumes
-            if (!has_splitable_volume) {
-                MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{ std::begin(csgmesh), std::end(csgmesh) });
-                mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
-                }
+            MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{ std::begin(csgmesh), std::end(csgmesh) });
+            mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
             }
         catch (...) {}
-
+#if 0
         // if mcut fails, try again with CGAL
         if (mesh.empty()) {
             try {
@@ -10004,6 +10001,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
                 }
             catch (...) {}
         }
+#endif
     }
 
     if (mesh.empty()) {
