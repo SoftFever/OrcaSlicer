@@ -49,6 +49,8 @@ static unsigned int GLOBAL_PLATE_INDEX = 0;
 
 static const double LOGICAL_PART_PLATE_GAP = 1. / 5.;
 static const int PARTPLATE_ICON_SIZE = 16;
+static const int PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE = 12;
+static const int PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE = 20;
 static const int PARTPLATE_ICON_GAP_TOP = 3;
 static const int PARTPLATE_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_Y = 5;
@@ -416,62 +418,60 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffe
 
 void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GeometryBuffer &buffer)
 {
-    if (texture.get_width() > 0 && texture.get_height()) {
+	if (texture.get_width() > 0 && texture.get_height()) {
 	    wxCoord   w, h;
-        auto      bed_ext = get_extents(m_shape);
-        auto      factor  = bed_ext.size()(1) / 200.0;
-        ExPolygon poly;
-        float     offset_x = 1;
-        w                  = int(factor * (texture.get_width() * 16) / texture.get_height());
-        h                  = int(factor * 16);
+		auto      bed_ext = get_extents(m_shape);
+		auto      factor  = bed_ext.size()(1) / 200.0;
+		ExPolygon poly;
+		float     offset_x = 1;
+		w                  = int(factor * (texture.get_width() * 16) / texture.get_height());
+		h                  = PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE; 
 		Vec2d p            = bed_ext[3] + Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h * texture.m_original_height / texture.get_height());
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h )});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h )});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) )});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
 
-        auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-        if (!buffer.set_from_triangles(triangles, GROUND_Z)) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+		if (!buffer.set_from_triangles(triangles, GROUND_Z)) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 
-        if (m_plate_name_vbo_id > 0) {
-            glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
-            m_plate_name_vbo_id = 0;
-        }
+		if (m_plate_name_vbo_id > 0) {
+			glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
+			m_plate_name_vbo_id = 0;
+		}
 	}
 }
 
 void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GeometryBuffer &buffer) {
-    auto    bed_ext = get_extents(m_shape);
-    auto    factor  = bed_ext.size()(1) / 200.0;
-    wxCoord w, h;
-    h = int(factor * 16);
-    ExPolygon poly;
-    Vec2d     p        = bed_ext[3];
-    float     offset_x = 1;
-    const int plate_name_edit_icon_height = 12;
-    const int plate_name_edit_icon_width = 12;
-    h   = plate_name_edit_icon_height;
-    p += Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h);
-    if (texture && texture->get_width() > 0 && texture->get_height()) {
-        w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
-      
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + plate_name_edit_icon_width), scale_(p(1) - h )});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + plate_name_edit_icon_width), scale_(p(1) )});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
+	auto    bed_ext = get_extents(m_shape);
+	auto    factor  = bed_ext.size()(1) / 200.0;
+	wxCoord w, h;
+	h = int(factor * 16);
+	ExPolygon poly;
+	Vec2d     p        = bed_ext[3];
+	float     offset_x = 1;
+	h = PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
+	p += Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h);
+	if (texture && texture->get_width() > 0 && texture->get_height()) {
+		w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
+		
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
 
-        auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-        if (!buffer.set_from_triangles(triangles, GROUND_Z)) 
+		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+		if (!buffer.set_from_triangles(triangles, GROUND_Z)) 
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
-    } else {
+	} else {
 
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x+ plate_name_edit_icon_width), scale_(p(1) - h )});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x+ plate_name_edit_icon_width), scale_(p(1) )});
-        poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
+		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
 
-        auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-        if (!buffer.set_from_triangles(triangles, GROUND_Z))
+		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+		if (!buffer.set_from_triangles(triangles, GROUND_Z))
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
     }
 	if (m_plate_name_edit_vbo_id > 0) {
