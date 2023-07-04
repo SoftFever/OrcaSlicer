@@ -670,10 +670,8 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
 
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
-    if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
-        m_cali_stage_panel = new CaliPresetCaliStagePanel(parent);
-        m_top_sizer->Add(m_cali_stage_panel, 0);
-    }
+    m_cali_stage_panel = new CaliPresetCaliStagePanel(parent);
+    m_top_sizer->Add(m_cali_stage_panel, 0);
 
     m_selection_panel = new wxPanel(parent);
     create_selection_panel(m_selection_panel);

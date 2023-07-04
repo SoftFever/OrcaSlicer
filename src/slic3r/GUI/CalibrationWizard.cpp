@@ -616,7 +616,6 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
     else if (action == CaliPageActionType::CALI_ACTION_CALI) {
         if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
             on_cali_start();
-            // show next step when print job is sending finished.
             show_step(m_curr_step->next);
         } 
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -628,7 +627,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
                 // set next step page
                 m_curr_step->chain(cali_fine_step);
             }
-            show_step(m_curr_step->next);
+            // automatically jump to next step when print job is sending finished.
         } 
         else {
             on_cali_start();
@@ -644,7 +643,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
                 return;
             }
             on_cali_start(CaliPresetStage::CALI_MANUAL_STAGE_2, new_flow_ratio);
-            show_step(m_curr_step->next);
+            // automatically jump to next step when print job is sending finished.
         }
     }
     else if (action == CaliPageActionType::CALI_ACTION_FLOW_SAVE) {
