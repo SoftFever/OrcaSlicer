@@ -257,12 +257,12 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
     if (index >= m_file_sys->GetCount()) { return {HIT_NONE, -1}; }
     if (!m_content_rect.Contains(off)) { return {HIT_NONE, -1}; }
     if (!m_selecting) {
-        wxRect hover_rect{0, m_content_rect.GetHeight() - 40, m_content_rect.GetWidth(), 40};
+        wxRect hover_rect{0, m_content_rect.GetHeight() - m_buttons_background.GetHeight(), m_content_rect.GetWidth(), m_buttons_background.GetHeight()};
         auto & file = m_file_sys->GetFile(index);
         int    btn  = file.IsDownload() && file.DownloadProgress() >= 0 ? 3 : 2;
         if (m_file_sys->GetFileType() == PrinterFileSystem::F_MODEL) {
             btn = 3;
-            hover_rect.y -= 64;
+            hover_rect.y -= m_content_rect.GetHeight() * 64 / 264;
         }
         if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 4 + off.x * btn / hover_rect.GetWidth()}; } // Two buttons
     }
