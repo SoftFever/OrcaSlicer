@@ -37,7 +37,7 @@
 #include "Tab.hpp"
 #include "format.hpp"
 #include <imgui/imgui_internal.h>
-
+#include <wx/dcgraph.h>
 using boost::optional;
 namespace fs = boost::filesystem;
 
@@ -1677,36 +1677,20 @@ Vec3d PartPlate::get_center_origin()
 
 bool PartPlate::generate_plate_name_texture()
 {
+	auto     bed_ext        = get_extents(m_shape);
+	int      bed_width      = bed_ext.size()(1);
+	wxString cur_plate_name = from_u8(m_name);
+	wxGCDC   dc;
+	wxString limitTextWidth = wxControl::Ellipsize(cur_plate_name, dc, wxELLIPSIZE_END, bed_width);
 	// generate m_name_texture texture from m_name with generate_from_text_string
 	m_name_texture.reset();
-	auto *font = &Label::Head_32;
+	auto *   font = &Label::Head_32;
 	wxColour NumberForeground(PlateTextureForeground[0], PlateTextureForeground[1], PlateTextureForeground[2], PlateTextureForeground[3]);
-	if (!m_name_texture.generate_from_text_string(m_name, *font, *wxBLACK, NumberForeground)) {
+	if (!m_name_texture.generate_from_text_string(limitTextWidth.ToUTF8().data(), *font, *wxBLACK, NumberForeground)) {
 		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
 		return false;
 	}
-	auto bed_ext       = get_extents(m_shape);
-	auto factor        = bed_ext.size()(1) / 200.0;
-	int  bed_width     = bed_ext.size()(1);
-	const int  ellipsis_width = 10;
-	int cur_width          = int(factor * (m_name_texture.get_original_width() * 16) / m_name_texture.get_height()) + 1;
-	if (cur_width > bed_width) {
-		wxString cur_plate_name = from_u8(m_name);
-		for (size_t i = cur_plate_name.size() - 1 - 1; i >= 0; i--) 
-		{
-			wxString tempName = cur_plate_name.substr(0, i) + "...";
-			m_name_texture.reset();
-			if (!m_name_texture.generate_from_text_string(tempName.ToUTF8().data(), *font, *wxBLACK, NumberForeground)) {
-				BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
-				return false;
-			}
-			cur_width = int(factor * (m_name_texture.get_original_width() * 16) / m_name_texture.get_height()) + 1;
-			if (cur_width < bed_width - ellipsis_width) { 
-				return true;
-			}
-        }
-	}
-    return true;
+	return true;
 }
 
 void PartPlate::set_plate_name(const std::string &name)
