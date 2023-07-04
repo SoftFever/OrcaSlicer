@@ -542,6 +542,12 @@ void CalibrationPresetPage::create_ext_spool_panel(wxWindow* parent)
     panel_sizer->Add(m_virtual_tray_comboBox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
     parent->SetSizer(panel_sizer);
     panel_sizer->Fit(parent);
+
+    radio_btn->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& evt) {
+        wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        });
 }
 
 void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
@@ -912,6 +918,7 @@ void CalibrationPresetPage::check_filament_compatible()
         m_warning_panel->set_warning("");
         m_warning_panel->Hide();
     }
+
     Layout();
 }
 
