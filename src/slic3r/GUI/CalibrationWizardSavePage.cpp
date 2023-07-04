@@ -7,26 +7,36 @@
 namespace Slic3r { namespace GUI {
 
 
-static wxString get_default_name(wxString filament_type, CalibMode mode){
+static wxString get_default_name(wxString filament_name, CalibMode mode){
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+        if (filament_name.compare(it->name) == 0) {
+            if (!it->alias.empty())
+                filament_name = it->alias;
+            else
+                filament_name = it->name;
+        }
+    }
+
     switch (mode)
     {
     case Slic3r::CalibMode::Calib_None:
         break;
     case Slic3r::CalibMode::Calib_PA_Line:
-        if (filament_type.StartsWith("Generic")) {
-            filament_type.Replace("Generic", "Brand", true);
+        if (filament_name.StartsWith("Generic")) {
+            filament_name.Replace("Generic", "Brand", false);
         }
         break;
     case Slic3r::CalibMode::Calib_PA_Tower:
         break;
     case Slic3r::CalibMode::Calib_Flow_Rate:
-        filament_type += "Flow_Rate_Calibrated";
+        filament_name += " Flow Rate Calibrated";
         break;
     case Slic3r::CalibMode::Calib_Temp_Tower:
-        filament_type += "Temperature_Calibrated";
+        filament_name += " Temperature Calibrated";
         break;
     case Slic3r::CalibMode::Calib_Vol_speed_Tower:
-        filament_type += "Max_Volumetric_Speed_Calibrated";
+        filament_name += " Max Vol Speed Calibrated";
         break;
     case Slic3r::CalibMode::Calib_VFA_Tower:
         break;
@@ -35,7 +45,7 @@ static wxString get_default_name(wxString filament_type, CalibMode mode){
     default:
         break;
     }
-    return filament_type;
+    return filament_name;
 }
 
 CalibrationCommonSavePage::CalibrationCommonSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
