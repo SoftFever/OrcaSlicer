@@ -2538,29 +2538,30 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
                 m_project_task_panel->enable_abort_button(false);
                 m_project_task_panel->enable_pause_resume_button(false, "resume_disable");
-
-                bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
-                if (is_market_task) { 
-                    m_project_task_panel->get_market_scoring_button()->Show(); 
-                    BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
-                    if (!m_print_finish && IsShownOnScreen()) {
-                        m_print_finish = true;
-                        int job_id = obj->get_modeltask()->job_id;
-                        if (wxGetApp().app_config->get("not_show_score_dialog") != "1" && rated_model_id.find(job_id) == rated_model_id.end()) {
-                            MessageDialog dlg(this, _L("Please give a score for your favorite Bambu Market model."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"),
-                                              wxYES_NO | wxYES_DEFAULT | wxCENTRE);
-                            dlg.show_dsa_button();
-                            int  old_design_id = obj->get_modeltask()->design_id;
-                            auto res           = dlg.ShowModal();
-                            if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
-                            if (res == wxID_YES) { market_model_scoring_page(old_design_id); }
-                            rated_model_id.insert(job_id);
-                            BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_DLG: design_id [" << old_design_id << "] print_finish [" << m_print_finish << "] not_show ["
-                                                    << wxGetApp().app_config->get("not_show_score_dialog") << "] job_id [" << job_id << "]";
+                if (wxGetApp().has_model_mall()) {
+                    bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
+                    if (is_market_task) {
+                        m_project_task_panel->get_market_scoring_button()->Show();
+                        BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
+                        if (!m_print_finish && IsShownOnScreen()) {
+                            m_print_finish = true;
+                            int job_id     = obj->get_modeltask()->job_id;
+                            if (wxGetApp().app_config->get("not_show_score_dialog") != "1" && rated_model_id.find(job_id) == rated_model_id.end()) {
+                                MessageDialog dlg(this, _L("Please give a score for your favorite Bambu Market model."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Score"),
+                                                  wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+                                dlg.show_dsa_button();
+                                int  old_design_id = obj->get_modeltask()->design_id;
+                                auto res           = dlg.ShowModal();
+                                if (dlg.get_checkbox_state()) { wxGetApp().app_config->set("not_show_score_dialog", "1"); }
+                                if (res == wxID_YES) { market_model_scoring_page(old_design_id); }
+                                rated_model_id.insert(job_id);
+                                BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_DLG: design_id [" << old_design_id << "] print_finish [" << m_print_finish << "] not_show ["
+                                                        << wxGetApp().app_config->get("not_show_score_dialog") << "] job_id [" << job_id << "]";
+                            }
                         }
+                    } else {
+                        m_project_task_panel->get_market_scoring_button()->Hide();
                     }
-                } else {
-                    m_project_task_panel->get_market_scoring_button()->Hide();
                 }
             } else {
                 m_project_task_panel->enable_abort_button(true);
