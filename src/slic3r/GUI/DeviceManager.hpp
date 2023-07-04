@@ -910,6 +910,7 @@ public:
     static bool is_in_printing_status(std::string status);
 
     void set_print_state(std::string status);
+    std::vector<std::string> get_compatible_machine();
 
     bool is_connected();
     bool is_connecting();
@@ -1005,6 +1006,7 @@ public:
     static bool load_filaments_blacklist_config(std::string config_file);
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::string load_gcode(std::string type_str, std::string gcode_file);
+    static std::vector<std::string> get_compatible_machine(std::string type_str);
 };
 
 } // namespace Slic3r

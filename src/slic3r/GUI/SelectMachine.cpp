@@ -92,6 +92,8 @@ std::string get_print_status_info(PrintDialogStatus status)
         return "PrintStatusLanModeNoSdcard";
     case PrintStatusNoSdcard:
         return "PrintStatusNoSdcard";
+    case PrintStatusUnsupportedPrinter:
+        return "PrintStatusUnsupportedPrinter";
     case PrintStatusTimelapseNoSdcard:
         return "PrintStatusTimelapseNoSdcard";
     case PrintStatusNotSupportedPrintAll:
@@ -2129,7 +2131,12 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
+    } else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
+        wxString msg_text = _L("The selected printer is incompatible with the chosen printer presets.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    }else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
         wxString msg_text = _L("An SD card needs to be inserted to record timelapse.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
@@ -2175,6 +2182,29 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
         }
     }
     this->EndModal(wxID_CANCEL);
+}
+
+bool SelectMachineDialog::is_blocking_printing()
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return true;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) return true;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    auto target_model = obj_->printer_type;
+
+    if (source_model != target_model) {
+        std::vector<std::string> compatible_machine = dev->get_compatible_machine(target_model);
+        vector<std::string>::iterator it = find(compatible_machine.begin(), compatible_machine.end(), source_model);
+        if (it == compatible_machine.end()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool SelectMachineDialog::is_same_printer_model()
@@ -3106,7 +3136,11 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (obj_->is_in_upgrading()) {
+    if (is_blocking_printing()) {
+        show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
+        return;
+    }
+    else if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
         return;
     }

@@ -271,7 +271,8 @@ enum PrintDialogStatus {
     PrintStatusNeedConsistencyUpgrading,
     PrintStatusNotSupportedSendToSDCard,
     PrintStatusNotSupportedPrintAll,
-    PrintStatusBlankPlate
+    PrintStatusBlankPlate,
+    PrintStatusUnsupportedPrinter
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -442,6 +443,7 @@ public:
     void set_flow_calibration_state(bool state);
     bool is_show_timelapse();
     bool is_same_printer_model();
+    bool is_blocking_printing();
     bool has_tips(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name);

@@ -2362,6 +2362,11 @@ void MachineObject::set_print_state(std::string status)
     print_status = status;
 }
 
+std::vector<std::string> MachineObject::get_compatible_machine()
+{
+    return DeviceManager::get_compatible_machine(printer_type);
+}
+
 int MachineObject::connect(bool is_anonymous, bool use_openssl)
 {
     if (dev_ip.empty()) return -1;
@@ -5037,6 +5042,22 @@ std::string DeviceManager::load_gcode(std::string type_str, std::string gcode_fi
 
 
     return "";
+}
+
+std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_str)
+{
+    std::vector<std::string> compatible_machine;
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("compatible_machine")) {
+                    for (auto res : printer["compatible_machine"])
+                        compatible_machine.emplace_back(res.get<std::string>());
+                }
+            }
+        }
+    }
+    return compatible_machine;
 }
 
 } // namespace Slic3r
