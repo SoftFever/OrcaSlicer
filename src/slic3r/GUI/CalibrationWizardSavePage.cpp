@@ -691,6 +691,12 @@ void CalibrationPASavePage::update(MachineObject* obj)
         m_manual_panel->set_machine_obj(obj);
 }
 
+bool CalibrationPASavePage::Show(bool show) {
+    if (curr_obj)
+        show_panels(m_cali_method, curr_obj->printer_type);
+    return wxPanel::Show(show);
+}
+
 CalibrationFlowX1SavePage::CalibrationFlowX1SavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationCommonSavePage(parent, id, pos, size, style)
 {

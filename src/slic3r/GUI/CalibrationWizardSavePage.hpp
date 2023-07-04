@@ -173,6 +173,8 @@ public:
 
     void update(MachineObject* obj) override;
 
+    virtual bool Show(bool show = true) override;
+
 protected:
     CaliPageStepGuide*  m_step_panel { nullptr };
     CaliPASaveAutoPanel*  m_auto_panel { nullptr };
