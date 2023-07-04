@@ -604,15 +604,15 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
 void Bed3D::update_model_offset() const
 {
     // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
-    Vec3d shift = m_extended_bounding_box.center();
+    Vec3d shift = m_build_volume.bounding_volume().center();
     shift(2) = -0.03;
     Vec3d* model_offset_ptr = const_cast<Vec3d*>(&m_model_offset);
     *model_offset_ptr = shift;
     //BBS: TODO: hack for current stl for BBL printer
     if (std::string::npos != m_model_filename.find("bbl-3dp-"))
     {
-        (*model_offset_ptr)(0) -= 128.f;
-        (*model_offset_ptr)(1) -= 128.f;
+        (*model_offset_ptr)(0) -= m_bed_shape[2].x() / 2.0f;
+        (*model_offset_ptr)(1) -= m_bed_shape[2].y() / 2.0f;
         (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
     }
 
