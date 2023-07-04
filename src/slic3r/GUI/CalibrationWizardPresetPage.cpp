@@ -874,20 +874,25 @@ void CalibrationPresetPage::on_recommend_input_value()
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_stage_panel) {
         Preset *selected_filament_preset = selected_filaments.begin()->second;
         if (selected_filament_preset) {
-            float flow_ratio = selected_filament_preset->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
-            m_cali_stage_panel->set_flow_ratio_value(flow_ratio);
+            const ConfigOptionFloats* flow_ratio_opt = selected_filament_preset->config.option<ConfigOptionFloats>("filament_flow_ratio");
+            if (flow_ratio_opt) {
+                m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
+            }
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
         Preset* selected_filament_preset = selected_filaments.begin()->second;
         if (selected_filament_preset) {
-            double max_volumetric_speed = selected_filament_preset->config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
             if (m_custom_range_panel) {
-                wxArrayString values;
-                values.push_back(wxString::Format("%.2f", max_volumetric_speed - 5));
-                values.push_back(wxString::Format("%.2f", max_volumetric_speed + 5));
-                values.push_back(wxString::Format("%.2f", 0.5f));
-                m_custom_range_panel->set_values(values);
+                const ConfigOptionFloats* speed_opt = selected_filament_preset->config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+                if (speed_opt) {
+                    double max_volumetric_speed = speed_opt->get_at(0);
+                    wxArrayString values;
+                    values.push_back(wxString::Format("%.2f", max_volumetric_speed - 5));
+                    values.push_back(wxString::Format("%.2f", max_volumetric_speed + 5));
+                    values.push_back(wxString::Format("%.2f", 0.5f));
+                    m_custom_range_panel->set_values(values);
+                }
             }
         }
     }
@@ -1592,8 +1597,10 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
 
     if (stage != CaliPresetStage::CALI_MANUAL_STAGE_2) {
         std::map<int, Preset*> selected_filaments = get_selected_filaments();
-        Preset* preset = selected_filaments.begin()->second;
-        value = preset->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+        const ConfigOptionFloats* flow_ratio_opt = selected_filaments.begin()->second->config.option<ConfigOptionFloats>("filament_flow_ratio");
+        if (flow_ratio_opt) {
+            m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
+        }
     }
 }
 
