@@ -24,7 +24,7 @@ public:
     void set_cali_stage(CaliPresetStage stage, float value);
     void get_cali_stage(CaliPresetStage& stage, float& value);
 
-    void set_flow_ratio_value(wxString flow_ratio);
+    void set_flow_ratio_value(float flow_ratio);
 
 protected:
     CaliPresetStage m_stage;

@@ -119,9 +119,10 @@ void CaliPresetCaliStagePanel::get_cali_stage(CaliPresetStage& stage, float& val
     value = (m_stage == CALI_MANUAL_STAGE_2) ? m_flow_ratio_value : value;
 }
 
-void CaliPresetCaliStagePanel::set_flow_ratio_value(wxString flow_ratio)
+void CaliPresetCaliStagePanel::set_flow_ratio_value(float flow_ratio)
 {
-    flow_ratio_input->GetTextCtrl()->SetValue(flow_ratio);
+    flow_ratio_input->GetTextCtrl()->SetValue(wxString::Format("%.2f", flow_ratio));
+    m_flow_ratio_value = flow_ratio;
 }
 
 CaliPresetWarningPanel::CaliPresetWarningPanel(
@@ -874,7 +875,7 @@ void CalibrationPresetPage::on_recommend_input_value()
         Preset *selected_filament_preset = selected_filaments.begin()->second;
         if (selected_filament_preset) {
             float flow_ratio = selected_filament_preset->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
-            m_cali_stage_panel->set_flow_ratio_value(wxString::Format("%.2f", flow_ratio));
+            m_cali_stage_panel->set_flow_ratio_value(flow_ratio);
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
@@ -1580,6 +1581,12 @@ void CalibrationPresetPage::get_preset_info(float& nozzle_dia, BedType& plate_ty
 void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
 {
     m_cali_stage_panel->get_cali_stage(stage, value);
+
+    if (stage != CaliPresetStage::CALI_MANUAL_STAGE_2) {
+        std::map<int, Preset*> selected_filaments = get_selected_filaments();
+        Preset* preset = selected_filaments.begin()->second;
+        value = preset->config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    }
 }
 
 void CalibrationPresetPage::update_filament_combobox(std::string ams_id)
