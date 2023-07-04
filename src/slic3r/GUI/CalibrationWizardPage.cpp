@@ -109,6 +109,26 @@ CalibMode get_obj_calibration_mode(const MachineObject* obj, CalibrationMethod& 
         return CalibMode::Calib_Flow_Rate;
     }
 
+    if (obj->printer_type == "C11" || obj->printer_type == "C12") {
+        if (boost::contains(obj->subtask_name, "auto_filament_cali")) {
+            method = CalibrationMethod::CALI_METHOD_AUTO;
+            return CalibMode::Calib_PA_Line;
+        }
+        if (boost::contains(obj->subtask_name, "user_cali_manual_pa")) {
+            method = CalibrationMethod::CALI_METHOD_MANUAL;
+            return CalibMode::Calib_PA_Line;
+        }
+        if (boost::contains(obj->subtask_name, "extrusion_cali")) {
+            method == CalibrationMethod::CALI_METHOD_MANUAL;
+            return CalibMode::Calib_PA_Line;
+        }
+
+        if (boost::contains(obj->subtask_name, "abs_flowcalib_cali")) {
+            method = CalibrationMethod::CALI_METHOD_AUTO;
+            return CalibMode::Calib_Flow_Rate;
+        }
+    }
+
     CalibMode cali_mode = CalibUtils::get_calib_mode_by_name(obj->subtask_name, cali_stage);
     if (cali_mode != CalibMode::Calib_None) {
         method = CalibrationMethod::CALI_METHOD_MANUAL;

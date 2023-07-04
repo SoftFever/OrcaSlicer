@@ -347,7 +347,7 @@ public:
         CALI_RESULT_FAILED = 2,
     };
     int         tray_id;
-    int         cali_idx;
+    int         cali_idx = -1;
     float       nozzle_diameter;
     std::string filament_id;
     std::string setting_id;

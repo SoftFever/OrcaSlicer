@@ -523,6 +523,7 @@ void PressureAdvanceWizard::on_cali_save()
         MessageDialog msg_dlg(nullptr, _L("Pressure advance calibration result has been saved to the printer"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
     }
+    show_step(start_step);
 }
 
 FlowRateWizard::FlowRateWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -787,6 +788,7 @@ void FlowRateWizard::on_cali_save()
                 if (!save_preset(old_preset_name, new_results[i].first.ToStdString(), key_value_map, message)) {
                     MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                     error_msg_dlg.ShowModal();
+                    return;
                 }
             }
 
@@ -835,6 +837,7 @@ void FlowRateWizard::on_cali_save()
             assert(false);
         }
     }
+    show_step(start_step);
 }
 
 void FlowRateWizard::update(MachineObject* obj)
@@ -1082,6 +1085,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
 
     MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxICON_WARNING | wxOK);
     msg_dlg.ShowModal();
+    show_step(start_step);
 }
 
 void MaxVolumetricSpeedWizard::on_cali_job_finished(wxString evt_data)
