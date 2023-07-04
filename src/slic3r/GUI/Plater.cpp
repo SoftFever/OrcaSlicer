@@ -1989,6 +1989,13 @@ struct Plater::priv
         if (m_select_machine_dlg)
             m_select_machine_dlg->EndModal(wxID_OK);
     }
+
+    void enter_prepare_mode()
+    {
+        if (m_select_machine_dlg)
+            m_select_machine_dlg->prepare_mode();
+    }
+
     void hide_send_to_printer_dlg() { m_send_to_sdcard_dlg->EndModal(wxID_OK); }
 
     void update_preview_bottom_toolbar();
@@ -10854,8 +10861,15 @@ void Plater::send_calibration_job_finished(wxCommandEvent & evt)
 
 void Plater::print_job_finished(wxCommandEvent &evt)
 {
-    p->hide_select_machine_dlg();
+    //start print failed
+    if (Slic3r::GUI::wxGetApp().get_inf_dialog_contect().empty()) {
+        p->hide_select_machine_dlg();
+    }
+    else {
+        p->enter_prepare_mode();
+    }
 
+    
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 

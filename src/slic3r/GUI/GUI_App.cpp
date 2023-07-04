@@ -2558,11 +2558,10 @@ bool GUI_App::on_init_inner()
         Bind(EVT_SHOW_DIALOG, [this](const wxCommandEvent& evt) {
             wxString msg = evt.GetString();
             InfoDialog dlg(this->mainframe, _L("Info"), msg);
+            dlg.Bind(wxEVT_DESTROY, [this](auto& e) {
+                m_info_dialog_content = wxEmptyString;
+            });
             dlg.ShowModal();
-
-            /*wxString text = evt.GetString();
-            Slic3r::GUI::MessageDialog msg_dlg(this->mainframe, text, "", wxAPPLY | wxOK);
-            msg_dlg.ShowModal();*/
         });
     }
     else {
@@ -4489,9 +4488,12 @@ std::string GUI_App::format_display_version()
 
 void GUI_App::show_dialog(wxString msg)
 {
-    wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
-    evt->SetString(msg);
-    GUI::wxGetApp().QueueEvent(evt);
+    if (m_info_dialog_content.empty()) {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
+        evt->SetString(msg);
+        GUI::wxGetApp().QueueEvent(evt);
+        m_info_dialog_content = msg;
+    }
 }
 
 void GUI_App::reload_settings()

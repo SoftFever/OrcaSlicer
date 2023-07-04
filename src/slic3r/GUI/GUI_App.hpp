@@ -292,6 +292,7 @@ private:
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
+    wxString         m_info_dialog_content;
     HttpServer       m_http_server;
 
     boost::thread    m_check_network_thread;
@@ -308,6 +309,7 @@ public:
     //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;
 
+    
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
@@ -317,6 +319,7 @@ public:
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+    wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
     std::vector<std::string> split_str(std::string src, std::string separator);
     // To be called after the GUI is fully built up.
