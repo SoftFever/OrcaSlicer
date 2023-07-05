@@ -4256,6 +4256,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     auto is_through_overhang = [this](const Polyline& travel) {
         BoundingBox travel_bbox = get_extents(travel);
         travel_bbox.inflated(1);
+        travel_bbox.defined = true;
 
         const float protect_z_scaled = scale_(0.4);
         std::pair<float, float> z_range;
@@ -4271,6 +4272,9 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         for (size_t idx : idx_of_object_sorted) {
             for (const Point & instance_shift : objects_instances_shift[idx]) {
                 BoundingBox instance_bbox = boundingBox_for_objects[idx];
+                if (!instance_bbox.defined)  //BBS: Don't need to check when bounding box of overhang area is empty(undefined)
+                    continue;
+
                 instance_bbox.offset(scale_(EPSILON));
                 instance_bbox.translate(instance_shift.x(), instance_shift.y());
                 if (!instance_bbox.overlap(travel_bbox))
