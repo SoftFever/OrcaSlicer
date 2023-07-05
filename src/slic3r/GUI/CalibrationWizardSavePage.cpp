@@ -770,9 +770,11 @@ void CalibrationPASavePage::update(MachineObject* obj)
 }
 
 bool CalibrationPASavePage::Show(bool show) {
-    if (curr_obj) {
-        show_panels(m_cali_method, curr_obj->printer_type);
-        sync_cali_result(curr_obj);
+    if (show) {
+        if (curr_obj) {
+            show_panels(m_cali_method, curr_obj->printer_type);
+            sync_cali_result(curr_obj);
+        }
     }
     return wxPanel::Show(show);
 }
@@ -1002,8 +1004,10 @@ bool CalibrationFlowX1SavePage::get_result(std::vector<std::pair<wxString, float
 }
 
 bool CalibrationFlowX1SavePage::Show(bool show) {
-    if (curr_obj) {
-        sync_cali_result(curr_obj->flow_ratio_results);
+    if (show) {
+        if (curr_obj) {
+            sync_cali_result(curr_obj->flow_ratio_results);
+        }
     }
     return wxPanel::Show(show);
 }
