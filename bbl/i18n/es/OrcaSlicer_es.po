@@ -479,17 +479,14 @@ msgstr "Forma del pincel"
 
 #, fuzzy
 msgid "Enforce seam"
-msgstr "Reforzar uniones"
 msgstr "Reforzar costura"
 
 #, fuzzy
 msgid "Block seam"
-msgstr "Bloquear uniones"
 msgstr "Bloquear costura"
 
 #, fuzzy
 msgid "Seam painting"
-msgstr "Pintar uniones"
 msgstr "Pintar costura"
 
 msgid "Remove selection"
@@ -497,60 +494,48 @@ msgstr "Borrar selección"
 
 msgid "Shift + Mouse move up or dowm"
 msgstr "Shift + Mover ratón arriba u abajo"
-msgstr "Shift + Ratón arriba o abajo"
 
 msgid "Rotate text"
-msgstr "Rotar texto"
 msgstr "Rotar texto"
 
 msgid "Text shape"
 msgstr "Forma de texto"
-msgstr "Forma del texto"
 
 msgid "Font"
-msgstr "Fuente"
 msgstr "Fuente"
 
 msgid "Thickness"
 msgstr "Grosor"
-msgstr "Grosor"
 
 msgid "Input text"
-msgstr "Texto de entrada"
 msgstr "Texto de entrada"
 
 msgid "Embeded"
 msgstr "Integrado"
-msgstr "Integrado"
 
 msgid "Text Gap"
 msgstr "Espacio de texto"
-msgstr "Hueco de texto"
 
 msgid "Angle"
-msgstr "Ángulo"
 msgstr "Ángulo"
 
 msgid ""
 "Embeded\n"
 "depth"
 msgstr ""
-"Integrado\n"
-"profundidad"
+"Profundidad\n"
+"Integrada"
 
 msgid "Surface"
-msgstr "Superficie"
 msgstr "Superficie"
 
 msgid "Horizontal text"
 msgstr "Texto horizontal"
-msgstr "texto Horizontal"
 
 msgid "Ctrl+"
 msgstr ""
 
 msgid "Notice"
-msgstr "Aviso"
 msgstr "Aviso"
 
 msgid "Undefined"
@@ -613,19 +598,15 @@ msgstr "Error crítico"
 #, boost-format
 msgid "OrcaSlicer got an unhandled exception: %1%"
 msgstr "OrcaSlicer ha sufrido una excepción no controlada: %1%"
-msgstr "OrcaSlicer ha tenido una excepción no controlada: %1%"
 
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Descargando el complemento de Red Bambú"
-msgstr "Descargar el complemento de red Bambú"
 
 msgid "Incorrect password"
 msgstr "Contraseña incorrecta"
-msgstr "Contraseña Incorrecta"
 
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
-msgstr "Conexión %s fallida! [SN:%s, code=%s]"
 msgstr "¡Conexión %s fallida! [SN:%s, code=%s]"
 
 msgid ""
@@ -700,7 +681,6 @@ msgstr "¡crear o abrir achivo de proyecto nuevo no está permitido durante el p
 
 msgid "Open Project"
 msgstr "Abrir proyecto"
-msgstr "Proyecto Abierto"
 
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
@@ -714,7 +694,6 @@ msgstr "Los datos de acceso han caducado. Por favor, inicie sesión de nuevo."
 
 msgid "Privacy Policy Update"
 msgstr "Actualización de política de privacidad"
-msgstr "Actualización de Políticas de Privacidad"
 
 msgid "Loading"
 msgstr "Cargando"
