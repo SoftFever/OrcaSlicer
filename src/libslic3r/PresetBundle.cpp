@@ -421,6 +421,12 @@ void PresetBundle::reset_project_embedded_presets()
         Preset* selected_filament = this->filaments.find_preset(filament_presets[i], false);
         if (!selected_filament) {
             //it should be the project embedded presets
+            Preset& current_printer = this->printers.get_selected_preset();
+            const std::vector<std::string> &prefered_filament_profiles = current_printer.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+            const std::string prefered_filament_profile = prefered_filament_profiles.empty() ? std::string() : prefered_filament_profiles.front();
+            if (!prefered_filament_profile.empty())
+                filament_presets[i] = prefered_filament_profile;
+            else
             filament_presets[i] = this->filaments.first_visible().name;
         }
     }
