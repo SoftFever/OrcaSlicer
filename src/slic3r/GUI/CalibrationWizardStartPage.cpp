@@ -11,25 +11,6 @@ CalibrationStartPage::CalibrationStartPage(wxWindow* parent, wxWindowID id, cons
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
 }
 
-void CalibrationStartPage::create_wiki(wxWindow* parent)
-{
-    m_wiki_text = new wxStaticText(parent, wxID_ANY, _L("Wiki"));
-    m_wiki_text->SetFont(Label::Head_14);
-    m_wiki_text->SetForegroundColour({ 0, 88, 220 });
-    m_wiki_text->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
-        e.Skip();
-        SetCursor(wxCURSOR_HAND);
-        });
-    m_wiki_text->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
-        e.Skip();
-        SetCursor(wxCURSOR_ARROW);
-        });
-    m_wiki_text->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
-        if (!m_wiki_url.empty())
-            wxLaunchDefaultBrowser(m_wiki_url);
-        });
-}
-
 void CalibrationStartPage::create_when(wxWindow* parent, wxString title, wxString content)
 {
     m_when_title = new wxStaticText(this, wxID_ANY, title);
@@ -67,8 +48,6 @@ CalibrationPAStartPage::CalibrationPAStartPage(wxWindow* parent, wxWindowID id, 
     m_cali_mode = CalibMode::Calib_PA_Line;
     m_page_type = CaliPageType::CALI_PAGE_START;
 
-    m_wiki_url = get_calibration_wiki_page(m_cali_mode);
-
     create_page(this);
 
     this->SetSizer(m_top_sizer);
@@ -102,11 +81,7 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     about_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     m_top_sizer->Add(about_text);
     
-
     m_top_sizer->AddSpacer(PRESET_GAP);
-
-    create_wiki(parent);
-    m_top_sizer->Add(m_wiki_text, 0);
 
     m_action_panel = new CaliPageActionPanel(parent, CalibMode::Calib_PA_Line, CaliPageType::CALI_PAGE_START);
 
@@ -168,8 +143,6 @@ CalibrationFlowRateStartPage::CalibrationFlowRateStartPage(wxWindow* parent, wxW
 {
     m_cali_mode = CalibMode::Calib_Flow_Rate;
 
-    m_wiki_url = get_calibration_wiki_page(m_cali_mode);
-
     create_page(this);
 
     this->SetSizer(m_top_sizer);
@@ -209,9 +182,6 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
 
     m_top_sizer->AddSpacer(PRESET_GAP);
-
-    create_wiki(parent);
-    m_top_sizer->Add(m_wiki_text, 0);
 
     m_action_panel = new CaliPageActionPanel(parent, CalibMode::Calib_Flow_Rate, CaliPageType::CALI_PAGE_START);
 
@@ -265,8 +235,6 @@ CalibrationMaxVolumetricSpeedStartPage::CalibrationMaxVolumetricSpeedStartPage(w
 {
     m_cali_mode = CalibMode::Calib_Vol_speed_Tower;
 
-    m_wiki_url = get_calibration_wiki_page(m_cali_mode);
-
     create_page(this);
 
     this->SetSizer(m_top_sizer);
@@ -304,9 +272,6 @@ void CalibrationMaxVolumetricSpeedStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
 
     m_top_sizer->AddSpacer(PRESET_GAP);
-
-    create_wiki(parent);
-    m_top_sizer->Add(m_wiki_text, 0);
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_START);
 

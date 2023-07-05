@@ -367,6 +367,12 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
     m_help_btn->SetBackgroundColour(*wxWHITE);
     caption_sizer->Add(m_help_btn, 0, wxALIGN_CENTER);
 
+    caption_sizer->AddStretchSpacer();
+
+    m_wiki_url = get_calibration_wiki_page(cali_mode);
+    create_wiki(this);
+    caption_sizer->Add(m_wiki_text, 0);
+
     top_sizer->Add(caption_sizer, 1, wxEXPAND);
     top_sizer->AddSpacer(FromDIP(35));
     this->SetSizer(top_sizer);
@@ -404,6 +410,25 @@ void CaliPageCaption::init_bitmaps() {
     m_prev_bmp_hover = ScalableBitmap(this, "cali_page_caption_prev_hover", 30);
     m_help_bmp_normal = ScalableBitmap(this, "cali_page_caption_help", 30);
     m_help_bmp_hover = ScalableBitmap(this, "cali_page_caption_help_hover", 30);
+}
+
+void CaliPageCaption::create_wiki(wxWindow* parent)
+{
+    m_wiki_text = new wxStaticText(parent, wxID_ANY, _L("Wiki"));
+    m_wiki_text->SetFont(Label::Head_14);
+    m_wiki_text->SetForegroundColour({ 0, 88, 220 });
+    m_wiki_text->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
+        e.Skip();
+        SetCursor(wxCURSOR_HAND);
+        });
+    m_wiki_text->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        e.Skip();
+        SetCursor(wxCURSOR_ARROW);
+        });
+    m_wiki_text->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+        if (!m_wiki_url.empty())
+            wxLaunchDefaultBrowser(m_wiki_url);
+        });
 }
 
 void CaliPageCaption::show_prev_btn(bool show)

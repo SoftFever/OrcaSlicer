@@ -128,7 +128,10 @@ protected:
 
 private:
     void init_bitmaps();
+    void create_wiki(wxWindow* parent);
 
+    wxStaticText* m_wiki_text;
+    wxString  m_wiki_url;
     ScalableBitmap m_prev_bmp_normal;
     ScalableBitmap m_prev_bmp_hover;
     ScalableBitmap m_help_bmp_normal;

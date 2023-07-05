@@ -1377,6 +1377,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     }
 
     // init default for filament source
+    // TODO if user change ams/ext, need to update
     if ( !obj->has_ams() || (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) )
     {
         m_ext_spool_radiobox->SetValue(true);

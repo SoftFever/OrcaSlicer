@@ -18,17 +18,14 @@ public:
 
 protected:
     CalibMode m_cali_mode;
-    wxString  m_wiki_url;
 
     wxBoxSizer*   m_top_sizer;
     wxBoxSizer*   m_images_sizer;
-    wxStaticText* m_wiki_text;
     wxStaticText* m_when_title;
     wxStaticText* m_when_content;
     wxStaticBitmap* m_before_bmp;
     wxStaticBitmap* m_after_bmp;
 
-    void create_wiki(wxWindow* parent);
     void create_when(wxWindow* parent, wxString title, wxString content);
     void create_bitmap(wxWindow* parent, const wxBitmap& before_img, const wxBitmap& after_img);
     void create_bitmap(wxWindow* parent, std::string before_img, std::string after_img);
