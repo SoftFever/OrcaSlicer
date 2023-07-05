@@ -452,8 +452,8 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         // Is the angle close to a multiple of 90 degrees?
-        // BBS: As long as the rotation value changed, the rotation angle will be applied to the mesh.
-		// if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
+
+		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
             // Cannot apply scaling in the world coordinate system.
             // BBS: remove tilt prompt dialog
 
@@ -463,7 +463,7 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
             wxGetApp().plater()->update();
             // Recalculate cached values at this panel, refresh the screen.
             this->UpdateAndShow(true);
-        // }
+        }
     }
     m_uniform_scale = new_value;
 }
