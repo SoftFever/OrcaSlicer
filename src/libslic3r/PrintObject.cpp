@@ -2045,6 +2045,17 @@ void PrintObject::get_certain_layers(float start, float end, std::vector<LayerPt
     boundingbox_objects.emplace_back(std::move(temp));
     out.emplace_back(std::move(out_temp));
 };
+
+std::vector<Point> PrintObject::get_instances_shift_without_plate_offset()
+{
+    std::vector<Point> out;
+    out.reserve(m_instances.size());
+    for (const auto& instance : m_instances)
+        out.push_back(instance.shift_without_plate_offset());
+
+    return out;
+}
+
 // Only active if config->infill_only_where_needed. This step trims the sparse infill,
 // so it acts as an internal support. It maintains all other infill types intact.
 // Here the internal surfaces and perimeters have to be supported by the sparse infill.

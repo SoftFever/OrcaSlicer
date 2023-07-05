@@ -437,7 +437,7 @@ bool Print::has_brim() const
 }
 
 //BBS
-std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects)
+std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points> &objects_instances_shift)
 {
     std::vector<size_t> idx_of_object_sorted;
     size_t              idx = 0;
@@ -447,6 +447,11 @@ std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std:
     }
     std::sort(idx_of_object_sorted.begin(), idx_of_object_sorted.end(),
               [boundingBox_for_objects](auto left, auto right) { return boundingBox_for_objects[left].area() > boundingBox_for_objects[right].area(); });
+
+    objects_instances_shift.clear();
+    objects_instances_shift.reserve(m_objects.size());
+    for (const auto& object : m_objects)
+        objects_instances_shift.emplace_back(object->get_instances_shift_without_plate_offset());
 
     return idx_of_object_sorted;
 };
