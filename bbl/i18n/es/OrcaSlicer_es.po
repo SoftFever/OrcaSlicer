@@ -6775,7 +6775,7 @@ msgid "API key"
 msgstr "Clave API"
 
 msgid "HTTP digest"
-msgstr ""
+msgstr "Resumen HTTP"
 
 msgid "Avoid crossing wall"
 msgstr "Evitar cruzar muro"
@@ -6949,10 +6949,10 @@ msgid ""
 msgstr ""
 
 msgid "Bridge density"
-msgstr ""
+msgstr "Densidad de puente"
 
 msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
-msgstr ""
+msgstr "Densidad de puentes externos. 100% significa puente sólido. Por defecto es 100%"
 
 msgid "Bridge flow"
 msgstr "Flujo del puente"
@@ -7158,7 +7158,7 @@ msgstr ""
 "normalmente puede imprimirse directamente sin soporte si no es muy largo"
 
 msgid "Thick bridges"
-msgstr ""
+msgstr "Puentes gruesos"
 
 msgid ""
 "If enabled, bridges are more reliable, can bridge longer distances, but may "
@@ -7323,11 +7323,15 @@ msgid ""
 "Distance of the nozzle tip to the lid. Used for collision avoidance in by-"
 "object printing."
 msgstr ""
+"Distancia de la punta de la boquilla a la tapa. Usado para evitar la colisión "
+"con la impresión por objeto"
 
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
 msgstr ""
+"El radio de claridad alrededor del extrusor. Se utiliza para evitar la colisión con "
+"la impresión por objeto."
 
 msgid "Extruder Color"
 msgstr "Color del extrusor"
@@ -7356,15 +7360,17 @@ msgstr ""
 "desbordamiento o sub-desbordamiento"
 
 msgid "Enable pressure advance"
-msgstr ""
+msgstr "Activar avance de presión"
 
 msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
 "enabled."
 msgstr ""
+"Activar avance de presión, resultado de auto calibración se sobreescribirá "
+"una vez activado."
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
-msgstr ""
+msgstr "El avance de presión(Klipper) AKA Factor de avance lineal(Marlin)"
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "Ancho de línea por defecto si se ajusta algún ancho de línea es cero"
@@ -7396,10 +7402,10 @@ msgid "s"
 msgstr "s"
 
 msgid "Default color"
-msgstr ""
+msgstr "Color por defecto"
 
 msgid "Default filament color"
-msgstr ""
+msgstr "Color de filamento por defecto"
 
 msgid "Color"
 msgstr "Color"
