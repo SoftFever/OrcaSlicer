@@ -289,6 +289,13 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
         if (!m_comboBox->is_compatible_with_printer()) {
             SetValue(false);
         }
+
+        if (m_radioBox)
+            m_radioBox->Enable(m_comboBox->is_compatible_with_printer());
+            
+        if (m_checkBox)
+            m_checkBox->Enable(m_comboBox->is_compatible_with_printer());
+
     }
 
     // check compatibility
