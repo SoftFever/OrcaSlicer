@@ -159,7 +159,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
                 if (get_obj_calibration_mode(obj) == m_cali_mode) {
                     if (obj->is_printing_finished()) {
                         if (obj->print_status == "FINISH") {
-                            if (obj->get_pa_calib_result) {
+                            if (obj->get_flow_calib_result) {
                                 enable_cali = true;
                             }
                             else {
