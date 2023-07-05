@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-03 16:14+0800\n"
+"POT-Creation-Date: 2023-07-05 10:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1445,6 +1445,33 @@ msgstr "프린터 없음"
 
 msgid "..."
 msgstr ""
+
+msgid "Failed to connect to the server"
+msgstr "서버 연결에 실패했습니다."
+
+msgid "Check cloud service status"
+msgstr "Check cloud service status"
+
+msgid "code"
+msgstr "code"
+
+msgid "Failed to connect to cloud service"
+msgstr "Failed to connect to cloud service"
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr "Please click on the hyperlink above to view the cloud service status"
+
+msgid "Failed to connect to the printer"
+msgstr "프린터에 연결하지 못했습니다."
+
+msgid "Connection to printer failed"
+msgstr "Connection to printer failed"
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr "Please check the network connection of the printer and Studio."
+
+msgid "Connecting..."
+msgstr "Connecting..."
 
 msgid "?"
 msgstr "?"
@@ -3653,9 +3680,6 @@ msgstr "Batch manage files."
 msgid "No printers."
 msgstr "No printers."
 
-msgid "Connecting..."
-msgstr "Connecting..."
-
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
 msgstr "Connection failed [%d]!"
@@ -3748,15 +3772,6 @@ msgstr "3Dconnexion 설정"
 msgid "Swap Y/Z axes"
 msgstr "Swap Y/Z axes"
 
-msgid "Camera"
-msgstr "Camera"
-
-msgid "SD Card"
-msgstr "MicroSD Card"
-
-msgid "Camera Setting"
-msgstr "Camera Setting"
-
 msgid "Printing Progress"
 msgstr "출력 진행상황"
 
@@ -3777,6 +3792,15 @@ msgstr "Immediately score"
 
 msgid "Clear"
 msgstr "Clear"
+
+msgid "Camera"
+msgstr "Camera"
+
+msgid "SD Card"
+msgstr "MicroSD Card"
+
+msgid "Camera Setting"
+msgstr "Camera Setting"
 
 msgid "Control"
 msgstr "컨트롤"
@@ -3810,9 +3834,6 @@ msgstr "No MicroSD Card"
 
 msgid "SD Card Abnormal"
 msgstr "MicroSD Card Abnormal"
-
-msgid "Printing List"
-msgstr "출력 리스트"
 
 msgid "Cancel print"
 msgstr "Cancel print"
@@ -3881,15 +3902,6 @@ msgstr "루디크러스"
 msgid "Can't start this without SD card."
 msgstr "Can't start without MicroSD card."
 
-msgid "Failed to connect to the server"
-msgstr "서버 연결에 실패했습니다."
-
-msgid "Check cloud service status"
-msgstr "Check cloud service status"
-
-msgid "code"
-msgstr "code"
-
 msgid "Status"
 msgstr "출력상황"
 
@@ -3898,21 +3910,6 @@ msgstr "업데이트"
 
 msgid "HMS"
 msgstr "HMS"
-
-msgid "Failed to connect to cloud service"
-msgstr "Failed to connect to cloud service"
-
-msgid "Please click on the hyperlink above to view the cloud service status"
-msgstr "Please click on the hyperlink above to view the cloud service status"
-
-msgid "Failed to connect to the printer"
-msgstr "프린터에 연결하지 못했습니다."
-
-msgid "Connection to printer failed"
-msgstr "Connection to printer failed"
-
-msgid "Please check the network connection of the printer and Studio."
-msgstr "Please check the network connection of the printer and Studio."
 
 msgid "Don't show again"
 msgstr "다시 표시하지 않음"
@@ -5201,6 +5198,9 @@ msgstr ""
 
 msgid "An SD card needs to be inserted before printing."
 msgstr "A MicroSD card needs to be inserted before printing."
+
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr ""
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "A MicroSD card needs to be inserted to record a timelapse."
@@ -9314,13 +9314,51 @@ msgstr "The file contains invalid vertex index."
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "This OBJ file couldn't be read because it's empty."
 
-msgid "Preset"
+msgid "Dynamic Pressure Control Calibration"
 msgstr ""
 
-msgid "Record"
+msgid "Flow Rate Calibration"
 msgstr ""
 
-msgid "Pressure Adavance"
+msgid "Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Manage Result"
+msgstr ""
+
+msgid "Maual Calibration"
+msgstr ""
+
+msgid "Result can be read by human eyes."
+msgstr ""
+
+msgid "Auto-Calibration"
+msgstr ""
+
+msgid "We would use Lidar to read the calibration result"
+msgstr ""
+
+msgid "Prev"
+msgstr ""
+
+msgid "Recalibration"
+msgstr ""
+
+msgid "Calibrate"
+msgstr ""
+
+msgid "Finish"
+msgstr "Finish"
+
+msgid ""
+"The current firmware version of the printer does not support calibration.\n"
+"Please upgrade the printer firmware."
+msgstr ""
+
+msgid "Calibration not supported"
+msgstr ""
+
+msgid "Dynamic Pressure Control"
 msgstr ""
 
 msgid "Flow Rate"
@@ -9329,59 +9367,23 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
-msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
+msgid "The name cannot be empty."
 msgstr ""
 
-msgid "Please input a valid value (N in 0.6~2.0)"
+msgid "The selected preset has been deleted."
 msgstr ""
 
-msgid "Plate Type"
-msgstr "Plate Type"
-
-msgid "Filament From"
+msgid "The name cannot be the same as the system preset name."
 msgstr ""
 
-msgid "External Spool"
+msgid "The name is the same as another existing preset name"
 msgstr ""
 
-msgid "Filament For Calibration"
+msgid "create new preset failed."
 msgstr ""
 
 msgid ""
-"Please select same type of material, because plate temperature might not be "
-"compatible with different type of material"
-msgstr ""
-
-msgid ""
-"A test model will be printed. Please clear the build plate and place it back "
-"to the hot bed before calibration."
-msgstr ""
-
-msgid "Printing Parameters"
-msgstr ""
-
-msgid "Restart"
-msgstr ""
-
-msgid "Calibrate"
-msgstr ""
-
-msgid "Error desc"
-msgstr ""
-
-msgid "Extra info"
-msgstr ""
-
-msgid "Re-Calibrate"
-msgstr ""
-
-msgid "Is in printing. Please wait for printing to complete"
-msgstr ""
-
-msgid "It will restart to get the results. Do you confirm to re-calibrate?"
-msgstr ""
-
-msgid "It will restart to get the results. Do you confirm to restart?"
+"Are you sure to cancel the current calibration and return to the home page?"
 msgstr ""
 
 msgid "No Printer Connected!"
@@ -9390,50 +9392,29 @@ msgstr ""
 msgid "Printer is not connected yet."
 msgstr ""
 
-msgid "Please select a printer and nozzle for calibration."
-msgstr ""
-
-msgid "No print preset"
-msgstr ""
-
-msgid "Please select filament for calibration."
-msgstr ""
-
 msgid ""
-"The printing parameters is empty, please reselect nozzle and plate type."
+"Dynamic Pressure Control calibration result has been saved to the printer"
 msgstr ""
 
-msgid "Saved success."
+msgid "Internal Error"
 msgstr ""
 
-msgid "FAILED"
+msgid "Please select at least one filament for calibration"
 msgstr ""
 
-msgid ""
-"Are you sure you want to cancel this calibration? It will return to start "
-"page"
+msgid "Flow rate calibration result has been saved to preset"
 msgstr ""
 
-#, c-format, boost-format
-msgid ""
-"Unable to print %s and %s together. Filaments have large bed temperature "
-"difference"
+msgid "The input value size must be 3."
 msgstr ""
 
-msgid "No AMS filaments. Please select a printer to load AMS info."
+msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%s is not compatible with %s"
+msgid "Wiki"
 msgstr ""
 
-msgid "Please find the best line on your plate"
-msgstr ""
-
-msgid "We found the best Pressure Advance Factor"
-msgstr ""
-
-msgid "When you need Pressure Advance Calibration"
+msgid "When you need Dynamic Pressure Control Calibration"
 msgstr ""
 
 msgid "uneven extrusion"
@@ -9446,67 +9427,6 @@ msgid ""
 "After calibration, the linear compensation factor(K) will be recorded and "
 "applied to printing. This factor would be different if device, degree of "
 "usage, material, and material family type are different"
-msgstr ""
-
-msgid "Wiki"
-msgstr ""
-
-msgid "Manage Result"
-msgstr ""
-
-msgid "Start"
-msgstr "Start"
-
-msgid "Pressure Advance"
-msgstr ""
-
-msgid "Material"
-msgstr ""
-
-msgid "K"
-msgstr ""
-
-msgid "Action"
-msgstr ""
-
-msgid "No History Result"
-msgstr ""
-
-msgid "FactorK"
-msgstr ""
-
-msgid "FactorN"
-msgstr ""
-
-msgid "Brand Name"
-msgstr ""
-
-msgid "Failed"
-msgstr "Failed"
-
-msgid ""
-"Make sure bed_temp > 0 \n"
-"nozzle_temp > 0\n"
-"max_volumetric_speed > 0"
-msgstr ""
-
-msgid "Please find the best object on your plate"
-msgstr ""
-
-msgid "Fill in the value above the block with smoothest top surface"
-msgstr ""
-
-msgid "Save to Filament Preset"
-msgstr ""
-
-msgid "Skip Calibration2"
-msgstr ""
-
-#, c-format, boost-format
-msgid "flow ratio : %s "
-msgstr ""
-
-msgid "We found the best flow ratio for you"
 msgstr ""
 
 msgid "When you need Flow Rate Calibration"
@@ -9524,114 +9444,143 @@ msgstr ""
 msgid "materials with inaccurate filament diameter"
 msgstr ""
 
+msgid "When you need Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Max Volumetric Speed calibration is recommended when you print with:"
+msgstr ""
+
+msgid "We found the best Dynamic Pressure Control Factor"
+msgstr ""
+
+msgid "Brand Name"
+msgstr ""
+
+msgid "Failed"
+msgstr "Failed"
+
+msgid "Please enter the name you want to save to printer."
+msgstr ""
+
+msgid "The name cannot exceed 20 characters."
+msgstr ""
+
+msgid "Please find the best line on your plate"
+msgstr ""
+
+msgid "Input Value"
+msgstr ""
+
+msgid "Save to Filament Preset"
+msgstr ""
+
+msgid "Preset"
+msgstr ""
+
+msgid "Record"
+msgstr ""
+
+msgid "We found the best flow ratio for you"
+msgstr ""
+
+msgid "Flow Ratio"
+msgstr ""
+
+msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
+msgstr ""
+
+msgid "Please enter the name of the preset you want to save."
+msgstr ""
+
+msgid "Calibration1"
+msgstr ""
+
+msgid "Calibration2"
+msgstr ""
+
+msgid "Please find the best object on your plate"
+msgstr ""
+
+msgid "Fill in the value above the block with smoothest top surface"
+msgstr ""
+
+msgid "Skip Calibration2"
+msgstr ""
+
+#, c-format, boost-format
+msgid "flow ratio : %s "
+msgstr ""
+
+msgid "Please choose a block with smoothest top surface"
+msgstr ""
+
+msgid "Please choose a block with smoothest top surface."
+msgstr ""
+
+msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
+msgstr ""
+
+msgid "Calibration Type"
+msgstr ""
+
 msgid "Complete Calibration"
 msgstr ""
 
 msgid "Fine Calibration based on flow ratio"
 msgstr ""
 
-msgid "Flow Ratio"
+msgid "Title"
 msgstr ""
 
-msgid "Input name of filament preset to save"
+msgid ""
+"A test model will be printed. Please clear the build plate and place it back "
+"to the hot bed before calibration."
 msgstr ""
 
-msgid "Choose a block with smoothest top surface."
+msgid "Printing Parameters"
+msgstr ""
+
+msgid "Please select the nozzle diameter of your printer"
+msgstr ""
+
+msgid "Please select the plate type of your printer"
+msgstr ""
+
+msgid "filament position"
+msgstr ""
+
+msgid "External Spool"
+msgstr ""
+
+msgid "Filament For Calibration"
+msgstr ""
+
+msgid ""
+"Tips for calibration material: \n"
+"- Materials that can share same hot bed temperature\n"
+"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
+msgstr ""
+
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
+msgstr ""
+
+msgid "Record Factor"
 msgstr ""
 
 #, c-format, boost-format
-msgid "max volumetric speed : %s "
+msgid "%s is not compatible with %s"
 msgstr ""
 
-msgid "When you need Max Volumetric Speed Calibration"
-msgstr ""
-
-msgid "Under-extrusion"
-msgstr ""
-
-msgid "What will happen if the Max Volumetric Speed is not set up properly"
-msgstr ""
-
-msgid ""
-"Under-extrusion: If the value is set too high, under-extrusion will happen "
-"and cause poor apperance on the printed model"
-msgstr ""
-
-msgid ""
-"Print speed is limited: If the value is set too low, the print speed will be "
-"limited and make the print time longer. Take the model on the right picture "
-"for example. max volumetric speed [n] mm^3/s costs [x] minutes. max "
-"volumetric speed [m] mm^3/s costs [y] minutes"
-msgstr ""
-
-msgid "Input Value"
+msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr ""
 
 msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid ""
-"Please input valid values:\n"
-"From > 0\n"
-"To < 60\n"
-"Step >= 0\n"
-"To > From + Step"
-msgstr ""
-
-msgid "Input a value."
-msgstr ""
-
-msgid "When you need Temperature Calibration"
-msgstr ""
-
-msgid "Model stringing"
-msgstr ""
-
-msgid "Layer adhesion problem"
-msgstr ""
-
-msgid "Warping(overhang)"
-msgstr ""
-
-msgid "Bridging"
-msgstr ""
-
-msgid "Optimal Temp"
-msgstr ""
-
-msgid "From Temp"
-msgstr ""
-
-msgid "To Temp"
-msgstr ""
-
-msgid ""
-"Please input valid values:\n"
-"From temp: >= 180\n"
-"To temp: <= 350\n"
-"From temp <= To temp - Step\n"
-" From temp - To temp < 120"
-msgstr ""
-
-msgid "Input an optiaml temperature."
-msgstr ""
-
-msgid "Optimal Retraction Length"
-msgstr ""
-
-msgid "Retraction Calibration"
-msgstr ""
-
-msgid "From Retraction Length"
-msgstr ""
-
-msgid "To Retraction Length"
-msgstr ""
-
-msgid "Input an optiaml retraction length."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -9900,6 +9849,15 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid "Printing List"
+#~ msgstr "출력 리스트"
+
+#~ msgid "Plate Type"
+#~ msgstr "Plate Type"
+
+#~ msgid "Start"
+#~ msgstr "Start"
 
 #~ msgid "Ams filament backup"
 #~ msgstr "AMS filament backup"
@@ -10346,9 +10304,6 @@ msgstr ""
 
 #~ msgid "Filaments replace"
 #~ msgstr "Backup Filament"
-
-#~ msgid "Finish"
-#~ msgstr "Finish"
 
 #~ msgid "Finished"
 #~ msgstr "완료됨"

@@ -135,3 +135,6 @@ src/libslic3r/Format/OBJ.cpp
 src/slic3r/GUI/CalibrationWizardPage.cpp
 src/slic3r/GUI/CalibrationPanel.cpp
 src/slic3r/GUI/CalibrationWizard.cpp
+src/slic3r/GUI/CalibrationWizardStartPage.cpp
+src/slic3r/GUI/CalibrationWizardSavePage.cpp
+src/slic3r/GUI/CalibrationWizardPresetPage.cpp

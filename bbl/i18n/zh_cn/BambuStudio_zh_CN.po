@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-03 16:14+0800\n"
+"POT-Creation-Date: 2023-07-05 10:45+0800\n"
 "PO-Revision-Date: 2023-05-22 15:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -931,7 +931,7 @@ msgid "Mesh boolean"
 msgstr "网格布尔操作"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "包括并集和差集的网格布尔运算"
 
 msgid "Along X axis"
 msgstr "沿 X 轴"
@@ -1433,6 +1433,33 @@ msgstr "无打印机"
 msgid "..."
 msgstr ""
 
+msgid "Failed to connect to the server"
+msgstr "无法连接服务器"
+
+msgid "Check cloud service status"
+msgstr "检查云服务状态"
+
+msgid "code"
+msgstr ""
+
+msgid "Failed to connect to cloud service"
+msgstr "无法连接到云服务"
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr "请点击上方的超链接以查看云服务状态"
+
+msgid "Failed to connect to the printer"
+msgstr "无法连接打印机"
+
+msgid "Connection to printer failed"
+msgstr "连接打印机失败"
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr "请检查打印机和工作室的网络连接"
+
+msgid "Connecting..."
+msgstr "连接中..."
+
 msgid "?"
 msgstr "?"
 
@@ -1851,7 +1878,7 @@ msgid "Factors of dynamic flow cali"
 msgstr "动态流量标定系数"
 
 msgid "PA Profile"
-msgstr ""
+msgstr "PA 配置文件"
 
 msgid "Factor K"
 msgstr "系数K"
@@ -2919,7 +2946,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "检测到有对象放在盘的边界上。"
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "检测出超出打印高度的G-code路径。"
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "检测超出热床边界的G-code路径。"
@@ -3041,7 +3068,7 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
 
 msgid "Upload"
-msgstr ""
+msgstr "上传"
 
 msgid "Slice plate"
 msgstr "切片单盘"
@@ -3302,49 +3329,49 @@ msgid "Help"
 msgstr "帮助"
 
 msgid "Temperature Calibration"
-msgstr ""
+msgstr "温度校准"
 
 msgid "Pass 1"
-msgstr ""
+msgstr "通过 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr ""
+msgstr "流量测试 - 通过 1"
 
 msgid "Pass 2"
-msgstr ""
+msgstr "通过2"
 
 msgid "Flow rate test - Pass 2"
-msgstr ""
+msgstr "流量测试 - 通过 2"
 
 msgid "Flow rate"
-msgstr ""
+msgstr "流速"
 
 msgid "Pressure advance"
-msgstr ""
+msgstr "压力提升"
 
 msgid "Retraction test"
-msgstr ""
+msgstr "回抽测试"
 
 msgid "Max flowrate"
-msgstr ""
+msgstr "最大流速"
 
 msgid "VFA"
 msgstr ""
 
 msgid "More..."
-msgstr ""
+msgstr "更多..."
 
 msgid "Tutorial"
-msgstr ""
+msgstr "教程"
 
 msgid "Calibration help"
-msgstr ""
+msgstr "校准帮助"
 
 msgid "Orca Tolerance Test"
 msgstr ""
 
 msgid "More calibrations"
-msgstr ""
+msgstr "更多校准"
 
 msgid "&Open G-code"
 msgstr "打开G-code"
@@ -3356,19 +3383,19 @@ msgid "Re&load from Disk"
 msgstr ""
 
 msgid "Reload the plater from disk"
-msgstr ""
+msgstr "从磁盘重新加载平台"
 
 msgid "Export &Toolpaths as OBJ"
 msgstr ""
 
 msgid "Export toolpaths as OBJ"
-msgstr ""
+msgstr "将工具路径导出为OBJ格式"
 
 msgid "Open &Studio"
 msgstr ""
 
 msgid "Open Studio"
-msgstr ""
+msgstr "打开Studio"
 
 msgid "&Quit"
 msgstr ""
@@ -3577,9 +3604,6 @@ msgstr "批量管理文件"
 msgid "No printers."
 msgstr "未选择打印机"
 
-msgid "Connecting..."
-msgstr "连接中..."
-
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
 msgstr "连接失败 [%d]！"
@@ -3651,7 +3675,7 @@ msgid "Not supported on the current printer version."
 msgstr "当前打印机的版本不支持。"
 
 msgid "Storage unavailable, insert SD card."
-msgstr ""
+msgstr "存储不可用，请插入SD卡。"
 
 msgid "Speed:"
 msgstr "速度："
@@ -3674,15 +3698,6 @@ msgstr "3Dconnexion设置"
 msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
 
-msgid "Camera"
-msgstr "摄像机"
-
-msgid "SD Card"
-msgstr "SD卡"
-
-msgid "Camera Setting"
-msgstr "相机设置"
-
 msgid "Printing Progress"
 msgstr "打印进度"
 
@@ -3703,6 +3718,15 @@ msgstr "立即打分"
 
 msgid "Clear"
 msgstr "清除"
+
+msgid "Camera"
+msgstr "摄像机"
+
+msgid "SD Card"
+msgstr "SD卡"
+
+msgid "Camera Setting"
+msgstr "相机设置"
 
 msgid "Control"
 msgstr "控制"
@@ -3736,9 +3760,6 @@ msgstr "无SD卡"
 
 msgid "SD Card Abnormal"
 msgstr "SD卡异常"
-
-msgid "Printing List"
-msgstr "项目切片"
 
 msgid "Cancel print"
 msgstr "取消打印"
@@ -3805,15 +3826,6 @@ msgstr "狂暴"
 msgid "Can't start this without SD card."
 msgstr "没有SD卡无法开始任务"
 
-msgid "Failed to connect to the server"
-msgstr "无法连接服务器"
-
-msgid "Check cloud service status"
-msgstr "检查云服务状态"
-
-msgid "code"
-msgstr ""
-
 msgid "Status"
 msgstr "设备状态"
 
@@ -3822,21 +3834,6 @@ msgstr "固件更新"
 
 msgid "HMS"
 msgstr ""
-
-msgid "Failed to connect to cloud service"
-msgstr "无法连接到云服务"
-
-msgid "Please click on the hyperlink above to view the cloud service status"
-msgstr "请点击上方的超链接以查看云服务状态"
-
-msgid "Failed to connect to the printer"
-msgstr "无法连接打印机"
-
-msgid "Connection to printer failed"
-msgstr "连接打印机失败"
-
-msgid "Please check the network connection of the printer and Studio."
-msgstr "请检查打印机和工作室的网络连接"
 
 msgid "Don't show again"
 msgstr "不再显示"
@@ -4056,7 +4053,7 @@ msgstr "打印机设置"
 
 #, boost-format
 msgid " plate %1%: "
-msgstr ""
+msgstr " 盘 %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "无效名称，不允许使用以下字符："
@@ -4723,22 +4720,22 @@ msgid "Log Level"
 msgstr "日志级别"
 
 msgid "fatal"
-msgstr ""
+msgstr "致命"
 
 msgid "error"
-msgstr ""
+msgstr "错误"
 
 msgid "warning"
-msgstr ""
+msgstr "警告"
 
 msgid "info"
-msgstr ""
+msgstr "信息"
 
 msgid "debug"
-msgstr ""
+msgstr "调试"
 
 msgid "trace"
-msgstr ""
+msgstr "跟踪"
 
 msgid "Host Setting"
 msgstr ""
@@ -5076,6 +5073,9 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "请在发起打印前插入SD卡"
 
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr "所选打印机与选择的打印机预设不兼容。"
+
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
 
@@ -5381,7 +5381,7 @@ msgid "Acceleration"
 msgstr "加速度"
 
 msgid "Jerk(XY)"
-msgstr ""
+msgstr "抖动（XY轴）"
 
 msgid "Raft"
 msgstr "筏层"
@@ -6575,13 +6575,16 @@ msgid ""
 "name and password into the URL in the following format: https://username:"
 "password@your-octopi-address/"
 msgstr ""
+"Slic3r可以将G-code文件上传到打印机主机。此字段应包含打印机主机实例的主机名、"
+"IP地址或URL。启用基本身份验证的Print host可以通过将用户名和密码放入以下格式的"
+"URL中来访问：https://username:password@your-octopi-address/"
 
 msgid "Device UI"
-msgstr ""
+msgstr "设备界面"
 
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"
-msgstr ""
+msgstr "如果设备用户界面与打印机主机不同，请指定设备用户界面的URL。"
 
 msgid "API Key / Password"
 msgstr ""
@@ -6590,6 +6593,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the API Key or the password required for authentication."
 msgstr ""
+"Slic3r可以将G-code文件上传到打印机主机。此字段应包含用于身份验证的API密钥或密"
+"码。"
 
 msgid "Name of the printer"
 msgstr "打印机名称"
@@ -6602,6 +6607,8 @@ msgid ""
 "in crt/pem format. If left blank, the default OS CA certificate repository "
 "is used."
 msgstr ""
+"可以为HTTPS OctoPrint连接指定自定义CA证书文件，格式为crt/pem。如果留空，则使"
+"用默认的操作系统CA证书存储库。"
 
 msgid "User"
 msgstr "用户名"
@@ -6610,19 +6617,21 @@ msgid "Password"
 msgstr "密码"
 
 msgid "Ignore HTTPS certificate revocation checks"
-msgstr ""
+msgstr "忽略HTTPS证书吊销检查"
 
 msgid ""
 "Ignore HTTPS certificate revocation checks in case of missing or offline "
 "distribution points. One may want to enable this option for self signed "
 "certificates if connection fails."
 msgstr ""
+"在缺少或离线分发点的情况下忽略HTTPS证书吊销检查。如果连接失败，可以启用此选项"
+"来处理自签名证书。"
 
 msgid "Names of presets related to the physical printer"
-msgstr ""
+msgstr "与物理打印机相关的预设名称"
 
 msgid "Authorization Type"
-msgstr ""
+msgstr "授权类型"
 
 msgid "API key"
 msgstr ""
@@ -7022,12 +7031,14 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "除了桥接外的底面填充的走线图案"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "内部实心填充图案"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect nattow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
+"内部实心填充的线型图案。如果启用了检测狭窄的内部实心填充，将使用同心圆图案来"
+"填充小区域。"
 
 msgid "Line width of outer wall"
 msgstr "外墙的线宽"
@@ -7111,23 +7122,25 @@ msgstr ""
 "以尝试微调这个参数。"
 
 msgid "Object flow ratio"
-msgstr ""
+msgstr "对象流量比率"
 
 msgid "The flow ratio set by object, the meaning is the same as flow ratio."
-msgstr ""
+msgstr "由对象设置的流量比率，其含义与流量比率相同。"
 
 msgid "Enable pressure advance"
-msgstr ""
+msgstr "启用压力提前补偿"
 
 msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
 "enabled. Useless for Bambu Printer"
-msgstr ""
+msgstr "启用压力提前补偿，启用后自动校准结果将被覆盖。对于Bambu打印机无效。"
 
 msgid ""
 "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
 "Bambu Printer"
 msgstr ""
+"压力提前补偿（Klipper）也称为线性提前补偿因子（Marlin）。对于Bambu打印机无"
+"效。"
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "当线宽设置为0时走线的默认线宽"
@@ -7248,10 +7261,10 @@ msgid "money/kg"
 msgstr "money/kg"
 
 msgid "Vendor"
-msgstr ""
+msgstr "供应商"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "打印耗材的供应商。仅用于展示。"
 
 msgid "(Undefined)"
 msgstr "（未定义）"
@@ -7316,12 +7329,14 @@ msgid "Acceleration of outer wall. Using a lower value can improve quality"
 msgstr "外墙加速度。使用较小的值可以提高质量。"
 
 msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
-msgstr ""
+msgstr "内部壁的加速度。0表示使用正常的打印加速度。"
 
 msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage (e."
 "g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
+"稀疏填充的加速度。如果该值表示为百分比（例如100%），则将根据默认加速度进行计"
+"算。"
 
 msgid "mm/s² or %"
 msgstr ""
@@ -7345,28 +7360,28 @@ msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr ""
 
 msgid "Default jerk"
-msgstr ""
+msgstr "默认抖动"
 
 msgid "Jerk of outer walls"
-msgstr ""
+msgstr "外墙抖动"
 
 msgid "Jerk of inner walls"
-msgstr ""
+msgstr "内墙抖动"
 
 msgid "Jerk of infill"
-msgstr ""
+msgstr "填充抖动"
 
 msgid "Jerk of top surface"
-msgstr ""
+msgstr "顶层表面抖动"
 
 msgid "First layer"
 msgstr "首层"
 
 msgid "Jerk of first layer"
-msgstr ""
+msgstr "首层抖动"
 
 msgid "Jerk of travel"
-msgstr ""
+msgstr "行程抖动"
 
 msgid "Line width of initial layer"
 msgstr "首层的线宽"
@@ -7431,12 +7446,12 @@ msgid ""
 msgstr "产生绒毛表面时，插入的随机点之间的平均距离"
 
 msgid "Filter out tiny gaps"
-msgstr ""
+msgstr "过滤掉微小间隙"
 
 msgid ""
 "Filter out gaps smaller than the threshold specified. This setting won't "
 "affact top/bottom layers"
-msgstr ""
+msgstr "过滤掉小于指定阈值的间隙。此设置不会影响顶部/底部图层。"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -7507,12 +7522,12 @@ msgid "What kind of gcode the printer is compatible with"
 msgstr "打印机兼容的G-code风格'"
 
 msgid "Exclude objects"
-msgstr ""
+msgstr "排除对象"
 
 msgid ""
 "Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
 "firmware printer"
-msgstr ""
+msgstr "启用此选项以在Klipper固件打印机的G代码中添加“EXCLUDE OBJECT”命令。"
 
 msgid "Infill combination"
 msgstr "合并填充"
@@ -7825,7 +7840,7 @@ msgid "Start end points"
 msgstr "起始终止点"
 
 msgid "The start and end points which is from cutter area to garbage can."
-msgstr ""
+msgstr "从切割区域到垃圾桶的起始和结束点。"
 
 msgid "Reduce infill retraction"
 msgstr "减小填充回抽"
@@ -7975,7 +7990,7 @@ msgid "Spiral"
 msgstr "螺旋"
 
 msgid "Direct drive"
-msgstr ""
+msgstr "直接驱动"
 
 msgid "Bowden"
 msgstr ""
@@ -8390,10 +8405,10 @@ msgid "The brim width around tree support. 0 means auto."
 msgstr "围绕树状支撑的裙边宽度。0表示自动。"
 
 msgid "Chamber temperature"
-msgstr ""
+msgstr "腔体温度"
 
 msgid "Target chamber temperature"
-msgstr ""
+msgstr "目标腔体温度"
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
@@ -8462,12 +8477,14 @@ msgid "Speed of travel which is faster and without extrusion"
 msgstr "空驶的速度。空驶是无挤出量的快速移动。"
 
 msgid "Use relative E distances"
-msgstr ""
+msgstr "使用相对E距离"
 
 msgid ""
 "If your firmware requires relative E values, check this, otherwise leave it "
 "unchecked. Must use relative e distance for Bambu printer"
 msgstr ""
+"如果您的固件要求使用相对E值，请勾选此项；否则，请不要勾选。对于Bambu打印机，"
+"必须使用相对E距离。"
 
 msgid "Wipe while retracting"
 msgstr "回抽时擦拭"
@@ -8711,7 +8728,7 @@ msgid "Slice"
 msgstr "切片"
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr ""
+msgstr "切片平台：0-所有平台，i-第i个平台，其他-无效"
 
 msgid "Show command help."
 msgstr "显示命令行帮助。"
@@ -8771,10 +8788,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "摆放选项：0-关闭，1-开启，其他-自动"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "重复次数"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "整个模型的重复次数"
 
 msgid "Convert Unit"
 msgstr "转换单位"
@@ -8946,14 +8963,54 @@ msgstr "文件包含无效的顶点索引。"
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "无法读取此OBJ文件，因为它是空的。"
 
-msgid "Preset"
-msgstr "预设"
+msgid "Dynamic Pressure Control Calibration"
+msgstr "动态压力控制校准"
 
-msgid "Record"
-msgstr "记录"
+msgid "Flow Rate Calibration"
+msgstr "流量速率校准"
 
-msgid "Pressure Adavance"
-msgstr "压力提升"
+msgid "Max Volumetric Speed Calibration"
+msgstr "最大体积速度校准"
+
+msgid "Manage Result"
+msgstr "管理结果"
+
+msgid "Maual Calibration"
+msgstr "手动校准"
+
+msgid "Result can be read by human eyes."
+msgstr "结果可由人眼读取。"
+
+msgid "Auto-Calibration"
+msgstr "自动校准"
+
+msgid "We would use Lidar to read the calibration result"
+msgstr "我们将使用激光雷达来读取校准结果。"
+
+msgid "Prev"
+msgstr "上一个"
+
+msgid "Recalibration"
+msgstr "重新校准"
+
+msgid "Calibrate"
+msgstr "校准"
+
+msgid "Finish"
+msgstr "完成"
+
+msgid ""
+"The current firmware version of the printer does not support calibration.\n"
+"Please upgrade the printer firmware."
+msgstr ""
+"打印机当前的固件版本不支持校准。\n"
+"请升级打印机固件。"
+
+msgid "Calibration not supported"
+msgstr "不支持校准"
+
+msgid "Dynamic Pressure Control"
+msgstr "动态压力控制"
 
 msgid "Flow Rate"
 msgstr "流速"
@@ -8961,60 +9018,24 @@ msgstr "流速"
 msgid "Max Volumetric Speed"
 msgstr "最大容积速度"
 
-msgid "Please input a valid value (0.0 < flow ratio < 0.2)"
-msgstr ""
+msgid "The name cannot be empty."
+msgstr "名称不能为空。"
 
-msgid "Please input a valid value (N in 0.6~2.0)"
-msgstr ""
+msgid "The selected preset has been deleted."
+msgstr "所选预设已被删除。"
 
-msgid "Plate Type"
-msgstr "热床类型"
+msgid "The name cannot be the same as the system preset name."
+msgstr "名称不能与系统预设名称相同。"
 
-msgid "Filament From"
-msgstr "耗材丝来源"
+msgid "The name is the same as another existing preset name"
+msgstr "该名称与另一个现有预设名称相同。"
 
-msgid "External Spool"
-msgstr "外部线轴"
-
-msgid "Filament For Calibration"
-msgstr "校准用耗材"
+msgid "create new preset failed."
+msgstr "创建新预设失败"
 
 msgid ""
-"Please select same type of material, because plate temperature might not be "
-"compatible with different type of material"
-msgstr "请选择相同类型的材料，因为热床温度可能与不同类型的材料不兼容。"
-
-msgid ""
-"A test model will be printed. Please clear the build plate and place it back "
-"to the hot bed before calibration."
-msgstr "将打印一份测试模型。在校准之前，请清理打印平台并将其放回热床上。"
-
-msgid "Printing Parameters"
-msgstr "打印参数"
-
-msgid "Restart"
-msgstr "重新开始"
-
-msgid "Calibrate"
-msgstr "校准"
-
-msgid "Error desc"
-msgstr "错误描述"
-
-msgid "Extra info"
-msgstr "额外信息"
-
-msgid "Re-Calibrate"
-msgstr "重新校准"
-
-msgid "Is in printing. Please wait for printing to complete"
-msgstr "正在打印中，请等待打印完成。"
-
-msgid "It will restart to get the results. Do you confirm to re-calibrate?"
-msgstr "将重新启动以获取结果。您确定要重新校准吗？"
-
-msgid "It will restart to get the results. Do you confirm to restart?"
-msgstr "将重新启动以获取结果。您确定要重新启动吗？"
+"Are you sure to cancel the current calibration and return to the home page?"
+msgstr "您确定要取消当前的校准并返回主页吗？"
 
 msgid "No Printer Connected!"
 msgstr "没有连接打印机！"
@@ -9022,51 +9043,30 @@ msgstr "没有连接打印机！"
 msgid "Printer is not connected yet."
 msgstr "打印机尚未连接。"
 
-msgid "Please select a printer and nozzle for calibration."
-msgstr "请选择用于校准的打印机和喷嘴。"
-
-msgid "No print preset"
-msgstr "没有打印预设。"
-
-msgid "Please select filament for calibration."
-msgstr "请选择用于校准的打印材料。"
-
 msgid ""
-"The printing parameters is empty, please reselect nozzle and plate type."
-msgstr "打印参数为空，请重新选择喷嘴和打印板类型。"
+"Dynamic Pressure Control calibration result has been saved to the printer"
+msgstr "动态压力控制校准结果已保存到打印机。"
 
-msgid "Saved success."
-msgstr "保存成功"
+msgid "Internal Error"
+msgstr "内部错误"
 
-msgid "FAILED"
-msgstr ""
+msgid "Please select at least one filament for calibration"
+msgstr "请至少选择一种材料进行校准。"
 
-msgid ""
-"Are you sure you want to cancel this calibration? It will return to start "
-"page"
-msgstr "您确定要取消此次校准吗？这将返回到开始页面。"
+msgid "Flow rate calibration result has been saved to preset"
+msgstr "流量校准结果已保存到预设"
 
-#, c-format, boost-format
-msgid ""
-"Unable to print %s and %s together. Filaments have large bed temperature "
-"difference"
-msgstr "无法同时打印 %s 和 %s。打印材料的打印床温度差异较大。"
+msgid "The input value size must be 3."
+msgstr "输入值大小必须为3。"
 
-msgid "No AMS filaments. Please select a printer to load AMS info."
-msgstr "没有 AMS 材料。请先选择一个打印机以加载 AMS 信息。"
+msgid "Max volumetric speed calibration result has been saved to preset"
+msgstr "最大体积速度校准结果已保存到预设值"
 
-#, c-format, boost-format
-msgid "%s is not compatible with %s"
-msgstr "%s 与 %s 不兼容"
+msgid "Wiki"
+msgstr "Wiki"
 
-msgid "Please find the best line on your plate"
-msgstr "请在您的打印板上找到最佳线条"
-
-msgid "We found the best Pressure Advance Factor"
-msgstr "我们找到了最佳的压力提升因子"
-
-msgid "When you need Pressure Advance Calibration"
-msgstr "当您需要进行压力提升校准时"
+msgid "When you need Dynamic Pressure Control Calibration"
+msgstr "当您需要动态压力控制校准时"
 
 msgid "uneven extrusion"
 msgstr "不均匀挤出"
@@ -9082,191 +9082,162 @@ msgstr ""
 "校准完成后，线性补偿系数(K) 将被记录并应用于打印中。如果设备、使用程度、材料"
 "和材料类型不同，这个系数也会有所不同。"
 
-msgid "Wiki"
-msgstr "Wiki"
+msgid "When you need Flow Rate Calibration"
+msgstr "当您需要流量校准时"
 
-msgid "Manage Result"
-msgstr "管理结果"
+msgid "Over-extrusion or under extrusion"
+msgstr "过度挤压或挤压不足"
 
-msgid "Start"
-msgstr "首层"
+msgid "Flow Rate calibration is recommended when you print with:"
+msgstr "当使用以下内容打印时，建议进行流速校准："
 
-msgid "Pressure Advance"
-msgstr "压力提升"
+msgid "material with significant thermal shrinkage/expansion, such as..."
+msgstr "具有显著热收缩/膨胀的材料，例如..."
 
-msgid "Material"
-msgstr "材料"
+msgid "materials with inaccurate filament diameter"
+msgstr "耗材直径不准确的材料"
 
-msgid "K"
-msgstr ""
+msgid "When you need Max Volumetric Speed Calibration"
+msgstr "当您需要最大体积速度校准时"
 
-msgid "Action"
-msgstr ""
+msgid "Max Volumetric Speed calibration is recommended when you print with:"
+msgstr "使用以下选项打印时，建议进行最大体积速度校准："
 
-msgid "No History Result"
-msgstr ""
-
-msgid "FactorK"
-msgstr ""
-
-msgid "FactorN"
-msgstr ""
+msgid "We found the best Dynamic Pressure Control Factor"
+msgstr "我们找到了最佳的动态压力控制系数"
 
 msgid "Brand Name"
-msgstr ""
+msgstr "品牌名称"
 
 msgid "Failed"
 msgstr "失败"
 
-msgid ""
-"Make sure bed_temp > 0 \n"
-"nozzle_temp > 0\n"
-"max_volumetric_speed > 0"
-msgstr ""
+msgid "Please enter the name you want to save to printer."
+msgstr "请输入要保存到打印机的名称。"
 
-msgid "Please find the best object on your plate"
-msgstr ""
+msgid "The name cannot exceed 20 characters."
+msgstr "名称不能超过20个字符。"
 
-msgid "Fill in the value above the block with smoothest top surface"
-msgstr ""
+msgid "Please find the best line on your plate"
+msgstr "请在您的打印板上找到最佳线条"
+
+msgid "Input Value"
+msgstr "输入值"
 
 msgid "Save to Filament Preset"
-msgstr ""
+msgstr "保存到材料预设"
+
+msgid "Preset"
+msgstr "预设"
+
+msgid "Record"
+msgstr "记录"
+
+msgid "We found the best flow ratio for you"
+msgstr "我们为您找到了最佳流量比"
+
+msgid "Flow Ratio"
+msgstr "流量比"
+
+msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
+msgstr "请输入一个有效值（0.0<流量比<2.0）"
+
+msgid "Please enter the name of the preset you want to save."
+msgstr "请输入要保存的预设的名称。"
+
+msgid "Calibration1"
+msgstr "校准1"
+
+msgid "Calibration2"
+msgstr "校准2"
+
+msgid "Please find the best object on your plate"
+msgstr "请在你的盘里找到最好的对象"
+
+msgid "Fill in the value above the block with smoothest top surface"
+msgstr "用最光滑的顶面填充块上方的值"
 
 msgid "Skip Calibration2"
-msgstr ""
+msgstr "跳过校准2"
 
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr ""
+msgstr "流量比：%s "
 
-msgid "We found the best flow ratio for you"
-msgstr ""
+msgid "Please choose a block with smoothest top surface"
+msgstr "请选择顶部表面最光滑的块"
 
-msgid "When you need Flow Rate Calibration"
-msgstr ""
+msgid "Please choose a block with smoothest top surface."
+msgstr "请选择顶部表面最光滑的块。"
 
-msgid "Over-extrusion or under extrusion"
-msgstr ""
+msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
+msgstr "请输入一个有效值（0<=最大容积速度<=60）"
 
-msgid "Flow Rate calibration is recommended when you print with:"
-msgstr ""
-
-msgid "material with significant thermal shrinkage/expansion, such as..."
-msgstr ""
-
-msgid "materials with inaccurate filament diameter"
-msgstr ""
+msgid "Calibration Type"
+msgstr "校准类型"
 
 msgid "Complete Calibration"
-msgstr ""
+msgstr "完成校准"
 
 msgid "Fine Calibration based on flow ratio"
-msgstr ""
+msgstr "基于流量比的精细校准"
 
-msgid "Flow Ratio"
-msgstr ""
+msgid "Title"
+msgstr "标题"
 
-msgid "Input name of filament preset to save"
-msgstr ""
+msgid ""
+"A test model will be printed. Please clear the build plate and place it back "
+"to the hot bed before calibration."
+msgstr "将打印一份测试模型。在校准之前，请清理打印平台并将其放回热床上。"
 
-msgid "Choose a block with smoothest top surface."
+msgid "Printing Parameters"
+msgstr "打印参数"
+
+msgid "Please select the nozzle diameter of your printer"
+msgstr "请选择打印机的喷嘴直径"
+
+msgid "Please select the plate type of your printer"
+msgstr "请选择打印机的印版类型"
+
+msgid "filament position"
+msgstr "耗材丝位置"
+
+msgid "External Spool"
+msgstr "外部线轴"
+
+msgid "Filament For Calibration"
+msgstr "校准用耗材"
+
+msgid ""
+"Tips for calibration material: \n"
+"- Materials that can share same hot bed temperature\n"
+"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
+"校准材料提示：\n"
+"-可以共享相同热床温度的材料\n"
+"-不同的耗材品牌和系列（Brand = Bambu, Family = Basic, Matte）"
+
+msgid "Error desc"
+msgstr "错误描述"
+
+msgid "Extra info"
+msgstr "额外信息"
+
+msgid "Record Factor"
+msgstr "记录系数"
 
 #, c-format, boost-format
-msgid "max volumetric speed : %s "
-msgstr ""
+msgid "%s is not compatible with %s"
+msgstr "%s 与 %s 不兼容"
 
-msgid "When you need Max Volumetric Speed Calibration"
-msgstr ""
-
-msgid "Under-extrusion"
-msgstr ""
-
-msgid "What will happen if the Max Volumetric Speed is not set up properly"
-msgstr ""
-
-msgid ""
-"Under-extrusion: If the value is set too high, under-extrusion will happen "
-"and cause poor apperance on the printed model"
-msgstr ""
-
-msgid ""
-"Print speed is limited: If the value is set too low, the print speed will be "
-"limited and make the print time longer. Take the model on the right picture "
-"for example. max volumetric speed [n] mm^3/s costs [x] minutes. max "
-"volumetric speed [m] mm^3/s costs [y] minutes"
-msgstr ""
-
-msgid "Input Value"
-msgstr ""
+msgid "The nozzle diameter has been synchronized from the printer Settings"
+msgstr "喷嘴直径已从打印机设置同步"
 
 msgid "From Volumetric Speed"
-msgstr ""
+msgstr "从体积速度"
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid ""
-"Please input valid values:\n"
-"From > 0\n"
-"To < 60\n"
-"Step >= 0\n"
-"To > From + Step"
-msgstr ""
-
-msgid "Input a value."
-msgstr ""
-
-msgid "When you need Temperature Calibration"
-msgstr ""
-
-msgid "Model stringing"
-msgstr ""
-
-msgid "Layer adhesion problem"
-msgstr ""
-
-msgid "Warping(overhang)"
-msgstr ""
-
-msgid "Bridging"
-msgstr ""
-
-msgid "Optimal Temp"
-msgstr ""
-
-msgid "From Temp"
-msgstr ""
-
-msgid "To Temp"
-msgstr ""
-
-msgid ""
-"Please input valid values:\n"
-"From temp: >= 180\n"
-"To temp: <= 350\n"
-"From temp <= To temp - Step\n"
-" From temp - To temp < 120"
-msgstr ""
-
-msgid "Input an optiaml temperature."
-msgstr ""
-
-msgid "Optimal Retraction Length"
-msgstr ""
-
-msgid "Retraction Calibration"
-msgstr ""
-
-msgid "From Retraction Length"
-msgstr ""
-
-msgid "To Retraction Length"
-msgstr ""
-
-msgid "Input an optiaml retraction length."
-msgstr ""
+msgstr "至体积速度"
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -9512,6 +9483,83 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Printing List"
+#~ msgstr "项目切片"
+
+#~ msgid "Pressure Adavance"
+#~ msgstr "压力提升"
+
+#~ msgid "Plate Type"
+#~ msgstr "热床类型"
+
+#~ msgid "Filament From"
+#~ msgstr "耗材丝来源"
+
+#~ msgid ""
+#~ "Please select same type of material, because plate temperature might not "
+#~ "be compatible with different type of material"
+#~ msgstr "请选择相同类型的材料，因为热床温度可能与不同类型的材料不兼容。"
+
+#~ msgid "Restart"
+#~ msgstr "重新开始"
+
+#~ msgid "Re-Calibrate"
+#~ msgstr "重新校准"
+
+#~ msgid "Is in printing. Please wait for printing to complete"
+#~ msgstr "正在打印中，请等待打印完成。"
+
+#~ msgid "It will restart to get the results. Do you confirm to re-calibrate?"
+#~ msgstr "将重新启动以获取结果。您确定要重新校准吗？"
+
+#~ msgid "It will restart to get the results. Do you confirm to restart?"
+#~ msgstr "将重新启动以获取结果。您确定要重新启动吗？"
+
+#~ msgid "Please select a printer and nozzle for calibration."
+#~ msgstr "请选择用于校准的打印机和喷嘴。"
+
+#~ msgid "No print preset"
+#~ msgstr "没有打印预设。"
+
+#~ msgid "Please select filament for calibration."
+#~ msgstr "请选择用于校准的打印材料。"
+
+#~ msgid ""
+#~ "The printing parameters is empty, please reselect nozzle and plate type."
+#~ msgstr "打印参数为空，请重新选择喷嘴和打印板类型。"
+
+#~ msgid "Saved success."
+#~ msgstr "保存成功"
+
+#~ msgid ""
+#~ "Are you sure you want to cancel this calibration? It will return to start "
+#~ "page"
+#~ msgstr "您确定要取消此次校准吗？这将返回到开始页面。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Unable to print %s and %s together. Filaments have large bed temperature "
+#~ "difference"
+#~ msgstr "无法同时打印 %s 和 %s。打印材料的打印床温度差异较大。"
+
+#~ msgid "No AMS filaments. Please select a printer to load AMS info."
+#~ msgstr "没有 AMS 材料。请先选择一个打印机以加载 AMS 信息。"
+
+#~ msgid "We found the best Pressure Advance Factor"
+#~ msgstr "我们找到了最佳的压力提升因子"
+
+#~ msgid "When you need Pressure Advance Calibration"
+#~ msgstr "当您需要进行压力提升校准时"
+
+#~ msgid "Start"
+#~ msgstr "首层"
+
+#~ msgid "Pressure Advance"
+#~ msgstr "压力提升"
+
+#~ msgid "Material"
+#~ msgstr "材料"
 
 #~ msgid "Edit plate settings"
 #~ msgstr "编辑盘设置"
@@ -10037,9 +10085,6 @@ msgstr ""
 
 #~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 #~ msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
-
-#~ msgid "Finish"
-#~ msgstr "完成"
 
 #~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
 #~ msgstr "导入 3MF/STL/STEP/OBJ/AMF"
@@ -13131,9 +13176,6 @@ msgstr ""
 
 #~ msgid "Note: This preset will be replaced after saving"
 #~ msgstr "注意：这个预设会在保存后被替换"
-
-#~ msgid "The name cannot be empty."
-#~ msgstr "名称不能为空。"
 
 #~ msgid "The name cannot start with space character."
 #~ msgstr "名称不能以空格开头。"
