@@ -669,7 +669,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     if (!curr_obj) return;
 
     //clean flow rate result
-    curr_obj->flow_ratio_results.clear();
+    curr_obj->reset_flow_rate_cali_result();
 
     float nozzle_dia = 0.4;
     std::string setting_id;

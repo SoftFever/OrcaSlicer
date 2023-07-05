@@ -123,15 +123,25 @@ void CalibrationCaliPage::update(MachineObject* obj)
     if (obj) {
         if (m_cali_mode == CalibMode::Calib_PA_Line) {
             if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-                if (obj->get_pa_calib_result) {
-                    enable_cali = true;
-                } else {
-                    if (get_obj_calibration_mode(obj) == m_cali_mode && obj->is_printing_finished()) {
-                        // use selected diameter, add a counter to timeout, add a warning tips when get result failed
-                        CalibUtils::emit_get_PA_calib_results(get_selected_calibration_nozzle_dia(obj));
-                        BOOST_LOG_TRIVIAL(trace) << "CalibUtils::emit_get_PA_calib_results, auto count = " << get_result_count++;
-                    } else {
-                        ;
+                if (get_obj_calibration_mode(obj) == m_cali_mode) {
+                    if (obj->is_printing_finished()) {
+                        if (obj->print_status == "FINISH") {
+                            if (obj->get_pa_calib_result) {
+                                enable_cali = true;
+                            }
+                            else {
+                                // use selected diameter, add a counter to timeout, add a warning tips when get result failed
+                                CalibUtils::emit_get_PA_calib_results(get_selected_calibration_nozzle_dia(obj));
+                                BOOST_LOG_TRIVIAL(trace) << "CalibUtils::emit_get_PA_calib_results, auto count = " << get_result_count++;
+                                enable_cali = false;
+                            }
+                        }
+                        else if (obj->print_status == "FAILED") {
+                            enable_cali = false;
+                        }
+                    }
+                    else {
+                        enable_cali = false;
                     }
                 }
             } else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -146,14 +156,24 @@ void CalibrationCaliPage::update(MachineObject* obj)
             m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_CALI_NEXT, enable_cali);
         } else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
             if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-                if (obj->get_flow_calib_result) {
-                    enable_cali = true;
-                } else {
-                    if (get_obj_calibration_mode(obj) == m_cali_mode && obj->is_printing_finished()) {
-                        // use selected diameter, add a counter to timeout, add a warning tips when get result failed
-                        CalibUtils::emit_get_flow_ratio_calib_results(get_selected_calibration_nozzle_dia(obj));
-                    } else {
-                        ;
+                if (get_obj_calibration_mode(obj) == m_cali_mode) {
+                    if (obj->is_printing_finished()) {
+                        if (obj->print_status == "FINISH") {
+                            if (obj->get_pa_calib_result) {
+                                enable_cali = true;
+                            }
+                            else {
+                                // use selected diameter, add a counter to timeout, add a warning tips when get result failed
+                                CalibUtils::emit_get_flow_ratio_calib_results(get_selected_calibration_nozzle_dia(obj));
+                                enable_cali = false;
+                            }
+                        }
+                        else if (obj->print_status == "FAILED") {
+                            enable_cali = false;
+                        }
+                    }
+                    else {
+                        enable_cali = false;
                     }
                 }
             } else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -246,7 +266,8 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
                 m_printing_panel->show_profile_info(false);
             }
 
-            update_basic_print_data(false, obj->slice_info->weight, obj->slice_info->prediction);
+            if (obj->slice_info)
+                update_basic_print_data(false, obj->slice_info->weight, obj->slice_info->prediction);
         }
         else {
             if (obj->can_resume()) {
