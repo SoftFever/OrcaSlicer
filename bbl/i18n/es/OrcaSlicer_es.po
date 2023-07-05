@@ -2,10 +2,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-30 05:30+0200\n"
+"POT-Creation-Date: 2023-07-05 11:30:30+0100\n"
 "PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"Last-Translator: Carlos Caruncho (tadeus) telegram @T4deu2 puzzlero@gmail.com \n"
+"Language-Team: https://t.me/orca_slicer_es \n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -470,7 +470,10 @@ msgid "Perform Recognition"
 msgstr "Realizar el reconocimiento"
 
 msgid "Brush size"
+<<<<<<< HEAD
 msgstr "Tamaño de pincel"
+=======
+>>>>>>> spanish_translation
 msgstr "Tamaño del pincel"
 
 #, fuzzy
@@ -895,7 +898,7 @@ msgid "Replace with STL"
 msgstr "Reemplazar con STL"
 
 msgid "Replace the selected part with new STL"
-msgstr ""
+msgstr "Reemplaza la parte seleccionada con un nuevo STL"
 
 msgid "Change filament"
 msgstr "Cambiar el filamento"
@@ -1351,7 +1354,7 @@ msgid "No-brim"
 msgstr "Sin borde"
 
 msgid " "
-msgstr ""
+msgstr " "
 
 msgid "Layer height"
 msgstr "Altura de la capa"
@@ -1366,7 +1369,7 @@ msgid "Auto Brim"
 msgstr "Borde automático"
 
 msgid "Outer wall speed"
-msgstr ""
+msgstr "Velocidad muro exterior"
 
 msgid "Plate"
 msgstr "Placa"
@@ -1660,7 +1663,7 @@ msgid "Unknown Failure"
 msgstr "Error desconocido"
 
 msgid "Please check the printer network connection."
-msgstr ""
+msgstr "Por favor, comprueba la conexión de área local"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Datos anormales del archivo de impresión. Por favor, procese de nuevo"
@@ -1836,11 +1839,15 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, versión 3"
 
 msgid ""
-"Orca Slicer is based on BambuStudio by Bambulab, which is from PrusaSlicer "
+"Orca Slicer is based on OrcaSlicer by Bambulab, which is from PrusaSlicer "
 "by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
 "the RepRap community"
 msgstr ""
+<<<<<<< HEAD
 "Orca Slicer está basado en BambuStudio por Bambulab, el cual está basado en PrusaSlicer "
+=======
+"Orca Slicer está basado en OrcaSlicer por Bambulab, el cual está basado en PrusaSlicer "
+>>>>>>> spanish_translation
 "por Prusa Research. PrusaSlicer está basado en Slic3r de Alessandro Ranellucci y "
 "la comunidad RepRap"
 
@@ -2391,6 +2398,8 @@ msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
 msgstr ""
+"Velocidad volumétrica máxima demasiado baja.\n"
+"Reajustar a 0.5"
 
 msgid ""
 "Too small layer height.\n"
@@ -2504,14 +2513,18 @@ msgstr "El patrón de relleno %1% no soporta el 100%% de densidad."
 
 msgid ""
 "Switch to rectilinear pattern?\n"
-"Yes - switch to rectilinear pattern automaticlly\n"
+"Yes - switch to rectilinear pattern automatically\n"
 "No  - reset density to default non 100% value automaticlly"
 msgstr ""
+"¿Cambiar a patrón rectilineo?\n"
+"Sí - cambiar a patrón rectilineo automaticamente\n"
+"No - reiniciar a valor de densidad no 100% por defecto automaticamente"
 
 msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
 msgstr ""
+"Mientras se imprime por objeto, el extrusor puede chocar contra la falda.\n"
 
 msgid "Auto bed leveling"
 msgstr "Nivelación de cama automática"
@@ -2882,7 +2895,7 @@ msgid "Mouse wheel:"
 msgstr "Rueda del ratón:"
 
 msgid "Increase/decrease edit area"
-msgstr "\"Increentar/decrementar el área de edición"
+msgstr "Incrementar/decrementar el área de edición"
 
 msgid "Sequence"
 msgstr "Secuencia"
@@ -3003,6 +3016,9 @@ msgid ""
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
+"Un objeto está colocado en el límite de la placa o excede el límite de altura.\n"
+"Por favor solucione el problema moviéndolo totalmente fuera o dentro de la placa, y "
+"confirme que la altura está entre el volumen de construcción."
 
 msgid "Jump to"
 msgstr "Ir a"
@@ -3115,7 +3131,7 @@ msgid "No"
 msgstr "No"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
-msgstr ""
+msgstr "se cerrará antes de crear un nuevo modelo. ¿Quiere continuar?"
 
 msgid "Slice plate"
 msgstr "Laminar placa"
@@ -3247,7 +3263,7 @@ msgid "Save current project as"
 msgstr "Guardar el proyecto actual como"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
-msgstr ""
+msgstr "Importar 3MF/STL/STEP/SVG/OBJ/AMF"
 
 msgid "Load a model"
 msgstr "Cargar un modelo"
@@ -3478,8 +3494,8 @@ msgstr "Elegir un directorio"
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Hay %d configuración exportada. (solo configuraciones que no sean del sistema)"
+msgstr[1] "Hay %d configuraciones exportadas. (solo configuraciones que no sean del sistema)"
 
 msgid "Export result"
 msgstr "Exportar resultado"
@@ -3491,7 +3507,7 @@ msgstr "Seleccionar perfil a cargar:"
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural ""
 "There are %d configs imported. (Only non-system and compatible configs)"
-msgstr[0] ""
+msgstr[0] "Hay %d configuración exportada. (solo configuraciones que no sean del sistema y compatibles)"
 msgstr[1] ""
 
 msgid "Import result"
@@ -3517,6 +3533,7 @@ msgstr ""
 "Esta contiene la siguiente información:\n"
 "1. Los Preajustes de Proceso\n"
 "2. Los Preajustes de Filamento"
+"3. Los preajustes de la Impressora"
 
 msgid "Synchronization"
 msgstr "Sincronización"
@@ -3525,7 +3542,7 @@ msgid "Initialize failed (No Device)!"
 msgstr "¡Inicialización fallida (No hay dispositivo)!"
 
 msgid "Initialize failed (No Camera Device)!"
-msgstr ""
+msgstr "¡Inicialización fallida (No hay Cámara)!"
 
 msgid "Initializing..."
 msgstr "Iniciando..."
@@ -3547,7 +3564,7 @@ msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Inicialización fallida (Perdida la IP de red de la impresora)"
 
 msgid "Initialize failed (Not supported by printer)!"
-msgstr ""
+msgstr "Inicialización fallida (No soportada por la impresora)"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3572,25 +3589,24 @@ msgid ""
 msgstr ""
 
 msgid "Downloading Virtual Camera Tools"
-msgstr ""
+msgstr "Descargando Herramientas de Cámara Virtual"
 
 msgid ""
 "Another virtual camera is running.\n"
 "Bambu Studio supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
+"Otra cámara virtual se está ejecutando.\n"
+"Bambu Studio solo soporta una cámara virtual.\n"
+"¿Desea detener esta cámara virtual?"
 
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
-msgstr ""
+msgstr "Inicialización de cámara virtual (%s)"
 
 #, fuzzy
 msgid "Information"
-msgstr ""
-"¿Quieres sincronizar tus datos personales desde la nube Bambú? \n"
-"Esta contiene la siguiente información:\n"
-"1. Los Preajustes de Proceso\n"
-"2. Los Preajustes de Filamento"
+msgstr "Información"
 
 msgid "Playing..."
 msgstr "Reproduciendo..."
@@ -3606,43 +3622,43 @@ msgid "Month"
 msgstr "Mes"
 
 msgid "All Files"
-msgstr ""
+msgstr "Todos los Archivos"
 
 msgid "Group files by year, recent first."
-msgstr ""
+msgstr "Agrupar archivos por año, primero los recientes."
 
 msgid "Group files by month, recent first."
-msgstr ""
+msgstr "Agrupar archivos por mes, primero los recientes"
 
 msgid "Show all files, recent first."
-msgstr ""
+msgstr "Mostrar todos los archivos, primero los recientes"
 
 msgid "Timelapse"
-msgstr "Timelapse"
+msgstr "Intervalo"
 
 msgid "Switch to timelapse files."
-msgstr ""
+msgstr "Cambiar a archivos de intervalo."
 
 msgid "Video"
 msgstr "Video"
 
 msgid "Switch to video files."
-msgstr ""
+msgstr "Cambiar a archivos de video."
 
 msgid "Delete selected files from printer."
-msgstr ""
+msgstr "Borrar archivos seleccionados desde la impresora."
 
 msgid "Download"
 msgstr "Descargar"
 
 msgid "Download selected files from printer."
-msgstr ""
+msgstr "Descargar achivos seleccionados desde la impresora"
 
 msgid "Select"
-msgstr ""
+msgstr "Seleccionar"
 
 msgid "Batch manage files."
-msgstr ""
+msgstr "Arhivos de proceso por lotes"
 
 msgid "No printers."
 msgstr "No hay impresoras."
@@ -3665,38 +3681,38 @@ msgid "No files"
 msgstr "No hay archivos"
 
 msgid "Not accessible in LAN-only mode!"
-msgstr ""
+msgstr "¡No accesible en modelo de solo red local!"
 
 msgid "Missing LAN ip of printer!"
-msgstr ""
+msgstr "¡IP de red local pérdida!"
 
 #, c-format, boost-format
 msgid "You are going to delete %u files. Are you sure to continue?"
-msgstr ""
+msgstr "Va a borrar u% archivos. ¿Está seguro de continuar?"
 
 msgid "Delete files"
-msgstr ""
+msgstr "Borrar archivos"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
-msgstr ""
+msgstr "¡El archivo '%s' se perdió!" Por favor, vuelva a descargarlo.
 
 msgid "Download waiting..."
-msgstr ""
+msgstr "Descarga esperando..."
 
 msgid "Play"
-msgstr ""
+msgstr "Reproducir"
 
 #, fuzzy
 msgid "Open Folder"
 msgstr "Abrir siguiente consejo."
 
 msgid "Download finished"
-msgstr ""
+msgstr "Descarga finalizada"
 
 #, c-format, boost-format
 msgid "Downloading %d%%..."
-msgstr ""
+msgstr "Descargando %d%%..."
 
 msgid "Speed:"
 msgstr "Velocidad:"
@@ -3711,7 +3727,7 @@ msgid "Zoom"
 msgstr "Zoom"
 
 msgid "Translation/Zoom"
-msgstr ""
+msgstr "Conversión/Zoom"
 
 msgid "3Dconnexion settings"
 msgstr "Ajustes de conexión 3D"
@@ -3720,13 +3736,13 @@ msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
 
 msgid "Camera"
-msgstr ""
+msgstr "Cámara"
 
 msgid "SD Card"
-msgstr ""
+msgstr "Tarjeta SD"
 
 msgid "Camera Setting"
-msgstr ""
+msgstr "Ajuste de Cámara"
 
 msgid "Printing Progress"
 msgstr "Progreso de impresión"
@@ -3746,16 +3762,16 @@ msgstr ""
 "altura de soporte independiente de altura de capa"
 
 msgid "Layer: N/A"
-msgstr ""
+msgstr "Capa: N/A"
 
 msgid "Clear"
-msgstr ""
+msgstr "Vaciar"
 
 msgid "Control"
 msgstr "Control"
 
 msgid "Print Options"
-msgstr ""
+msgstr "Opciones de Impresora"
 
 msgid "100%"
 msgstr "100%"
@@ -3767,7 +3783,7 @@ msgid "Aux"
 msgstr ""
 
 msgid "Cham"
-msgstr ""
+msgstr "Costura"
 
 msgid "Bed"
 msgstr "Cama"
@@ -3779,10 +3795,10 @@ msgid "Debug Info"
 msgstr "Información de Depuración"
 
 msgid "No SD Card"
-msgstr ""
+msgstr "Sin tarjeta SD"
 
 msgid "SD Card Abnormal"
-msgstr ""
+msgstr "Tarjeta SD Anormal"
 
 msgid "Printing List"
 msgstr "Imprimiendo Lista"
@@ -3792,37 +3808,41 @@ msgid "Cancel print"
 msgstr "Carga cancelada"
 
 msgid "Are you sure you want to cancel this print?"
-msgstr ""
+msgstr "¿Está seguro que desea cancelar esta impresión?"
 
 #, c-format, boost-format
 msgid ""
 "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
 "printer by logging in with your user account."
 msgstr ""
+"Desconectado de la impresora [%s] debido a modo de red deshabilitado. "
+"Por favor, reconéctese la impresora ingresando con su cuenta de usuario."
 
 #, c-format, boost-format
 msgid ""
 "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
 "printer by inputting Access Code which can be gotten from printer screen."
 msgstr ""
+"Desconectado de la impresora [%s] debido a modo de red habilitado. "
+"Por favor, reconéctese la impresora ingresando con su cuenta de usuario."
 
 msgid "Downloading..."
 msgstr "Descargando…"
 
 msgid "Cloud Slicing..."
-msgstr ""
+msgstr "Rebanado en la Nube..."
 
 #, c-format, boost-format
 msgid "In Cloud Slicing Queue, there are %s tasks ahead."
-msgstr ""
+msgstr "Hay %s tareas por delante, en la Cola de Rebanado en la Nube."
 
 #, c-format, boost-format
 msgid "Layer: %s"
-msgstr ""
+msgstr "Capa: %s"
 
 #, c-format, boost-format
 msgid "Layer: %d/%d"
-msgstr ""
+msgstr "Capa:  %d/%d"
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
@@ -3842,7 +3862,7 @@ msgid ""
 msgstr ""
 
 msgid "This only takes effect during printing"
-msgstr ""
+msgstr "Esto solo tendrá efecto durante la impresión"
 
 msgid "Silent"
 msgstr "Silencio"
@@ -3857,7 +3877,7 @@ msgid "Ludicrous"
 msgstr "Lúdico"
 
 msgid "Can't start this without SD card."
-msgstr ""
+msgstr "No puede iniciarse sin una tarjeta SD."
 
 msgid "Failed to connect to the server"
 msgstr "No se ha podido conectar con el servidor"
@@ -3926,10 +3946,10 @@ msgid "Undo integration was successful."
 msgstr "La operación de deshacer se ha realizado con éxito."
 
 msgid "New network plug-in available."
-msgstr ""
+msgstr "Nuevo complemento de red disponible."
 
 msgid "Details"
-msgstr ""
+msgstr "Detalles"
 
 msgid "Undo integration failed."
 msgstr "La operación de deshacer ha fallado."
@@ -3947,7 +3967,7 @@ msgid "Open Folder."
 msgstr "Abrir Carpeta."
 
 msgid "Safely remove hardware."
-msgstr ""
+msgstr "Quitar hardware con seguridad."
 
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
@@ -3964,8 +3984,8 @@ msgstr[1] "%1$d Los objetos tienen pintura de color."
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d El objeto se ha cargado como parte del objeto de corte."
+msgstr[1] "%1$d Los objetos se han cargado como partes del objeto de corte."
 
 #, fuzzy
 msgid "ERROR"
@@ -3990,7 +4010,7 @@ msgid "Warning:"
 msgstr "Advertencia:"
 
 msgid "Export successfully."
-msgstr ""
+msgstr "Exportación exitosa."
 
 msgid " (Repair)"
 msgstr " (Reparación)"
@@ -4059,24 +4079,25 @@ msgid "Bottom"
 msgstr "Inferior"
 
 msgid "Enable AI monitoring of printing"
-msgstr ""
+msgstr "Activar monitorización por IA de la impresión"
 
 msgid "Sensitivity of pausing is"
-msgstr ""
+msgstr "La sensibilidad de pausa es"
 
 msgid "Enable detection of build plate position"
-msgstr ""
+msgstr "Activar detección de posición de placa"
 
 msgid ""
 "The localization tag of build plate is detected, and printing is paused if "
 "the tag is not in predefined range."
 msgstr ""
+"La etiqueta de localización"
 
 msgid "First Layer Inspection"
-msgstr ""
+msgstr "Inspección de Primera Capa"
 
 msgid "Auto-recovery from step loss"
-msgstr ""
+msgstr "Autorecuperar desde pérdida de paso"
 
 msgid "Global"
 msgstr "Global"
@@ -4134,7 +4155,7 @@ msgid "Click to edit preset"
 msgstr "Clic para cambiar el ajuste inicial"
 
 msgid "Connection"
-msgstr ""
+msgstr "Conexión"
 
 msgid "Bed type"
 msgstr "Tipo de cama"
@@ -4143,48 +4164,58 @@ msgid "Flushing volumes"
 msgstr "Volúmenes de limpieza"
 
 msgid "Add one filament"
-msgstr ""
+msgstr "Añadir un filamento"
 
 msgid "Remove last filament"
-msgstr ""
+msgstr "Borrar último filamento"
 
 msgid "Synchronize filament list from AMS"
-msgstr ""
+msgstr "Sicronizar filamentos de la lista AMS"
 
 msgid "Set filaments to use"
-msgstr ""
+msgstr "Elegir filamentos para usar"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
 msgstr ""
+"No hay filamentos AMS. Por favor, seleccione una impresora en la página 'Dispositivos' "
+" para cargar información AMS."
 
 msgid "Sync filaments with AMS"
-msgstr ""
+msgstr "Sincronizar filamentos con AMS"
 
 msgid ""
 "Sync filaments with AMS will drop all current selected filament presets and "
 "colors. Do you want to continue?"
 msgstr ""
+"Sincronizar filamentos con AMS descartará todos los preajustes de filamento y "
+"colores. ¿Desea continuar?"
+
 
 msgid ""
 "Already did a synchronization, do you want to sync only changes or resync "
 "all?"
 msgstr ""
+"Se realizó la sincronización, ¿Desea sincronizar solo los cambios o resincronizar "
+"todo?"
 
 msgid "Sync"
-msgstr ""
+msgstr "Sincronizar"
 
 msgid "Resync"
-msgstr ""
+msgstr "Resincronizar"
 
 msgid "There are no compatible filaments, and sync is not performed."
-msgstr ""
+msgstr "No hay filamentos compatible, y no se ha realizado la sincronización."
 
 msgid ""
 "There are some unknown filaments mapped to generic preset. Please update "
 "Orca Slicer or restart Orca Slicer to check if there is an update to system "
 "presets."
 msgstr ""
+"Hay algunos filamentos desconocidos mapeados en el preajuste genérico. Por favor "
+"actualice o reinicie Orca Slicer para comprobar si hay una actualización de preajustes "
+"del sistema."
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4195,10 +4226,11 @@ msgid ""
 "Successfully unmounted. The device %s(%s) can now be safely removed from the "
 "computer."
 msgstr ""
+"Desmontado correctamente. El dispositivo %s(%s) ahora puede ser eliminado de forma segura."
 
 #, c-format, boost-format
 msgid "Ejecting of device %s(%s) has failed."
-msgstr ""
+msgstr "La expulsión del dispositivo %s(%s) ha fallado."
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr ""
@@ -4211,35 +4243,43 @@ msgid ""
 "The bed temperature exceeds filament's vitrification temperature. Please "
 "open the front door of printer before printing to avoid nozzle clog."
 msgstr ""
+"La temperatura de la cama excede la temperatura de vitrificación del filamento. "
+"Por favor, abra la puerta frontal de la impresora antes de imprimir para evitar "
+"atascos en la boquilla."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
 "nozzle hardness of the printer. Please replace the hardened nozzle or "
 "filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
+"La dureza de la boquilla requerida por el filamento es más alta que la "
+"dureza por defecto de la impresora. Por favor, reemplace la boquilla endurecida "
+"y el filamento, de otra forma, la boquilla se atascará o se dañará."
 
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Cargando archivo: %s"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr ""
+msgstr "El 3mf no es de Bambu Lab, cargar datos de geometría solo."
 
 #, fuzzy
 msgid "Load 3mf"
-msgstr "3mf Incompatible"
+msgstr "Cargar 3mf"
 
 msgid "The Config can not be loaded."
-msgstr ""
+msgstr "La Configuración no será cargada"
 
 msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
-msgstr ""
+msgstr "El 3mf está generado por un Orca Slicer antiguo, cargar solo datos de geometría."
 
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
 "unrecognized:"
 msgstr ""
+"La versión de 3mf %s es más nueva que la versión de %s %s, encontradas las siguientes "
+"llaves no reconocidas:"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Será mejor que actualices tu software.\n"
@@ -4252,23 +4292,25 @@ msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software."
 msgstr ""
+"La versión de 3mf %s es más nueva que la versión de %s %s, se sugiere actualizar su "
+"sofware."
 
 msgid "Invalid values found in the 3mf:"
-msgstr ""
+msgstr "Valores inválidos encontrados en el 3mf:"
 
 msgid "Please correct them in the param tabs"
-msgstr ""
+msgstr "Por favor, corrijalos en las pestañas de parámetros"
 
 msgid "The 3mf is not compatible, load geometry data only!"
-msgstr ""
+msgstr "¡El 3mf no es compatible, cargue solamente los datos de geometría!"
 
 msgid "Incompatible 3mf"
 msgstr "3mf Incompatible"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr ""
-"El nombre de los componentes dentro del archivo de pasos no tiene formato "
-"UTF8"
+"¡El nombre de los componentes dentro del archivo de pasos no tiene formato "
+"UTF8!"
 
 msgid "The name may show garbage characters!"
 msgstr "¡El nombre puede mostrar caracteres no válidos!"
@@ -4304,7 +4346,7 @@ msgid ""
 msgstr ""
 
 msgid "Multi-part object detected"
-msgstr ""
+msgstr "Objeto multiparte detectado"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "¿Cargar estos archivos como un objeto único con múltiples partes?\n"
@@ -4319,9 +4361,11 @@ msgid ""
 "Your object appears to be too large, Do you want to scale it down to fit the "
 "heat bed automatically?"
 msgstr ""
+"Tu objeto parece demasiado grande, ¿Deseas disminuirlo para que quepa en la cama "
+"caliente automaticamente?"
 
 msgid "Object too large"
-msgstr ""
+msgstr "Objeto demasiado grande"
 
 msgid "Export STL file:"
 msgstr "Exportar archivo STL:"
@@ -4330,7 +4374,7 @@ msgid "Save file as:"
 msgstr "Guardar archivo como:"
 
 msgid "Delete object which is a part of cut object"
-msgstr ""
+msgstr "Borrar objetos los cuales son partes del objeto cortado"
 
 msgid ""
 "You try to delete an object which is a part of a cut object.\n"
@@ -4370,7 +4414,7 @@ msgid "Invalid data"
 msgstr "Datos inválidos"
 
 msgid "Slicing Canceled"
-msgstr ""
+msgstr "Rebanado Cancelado"
 
 #, c-format, boost-format
 msgid "Slicing Plate %d"
@@ -4382,11 +4426,14 @@ msgstr "Por favor, resuelve los errores de corte y publica de nuevo."
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr ""
+"Complemento de red no detectado. Características relacionadas no disponibles."
 
 msgid ""
 "Preview only mode:\n"
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
+"Previsualizar solo el modo:\n"
+"El archivo cargado contiene solo gcode, ¿no puedo entrar a la página de Preparación?"
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
@@ -4397,30 +4444,33 @@ msgid "Creating a new project"
 msgstr "Creando un nuevo proyecto"
 
 msgid "Load project"
-msgstr "Carga de Proyecto"
+msgstr "Cargar Proyecto"
 
 msgid ""
 "Failed to save the project.\n"
 "Please check whether the folder exists online or if other programs open the "
 "project file."
 msgstr ""
+"Fallo salvando el proyecto.\n"
+"Por favor, comprobar si la carpeta existe en línea o si otros programas tienen "
+"abierto el archivo de proyecto."
 
 msgid "Save project"
-msgstr ""
+msgstr "Salvar proyecto"
 
 msgid "Importing Model"
-msgstr ""
+msgstr "Importando modelo"
 
 #, fuzzy
 msgid "prepare 3mf file..."
-msgstr "3mf Incompatible"
+msgstr "preparar achivo 3mf..."
 
 msgid "downloading project ..."
-msgstr ""
+msgstr "descargando proyecto..."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
-msgstr ""
+msgstr "Proyecto descargado %d%%"
 
 msgid "The selected file"
 msgstr "El archivo seleccionado"
@@ -4466,7 +4516,7 @@ msgstr ""
 "El proyecto actual tiene cambios sin guardar, ¿guardarlos antes de continuar?"
 
 msgid "Remember my choice."
-msgstr ""
+msgstr "Recordar my elección"
 
 msgid "Number of copies:"
 msgstr "Número de copias:"
@@ -4485,6 +4535,8 @@ msgid ""
 "The file %s has been sent to the printer's storage space and can be viewed "
 "on the printer."
 msgstr ""
+"El archivo %s ha sido mandado al almacenamiento de la impresora y puede ser visto "
+"en la impresora."
 
 msgid ""
 "Print By Object: \n"
@@ -4542,12 +4594,14 @@ msgid "Triangles: %1%\n"
 msgstr "Triángulos: %1%\n"
 
 msgid "Tips:"
-msgstr ""
+msgstr "Consejos:"
 
 msgid ""
 "\"Fix Model\" feature is currently only on Windows. Please repair the model "
 "on Orca Slicer(windows) or CAD softwares."
 msgstr ""
+"La característica \"Arreglar Modelo\" está actualmente solo en Windows. Por favor, "
+"en Orca Slicer(windows) o el software CAD"
 
 #, c-format, boost-format
 msgid ""
@@ -4555,6 +4609,8 @@ msgid ""
 "still want to do this printing, please set this filament's bed temperature "
 "to non zero."
 msgstr ""
+"Placa% d: %s no está sugerido para ser usado para imprimir filamento %s(%s). Si usted "
+"aún quiere imprimir, por favor, seleccione 0 en la temperatura de cama."
 
 msgid "Switching the language requires application restart.\n"
 msgstr "El cambio de idioma requiere el reinicio de la aplicación.\n"
@@ -4583,10 +4639,10 @@ msgid "Second"
 msgstr "Segundo"
 
 msgid "Browse"
-msgstr ""
+msgstr "Explorar"
 
 msgid "Choose Download Directory"
-msgstr ""
+msgstr "Elegir Directorio de Descarga"
 
 msgid "General Settings"
 msgstr "Configuración General"
@@ -4626,18 +4682,20 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr ""
+"Hacer zoom hacia la posición del puntero de ratón en la vista 3D, en vez del "
+"centro de la ventana 2D."
 
 msgid "Show \"Tip of the day\" notification after start"
-msgstr ""
+msgstr "Mostrar la notificación \"Consejo del Día\" después de empezar"
 
 msgid "If enabled, useful hints are displayed at startup."
-msgstr ""
+msgstr "Si está activado, las sugerencias útiles serán mostradas al inicio."
 
 msgid "Show g-code window"
-msgstr ""
+msgstr "Mostrar la ventana de g-code"
 
 msgid "If enabled, g-code window will be displayed."
-msgstr ""
+msgstr "Si está activado, se mostrará la ventana de gcode."
 
 #, fuzzy
 msgid "Presets"
@@ -4656,19 +4714,19 @@ msgid "User Sync"
 msgstr "Sincronización de usuario"
 
 msgid "Update built-in Presets automatically."
-msgstr ""
+msgstr "Actualizar preajustes integrados automaticamente."
 
 msgid "System Sync"
-msgstr ""
+msgstr "Sincronizar sistema"
 
 msgid "Clear my choice on the unsaved presets."
-msgstr ""
+msgstr "Limpiar mi selección de preajustes no guardados."
 
 msgid "Associate files to OrcaSlicer"
-msgstr "Asociar archivos a BambuStudio"
+msgstr "Asociar archivos a OrcaSlicer"
 
 msgid "Associate .3mf files to OrcaSlicer"
-msgstr "Asociar archivos .3mf a BambuStudio"
+msgstr "Asociar archivos .3mf a OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
 msgstr ""
@@ -4676,7 +4734,7 @@ msgstr ""
 "archivos .3mf"
 
 msgid "Associate .stl files to OrcaSlicer"
-msgstr "Asociar archivos .stl a BambuStudio"
+msgstr "Asociar archivos .stl a OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
 msgstr ""
@@ -4684,7 +4742,7 @@ msgstr ""
 "archivos .stl"
 
 msgid "Associate .step/.stp files to OrcaSlicer"
-msgstr "Asociar archivos .step/.stp a BambuStudio"
+msgstr "Asociar archivos .step/.stp a OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
@@ -4692,13 +4750,13 @@ msgstr ""
 "archivos .step"
 
 msgid "Maximum recent projects"
-msgstr ""
+msgstr "Proyectos recientes máximos"
 
 msgid "Maximum count of recent projects"
-msgstr ""
+msgstr "Máxima cantidad de proyectos recientes"
 
 msgid "Clear my choice on the unsaved projects."
-msgstr ""
+msgstr "Limpiar mi elección de proyectos no guardados."
 
 msgid "Auto-Backup"
 msgstr "Copia de seguridad automática"
@@ -4706,21 +4764,22 @@ msgstr "Copia de seguridad automática"
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
 msgstr ""
+"Haga copia de seguridad periodicamente para restaurar en caso de fallo ocasional."
 
 msgid "every"
-msgstr ""
+msgstr "todo"
 
-msgid "The peroid of backup in seconds."
-msgstr ""
+msgid "The period of backup in seconds."
+msgstr "El periodo de copia de seguridad en segundos."
 
 msgid "Downloads"
-msgstr ""
+msgstr "Descargas"
 
 msgid "Dark Mode"
-msgstr ""
+msgstr "Modo Oscuro"
 
 msgid "Enable Dark mode"
-msgstr ""
+msgstr "Activar Modo Oscuro"
 
 msgid "Home page and daily tips"
 msgstr "Página de inicio y consejos diarios"
@@ -4810,7 +4869,7 @@ msgid "DEBUG settings have saved successfully!"
 msgstr "¡Los ajustes de depuración se han guardado con éxito!"
 
 msgid "Switch cloud environment, Please login again!"
-msgstr ""
+msgstr "¡Cambiado a entorno de nube, Por favor vuelva a autenticarse!"
 
 msgid "System presets"
 msgstr "Ajustes del sistema"
@@ -4828,7 +4887,7 @@ msgid "Click to pick filament color"
 msgstr "Haga clic para elegir el color del filamento"
 
 msgid "Please choose the filament colour"
-msgstr ""
+msgstr "Por favor elija el color del filamento"
 
 msgid "Add/Remove presets"
 msgstr "Añadir/Quitar ajustes preestablecidos"
@@ -4840,16 +4899,16 @@ msgid "Project-inside presets"
 msgstr "Preajustes internos del proyecto"
 
 msgid "Add/Remove filaments"
-msgstr ""
+msgstr "Añadir/Borrar filamentos"
 
 msgid "Add/Remove materials"
-msgstr ""
+msgstr "Añadir/Borrar materiales"
 
 msgid "Add/Remove printers"
-msgstr ""
+msgstr "Añadir/Borrar impresoras"
 
 msgid "Same as Global Print Sequence"
-msgstr ""
+msgstr "Lo mismo que la Secuencia Global de Impresión"
 
 msgid "Print sequence"
 msgstr "Secuencia de impresión"
@@ -4859,7 +4918,7 @@ msgid "Plate name"
 msgstr "auto rotación de la placa actual"
 
 msgid "Same as Global Bed Type"
-msgstr ""
+msgstr "Lo mismo que el Tipo de Cama Global"
 
 msgid "Cool Plate"
 msgstr "Placa fría"
@@ -4883,13 +4942,13 @@ msgstr ""
 "altura de soporte independiente de altura de capa"
 
 msgid "By Object"
-msgstr ""
+msgstr "Por Objeto"
 
 msgid "Accept"
-msgstr ""
+msgstr "Aceptar"
 
 msgid "Log Out"
-msgstr ""
+msgstr "Desconectarse"
 
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
@@ -5175,10 +5234,14 @@ msgid ""
 "they are the required filaments. If they are okay, press \"Confirm\" to "
 "start printing."
 msgstr ""
+"Hay algunos filamentos desconocidos en los mapeados AMS. Por favor, compruebe "
+"si son los filamentos requeriso. Si lo son, presione \"Confirmar\" para "
+"empezar a imprimir."
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
+"Por favor, presione el botón de confirmar si aún quieres proceder con la impresión."
 
 msgid "Preparing print job"
 msgstr "Preparando el trabajo de impresión"
@@ -5251,6 +5314,8 @@ msgid ""
 "Prime tower is required for smooth timeplase. There may be flaws on the "
 "model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
+"Se requiere la torre principal para un intervalo suave. Puede haber defectos "
+"modelos sin torre principal.¿Está seguro de que quiere deshabilitar la torre principal?"
 
 msgid ""
 "Prime tower is required for smooth timelapse. There may be flaws on the "
@@ -9663,33 +9728,33 @@ msgstr ""
 #~ "cambiar a un nuevo material."
 
 #~ msgid ""
-#~ "The configuration may be generated by a newer version of BambuStudio."
+#~ "The configuration may be generated by a newer version of OrcaSlicer."
 #~ msgstr ""
 #~ "La configuración puede ser generada por una versión más reciente de "
-#~ "BambuStudio."
+#~ "OrcaSlicer."
 
 #~ msgid ""
-#~ "BambuStudio will terminate because of running out of memory.It may be a "
+#~ "OrcaSlicer will terminate because of running out of memory.It may be a "
 #~ "bug. It will be appreciated if you report the issue to our team."
 #~ msgstr ""
-#~ "BambuStudio terminará porque se está quedando sin memoria. Le "
+#~ "OrcaSlicer terminará porque se está quedando sin memoria. Le "
 #~ "agradeceremos que comunique el problema a nuestro equipo."
 
 #~ msgid ""
-#~ "BambuStudio will terminate because of a localization error. It will be "
+#~ "OrcaSlicer will terminate because of a localization error. It will be "
 #~ "appreciated if you report the specific scenario this issue happened."
 #~ msgstr ""
-#~ "BambuStudio terminará debido a un error de localización. Le agradeceremos "
+#~ "OrcaSlicer terminará debido a un error de localización. Le agradeceremos "
 #~ "que nos informe del escenario específico en el que se ha producido este "
 #~ "problema."
 
 #, boost-format
-#~ msgid "BambuStudio got an unhandled exception: %1%"
+#~ msgid "OrcaSlicer got an unhandled exception: %1%"
 #~ msgstr ""
-#~ "BambuStudio recibió una notificación de excepción no controlada: %1%."
+#~ "OrcaSlicer recibió una notificación de excepción no controlada: %1%."
 
 #~ msgid ""
-#~ "BambuStudio configuration file may be corrupted and is not abled to be "
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
 #~ "parsed.Please delete the file and try again."
 #~ msgstr ""
 #~ "El archivo de configuración de OrcaSlicer puede estar dañado y no puede "
