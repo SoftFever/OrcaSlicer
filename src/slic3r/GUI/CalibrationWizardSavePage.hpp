@@ -202,6 +202,8 @@ public:
     bool get_result(std::vector<std::pair<wxString, float>>& out_results);
     bool is_all_failed() { return m_is_all_failed; }
 
+    virtual bool Show(bool show = true) override;
+
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };
     wxPanel* m_complete_text_panel;

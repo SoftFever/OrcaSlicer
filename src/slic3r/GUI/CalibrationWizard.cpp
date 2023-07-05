@@ -305,7 +305,6 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
         show_step(m_curr_step->next);
     }
     else if (action == CaliPageActionType::CALI_ACTION_CALI_NEXT) {
-        (static_cast<CalibrationPASavePage*>(save_step->page))->sync_cali_result(curr_obj);
         show_step(m_curr_step->next);
     }
     else if (action == CaliPageActionType::CALI_ACTION_PREV) {

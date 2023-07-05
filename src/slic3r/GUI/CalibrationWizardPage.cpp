@@ -228,6 +228,7 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
     case CaliPageActionType::CALI_ACTION_START:
     case CaliPageActionType::CALI_ACTION_NEXT:
     case CaliPageActionType::CALI_ACTION_CALI:
+    case CaliPageActionType::CALI_ACTION_CALI_NEXT:
     case CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2:
     case CaliPageActionType::CALI_ACTION_PA_SAVE:
     case CaliPageActionType::CALI_ACTION_FLOW_SAVE:
