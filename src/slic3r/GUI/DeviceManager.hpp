@@ -811,7 +811,7 @@ public:
     int command_set_printing_option(bool auto_recovery);
 
     // axis string is X, Y, Z, E
-    int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
+    int command_axis_control(std::string axis, double unit = 1.0f, double input_val = 1.0f, int speed = 3000);
 
     // calibration printer
     bool is_support_command_calibration();
@@ -852,6 +852,7 @@ public:
     bool is_in_printing();
     bool is_in_prepare();
     bool is_printing_finished();
+    bool is_core_xy();
     void reset_update_time();
     void reset();
     static bool is_in_printing_status(std::string status);

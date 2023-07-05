@@ -1983,8 +1983,17 @@ int MachineObject::command_ams_switch_filament(bool switch_filament)
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_axis_control(std::string axis, double unit, double value, int speed)
+
+int MachineObject::command_axis_control(std::string axis, double unit, double input_val, int speed)
 {
+    double value = input_val;
+    if (!is_core_xy()) {
+        if ( axis.compare("Y") == 0
+            || axis.compare("Z")  == 0) {
+            value = -1.0 * input_val;
+        }
+    }
+
     char cmd[256];
     if (axis.compare("X") == 0
         || axis.compare("Y") == 0
@@ -2413,6 +2422,13 @@ bool MachineObject::is_printing_finished()
         return true;
     }
     return false;
+}
+
+bool MachineObject::is_core_xy()
+{
+    if (printer_type == "N1")
+        return false;
+    return true;
 }
 
 void MachineObject::reset_update_time()
