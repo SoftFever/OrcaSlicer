@@ -29,6 +29,8 @@ public:
     bool SetPageImage(size_t n, const std::string& bmp_name);
     void SetPageText(size_t n, const wxString& strText);
     wxString GetPageText(size_t n) const;
+    const wxSize& GetPaddingSize(size_t n);
+    void SetPaddingSize(const wxSize& size);
 
 private:
     wxWindow*                       m_parent;

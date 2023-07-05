@@ -176,6 +176,16 @@ wxString TabButtonsListCtrl::GetPageText(size_t n) const
     return btn->GetLabel();
 }
 
+const wxSize& TabButtonsListCtrl::GetPaddingSize(size_t n) {
+    return m_pageButtons[n]->GetPaddingSize();
+}
+
+void TabButtonsListCtrl::SetPaddingSize(const wxSize& size) {
+    for (auto& btn : m_pageButtons) {
+        btn->SetPaddingSize(size);
+    }
+}
+
 //#endif // _WIN32
 
 

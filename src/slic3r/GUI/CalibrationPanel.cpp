@@ -486,6 +486,9 @@ void CalibrationPanel::init_tabpanel() {
     for (int i = 0; i < (int)CALI_MODE_COUNT; i++)
         m_tabpanel->SetPageImage(i, "");
 
+    auto padding_size = m_tabpanel->GetBtnsListCtrl()->GetPaddingSize(0);
+    m_tabpanel->GetBtnsListCtrl()->SetPaddingSize({ FromDIP(15), padding_size.y });
+
     m_initialized = true;
 }
 

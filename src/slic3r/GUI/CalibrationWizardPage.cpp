@@ -169,7 +169,7 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
         this->SetLabel(_L("Manage Result"));
         break;
     case CaliPageActionType::CALI_ACTION_MANUAL_CALI:
-        this->SetLabel(_L("Maual Calibration"));
+        this->SetLabel(_L("Manual Calibration"));
         this->SetToolTip(_L("Result can be read by human eyes."));
         break;
     case CaliPageActionType::CALI_ACTION_AUTO_CALI:
