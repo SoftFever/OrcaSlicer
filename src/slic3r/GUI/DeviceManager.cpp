@@ -2572,7 +2572,7 @@ bool MachineObject::is_support_print_with_timelapse()
 
 bool MachineObject::is_camera_busy_off()
 {
-    if (printer_type == "C11")
+    if (printer_type == "C11" || printer_type == "C12")
         return is_in_prepare() || is_in_upgrading();
     return false;
 }
@@ -4121,12 +4121,16 @@ int MachineObject::parse_json(std::string payload)
         }
         catch (...)  {}
 
-        if (m_active_state == Active && !module_vers.empty() && check_version_valid()) {
+        if (m_active_state == Active && !module_vers.empty() && check_version_valid()
+                && !is_camera_busy_off()) {
             m_active_state = UpdateToDate;
             parse_version_func();
             if (is_support_tunnel_mqtt && connection_type() != "lan") {
                 m_agent->start_subscribe("tunnel");
             }
+        } else if (m_active_state == UpdateToDate && is_camera_busy_off()) {
+            m_active_state = Active;
+            m_agent->stop_subscribe("tunnel");
         }
 
         parse_state_changed_event();
