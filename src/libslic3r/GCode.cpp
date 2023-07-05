@@ -1790,6 +1790,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x() - plate_offset.x(), bbox.min.y() - plate_offset.y()}));
         m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x() - plate_offset.x(), bbox.max.y() - plate_offset.y()}));
         m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
+        // get center without wipe tower
+        BoundingBoxf bbox_wo_wt;// bounding box without wipe tower
+        for (auto& objPtr : print.objects()) {
+            BBoxData data;
+            bbox_wo_wt.merge(unscaled(objPtr->get_first_layer_bbox(data.area, data.layer_height, data.name)));
+        }
+        auto center = bbox_wo_wt.center();
+        m_placeholder_parser.set("first_layer_center_no_wipe_tower", new ConfigOptionFloats(center.x(),center.y()));
     }
 
     {
