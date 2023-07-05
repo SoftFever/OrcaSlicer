@@ -150,6 +150,10 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
 {
     m_history_results = history_result;
     m_calib_results.clear();
+    for (auto& item : cali_result) {
+        if (item.confidence == 0)
+            m_calib_results[item.tray_id] = item;
+    }
     m_grid_panel->DestroyChildren();
     auto grid_sizer = new wxBoxSizer(wxHORIZONTAL);
     const int COLUMN_GAP = FromDIP(50);
@@ -296,7 +300,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     Layout();
 }
 
-void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* out_is_valid) {
+void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* out_is_valid, wxString* out_msg) {
     if (!window)
         return;
 
@@ -307,8 +311,7 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
         if (input->get_type() == GridTextInputType::K) {
             float k = 0.0f;
             if (!CalibUtils::validate_input_k_value(input->GetTextCtrl()->GetValue(), &k)) {
-                MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
-                msg_dlg.ShowModal();
+                *out_msg = _L("Please input a valid value (K in 0~0.5)");
                 *out_is_valid = false;
             }
             m_calib_results[tray_id].k_value = k;
@@ -322,28 +325,27 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
         int tray_id = comboBox->get_col_idx();
         wxString name = comboBox->GetTextCtrl()->GetValue().ToStdString();
         if (name.IsEmpty()) {
-            MessageDialog msg_dlg(nullptr, _L("Please enter the name you want to save to printer."), wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
+            *out_msg = _L("Please enter the name you want to save to printer.");
             *out_is_valid = false;
         }
-        //else if (name.Length() > 20) {
-        //    MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 20 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-        //    msg_dlg.ShowModal();
-        //    *out_is_valid = false;
-        //}
+        else if (name.Length() > 40) {
+            *out_msg = _L("The name cannot exceed 40 characters.");
+            *out_is_valid = false;
+        }
         m_calib_results[tray_id].name = name.ToStdString();
     }
     
     auto childern = window->GetChildren();
     for (auto child : childern) {
-        save_to_result_from_widgets(child, out_is_valid);
+        save_to_result_from_widgets(child, out_is_valid, out_msg);
     }
 };
 
 bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
     bool is_valid = true;
+    wxString err_msg;
     // Check if the input value is valid and save to m_calib_results
-    save_to_result_from_widgets(m_grid_panel, &is_valid);
+    save_to_result_from_widgets(m_grid_panel, &is_valid, &err_msg);
     if (is_valid) {
         // Check for duplicate names
         struct PACalibResult {
@@ -353,8 +355,8 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         };
         std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
         for (auto& result : m_calib_results) {
-            if (!set.insert({ result.name, result.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overrides the other results?"), wxEmptyString, wxICON_WARNING | wxID_YES | wxID_NO);
+            if (!set.insert({ result.second.name, result.second.filament_id }).second) {
+                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overrides the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
                 }
@@ -366,17 +368,21 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         // Check for duplicate names from history
         for (auto& result : m_history_results) {
             if (!set.insert({ result.name, result.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name is saved. Are you sure you want to overrides the historical result?"), result.name), wxEmptyString, wxICON_WARNING | wxID_YES | wxID_NO);
+                MessageDialog msg_dlg(nullptr, wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name is saved. Are you sure you want to overrides the historical result?"), result.name), wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
                 }
             }
         }
 
-        out_result = m_calib_results;
+        for (auto& result : m_calib_results) {
+            out_result.push_back(result.second);
+        }
         return true;
     }
     else {
+        MessageDialog msg_dlg(nullptr, err_msg, wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
         return false;
     }
 }
@@ -468,11 +474,11 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
         msg_dlg.ShowModal();
         return false;
     }
-    //else if (name.Length() > 20) {
-    //    MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 20 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-    //    msg_dlg.ShowModal();
-    //    return false;
-    //}
+    else if (name.Length() > 40) {
+        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
 
     out_result.k_value = k;
     out_result.name = name.ToStdString();
@@ -943,7 +949,7 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
     Layout();
 }
 
-void CalibrationFlowX1SavePage::save_to_result_from_widgets(wxWindow* window, bool* out_is_valid)
+void CalibrationFlowX1SavePage::save_to_result_from_widgets(wxWindow* window, bool* out_is_valid, wxString* out_msg)
 {
     if (!window)
         return;
@@ -955,16 +961,14 @@ void CalibrationFlowX1SavePage::save_to_result_from_widgets(wxWindow* window, bo
         if (input->get_type() == GridTextInputType::FlowRatio) {
             float flow_ratio = 0.0f;
             if (!CalibUtils::validate_input_flow_ratio(input->GetTextCtrl()->GetValue(), &flow_ratio)) {
-                MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 2.0)"), wxEmptyString, wxICON_WARNING | wxOK);
-                msg_dlg.ShowModal();
+                *out_msg = _L("Please input a valid value (0.0 < flow ratio < 2.0)");
                 *out_is_valid = false;
             }
             m_save_results[tray_id].second = flow_ratio;
         }
         else if (input->get_type() == GridTextInputType::Name) {
             if (input->GetTextCtrl()->GetValue().IsEmpty()) {
-                MessageDialog msg_dlg(nullptr, _L("Please enter the name of the preset you want to save."), wxEmptyString, wxICON_WARNING | wxOK);
-                msg_dlg.ShowModal();
+                *out_msg = _L("Please enter the name of the preset you want to save.");
                 *out_is_valid = false;
             }
             m_save_results[tray_id].first = input->GetTextCtrl()->GetValue().ToStdString();
@@ -973,15 +977,16 @@ void CalibrationFlowX1SavePage::save_to_result_from_widgets(wxWindow* window, bo
 
     auto childern = window->GetChildren();
     for (auto child : childern) {
-        save_to_result_from_widgets(child, out_is_valid);
+        save_to_result_from_widgets(child, out_is_valid, out_msg);
     }
 }
 
 bool CalibrationFlowX1SavePage::get_result(std::vector<std::pair<wxString, float>>& out_results)
 {
     bool is_valid = true;
+    wxString err_msg;
     // Check if the value is valid and save to m_calib_results
-    save_to_result_from_widgets(m_grid_panel, &is_valid);
+    save_to_result_from_widgets(m_grid_panel, &is_valid, &err_msg);
     if (is_valid) {
         // obj->cali_result contain failure results, so use m_save_results to record value
         for (auto& item : m_save_results) {
@@ -990,6 +995,8 @@ bool CalibrationFlowX1SavePage::get_result(std::vector<std::pair<wxString, float
         return true;
     }
     else {
+        MessageDialog msg_dlg(nullptr, err_msg, wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
         return false;
     }
 }
