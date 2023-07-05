@@ -1045,7 +1045,7 @@ void Sidebar::update_all_preset_comboboxes()
                 bed_type_value = atoi(str_bed_type.c_str());
             } catch(...) {}
             bed_type_idx = bed_type_value - 1;
-            m_bed_type_list->Select(bed_type_idx);
+            m_bed_type_list->SelectAndNotify(bed_type_idx);
         } else {
             BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
             m_bed_type_list->SelectAndNotify((int)bed_type - 1);
