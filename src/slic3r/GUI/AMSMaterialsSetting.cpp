@@ -969,8 +969,6 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     int cali_select_idx;
 
     if ( !this->obj || m_filament_selection < 0) {
-        m_input_k_val->GetTextCtrl()->SetValue("0.00");
-        m_input_n_val->GetTextCtrl()->SetValue("0.00");
         m_input_k_val->Enable(false);
         m_input_n_val->Enable(false);
         m_button_confirm->Disable();
@@ -1039,11 +1037,11 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     }
     else {
         if (!ams_filament_id.empty()) {
-            m_input_k_val->GetTextCtrl()->SetValue("0.00");
+            //m_input_k_val->GetTextCtrl()->SetValue("0.00");
             m_input_k_val->Enable(true);
         }
         else {
-            m_input_k_val->GetTextCtrl()->SetValue("0.00");
+            //m_input_k_val->GetTextCtrl()->SetValue("0.00");
             m_input_k_val->Disable();
         }
     }
