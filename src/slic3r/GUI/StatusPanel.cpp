@@ -2226,6 +2226,12 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         }
     }
 
+    if (obj->is_core_xy()) {
+        m_staticText_z_tip->SetLabel(_L("Bed"));
+    } else {
+        m_staticText_z_tip->SetLabel("Z");
+    }
+
     // update extruder icon
     update_extruder_status(obj);
 
