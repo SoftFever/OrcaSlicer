@@ -866,6 +866,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                     size = iter->local_path.size();
                 }
                 wxMemoryInputStream mis(data, size);
+                mimetype.Replace("jpg", "jpeg");
                 file.thumbnail = wxImage(mis, mimetype);
             }
             file.name = thumbnail;
