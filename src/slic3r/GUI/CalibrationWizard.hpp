@@ -125,12 +125,14 @@ public:
 
     void on_cali_job_finished(wxString evt_data) override;
 
+    void cache_coarse_info(MachineObject *obj);
+
 protected:
     void create_pages();
 
     void on_cali_action(wxCommandEvent& evt);
 
-    void on_cali_start(CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE, float cali_value = 0.0f);
+    void on_cali_start(CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE, float cali_value = 0.0f, FlowRatioCaliSource from_page = FlowRatioCaliSource::FROM_PRESET_PAGE);
 
     void on_cali_save();
 

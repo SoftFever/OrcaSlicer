@@ -11,6 +11,11 @@ enum CaliPresetStage {
     CALI_MANUAL_STAGE_2,
 };
 
+enum FlowRatioCaliSource {
+    FROM_PRESET_PAGE = 0,
+    FROM_COARSE_PAGE,
+};
+
 class CaliPresetCaliStagePanel : public wxPanel
 {
 public:

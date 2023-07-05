@@ -624,7 +624,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
             CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE;
             float cali_value = 0.0f;
             static_cast<CalibrationPresetPage*>(preset_step->page)->get_cali_stage(stage, cali_value);
-            on_cali_start(stage, cali_value);
+            on_cali_start(stage, cali_value, FlowRatioCaliSource::FROM_PRESET_PAGE);
             if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2) {
                 // set next step page
                 m_curr_step->chain(cali_fine_step);
@@ -644,7 +644,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
             if (!coarse_save_page->get_result(&new_flow_ratio, &temp_name)) {
                 return;
             }
-            on_cali_start(CaliPresetStage::CALI_MANUAL_STAGE_2, new_flow_ratio);
+            on_cali_start(CaliPresetStage::CALI_MANUAL_STAGE_2, new_flow_ratio, FlowRatioCaliSource::FROM_COARSE_PAGE);
             // automatically jump to next step when print job is sending finished.
         }
     }
@@ -665,7 +665,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
     }
 }
 
-void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value)
+void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, FlowRatioCaliSource from_page)
 {
     if (!curr_obj) return;
 
@@ -682,7 +682,10 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value)
 
     std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
 
-    CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
+    if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE)
+        CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
+    else if (from_page == FlowRatioCaliSource::FROM_COARSE_PAGE)
+        cache_coarse_info(curr_obj);
 
     if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
         X1CCalibInfos calib_infos;
@@ -942,6 +945,17 @@ void FlowRateWizard::on_cali_job_finished(wxString evt_data)
     static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
 }
 
+void FlowRateWizard::cache_coarse_info(MachineObject *obj)
+{
+    if (!obj) return;
+
+    CalibrationFlowCoarseSavePage *coarse_page = (static_cast<CalibrationFlowCoarseSavePage *>(coarse_save_step->page));
+    if (!coarse_page)
+        return;
+
+    wxString out_name;
+    coarse_page->get_result(&obj->cache_flow_ratio, &out_name);
+}
 
 MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizard(parent, CalibMode::Calib_Vol_speed_Tower, id, pos, size, style)
