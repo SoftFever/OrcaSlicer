@@ -1006,11 +1006,13 @@ int GuideFrame::LoadProfile()
             } else {
                 //cout << "is a file" << endl;
                 //cout << iter->path().string() << endl;
+
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
                 strVendor          = strVendor.AfterLast('\/');
+                wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE)
+                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
                     LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }
@@ -1027,8 +1029,9 @@ int GuideFrame::LoadProfile()
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
                 strVendor          = strVendor.AfterLast('\/');
+                wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE)
+                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
                     LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }
