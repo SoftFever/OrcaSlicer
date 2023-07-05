@@ -326,11 +326,11 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
             msg_dlg.ShowModal();
             *out_is_valid = false;
         }
-        else if (name.Length() > 20) {
-            MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 20 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-            msg_dlg.ShowModal();
-            *out_is_valid = false;
-        }
+        //else if (name.Length() > 20) {
+        //    MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 20 characters."), wxEmptyString, wxICON_WARNING | wxOK);
+        //    msg_dlg.ShowModal();
+        //    *out_is_valid = false;
+        //}
         m_calib_results[tray_id].name = name.ToStdString();
     }
     
@@ -468,11 +468,11 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
         msg_dlg.ShowModal();
         return false;
     }
-    else if (name.Length() > 20) {
-        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 20 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return false;
-    }
+    //else if (name.Length() > 20) {
+    //    MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 20 characters."), wxEmptyString, wxICON_WARNING | wxOK);
+    //    msg_dlg.ShowModal();
+    //    return false;
+    //}
 
     out_result.k_value = k;
     out_result.name = name.ToStdString();

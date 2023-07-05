@@ -12,9 +12,24 @@ namespace Slic3r {
 namespace GUI {
 
   
-#define HISTORY_WINDOW_SIZE                wxSize(FromDIP(600), FromDIP(450))
+#define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
-#define HISTORY_WINDOW_ITEMS_COUNT         4
+#define HISTORY_WINDOW_ITEMS_COUNT         5
+
+static wxString get_preset_name_by_filament_id(std::string filament_id)
+{
+    auto preset_bundle = wxGetApp().preset_bundle;
+    wxString preset_name = "";
+    for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+        if (filament_id.compare(it->filament_id) == 0) {
+            if (!it->alias.empty())
+                preset_name = it->alias;
+            else
+                preset_name = it->name;
+        }
+    }
+    return preset_name;
+}
 
 HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history)
     : DPIDialog(parent, wxID_ANY, _L("Dynamic Pressure Control Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
@@ -41,7 +56,7 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     comboBox_sizer->Add(nozzle_dia_title, 0, wxLEFT | wxRIGHT, FromDIP(15));
     comboBox_sizer->AddSpacer(10);
 
-    m_comboBox_nozzle_dia = new ComboBox(comboBox_panel, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(500), FromDIP(24)), 0, nullptr, wxCB_READONLY);
+    m_comboBox_nozzle_dia = new ComboBox(comboBox_panel, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(600), FromDIP(24)), 0, nullptr, wxCB_READONLY);
     comboBox_sizer->Add(m_comboBox_nozzle_dia, 0, wxLEFT | wxRIGHT, FromDIP(15));
     comboBox_sizer->AddSpacer(10);
 
@@ -93,22 +108,6 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
     m_calib_results_history.clear();
     if (obj)
         m_calib_results_history = obj->pa_calib_tab;
-
-    if (m_calib_results_history.empty()) {
-        // for test
-        /*
-        std::vector<PACalibResult> temp_test;
-        PACalibResult test{ 0, 0, 0.0f, "test", "test", "test_name", 0.1f, 0.5f };
-        temp_test.push_back(test);
-        test.tray_id = 1;
-        temp_test.push_back(test);
-        test.tray_id = 2;
-        temp_test.push_back(test);
-        test.tray_id = 3;
-        temp_test.push_back(test);
-        m_calib_results_history = temp_test;
-        */
-    }
 
     sync_history_data();
 
@@ -192,34 +191,40 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
 void HistoryWindow::sync_history_data() {
     m_history_data_panel->DestroyChildren();
     wxGridBagSizer* gbSizer;
-    gbSizer = new wxGridBagSizer(FromDIP(0), FromDIP(80));
+    gbSizer = new wxGridBagSizer(FromDIP(0), FromDIP(50));
     gbSizer->SetFlexibleDirection(wxBOTH);
     gbSizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
     m_history_data_panel->SetSizer(gbSizer, true);
 
-    auto title_material = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Material"));
-    title_material->SetFont(Label::Head_14);
-    gbSizer->Add(title_material, { 0, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    auto title_name = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Filament Brand && Family"));
+    title_name->SetFont(Label::Head_14);
+    gbSizer->Add(title_name, { 0, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
-    auto title_k = new wxStaticText(m_history_data_panel, wxID_ANY, _L("K"));
+    auto title_preset_name = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Filament Preset"));
+    title_preset_name->SetFont(Label::Head_14);
+    gbSizer->Add(title_preset_name, { 0, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+
+    auto title_k = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Factor K"));
     title_k->SetFont(Label::Head_14);
-    gbSizer->Add(title_k, { 0, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    gbSizer->Add(title_k, { 0, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
     // Hide
     //auto title_n = new wxStaticText(m_history_data_panel, wxID_ANY, _L("N"));
     //title_n->SetFont(Label::Head_14);
-    //gbSizer->Add(title_n, { 0, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    //gbSizer->Add(title_n, { 0, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
     auto title_action = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Action"));
     title_action->SetFont(Label::Head_14);
-    gbSizer->Add(title_action, { 0, 2 }, { 1, 1 });
+    gbSizer->Add(title_action, { 0, 3 }, { 1, 1 });
 
     int i = 1;
     for (auto& result : m_calib_results_history) {
-        wxString material_name = "";
-        material_name = result.name;
-        auto material_name_value = new wxStaticText(m_history_data_panel, wxID_ANY, material_name);
+        auto name_value = new wxStaticText(m_history_data_panel, wxID_ANY, result.name);
+
+        wxString preset_name = get_preset_name_by_filament_id(result.filament_id);
+        auto preset_name_value = new wxStaticText(m_history_data_panel, wxID_ANY, preset_name);
+
         auto k_str = wxString::Format("%.3f", result.k_value);
         auto n_str = wxString::Format("%.3f", result.n_coef);
         auto k_value = new wxStaticText(m_history_data_panel, wxID_ANY, k_str);
@@ -250,33 +255,29 @@ void HistoryWindow::sync_history_data() {
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
-        edit_button->Bind(wxEVT_BUTTON, [this, &result, k_value, material_name_value](auto& e) {
+        edit_button->Bind(wxEVT_BUTTON, [this, &result, k_value, name_value](auto& e) {
             PACalibResult result_buffer = result;
             result_buffer.k_value = stof(k_value->GetLabel().ToStdString());
-            result_buffer.name = material_name_value->GetLabel().ToStdString();
+            result_buffer.name = name_value->GetLabel().ToStdString();
             EditCalibrationHistoryDialog dlg(this, result_buffer);
             if (dlg.ShowModal() == wxID_OK) {
                 auto new_result = dlg.get_result();
 
                 wxString new_k_str = wxString::Format("%.3f", new_result.k_value);
                 k_value->SetLabel(new_k_str);
-                material_name_value->SetLabel(new_result.name);
+                name_value->SetLabel(new_result.name);
 
                 new_result.tray_id = -1;
                 CalibUtils::set_PA_calib_result({ new_result });
-
-                // TODO Re-request history and refresh page
-                //wxCommandEvent evt(wxEVT_COMBOBOX);
-                //evt.SetEventObject(m_comboBox_nozzle_dia);
-                //wxPostEvent(m_comboBox_nozzle_dia, evt);
             }
             });
 
-        gbSizer->Add(material_name_value, { i, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(k_value, { i, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        //gbSizer->Add(n_value, { i, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(delete_button, { i, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(edit_button, { i, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(name_value, { i, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(preset_name_value, { i, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(k_value, { i, 2 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        //gbSizer->Add(n_value, { i, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(delete_button, { i, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(edit_button, { i, 4 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
         i++;
     }
 
@@ -313,21 +314,27 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     flex_sizer->SetFlexibleDirection(wxBOTH);
     flex_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
-    wxStaticText* material_name_title = new wxStaticText(top_panel, wxID_ANY, _L("Material"));
-    TextInput* material_name_value = new TextInput(top_panel, m_new_result.name, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
-    material_name_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, material_name_value](auto& e) {
-        if (!material_name_value->GetTextCtrl()->GetValue().IsEmpty())
-            m_new_result.name = material_name_value->GetTextCtrl()->GetValue().ToStdString();
+    wxStaticText* name_title = new wxStaticText(top_panel, wxID_ANY, _L("Filament Brand &&\n Family"));
+    TextInput* name_value = new TextInput(top_panel, m_new_result.name, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    name_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, name_value](auto& e) {
+        if (!name_value->GetTextCtrl()->GetValue().IsEmpty())
+            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToStdString();
         });
-    material_name_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, material_name_value](auto& e) {
-        if (!material_name_value->GetTextCtrl()->GetValue().IsEmpty())
-            m_new_result.name = material_name_value->GetTextCtrl()->GetValue().ToStdString();
+    name_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, name_value](auto& e) {
+        if (!name_value->GetTextCtrl()->GetValue().IsEmpty())
+            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToStdString();
         e.Skip();
         });
-    flex_sizer->Add(material_name_title);
-    flex_sizer->Add(material_name_value);
+    flex_sizer->Add(name_title);
+    flex_sizer->Add(name_value);
 
-    wxStaticText* k_title = new wxStaticText(top_panel, wxID_ANY, _L("K Factor"));
+    wxStaticText* preset_name_title = new wxStaticText(top_panel, wxID_ANY, _L("Filament Preset"));
+    wxString preset_name = get_preset_name_by_filament_id(result.filament_id);
+    wxStaticText* preset_name_value = new wxStaticText(top_panel, wxID_ANY, preset_name);
+    flex_sizer->Add(preset_name_title);
+    flex_sizer->Add(preset_name_value);
+
+    wxStaticText* k_title = new wxStaticText(top_panel, wxID_ANY, _L("Factor K"));
     auto k_str = wxString::Format("%.3f", m_new_result.k_value);
     TextInput* k_value = new TextInput(top_panel, k_str, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
     k_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, k_value](auto& e) {
@@ -355,7 +362,7 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     flex_sizer->Add(k_value);
 
     // Hide:
-    //wxStaticText* n_title = new wxStaticText(top_panel, wxID_ANY, _L("N Factor"));
+    //wxStaticText* n_title = new wxStaticText(top_panel, wxID_ANY, _L("Factor N"));
     //TextInput* n_value = new TextInput(top_panel, n, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
     //flex_sizer->Add(n_title);
     //flex_sizer->Add(n_value);
