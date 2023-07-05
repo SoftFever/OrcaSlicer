@@ -470,10 +470,6 @@ msgid "Perform Recognition"
 msgstr "Realizar el reconocimiento"
 
 msgid "Brush size"
-<<<<<<< HEAD
-msgstr "Tamaño de pincel"
-=======
->>>>>>> spanish_translation
 msgstr "Tamaño del pincel"
 
 #, fuzzy
@@ -1843,11 +1839,7 @@ msgid ""
 "by Prusa Research.  PrusaSlicer is from Slic3r by Alessandro Ranellucci and "
 "the RepRap community"
 msgstr ""
-<<<<<<< HEAD
 "Orca Slicer está basado en BambuStudio por Bambulab, el cual está basado en PrusaSlicer "
-=======
-"Orca Slicer está basado en OrcaSlicer por Bambulab, el cual está basado en PrusaSlicer "
->>>>>>> spanish_translation
 "por Prusa Research. PrusaSlicer está basado en Slic3r de Alessandro Ranellucci y "
 "la comunidad RepRap"
 
