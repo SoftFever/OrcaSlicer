@@ -740,9 +740,11 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
         ModelInstance *instance = model->objects[0]->instances[0];
         instance->set_offset(instance->get_offset() + Vec3d(current_width / 2, current_depth / 2, 0));
     } else {
+        BoundingBoxf3 bbox = model->bounding_box();
+        Vec3d bbox_center = bbox.center();
         for (auto object : model->objects) {
             ModelInstance *instance = object->instances[0];
-            instance->set_offset(instance->get_offset() + Vec3d(100, 100, 0));
+            instance->set_offset(instance->get_offset() + Vec3d(current_width / 2 - bbox_center.x(), current_depth / 2 - bbox_center.y(), 0));
         }
     }
 
