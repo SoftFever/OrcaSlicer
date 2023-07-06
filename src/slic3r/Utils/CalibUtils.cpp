@@ -349,7 +349,7 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
 {
     if (pass != 1 && pass != 2)
         return;
-    
+
     Model       model;
     std::string input_file;
     if (pass == 1)
@@ -785,6 +785,7 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     gcode_result->reset();
     fff_print->export_gcode(temp_gcode_path, gcode_result, nullptr);
 
+    std::vector<ThumbnailData*> thumbnails;
     PlateDataPtrs plate_data_list;
     partplate_list.store_to_3mf_structure(plate_data_list, true, 0);
 
@@ -794,11 +795,68 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
         plate_data->slice_filaments_info;
     }
 
+    //draw thumbnails
+    {
+        GLVolumeCollection glvolume_collection;
+        std::vector<std::array<float, 4>> colors_out(1);
+        unsigned char  rgb_color[4] = {255, 255, 255, 255};
+        std::array<float, 4> new_color {1.0f, 1.0f, 1.0f, 1.0f};
+        colors_out.push_back(new_color);
+
+        ThumbnailData* thumbnail_data = &plate_data_list[0]->plate_thumbnail;
+        unsigned int thumbnail_width = 512, thumbnail_height = 512;
+        const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0};
+        GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
+
+        for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model->objects.size(); ++ obj_idx) {
+            const ModelObject &model_object = *model->objects[obj_idx];
+
+            for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
+                const ModelVolume &model_volume = *model_object.volumes[volume_idx];
+                for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
+                    const ModelInstance &model_instance = *model_object.instances[instance_idx];
+                    glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
+                    glvolume_collection.volumes.back()->set_render_color( new_color[0], new_color[1], new_color[2], new_color[3]);
+                    glvolume_collection.volumes.back()->set_color(new_color);
+                    //glvolume_collection.volumes.back()->printable = model_instance.printable;
+                }
+            }
+        }
+
+        switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+        {
+            case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+            {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": framebuffer_type: ARB");
+                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
+                   thumbnail_width, thumbnail_height, thumbnail_params,
+                   partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                break;
+            }
+            case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+            {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": framebuffer_type: EXT");
+                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
+                   thumbnail_width, thumbnail_height, thumbnail_params,
+                   partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                break;
+            }
+            default:
+                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                break;
+        }
+        thumbnails.push_back(thumbnail_data);
+    }
+
     StoreParams store_params;
     store_params.path            = path.c_str();
     store_params.model           = model;
     store_params.plate_data_list = plate_data_list;
     store_params.config = &new_print_config;
+
+    store_params.export_plate_idx = 0;
+    store_params.thumbnail_data = thumbnails;
+
 
     store_params.strategy = SaveStrategy::Silence | SaveStrategy::WithGcode | SaveStrategy::SplitModel | SaveStrategy::SkipModel;
 
@@ -807,6 +865,8 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     store_params.strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithSliceInfo | SaveStrategy::SkipAuxiliary;
     store_params.path = config_3mf_path.c_str();
     success           = Slic3r::store_bbs_3mf(store_params);
+
+    release_PlateData_list(plate_data_list);
 }
 
 void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_message, int flow_ratio_mode)
