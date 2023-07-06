@@ -144,7 +144,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
 
         if (obj->print_status == "RUNNING")
             m_is_between_start_and_running = false;
-        if (m_is_between_start_and_running) {
+        if (obj->is_connecting() || !obj->is_connected() || m_is_between_start_and_running) {
             reset_printing_values();
             m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_CALI_NEXT, false);
             return;

@@ -118,6 +118,7 @@ enum CaliPresetPageStatus
     CaliPresetStatusNeedForceUpgrading,
     CaliPresetStatusNeedConsistencyUpgrading,
     CaliPresetStatusUnsupportedPrinter,
+    CaliPresetStatusInConnecting, 
     CaliPresetStatusFilamentIncompatible,
 };
 

@@ -1159,6 +1159,10 @@ void CalibrationPresetPage::update_show_status()
         show_status(CaliPresetPageStatus::CaliPresetStatusUnsupportedPrinter);
         return;
     }
+    else if (obj_->is_connecting() || !obj_->is_connected()) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusInConnecting);
+        return;
+    }
     else if (obj_->is_in_upgrading()) {
         show_status(CaliPresetPageStatus::CaliPresetStatusInUpgrading);
         return;
@@ -1308,6 +1312,11 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusFilamentIncompatible) {
         update_print_status_msg(wxEmptyString, false);
+        Enable_Send_Button(false);
+    }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusInConnecting) {
+        wxString msg_text = _L("Connecting to printer");
+        update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
     }
 

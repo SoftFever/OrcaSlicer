@@ -556,6 +556,13 @@ void PressureAdvanceWizard::on_cali_start()
 void PressureAdvanceWizard::on_cali_save()
 {
     if (curr_obj) {
+        if (curr_obj->is_connecting() || !curr_obj->is_connected())
+        {
+            MessageDialog msg_dlg(nullptr, _L("Connecting to printer..."), wxEmptyString, wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
+
         if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
             if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
                 std::vector<PACalibResult> new_pa_cali_results;
