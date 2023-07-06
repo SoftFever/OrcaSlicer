@@ -1567,10 +1567,14 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->can_resume())
+        if (obj->can_resume()) {
+            BOOST_LOG_TRIVIAL(info) << "monitor: resume current print task dev_id =" << obj->dev_id;
             obj->command_task_resume();
-        else
+        }  
+        else {
+            BOOST_LOG_TRIVIAL(info) << "monitor: pause current print task dev_id =" << obj->dev_id;
             obj->command_task_pause();
+        } 
     }
 }
 
@@ -1579,7 +1583,10 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
     if (abort_dlg == nullptr) {
         abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
         abort_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
-            if (obj) obj->command_task_abort();
+            if (obj) { 
+                BOOST_LOG_TRIVIAL(info) << "monitor: stop current print task dev_id =" << obj->dev_id;
+                obj->command_task_abort(); 
+            }
         });
     }
     abort_dlg->update_text(_L("Are you sure you want to cancel this print?"));
