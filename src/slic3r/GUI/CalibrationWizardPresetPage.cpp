@@ -165,11 +165,12 @@ CaliPresetCustomRangePanel::CaliPresetCustomRangePanel(
     : wxPanel(parent, id, pos, size, style)
     , m_input_value_nums(input_value_nums)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_title_texts.resize(input_value_nums);
     m_value_inputs.resize(input_value_nums);
 
     m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
-
     create_panel(this);
 
     this->SetSizer(m_top_sizer);
@@ -350,6 +351,8 @@ CalibrationPresetPage::CalibrationPresetPage(
     : CalibrationWizardPage(parent, id, pos, size, style)
     , m_show_custom_range(custom_range)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_cali_mode = cali_mode;
     m_page_type = CaliPageType::CALI_PAGE_PRESET;
     m_cali_filament_mode = CalibrationFilamentMode::CALI_MODEL_SINGLE;

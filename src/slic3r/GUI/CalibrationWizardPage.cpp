@@ -253,6 +253,8 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
 FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, wxID_ANY, pos, size, wxTAB_TRAVERSAL)
 {
+    SetBackgroundColour(*wxWHITE);
+
     wxBoxSizer* main_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_comboBox = new CalibrateFilamentComboBox(this);
