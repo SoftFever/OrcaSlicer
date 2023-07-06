@@ -104,11 +104,11 @@ void CalibrationCaliPage::set_cali_img()
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
         if (m_page_type == CaliPageType::CALI_PAGE_CALI)
-            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration", nullptr, 400));
+            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
         if (m_page_type == CaliPageType::CALI_PAGE_FINE_CALI)
             m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400));
         else
-            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration", nullptr, 400));
+            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
     }
     else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
         m_printing_picture->SetBitmap(create_scaled_bitmap("max_volumetric_speed_calibration", nullptr, 400));

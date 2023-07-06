@@ -60,7 +60,7 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_page_caption->show_prev_btn(false);
     m_top_sizer->Add(m_page_caption, 0, wxEXPAND, 0);
     create_when(parent,
-                _L("When you need Dynamic Pressure Control Calibration"),
+                _L("When you need Flow Dynamics Calibration"),
                 _L("uneven extrusion"));
 
     m_top_sizer->Add(m_when_title);

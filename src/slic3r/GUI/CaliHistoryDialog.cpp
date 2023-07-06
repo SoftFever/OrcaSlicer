@@ -32,7 +32,7 @@ static wxString get_preset_name_by_filament_id(std::string filament_id)
 }
 
 HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history)
-    : DPIDialog(parent, wxID_ANY, _L("Dynamic Pressure Control Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("Flow Dynamics Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_calib_results_history(calib_results_history)
 {
     this->SetBackgroundColour(*wxWHITE);
@@ -182,7 +182,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
         float nozzle_value = get_nozzle_value();
         if (nozzle_value > 0) {
             CalibUtils::emit_get_PA_calib_infos(nozzle_value);
-            m_tips->SetLabel("Refreshing the historical Dynamic Pressure Control records");
+            m_tips->SetLabel("Refreshing the historical Flow Dynamics Calibration records");
             BOOST_LOG_TRIVIAL(info) << "request calib history";
         }
     }
@@ -300,7 +300,7 @@ float HistoryWindow::get_nozzle_value()
 
 
 EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, const PACalibResult& result)
-    : DPIDialog(parent, wxID_ANY, _L("Edit Dynamic Pressure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("Edit Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_new_result(result)
 {
     this->SetBackgroundColour(*wxWHITE);

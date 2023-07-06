@@ -562,7 +562,7 @@ void PressureAdvanceWizard::on_cali_save()
         else {
             assert(false);
         }
-        MessageDialog msg_dlg(nullptr, _L("Dynamic Pressure Control calibration result has been saved to the printer"), wxEmptyString, wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
         msg_dlg.ShowModal();
     }
     show_step(start_step);

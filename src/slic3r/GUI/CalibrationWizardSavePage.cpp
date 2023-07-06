@@ -119,7 +119,7 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     m_complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_complete_text_panel->Hide();
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best Dynamic Pressure Control Factor"));
+    auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best Flow Dynamics Calibration Factor"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
@@ -1149,7 +1149,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowCoarseSavePage::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration", nullptr, 400));
+    m_record_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse_result", nullptr, 400));
 }
 
 void CalibrationFlowCoarseSavePage::set_default_name(const wxString& name) {
@@ -1277,7 +1277,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowFineSavePage::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400));
+    m_record_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine_result", nullptr, 400));
 }
 
 void CalibrationFlowFineSavePage::set_default_name(const wxString& name) {

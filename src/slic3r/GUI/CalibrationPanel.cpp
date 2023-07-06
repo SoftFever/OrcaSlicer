@@ -19,7 +19,7 @@ wxString get_calibration_type_name(CalibMode cali_mode)
 {
     switch (cali_mode) {
     case CalibMode::Calib_PA_Line:
-        return _L("Dynamic Pressure Control");
+        return _L("Flow Dynamics");
     case CalibMode::Calib_Flow_Rate:
         return _L("Flow Rate");
     case CalibMode::Calib_Vol_speed_Tower:
