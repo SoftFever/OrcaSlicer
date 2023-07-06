@@ -513,21 +513,20 @@ std::string AppConfig::load()
                     PrinterCaliInfo cali_info;
                     if (calis_j.contains("dev_id"))
                         cali_info.dev_id = calis_j["dev_id"].get<std::string>();
-                    if (calis_j.contains("cali_mode"))
-                        cali_info.mode = CalibMode(calis_j["cali_mode"].get<int>());
-                    if (calis_j.contains("cali_state"))
-                        cali_info.state = CalibState(calis_j["cali_state"].get<int>());
-                    if (calis_j.contains("preset")) {
-                        for (auto cali_it = calis_j["preset"].begin(); cali_it != calis_j["preset"].end(); cali_it++) {
-                            int tray_id = cali_it.value()["tray_id"].get<int>();
-                            std::string name = cali_it.value()["preset_name"].get<std::string>();
-                            cali_info.filament_presets[tray_id] = name;
+                    if (calis_j.contains("flow_ratio"))
+                        cali_info.cache_flow_ratio = calis_j["flow_ratio"].get<float>();
+                    if (calis_j.contains("presets")) {
+                        cali_info.selected_presets.clear();
+                        for (auto cali_it = calis_j["presets"].begin(); cali_it != calis_j["presets"].end(); cali_it++) {
+                            CaliPresetInfo preset_info;
+                            preset_info.tray_id     = cali_it.value()["tray_id"].get<int>();
+                            preset_info.nozzle_diameter = cali_it.value()["nozzle_diameter"].get<float>();
+                            preset_info.filament_id = cali_it.value()["filament_id"].get<std::string>();
+                            preset_info.setting_id  = cali_it.value()["setting_id"].get<std::string>();
+                            preset_info.name        = cali_it.value()["name"].get<std::string>();
+                            cali_info.selected_presets.push_back(preset_info);
                         }
                     }
-                    //if (j.contains("nozzle"))
-                    //cali_info.nozzle_dia      = j["nozzle"].get<float>();
-                    //if (j.contains("bed_type"))
-                    //cali_info.bed_type        = j["bed_type"].get<int>();
                     m_printer_cali_infos.emplace_back(cali_info);
                 }
             } else {
@@ -638,16 +637,16 @@ void AppConfig::save()
     for (const auto &cali_info : m_printer_cali_infos) {
         json cali_json;
         cali_json["dev_id"]             = cali_info.dev_id;
-        cali_json["cali_mode"]          = int(cali_info.mode);
-        cali_json["cali_state"]         = int(cali_info.state);
-        for (auto filament_preset : cali_info.filament_presets) {
+        cali_json["flow_ratio"]         = cali_info.cache_flow_ratio;
+        for (auto filament_preset : cali_info.selected_presets) {
             json preset_json;
-            preset_json["tray_id"] = filament_preset.first;
-            preset_json["preset_name"] = filament_preset.second;
-            cali_json["preset"].push_back(preset_json);
+            preset_json["tray_id"] = filament_preset.tray_id;
+            preset_json["nozzle_diameter"]  = filament_preset.nozzle_diameter;
+            preset_json["filament_id"]      = filament_preset.filament_id;
+            preset_json["setting_id"]       = filament_preset.setting_id;
+            preset_json["name"]             = filament_preset.name;
+            cali_json["presets"].push_back(preset_json);
         }
-        //json["nozzle"] = cali_info.nozzle_dia;
-        //json["bed_type"] = cali_info.bed_type;
         j["calis"].push_back(cali_json);
     }
 
@@ -986,11 +985,8 @@ void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
     if (iter == m_printer_cali_infos.end()) {
         m_printer_cali_infos.emplace_back(cali_info);
     } else {
-        (*iter).filament_presets = cali_info.filament_presets;
-        (*iter).mode            = cali_info.mode;
-        (*iter).state           = cali_info.state;
-        //(*iter).nozzle_dia      = cali_info.nozzle_dia;
-        //(*iter).bed_type        = cali_info.bed_type;
+        (*iter).cache_flow_ratio = cali_info.cache_flow_ratio;
+        (*iter).selected_presets = cali_info.selected_presets;
     }
     m_dirty = true;
 }

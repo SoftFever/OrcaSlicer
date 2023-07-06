@@ -101,6 +101,8 @@ void CalibrationWizard::on_device_connected(MachineObject* obj)
     if (!m_page_steps.empty())
         show_step(m_page_steps.front());
 
+    recover_preset_info(obj);
+
     for (int i = 0; i < m_page_steps.size(); i++) {
         if (m_page_steps[i]->page)
             m_page_steps[i]->page->on_device_connected(obj);
@@ -213,6 +215,22 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
 
     CaliPresetStage stage;
     preset_page->get_cali_stage(stage, obj->cache_flow_ratio);
+
+    PrinterCaliInfo printer_cali_info;
+    printer_cali_info.dev_id = obj->dev_id;
+    printer_cali_info.cache_flow_ratio = obj->cache_flow_ratio;
+    printer_cali_info.selected_presets = obj->selected_cali_preset;
+    wxGetApp().app_config->save_printer_cali_infos(printer_cali_info);
+}
+
+void CalibrationWizard::recover_preset_info(MachineObject *obj)
+{
+    std::vector<PrinterCaliInfo> back_infos = wxGetApp().app_config->get_printer_cali_infos();
+    for (const auto& back_info : back_infos) {
+        obj->dev_id                 = back_info.dev_id;
+        obj->cache_flow_ratio       = back_info.cache_flow_ratio;
+        obj->selected_cali_preset   = back_info.selected_presets;
+    }
 }
 
 void CalibrationWizard::on_cali_go_home()
@@ -361,6 +379,17 @@ static bool get_preset_info(const DynamicConfig& config, const BedType plate_typ
         if (bed_temp >= 0 && nozzle_temp >= 0 && max_volumetric_speed >= 0) {
             return true;
         }
+    }
+    return false;
+}
+
+static bool get_flow_ratio(const DynamicConfig& config, float& flow_ratio)
+{
+    const ConfigOptionFloats *flow_ratio_opt = config.option<ConfigOptionFloats>("filament_flow_ratio");
+    if (flow_ratio_opt) {
+        flow_ratio = flow_ratio_opt->get_at(0);
+        if (flow_ratio > 0)
+            return true;
     }
     return false;
 }
@@ -705,6 +734,9 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.bed_temp         = bed_temp;
             calib_info.nozzle_temp      = nozzle_temp;
             calib_info.max_volumetric_speed = max_volumetric_speed;
+            float flow_ratio = 0.98;
+            if (get_flow_ratio(item.second->config, flow_ratio))
+                calib_info.flow_rate = flow_ratio;
             calib_infos.calib_datas.push_back(calib_info);
         }
 
@@ -723,6 +755,21 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         Preset* temp_filament_preset = nullptr;
         int cali_stage = -1;
         wxString wx_err_string;
+
+        // Recover to coarse and start fine print, should recover the selected_filaments
+        CalibrationMethod temp_method;
+        int temp_cali_tage = 0;
+        CalibMode obj_cali_mode = get_obj_calibration_mode(curr_obj, temp_method, temp_cali_tage);
+        if (selected_filaments.empty() && stage == CaliPresetStage::CALI_MANUAL_STAGE_2 && obj_cali_mode == CalibMode::Calib_Flow_Rate) {
+            if (!curr_obj->selected_cali_preset.empty()) {
+                int selected_tray_id = curr_obj->selected_cali_preset.front().tray_id;
+                PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+                Preset* preset = filament_presets->find_preset(curr_obj->selected_cali_preset.front().name);
+                if (preset) {
+                    selected_filaments.insert(std::make_pair(selected_tray_id, preset));
+                }
+            }
+        }
 
         if (!selected_filaments.empty()) {
             calib_info.select_ams     = "[" + std::to_string(selected_filaments.begin()->first) + "]";

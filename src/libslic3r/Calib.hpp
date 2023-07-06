@@ -27,21 +27,95 @@ enum class CalibState {
     Finish
 };
 
-struct PrinterCaliInfo
-{
-    std::string dev_id;
-    CalibMode   mode;
-    CalibState  state;
-    /* tray index -> filament preset name */
-    std::map<int, std::string> filament_presets;
-};
-
 struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){}
     double start, end, step;
     bool print_numbers;
     CalibMode mode;
+};
+
+class X1CCalibInfos
+{
+public:
+    struct X1CCalibInfo
+    {
+        int         tray_id;
+        int         bed_temp;
+        int         nozzle_temp;
+        float       nozzle_diameter;
+        std::string filament_id;
+        std::string setting_id;
+        float       max_volumetric_speed;
+        float       flow_rate = 0.98f; // for flow ratio
+    };
+
+    std::vector<X1CCalibInfo> calib_datas;
+};
+
+class CaliPresetInfo
+{
+public:
+    int         tray_id;
+    float       nozzle_diameter;
+    std::string filament_id;
+    std::string setting_id;
+    std::string name;
+
+    CaliPresetInfo &operator=(const CaliPresetInfo &other)
+    {
+        this->tray_id         = other.tray_id;
+        this->nozzle_diameter = other.nozzle_diameter;
+        this->filament_id     = other.filament_id;
+        this->setting_id      = other.setting_id;
+        this->name            = other.name;
+        return *this;
+    }
+};
+
+struct PrinterCaliInfo
+{
+    std::string                 dev_id;
+    float                       cache_flow_ratio;
+    std::vector<CaliPresetInfo> selected_presets;
+};
+
+class PACalibResult
+{
+public:
+    enum CalibResult {
+        CALI_RESULT_SUCCESS = 0,
+        CALI_RESULT_PROBLEM = 1,
+        CALI_RESULT_FAILED  = 2,
+    };
+    int         tray_id;
+    int         cali_idx = -1;
+    float       nozzle_diameter;
+    std::string filament_id;
+    std::string setting_id;
+    std::string name;
+    float       k_value;
+    float       n_coef;
+    int         confidence = -1; // 0: success  1: uncertain  2: failed
+};
+
+struct PACalibIndexInfo
+{
+    int         tray_id;
+    int         cali_idx;
+    float       nozzle_diameter;
+    std::string filament_id;
+};
+
+class FlowRatioCalibResult
+{
+public:
+    int         tray_id;
+    float       nozzle_diameter;
+    std::string filament_id;
+    std::string setting_id;
+    float       flow_ratio;
+    int         confidence; // 0: success  1: uncertain  2: failed
 };
 
 class calib_pressure_advance

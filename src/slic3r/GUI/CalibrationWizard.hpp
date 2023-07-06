@@ -63,6 +63,7 @@ public:
     bool save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, std::string& message);
 
     virtual void cache_preset_info(MachineObject* obj, float nozzle_dia);
+    virtual void recover_preset_info(MachineObject *obj);
 
 protected:
     void on_cali_go_home();
