@@ -202,6 +202,7 @@ public:
     double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
 
     void starting_point(Vec3d pt);
+    void translate_starting_point(const Vec3d displacement);
 
     CustomGCode::Info generate_gcodes();
 protected:

@@ -358,6 +358,10 @@ void CalibPressureAdvancePattern::starting_point(Vec3d pt)
     m_last_pos = m_starting_point;
 }
 
+void CalibPressureAdvancePattern::translate_starting_point(const Vec3d displacement)
+{
+    m_starting_point += displacement;
+    m_last_pos = m_starting_point;
 };
 
 CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
