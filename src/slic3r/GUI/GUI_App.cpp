@@ -4638,7 +4638,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
     ProgressFn progressFn;
     WasCancelledFn cancelFn;
-    std::function<void()> finishFn;
+    std::function<void(bool)> finishFn;
 
     if (with_progress_dlg) {
         auto dlg = new ProgressDialog(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
@@ -4649,26 +4649,19 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
             });
         };
         cancelFn = [this, dlg]() {
-            bool was_canceled = dlg->WasCanceled();
-            if (was_canceled) {
-                CallAfter([=] {
-                    dlg->Destroy();
-                    reload_settings();
-                });
-            }
-            return was_canceled;
+            return dlg->WasCanceled();
         };
-        finishFn = [this, dlg] {
+        finishFn = [this, dlg](bool ok) {
             CallAfter([=]{
                 dlg->Destroy();
-                reload_settings();
+                if (ok) reload_settings();
             });
         };
     }
     else {
-        finishFn = [this] {
+        finishFn = [this](bool ok) {
             CallAfter([=] {
-                reload_settings();
+                if (ok) reload_settings();
             });
         };
     }
@@ -4681,8 +4674,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
             // get setting list, update setting list
             std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
             int ret = m_agent->get_setting_list(version, progressFn, cancelFn);
-            if (ret == 0)
-                finishFn();
+            finishFn(ret == 0);
 
             int count = 0, sync_count = 0;
             std::vector<Preset> presets_to_sync;
