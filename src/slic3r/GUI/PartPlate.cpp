@@ -435,10 +435,6 @@ void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GeometryBuffer &b
 		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
 		if (!buffer.set_from_triangles(triangles, GROUND_Z)) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 
-		if (m_plate_name_vbo_id > 0) {
-			glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
-			m_plate_name_vbo_id = 0;
-		}
 	}
 }
 
@@ -474,10 +470,6 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
 		if (!buffer.set_from_triangles(triangles, GROUND_Z))
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
     }
-	if (m_plate_name_edit_vbo_id > 0) {
-		glsafe(::glDeleteBuffers(1, &m_plate_name_edit_vbo_id));
-		m_plate_name_edit_vbo_id = 0;
-	}
 }
 
 void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
@@ -842,13 +834,29 @@ void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 		}
 		return;
 	}
-    if (m_name_texture.get_id() == 0 || m_name_change) {
-        m_name_change = false;
+	if (m_name_change == true) { 
+		 m_name_change = false;
+		if (m_plate_name_vbo_id > 0) {
+			glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
+			m_plate_name_vbo_id = 0;
+		}
+		if (m_plate_name_edit_vbo_id > 0) {
+			glsafe(::glDeleteBuffers(1, &m_plate_name_edit_vbo_id));
+			m_plate_name_edit_vbo_id = 0;
+		}
+	}
+	if (m_plate_name_vbo_id==0) {
 		if (generate_plate_name_texture()) {
 			calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
 			calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
 		}
-    }
+		else {
+			if (m_plate_name_edit_vbo_id==0) { 
+				calc_vertex_for_plate_name_edit_icon(nullptr, 0, m_plate_name_edit_icon);
+			}
+			return;
+		}
+	}
 
     if (m_plate_name_vbo_id == 0 && m_plate_name_icon.get_vertices_data_size() > 0) {
         glsafe(::glGenBuffers(1, &m_plate_name_vbo_id));
@@ -1682,6 +1690,9 @@ bool PartPlate::generate_plate_name_texture()
 	wxString cur_plate_name = from_u8(m_name);
 	wxGCDC   dc;
 	wxString limitTextWidth = wxControl::Ellipsize(cur_plate_name, dc, wxELLIPSIZE_END, bed_width);
+	if (limitTextWidth.Length()==0) { 
+		return false;
+	}
 	// generate m_name_texture texture from m_name with generate_from_text_string
 	m_name_texture.reset();
 	auto *   font = &Label::Head_32;
