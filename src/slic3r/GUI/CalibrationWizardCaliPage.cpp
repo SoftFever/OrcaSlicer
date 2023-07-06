@@ -1,4 +1,5 @@
 #include "CalibrationWizardCaliPage.hpp"
+#include "MainFrame.hpp"
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
 
@@ -126,6 +127,12 @@ void CalibrationCaliPage::update(MachineObject* obj)
     // enable calibration when finished
     bool enable_cali = false;
     if (obj) {
+        if (obj->print_error > 0) {
+            StatusPanel* status_panel = Slic3r::GUI::wxGetApp().mainframe->m_monitor->get_status_panel();
+            status_panel->obj = obj;
+            status_panel->update_error_message();
+        }
+
         if (obj->print_status == "RUNNING")
             m_is_between_start_and_running = false;
         if (m_is_between_start_and_running) {

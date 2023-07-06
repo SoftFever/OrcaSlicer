@@ -371,7 +371,6 @@ protected:
     std::vector<Button *>       m_buttons;
     int last_status;
     void init_scaled_buttons();
-    void update_error_message();
     void create_tasklist_info();
     void show_task_list_info(bool show = true);
     void update_tasklist_info();
@@ -464,6 +463,9 @@ protected:
     /* camera */
     void update_camera_state(MachineObject* obj);
     bool show_vcamera = false;
+
+public:
+    void update_error_message();
 
 public:
     StatusPanel(wxWindow *      parent,
