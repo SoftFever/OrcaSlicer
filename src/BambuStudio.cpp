@@ -3815,8 +3815,15 @@ extern "C" {
         SET_DEFULTER_HANDLER();
 #endif
         std::set_new_handler([]() {
-            int *a  = nullptr;
-            *a = 0;
+            int  smallSize = 10 * 1024 * 1024;
+            int *test_apply = (int *) malloc(smallSize);
+            if (test_apply == NULL) {
+                throw std::bad_alloc();
+            } else {
+                free(test_apply);
+                int *a = nullptr;
+                *a     = 0;
+            }
             });
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
