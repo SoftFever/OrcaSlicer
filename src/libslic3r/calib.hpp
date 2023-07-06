@@ -72,7 +72,8 @@ protected:
     );
 
     GCode* mp_gcodegen {nullptr};
-    Vec2d m_last_pos;
+    
+    Vec3d m_last_pos;
 
     DrawDigitMode m_draw_digit_mode {DrawDigitMode::Left_To_Right};
     const double m_digit_segment_len {2};
@@ -200,7 +201,7 @@ public:
     double height_layer() const { return m_height_layer; };
     double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
 
-    void set_starting_point(Vec2d pt);
+    void starting_point(Vec3d pt);
 
     CustomGCode::Info generate_gcodes();
 protected:
@@ -249,7 +250,9 @@ private:
     const Calib_Params& m_params;
     const PrintConfig& m_config;
     GCodeWriter& m_writer;
-    Vec2d m_starting_point {-1, -1};
+
+    Vec3d m_starting_point;
+    
     PatternSettings m_pattern_settings;
 
     const double m_handle_xy_size {5};

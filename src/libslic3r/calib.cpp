@@ -18,7 +18,7 @@ std::string CalibPressureAdvance::move_to(Vec2d pt, GCodeWriter& writer, std::st
     gcode << writer.travel_to_xy(pt, comment);
     gcode << writer.unretract();
 
-    m_last_pos = pt;
+    m_last_pos = Vec3d(pt.x(), pt.y(), 0);
 
     return gcode.str(); 
 }
@@ -346,15 +346,18 @@ PatternSettings::PatternSettings(const CalibPressureAdvancePattern* cpap) :
     perim_speed(cpap->speed_adjust(cpap->speed_perimeter()))
 { };
 
-void CalibPressureAdvancePattern::set_starting_point(Vec2d pt)
+void CalibPressureAdvancePattern::starting_point(Vec3d pt)
 {
+    m_starting_point = pt;
+
     if (is_delta()) {
-        pt.x() *= -1;
-        pt.y() -= (frame_size_y() / 2);
+        m_starting_point.x() *= -1;
+        m_starting_point.y() -= (frame_size_y() / 2);
     }
 
-    m_starting_point = pt;
-    m_last_pos = pt;
+    m_last_pos = m_starting_point;
+}
+
 };
 
 CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
@@ -363,7 +366,7 @@ CustomGCode::Info CalibPressureAdvancePattern::generate_gcodes()
 
     gcode << "; start pressure advance pattern for layer\n";
 
-    gcode << move_to(m_starting_point, m_writer, "Move to start XY position");
+    gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), m_writer, "Move to start XY position");
     gcode << m_writer.travel_to_z(m_height_first_layer, "Move to start Z position");
     gcode << m_writer.set_pressure_advance(m_params.start);
 
@@ -526,7 +529,8 @@ std::string CalibPressureAdvancePattern::draw_line(Vec2d to_pt, DrawLineOptArgs 
     auto dE = e_per_mm * length;
 
     gcode << m_writer.extrude_to_xy(to_pt, dE, opt_args.comment);
-    m_last_pos = to_pt;
+
+    m_last_pos = Vec3d(to_pt.x(), to_pt.y(), 0);
 
     return gcode.str();
 }

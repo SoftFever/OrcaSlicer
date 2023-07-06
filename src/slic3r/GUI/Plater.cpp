@@ -8163,7 +8163,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
             bbox.merge(obj->instance_bounding_box(i, false));
         }
     }
-    pa_pattern.set_starting_point(Vec2d(bbox.min.x(), bbox.max.y()));
+    pa_pattern.starting_point(Vec3d(bbox.min.x(), bbox.max.y(), 0));
 
     DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
