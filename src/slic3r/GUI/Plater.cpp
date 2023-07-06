@@ -8158,7 +8158,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     center_selection();
 
     BoundingBoxf3 bbox;
-    for (const ModelObject* obj : print->model().objects) {
+    for (const ModelObject* obj : model().objects) {
         for (size_t i = 0; i < obj->instances.size(); ++i) {
             bbox.merge(obj->instance_bounding_box(i, false));
         }
