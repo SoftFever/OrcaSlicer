@@ -115,12 +115,25 @@ void CalibrationCaliPage::set_cali_img()
     }
 }
 
+void CalibrationCaliPage::clear_last_job_status()
+{
+    m_is_between_start_and_running = true;
+}
+
 void CalibrationCaliPage::update(MachineObject* obj)
 {
     static int get_result_count = 0;
     // enable calibration when finished
     bool enable_cali = false;
     if (obj) {
+        if (obj->print_status == "RUNNING")
+            m_is_between_start_and_running = false;
+        if (m_is_between_start_and_running) {
+            reset_printing_values();
+            m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_NEXT, false);
+            return;
+        }
+
         if (m_cali_mode == CalibMode::Calib_PA_Line) {
             if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
                 if (get_obj_calibration_mode(obj) == m_cali_mode) {
@@ -194,7 +207,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
             if (get_obj_calibration_mode(obj) == m_cali_mode && obj->is_printing_finished()) {
                 enable_cali = true;
             } else {
-                ;
+                enable_cali = false;
             }
         }
         else {

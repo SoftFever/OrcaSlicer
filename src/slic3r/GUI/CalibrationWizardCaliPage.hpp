@@ -26,6 +26,8 @@ public:
     void update_subtask(MachineObject* obj);
     void update_basic_print_data(bool def, float weight = 0.0, int prediction = 0);
     void reset_printing_values();
+    void clear_last_job_status();
+
     void on_device_connected(MachineObject* obj) override;
 
     void set_cali_method(CalibrationMethod method) override;
@@ -34,6 +36,7 @@ protected:
     float get_selected_calibration_nozzle_dia(MachineObject* obj);
 
     bool                m_print_finish {false};
+    bool                m_is_between_start_and_running { false };
     wxBoxSizer*         m_top_sizer;
     CaliPageStepGuide*  m_step_panel { nullptr };
     PrintingTaskPanel*  m_printing_panel { nullptr };

@@ -357,7 +357,7 @@ void PressureAdvanceWizard::on_device_connected(MachineObject* obj)
 
         if (m_curr_step != cali_step) {
             if (obj_cali_mode == m_mode) {
-                if (obj->is_in_printing() || obj->is_printing_finished()) {
+                if (obj->is_in_printing() /*|| obj->is_printing_finished()*/ || obj->print_status == "FINISH") {
                     CalibrationWizard::set_cali_method(method);
                     show_step(cali_step);
                 }
@@ -494,6 +494,9 @@ void PressureAdvanceWizard::on_cali_start()
     }
 
     show_step(m_curr_step->next);
+
+    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
+    cali_page->clear_last_job_status();
 }
 
 void PressureAdvanceWizard::on_cali_save()
@@ -829,6 +832,9 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     }
 
     show_step(m_curr_step->next);
+
+    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
+    cali_page->clear_last_job_status();
 }
 
 void FlowRateWizard::on_cali_save()
@@ -930,7 +936,7 @@ void FlowRateWizard::on_device_connected(MachineObject* obj)
     if (obj) {
         this->set_cali_method(method);
         if (obj_cali_mode == m_mode) {
-            if (obj->is_in_printing() || obj->is_printing_finished()) {
+            if (obj->is_in_printing() /*|| obj->is_printing_finished()*/ || obj->print_status == "FINISH") {
                 if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
                     if (cali_stage == 1) {
                         if (m_curr_step != cali_coarse_step)
@@ -1143,6 +1149,9 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     }
 
     preset_page->on_cali_start_job();
+
+    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
+    cali_page->clear_last_job_status();
 }
 
 void MaxVolumetricSpeedWizard::on_cali_save()
@@ -1202,7 +1211,7 @@ void MaxVolumetricSpeedWizard::on_device_connected(MachineObject *obj)
     if (obj) {
         this->set_cali_method(method);
         if (obj_cali_mode == m_mode) {
-            if (obj->is_in_printing() || obj->is_printing_finished()) {
+            if (obj->is_in_printing() /*|| obj->is_printing_finished()*/ || obj->print_status == "FINISH") {
                 if (m_curr_step != cali_step) {
                     show_step(cali_step);
                 }
