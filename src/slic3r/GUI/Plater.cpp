@@ -8152,9 +8152,16 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
         get_gizmos_manager().get_object_manipulation();
     giz_obj_manip.set_uniform_scaling(true);
-    giz_obj_manip.on_change("size", 0, pa_pattern.handle_xy_size());
+    giz_obj_manip.on_change(
+        "size",
+        0,
+        pa_pattern.handle_xy_size()
+    );
     giz_obj_manip.set_uniform_scaling(false);
-    giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
+    giz_obj_manip.on_change("size",
+        2,
+        pa_pattern.max_layer_z()
+    );
     center_selection();
 
     BoundingBoxf3 bbox;
@@ -8169,8 +8176,14 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
-    print_config->set_key_value("layer_height", new ConfigOptionFloat(pa_pattern.height_layer()));
-    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(pa_pattern.height_first_layer()));
+    print_config->set_key_value(
+        "layer_height",
+        new ConfigOptionFloat(pa_pattern.height_layer())
+    );
+    print_config->set_key_value(
+        "initial_layer_print_height",
+        new ConfigOptionFloat(pa_pattern.height_first_layer())
+    );
 
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
@@ -8180,7 +8193,9 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
 
-    model().plates_custom_gcodes[model().curr_plate_index] = pa_pattern.generate_gcodes();
+    model().plates_custom_gcodes[model().curr_plate_index] =
+        pa_pattern.generate_gcodes()
+    ;
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 
