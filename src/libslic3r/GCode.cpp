@@ -3642,14 +3642,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         gcode += m_writer.extrude_to_xy(this->point_to_gcode(pt), 0,"move inwards before travel",true);
     }
 
-    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer()) {
-        // reset acceleration
-        if (m_config.default_acceleration.value > 0)
-            gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
-        if (m_config.default_jerk.value > 0)
-            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
-    }
     return gcode;
 }
 
@@ -3673,14 +3665,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         }
         m_wipe.path.reverse();
     }
-    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer()) {
-        // reset acceleration
-        if (m_config.default_acceleration.value > 0)
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
-        if(m_config.default_jerk.value > 0)
-            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
-        }
+
     return gcode;
 }
 
@@ -3705,15 +3690,7 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
         m_wipe.path = std::move(path.polyline);
         m_wipe.path.reverse();
     }
-    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer()){
-        // reset acceleration
-        if (m_config.default_acceleration.value > 0)
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
-        if(m_config.default_jerk.value > 0)
-            gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
-        }
     return gcode;
 }
 
