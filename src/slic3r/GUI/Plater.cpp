@@ -8181,6 +8181,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
 
     model().plates_custom_gcodes[model().curr_plate_index] = pa_pattern.generate_gcodes();
+    model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {

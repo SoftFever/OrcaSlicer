@@ -12,6 +12,7 @@
 #include "SLA/Hollowing.hpp"
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
+#include "calib.hpp"
 #include "enum_bitmask.hpp"
 
 //BBS: add bbs 3mf
@@ -1607,6 +1608,8 @@ public:
     bool          is_seam_painted() const;
     // Checks if any of objects is painted using the multi-material painting gizmo.
     bool          is_mm_painted() const;
+
+    std::unique_ptr<CalibPressureAdvancePattern> calib_pa_pattern;
 
 private:
     explicit Model(int) : ObjectBase(-1)
