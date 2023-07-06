@@ -220,12 +220,13 @@ protected:
     /* TempInput */
     wxBoxSizer *    m_misc_ctrl_sizer;
     StaticBox*      m_fan_panel; 
-    TempInput *     m_tempCtrl_nozzle;
-    int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
+    TempInput* m_tempCtrl_nozzle;
+    int             m_temp_nozzle_timeout{ 0 };
     TempInput *     m_tempCtrl_bed;
     int             m_temp_bed_timeout {0};
-    TempInput *     m_tempCtrl_frame;
+    TempInput *     m_tempCtrl_chamber;
+    int             m_temp_chamber_timeout {0};
     bool             m_current_support_cham_fan{true};
     FanSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
@@ -361,6 +362,7 @@ protected:
     wxWebRequest web_request;
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
+    bool cham_temp_input   = false;
     int speed_lvl = 1; // 0 - 3
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
@@ -403,6 +405,7 @@ protected:
     void on_nozzle_temp_kill_focus(wxFocusEvent &event);
     void on_nozzle_temp_set_focus(wxFocusEvent &event);
     void on_set_nozzle_temp();
+    void on_set_chamber_temp();
 
     /* extruder apis */
     void on_ams_load(SimpleEvent &event);
@@ -420,6 +423,8 @@ protected:
     void on_print_error_func(wxCommandEvent& event);
 
     void on_fan_changed(wxCommandEvent& event);
+    void on_cham_temp_kill_focus(wxFocusEvent& event);
+    void on_cham_temp_set_focus(wxFocusEvent& event);
     void on_switch_speed(wxCommandEvent& event);
     void on_lamp_switch(wxCommandEvent &event);
     void on_printing_fan_switch(wxCommandEvent &event);

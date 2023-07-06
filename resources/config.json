@@ -53,12 +53,12 @@
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
       {
-
         "display_name": "Bambu Lab X1",
         "func": {
           "FUNC_VIRTUAL_TYAY": true,
           "FUNC_EXTRUSION_CALI": false,
-          "FUNC_LOCAL_TUNNEL": false
+          "FUNC_LOCAL_TUNNEL": false,
+          "FUNC_CHAMBER_TEMP": false
         },
         "model_id": "BL-P002",
         "compatible_machine": [ "BL-P001", "C11", "C12"],
@@ -69,6 +69,7 @@
       {
         "display_name": "Bambu Lab X1 Carbon",
         "func": {
+          "FUNC_CHAMBER_TEMP": false,
           "FUNC_VIRTUAL_TYAY": true,
           "FUNC_EXTRUSION_CALI": false,
           "FUNC_LOCAL_TUNNEL": false

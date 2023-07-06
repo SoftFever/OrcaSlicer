@@ -30,6 +30,7 @@ static const wxFont   SWITCH_FONT    = Label::Body_10;
 /* const values */
 static const int bed_temp_range[2]    = {20, 120};
 static const int nozzle_temp_range[2] = {20, 300};
+static const int nozzle_chamber_range[2] = {20, 60};
 
 /* colors */
 static const wxColour STATUS_PANEL_BG     = wxColour(238, 238, 238);
@@ -958,15 +959,17 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
     wxWindowID frame_id = wxWindow::NewControlId();
-    m_tempCtrl_frame    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp"), wxDefaultPosition,
+    m_tempCtrl_chamber    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp"), wxDefaultPosition,
                                      wxDefaultSize, wxALIGN_CENTER);
-    m_tempCtrl_frame->SetReadOnly(true);
-    m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
-    m_tempCtrl_frame->SetBorderWidth(FromDIP(2));
-    m_tempCtrl_frame->SetTextColor(tempinput_text_colour);
-    m_tempCtrl_frame->SetBorderColor(tempinput_border_colour);
+    m_tempCtrl_chamber->SetReadOnly(true);
+    m_tempCtrl_chamber->SetMinTemp(nozzle_chamber_range[0]);
+    m_tempCtrl_chamber->SetMaxTemp(nozzle_chamber_range[1]);
+    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_chamber->SetBorderWidth(FromDIP(2));
+    m_tempCtrl_chamber->SetTextColor(tempinput_text_colour);
+    m_tempCtrl_chamber->SetBorderColor(tempinput_border_colour);
 
-    sizer->Add(m_tempCtrl_frame, 0, wxEXPAND | wxALL, 1);
+    sizer->Add(m_tempCtrl_chamber, 0, wxEXPAND | wxALL, 1);
     line = new StaticLine(parent);
     line->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
@@ -1105,12 +1108,12 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_nozzle->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_bed->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_bed->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-    m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+    m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_button_unload->Show();
 
     m_tempCtrl_nozzle->Enable(true);
-    m_tempCtrl_frame->Enable(true);
+    m_tempCtrl_chamber->Enable(true);
     m_tempCtrl_bed->Enable(true);
 
     // reset misc control
@@ -1452,6 +1455,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
             on_set_bed_temp();
         } else if (id == m_tempCtrl_nozzle->GetType()) {
             on_set_nozzle_temp();
+        } else if (id == m_tempCtrl_chamber->GetType()) {
+            on_set_chamber_temp();
         }
     });
 
@@ -1469,10 +1474,12 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_set_focus), NULL, this);
+    m_tempCtrl_chamber->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_cham_temp_kill_focus), NULL, this);
+    m_tempCtrl_chamber->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_cham_temp_set_focus), NULL, this);
     m_switch_lamp->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_lamp_switch), NULL, this);
     m_switch_nozzle_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); // TODO
     m_switch_printing_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
-    m_switch_cham_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+    m_switch_cham_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); 
     m_bpButton_xy->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_xy), NULL, this); // TODO
     m_bpButton_z_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_10), NULL, this);
     m_bpButton_z_1->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_1), NULL, this);
@@ -1732,12 +1739,15 @@ void StatusPanel::update(MachineObject *obj)
             m_options_btn->Hide();
         }
 
+        //support edit chamber temp
         if (obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_TEMP)) {
-            m_tempCtrl_frame->Enable();
+            m_tempCtrl_chamber->SetReadOnly(false);
+            m_tempCtrl_chamber->Enable();
         } else {
-            m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-            m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-            m_tempCtrl_frame->Disable();
+            m_tempCtrl_chamber->SetReadOnly(true);
+            m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
+            m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+            m_tempCtrl_chamber->Disable();
         }
 
         if (!obj->dev_connection_type.empty()) {
@@ -1941,7 +1951,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
     if (!temp_area) {
         m_tempCtrl_nozzle->Enable(false);
         m_tempCtrl_bed->Enable(false);
-        m_tempCtrl_frame->Enable(false);
+        m_tempCtrl_chamber->Enable(false);
         m_switch_speed->Enable(false);
         m_switch_speed->SetValue(false);
         m_switch_lamp->Enable(false);
@@ -1951,7 +1961,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
     } else {
         m_tempCtrl_nozzle->Enable();
         m_tempCtrl_bed->Enable();
-        m_tempCtrl_frame->Enable();
+        m_tempCtrl_chamber->Enable();
         m_switch_speed->Enable();
         m_switch_speed->SetValue(true);
         m_switch_lamp->Enable();
@@ -1982,6 +1992,13 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     }
 
     m_tempCtrl_nozzle->SetCurrTemp((int) obj->nozzle_temp);
+    int nozzle_max_temp = 0;
+    if (DeviceManager::get_nozzle_max_temperature(obj->printer_type, nozzle_max_temp)) {
+        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_max_temp);
+    }
+    else {
+        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
+    }
 
     if (m_temp_nozzle_timeout > 0) {
         m_temp_nozzle_timeout--;
@@ -1995,8 +2012,21 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_nozzle->SetIconNormal();
     }
 
-    m_tempCtrl_frame->SetCurrTemp(obj->chamber_temp);
-    m_tempCtrl_frame->SetTagTemp(obj->chamber_temp);
+    m_tempCtrl_chamber->SetCurrTemp(obj->chamber_temp);
+    // update temprature if not input temp target
+    if (m_temp_chamber_timeout > 0) {
+        m_temp_chamber_timeout--;
+    }
+    else {
+        if (!cham_temp_input) { m_tempCtrl_chamber->SetTagTemp(obj->chamber_temp_target); }
+    }
+
+    if ((obj->chamber_temp_target - obj->chamber_temp) >= TEMP_THRESHOLD_VAL) {
+        m_tempCtrl_chamber->SetIconActive();
+    }
+    else {
+        m_tempCtrl_chamber->SetIconNormal();
+    }
 }
 
 void StatusPanel::update_misc_ctrl(MachineObject *obj)
@@ -2861,6 +2891,21 @@ void StatusPanel::on_set_nozzle_temp()
     }
 }
 
+void StatusPanel::on_set_chamber_temp()
+{
+    wxString str = m_tempCtrl_chamber->GetTextCtrl()->GetValue();
+    try {
+        long chamber_temp;
+        if (str.ToLong(&chamber_temp) && obj) {
+            set_hold_count(m_temp_chamber_timeout);
+            obj->command_set_chamber(chamber_temp);
+        }
+    }
+    catch (...) {
+        ;
+    }
+}
+
 void StatusPanel::on_ams_load(SimpleEvent &event)
 {
     BOOST_LOG_TRIVIAL(info) << "on_ams_load";
@@ -3273,6 +3318,18 @@ void StatusPanel::on_fan_changed(wxCommandEvent& event)
     }
 }
 
+void StatusPanel::on_cham_temp_kill_focus(wxFocusEvent& event)
+{
+    event.Skip();
+    cham_temp_input = false;
+}
+
+void StatusPanel::on_cham_temp_set_focus(wxFocusEvent& event)
+{
+    event.Skip();
+    cham_temp_input = true;
+}
+
 void StatusPanel::on_bed_temp_kill_focus(wxFocusEvent &event)
 {
     event.Skip();
@@ -3553,6 +3610,7 @@ void StatusPanel::set_default()
     m_switch_lamp_timeout = 0;
     m_temp_nozzle_timeout = 0;
     m_temp_bed_timeout = 0;
+    m_temp_chamber_timeout = 0;
     m_switch_nozzle_fan_timeout = 0;
     m_switch_printing_fan_timeout = 0;
     m_switch_cham_fan_timeout = 0;
@@ -3563,7 +3621,7 @@ void StatusPanel::set_default()
     m_bitmap_recording_img->Hide();
     m_bitmap_vcamera_img->Hide();
     m_setting_button->Show();
-    m_tempCtrl_frame->Show();
+    m_tempCtrl_chamber->Show();
     m_options_btn->Show();
 
     reset_temp_misc_control();
@@ -3697,8 +3755,8 @@ void StatusPanel::msw_rescale()
     m_line_nozzle->SetSize(wxSize(-1, FromDIP(1)));
     m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_bed->Rescale();
-    m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
-    m_tempCtrl_frame->Rescale();
+    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_chamber->Rescale();
 
     m_bitmap_speed.msw_rescale();
     m_bitmap_speed_active.msw_rescale();

@@ -462,6 +462,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     bed_temp            = 0.0f;
     bed_temp_target     = 0.0f;
     chamber_temp        = 0.0f;
+    chamber_temp_target = 0;
     frame_temp          = 0.0f;
 
     /* ams fileds */
@@ -1717,6 +1718,12 @@ int MachineObject::command_set_nozzle(int temp)
         if (agent) agent->track_event("printer_control", j.dump());
     }
     catch (...) {}
+    return this->publish_gcode(gcode_str);
+}
+
+int MachineObject::command_set_chamber(int temp)
+{
+    std::string gcode_str = (boost::format("M141 S%1%\n") % temp).str();
     return this->publish_gcode(gcode_str);
 }
 
@@ -2978,6 +2985,11 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("chamber_temper")) {
                         if (jj["chamber_temper"].is_number()) {
                             chamber_temp = jj["chamber_temper"].get<float>();
+                        }
+                    }
+                    if (jj.contains("ctt")) {
+                        if (jj["ctt"].is_number()) {
+                            chamber_temp_target = jj["ctt"].get<int>();
                         }
                     }
                     /* signals */
@@ -5113,6 +5125,22 @@ bool DeviceManager::get_bed_temperature_limit(std::string type_str, int &limit)
             if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
                 if (printer.contains("bed_temperature_limit")) {
                     limit = printer["bed_temperature_limit"].get<int>();
+                    return true;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+bool DeviceManager::get_nozzle_max_temperature(std::string type_str, int& limit)
+{
+    bool result = false;
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("nozzle_max_temperature")) {
+                    limit = printer["nozzle_max_temperature"].get<int>();
                     return true;
                 }
             }

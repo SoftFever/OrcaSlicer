@@ -530,6 +530,7 @@ public:
     float  bed_temp;
     float  bed_temp_target;
     float  chamber_temp;
+    int    chamber_temp_target;
     float  frame_temp;
 
     /* cooling */
@@ -767,6 +768,7 @@ public:
     int command_task_resume();
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
+    int command_set_chamber(int temp);
     // ams controls
     int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
@@ -931,6 +933,7 @@ public:
     static std::vector<std::string> get_resolution_supported(std::string type_str);
 
     static bool get_bed_temperature_limit(std::string type_str, int& limit);
+    static bool get_nozzle_max_temperature(std::string type_str, int& limit);
     static bool load_functional_config(std::string config_file);
     static bool load_filaments_blacklist_config(std::string config_file);
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
