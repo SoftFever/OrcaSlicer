@@ -554,19 +554,24 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
                 for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
                     if (! intersection(convex_hulls_other[i], convex_hull).empty()) {
+                        bool has_exception = false;
                         if (single_object_exception.string.empty()) {
                             single_object_exception.string = (boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = instance.model_instance->get_object();
+                            has_exception                  = true;
                         }
                         else {
                             single_object_exception.string += "\n"+(boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = nullptr;
+                            has_exception                  = true;
                         }
 
                         if (polygons) {
                             intersecting_idxs.emplace_back(i);
                             intersecting_idxs.emplace_back(convex_hulls_other.size());
                         }
+
+                        if (has_exception) break;
                     }
                 }
                 struct print_instance_info print_info {&instance, convex_hull.bounding_box(), convex_hull};
