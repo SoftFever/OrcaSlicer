@@ -529,7 +529,7 @@ std::string CalibPressureAdvancePattern::draw_line(Vec2d to_pt, DrawLineOptArgs 
         m_config.filament_flow_ratio.get_at(0)
     );
 
-    const double length = get_distance(m_last_pos, to_pt);
+    const double length = get_distance(Vec2d(m_last_pos.x(), m_last_pos.y()), to_pt);
     auto dE = e_per_mm * length;
 
     gcode << m_writer.extrude_to_xy(to_pt, dE, opt_args.comment);
