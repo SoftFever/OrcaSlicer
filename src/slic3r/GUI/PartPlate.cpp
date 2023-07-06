@@ -2114,6 +2114,28 @@ bool PartPlate::has_printable_instances()
 	return result;
 }
 
+bool PartPlate::is_all_instances_unprintable()
+{
+    bool result = true;
+
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
+        int obj_id      = it->first;
+        int instance_id = it->second;
+
+        if (obj_id >= m_model->objects.size()) continue;
+
+        ModelObject *  object   = m_model->objects[obj_id];
+        ModelInstance *instance = object->instances[instance_id];
+
+        if ((instance->printable)) {
+            result = false;
+            break;
+        }
+    }
+
+    return result;
+}
+
 //move instances to left or right PartPlate
 void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate, BoundingBoxf3* bounding_box)
 {
@@ -4465,18 +4487,23 @@ bool PartPlateList::is_all_slice_results_valid() const
 //check whether all plates's slice result valid for print
 bool PartPlateList::is_all_slice_results_ready_for_print() const
 {
-	bool res = false;
+    bool res = false;
 
-	for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
-		if (!m_plate_list[i]->empty() && !m_plate_list[i]->is_slice_result_valid()) {
-			return false;
+    for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
+        if (!m_plate_list[i]->empty()) {
+            if (m_plate_list[i]->is_all_instances_unprintable()) { 
+				continue; 
+			}
+            if (!m_plate_list[i]->is_slice_result_ready_for_print()) { 
+				return false; 
+			}
+        }
+        if (m_plate_list[i]->is_slice_result_ready_for_print()) { 
+			res = true; 
 		}
-		if (m_plate_list[i]->is_slice_result_ready_for_print() && m_plate_list[i]->has_printable_instances()) {
-			res = true;
-		}
-	}
+    }
 
-	return res;
+    return res;
 }
 
 

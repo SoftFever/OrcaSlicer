@@ -330,6 +330,7 @@ public:
 
     //whether it is has printable instances
     bool has_printable_instances();
+    bool is_all_instances_unprintable();
 
     //move instances to left or right PartPlate
     void move_instances_to(PartPlate& left_plate, PartPlate& right_plate, BoundingBoxf3* bounding_box = nullptr);
