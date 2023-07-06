@@ -2613,6 +2613,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Random"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SeamPosition>(spAligned));
+
+    def = this->add("staggered_inner_seams", coBool);
+    def->label = L("Staggered inner seams");
+    def->tooltip = L("This option causes the inner seams to be shifted backwards based on their depth, forming a zigzag pattern.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
     
     def = this->add("seam_gap", coFloatOrPercent);
     def->label = L("Seam gap");
