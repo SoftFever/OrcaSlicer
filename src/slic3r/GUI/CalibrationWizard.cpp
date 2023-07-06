@@ -330,7 +330,6 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
     }
     else if (action == CaliPageActionType::CALI_ACTION_CALI) {
         on_cali_start();
-        show_step(m_curr_step->next);
     }
     else if (action == CaliPageActionType::CALI_ACTION_GO_HOME) {
         on_cali_go_home();
@@ -418,6 +417,11 @@ void PressureAdvanceWizard::on_cali_start()
     // save preset info to machine object
     CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
     std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
+    if (selected_filaments.empty()) {
+        MessageDialog msg_dlg(nullptr, _L("Please select filament to calibrate."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
 
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
@@ -488,6 +492,8 @@ void PressureAdvanceWizard::on_cali_start()
     } else {
         assert(false);
     }
+
+    show_step(m_curr_step->next);
 }
 
 void PressureAdvanceWizard::on_cali_save()
@@ -533,6 +539,10 @@ void PressureAdvanceWizard::on_cali_save()
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             preset_page->get_preset_info(nozzle_dia, plate_type);
             std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
+            if (selected_filaments.empty()) {
+                BOOST_LOG_TRIVIAL(error) << "CaliPreset: get selected filaments error";
+                return;
+            }
             int tray_id = selected_filaments.begin()->first;
             std::string setting_id = selected_filaments.begin()->second->setting_id;
 
@@ -646,7 +656,6 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
     else if (action == CaliPageActionType::CALI_ACTION_CALI) {
         if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
             on_cali_start();
-            show_step(m_curr_step->next);
         } 
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE;
@@ -661,7 +670,6 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
         } 
         else {
             on_cali_start();
-            show_step(m_curr_step->next);
         }
     }
     else if (action == CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2) {
@@ -709,6 +717,11 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
     std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
+    if (selected_filaments.empty()) {
+        MessageDialog msg_dlg(nullptr, _L("Please select filament to calibrate."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
 
     if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE)
         CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
@@ -814,6 +827,8 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     } else {
         assert(false);
     }
+
+    show_step(m_curr_step->next);
 }
 
 void FlowRateWizard::on_cali_save()
@@ -835,8 +850,9 @@ void FlowRateWizard::on_cali_save()
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
-            old_preset_name = selected_filaments.begin()->second->name;
-
+            if (!selected_filaments.empty()) {
+                old_preset_name = selected_filaments.begin()->second->name;
+            }
             for (int i = 0; i < new_results.size(); i++) {
                 std::map<std::string, ConfigOption*> key_value_map;
                 key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_results[i].second }));
@@ -874,8 +890,9 @@ void FlowRateWizard::on_cali_save()
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
-            old_preset_name = selected_filaments.begin()->second->name;
-
+            if (!selected_filaments.empty()) {
+                old_preset_name = selected_filaments.begin()->second->name;
+            }
             std::map<std::string, ConfigOption*> key_value_map;
             key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_flow_ratio }));
 
@@ -1097,6 +1114,11 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     params.mode = m_mode;
 
     std::map<int, Preset *> selected_filaments = preset_page->get_selected_filaments();
+    if (selected_filaments.empty()) {
+        MessageDialog msg_dlg(nullptr, _L("Please select filament to calibrate."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
 
     CalibInfo calib_info;
     calib_info.params = params;

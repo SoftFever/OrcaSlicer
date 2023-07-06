@@ -1342,6 +1342,7 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
 
 void CalibrationPresetPage::on_cali_start_job()
 {
+    m_send_progress_bar->reset();
     show_status(CaliPresetPageStatus::CaliPresetStatusSending);
 }
 
@@ -1597,10 +1598,12 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
 
     if (stage != CaliPresetStage::CALI_MANUAL_STAGE_2) {
         std::map<int, Preset*> selected_filaments = get_selected_filaments();
-        const ConfigOptionFloats* flow_ratio_opt = selected_filaments.begin()->second->config.option<ConfigOptionFloats>("filament_flow_ratio");
-        if (flow_ratio_opt) {
-            m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
-            value = flow_ratio_opt->get_at(0);
+        if (!selected_filaments.empty()) {
+            const ConfigOptionFloats* flow_ratio_opt = selected_filaments.begin()->second->config.option<ConfigOptionFloats>("filament_flow_ratio");
+            if (flow_ratio_opt) {
+                m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
+                value = flow_ratio_opt->get_at(0);
+            }
         }
     }
 }
