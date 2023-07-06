@@ -197,7 +197,7 @@ void HistoryWindow::sync_history_data() {
 
     m_history_data_panel->SetSizer(gbSizer, true);
 
-    auto title_name = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Filament Brand && Family"));
+    auto title_name = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Name"));
     title_name->SetFont(Label::Head_14);
     gbSizer->Add(title_name, { 0, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
@@ -314,7 +314,7 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     flex_sizer->SetFlexibleDirection(wxBOTH);
     flex_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
-    wxStaticText* name_title = new wxStaticText(top_panel, wxID_ANY, _L("Filament Brand &&\n Family"));
+    wxStaticText* name_title = new wxStaticText(top_panel, wxID_ANY, _L("Name"));
     TextInput* name_value = new TextInput(top_panel, m_new_result.name, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
     name_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, name_value](auto& e) {
         if (!name_value->GetTextCtrl()->GetValue().IsEmpty())

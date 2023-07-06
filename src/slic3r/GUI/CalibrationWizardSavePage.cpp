@@ -144,6 +144,15 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
 
     m_grid_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_top_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
+
+    m_top_sizer->AddSpacer(PRESET_GAP);
+
+    wxStaticText* naming_hints = new wxStaticText(parent, wxID_ANY, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    naming_hints->SetFont(Label::Body_14);
+    naming_hints->SetForegroundColour(wxColour(157, 157, 157));
+    m_top_sizer->Add(naming_hints, 0, wxALIGN_CENTER, 0);
+
+    m_top_sizer->AddSpacer(FromDIP(20));
 }
 
 void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
@@ -168,7 +177,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     // hide n value
     n_title->Hide();
     left_title_sizer->Add(n_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
-    auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Brand Name"), wxDefaultPosition, wxDefaultSize, 0);
+    auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Name"), wxDefaultPosition, wxDefaultSize, 0);
     brand_title->SetFont(Label::Head_14);
     left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
     grid_sizer->Add(left_title_sizer);
@@ -437,12 +446,19 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    auto save_text = new wxStaticText(parent, wxID_ANY, _L("Brand Name"), wxDefaultPosition, wxDefaultSize, 0);
+    auto save_text = new wxStaticText(parent, wxID_ANY, _L("Name"), wxDefaultPosition, wxDefaultSize, 0);
     save_text->SetFont(Label::Head_14);
     m_top_sizer->Add(save_text, 0, 0, 0);
 
     m_save_name_input = new TextInput(parent, "", "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
     m_top_sizer->Add(m_save_name_input, 0, 0, 0);
+
+    m_top_sizer->AddSpacer(PRESET_GAP);
+
+    wxStaticText* naming_hints = new wxStaticText(parent, wxID_ANY, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    naming_hints->SetFont(Label::Body_14);
+    naming_hints->SetForegroundColour(wxColour(157, 157, 157));
+    m_top_sizer->Add(naming_hints, 0, wxALIGN_CENTER, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -853,7 +869,7 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
     auto flow_ratio_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Flow Ratio"), wxDefaultPosition, wxDefaultSize, 0);
     flow_ratio_title->SetFont(Label::Head_14);
     left_title_sizer->Add(flow_ratio_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
-    auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Brand Name"), wxDefaultPosition, wxDefaultSize, 0);
+    auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
     brand_title->SetFont(Label::Head_14);
     left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
     grid_sizer->Add(left_title_sizer);

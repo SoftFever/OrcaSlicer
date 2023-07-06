@@ -364,6 +364,7 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
 
     m_help_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_help",
         wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 30);
+    m_help_btn->Hide();
     m_help_btn->SetBackgroundColour(*wxWHITE);
     caption_sizer->Add(m_help_btn, 0, wxALIGN_CENTER);
 
@@ -438,7 +439,8 @@ void CaliPageCaption::show_prev_btn(bool show)
 
 void CaliPageCaption::show_help_icon(bool show)
 {
-    m_help_btn->Show(show);
+    //m_help_btn->Show(show);
+    m_help_btn->Hide();
 }
 
 CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,

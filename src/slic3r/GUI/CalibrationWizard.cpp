@@ -508,7 +508,7 @@ void PressureAdvanceWizard::on_cali_save()
                     return;
                 }
                 if (save_page->is_all_failed()) {
-                    MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxICON_WARNING | wxOK);
+                    MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxOK);
                     msg_dlg.ShowModal();
                     show_step(start_step);
                     return;
@@ -559,7 +559,7 @@ void PressureAdvanceWizard::on_cali_save()
         else {
             assert(false);
         }
-        MessageDialog msg_dlg(nullptr, _L("Dynamic Pressure Control calibration result has been saved to the printer"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Dynamic Pressure Control calibration result has been saved to the printer"), wxEmptyString, wxOK);
         msg_dlg.ShowModal();
     }
     show_step(start_step);
@@ -841,7 +841,7 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
             if (save_page->is_all_failed()) {
-                MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxICON_WARNING | wxOK);
+                MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxOK);
                 msg_dlg.ShowModal();
                 show_step(start_step);
                 return;
@@ -864,7 +864,7 @@ void FlowRateWizard::on_cali_save()
                 }
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -903,7 +903,7 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else {
@@ -1172,7 +1172,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
         return;
     }
 
-    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxICON_WARNING | wxOK);
+    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxOK);
     msg_dlg.ShowModal();
     show_step(start_step);
 }
