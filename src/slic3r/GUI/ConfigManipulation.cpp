@@ -540,7 +540,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
-                    "seam_position", "wall_infill_order", "outer_wall_line_width",
+                    "seam_position", "staggered_inner_seams", "wall_infill_order", "outer_wall_line_width",
                     "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
 

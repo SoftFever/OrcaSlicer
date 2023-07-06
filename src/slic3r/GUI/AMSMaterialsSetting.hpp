@@ -54,6 +54,8 @@ public:
 class ColorPickerPopup : public PopupWindow
 {
 public:
+    StaticBox* m_custom_cp;
+    wxColourData* m_clrData;
     StaticBox* m_def_color_box;
     wxFlexGridSizer* m_ams_fg_sizer;
     wxColour m_def_col;
@@ -65,6 +67,7 @@ public:
 public:
     ColorPickerPopup(wxWindow* parent);
     ~ColorPickerPopup() {};
+    void on_custom_clr_picker(wxMouseEvent& event);
     void set_ams_colours(std::vector<wxColour> ams);
     void set_def_colour(wxColour col);
     void paintEvent(wxPaintEvent& evt);

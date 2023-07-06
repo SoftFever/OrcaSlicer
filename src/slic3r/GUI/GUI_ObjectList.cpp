@@ -2900,7 +2900,10 @@ DynamicPrintConfig ObjectList::get_default_layer_config(const int obj_idx)
                             wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("layer_height");
     config.set_key_value("layer_height",new ConfigOptionFloat(layer_height));
     // BBS
-    config.set_key_value("extruder",    new ConfigOptionInt(1));
+    int extruder = object(obj_idx)->config.has("extruder") ?
+        object(obj_idx)->config.opt_int("extruder") :
+        wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("extruder");
+    config.set_key_value("extruder",    new ConfigOptionInt(extruder));
 
     return config;
 }
@@ -3314,7 +3317,7 @@ void ObjectList::part_selection_changed()
     Sidebar& panel = wxGetApp().sidebar();
     panel.Freeze();
 
-    wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
+    //wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
     // BBS
     //wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
