@@ -868,6 +868,38 @@
         {
             "name": "Bambu PET-CF @BBL P1P",
             "sub_path": "filament/P1P/Bambu PET-CF @BBL P1P.json"
+        },
+        {
+            "name":"Bambu Support For PLA @base",
+            "sub_path":"filament/Bambu Support For PLA @base.json"
+        },
+        {
+            "name":"Bambu Support For PLA @BBL X1C 0.2 nozzle",
+            "sub_path":"filament/Bambu Support For PLA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name":"Bambu Support For PLA @BBL X1C",
+            "sub_path":"filament/Bambu Support For PLA @BBL X1C.json"
+        },
+        {
+            "name":"Bambu Support For PLA @BBL P1P 0.2 nozzle",
+            "sub_path":"filament/P1P/Bambu Support For PLA @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name":"Bambu Support For PLA @BBL P1P",
+            "sub_path":"filament/P1P/Bambu Support For PLA @BBL P1P.json"
+        },
+        {
+            "name":"Bambu Support For PA/PET @base",
+            "sub_path":"filament/Bambu Support For PA PET @base.json"
+        },
+        {
+            "name":"Bambu Support For PA/PET @BBL P1P",
+            "sub_path":"filament/P1P/Bambu Support For PA PET @BBL P1P.json"
+        },
+        {
+            "name":"Bambu Support For PA/PET @BBL X1C",
+            "sub_path":"filament/Bambu Support For PA PET @BBL X1C.json"
         }
     ],
     "machine_list": [
