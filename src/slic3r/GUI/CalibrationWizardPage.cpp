@@ -570,9 +570,9 @@ CaliPageActionPanel::CaliPageActionPanel(wxWindow* parent,
 
     auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    top_sizer->Add(0, 0, 1, wxEXPAND, 5);
+    top_sizer->Add(0, 0, 1, wxEXPAND, 0);
     for (int i = 0; i < m_action_btns.size(); i++) {
-        top_sizer->Add(m_action_btns[i], 0, wxALL, 5);
+        top_sizer->Add(m_action_btns[i], 0, wxALL, FromDIP(5));
 
         m_action_btns[i]->Bind(wxEVT_BUTTON,
             [this, i](wxCommandEvent& evt) {
@@ -582,7 +582,7 @@ CaliPageActionPanel::CaliPageActionPanel(wxWindow* parent,
                 wxPostEvent(m_parent, event);
             });
     }
-    top_sizer->Add(0, 0, 1, wxEXPAND, 5);
+    top_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     this->SetSizer(top_sizer);
     top_sizer->Fit(this);
@@ -621,6 +621,7 @@ void CaliPageActionPanel::show_button(CaliPageActionType action_type, bool show)
             m_action_btns[i]->Show(show);
         }
     }
+    Layout();
 }
 
 void CaliPageActionPanel::enable_button(CaliPageActionType action_type, bool enable)
