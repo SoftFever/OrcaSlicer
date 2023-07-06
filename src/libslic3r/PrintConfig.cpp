@@ -2640,7 +2640,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Wipe on loops");
     def->tooltip = L("To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("wipe_speed", coFloatOrPercent);
     def->label = L("Wipe speed");
@@ -3351,7 +3351,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 2. });
+    def->set_default_value(new ConfigOptionFloats { 1. });
 
     def = this->add("enable_prime_tower", coBool);
     def->label = L("Enable");
