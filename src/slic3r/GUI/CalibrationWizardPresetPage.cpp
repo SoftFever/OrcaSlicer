@@ -996,7 +996,6 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle && printer_preset) {
         preset_bundle->set_calibrate_printer(printer_preset->name);
-        update_filament_combobox();
     }
 
     //step 2: sync ams info from object by default
@@ -1440,7 +1439,8 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
             on_switch_ams(obj->amsList.begin()->first);
         } else {
             m_multi_ams_panel->Hide();
-            update_filament_combobox();
+            if (!obj->amsList.empty())
+                update_filament_combobox(obj->amsList.begin()->first);
         }
     }
     else {
