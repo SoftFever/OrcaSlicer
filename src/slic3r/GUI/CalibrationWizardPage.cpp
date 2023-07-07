@@ -100,7 +100,7 @@ CalibMode get_obj_calibration_mode(const MachineObject* obj, CalibrationMethod& 
         return CalibMode::Calib_PA_Line;
     }
     if (boost::contains(obj->m_gcode_file, "extrusion_cali")) {
-        method == CalibrationMethod::CALI_METHOD_MANUAL;
+        method = CalibrationMethod::CALI_METHOD_MANUAL;
         return CalibMode::Calib_PA_Line;
     }
 
@@ -119,7 +119,7 @@ CalibMode get_obj_calibration_mode(const MachineObject* obj, CalibrationMethod& 
             return CalibMode::Calib_PA_Line;
         }
         if (boost::contains(obj->subtask_name, "extrusion_cali")) {
-            method == CalibrationMethod::CALI_METHOD_MANUAL;
+            method = CalibrationMethod::CALI_METHOD_MANUAL;
             return CalibMode::Calib_PA_Line;
         }
 
