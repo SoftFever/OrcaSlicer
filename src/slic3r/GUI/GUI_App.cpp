@@ -2225,6 +2225,7 @@ void GUI_App::on_start_subscribe_again(std::string dev_id)
 {
     auto start_subscribe_timer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, [this, start_subscribe_timer, dev_id](auto& e) {
+        start_subscribe_timer->Stop();
         Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (!dev) return;
         MachineObject* obj = dev->get_selected_machine();
@@ -2234,8 +2235,6 @@ void GUI_App::on_start_subscribe_again(std::string dev_id)
             if(wxGetApp().getAgent()) wxGetApp().getAgent()->set_user_selected_machine(dev_id);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": dev_id=" << obj->dev_id;
         }
-
-        start_subscribe_timer->Stop();
     });
     start_subscribe_timer->Start(4000, wxTIMER_ONE_SHOT);
 }
