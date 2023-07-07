@@ -420,7 +420,7 @@ bool MachineObject::is_high_printer_type()
 
 PrinterSeries MachineObject::get_printer_series() const
 {
-    if (printer_type == "BL-P001" || printer_type == "BL-P0002")
+    if (printer_type == "BL-P001" || printer_type == "BL-P002")
         return PrinterSeries::SERIES_X1;
     else if (printer_type == "C11")
         return PrinterSeries::SERIES_P1P;
