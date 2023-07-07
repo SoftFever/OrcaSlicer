@@ -6639,7 +6639,7 @@ msgid ""
 "of raft layers"
 msgstr ""
 "La torre de purga requiere que todos los objetos se impriman sobre el mismo "
-"número de capas de balsa"
+"número de capas de base de impresión"
 
 msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
@@ -8452,34 +8452,34 @@ msgstr ""
 "OrcaSlicer leyendo variables de entorno."
 
 msgid "Raft contact Z distance"
-msgstr "Distancia Z de contacto de la balsa"
+msgstr "Distancia Z de contacto de la base de impresión"
 
 msgid "Z gap between object and raft. Ignored for soluble interface"
 msgstr ""
-"Espacio Z entre el objeto y la balsa. Se ignora para la interfaz soluble"
+"Espacio Z entre el objeto y la base de impresión. Se ignora para la interfaz soluble"
 
 msgid "Raft expansion"
-msgstr "Expansión de la balsa"
+msgstr "Expansión de la base de impresión"
 
 msgid "Expand all raft layers in XY plane"
-msgstr "Expandir todas las capas de la balsa en el plano XY"
+msgstr "Expandir todas las capas de la base de impresión en el plano XY"
 
 msgid "Initial layer density"
 msgstr "Densidad de la capa inicial"
 
 msgid "Density of the first raft or support layer"
-msgstr "Densidad de la primera balsa o capa de soporte"
+msgstr "Densidad de la primera base de impresión o capa de soporte"
 
 msgid "Initial layer expansion"
 msgstr "Expansión de la capa inicial"
 
 msgid "Expand the first raft or support layer to improve bed plate adhesion"
 msgstr ""
-"Expandir la primera balsa o capa de soporte para mejorar la adherencia de la "
+"Expandir la primera base de impresión o capa de soporte para mejorar la adherencia de la "
 "cama de la cama"
 
 msgid "Raft layers"
-msgstr "Capas de balsa"
+msgstr "Capas de base de impresión"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
@@ -8538,7 +8538,7 @@ msgstr ""
 "retracción"
 
 msgid "Z hop when retract"
-msgstr "Salto en Z al replegarse"
+msgstr "Salto en Z al retraerse"
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -8849,7 +8849,7 @@ msgstr ""
 "No crear soporte en la superficie del modelo, sólo en la cama de impresión"
 
 msgid "Support critical regions only"
-msgstr "Suportar regiones críticas solo"
+msgstr "Añadir soportes en regiones críticas solo"
 
 msgid ""
 "Only create support for critical regions including sharp tail, cantilever, "
@@ -8871,13 +8871,13 @@ msgid "The z gap between the bottom support interface and object"
 msgstr "La distancia z entre la interfaz de apoyo inferior y el objeto"
 
 msgid "Support/raft base"
-msgstr "Soporte/base de balsa"
+msgstr "Soporte/plataforma base"
 
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
 "filament for support and current filament is used"
 msgstr ""
-"Filamento para imprimir la base de soporte y la balsa. \"Por defecto\" "
+"Filamento para imprimir la base de soporte y la base de impresión. \"Por defecto\" "
 "significa que no hay filamento específico para el soporte y se utiliza el "
 "filamento actual"
 
@@ -8894,7 +8894,7 @@ msgstr ""
 "por defecto."
 
 msgid "Support/raft interface"
-msgstr "Interfaz de soporte/balsa"
+msgstr "Interfaz de soporte/base de impresión"
 
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
