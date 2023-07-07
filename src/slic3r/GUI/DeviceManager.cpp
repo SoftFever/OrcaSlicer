@@ -4350,8 +4350,13 @@ void DeviceManager::keep_alive()
         obj->keep_alive_count++;
         std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
         auto internal = std::chrono::duration_cast<std::chrono::milliseconds>(start - obj->last_keep_alive);
-        if (internal.count() > TIMEOUT_FOR_KEEPALIVE && internal.count() < 1000 * 60 * 60 * 300) {
+        if (internal.count() > TIMEOUT_FOR_KEEPALIVE && (internal.count() < 1000 * 60 * 60 * 300) ) {
             BOOST_LOG_TRIVIAL(info) << "keep alive = " << internal.count() << ", count = " << obj->keep_alive_count;
+            obj->command_request_push_all();
+            obj->last_keep_alive = start;
+        }
+        else if(obj->m_push_count == 0){
+            BOOST_LOG_TRIVIAL(info) << "keep alive = " << internal.count() << ", push_count = 0, count = " << obj->keep_alive_count;
             obj->command_request_push_all();
             obj->last_keep_alive = start;
         }

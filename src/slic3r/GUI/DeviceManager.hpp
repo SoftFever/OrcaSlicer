@@ -20,7 +20,7 @@
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
 #define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
 #define TIMEOUT_FOR_KEEPALIVE   5* 60 * 1000.f     // milliseconds
-#define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
+#define REQUEST_PUSH_MIN_TIME   3000.f     // milliseconds
 #define REQUEST_START_MIN_TIME  15000.f     // milliseconds
 #define EXTRUSION_OMIT_TIME     20000.f     // milliseconds
 #define HOLD_TIMEOUT            10000.f     // milliseconds
