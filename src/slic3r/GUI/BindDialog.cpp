@@ -570,7 +570,8 @@ wxString get_fail_reason(int code)
  {
      EndModal(wxID_OK);
      MessageDialog msg_wingow(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
-     if (msg_wingow.ShowModal() == wxOK) { return; }
+     msg_wingow.ShowModal();
+     if(m_machine_info) wxGetApp().on_start_subscribe_again(m_machine_info->dev_id);
  }
 
  void BindMachineDialog::on_bind_printer(wxCommandEvent &event)

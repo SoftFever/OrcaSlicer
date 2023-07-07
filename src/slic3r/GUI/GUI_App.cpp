@@ -2221,6 +2221,25 @@ void GUI_App::update_http_extra_header()
         m_agent->set_extra_http_header(extra_headers);
 }
 
+void GUI_App::on_start_subscribe_again(std::string dev_id)
+{
+    auto start_subscribe_timer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, [this, start_subscribe_timer, dev_id](auto& e) {
+        Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev) return;
+        MachineObject* obj = dev->get_selected_machine();
+        if (!obj) return;
+
+        if ( (dev_id == obj->dev_id) && obj->is_connecting() ) {
+            if(wxGetApp().getAgent()) wxGetApp().getAgent()->set_user_selected_machine(dev_id);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": dev_id=" << obj->dev_id;
+        }
+
+        start_subscribe_timer->Stop();
+    });
+    start_subscribe_timer->Start(4000, wxTIMER_ONE_SHOT);
+}
+
 std::string GUI_App::get_local_models_path()
 {
     std::string local_path = "";
