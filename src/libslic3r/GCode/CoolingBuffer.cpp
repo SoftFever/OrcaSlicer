@@ -61,6 +61,7 @@ struct CoolingLine
         TYPE_G2                 = 1 << 12,
         TYPE_G3                 = 1 << 13,
         TYPE_FORCE_RESUME_FAN   = 1 << 14,
+        TYPE_SET_FAN_CHANGING_LAYER = 1 << 15,
     };
 
     CoolingLine(unsigned int type, size_t  line_start, size_t  line_end) :
@@ -490,6 +491,8 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 (pos_P > 0) ? atof(sline.c_str() + pos_P + 1) * 0.001 : 0.);
         } else if (boost::starts_with(sline, ";_FORCE_RESUME_FAN_SPEED")) {
             line.type = CoolingLine::TYPE_FORCE_RESUME_FAN;
+        } else if (boost::starts_with(sline, ";_SET_FAN_SPEED_CHANGING_LAYER")) {
+            line.type = CoolingLine::TYPE_SET_FAN_CHANGING_LAYER;
         }
         if (line.type != 0)
             adjustment->lines.emplace_back(std::move(line));
@@ -722,7 +725,14 @@ std::string CoolingBuffer::apply_layer_cooldown(
     new_gcode.reserve(gcode.size() * 2);
     bool overhang_fan_control= false;
     int  overhang_fan_speed   = 0;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed](bool immediately_apply) {
+
+    enum class SetFanType {
+        sfChangingLayer = 0,
+        sfChangingFilament,
+        sfImmediatelyApply
+    };
+
+    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed](SetFanType type) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
@@ -771,20 +781,29 @@ std::string CoolingBuffer::apply_layer_cooldown(
             m_fan_speed = fan_speed_new;
             //BBS
             m_current_fan_speed = fan_speed_new;
-            if (immediately_apply)
+            if (type == SetFanType::sfImmediatelyApply)
                 new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            else if (type == SetFanType::sfChangingLayer)
+                this->m_set_fan_changing_layer = true;
+            //BBS: don't need to handle change filament, because we are always force to resume fan speed when filament change is finished
         }
         //BBS
         if (additional_fan_speed_new != m_additional_fan_speed) {
             m_additional_fan_speed = additional_fan_speed_new;
-            if (immediately_apply)
+            if (type == SetFanType::sfImmediatelyApply)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+            else if (type == SetFanType::sfChangingLayer)
+                this->m_set_addition_fan_changing_layer = true;
+            //BBS: don't need to handle change filament, because we are always force to resume fan speed when filament change is finished
         }
     };
 
     const char         *pos               = gcode.c_str();
     int                 current_feedrate  = 0;
-    change_extruder_set_fan(true);
+    //BBS
+    m_set_fan_changing_layer = false;
+    m_set_addition_fan_changing_layer = false;
+    change_extruder_set_fan(SetFanType::sfChangingLayer);
     for (const CoolingLine *line : lines) {
         const char *line_start  = gcode.c_str() + line->line_start;
         const char *line_end    = gcode.c_str() + line->line_end;
@@ -794,7 +813,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
             unsigned int new_extruder = (unsigned int)atoi(line_start + m_toolchange_prefix.size());
             if (new_extruder != m_current_extruder) {
                 m_current_extruder = new_extruder;
-                change_extruder_set_fan(false); //BBS: will force to resume fan speed when filament change is finished
+                change_extruder_set_fan(SetFanType::sfChangingFilament); //BBS: will force to resume fan speed when filament change is finished
             }
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
@@ -815,6 +834,16 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
             if (m_additional_fan_speed != -1)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+        } else if (line->type & CoolingLine::TYPE_SET_FAN_CHANGING_LAYER) {
+            //BBS: check whether fan speed need to changed when change layer
+            if (m_current_fan_speed != -1 && m_set_fan_changing_layer) {
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+                m_set_fan_changing_layer = false;
+            }
+            if (m_additional_fan_speed != -1 && m_set_addition_fan_changing_layer) {
+                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+                m_set_addition_fan_changing_layer = false;
+            }
         }
         else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
             // Just remove this comment.

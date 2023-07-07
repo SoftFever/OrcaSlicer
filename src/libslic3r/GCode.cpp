@@ -2800,6 +2800,8 @@ GCode::LayerResult GCode::process_layer(
             + "\n";
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
     }
+    //BBS: set layer time fan speed after layer change gcode
+    gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
 
     if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
         auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
