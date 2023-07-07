@@ -471,7 +471,7 @@ void CalibrationPanel::init_tabpanel() {
 
     m_cali_panels[0] = new PressureAdvanceWizard(m_tabpanel);
     m_cali_panels[1] = new FlowRateWizard(m_tabpanel);
-    m_cali_panels[2] = new MaxVolumetricSpeedWizard(m_tabpanel);
+    //m_cali_panels[2] = new MaxVolumetricSpeedWizard(m_tabpanel);
 
     for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
         bool selected = false;
