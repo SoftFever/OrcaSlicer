@@ -568,7 +568,7 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
 
     auto draw_band = [this](const ImU32& clr, const ImRect& band_rc)
     {
-        if (clr == m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT) {
+        if (clr == (m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT)) {
             ImRect rc = band_rc;
             rc.Min += ImVec2(1, 1) * m_scale;
             rc.Max -= ImVec2(1, 1) * m_scale;
