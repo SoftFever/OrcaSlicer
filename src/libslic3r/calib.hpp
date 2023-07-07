@@ -39,7 +39,7 @@ protected:
     };
 
     virtual bool is_delta() const =0;
-    void delta_scale_bed_ext(BoundingBoxf& bed_ext) { bed_ext.scale(1.0f / 1.41421f); }
+    void delta_scale_bed_ext(BoundingBoxf& bed_ext) const { bed_ext.scale(1.0f / 1.41421f); }
 
     std::string move_to(Vec2d pt, GCodeWriter& writer, std::string comment = std::string());
     double      e_per_mm(
@@ -47,11 +47,11 @@ protected:
         double layer_height,
         float filament_diameter,
         float print_flow_ratio
-    );
+    ) const;
     double      speed_adjust(int speed) const { return speed * 60; };
     
-    std::string convert_number_to_string(double num);
-    double      number_spacing() { return m_digit_segment_len + m_digit_gap_len; };
+    std::string convert_number_to_string(double num) const;
+    double      number_spacing() const { return m_digit_segment_len + m_digit_gap_len; };
     std::string draw_digit(
         double startx,
         double starty,
@@ -214,7 +214,7 @@ protected:
     int anchor_perimeters() const { return m_anchor_perimeters; };
     double encroachment() const { return m_encroachment; };
 private:
-    int get_num_patterns() const
+    const int get_num_patterns() const
     {
         return std::ceil((m_params.end - m_params.start) / m_params.step + 1);
     }
@@ -223,7 +223,7 @@ private:
     std::string draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args);
 
     double to_radians(double degrees) const { return degrees * M_PI / 180; };
-    double get_distance(Vec2d from, Vec2d to);
+    double get_distance(Vec2d from, Vec2d to) const;
     
     /* 
     from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
@@ -231,26 +231,28 @@ private:
         https://manual.slic3r.org/advanced/flow-math
         https://ellis3dp.com/Print-Tuning-Guide/articles/misconceptions.html#two-04mm-perimeters--08mm
     */
-    double line_spacing() { return line_width() - m_height_layer * (1 - M_PI / 4); };
-    double line_spacing_anchor() { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
-    double line_spacing_angle() { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
+    double line_spacing() const { return line_width() - m_height_layer * (1 - M_PI / 4); };
+    double line_spacing_anchor() const { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
+    double line_spacing_angle() const { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
 
-    double object_size_x();
-    double object_size_y();
-    double frame_size_y() { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
+    double object_size_x() const;
+    double object_size_y() const;
+    double frame_size_y() const { return std::sin(to_radians(double(m_corner_angle) / 2)) * m_wall_side_length * 2; };
 
-    double glyph_start_x(int pattern_num = 0);
-    double glyph_length_x();
-    double glyph_tab_max_x();
-    double max_numbering_height();
+    double glyph_start_x(int pattern_i = 0) const;
+    double glyph_length_x() const;
+    double glyph_tab_max_x() const;
+    double max_numbering_height() const;
 
-    double pattern_shift();
-    double print_size_x() { return object_size_x() + pattern_shift(); };
-    double print_size_y() { return object_size_y(); };
+    double pattern_shift() const;
+    double print_size_x() const { return object_size_x() + pattern_shift(); };
+    double print_size_y() const { return object_size_y(); };
 
     const Calib_Params& m_params;
-    const PrintConfig& m_config;
-    GCodeWriter& m_writer;
+    const DynamicPrintConfig m_initial_config;
+    Model& m_model;
+    const bool& m_is_bbl_machine;
+    const Vec3d& m_origin;
 
     Vec3d m_starting_point;
     

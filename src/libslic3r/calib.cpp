@@ -28,14 +28,15 @@ double CalibPressureAdvance::e_per_mm(
     double layer_height,
     float filament_diameter,
     float print_flow_ratio
-) {
+) const
+{
     const Flow line_flow = Flow(line_width, layer_height, m_nozzle_diameter);
     const double filament_area = M_PI * std::pow(filament_diameter / 2, 2);
 
     return line_flow.mm3_per_mm() / filament_area * print_flow_ratio;
 }
 
-std::string CalibPressureAdvance::convert_number_to_string(double num)
+std::string CalibPressureAdvance::convert_number_to_string(double num) const
 {
     auto sNumber = std::to_string(num);
     sNumber.erase(sNumber.find_last_not_of('0') + 1, std::string::npos);
@@ -727,12 +728,12 @@ std::string CalibPressureAdvancePattern::draw_box(double min_x, double min_y, do
     return gcode.str();
 }
 
-double CalibPressureAdvancePattern::get_distance(Vec2d from, Vec2d to)
+double CalibPressureAdvancePattern::get_distance(Vec2d from, Vec2d to) const
 {
     return std::hypot((to.x() - from.x()), (to.y() - from.y()));
 }
 
-double CalibPressureAdvancePattern::object_size_x()
+double CalibPressureAdvancePattern::object_size_x() const
 {
     return get_num_patterns() * ((m_wall_count - 1) * line_spacing_angle()) +
         (get_num_patterns() - 1) * (m_pattern_spacing + line_width()) +
@@ -741,7 +742,7 @@ double CalibPressureAdvancePattern::object_size_x()
     ;
 }
 
-double CalibPressureAdvancePattern::object_size_y()
+double CalibPressureAdvancePattern::object_size_y() const
 {
     return 2 * (std::sin(to_radians(m_corner_angle) / 2) * m_wall_side_length) +
         max_numbering_height() +
@@ -749,7 +750,7 @@ double CalibPressureAdvancePattern::object_size_y()
         line_width_anchor();
 }
 
-double CalibPressureAdvancePattern::glyph_start_x(int pattern_i)
+double CalibPressureAdvancePattern::glyph_start_x(int pattern_i) const
 {
     // note that pattern_i is zero-based!
     // align glyph's start with first perimeter of specified pattern
@@ -776,12 +777,13 @@ double CalibPressureAdvancePattern::glyph_start_x(int pattern_i)
     return x;
 }
 
-double CalibPressureAdvancePattern::glyph_length_x() {
+double CalibPressureAdvancePattern::glyph_length_x() const
+{
     // half of line_width sticks out on each side
     return line_width() + (2 * m_digit_segment_len);
 }
 
-double CalibPressureAdvancePattern::glyph_tab_max_x()
+double CalibPressureAdvancePattern::glyph_tab_max_x() const
 {
     // only every other glyph is shown, starting with 1
     int num = get_num_patterns();
@@ -801,7 +803,7 @@ double CalibPressureAdvancePattern::glyph_tab_max_x()
     ;
 }
 
-double CalibPressureAdvancePattern::max_numbering_height()
+double CalibPressureAdvancePattern::max_numbering_height() const
 {
     std::string::size_type most_characters = 0;
     const int num_patterns = get_num_patterns();
@@ -820,7 +822,7 @@ double CalibPressureAdvancePattern::max_numbering_height()
     return (most_characters * m_digit_segment_len) + ((most_characters - 1) * m_digit_gap_len);
 }
 
-double CalibPressureAdvancePattern::pattern_shift()
+double CalibPressureAdvancePattern::pattern_shift() const
 {
     return
         (m_anchor_perimeters - 1) * line_spacing_anchor() +
