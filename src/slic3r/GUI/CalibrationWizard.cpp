@@ -227,9 +227,11 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
 {
     std::vector<PrinterCaliInfo> back_infos = wxGetApp().app_config->get_printer_cali_infos();
     for (const auto& back_info : back_infos) {
-        obj->dev_id                 = back_info.dev_id;
-        obj->cache_flow_ratio       = back_info.cache_flow_ratio;
-        obj->selected_cali_preset   = back_info.selected_presets;
+        if (obj && (obj->dev_id == back_info.dev_id) ) {
+            obj->dev_id = back_info.dev_id;
+            obj->cache_flow_ratio = back_info.cache_flow_ratio;
+            obj->selected_cali_preset = back_info.selected_presets;
+        }
     }
 }
 
