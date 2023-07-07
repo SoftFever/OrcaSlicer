@@ -1174,7 +1174,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     //m_sizer_select = new wxGridSizer(0, 2, 0, 0);
     m_sizer_select = new wxWrapSizer();
     select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
-    select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
+    select_flow    = create_item_checkbox(_L("Flow Dynamics Calibration"), this, _L("Flow Dynamics Calibration"), "flow_cali");
     select_timelapse = create_item_checkbox(_L("Timelapse"), this, _L("Timelapse"), "timelapse");
     select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
 
