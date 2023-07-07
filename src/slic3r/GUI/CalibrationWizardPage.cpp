@@ -539,7 +539,7 @@ CaliPageActionPanel::CaliPageActionPanel(wxWindow* parent,
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_CALI));
         }
         else if (page_type == CaliPageType::CALI_PAGE_CALI) {
-            m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_NEXT));
+            m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_CALI_NEXT));
         }
         else if (page_type == CaliPageType::CALI_PAGE_COARSE_SAVE) {
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_FLOW_COARSE_SAVE));
@@ -560,7 +560,7 @@ CaliPageActionPanel::CaliPageActionPanel(wxWindow* parent,
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_CALI));
         }
         else if (page_type == CaliPageType::CALI_PAGE_CALI) {
-            m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_NEXT));
+            m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_CALI_NEXT));
         }
         else if (page_type == CaliPageType::CALI_PAGE_COMMON_SAVE) {
             m_action_btns.push_back(new CaliPageButton(btn_parent, CaliPageActionType::CALI_ACTION_COMMON_SAVE));

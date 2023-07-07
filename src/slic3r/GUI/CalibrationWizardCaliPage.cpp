@@ -217,7 +217,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
             } else {
                 assert(false);
             }
-            m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_NEXT, enable_cali);
+            m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_CALI_NEXT, enable_cali);
         } 
         else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
             if (get_obj_calibration_mode(obj) == m_cali_mode && obj->is_printing_finished()) {

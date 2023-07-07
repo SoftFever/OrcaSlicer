@@ -651,6 +651,9 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
     else if (action == CaliPageActionType::CALI_ACTION_NEXT) {
         show_step(m_curr_step->next);
     }
+    else if (action == CaliPageActionType::CALI_ACTION_CALI_NEXT) {
+        show_step(m_curr_step->next);
+    }
     else if (action == CaliPageActionType::CALI_ACTION_PREV) {
         show_step(m_curr_step->prev);
     }
