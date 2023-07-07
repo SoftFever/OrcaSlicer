@@ -146,7 +146,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
             m_is_between_start_and_running = false;
         if (m_is_between_start_and_running) {
             reset_printing_values();
-            m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_NEXT, false);
+            m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_CALI_NEXT, false);
             return;
         }
 
