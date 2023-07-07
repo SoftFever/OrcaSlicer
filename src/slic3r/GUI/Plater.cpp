@@ -3394,6 +3394,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             }
                         } else {
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
+
+                            ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
+                            if (bed_type_opt != nullptr) {
+                                BedType bed_type = (BedType)bed_type_opt->getInt();
+                                // update app config for bed type
+                                bool is_bbl_preset = preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(&(*preset_bundle));
+                                if (is_bbl_preset) {
+                                    AppConfig* app_config = wxGetApp().app_config;
+                                    if (app_config)
+                                        app_config->set("curr_bed_type", std::to_string(int(bed_type)));
+                                }
+                                q->on_bed_type_change(bed_type);
+                            }
+
                             // BBS: moved this logic to presetcollection
                             //{
                             //    // After loading of the presets from project, check if they are visible.
@@ -3453,9 +3467,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // to avoid black (default) colors for Extruders in the ObjectList,
                             // when for extruder colors are used filament colors
                             q->on_filaments_change(preset_bundle->filament_presets.size());
-
-                            ConfigOption *bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
-                            if (bed_type_opt != nullptr) q->on_bed_type_change((BedType) bed_type_opt->getInt());
                             is_project_file = true;
                         }
                     }
