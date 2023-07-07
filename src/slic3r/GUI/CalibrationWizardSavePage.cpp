@@ -198,9 +198,15 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
         tray_title->SetFont(Label::Head_14);
-        char prefix = 'A' + (item.tray_id / 4);
-        char suffix = '0' + 1 + item.tray_id % 4;
-        wxString tray_name = std::string(1, prefix) + std::string(1, suffix);
+        wxString tray_name;
+        if (item.tray_id == VIRTUAL_TRAY_ID) {
+            tray_name = "Ext";
+        }
+        else {
+            char prefix = 'A' + (item.tray_id / 4);
+            char suffix = '0' + 1 + item.tray_id % 4;
+            tray_name = std::string(1, prefix) + std::string(1, suffix);
+        }
         tray_title->SetLabel(tray_name);
 
         auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_FROM_TO_INPUT_SIZE, item.tray_id, GridTextInputType::K);
@@ -888,9 +894,15 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
         tray_title->SetFont(Label::Head_14);
-        char prefix = 'A' + (item.tray_id / 4);
-        char suffix = '0' + 1 + item.tray_id % 4;
-        wxString tray_name = std::string(1, prefix) + std::string(1, suffix);
+        wxString tray_name;
+        if (item.tray_id == VIRTUAL_TRAY_ID) {
+            tray_name = "Ext";
+        }
+        else {
+            char prefix = 'A' + (item.tray_id / 4);
+            char suffix = '0' + 1 + item.tray_id % 4;
+            tray_name = std::string(1, prefix) + std::string(1, suffix);
+        }
         tray_title->SetLabel(tray_name);
 
         auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_FROM_TO_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio);
