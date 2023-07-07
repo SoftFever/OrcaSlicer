@@ -58,7 +58,7 @@ jobs:
         shell: bash
         run: |
           rm -rf build
-          podman buildx build -t bambu-studio-builder:latest .
+          podman buildx build --build-arg BUILD_LINUX_EXTRA_ARGS=-r -t bambu-studio-builder:latest .
           podman run -d -it --name bambu-studio-builder bambu-studio-builder:latest /bin/bash -c 'tail -f /dev/null'
           podman cp bambu-studio-builder:/BambuStudio/build/BambuStudio_ubu64.AppImage ./
           podman stop bambu-studio-builder

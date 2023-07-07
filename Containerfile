@@ -20,6 +20,7 @@
 
 FROM docker.io/ubuntu:20.04
 LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"
+ARG BUILD_LINUX_EXTRA_ARGS=""
 
 # Disable interactive package configuration
 RUN apt-get update && \
@@ -58,14 +59,14 @@ WORKDIR BambuStudio
 
 # These can run together, but we run them seperate for podman caching
 # Update System dependencies
-RUN ./BuildLinux.sh -u
+RUN ./BuildLinux.sh -u ${BUILD_LINUX_EXTRA_ARGS}
 
 # Build dependencies in ./deps
-RUN ./BuildLinux.sh -d
+RUN ./BuildLinux.sh -d ${BUILD_LINUX_EXTRA_ARGS}
 
 # Build slic3r
-RUN ./BuildLinux.sh -s
+RUN ./BuildLinux.sh -s ${BUILD_LINUX_EXTRA_ARGS}
 
 # Build AppImage
 ENV container podman
-RUN ./BuildLinux.sh -i
+RUN ./BuildLinux.sh -i ${BUILD_LINUX_EXTRA_ARGS}
