@@ -104,7 +104,7 @@ protected:
     std::map<int, PACalibResult> m_calib_results;// map<tray_id, PACalibResult>
     std::vector<PACalibResult> m_history_results;
     bool m_is_all_failed{ true };
-    MachineObject* m_obj;
+    MachineObject* m_obj{ nullptr };
 };
 
 class CaliPASaveManualPanel : public wxPanel
@@ -134,7 +134,7 @@ protected:
     ::TextInput* m_k_val;
     ::TextInput* m_n_val;
 
-    MachineObject* m_obj;
+    MachineObject* m_obj{ nullptr };
 };
 
 class CaliPASaveP1PPanel : public wxPanel

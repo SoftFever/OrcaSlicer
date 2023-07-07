@@ -321,7 +321,7 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
 
     //operate
     auto input = dynamic_cast<GridTextInput*>(window);
-    if (input) {
+    if (input && input->IsShown()) {
         int tray_id = input->get_col_idx();
         if (input->get_type() == GridTextInputType::K) {
             float k = 0.0f;
@@ -336,7 +336,7 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
     }
 
     auto comboBox = dynamic_cast<GridComboBox*>(window);
-    if (comboBox) {
+    if (comboBox && comboBox->IsShown()) {
         int tray_id = comboBox->get_col_idx();
         wxString name = comboBox->GetTextCtrl()->GetValue().ToStdString();
         if (name.IsEmpty()) {
@@ -881,6 +881,7 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
 
     m_is_all_failed = true;
     bool part_failed = false;
+
     for (auto& item : cali_result) {
         bool result_failed = false;
         if (item.confidence != 0) {
@@ -984,7 +985,7 @@ void CalibrationFlowX1SavePage::save_to_result_from_widgets(wxWindow* window, bo
 
     //operate
     auto input = dynamic_cast<GridTextInput*>(window);
-    if (input) {
+    if (input && input->IsShown()) {
         int tray_id = input->get_col_idx();
         if (input->get_type() == GridTextInputType::FlowRatio) {
             float flow_ratio = 0.0f;
