@@ -51,6 +51,13 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+
+enum PrinterSeries {
+    SERIES_X1 = 0,
+    SERIES_P1P,
+    SERIES_UNKNOWN,
+};
+
 enum PRINTING_STAGE {
     PRINTING_STAGE_PRINTING = 0,
     PRINTING_STAGE_BED_LEVELING,
@@ -438,6 +445,7 @@ public:
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
+    PrinterSeries get_printer_series() const;
 
     std::string printer_thumbnail_img;
     std::string monitor_upgrade_printer_img;

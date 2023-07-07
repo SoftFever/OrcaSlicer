@@ -1112,7 +1112,7 @@ bool CalibrationPresetPage::need_check_sdcard(MachineObject* obj)
     if (!obj) return false;
 
     bool need_check = false;
-    if (obj->printer_type == "BL-P001" || obj->printer_type == "BL-P002") {
+    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
         if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             need_check = true;
         }
@@ -1121,7 +1121,7 @@ bool CalibrationPresetPage::need_check_sdcard(MachineObject* obj)
             need_check =  true;
         }
     }
-    else if (obj->printer_type == "C11" || obj->printer_type == "C12") {
+    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
         if (m_cali_mode == CalibMode::Calib_Flow_Rate && m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             need_check =  true;
         }

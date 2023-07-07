@@ -172,7 +172,7 @@ public:
     bool get_manual_result(PACalibResult& result) { return m_manual_panel->get_result(result); }
     bool get_p1p_result(float* k, float* n) { return m_p1p_panel->get_result(k, n); }
 
-    void show_panels(CalibrationMethod method, const std::string& printer_type);
+    void show_panels(CalibrationMethod method, const PrinterSeries printer_ser);
 
     void on_device_connected(MachineObject* obj);
 

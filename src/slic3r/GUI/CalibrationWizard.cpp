@@ -432,8 +432,7 @@ void PressureAdvanceWizard::on_cali_start()
         return;
     }
 
-    if (curr_obj->printer_type == "BL-P001"
-        || curr_obj->printer_type == "BL-P002") {
+    if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
         X1CCalibInfos calib_infos;
         for (auto& item : selected_filaments) {
             int nozzle_temp = -1;
@@ -472,8 +471,7 @@ void PressureAdvanceWizard::on_cali_start()
             msg_dlg.ShowModal();
         }
     }
-    else if (curr_obj->printer_type == "C11"
-        || curr_obj->printer_type == "C12") {
+    else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
         if (selected_filaments.empty()) {
             BOOST_LOG_TRIVIAL(warning) << "CaliPreset: selected filaments is empty";
             return;
@@ -502,8 +500,7 @@ void PressureAdvanceWizard::on_cali_start()
 void PressureAdvanceWizard::on_cali_save()
 {
     if (curr_obj) {
-        if (curr_obj->printer_type == "BL-P001"
-            || curr_obj->printer_type == "BL-P002") {
+        if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
             if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
                 std::vector<PACalibResult> new_pa_cali_results;
                 auto save_page = static_cast<CalibrationPASavePage*>(save_step->page);
@@ -528,8 +525,7 @@ void PressureAdvanceWizard::on_cali_save()
                 CalibUtils::set_PA_calib_result({ new_pa_cali_result });
             }
         }
-        else if (curr_obj->printer_type == "C11"
-            || curr_obj->printer_type == "C12") {
+        else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             auto save_page = static_cast<CalibrationPASavePage*>(save_step->page);
             float new_k_value = 0.0f;
             float new_n_value = 0.0f;

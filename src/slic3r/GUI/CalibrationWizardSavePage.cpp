@@ -733,9 +733,8 @@ void CalibrationPASavePage::sync_cali_result(MachineObject* obj)
     }
 }
 
-void CalibrationPASavePage::show_panels(CalibrationMethod method, const std::string& printer_type) {
-    if (printer_type == "BL-P001"
-        || printer_type == "BL-P002") {
+void CalibrationPASavePage::show_panels(CalibrationMethod method, const PrinterSeries printer_ser) {
+    if (printer_ser == PrinterSeries::SERIES_X1) {
         if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
             m_manual_panel->Show();
             m_auto_panel->Show(false);
@@ -746,8 +745,7 @@ void CalibrationPASavePage::show_panels(CalibrationMethod method, const std::str
         }
         m_p1p_panel->Show(false);
     }
-    else if (printer_type == "C11"
-        || printer_type == "C12") {
+    else if (printer_ser == PrinterSeries::SERIES_P1P) {
         m_auto_panel->Show(false);
         m_manual_panel->Show(false);
         m_p1p_panel->Show();
@@ -764,7 +762,7 @@ void CalibrationPASavePage::set_cali_method(CalibrationMethod method)
 {
     CalibrationWizardPage::set_cali_method(method);
     if (curr_obj) {
-        show_panels(method, curr_obj->printer_type);
+        show_panels(method, curr_obj->get_printer_series());
     }
 }
 
@@ -772,7 +770,7 @@ void CalibrationPASavePage::on_device_connected(MachineObject* obj)
 {
     curr_obj = obj;
     if (curr_obj)
-        show_panels(m_cali_method, curr_obj->printer_type);
+        show_panels(m_cali_method, curr_obj->get_printer_series());
 }
 
 void CalibrationPASavePage::update(MachineObject* obj)
@@ -788,7 +786,7 @@ void CalibrationPASavePage::update(MachineObject* obj)
 bool CalibrationPASavePage::Show(bool show) {
     if (show) {
         if (curr_obj) {
-            show_panels(m_cali_method, curr_obj->printer_type);
+            show_panels(m_cali_method, curr_obj->get_printer_series());
             sync_cali_result(curr_obj);
         }
     }

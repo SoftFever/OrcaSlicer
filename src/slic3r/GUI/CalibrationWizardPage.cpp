@@ -13,9 +13,9 @@ CalibrationStyle get_cali_style(MachineObject* obj)
 {
     if (!obj) return CalibrationStyle::CALI_STYLE_DEFAULT;
 
-    if (obj->printer_type == "BL-P001" || obj->printer_type == "BL-P002")
+    if (obj->get_printer_series() == PrinterSeries::SERIES_X1)
         return CalibrationStyle::CALI_STYLE_X1;
-    else if (obj->printer_type == "C11" || obj->printer_type == "C12")
+    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
         return CalibrationStyle::CALI_STYLE_P1P;
 
     return CalibrationStyle::CALI_STYLE_DEFAULT;
@@ -57,15 +57,15 @@ CalibrationFilamentMode get_cali_filament_mode(MachineObject* obj, CalibMode mod
 
 
     if (mode == CalibMode::Calib_PA_Line) {
-        if (obj->printer_type == "BL-P001" || obj->printer_type == "BL-P002")
+        if (obj->get_printer_series() == PrinterSeries::SERIES_X1)
             return CalibrationFilamentMode::CALI_MODEL_MULITI;
-        else if (obj->printer_type == "C11" || obj->printer_type == "C12")
+        else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
             return CalibrationFilamentMode::CALI_MODEL_SINGLE;
     }
     else if (mode == CalibMode::Calib_Flow_Rate) {
-        if (obj->printer_type == "BL-P001" || obj->printer_type == "BL-P002")
+        if (obj->get_printer_series() == PrinterSeries::SERIES_X1)
             return CalibrationFilamentMode::CALI_MODEL_SINGLE;
-        else if (obj->printer_type == "C11" || obj->printer_type == "C12")
+        else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
             return CalibrationFilamentMode::CALI_MODEL_SINGLE;
     }
 
@@ -109,7 +109,7 @@ CalibMode get_obj_calibration_mode(const MachineObject* obj, CalibrationMethod& 
         return CalibMode::Calib_Flow_Rate;
     }
 
-    if (obj->printer_type == "C11" || obj->printer_type == "C12") {
+    if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
         if (boost::contains(obj->subtask_name, "auto_filament_cali")) {
             method = CalibrationMethod::CALI_METHOD_AUTO;
             return CalibMode::Calib_PA_Line;
