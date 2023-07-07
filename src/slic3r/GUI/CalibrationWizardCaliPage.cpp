@@ -97,19 +97,28 @@ void CalibrationCaliPage::on_subtask_abort(wxCommandEvent& event)
     abort_dlg->on_show();
 }
 
-
 void CalibrationCaliPage::set_cali_img()
 {
     if (m_cali_mode == CalibMode::Calib_PA_Line) {
-        m_printing_picture->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400));
+        if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
+            m_printing_picture->SetBitmap(create_scaled_bitmap("fd_calibration_manual", nullptr, 400));
+        }
+        else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
+            m_printing_picture->SetBitmap(create_scaled_bitmap("fd_calibration_auto", nullptr, 400));
+        }
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
-        if (m_page_type == CaliPageType::CALI_PAGE_CALI)
-            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
-        if (m_page_type == CaliPageType::CALI_PAGE_FINE_CALI)
-            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400));
-        else
-            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
+        if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
+            if (m_page_type == CaliPageType::CALI_PAGE_CALI)
+                m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
+            if (m_page_type == CaliPageType::CALI_PAGE_FINE_CALI)
+                m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400));
+            else
+                m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
+        }
+        else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
+            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_auto", nullptr, 400));
+        }
     }
     else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
         m_printing_picture->SetBitmap(create_scaled_bitmap("max_volumetric_speed_calibration", nullptr, 400));
@@ -391,6 +400,8 @@ void CalibrationCaliPage::on_device_connected(MachineObject* obj)
 void CalibrationCaliPage::set_cali_method(CalibrationMethod method)
 {
     m_cali_method = method;
+
+    set_cali_img();
 
     wxArrayString auto_steps;
     auto_steps.Add(_L("Preset"));

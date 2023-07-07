@@ -468,7 +468,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 }
 
 void CaliPASaveManualPanel::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400));
+    m_record_picture->SetBitmap(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 400));
 }
 
 void CaliPASaveManualPanel::set_default_name(const wxString& name) {
@@ -596,7 +596,7 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
 }
 
 void CaliPASaveP1PPanel::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 400));
+    m_record_picture->SetBitmap(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 400));
 }
 
 bool CaliPASaveP1PPanel::get_result(float* out_k, float* out_n){
