@@ -8,6 +8,9 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
+#define slic3r_Semver_hpp_
+#define _libslic3r_h_
+#include <libslic3r/Utils.hpp>
 
 static std::string g_log_folder;
 static std::atomic<int> g_crash_log_count = 0;
@@ -254,6 +257,7 @@ LONG WINAPI CBaseException::UnhandledExceptionFilter(PEXCEPTION_POINTERS pExcept
 		//BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": got an ExceptionCode %1%, skip it!") % pExceptionInfo->ExceptionRecord->ExceptionCode;
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
+    Slic3r::flush_logs();
     g_dump_mutex.lock();
 	CBaseException base(GetCurrentProcess(), GetCurrentProcessId(), NULL, pExceptionInfo);
 	base.ShowExceptionInformation();
