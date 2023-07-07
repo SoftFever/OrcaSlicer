@@ -1505,6 +1505,8 @@ int MachineObject::command_request_push_all(bool request_now)
     json j;
     j["pushing"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["pushing"]["command"]     = "pushall";
+    j["pushing"]["version"]     =  1;
+    j["pushing"]["push_target"] =  1;
     return this->publish_json(j.dump());
 }
 
@@ -4348,8 +4350,27 @@ void DeviceManager::set_agent(NetworkAgent* agent)
     m_agent = agent;
 }
 
+void DeviceManager::keep_alive()
+{
+    MachineObject* obj = this->get_selected_machine();
+    if (obj) {
+        if (obj->keep_alive_count == 0) {
+            obj->last_keep_alive = std::chrono::system_clock::now();
+        }
+        obj->keep_alive_count++;
+        std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+        auto internal = std::chrono::duration_cast<std::chrono::milliseconds>(start - obj->last_keep_alive);
+        if (internal.count() > TIMEOUT_FOR_KEEPALIVE && internal.count() < 1000 * 60 * 60 * 300) {
+            BOOST_LOG_TRIVIAL(info) << "keep alive = " << internal.count() << ", count = " << obj->keep_alive_count;
+            obj->command_request_push_all();
+            obj->last_keep_alive = start;
+        }
+    }
+}
+
 void DeviceManager::check_pushing()
 {
+    keep_alive();
     MachineObject* obj = this->get_selected_machine();
     if (obj && !obj->is_support_mqtt_alive) {
         std::chrono::system_clock::time_point start = std::chrono::system_clock::now();

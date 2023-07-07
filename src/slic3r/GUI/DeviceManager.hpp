@@ -19,6 +19,7 @@
 #define DISCONNECT_TIMEOUT      30000.f     // milliseconds
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
 #define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
+#define TIMEOUT_FOR_KEEPALIVE   5* 60 * 1000.f     // milliseconds
 #define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
 #define REQUEST_START_MIN_TIME  15000.f     // milliseconds
 #define EXTRUSION_OMIT_TIME     20000.f     // milliseconds
@@ -460,7 +461,9 @@ public:
     void set_lan_mode_connection_state(bool state) {m_lan_mode_connection_state = state;};
     bool get_lan_mode_connection_state() {return m_lan_mode_connection_state;};
     int  parse_msg_count = 0;
+    int  keep_alive_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
+    std::chrono::system_clock::time_point   last_keep_alive;    /* last received print data from machine */
     std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_start; /* last received print push from machine */
@@ -895,6 +898,7 @@ public:
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject*, localMachine SSDP   */
     std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject*  cloudMachine of User */
 
+    void keep_alive();
     void check_pushing();
 
     MachineObject* get_default_machine();
