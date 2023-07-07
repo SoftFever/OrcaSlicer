@@ -23,12 +23,17 @@ protected:
     wxBoxSizer*   m_images_sizer;
     wxStaticText* m_when_title;
     wxStaticText* m_when_content;
-    wxStaticBitmap* m_before_bmp;
-    wxStaticBitmap* m_after_bmp;
+    wxStaticText* m_about_title;
+    wxStaticText* m_about_content;
+    wxStaticBitmap* m_before_bmp{ nullptr };
+    wxStaticBitmap* m_after_bmp{ nullptr };
+    wxStaticBitmap* m_bmp_intro{ nullptr };
 
     void create_when(wxWindow* parent, wxString title, wxString content);
+    void create_about(wxWindow* parent, wxString title, wxString content);
     void create_bitmap(wxWindow* parent, const wxBitmap& before_img, const wxBitmap& after_img);
     void create_bitmap(wxWindow* parent, std::string before_img, std::string after_img);
+    void create_bitmap(wxWindow* parent, std::string img);
 };
 
 class CalibrationPAStartPage : public CalibrationStartPage
