@@ -927,7 +927,7 @@ void MenuFactory::append_menu_item_merge_parts_to_single_part(wxMenu* menu)
     menu->AppendSeparator();
     append_menu_item(menu, wxID_ANY, _L("Mesh boolean"), _L("Mesh boolean operations including union and subtraction"),
         [](wxCommandEvent&) { obj_list()->boolean/*merge_volumes*/(); }, "", menu,
-        []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
+        []() { return obj_list()->can_mesh_boolean(); }, m_parent);
 }
 
 void MenuFactory::append_menu_items_mirror(wxMenu* menu)

@@ -3076,6 +3076,16 @@ bool ObjectList::can_merge_to_single_object() const
     return (*m_objects)[obj_idx]->volumes.size() > 1;
 }
 
+bool ObjectList::can_mesh_boolean() const
+{
+    int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0)
+        return false;
+
+    // selected object should be multi mesh
+    return (*m_objects)[obj_idx]->volumes.size() > 1 || ((*m_objects)[obj_idx]->volumes.size() == 1 && (*m_objects)[obj_idx]->volumes[0]->is_splittable());
+}
+
 bool ObjectList::has_selected_cut_object() const
 {
     wxDataViewItemArray sels;

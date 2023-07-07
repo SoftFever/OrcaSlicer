@@ -311,6 +311,7 @@ public:
     bool                can_split_instances();
     bool                can_merge_to_multipart_object() const;
     bool                can_merge_to_single_object() const;
+    bool                can_mesh_boolean() const;
 
     bool                has_selected_cut_object() const;
     void                invalidate_cut_info_for_selection();
