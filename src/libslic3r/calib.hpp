@@ -1,13 +1,11 @@
 #pragma once
 #define calib_pressure_advance_dd
 
-#include <string>
-#include "CustomGCode.hpp"
+#include "GCode.hpp"
 #include "GCodeWriter.hpp"
 #include "PrintConfig.hpp"
-namespace Slic3r {
 
-class GCode;
+namespace Slic3r {
 
 enum class CalibMode : int {
     Calib_None = 0,
@@ -41,7 +39,7 @@ protected:
     virtual bool is_delta() const =0;
     void delta_scale_bed_ext(BoundingBoxf& bed_ext) const { bed_ext.scale(1.0f / 1.41421f); }
 
-    std::string move_to(Vec2d pt, GCodeWriter& writer, std::string comment = std::string());
+    std::string move_to(Vec2d pt, GCodeWriter writer, std::string comment = std::string());
     double      e_per_mm(
         double line_width,
         double layer_height,
@@ -98,8 +96,8 @@ public:
     }
     
     double& line_width() { return m_line_width; };
-    bool    is_delta() const;
-    bool&   draw_numbers() { return m_draw_numbers; }
+    bool is_delta() const;
+    bool& draw_numbers() { return m_draw_numbers; }
 
 private:
     std::string print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num);
@@ -122,7 +120,7 @@ friend struct DrawLineOptArgs;
 friend struct DrawBoxOptArgs;
 private:
     PatternSettings() { };
-    PatternSettings(const CalibPressureAdvancePattern* cpap);
+    PatternSettings(const CalibPressureAdvancePattern& cpap);
 
     PatternSettings& operator= (const PatternSettings& rhs) =default;
 
@@ -173,36 +171,25 @@ friend struct PatternSettings;
 public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
-        const PrintConfig& config,
-        GCodeWriter& writer
-    ) :
-        CalibPressureAdvance(),
-        m_params(params),
-        m_config(config),
-        m_writer(writer)
-    {
-        this->m_nozzle_diameter = config.nozzle_diameter.get_at(0);
-        this->m_height_layer = 0.2;
-        this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
-        this->m_line_width = line_width();
-
-        this->m_pattern_settings = PatternSettings(this);
-    };
-    // ~CalibPressureAdvancePattern() { }; TODO
+        Model& model,
+        DynamicPrintConfig& config,
+        const bool& is_bbl_machine,
+        const Vec3d& origin
+    );
 
     bool is_delta() const
     {
-        return m_config.printable_area.values.size() > 4;
+        return pattern_config().option<ConfigOptionPoints>("printable_area")->values.size() > 4;
     }
 
-    double handle_xy_size() { return m_handle_xy_size; };
+    double handle_xy_size() const { return m_handle_xy_size; };
 
     double height_first_layer() const { return m_height_first_layer; };
     double height_layer() const { return m_height_layer; };
-    double max_layer_z() { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
+    double max_layer_z() const { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
 
     void starting_point(Vec3d pt);
-    void translate_starting_point(const Vec3d displacement);
+    void translate_starting_point(Vec3d displacement);
 
     CustomGCode::Info generate_gcodes();
 protected:
@@ -214,6 +201,9 @@ protected:
     int anchor_perimeters() const { return m_anchor_perimeters; };
     double encroachment() const { return m_encroachment; };
 private:
+    DynamicPrintConfig pattern_config() const;
+    GCodeWriter pattern_writer() const; // travel_to and extrude_to require a non-const GCodeWriter
+
     const int get_num_patterns() const
     {
         return std::ceil((m_params.end - m_params.start) / m_params.step + 1);

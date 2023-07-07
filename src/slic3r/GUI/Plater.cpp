@@ -8131,22 +8131,14 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     changed_objects({ 0 });
     _calib_pa_select_added_objects();
 
-    Print* print = p->background_process.fff_print();
-    print->apply(this->model(), wxGetApp().preset_bundle->full_config());
-
-    GCodeWriter writer;
-    const Vec3d origin = print->get_plate_origin();
-    writer.set_xy_offset(origin(0), origin(1));
-    writer.set_is_bbl_machine(print->is_BBL_printer()); // TODO: make sure this is correctly set!
-    writer.apply_print_config(print->config());
-
-    writer.set_extruders({0});
-    writer.set_extruder(0);
-
+    DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     CalibPressureAdvancePattern pa_pattern(
         params,
-        print->config(),
-        writer
+        model(),
+        full_config,
+        preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
+        fff_print().get_plate_origin()
     );
 
     GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
