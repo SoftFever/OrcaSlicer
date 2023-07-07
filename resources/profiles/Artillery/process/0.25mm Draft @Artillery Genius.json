@@ -79,7 +79,7 @@
 	"support_base_pattern": "rectilinear",
 	"support_base_pattern_spacing": "2.5",
 	"support_speed": "60",
-	"support_threshold_angle": "0",
+	"support_threshold_angle": "30",
 	"support_object_xy_distance": "50%",
 	"tree_support_branch_angle": "40",
 	"tree_support_wall_count": "0",
