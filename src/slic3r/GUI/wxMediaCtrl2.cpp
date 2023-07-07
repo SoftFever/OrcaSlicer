@@ -114,8 +114,8 @@ void wxMediaCtrl2::Load(wxURI url)
             keyWmp.SetValue("Permissions", permissions);
         }
     }
-    url = wxURI(url.BuildURI().append("&hwnd=").append(
-        boost::lexical_cast<std::string>(GetHandle())));
+    url = wxURI(url.BuildURI().append("&hwnd=").append(boost::lexical_cast<std::string>(GetHandle())).append("&tid=").append(
+        boost::lexical_cast<std::string>(GetCurrentThreadId())));
 #endif
 #ifdef __WXGTK3__
     GstElementFactory *factory;
@@ -171,9 +171,6 @@ void wxMediaCtrl2::Play() { wxMediaCtrl::Play(); }
 void wxMediaCtrl2::Stop()
 {
     wxMediaCtrl::Stop();
-#ifdef __WIN32__
-    wxMediaCtrl::Load(wxURI());
-#endif
 }
 
 #ifdef __LINUX__
