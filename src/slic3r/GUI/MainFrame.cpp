@@ -2769,7 +2769,7 @@ void MainFrame::init_menubar_as_editor()
 
         // help 
         append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/OrcaSlicer/OrcaSlicer/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://wiki.bambulab.com/e/en/staging/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
 
     }

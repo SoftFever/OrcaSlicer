@@ -760,6 +760,8 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
         }
+        CalibrationCaliPage *cali_page = (static_cast<CalibrationCaliPage *>(cali_step->page));
+        cali_page->clear_last_job_status();
     }
     else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
         CalibInfo calib_info;
@@ -823,14 +825,20 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         preset_page->on_cali_start_job();
         if (temp_filament_preset)
             delete temp_filament_preset;
+
+        if (cali_stage == 1) {
+            CalibrationCaliPage *cali_coarse_page = (static_cast<CalibrationCaliPage *>(cali_coarse_step->page));
+            cali_coarse_page->clear_last_job_status();
+        }
+        else if (cali_stage == 2) {
+            CalibrationCaliPage *cali_fine_page = (static_cast<CalibrationCaliPage *>(cali_fine_step->page));
+            cali_fine_page->clear_last_job_status();
+        }
     } else {
         assert(false);
     }
 
     show_step(m_curr_step->next);
-
-    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
-    cali_page->clear_last_job_status();
 }
 
 void FlowRateWizard::on_cali_save()
