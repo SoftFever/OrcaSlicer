@@ -842,7 +842,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                 file.path = path;
                 return FILE_SIZE_ERR;
             }
-            auto n = file.path.find_last_of('#');
+            auto n = path.find_last_of('#');
             auto path2 = n == std::string::npos ? path : path.substr(0, n);
             auto iter = std::find_if(files->begin(), files->end(), [&path2](auto &f) { return f.path == path2; });
             if (cont) {
@@ -868,6 +868,9 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                 wxMemoryInputStream mis(data, size);
                 mimetype.Replace("jpg", "jpeg");
                 file.thumbnail = wxImage(mis, mimetype);
+                if (!file.thumbnail.IsOk()) {
+                    BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: parse thumbnail failed" << size << mimetype;
+                }
             }
             file.name = thumbnail;
             file.path = path;
