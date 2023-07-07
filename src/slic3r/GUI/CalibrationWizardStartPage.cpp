@@ -81,7 +81,7 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     create_when(parent,
         _L("When you need Flow Dynamics Calibration"),
         _L("We now have added the auto-calibration for different filaments, which is fully automated and the result will be saved into the printer for future use. You only need to do the calibration in the following limited cases:\
-\n1. If you introduce a new filament of different brands / models or the filament is damp;\
+\n1. If you introduce a new filament of different brands/models or the filament is damp;\
 \n2. if the nozzle is worn out or replaced with a new one;\
 \n3. If the max volumetric speed or print temperature is changed in the filament setting."));
 
@@ -96,9 +96,9 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     create_about(parent,
         _L("About this calibration"),
         _L("Please find the details of Flow Dynamics Calibration from our wiki.\
-\n\nUsually the calibration is unnecessary.When you start a single color / material print, with the \"flow dynamics calibration\" option checked in the print start menu, the printer will follow the old way, calibration the filament before the print; When you start a multi color / material print, the printer will use the default compensation parameter for the filament during every filament switch which will have a good result in most cases.\
-\n\nPlease note there are a few cases that will make the calibration result not reliable: using a texture plate to do the calibration; the build plate is not sticky(please wash the build plate or apply gluestick!) ...You can find more from our wiki.\
-\n\nThe calibration results have about 10 % jitter in our test, which may cause the result not exactly the same in each calibration.We are still investing the root cause."));
+\n\nUsually the calibration is unnecessary. When you start a single color/material print, with the \"flow dynamics calibration\" option checked in the print start menu, the printer will follow the old way, calibrate the filament before the print; When you start a multi color/material print, the printer will use the default compensation parameter for the filament during every filament switch which will have a good result in most cases.\
+\n\nPlease note there are a few cases that will make the calibration result not reliable: using a texture plate to do the calibration; the build plate is not sticky (please wash the build plate or apply gluestick ! ) ...You can find more from our wiki.\
+\n\nThe calibration results have about 10% jitter in our test, which may cause the result not exactly the same in each calibration. We are still investing the root cause."));
     m_top_sizer->Add(m_about_title);
     m_top_sizer->Add(m_about_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
@@ -177,10 +177,10 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     create_when(parent,
         _L("When you need Flow Rate Calibration"),
         _L("After using Flow Dynamics Calibration, there are still some extrusion issues, such as:\
-\n1. Over - Extrusion: If you see excess material on your printed object, forming blobs or zits, or the layers seem too thick, it could be a sign of over - extrusion.\
-\n2. Under - Extrusion : Signs include missing layers, weak infill, or gaps in the print.This could mean that your printer isn't extruding enough filament.\
-\n3. Poor Surface Quality : If the surface of your prints seems rough or uneven, this could be a result of an incorrect flow rate.\
-\n4. Weak Structural Integrity : If your prints break easily or don't seem as sturdy as they should be, this might be due to under-extrusion or poor layer adhesion."));
+\n1. Over-Extrusion: If you see excess material on your printed object, forming blobs or zits, or the layers seem too thick, it could be a sign of over-extrusion.\
+\n2. Under-Extrusion: Signs include missing layers, weak infill, or gaps in the print. This could mean that your printer isn't extruding enough filament.\
+\n3. Poor Surface Quality: If the surface of your prints seems rough or uneven, this could be a result of an incorrect flow rate.\
+\n4. Weak Structural Integrity: If your prints break easily or don't seem as sturdy as they should be, this might be due to under-extrusion or poor layer adhesion."));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);
@@ -200,7 +200,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
         _L("About this calibration"),
         _L("This flow rate calibration measures the ratio of expected to actual extrusion volumes. For Bambu Lab printer users using our official filaments, adjustments are seldom needed, as default settings ensure an optimal flow rate. Calibration is typically unnecessary with common filaments. Refer to our wiki article for more information.\
 \n\nFlow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring calibration the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration.\
-\n\nThe calibration results may vary between each calibration or filament.We are still improving the accuracy and compatibility of this calibration."));
+\n\nThe calibration results may vary between each calibration or filament. We are still improving the accuracy and compatibility of this calibration."));
     m_top_sizer->Add(m_about_title);
     m_top_sizer->Add(m_about_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
