@@ -243,8 +243,11 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         ;// post_ticks_changed_event();
 
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
-        m_ticks.erase_all_ticks_with_code(ToolChange);
-        post_ticks_changed_event();
+        if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
+        {
+            m_ticks.erase_all_ticks_with_code(ToolChange);
+            post_ticks_changed_event();
+        }
     }
 
     if (last_spiral_vase_status != m_is_spiral_vase) {
