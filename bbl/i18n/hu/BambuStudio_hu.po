@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-05 10:45+0800\n"
+"POT-Creation-Date: 2023-07-07 09:40+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2011,14 +2011,14 @@ msgstr "Asztalhőmérséklet"
 msgid "Max volumetric speed"
 msgstr "Max. volumetrikus sebesség"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Asztalhőmérséklet"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -5558,8 +5558,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
@@ -7603,6 +7603,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimális tisztítás a törlőtoronyban"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Filament betöltési idő"
 
@@ -7999,10 +8002,10 @@ msgid ""
 msgstr ""
 "This connects a sparse infill line to an internal perimeter with a short "
 "segment of an additional perimeter. If expressed as percentage (example: "
-"15%) it is calculated over sparse infill line width. Slicer tries to connect "
-"two close infill lines to a short perimeter segment. If no such perimeter "
-"segment shorter than infill_anchor_max is found, the infill line is "
-"connected to a perimeter segment at just one side and the length of the "
+"15%) it is calculated over sparse infill line width. Bambu Studio tries to "
+"connect two close infill lines to a short perimeter segment. If no such "
+"perimeter segment shorter than infill_anchor_max is found, the infill line "
+"is connected to a perimeter segment at just one side and the length of the "
 "perimeter segment taken is limited to this parameter, but no longer than "
 "anchor_length_max. Set this parameter to zero to disable anchoring "
 "perimeters connected to a single infill line."
@@ -8028,11 +8031,11 @@ msgid ""
 msgstr ""
 "This connects a sparse infill line to an internal perimeter with a short "
 "segment of an additional perimeter. If expressed as percentage (example: "
-"15%) it is calculated over sparse infill line width. Slicer tries to connect "
-"two close infill lines to a short perimeter segment. If no such perimeter "
-"segment shorter than this parameter is found, the infill line is connected "
-"to a perimeter segment at just one side and the length of the perimeter "
-"segment taken is limited to infill_anchor, but no longer than this "
+"15%) it is calculated over sparse infill line width. Bambu Studio tries to "
+"connect two close infill lines to a short perimeter segment. If no such "
+"perimeter segment shorter than this parameter is found, the infill line is "
+"connected to a perimeter segment at just one side and the length of the "
+"perimeter segment taken is limited to infill_anchor, but no longer than this "
 "parameter. Set this parameter to zero to disable anchoring."
 
 msgid "0 (not anchored)"
@@ -9534,7 +9537,7 @@ msgstr "The file contains invalid vertex index."
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "This OBJ file couldn't be read because it's empty."
 
-msgid "Dynamic Pressure Control Calibration"
+msgid "Flow Dynamics Calibration"
 msgstr ""
 
 msgid "Flow Rate Calibration"
@@ -9546,7 +9549,7 @@ msgstr ""
 msgid "Manage Result"
 msgstr ""
 
-msgid "Maual Calibration"
+msgid "Manual Calibration"
 msgstr ""
 
 msgid "Result can be read by human eyes."
@@ -9570,6 +9573,9 @@ msgstr ""
 msgid "Finish"
 msgstr "Kész"
 
+msgid "Wiki"
+msgstr ""
+
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
@@ -9578,7 +9584,7 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr ""
 
-msgid "Dynamic Pressure Control"
+msgid "Flow Dynamics"
 msgstr ""
 
 msgid "Flow Rate"
@@ -9612,8 +9618,13 @@ msgstr ""
 msgid "Printer is not connected yet."
 msgstr ""
 
-msgid ""
-"Dynamic Pressure Control calibration result has been saved to the printer"
+msgid "Please select filament to calibrate."
+msgstr ""
+
+msgid "The failed test result has been droped."
+msgstr ""
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr ""
 
 msgid "Internal Error"
@@ -9631,10 +9642,7 @@ msgstr ""
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
 
-msgid "Wiki"
-msgstr ""
-
-msgid "When you need Dynamic Pressure Control Calibration"
+msgid "When you need Flow Dynamics Calibration"
 msgstr ""
 
 msgid "uneven extrusion"
@@ -9670,10 +9678,17 @@ msgstr ""
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
 msgstr ""
 
-msgid "We found the best Dynamic Pressure Control Factor"
+msgid "We found the best Flow Dynamics Calibration Factor"
 msgstr ""
 
-msgid "Brand Name"
+msgid ""
+"Part of the calibration failed! You may clean the plate and retry. The "
+"failed test result would be droped."
+msgstr ""
+
+msgid ""
+"*We recommend you to add brand, materia, type, and even humidity level in "
+"the Name"
 msgstr ""
 
 msgid "Failed"
@@ -9682,7 +9697,19 @@ msgstr "Sikertelen"
 msgid "Please enter the name you want to save to printer."
 msgstr ""
 
-msgid "The name cannot exceed 20 characters."
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
+msgid ""
+"Only one of the results with the same name will be saved. Are you sure you "
+"want to overrides the other results?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to overrides the historical result?"
 msgstr ""
 
 msgid "Please find the best line on your plate"
@@ -9801,6 +9828,214 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
+msgstr ""
+
+msgid "Flow Dynamics Calibration Result"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Edit Flow Dynamics Calibration"
+msgstr ""
+
+msgid "PA Calibration"
+msgstr ""
+
+msgid "PA Tower"
+msgstr ""
+
+msgid "PA Line"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Start PA: "
+msgstr ""
+
+msgid "End PA: "
+msgstr ""
+
+msgid "PA step: "
+msgstr ""
+
+msgid "Print numbers"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
+msgstr ""
+
+msgid "Temperature calibration"
+msgstr ""
+
+msgid "PLA"
+msgstr ""
+
+msgid "ABS/ASA"
+msgstr ""
+
+msgid "PETG"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+msgid "PA-CF"
+msgstr ""
+
+msgid "PET-CF"
+msgstr ""
+
+msgid "Filament type"
+msgstr ""
+
+msgid "Start temp: "
+msgstr ""
+
+msgid "End end: "
+msgstr ""
+
+msgid "Temp step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
+msgstr ""
+
+msgid "Max volumetric speed test"
+msgstr ""
+
+msgid "Start volumetric speed: "
+msgstr ""
+
+msgid "End volumetric speed: "
+msgstr ""
+
+msgid "step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 0 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "VFA test"
+msgstr ""
+
+msgid "Start speed: "
+msgstr ""
+
+msgid "End speed: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 10 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "Start retraction length: "
+msgstr ""
+
+msgid "End retraction length: "
+msgstr ""
+
+msgid "mm/mm"
+msgstr ""
+
+msgid "Network lookup"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Service name"
+msgstr ""
+
+msgid "OctoPrint version"
+msgstr ""
+
+msgid "Searching for devices"
+msgstr ""
+
+msgid "Finished"
+msgstr "Kész"
+
+msgid "Send to print"
+msgstr ""
+
+msgid "Upload to Printer Host with the following filename:"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+msgstr ""
+
+msgid "Simulate"
+msgstr ""
+
+msgid "Print host upload queue"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgctxt "OfFile"
+msgid "Size"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Error Message"
+msgstr ""
+
+msgid "Cancel selected"
+msgstr ""
+
+msgid "Show error message"
+msgstr ""
+
+msgid "Enqueued"
+msgstr ""
+
+msgid "Uploading"
+msgstr "Feltöltés"
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Error uploading to print host:"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -10071,33 +10306,6 @@ msgstr ""
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
 
-#~ msgid "Printing List"
-#~ msgstr "Nyomtatási lista"
-
-#~ msgid "Plate Type"
-#~ msgstr "Plate Type"
-
-#~ msgid "Start"
-#~ msgstr "Indítás"
-
-#~ msgid "Ams filament backup"
-#~ msgstr "AMS filament backup"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Filaments Auto refill"
-#~ msgstr "Filament Auto-refill"
-
-#~ msgid "Auto refill"
-#~ msgstr "Auto refill"
-
-#~ msgid "3D Models"
-#~ msgstr "3D modellek"
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -10119,6 +10327,9 @@ msgstr ""
 
 #~ msgid "0%"
 #~ msgstr "0%"
+
+#~ msgid "3D Models"
+#~ msgstr "3D modellek"
 
 #~ msgid "AMSMaterialsSetting"
 #~ msgstr "AMS anyagok beállítása"
@@ -10144,6 +10355,9 @@ msgstr ""
 
 #~ msgid "Add Custom Printer"
 #~ msgstr "Egyedi nyomtató hozzáadása"
+
+#~ msgid "Ams filament backup"
+#~ msgstr "AMS filament backup"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -10187,6 +10401,9 @@ msgstr ""
 #~ "tájolását. Ha vannak kijelölt objektumok, akkor csak a kijelölteket, "
 #~ "ellenkező esetben az aktuális projektben lévő összes objektumot "
 #~ "orientálja."
+
+#~ msgid "Auto refill"
+#~ msgstr "Auto refill"
 
 #~ msgid "Aux Cooling"
 #~ msgstr "Segédhűtés"
@@ -10536,14 +10753,14 @@ msgstr ""
 #~ "hogy nincs erre külön kijelölt filament és a jelenleg használt kerül "
 #~ "felhasználásra"
 
+#~ msgid "Filaments Auto refill"
+#~ msgstr "Filament Auto-refill"
+
 #~ msgid "Filaments Selection"
 #~ msgstr "Filamentek kiválasztása"
 
 #~ msgid "Filaments replace"
 #~ msgstr "Backup Filament"
-
-#~ msgid "Finished"
-#~ msgstr "Kész"
 
 #~ msgid "Fix model locally"
 #~ msgstr "Modell javítása helyben"
@@ -10803,6 +11020,9 @@ msgstr ""
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
 #~ msgstr "%d tálca: %s nem támogatja a(z) %s (%s) filamentet.\n"
 
+#~ msgid "Plate Type"
+#~ msgstr "Plate Type"
+
 #~ msgid "Plate type"
 #~ msgstr "Plate type"
 
@@ -10877,6 +11097,9 @@ msgstr ""
 #~ msgid "Printer firmware does not support material = >ams slot mapping."
 #~ msgstr ""
 #~ "A nyomtató firmware-je nem támogatja az anyagot = > AMS férőhelykiosztás"
+
+#~ msgid "Printing List"
+#~ msgstr "Nyomtatási lista"
 
 #~ msgid ""
 #~ "Purging after filament change will be done inside objects' infills. This "
@@ -11004,6 +11227,9 @@ msgstr ""
 #~ "A spirál mód csak akkor működik, ha a falak száma 1, a támaszok ki vannak "
 #~ "kapcsolva, a felső rétegek száma 0 és a hiányos kitöltés sűrűsége 0 és a "
 #~ "timelapse hagyományosra van állítva"
+
+#~ msgid "Start"
+#~ msgstr "Indítás"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr ""
@@ -11225,9 +11451,6 @@ msgstr ""
 #~ msgstr ""
 #~ "A feltöltési folyamat időtúllépés miatt megszakadt. Kérjük, ellenőrizd a "
 #~ "hálózati beállításokat és próbáld újra"
-
-#~ msgid "Uploading"
-#~ msgstr "Feltöltés"
 
 #~ msgid "User authorization timeout"
 #~ msgstr "Felhasználó hitelesítési időtúllépés"

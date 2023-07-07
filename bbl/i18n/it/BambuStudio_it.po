@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-05 10:45+0800\n"
+"POT-Creation-Date: 2023-07-07 09:40+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -250,34 +250,34 @@ msgid "Left click"
 msgstr "Click sinistro"
 
 msgid "Add connector"
-msgstr "Add connector"
+msgstr "Aggiungi connettore"
 
 msgid "Right click"
 msgstr "Clic destro"
 
 msgid "Remove connector"
-msgstr "Remove connector"
+msgstr "Rimuovi connettore"
 
 msgid "Drag"
 msgstr "Drag"
 
 msgid "Move connector"
-msgstr "Move connector"
+msgstr "Sposta connettore"
 
 msgid "Add connector to selection"
-msgstr "Add connector to selection"
+msgstr "Aggiungi connettore alla selezione"
 
 msgid "Remove connector from selection"
-msgstr "Remove connector from selection"
+msgstr "Rimuovi connettore dalla selezione"
 
 msgid "Select all connectors"
-msgstr "Select all connectors"
+msgstr "Seleziona tutti i connettori"
 
 msgid "Cut"
 msgstr "Taglia"
 
 msgid "Connector"
-msgstr "Connector"
+msgstr "Connettore"
 
 msgid "Movement:"
 msgstr "Movimento:"
@@ -289,10 +289,10 @@ msgid "Height"
 msgstr "Altezza"
 
 msgid "Edit connectors"
-msgstr "Edit connectors"
+msgstr "Modifica connettori"
 
 msgid "Add connectors"
-msgstr "Add connectors"
+msgstr "Aggiungi connettori"
 
 msgid "Upper part"
 msgstr "Parte superiore"
@@ -304,7 +304,7 @@ msgid "Keep"
 msgstr "Mantieni"
 
 msgid "Place on cut"
-msgstr "Place on cut"
+msgstr "Posiziona sul taglio"
 
 msgid "Flip"
 msgstr "Flip"
@@ -325,7 +325,7 @@ msgid "Reset"
 msgstr "Reimposta"
 
 msgid "Connectors"
-msgstr "Connectors"
+msgstr "Connettori"
 
 msgid "Type"
 msgstr "Tipo"
@@ -337,10 +337,10 @@ msgid "Shape"
 msgstr "Forma"
 
 msgid "Depth ratio"
-msgstr "Depth ratio"
+msgstr "Rapporto di profondità"
 
 msgid "Remove connectors"
-msgstr "Remove connectors"
+msgstr "Rimuovi connettori"
 
 msgid "Prizm"
 msgstr "Prizm"
@@ -355,7 +355,7 @@ msgid "Hexagon"
 msgstr "Esagono"
 
 msgid "Confirm connectors"
-msgstr "Confirm connectors"
+msgstr "Conferma connettori"
 
 msgid "Cancel"
 msgstr "Annulla"
@@ -364,35 +364,35 @@ msgid "Warning"
 msgstr "Attenzione"
 
 msgid "Invalid connectors detected"
-msgstr "Invalid connectors detected"
+msgstr "Rilevati connettori non validi"
 
 msgid "connector is out of cut contour"
-msgstr "connector is out of cut contour"
+msgstr "Connettore fuori dal contorno"
 
 msgid "connectors are out of cut contour"
-msgstr "connectors are out of cut contour"
+msgstr "Connettori fuori dal contorno"
 
 msgid "connector is out of object"
-msgstr "connector is out of object"
+msgstr "Connettore fuori dall'oggetto"
 
 msgid "connectors is out of object"
-msgstr "Connectors must be on object surface."
+msgstr "I connettori devono trovarsi sulla superficie dell'oggetto."
 
 msgid "Some connectors are overlapped"
-msgstr "Some connectors are overlapped"
+msgstr "Alcuni connettori si sovrappongono"
 
 msgid ""
 "Invalid state. \n"
 "No one part is selected for keep after cut"
 msgstr ""
-"Invalid state. \n"
-"No one part is selected to keep after cut"
+"Stato non valido.\n"
+"Non è stata selezionata alcuna parte da conservare dopo il taglio"
 
 msgid "Plug"
-msgstr "Plug"
+msgstr "Connettore"
 
 msgid "Dowel"
-msgstr "Dowel"
+msgstr "Tassello"
 
 msgid "Tolerance"
 msgstr "Tolleranza"
@@ -503,7 +503,7 @@ msgid "Input text"
 msgstr "Inserisci testo"
 
 msgid "Embeded"
-msgstr "Embedded"
+msgstr "Integrato"
 
 msgid "Text Gap"
 msgstr "Gap testo"
@@ -514,7 +514,7 @@ msgstr "Angolo"
 msgid ""
 "Embeded\n"
 "depth"
-msgstr "Embedded depth"
+msgstr "Profondità integrata"
 
 msgid "Surface"
 msgstr "Superficie"
@@ -1163,13 +1163,13 @@ msgstr ""
 "di processo degli oggetti selezionati."
 
 msgid "Delete connector from object which is a part of cut"
-msgstr "Delete connector from object which is a part of cut"
+msgstr "Elimina il connettore dall'oggetto che fa parte del taglio"
 
 msgid "Delete solid part from object which is a part of cut"
-msgstr "Delete solid part from object which is a part of cut"
+msgstr "Elimina la parte solida dall'oggetto che fa parte del taglio"
 
 msgid "Delete negative volume from object which is a part of cut"
-msgstr "Delete negative volume from object which is a part of cut"
+msgstr "Elimina il volume negativo dall'oggetto che fa parte del taglio"
 
 msgid ""
 "To save cut correspondence you can delete all connectors from all related "
@@ -1192,7 +1192,7 @@ msgstr ""
 "le informazioni di taglio."
 
 msgid "Delete all connectors"
-msgstr "Delete all connectors"
+msgstr "Elimina tutti i connettori"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Non è consentita l'eliminazione dell'ultima parte solida."
@@ -1205,34 +1205,34 @@ msgid "Assembly"
 msgstr "Assemblaggio"
 
 msgid "Cut Connectors information"
-msgstr "Cut Connectors information"
+msgstr "Informazioni sui connettori di taglio"
 
 msgid "Object manipulation"
-msgstr "Object manipulation"
+msgstr "Manipola oggetti"
 
 msgid "Group manipulation"
-msgstr "Group manipulation"
+msgstr "Manipola il gruppo"
 
 msgid "Object Settings to modify"
 msgstr "Impostazioni oggetto da modificare"
 
 msgid "Part Settings to modify"
-msgstr "Part Settings to Modify"
+msgstr "Imposta parti da modificare"
 
 msgid "Layer range Settings to modify"
 msgstr "Impostazioni range layer da modificare"
 
 msgid "Part manipulation"
-msgstr "Part manipulation"
+msgstr "Manipola parti"
 
 msgid "Instance manipulation"
-msgstr "Instance manipulation"
+msgstr "Manipola istanze"
 
 msgid "Height ranges"
 msgstr "Intervalli di altezza"
 
 msgid "Settings for height range"
-msgstr "Settings for height range"
+msgstr "Impostazioni intervallo altezza"
 
 msgid "Object"
 msgstr "Oggetto"
@@ -1313,7 +1313,7 @@ msgid "to"
 msgstr "a"
 
 msgid "Remove height range"
-msgstr "Remove height range"
+msgstr "Rimuovi intervallo altezza"
 
 msgid "Add height range"
 msgstr "Aggiungi intervallo di altezza"
@@ -1465,7 +1465,7 @@ msgid "Delete Custom G-code"
 msgstr "Elimina G-code personalizzato"
 
 msgid "Delete Filament Change"
-msgstr "Delete Filament Change"
+msgstr "Elimina cambio filamento"
 
 msgid "No printer"
 msgstr "Nessuna stampante"
@@ -2014,14 +2014,14 @@ msgstr "Temperatura piano"
 msgid "Max volumetric speed"
 msgstr "Massima velocità volumetrica"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Temperatura piano"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Calibra"
@@ -4128,7 +4128,7 @@ msgid "Color painting"
 msgstr "Pittura a colori"
 
 msgid "Cut connectors"
-msgstr "Cut connectors"
+msgstr "Taglia connettori"
 
 msgid "Layers"
 msgstr "Layer"
@@ -4463,7 +4463,7 @@ msgid "Save file as:"
 msgstr "Salva come:"
 
 msgid "Delete object which is a part of cut object"
-msgstr "Delete object which is a part of cut object"
+msgstr "Elimina l'oggetto che fa parte dell'oggetto tagliato"
 
 msgid ""
 "You try to delete an object which is a part of a cut object.\n"
@@ -5023,7 +5023,7 @@ msgid "Print sequence"
 msgstr "Sequenza di stampa"
 
 msgid "Same as Global Plate Type"
-msgstr "Same as Global Plate Type"
+msgstr "Uguale al tipo di piano globale"
 
 msgid "Same as Global Bed Type"
 msgstr "Uguale al tipo di piano globale"
@@ -5439,8 +5439,8 @@ msgstr "Termini e condizioni"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Grazie per aver acquistato un dispositivo Bambu Lab. Prima di utilizzare il "
@@ -7566,7 +7566,7 @@ msgstr ""
 "leggera sovra-estrusione o sotto-estrusione."
 
 msgid "Object flow ratio"
-msgstr "Object flow ratio"
+msgstr "Flow ratio oggetto"
 
 msgid "The flow ratio set by object, the meaning is the same as flow ratio."
 msgstr ""
@@ -7650,6 +7650,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Spurgo minimo sulla torre di pulitura"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Durata caricamento filamento"
@@ -8037,7 +8040,7 @@ msgstr ""
 "pareti vengono comunque stampate con l'altezza originale del layer"
 
 msgid "Length of sparse infill anchor"
-msgstr "Length of sparse infill anchor"
+msgstr "Lunghezza ancoraggio riempimento"
 
 msgid ""
 "Connect a sparse infill line to an internal perimeter with a short segment "
@@ -8068,7 +8071,7 @@ msgid "1000 (unlimited)"
 msgstr "1000 (senza limiti)"
 
 msgid "Maximum length of sparse infill anchor"
-msgstr "Maximum length of sparse infill anchor"
+msgstr "Lunghezza massima ancoraggio riempimento"
 
 msgid ""
 "Connect a sparse infill line to an internal perimeter with a short segment "
@@ -9329,7 +9332,7 @@ msgid "too large line width "
 msgstr "larghezza della linea troppo grande "
 
 msgid " not in range "
-msgstr " not in range "
+msgstr "Fuori portata"
 
 msgid "Export 3MF"
 msgstr "Esporta 3mf"
@@ -9494,10 +9497,10 @@ msgid "Checking support necessity"
 msgstr "Verifica necessità di supporto"
 
 msgid "floating regions"
-msgstr "floating regions"
+msgstr "regioni galleggianti"
 
 msgid "floating cantilever"
-msgstr "floating cantilever"
+msgstr "cantilever galleggiante"
 
 msgid "large overhangs"
 msgstr "ampie sporgenze"
@@ -9589,7 +9592,7 @@ msgstr ""
 "amf."
 
 msgid "Canceled"
-msgstr "Canceled"
+msgstr "Annullato"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: analisi non riuscita"
@@ -9606,7 +9609,7 @@ msgstr "Il file contiene un indice dei vertici non valido."
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Impossibile leggere il file OBJ perché è vuoto."
 
-msgid "Dynamic Pressure Control Calibration"
+msgid "Flow Dynamics Calibration"
 msgstr ""
 
 msgid "Flow Rate Calibration"
@@ -9618,7 +9621,7 @@ msgstr ""
 msgid "Manage Result"
 msgstr ""
 
-msgid "Maual Calibration"
+msgid "Manual Calibration"
 msgstr ""
 
 msgid "Result can be read by human eyes."
@@ -9642,6 +9645,9 @@ msgstr ""
 msgid "Finish"
 msgstr "Fine"
 
+msgid "Wiki"
+msgstr ""
+
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
@@ -9650,7 +9656,7 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr ""
 
-msgid "Dynamic Pressure Control"
+msgid "Flow Dynamics"
 msgstr ""
 
 msgid "Flow Rate"
@@ -9684,8 +9690,13 @@ msgstr ""
 msgid "Printer is not connected yet."
 msgstr ""
 
-msgid ""
-"Dynamic Pressure Control calibration result has been saved to the printer"
+msgid "Please select filament to calibrate."
+msgstr ""
+
+msgid "The failed test result has been droped."
+msgstr ""
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr ""
 
 msgid "Internal Error"
@@ -9703,10 +9714,7 @@ msgstr ""
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
 
-msgid "Wiki"
-msgstr ""
-
-msgid "When you need Dynamic Pressure Control Calibration"
+msgid "When you need Flow Dynamics Calibration"
 msgstr ""
 
 msgid "uneven extrusion"
@@ -9742,10 +9750,17 @@ msgstr ""
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
 msgstr ""
 
-msgid "We found the best Dynamic Pressure Control Factor"
+msgid "We found the best Flow Dynamics Calibration Factor"
 msgstr ""
 
-msgid "Brand Name"
+msgid ""
+"Part of the calibration failed! You may clean the plate and retry. The "
+"failed test result would be droped."
+msgstr ""
+
+msgid ""
+"*We recommend you to add brand, materia, type, and even humidity level in "
+"the Name"
 msgstr ""
 
 msgid "Failed"
@@ -9754,7 +9769,19 @@ msgstr "Fallito"
 msgid "Please enter the name you want to save to printer."
 msgstr ""
 
-msgid "The name cannot exceed 20 characters."
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
+msgid ""
+"Only one of the results with the same name will be saved. Are you sure you "
+"want to overrides the other results?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to overrides the historical result?"
 msgstr ""
 
 msgid "Please find the best line on your plate"
@@ -9873,6 +9900,214 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
+msgstr ""
+
+msgid "Flow Dynamics Calibration Result"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Edit Flow Dynamics Calibration"
+msgstr ""
+
+msgid "PA Calibration"
+msgstr ""
+
+msgid "PA Tower"
+msgstr ""
+
+msgid "PA Line"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Start PA: "
+msgstr ""
+
+msgid "End PA: "
+msgstr ""
+
+msgid "PA step: "
+msgstr ""
+
+msgid "Print numbers"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
+msgstr ""
+
+msgid "Temperature calibration"
+msgstr ""
+
+msgid "PLA"
+msgstr ""
+
+msgid "ABS/ASA"
+msgstr ""
+
+msgid "PETG"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+msgid "PA-CF"
+msgstr ""
+
+msgid "PET-CF"
+msgstr ""
+
+msgid "Filament type"
+msgstr ""
+
+msgid "Start temp: "
+msgstr ""
+
+msgid "End end: "
+msgstr ""
+
+msgid "Temp step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
+msgstr ""
+
+msgid "Max volumetric speed test"
+msgstr ""
+
+msgid "Start volumetric speed: "
+msgstr ""
+
+msgid "End volumetric speed: "
+msgstr ""
+
+msgid "step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 0 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "VFA test"
+msgstr ""
+
+msgid "Start speed: "
+msgstr ""
+
+msgid "End speed: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 10 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "Start retraction length: "
+msgstr ""
+
+msgid "End retraction length: "
+msgstr ""
+
+msgid "mm/mm"
+msgstr ""
+
+msgid "Network lookup"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Service name"
+msgstr ""
+
+msgid "OctoPrint version"
+msgstr ""
+
+msgid "Searching for devices"
+msgstr ""
+
+msgid "Finished"
+msgstr "Finito"
+
+msgid "Send to print"
+msgstr ""
+
+msgid "Upload to Printer Host with the following filename:"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+msgstr ""
+
+msgid "Simulate"
+msgstr ""
+
+msgid "Print host upload queue"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgctxt "OfFile"
+msgid "Size"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Error Message"
+msgstr ""
+
+msgid "Cancel selected"
+msgstr ""
+
+msgid "Show error message"
+msgstr ""
+
+msgid "Enqueued"
+msgstr ""
+
+msgid "Uploading"
+msgstr "Caricamento"
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Error uploading to print host:"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -10144,33 +10379,6 @@ msgstr ""
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
 
-#~ msgid "Printing List"
-#~ msgstr "Elenco di stampa"
-
-#~ msgid "Plate Type"
-#~ msgstr "Plate Type"
-
-#~ msgid "Start"
-#~ msgstr "Inizia"
-
-#~ msgid "Ams filament backup"
-#~ msgstr "AMS filament backup"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Filaments Auto refill"
-#~ msgstr "Ricarica automatica del filamento"
-
-#~ msgid "Auto refill"
-#~ msgstr "Ricarica automatica"
-
-#~ msgid "3D Models"
-#~ msgstr "Modelli 3D"
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -10192,6 +10400,9 @@ msgstr ""
 
 #~ msgid "0%"
 #~ msgstr "0%"
+
+#~ msgid "3D Models"
+#~ msgstr "Modelli 3D"
 
 #~ msgid "AMSMaterialsSetting"
 #~ msgstr "Impostazione materiali AMS"
@@ -10218,6 +10429,9 @@ msgstr ""
 
 #~ msgid "Add Custom Printer"
 #~ msgstr "Aggiungi stampante personalizzata"
+
+#~ msgid "Ams filament backup"
+#~ msgstr "Backup filamento AMS"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -10263,6 +10477,9 @@ msgstr ""
 #~ "selezionati o tutti gli oggetti.\n"
 #~ "Se ci sono oggetti selezionati, orienta solo quelli selezionati. "
 #~ "Altrimenti, orienterà tutti gli oggetti del progetto."
+
+#~ msgid "Auto refill"
+#~ msgstr "Ricarica automatica"
 
 #~ msgid "Aux Cooling"
 #~ msgstr "Raffreddamento ausiliario"
@@ -10469,7 +10686,7 @@ msgstr ""
 #~ msgstr "Scarica video"
 
 #~ msgid "Edit plate setitngs"
-#~ msgstr "Modifica le impostazioni del piatto"
+#~ msgstr "Modifica impostazioni piatto"
 
 #~ msgid ""
 #~ "Enabling this option means the height of every layer except the first "
@@ -10538,7 +10755,7 @@ msgstr ""
 #~ msgstr "Impossibile recuperare il ticket"
 
 #~ msgid "Failed to parse login report reason111"
-#~ msgstr "Failed to parse login report reason"
+#~ msgstr "Non è stato possibile analizzare la causa del rapporto di login."
 
 #~ msgid "Failed uploading print file"
 #~ msgstr "Caricamento del file di stampa non riuscito"
@@ -10616,14 +10833,14 @@ msgstr ""
 #~ "che non viene utilizzato alcun filamento specifico per le interfacce di "
 #~ "supporto e viene utilizzato il filamento corrente"
 
+#~ msgid "Filaments Auto refill"
+#~ msgstr "Ricarica automatica del filamento"
+
 #~ msgid "Filaments Selection"
 #~ msgstr "Selezione dei filamenti"
 
 #~ msgid "Filaments replace"
 #~ msgstr "Filamento Backup"
-
-#~ msgid "Finished"
-#~ msgstr "Finito"
 
 #~ msgid "Fix model locally"
 #~ msgstr "Correggi il modello localmente"
@@ -10666,10 +10883,10 @@ msgstr ""
 #~ msgid ""
 #~ "Heat the nozzle to target \n"
 #~ "temperature"
-#~ msgstr "Riscalda il nozzle alla temperatura"
+#~ msgstr "Riscaldo il nozzle alla temperatura"
 
 #~ msgid "Heat the nozzle to target temperature"
-#~ msgstr "Riscalda il nozzle alla temperatura"
+#~ msgstr "Riscaldo il nozzle alla temperatura"
 
 #~ msgid "Height:"
 #~ msgstr "Altezza:"
@@ -10885,11 +11102,14 @@ msgstr ""
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
 #~ msgstr "Piatto %d: %s non supporta il filamento %s (%s).\n"
 
+#~ msgid "Plate Type"
+#~ msgstr "Tipo di piatto"
+
 #~ msgid "Plate type"
-#~ msgstr "Plate type"
+#~ msgstr "Tipo di piatto"
 
 #~ msgid "Plate types supported by the printer"
-#~ msgstr "Plate types supported by the printer"
+#~ msgstr "Tipi di piatti supportati dalla stampante"
 
 #~ msgid "Please Fill Task Report."
 #~ msgstr "Compila il rapporto sull'attività."
@@ -10959,6 +11179,9 @@ msgstr ""
 #~ msgstr ""
 #~ "Il firmware stampante non supporta la mappatura degli slot materiali = > "
 #~ "AMS."
+
+#~ msgid "Printing List"
+#~ msgstr "Elenco di stampa"
 
 #~ msgid ""
 #~ "Purging after filament change will be done inside objects' infills. This "
@@ -11085,6 +11308,9 @@ msgstr ""
 #~ "La modalità spirale funziona solo quando il loop parete è 1, il supporto "
 #~ "è disabilitato, i layers superiori del guscio sono 0, la densità "
 #~ "riempimento è 0 e il tipo timelapse è tradizionale"
+
+#~ msgid "Start"
+#~ msgstr "Inizia"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr ""
@@ -11307,9 +11533,6 @@ msgstr ""
 #~ msgid ""
 #~ "Upload task timed out. Please check the network problem and try again"
 #~ msgstr "L'attività di caricamento è scaduta. Controlla la rete e riprova"
-
-#~ msgid "Uploading"
-#~ msgstr "Caricamento"
 
 #~ msgid "User authorization timeout"
 #~ msgstr "Timeout autorizzazione utente"

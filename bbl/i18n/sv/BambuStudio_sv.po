@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-05 10:45+0800\n"
+"POT-Creation-Date: 2023-07-07 09:40+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1995,14 +1995,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -4972,7 +4972,7 @@ msgid "Print sequence"
 msgstr "Utskrifts sekvens"
 
 msgid "Same as Global Plate Type"
-msgstr "Same as Global Plate Type"
+msgstr "Samma som Global Bed Type"
 
 msgid "Same as Global Bed Type"
 msgstr "Samma som Global Bed Type"
@@ -5384,8 +5384,8 @@ msgstr "Villkor och bestämmelser"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu Lab "
@@ -7529,6 +7529,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
 
@@ -8735,8 +8738,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Rectilinear Interlaced"
 msgstr "Rätlinjig sammanflätning"
@@ -9424,7 +9427,7 @@ msgstr ""
 "Okänt filformat: indata filen måste ha fil ändelsen .3mf eller .zip.amf."
 
 msgid "Canceled"
-msgstr "Canceled"
+msgstr "Avbruten"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: misslyckades med att analysera"
@@ -9441,7 +9444,7 @@ msgstr "Filen innehåller ett ogiltigt vertex index."
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Denna OBJ fil kunde inte läsas eftersom den är tom."
 
-msgid "Dynamic Pressure Control Calibration"
+msgid "Flow Dynamics Calibration"
 msgstr ""
 
 msgid "Flow Rate Calibration"
@@ -9453,7 +9456,7 @@ msgstr ""
 msgid "Manage Result"
 msgstr ""
 
-msgid "Maual Calibration"
+msgid "Manual Calibration"
 msgstr ""
 
 msgid "Result can be read by human eyes."
@@ -9477,6 +9480,9 @@ msgstr ""
 msgid "Finish"
 msgstr "Slutför"
 
+msgid "Wiki"
+msgstr ""
+
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
@@ -9485,7 +9491,7 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr ""
 
-msgid "Dynamic Pressure Control"
+msgid "Flow Dynamics"
 msgstr ""
 
 msgid "Flow Rate"
@@ -9519,8 +9525,13 @@ msgstr ""
 msgid "Printer is not connected yet."
 msgstr ""
 
-msgid ""
-"Dynamic Pressure Control calibration result has been saved to the printer"
+msgid "Please select filament to calibrate."
+msgstr ""
+
+msgid "The failed test result has been droped."
+msgstr ""
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr ""
 
 msgid "Internal Error"
@@ -9538,10 +9549,7 @@ msgstr ""
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
 
-msgid "Wiki"
-msgstr ""
-
-msgid "When you need Dynamic Pressure Control Calibration"
+msgid "When you need Flow Dynamics Calibration"
 msgstr ""
 
 msgid "uneven extrusion"
@@ -9577,10 +9585,17 @@ msgstr ""
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
 msgstr ""
 
-msgid "We found the best Dynamic Pressure Control Factor"
+msgid "We found the best Flow Dynamics Calibration Factor"
 msgstr ""
 
-msgid "Brand Name"
+msgid ""
+"Part of the calibration failed! You may clean the plate and retry. The "
+"failed test result would be droped."
+msgstr ""
+
+msgid ""
+"*We recommend you to add brand, materia, type, and even humidity level in "
+"the Name"
 msgstr ""
 
 msgid "Failed"
@@ -9589,7 +9604,19 @@ msgstr "Misslyckades"
 msgid "Please enter the name you want to save to printer."
 msgstr ""
 
-msgid "The name cannot exceed 20 characters."
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
+msgid ""
+"Only one of the results with the same name will be saved. Are you sure you "
+"want to overrides the other results?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to overrides the historical result?"
 msgstr ""
 
 msgid "Please find the best line on your plate"
@@ -9708,6 +9735,214 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
+msgstr ""
+
+msgid "Flow Dynamics Calibration Result"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Edit Flow Dynamics Calibration"
+msgstr ""
+
+msgid "PA Calibration"
+msgstr ""
+
+msgid "PA Tower"
+msgstr ""
+
+msgid "PA Line"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Start PA: "
+msgstr ""
+
+msgid "End PA: "
+msgstr ""
+
+msgid "PA step: "
+msgstr ""
+
+msgid "Print numbers"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
+msgstr ""
+
+msgid "Temperature calibration"
+msgstr ""
+
+msgid "PLA"
+msgstr ""
+
+msgid "ABS/ASA"
+msgstr ""
+
+msgid "PETG"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+msgid "PA-CF"
+msgstr ""
+
+msgid "PET-CF"
+msgstr ""
+
+msgid "Filament type"
+msgstr ""
+
+msgid "Start temp: "
+msgstr ""
+
+msgid "End end: "
+msgstr ""
+
+msgid "Temp step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
+msgstr ""
+
+msgid "Max volumetric speed test"
+msgstr ""
+
+msgid "Start volumetric speed: "
+msgstr ""
+
+msgid "End volumetric speed: "
+msgstr ""
+
+msgid "step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 0 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "VFA test"
+msgstr ""
+
+msgid "Start speed: "
+msgstr ""
+
+msgid "End speed: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 10 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "Start retraction length: "
+msgstr ""
+
+msgid "End retraction length: "
+msgstr ""
+
+msgid "mm/mm"
+msgstr ""
+
+msgid "Network lookup"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Service name"
+msgstr ""
+
+msgid "OctoPrint version"
+msgstr ""
+
+msgid "Searching for devices"
+msgstr ""
+
+msgid "Finished"
+msgstr "Färdig"
+
+msgid "Send to print"
+msgstr ""
+
+msgid "Upload to Printer Host with the following filename:"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+msgstr ""
+
+msgid "Simulate"
+msgstr ""
+
+msgid "Print host upload queue"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgctxt "OfFile"
+msgid "Size"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Error Message"
+msgstr ""
+
+msgid "Cancel selected"
+msgstr ""
+
+msgid "Show error message"
+msgstr ""
+
+msgid "Enqueued"
+msgstr ""
+
+msgid "Uploading"
+msgstr "Laddar upp"
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Error uploading to print host:"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -9977,33 +10212,6 @@ msgstr ""
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
 
-#~ msgid "Printing List"
-#~ msgstr "Utskrifts Lista"
-
-#~ msgid "Plate Type"
-#~ msgstr "Plate Type"
-
-#~ msgid "Start"
-#~ msgstr "Starta"
-
-#~ msgid "Ams filament backup"
-#~ msgstr "AMS filament backup"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Filaments Auto refill"
-#~ msgstr "Filament Auto-refill"
-
-#~ msgid "Auto refill"
-#~ msgstr "Automatisk påfyllning"
-
-#~ msgid "3D Models"
-#~ msgstr "3D-modeller"
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -10022,6 +10230,9 @@ msgstr ""
 
 #~ msgid "0%"
 #~ msgstr "0%"
+
+#~ msgid "3D Models"
+#~ msgstr "3D-modeller"
 
 #~ msgid "AMSMaterialsSetting"
 #~ msgstr "AMS Material Inställning"
@@ -10047,6 +10258,9 @@ msgstr ""
 
 #~ msgid "Add Custom Printer"
 #~ msgstr "Lägg till anpassad skrivare"
+
+#~ msgid "Ams filament backup"
+#~ msgstr "AMS filament backup"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -10088,6 +10302,9 @@ msgstr ""
 #~ msgstr ""
 #~ "Auto placera valda objekt eller alla objekt. Om det finns valda objekt så "
 #~ "placeras endast dem. Alternativt så placeras alla objekt i projektet."
+
+#~ msgid "Auto refill"
+#~ msgstr "Automatisk påfyllning"
 
 #~ msgid "Aux Cooling"
 #~ msgstr "Extra Kylning"
@@ -10358,7 +10575,7 @@ msgstr ""
 #~ msgstr "Misslyckades med att få en kvittering"
 
 #~ msgid "Failed to parse login report reason111"
-#~ msgstr "Failed to parse login report reason"
+#~ msgstr "Det gick inte att analysera orsaken till inloggningsrapporten"
 
 #~ msgid "Failed uploading print file"
 #~ msgstr "Uppladdning av utskrifts filen misslyckades"
@@ -10430,14 +10647,14 @@ msgstr ""
 #~ "Support filament för utskrift. 0 betyder att inget specifikt filament för "
 #~ "support gränssnitt och nuvarande filament används"
 
+#~ msgid "Filaments Auto refill"
+#~ msgstr "Filament Auto-refill"
+
 #~ msgid "Filaments Selection"
 #~ msgstr "Filament Val"
 
 #~ msgid "Filaments replace"
 #~ msgstr "Reserv filament"
-
-#~ msgid "Finished"
-#~ msgstr "Färdig"
 
 #~ msgid "Fix model locally"
 #~ msgstr "Åtgärda modellen lokalt"
@@ -10695,11 +10912,14 @@ msgstr ""
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
 #~ msgstr "Plattan %d: %s stöder inte filamentet %s (%s).\n"
 
+#~ msgid "Plate Type"
+#~ msgstr "Typ av byggplatta"
+
 #~ msgid "Plate type"
-#~ msgstr "Plate type"
+#~ msgstr "Typ av byggplatta"
 
 #~ msgid "Plate types supported by the printer"
-#~ msgstr "Plate types supported by the printer"
+#~ msgstr "Byggplattans typ stöds av skrivaren"
 
 #~ msgid "Please Fill Task Report."
 #~ msgstr "Vänligen fyll i uppgiftsrapporten."
@@ -10767,6 +10987,9 @@ msgstr ""
 #~ msgid "Printer firmware does not support material = >ams slot mapping."
 #~ msgstr ""
 #~ "Skrivarens programvara stöder inte materialet = > AMS-fackens mappning."
+
+#~ msgid "Printing List"
+#~ msgstr "Utskrifts Lista"
 
 #~ msgid ""
 #~ "Purging after filament change will be done inside objects' infills. This "
@@ -10892,6 +11115,9 @@ msgstr ""
 #~ "Spiralläget fungerar endast när väggslingor är 1, support är inaktiverad, "
 #~ "de översta skal skikten är 0, tätheten av sparsam utfyllnad är 0 och "
 #~ "timelapse typen är traditionell."
+
+#~ msgid "Start"
+#~ msgstr "Starta"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr ""
@@ -11111,9 +11337,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Uppladdningsuppgiften tog timeout. Kontrollera nätverksproblemet och "
 #~ "försök igen"
-
-#~ msgid "Uploading"
-#~ msgstr "Laddar upp"
 
 #~ msgid "User authorization timeout"
 #~ msgstr "Timeout för användarauktorisering"

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-05 10:45+0800\n"
-"PO-Revision-Date: 2023-05-22 15:26+0800\n"
+"POT-Creation-Date: 2023-07-07 09:40+0800\n"
+"PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.3.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -1933,14 +1933,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -5330,8 +5330,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -7200,6 +7200,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -8963,8 +8966,8 @@ msgstr "文件包含无效的顶点索引。"
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "无法读取此OBJ文件，因为它是空的。"
 
-msgid "Dynamic Pressure Control Calibration"
-msgstr "动态压力控制校准"
+msgid "Flow Dynamics Calibration"
+msgstr ""
 
 msgid "Flow Rate Calibration"
 msgstr "流量速率校准"
@@ -8975,8 +8978,8 @@ msgstr "最大体积速度校准"
 msgid "Manage Result"
 msgstr "管理结果"
 
-msgid "Maual Calibration"
-msgstr "手动校准"
+msgid "Manual Calibration"
+msgstr ""
 
 msgid "Result can be read by human eyes."
 msgstr "结果可由人眼读取。"
@@ -8999,6 +9002,9 @@ msgstr "校准"
 msgid "Finish"
 msgstr "完成"
 
+msgid "Wiki"
+msgstr "Wiki"
+
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
@@ -9009,8 +9015,8 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr "不支持校准"
 
-msgid "Dynamic Pressure Control"
-msgstr "动态压力控制"
+msgid "Flow Dynamics"
+msgstr ""
 
 msgid "Flow Rate"
 msgstr "流速"
@@ -9043,9 +9049,14 @@ msgstr "没有连接打印机！"
 msgid "Printer is not connected yet."
 msgstr "打印机尚未连接。"
 
-msgid ""
-"Dynamic Pressure Control calibration result has been saved to the printer"
-msgstr "动态压力控制校准结果已保存到打印机。"
+msgid "Please select filament to calibrate."
+msgstr ""
+
+msgid "The failed test result has been droped."
+msgstr ""
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgstr ""
 
 msgid "Internal Error"
 msgstr "内部错误"
@@ -9062,11 +9073,8 @@ msgstr "输入值大小必须为3。"
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "最大体积速度校准结果已保存到预设值"
 
-msgid "Wiki"
-msgstr "Wiki"
-
-msgid "When you need Dynamic Pressure Control Calibration"
-msgstr "当您需要动态压力控制校准时"
+msgid "When you need Flow Dynamics Calibration"
+msgstr ""
 
 msgid "uneven extrusion"
 msgstr "不均匀挤出"
@@ -9103,11 +9111,18 @@ msgstr "当您需要最大体积速度校准时"
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
 msgstr "使用以下选项打印时，建议进行最大体积速度校准："
 
-msgid "We found the best Dynamic Pressure Control Factor"
-msgstr "我们找到了最佳的动态压力控制系数"
+msgid "We found the best Flow Dynamics Calibration Factor"
+msgstr ""
 
-msgid "Brand Name"
-msgstr "品牌名称"
+msgid ""
+"Part of the calibration failed! You may clean the plate and retry. The "
+"failed test result would be droped."
+msgstr ""
+
+msgid ""
+"*We recommend you to add brand, materia, type, and even humidity level in "
+"the Name"
+msgstr ""
 
 msgid "Failed"
 msgstr "失败"
@@ -9115,8 +9130,20 @@ msgstr "失败"
 msgid "Please enter the name you want to save to printer."
 msgstr "请输入要保存到打印机的名称。"
 
-msgid "The name cannot exceed 20 characters."
-msgstr "名称不能超过20个字符。"
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
+msgid ""
+"Only one of the results with the same name will be saved. Are you sure you "
+"want to overrides the other results?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to overrides the historical result?"
+msgstr ""
 
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
@@ -9238,6 +9265,214 @@ msgstr "从体积速度"
 
 msgid "To Volumetric Speed"
 msgstr "至体积速度"
+
+msgid "mm\\u00B3/s"
+msgstr ""
+
+msgid "Flow Dynamics Calibration Result"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Edit Flow Dynamics Calibration"
+msgstr ""
+
+msgid "PA Calibration"
+msgstr ""
+
+msgid "PA Tower"
+msgstr ""
+
+msgid "PA Line"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Start PA: "
+msgstr ""
+
+msgid "End PA: "
+msgstr ""
+
+msgid "PA step: "
+msgstr ""
+
+msgid "Print numbers"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
+msgstr ""
+
+msgid "Temperature calibration"
+msgstr ""
+
+msgid "PLA"
+msgstr ""
+
+msgid "ABS/ASA"
+msgstr ""
+
+msgid "PETG"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+msgid "PA-CF"
+msgstr ""
+
+msgid "PET-CF"
+msgstr ""
+
+msgid "Filament type"
+msgstr ""
+
+msgid "Start temp: "
+msgstr ""
+
+msgid "End end: "
+msgstr ""
+
+msgid "Temp step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
+msgstr ""
+
+msgid "Max volumetric speed test"
+msgstr ""
+
+msgid "Start volumetric speed: "
+msgstr ""
+
+msgid "End volumetric speed: "
+msgstr ""
+
+msgid "step: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 0 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "VFA test"
+msgstr ""
+
+msgid "Start speed: "
+msgstr ""
+
+msgid "End speed: "
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"start > 10 \\step >= 0\n"
+"end > start + step)"
+msgstr ""
+
+msgid "Start retraction length: "
+msgstr ""
+
+msgid "End retraction length: "
+msgstr ""
+
+msgid "mm/mm"
+msgstr ""
+
+msgid "Network lookup"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Service name"
+msgstr ""
+
+msgid "OctoPrint version"
+msgstr ""
+
+msgid "Searching for devices"
+msgstr ""
+
+msgid "Finished"
+msgstr "完成"
+
+msgid "Send to print"
+msgstr ""
+
+msgid "Upload to Printer Host with the following filename:"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+msgstr ""
+
+msgid "Simulate"
+msgstr ""
+
+msgid "Print host upload queue"
+msgstr "打印主机上传队列"
+
+msgid "ID"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgctxt "OfFile"
+msgid "Size"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Error Message"
+msgstr ""
+
+msgid "Cancel selected"
+msgstr ""
+
+msgid "Show error message"
+msgstr ""
+
+msgid "Enqueued"
+msgstr ""
+
+msgid "Uploading"
+msgstr "正在上传"
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Error uploading to print host:"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -9484,6 +9719,31 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
+#~ msgid "Dynamic Pressure Control Calibration"
+#~ msgstr "动态压力控制校准"
+
+#~ msgid "Maual Calibration"
+#~ msgstr "手动校准"
+
+#~ msgid "Dynamic Pressure Control"
+#~ msgstr "动态压力控制"
+
+#~ msgid ""
+#~ "Dynamic Pressure Control calibration result has been saved to the printer"
+#~ msgstr "动态压力控制校准结果已保存到打印机。"
+
+#~ msgid "When you need Dynamic Pressure Control Calibration"
+#~ msgstr "当您需要动态压力控制校准时"
+
+#~ msgid "We found the best Dynamic Pressure Control Factor"
+#~ msgstr "我们找到了最佳的动态压力控制系数"
+
+#~ msgid "Brand Name"
+#~ msgstr "品牌名称"
+
+#~ msgid "The name cannot exceed 20 characters."
+#~ msgstr "名称不能超过20个字符。"
+
 #~ msgid "Printing List"
 #~ msgstr "项目切片"
 
@@ -9537,7 +9797,6 @@ msgstr ""
 #~ "page"
 #~ msgstr "您确定要取消此次校准吗？这将返回到开始页面。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Unable to print %s and %s together. Filaments have large bed temperature "
 #~ "difference"
@@ -9576,7 +9835,6 @@ msgstr ""
 #~ msgid "3D Models"
 #~ msgstr "3D模型"
 
-#, boost-format
 #~ msgid "Number of currently selected: %1%\n"
 #~ msgstr "当前选择的零件数量: %1%\n"
 
@@ -10443,9 +10701,6 @@ msgstr ""
 #~ msgid "Waiting"
 #~ msgstr "等待中"
 
-#~ msgid "Finished"
-#~ msgstr "完成"
-
 #~ msgid "Home"
 #~ msgstr "首页"
 
@@ -10530,9 +10785,6 @@ msgstr ""
 
 #~ msgid "Creating"
 #~ msgstr "正在创建"
-
-#~ msgid "Uploading"
-#~ msgstr "正在上传"
 
 #~ msgid "Sending"
 #~ msgstr "发送中"
@@ -12532,9 +12784,6 @@ msgstr ""
 #~ msgid "Switch to Preview"
 #~ msgstr "切换到预览"
 
-#~ msgid "Print host upload queue"
-#~ msgstr "打印主机上传队列"
-
 #~ msgid "Camera view"
 #~ msgstr "摄像机视图"
 
@@ -13490,8 +13739,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
