@@ -31,6 +31,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <cstdint>
 
 template <typename T>
 class descriptor_t_ {
