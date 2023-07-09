@@ -64,6 +64,8 @@ set(lisbslic3r_sources
     FileParserError.hpp
     Fill/Fill.cpp
     Fill/Fill.hpp
+    Fill/FillArc.cpp
+    Fill/FillArc.hpp
     Fill/Fill3DHoneycomb.cpp
     Fill/Fill3DHoneycomb.hpp
     Fill/FillAdaptive.cpp

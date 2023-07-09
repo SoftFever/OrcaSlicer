@@ -116,6 +116,30 @@ bool ExPolygon::contains(const Point &point, bool border_result /* = true */) co
     return true;
 }
 
+// inclusive version of contains() that also checks whether point is on boundaries
+bool ExPolygon::contains_b(const Point &point) const
+{
+    return this->contains(point) || this->has_boundary_point(point);
+}
+
+bool ExPolygon::contains_h(const Point &point) const
+{
+    for (const Polygon &hole : this->holes)
+        if (hole.contains(point))
+            return true;
+    return false;
+}
+
+bool ExPolygon::has_boundary_point(const Point &point) const
+{
+    if (this->contour.has_boundary_point(point)) return true;
+    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h) {
+        if (h->has_boundary_point(point)) return true;
+    }
+    return false;
+}
+
+
 bool ExPolygon::on_boundary(const Point &point, double eps) const
 {
     if (this->contour.on_boundary(point, eps))
