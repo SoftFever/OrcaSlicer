@@ -68,8 +68,8 @@ private:
     Label*          m_st_txt_error_desc{ nullptr };
     Label*          m_st_txt_extra_info{ nullptr };
     Label*          m_link_network_state{ nullptr };
-    std::string     m_result_info;
-    std::string     m_result_extra;
+    wxString        m_result_info;
+    wxString        m_result_extra;
     bool            m_show_error_info_state = true;
     bool            m_allow_privacy{false};
     bool            m_allow_notice{false};

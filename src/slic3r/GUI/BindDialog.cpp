@@ -477,7 +477,7 @@ wxString get_fail_reason(int code)
  {
      wxString extra;
      try {
-         json j = json::parse(str.ToStdString());
+         json j = json::parse(str.utf8_string());
          if (j.contains("err_code")) {
              int error_code = j["err_code"].get<int>();
              extra = wxGetApp().get_hms_query()->query_print_error_msg(error_code);
@@ -498,7 +498,7 @@ wxString get_fail_reason(int code)
      if (show) {
          if (!m_sw_bind_failed_info->IsShown()) {
              m_sw_bind_failed_info->Show(true);
-             extra = get_print_error(extra.ToStdString());
+             m_result_extra = get_print_error(m_result_extra);
              m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_result_code));
              m_st_txt_error_desc->SetLabelText( wxGetApp().filter_string(m_result_info));
              m_st_txt_extra_info->SetLabelText( wxGetApp().filter_string(m_result_extra));
@@ -555,8 +555,8 @@ wxString get_fail_reason(int code)
     m_static_bitmap_show_error->Show(true);
 
     m_result_code = event.GetInt();
-    m_result_info = get_fail_reason(event.GetInt()).ToStdString();
-    m_result_extra = event.GetString().ToStdString();
+    m_result_info = get_fail_reason(event.GetInt());
+    m_result_extra = event.GetString();
 
     show_bind_failed_info(true, event.GetInt(), get_fail_reason(event.GetInt()), event.GetString());
  }
@@ -577,8 +577,8 @@ wxString get_fail_reason(int code)
  void BindMachineDialog::on_bind_printer(wxCommandEvent &event)
  {
      m_result_code = 0;
-     m_result_extra = "";
-     m_result_info = "";
+     m_result_extra = wxEmptyString;
+     m_result_info = wxEmptyString;
      m_link_show_error->Hide();
      m_static_bitmap_show_error->Hide();
      show_bind_failed_info(false);
@@ -634,8 +634,8 @@ void BindMachineDialog::on_show(wxShowEvent &event)
     m_allow_privacy = false;
     m_allow_notice  = false;
     m_result_code   = 0;
-    m_result_extra  = "";
-    m_result_info   = "";
+    m_result_extra  = wxEmptyString;
+    m_result_info   = wxEmptyString;
 
     if (event.IsShown()) {
         auto img = m_machine_info->get_printer_thumbnail_img_str();

@@ -5724,8 +5724,8 @@ void GUI_App::preset_deleted_from_cloud(std::string setting_id)
 
 wxString GUI_App::filter_string(wxString str)
 {
-    std::string result = str.ToStdString();
-    std::string input = str.ToStdString();
+    std::string result = str.utf8_string();
+    std::string input = str.utf8_string();
 
 
     std::regex domainRegex(R"(([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?))");
@@ -5739,7 +5739,7 @@ wxString GUI_App::filter_string(wxString str)
         ++it;
     }
 
-    return result;
+    return wxString::FromUTF8(result);
 }
 
 bool GUI_App::OnExceptionInMainLoop()
