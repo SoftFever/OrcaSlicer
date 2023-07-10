@@ -1450,7 +1450,8 @@ void MachineObject::parse_version_func()
             else {
                 is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
             }
-        } else if (printer_type == "C12") {
+        } 
+    } else if (printer_type == "C12") {
         is_support_ai_monitoring = true;
         is_cloud_print_only      = true;
         local_camera_proto       = 1;
@@ -1469,7 +1470,6 @@ void MachineObject::parse_version_func()
                 is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
             }
         }
-    } 
     }
 }
 
