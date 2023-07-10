@@ -115,7 +115,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (m_last_state != MEDIASTATE_IDLE)
         Stop(" ");
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid state conflict
-        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2 * m_failed_retry);
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     else
         SetStatus("", false);
 }
@@ -193,7 +193,7 @@ void MediaPlayCtrl::Play()
     if (!m_remote_support) { // not support tutk
         Stop(m_lan_ip.empty() 
             ? _L("Initialize failed (Missing LAN ip of printer)!") 
-            : wxString());
+            : _L("Initialize failed (Not supported on the current printer version)!"));
         return;
     }
 
@@ -285,7 +285,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 
     m_url.clear();
     ++m_failed_retry;
-    if (m_failed_code != 0 && last_state != wxMEDIASTATE_PLAYING && (!m_remote_support || m_lan_mode) && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && (!m_remote_support || m_lan_mode) && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
@@ -477,6 +477,8 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
     evt.Skip();
     if (m_isBeingDeleted) return;
     m_failed_retry = 0;
+    if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid quick play/stop
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     IsShownOnScreen() ? Play() : Stop();
 }
 
