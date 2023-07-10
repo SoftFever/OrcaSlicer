@@ -514,8 +514,8 @@ void ArrangeJob::process()
 
     params.stopcondition = [this]() { return was_canceled(); };
 
-    params.progressind = [this](unsigned num_finished, std::string str="") {
-        update_status(num_finished, _L("Arranging") + " " + str);
+    params.progressind = [this](unsigned num_finished, std::string str = "") {
+        update_status(num_finished, _L("Arranging") + " "+ wxString::FromUTF8(str));
     };
 
     {
