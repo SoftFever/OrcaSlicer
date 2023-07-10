@@ -93,6 +93,10 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
+    PAPageHelpPanel* m_help_panel = new PAPageHelpPanel(parent, false);
+    m_top_sizer->Add(m_help_panel, 0, wxALL, 0);
+    m_top_sizer->AddSpacer(PRESET_GAP);
+
     create_about(parent,
         _L("About this calibration"),
         _L("Please find the details of Flow Dynamics Calibration from our wiki.\
@@ -175,12 +179,12 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_page_caption->show_prev_btn(false);
     m_top_sizer->Add(m_page_caption, 0, wxEXPAND, 0);
     create_when(parent,
-        _L("When you need to use Flow Rate Calibration"),
+        _L("When to use Flow Rate Calibration"),
         _L("After using Flow Dynamics Calibration, there might still be some extrusion issues, such as:\
-\n1. Over-Extrusion: If you see excess material on your printed object, forming blobs or zits, or the layers seem thicker than expected and not uniform, it could be a sign of over-extrusion. This can also manifest through problems in parts that need to be assembled not fitting as expected.\
-\n2. Under-Extrusion: Signs include missing layers or very thin layers, weak infill strength, or gaps in the top layer of the model, even if the print is slow. This could mean that your printer isn't extruding enough filament.\
-\n3. Poor Surface Quality: If the surface of your prints seems rough or uneven, this could be a result of an incorrect flow rate.\
-\n4. Weak Structural Integrity: If your prints break easily or don't seem as sturdy as they should be, this might be due to under-extrusion or poor layer adhesion."));
+\n1. Over-Extrusion: Excess material on your printed object, forming blobs or zits, or the layers seem thicker than expected and not uniform.\
+\n2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the top layer of the model, even when printing slowly.\
+\n3. Poor Surface Quality: The surface of your prints seems rough or uneven.\
+\n4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as they should be."));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);
@@ -190,7 +194,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    auto extra_text = new wxStaticText(parent, wxID_ANY, _L("Beyond fixing the noted printing defects, Flow Rate Calibration is crucial for foaming materials like LW-PLA used in RC planes. These materials expand greatly when heated, and calibration provides a useful reference flow rate to achieve good printing results with these special filaments."));
+    auto extra_text = new wxStaticText(parent, wxID_ANY, _L("In addition, Flow Rate Calibration is crucial for foaming materials like LW-PLA used in RC planes. These materials expand greatly when heated, and calibration provides a useful reference flow rate."));
     extra_text->SetFont(Label::Body_14);
     extra_text->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     m_top_sizer->Add(extra_text);
@@ -198,12 +202,25 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
 
     create_about(parent,
         _L("About this calibration"),
-        _L("Flow Rate Calibration measures the ratio of expected to actual extrusion volumes. This ratio is normally stable and the default setting works well in Bambu Lab printers and official filaments as they were pre-calibrated and fine tuned. For a regular filament, you usually won't need to perform a Flow Rate Calibration. For more details, please check out the wiki article.\
-\n\nFlow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring calibration the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration and can produce less-than-desirable results.\
-\n\nThe calibration results may vary between each calibration or filament. We are still improving the accuracy and compatibility of this calibration through firmware updates over time.\
-\n\nCaution: Flow Rate Calibration is an advanced process, to be attempted only by those who fully understand its purpose and implications. Incorrect usage can lead to sub-par prints or printer damage. Please make sure to carefully read and understand the process before doing it."));
+        _L("Flow Rate Calibration measures the ratio of expected to actual extrusion volumes. The default setting works well in Bambu Lab printers and official filaments as they were pre-calibrated and fine-tuned. For a regular filament, you usually won't need to perform a Flow Rate Calibration unless you still see the listed defects after you have done other calibrations. For more details, please check out the wiki article."));
+        
     m_top_sizer->Add(m_about_title);
     m_top_sizer->Add(m_about_content);
+    m_top_sizer->AddSpacer(PRESET_GAP);
+
+    auto auto_cali_title = new wxStaticText(parent, wxID_ANY, _L("Auto-Calibration"));
+    auto_cali_title->SetFont(Label::Head_14);
+    auto_cali_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+
+    auto auto_cali_content = new wxStaticText(this, wxID_ANY, 
+        _L("Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration and can produce less-than-desirable results.\
+\n\nThe calibration results may vary between each calibration or filament. We are still improving the accuracy and compatibility of this calibration through firmware updates over time.\
+\n\nCaution: Flow Rate Calibration is an advanced process, to be attempted only by those who fully understand its purpose and implications. Incorrect usage can lead to sub-par prints or printer damage. Please make sure to carefully read and understand the process before doing it."));
+    auto_cali_content->SetFont(Label::Body_14);
+    auto_cali_content->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
+
+    m_top_sizer->Add(auto_cali_title);
+    m_top_sizer->Add(auto_cali_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
     m_action_panel = new CaliPageActionPanel(parent, CalibMode::Calib_Flow_Rate, CaliPageType::CALI_PAGE_START);

@@ -73,7 +73,7 @@ public:
 protected:
     wxBoxSizer*     m_top_sizer;
     TextInput*      m_nozzle_temp;
-    TextInput*      m_bed_temp;
+    wxStaticText*   m_bed_temp;
     TextInput*      m_max_volumetric_speed;
 };
 

@@ -58,11 +58,15 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
     m_scrolledWindow->SetScrollRate(5, 5);
     m_scrolledWindow->SetBackgroundColour(*wxWHITE);
 
+    wxBoxSizer* padding_sizer = new wxBoxSizer(wxHORIZONTAL);
+    padding_sizer->Add(0, 0, 1);    
+    
     m_all_pages_sizer = new wxBoxSizer(wxVERTICAL);
+    padding_sizer->Add(m_all_pages_sizer, 0);
 
-    m_scrolledWindow->SetSizer(m_all_pages_sizer);
-    m_scrolledWindow->Layout();
-    m_all_pages_sizer->Fit(m_scrolledWindow);
+    padding_sizer->Add(0, 0, 1);
+
+    m_scrolledWindow->SetSizer(padding_sizer);
 
     main_sizer->Add(m_scrolledWindow, 1, wxEXPAND | wxALL, FromDIP(10));
 
@@ -271,7 +275,16 @@ void CalibrationWizard::on_cali_go_home()
     int cali_stage = 0;
     CalibMode obj_cali_mode = get_obj_calibration_mode(curr_obj, method, cali_stage);
 
-    if (obj_cali_mode == m_mode && curr_obj && curr_obj->is_in_printing()) {
+    bool double_confirm = false;
+    CaliPageType page_type = get_curr_step()->page->get_page_type();
+    if (page_type == CaliPageType::CALI_PAGE_COARSE_SAVE ||
+        page_type == CaliPageType::CALI_PAGE_FINE_SAVE ||
+        page_type == CaliPageType::CALI_PAGE_COMMON_SAVE ||
+        page_type == CaliPageType::CALI_PAGE_FLOW_SAVE ||
+        page_type == CaliPageType::CALI_PAGE_PA_SAVE) {
+        double_confirm = true;
+    }
+    if (obj_cali_mode == m_mode && curr_obj && (curr_obj->is_in_printing() || double_confirm)) {
         if (go_home_dialog == nullptr)
             go_home_dialog = new SecondaryCheckDialog(this, wxID_ANY, _L("Confirm"));
 
@@ -801,6 +814,8 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
         }
+        show_step(m_curr_step->next);
+
         CalibrationCaliPage *cali_page = (static_cast<CalibrationCaliPage *>(cali_step->page));
         cali_page->clear_last_job_status();
     }
@@ -878,8 +893,6 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     } else {
         assert(false);
     }
-
-    show_step(m_curr_step->next);
 }
 
 void FlowRateWizard::on_cali_save()

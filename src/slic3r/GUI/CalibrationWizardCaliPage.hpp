@@ -40,7 +40,7 @@ protected:
     wxBoxSizer*         m_top_sizer;
     CaliPageStepGuide*  m_step_panel { nullptr };
     PrintingTaskPanel*  m_printing_panel { nullptr };
-    wxStaticBitmap*     m_printing_picture;
+    CaliPagePicture*    m_picture_panel;
     SecondaryCheckDialog* abort_dlg { nullptr };
 };
 

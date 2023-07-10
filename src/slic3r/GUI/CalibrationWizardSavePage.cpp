@@ -6,7 +6,7 @@
 
 namespace Slic3r { namespace GUI {
 
-
+#define CALIBRATION_SAVE_INPUT_SIZE     wxSize(FromDIP(240), FromDIP(24))
 static wxString get_default_name(wxString filament_name, CalibMode mode){
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
@@ -121,8 +121,7 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
     auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best Flow Dynamics Calibration Factor"));
     complete_text->SetFont(Label::Head_14);
-    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
+    complete_text_sizer->Add(complete_text, 0, wxEXPAND);
     m_complete_text_panel->SetSizer(complete_text_sizer);
 
     m_part_failed_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -132,25 +131,26 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     part_failed_sizer->AddSpacer(FromDIP(10));
     auto part_failed_text = new wxStaticText(m_part_failed_panel, wxID_ANY, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
     part_failed_text->SetFont(Label::Body_14);
-    part_failed_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    part_failed_sizer->Add(part_failed_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
+    part_failed_sizer->Add(part_failed_text, 0, wxLEFT | wxRIGHT, FromDIP(20));
     part_failed_sizer->AddSpacer(FromDIP(10));
 
-    m_top_sizer->Add(m_complete_text_panel, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(m_part_failed_panel, 0, wxEXPAND, 0);
 
-    m_top_sizer->Add(m_part_failed_panel, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->AddSpacer(FromDIP(20));
+
+    m_top_sizer->Add(m_complete_text_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
     m_grid_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_top_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
 
-    m_top_sizer->AddSpacer(PRESET_GAP);
+    m_top_sizer->AddSpacer(FromDIP(10));
 
     wxStaticText* naming_hints = new wxStaticText(parent, wxID_ANY, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
-    m_top_sizer->Add(naming_hints, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 }
@@ -165,7 +165,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     }
     m_grid_panel->DestroyChildren();
     auto grid_sizer = new wxBoxSizer(wxHORIZONTAL);
-    const int COLUMN_GAP = FromDIP(50);
+    const int COLUMN_GAP = FromDIP(20);
     const int ROW_GAP = FromDIP(30);
     wxBoxSizer* left_title_sizer = new wxBoxSizer(wxVERTICAL);
     left_title_sizer->AddSpacer(FromDIP(52));
@@ -179,12 +179,14 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     left_title_sizer->Add(n_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
     auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Name"), wxDefaultPosition, wxDefaultSize, 0);
     brand_title->SetFont(Label::Head_14);
-    left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+    left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER);
     grid_sizer->Add(left_title_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
 
     m_is_all_failed = true;
     bool part_failed = false;
+    if (cali_result.empty())
+        part_failed = true;
     for (auto& item : cali_result) {
         bool result_failed = false;
         if (item.confidence != 0) {
@@ -209,15 +211,15 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         }
         tray_title->SetLabel(tray_name);
 
-        auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_FROM_TO_INPUT_SIZE, item.tray_id, GridTextInputType::K);
-        auto n_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_FROM_TO_INPUT_SIZE, item.tray_id, GridTextInputType::N);
+        auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::K);
+        auto n_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::N);
         k_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         n_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-        auto k_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
-        auto n_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
+        auto k_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition);
+        auto n_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition);
 
-        auto comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_FROM_TO_INPUT_SIZE, item.tray_id);
-        auto tray_name_failed = new wxStaticText(m_grid_panel, wxID_ANY, " - ", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
+        auto comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id);
+        auto tray_name_failed = new wxStaticText(m_grid_panel, wxID_ANY, " - ", wxDefaultPosition);
         wxArrayString selections;
         static std::vector<PACalibResult> filtered_results;
         filtered_results.clear();
@@ -425,15 +427,15 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
     auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("Please find the best line on your plate"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
+    complete_text_sizer->Add(complete_text, 0);
     complete_text_panel->SetSizer(complete_text_sizer);
-    m_top_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(complete_text_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    m_record_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_top_sizer->Add(m_record_picture, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    m_picture_panel = new CaliPagePicture(parent);
     set_save_img();
+    m_top_sizer->Add(m_picture_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -461,12 +463,12 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
     m_save_name_input = new TextInput(parent, "", "", "", wxDefaultPosition, { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, 0);
     m_top_sizer->Add(m_save_name_input, 0, 0, 0);
 
-    m_top_sizer->AddSpacer(PRESET_GAP);
+    m_top_sizer->AddSpacer(FromDIP(10));
 
     wxStaticText* naming_hints = new wxStaticText(parent, wxID_ANY, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
-    m_top_sizer->Add(naming_hints, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -476,7 +478,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 }
 
 void CaliPASaveManualPanel::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 400));
+    m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 330));
 }
 
 void CaliPASaveManualPanel::set_default_name(const wxString& name) {
@@ -566,15 +568,15 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
     auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("Please find the best line on your plate"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
+    complete_text_sizer->Add(complete_text, 0, wxEXPAND);
     complete_text_panel->SetSizer(complete_text_sizer);
-    m_top_sizer->Add(complete_text_panel, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(complete_text_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    m_record_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_top_sizer->Add(m_record_picture, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    m_picture_panel = new CaliPagePicture(parent);
     set_save_img();
+    m_top_sizer->Add(m_picture_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -600,13 +602,15 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
     value_sizer->Add(m_n_val, 0);
     m_top_sizer->Add(value_sizer, 0, wxALIGN_CENTER);
 
+    m_top_sizer->AddSpacer(FromDIP(20));
+
     Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
         SetFocusIgnoringChildren();
         });
 }
 
 void CaliPASaveP1PPanel::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 400));
+    m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 350));
 }
 
 bool CaliPASaveP1PPanel::get_result(float* out_k, float* out_n){
@@ -637,7 +641,7 @@ CaliSavePresetValuePanel::CaliSavePresetValuePanel(
 
 void CaliSavePresetValuePanel::create_panel(wxWindow *parent)
 {
-    m_record_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    m_picture_panel = new CaliPagePicture(parent);
 
     m_value_title = new wxStaticText(parent, wxID_ANY, _L("Input Value"), wxDefaultPosition, wxDefaultSize, 0);
     m_value_title->SetFont(Label::Head_14);
@@ -651,7 +655,7 @@ void CaliSavePresetValuePanel::create_panel(wxWindow *parent)
 
     m_input_name = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, {CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24)}, 0);
 
-    m_top_sizer->Add(m_record_picture, 0, wxALIGN_CENTER);
+    m_top_sizer->Add(m_picture_panel, 0, wxEXPAND, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
     m_top_sizer->Add(m_value_title, 0);
     m_top_sizer->AddSpacer(FromDIP(10));
@@ -665,7 +669,7 @@ void CaliSavePresetValuePanel::create_panel(wxWindow *parent)
 
 void CaliSavePresetValuePanel::set_img(const std::string& bmp_name_in)
 {
-    m_record_picture->SetBitmap(create_scaled_bitmap(bmp_name_in, nullptr, 400));
+    m_picture_panel->set_img(create_scaled_bitmap(bmp_name_in, nullptr, 400));
 }
 
 void CaliSavePresetValuePanel::set_value_title(const wxString& title) {
@@ -715,7 +719,7 @@ void CalibrationPASavePage::create_page(wxWindow* parent)
     wxArrayString steps;
     steps.Add(_L("Preset"));
     steps.Add(_L("Calibration"));
-    steps.Add(_L("Record"));
+    steps.Add(_L("Record Factor"));
     m_step_panel = new CaliPageStepGuide(parent, steps);
     m_step_panel->set_steps(2);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
@@ -723,10 +727,15 @@ void CalibrationPASavePage::create_page(wxWindow* parent)
     m_manual_panel = new CaliPASaveManualPanel(parent, wxID_ANY);
     m_auto_panel = new CaliPASaveAutoPanel(parent, wxID_ANY);
     m_p1p_panel = new CaliPASaveP1PPanel(parent, wxID_ANY);
+    m_help_panel = new PAPageHelpPanel(parent);
+    m_manual_panel->Hide();
+    m_p1p_panel->Hide();
 
     m_top_sizer->Add(m_manual_panel, 0, wxEXPAND);
     m_top_sizer->Add(m_auto_panel, 0, wxEXPAND);
     m_top_sizer->Add(m_p1p_panel, 0, wxEXPAND);
+    m_top_sizer->Add(m_help_panel, 0, wxEXPAND);
+    m_top_sizer->AddSpacer(FromDIP(20));
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_PA_SAVE);
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
@@ -827,7 +836,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     wxArrayString steps;
     steps.Add(_L("Preset"));
     steps.Add(_L("Calibration"));
-    steps.Add(_L("Record"));
+    steps.Add(_L("Record Factor"));
     m_step_panel = new CaliPageStepGuide(parent, steps);
     m_step_panel->set_steps(2);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
@@ -837,8 +846,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
     auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best flow ratio for you"));
     complete_text->SetFont(Label::Head_14);
-    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0, wxALIGN_CENTER);
+    complete_text_sizer->Add(complete_text, 0, wxEXPAND);
     m_complete_text_panel->SetSizer(complete_text_sizer);
 
     m_part_failed_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -848,13 +856,14 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     part_failed_sizer->AddSpacer(FromDIP(10));
     auto part_failed_text = new wxStaticText(m_part_failed_panel, wxID_ANY, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
     part_failed_text->SetFont(Label::Body_14);
-    part_failed_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    part_failed_sizer->Add(part_failed_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
+    part_failed_sizer->Add(part_failed_text, 0, wxLEFT | wxRIGHT, FromDIP(20));
     part_failed_sizer->AddSpacer(FromDIP(10));
 
-    m_top_sizer->Add(m_complete_text_panel, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(m_part_failed_panel, 0, wxEXPAND, 0);
 
-    m_top_sizer->Add(m_part_failed_panel, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->AddSpacer(FromDIP(20));
+
+    m_top_sizer->Add(m_complete_text_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -870,22 +879,23 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
     m_save_results.clear();
     m_grid_panel->DestroyChildren();
     wxBoxSizer* grid_sizer = new wxBoxSizer(wxHORIZONTAL);
-    const int COLUMN_GAP = FromDIP(50);
+    const int COLUMN_GAP = FromDIP(20);
     const int ROW_GAP = FromDIP(30);
     wxBoxSizer* left_title_sizer = new wxBoxSizer(wxVERTICAL);
     left_title_sizer->AddSpacer(FromDIP(49));
     auto flow_ratio_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Flow Ratio"), wxDefaultPosition, wxDefaultSize, 0);
     flow_ratio_title->SetFont(Label::Head_14);
-    left_title_sizer->Add(flow_ratio_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+    left_title_sizer->Add(flow_ratio_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP + FromDIP(10));
     auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
     brand_title->SetFont(Label::Head_14);
-    left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+    left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER);
     grid_sizer->Add(left_title_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
 
     m_is_all_failed = true;
     bool part_failed = false;
-
+    if (cali_result.empty())
+        part_failed = true;
     for (auto& item : cali_result) {
         bool result_failed = false;
         if (item.confidence != 0) {
@@ -910,15 +920,15 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         }
         tray_title->SetLabel(tray_name);
 
-        auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_FROM_TO_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio);
+        auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio);
         flow_ratio_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-        auto flow_ratio_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
+        auto flow_ratio_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition);
 
-        auto save_name_input = new GridTextInput(m_grid_panel, "", "", CALIBRATION_FROM_TO_INPUT_SIZE, item.tray_id, GridTextInputType::Name);
-        auto save_name_input_failed = new wxStaticText(m_grid_panel, wxID_ANY, " - ", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE);
+        auto save_name_input = new GridTextInput(m_grid_panel, "", "", { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, item.tray_id, GridTextInputType::Name);
+        auto save_name_input_failed = new wxStaticText(m_grid_panel, wxID_ANY, " - ", wxDefaultPosition);
 
         column_data_sizer->Add(tray_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
-        column_data_sizer->Add(flow_ratio_value, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
+        column_data_sizer->Add(flow_ratio_value, 0, wxALIGN_LEFT | wxBOTTOM, ROW_GAP);
         column_data_sizer->Add(flow_ratio_value_failed, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
         column_data_sizer->Add(save_name_input, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
         column_data_sizer->Add(save_name_input_failed, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
@@ -1068,7 +1078,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     steps.Add(_L("Preset"));
     steps.Add(_L("Calibration1"));
     steps.Add(_L("Calibration2"));
-    steps.Add(_L("Record"));
+    steps.Add(_L("Record Factor"));
     m_step_panel = new CaliPageStepGuide(parent, steps);
     m_step_panel->set_steps(1);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
@@ -1076,12 +1086,12 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     auto complete_text = new wxStaticText(parent, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(-1);
-    m_top_sizer->Add(complete_text, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(complete_text, 0, wxEXPAND, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    m_record_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_top_sizer->Add(m_record_picture, 0, wxALIGN_CENTER, 0);
+    m_picture_panel = new CaliPagePicture(parent);
     set_save_img();
+    m_top_sizer->Add(m_picture_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -1150,6 +1160,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
             m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2);
         }
         Layout();
+        Fit();
         e.Skip();
         });
 
@@ -1164,7 +1175,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowCoarseSavePage::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse_result", nullptr, 400));
+    m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse_result", nullptr, 350));
 }
 
 void CalibrationFlowCoarseSavePage::set_default_name(const wxString& name) {
@@ -1238,7 +1249,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
     steps.Add(_L("Preset"));
     steps.Add(_L("Calibration1"));
     steps.Add(_L("Calibration2"));
-    steps.Add(_L("Record"));
+    steps.Add(_L("Record Factor"));
     m_step_panel = new CaliPageStepGuide(parent, steps);
     m_step_panel->set_steps(3);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
@@ -1246,12 +1257,12 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
     auto complete_text = new wxStaticText(parent, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(-1);
-    m_top_sizer->Add(complete_text, 0, wxALIGN_CENTER, 0);
+    m_top_sizer->Add(complete_text, 0, wxEXPAND, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    m_record_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_top_sizer->Add(m_record_picture, 0, wxALIGN_CENTER, 0);
+    m_picture_panel = new CaliPagePicture(parent);
     set_save_img();
+    m_top_sizer->Add(m_picture_panel, 0, wxEXPAND, 0);
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -1292,7 +1303,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowFineSavePage::set_save_img() {
-    m_record_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine_result", nullptr, 400));
+    m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_fine_result", nullptr, 350));
 }
 
 void CalibrationFlowFineSavePage::set_default_name(const wxString& name) {
@@ -1366,7 +1377,7 @@ void CalibrationMaxVolumetricSpeedSavePage::create_page(wxWindow *parent)
     wxArrayString steps;
     steps.Add(_L("Preset"));
     steps.Add(_L("Calibration"));
-    steps.Add(_L("Record"));
+    steps.Add(_L("Record Factor"));
     m_step_panel = new CaliPageStepGuide(parent, steps);
     m_step_panel->set_steps(2);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);

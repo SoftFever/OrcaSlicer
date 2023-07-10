@@ -249,7 +249,7 @@ CaliPresetTipsPanel::CaliPresetTipsPanel(
     : wxPanel(parent, id, pos, size, style)
 {
     this->SetBackgroundColour(wxColour(238, 238, 238));
-    this->SetMinSize(wxSize(CALIBRATION_TEXT_MAX_LENGTH * 1.7f, -1));
+    this->SetMinSize(wxSize(MIN_CALIBRATION_PAGE_WIDTH, -1));
     
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -291,8 +291,9 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     bed_temp_sizer->Add(printing_param_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
     auto bed_temp_text = new wxStaticText(parent, wxID_ANY, _L("Bed temperature"));
     bed_temp_text->SetFont(Label::Body_12);
-    m_bed_temp = new TextInput(parent, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
-    m_bed_temp->SetBorderWidth(0);
+
+    m_bed_temp = new wxStaticText(parent, wxID_ANY, _L("- \u2103"));
+    m_bed_temp->SetFont(Label::Body_12);
     bed_temp_sizer->Add(bed_temp_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
     bed_temp_sizer->Add(m_bed_temp, 0, wxALIGN_CENTER);
 
@@ -307,7 +308,6 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     m_max_volumetric_speed->Hide();
 
     m_nozzle_temp->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto&) {});
-    m_bed_temp->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto&) {});
     m_max_volumetric_speed->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto&) {});
 
     info_sizer->Add(nozzle_temp_sizer);
@@ -324,7 +324,9 @@ void CaliPresetTipsPanel::set_params(int nozzle_temp, int bed_temp, float max_vo
     m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
 
     wxString bed_temp_text = wxString::Format("%d", bed_temp);
-    m_bed_temp->GetTextCtrl()->SetValue(bed_temp_text);
+    if (bed_temp == 0)
+        bed_temp_text = "-";
+    m_bed_temp->SetLabel(bed_temp_text + _L(" \u2103"));
 
     wxString flow_val_text = wxString::Format("%0.2f", max_volumetric);
     m_max_volumetric_speed->GetTextCtrl()->SetValue(flow_val_text);
@@ -333,12 +335,22 @@ void CaliPresetTipsPanel::set_params(int nozzle_temp, int bed_temp, float max_vo
 void CaliPresetTipsPanel::get_params(int& nozzle_temp, int& bed_temp, float& max_volumetric)
 {
     try {
-        nozzle_temp     = stoi(m_nozzle_temp->GetTextCtrl()->GetValue().ToStdString());
-        bed_temp        = stoi(m_bed_temp->GetTextCtrl()->GetValue().ToStdString());
-        max_volumetric  = stof(m_max_volumetric_speed->GetTextCtrl()->GetValue().ToStdString());
+        nozzle_temp = stoi(m_nozzle_temp->GetTextCtrl()->GetValue().ToStdString());
     }
-    catch(...) {
-        ;
+    catch (...) {
+        nozzle_temp = 0;
+    }
+    try {
+        bed_temp = stoi(m_bed_temp->GetLabel().ToStdString());
+    }
+    catch (...) {
+        bed_temp = 0;
+    }
+    try {
+        max_volumetric = stof(m_max_volumetric_speed->GetTextCtrl()->GetValue().ToStdString());
+    }
+    catch (...) {
+        max_volumetric = 0.0f;
     }
 }
 
@@ -370,7 +382,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto nozzle_combo_text = new wxStaticText(parent, wxID_ANY, _L("Please select the nozzle diameter of your printer"), wxDefaultPosition, wxDefaultSize, 0);
+    auto nozzle_combo_text = new wxStaticText(parent, wxID_ANY, _L("Nozzle Diameter"), wxDefaultPosition, wxDefaultSize, 0);
     nozzle_combo_text->SetFont(Label::Head_14);
     nozzle_combo_text->Wrap(-1);
     panel_sizer->Add(nozzle_combo_text, 0, wxALL, 0);
@@ -380,7 +392,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 
     panel_sizer->AddSpacer(PRESET_GAP);
 
-    auto plate_type_combo_text = new wxStaticText(parent, wxID_ANY, _L("Please select the plate type of your printer"), wxDefaultPosition, wxDefaultSize, 0);
+    auto plate_type_combo_text = new wxStaticText(parent, wxID_ANY, _L("Plate Type"), wxDefaultPosition, wxDefaultSize, 0);
     plate_type_combo_text->SetFont(Label::Head_14);
     plate_type_combo_text->Wrap(-1);
     panel_sizer->Add(plate_type_combo_text, 0, wxALL, 0);
@@ -415,8 +427,9 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     m_ams_sync_button = new ScalableButton(parent, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 18);
     m_ams_sync_button->SetBackgroundColour(*wxWHITE);
     m_ams_sync_button->SetToolTip(_L("Synchronize filament list from AMS"));
-    filament_for_title_sizer->Add(m_ams_sync_button, 0, wxALIGN_CENTER, 0);
+    filament_for_title_sizer->Add(m_ams_sync_button, 0, wxALIGN_CENTER);
     panel_sizer->Add(filament_for_title_sizer);
+    panel_sizer->AddSpacer(FromDIP(6));
 
     parent->SetSizer(panel_sizer);
     panel_sizer->Fit(parent);
@@ -540,9 +553,9 @@ void CalibrationPresetPage::create_ext_spool_panel(wxWindow* parent)
 
     m_virtual_tray_comboBox->Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
 
-    panel_sizer->Add(radio_btn, 0, wxALIGN_CENTER);
-    panel_sizer->Add(check_box, 0, wxALIGN_CENTER);
-    panel_sizer->Add(m_virtual_tray_comboBox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+    panel_sizer->Add(radio_btn, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
+    panel_sizer->Add(check_box, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
+    panel_sizer->Add(m_virtual_tray_comboBox, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
     parent->SetSizer(panel_sizer);
     panel_sizer->Fit(parent);
 
@@ -555,6 +568,9 @@ void CalibrationPresetPage::create_ext_spool_panel(wxWindow* parent)
 
 void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
 {
+    parent->SetMinSize({ FromDIP(475), FromDIP(200) });
+    parent->SetMaxSize({ FromDIP(475), FromDIP(200) });
+
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
     parent->SetSizer(panel_sizer);
 
@@ -570,7 +586,7 @@ void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
             }
             show_status(CaliPresetStatusNormal);
         });
-    panel_sizer->Add(m_send_progress_bar->get_panel(), 0);
+    panel_sizer->Add(m_send_progress_bar->get_panel(), 0, wxEXPAND);
 
     m_sw_print_failed_info = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(380), FromDIP(125)), wxVSCROLL);
     m_sw_print_failed_info->SetBackgroundColour(*wxWHITE);
@@ -580,7 +596,7 @@ void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
 
     m_sw_print_failed_info->Hide();
 
-    panel_sizer->Add(m_sw_print_failed_info, 0);
+    panel_sizer->Add(m_sw_print_failed_info, 0, wxEXPAND);
 
     // create error info panel
     wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
@@ -647,7 +663,6 @@ void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
     sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
     sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
 
-
     Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
         show_send_failed_info(true);
     });
@@ -672,7 +687,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
         wxArrayString steps;
         steps.Add(_L("Preset"));
         steps.Add(_L("Calibration"));
-        steps.Add(_L("Record"));
+        steps.Add(_L("Record Factor"));
         m_step_panel = new CaliPageStepGuide(parent, steps);
         m_step_panel->set_steps(0);
     }
@@ -721,8 +736,8 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
         m_top_sizer->AddSpacer(FromDIP(15));
     }
     m_top_sizer->Add(m_tips_panel, 0);
-    m_top_sizer->Add(m_sending_panel, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
+    m_top_sizer->Add(m_sending_panel, 0, wxALIGN_CENTER);
     m_top_sizer->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
 
@@ -1160,6 +1175,8 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         m_sending_panel->Show(false);
         update_print_status_msg(wxEmptyString, false);
         Enable_Send_Button(true);
+        Layout();
+        Fit();
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusNoUserLogin) {
         wxString msg_text = _L("No login account, only printers in LAN mode are displayed");
@@ -1191,8 +1208,10 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         Enable_Send_Button(false);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusSending) {
-         m_sending_panel->Show();
+        m_sending_panel->Show();
         Enable_Send_Button(false);
+        Layout();
+        Fit();
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusSendingCanceled) {
         Enable_Send_Button(true);
@@ -1228,11 +1247,13 @@ void CalibrationPresetPage::Enable_Send_Button(bool enable)
 void CalibrationPresetPage::prepare_mode()
 {
     Enable_Send_Button(true);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
 }
 
 void CalibrationPresetPage::sending_mode()
 {
     Enable_Send_Button(false);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, false);
 }
 
 
@@ -1347,6 +1368,7 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
 void CalibrationPresetPage::on_cali_start_job()
 {
     m_send_progress_bar->reset();
+    m_sw_print_failed_info->Show(false);
     show_status(CaliPresetPageStatus::CaliPresetStatusSending);
 }
 

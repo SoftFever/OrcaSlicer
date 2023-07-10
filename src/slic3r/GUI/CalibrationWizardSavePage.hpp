@@ -51,7 +51,7 @@ class CaliSavePresetValuePanel : public wxPanel
 {
 protected:
     wxBoxSizer* m_top_sizer;
-    wxStaticBitmap* m_record_picture;
+    CaliPagePicture* m_picture_panel;
     wxStaticText* m_value_title;
     wxStaticText* m_save_name_title;
     ::TextInput* m_input_value;
@@ -129,7 +129,7 @@ public:
 
 protected:
     wxBoxSizer* m_top_sizer;
-    wxStaticBitmap* m_record_picture;
+    CaliPagePicture* m_picture_panel;
     ::TextInput* m_save_name_input;
     ::TextInput* m_k_val;
     ::TextInput* m_n_val;
@@ -153,7 +153,7 @@ public:
 
 protected:
     wxBoxSizer* m_top_sizer;
-    wxStaticBitmap* m_record_picture;
+    CaliPagePicture* m_picture_panel;
     ::TextInput* m_k_val;
     ::TextInput* m_n_val;
 };
@@ -185,6 +185,7 @@ protected:
     CaliPASaveAutoPanel*  m_auto_panel { nullptr };
     CaliPASaveManualPanel* m_manual_panel { nullptr };
     CaliPASaveP1PPanel* m_p1p_panel{ nullptr };
+    PAPageHelpPanel* m_help_panel;
 
     CaliSaveStyle m_save_style;
 };
@@ -233,7 +234,7 @@ public:
 
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };
-    wxStaticBitmap*    m_record_picture;
+    CaliPagePicture*   m_picture_panel;
     ComboBox*          m_optimal_block_coarse;
     TextInput*         m_save_name_input;
 
@@ -260,7 +261,7 @@ public:
 
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };
-    wxStaticBitmap*    m_record_picture;
+    CaliPagePicture*   m_picture_panel;
     ComboBox*          m_optimal_block_fine;
     TextInput*         m_save_name_input;
 

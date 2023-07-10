@@ -16,6 +16,7 @@
 namespace Slic3r { namespace GUI {
 
 
+#define MIN_CALIBRATION_PAGE_WIDTH         FromDIP(1100)
 #define PRESET_GAP                         FromDIP(25)
 #define CALIBRATION_COMBOX_SIZE            wxSize(FromDIP(500), FromDIP(24))
 #define CALIBRATION_FILAMENT_COMBOX_SIZE   wxSize(FromDIP(250), FromDIP(24))
@@ -154,6 +155,39 @@ protected:
     wxArrayString m_steps;
     wxBoxSizer* m_step_sizer;
     std::vector<wxStaticText*> m_text_steps;
+};
+
+class CaliPagePicture : public wxPanel 
+{
+public:
+    CaliPagePicture(wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+
+    void set_img(const wxBitmap& bmp);
+    void paint_on_img();
+protected:
+    wxStaticBitmap* m_img;
+};
+
+class PAPageHelpPanel : public wxPanel
+{
+public:
+    PAPageHelpPanel(wxWindow* parent,
+        bool ground_panel = true,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+    
+protected:
+    void create_pop_window();
+
+    ScalableButton* m_help_btn;
+    PopupWindow* m_pop_win;
+    wxStaticBitmap* m_img;
 };
 
 enum class CaliPageActionType : int

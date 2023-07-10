@@ -360,8 +360,8 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
 
     wxString title = get_cali_mode_caption_string(cali_mode);
     wxStaticText* title_text = new wxStaticText(this, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    title_text->SetFont(Label::Head_20);
     title_text->Wrap(-1);
-    title_text->SetFont(Label::Head_16);
     caption_sizer->Add(title_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
 
     m_help_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_help",
@@ -460,7 +460,7 @@ CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,
         m_text_steps.push_back(step_text);
         m_step_sizer->Add(step_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
         if (i != m_steps.size() - 1) {
-            auto line = new wxPanel(this, wxID_ANY, wxDefaultPosition, { FromDIP(200), 1 });
+            auto line = new wxPanel(this, wxID_ANY, wxDefaultPosition);
             line->SetBackgroundColour(*wxBLACK);
             m_step_sizer->Add(line, 1, wxALIGN_CENTER);
         }
@@ -494,13 +494,102 @@ void CaliPageStepGuide::set_steps_string(wxArrayString steps)
         m_text_steps.push_back(step_text);
         m_step_sizer->Add(step_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
         if (i != m_steps.size() - 1) {
-            auto line = new wxPanel(this, wxID_ANY, wxDefaultPosition, { FromDIP(200), 1 });
+            auto line = new wxPanel(this, wxID_ANY, wxDefaultPosition);
             line->SetBackgroundColour(*wxBLACK);
             m_step_sizer->Add(line, 1, wxALIGN_CENTER);
         }
     }
     m_step_sizer->AddSpacer(FromDIP(90));
     Layout();
+}
+
+
+CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) 
+    : wxPanel(parent, id, pos, size, style)
+{
+    SetBackgroundColour(wxColour(0xCECECE));
+    auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    top_sizer->AddStretchSpacer();
+    m_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+    top_sizer->Add(m_img);
+    top_sizer->AddStretchSpacer();
+    this->SetSizer(top_sizer);
+    top_sizer->Fit(this);
+}
+
+void CaliPagePicture::set_img(const wxBitmap& bmp)
+{
+    m_img->SetBitmap(bmp);
+}
+
+
+PAPageHelpPanel::PAPageHelpPanel(wxWindow* parent, bool ground_panel, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+    : wxPanel(parent, id, pos, size, style)
+{
+    if (ground_panel)
+        SetBackgroundColour(wxColour(238, 238, 238));
+    else
+        SetBackgroundColour(parent->GetBackgroundColour());
+    int left_align_padding = ground_panel ? FromDIP(20) : 0;
+
+    wxBoxSizer* top_sizer = new wxBoxSizer(wxVERTICAL);
+    top_sizer->AddSpacer(FromDIP(10));
+
+    auto help_text_title = new wxStaticText(this, wxID_ANY, _L("How to use calibration result?"));
+    help_text_title->SetFont(Label::Head_14);
+    top_sizer->Add(help_text_title, 0, wxLEFT | wxRIGHT, left_align_padding);
+
+    wxBoxSizer* help_text_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto help_text = new wxStaticText(this, wxID_ANY, _L("You could change the Flow Dynamics Calibration Factor in material editing"));
+    help_text->SetFont(Label::Body_14);
+    m_help_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_help", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 24);
+    m_help_btn->SetBackgroundColour(m_help_btn->GetParent()->GetBackgroundColour());
+    help_text_sizer->Add(help_text, 0, wxALIGN_CENTER | wxLEFT, left_align_padding);
+    help_text_sizer->Add(m_help_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
+    help_text_sizer->AddSpacer(FromDIP(20));
+
+    top_sizer->Add(help_text_sizer);
+
+    top_sizer->AddSpacer(FromDIP(6));
+
+    create_pop_window();
+
+    SetSizer(top_sizer);
+    top_sizer->Fit(this);
+}
+
+void PAPageHelpPanel::create_pop_window()
+{
+    m_pop_win = new PopupWindow(this);
+    m_pop_win->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* pop_sizer = new wxBoxSizer(wxVERTICAL);
+    m_pop_win->SetSizer(pop_sizer);
+
+    wxStaticBitmap* img = new wxStaticBitmap(m_pop_win, wxID_ANY, wxNullBitmap);
+    img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram", 206).bmp());
+    pop_sizer->Add(img, 1, wxEXPAND | wxALL, FromDIP(20));
+
+    m_pop_win->Layout();
+    m_pop_win->Fit();
+
+    m_pop_win->Bind(wxEVT_PAINT, [this](auto&) {
+        wxPaintDC dc(m_pop_win);
+        dc.SetPen({ 0xACACAC });
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle({ 0, 0 }, m_pop_win->GetSize());
+        });
+
+    m_help_btn->Bind(wxEVT_ENTER_WINDOW, [this](auto&) {
+        wxPoint pop_pos = m_help_btn->ClientToScreen(wxPoint(0, 0));
+        pop_pos.x -= FromDIP(60);
+        pop_pos.y -= m_pop_win->GetSize().y + FromDIP(10);
+
+        m_pop_win->Position(pop_pos, wxSize(0, 0));
+        m_pop_win->Popup();
+        });
+    m_help_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto&) {
+        m_pop_win->Dismiss();
+        });
 }
 
 
@@ -642,6 +731,7 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
     , m_parent(parent)
 {
     SetBackgroundColour(*wxWHITE);
+    SetMinSize({ MIN_CALIBRATION_PAGE_WIDTH, -1 });
 }
 
 

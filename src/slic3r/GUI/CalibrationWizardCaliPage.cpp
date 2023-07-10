@@ -39,13 +39,13 @@ void CalibrationCaliPage::create_page(wxWindow* parent)
     wxArrayString steps;
     steps.Add(_L("Preset"));
     steps.Add(_L("Calibration"));
-    steps.Add(_L("Record"));
+    steps.Add(_L("Record Factor"));
     m_step_panel = new CaliPageStepGuide(parent, steps);
     m_step_panel->set_steps(1);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
-    m_printing_picture = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
-    m_top_sizer->Add(m_printing_picture, 0, wxALIGN_CENTER, 0);
+    m_picture_panel = new CaliPagePicture(parent);
+    m_top_sizer->Add(m_picture_panel, 0, wxEXPAND, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
     set_cali_img();
@@ -101,27 +101,27 @@ void CalibrationCaliPage::set_cali_img()
 {
     if (m_cali_mode == CalibMode::Calib_PA_Line) {
         if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
-            m_printing_picture->SetBitmap(create_scaled_bitmap("fd_calibration_manual", nullptr, 400));
+            m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual", nullptr, 400));
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-            m_printing_picture->SetBitmap(create_scaled_bitmap("fd_calibration_auto", nullptr, 400));
+            m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_auto", nullptr, 400));
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
         if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             if (m_page_type == CaliPageType::CALI_PAGE_CALI)
-                m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
+                m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
             if (m_page_type == CaliPageType::CALI_PAGE_FINE_CALI)
-                m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400));
+                m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_fine", nullptr, 400));
             else
-                m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
+                m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse", nullptr, 400));
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-            m_printing_picture->SetBitmap(create_scaled_bitmap("flow_rate_calibration_auto", nullptr, 400));
+            m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_auto", nullptr, 400));
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Vol_speed_Tower) {
-        m_printing_picture->SetBitmap(create_scaled_bitmap("max_volumetric_speed_calibration", nullptr, 400));
+        m_picture_panel->set_img(create_scaled_bitmap("max_volumetric_speed_calibration", nullptr, 400));
     }
 }
 
@@ -406,13 +406,13 @@ void CalibrationCaliPage::set_cali_method(CalibrationMethod method)
     wxArrayString auto_steps;
     auto_steps.Add(_L("Preset"));
     auto_steps.Add(_L("Calibration"));
-    auto_steps.Add(_L("Record"));
+    auto_steps.Add(_L("Record Factor"));
 
     wxArrayString manual_steps;
     manual_steps.Add(_L("Preset"));
     manual_steps.Add(_L("Calibration1"));
     manual_steps.Add(_L("Calibration2"));
-    manual_steps.Add(_L("Record"));
+    manual_steps.Add(_L("Record Factor"));
 
     if (method == CalibrationMethod::CALI_METHOD_AUTO) {
         m_step_panel->set_steps_string(auto_steps);
