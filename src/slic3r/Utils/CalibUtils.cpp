@@ -389,6 +389,8 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
     double top_surface_speed             = std::floor(std::min(print_config.opt_float("top_surface_speed"), max_infill_speed));
 
     // adjust parameters
+    filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
+
     for (auto _obj : model.objects) {
         _obj->ensure_on_bed();
         _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
@@ -450,6 +452,8 @@ void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &erro
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
+
+    filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
     DynamicPrintConfig full_config;
     full_config.apply(FullPrintConfig::defaults());
@@ -513,6 +517,7 @@ void CalibUtils::calib_temptue(const CalibInfo& calib_info, std::string& error_m
     auto start_temp      = lround(params.start);
     filament_config.set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts(1, (int) start_temp));
     filament_config.set_key_value("nozzle_temperature", new ConfigOptionInts(1, (int) start_temp));
+    filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
     model.objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model.objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
@@ -565,6 +570,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo& calib_info, std::string& e
 
     filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{50});
     filament_config.set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
+    filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
     print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
@@ -627,6 +633,8 @@ void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_messa
 
     filament_config.set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
     filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
+    filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
+
     print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
@@ -687,6 +695,8 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, std::string &erro
 
     auto max_lh = printer_config.option<ConfigOptionFloats>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
+
+    filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
     obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
     obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
