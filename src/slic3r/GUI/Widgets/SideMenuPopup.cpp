@@ -29,6 +29,7 @@ void SidePopup::OnDismiss()
 {
     Slic3r::GUI::wxGetApp().set_side_menu_popup_status(false);
     PopupWindow::OnDismiss();
+    Destroy();
 }
 
 bool SidePopup::ProcessLeftDown(wxMouseEvent& event)
