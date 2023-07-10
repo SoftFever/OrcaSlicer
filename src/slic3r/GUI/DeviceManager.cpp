@@ -422,7 +422,7 @@ PrinterSeries MachineObject::get_printer_series() const
 {
     if (printer_type == "BL-P001" || printer_type == "BL-P002")
         return PrinterSeries::SERIES_X1;
-    else if (printer_type == "C11")
+    else if (printer_type == "C11" || printer_type == "C12")
         return PrinterSeries::SERIES_P1P;
     else
         return PrinterSeries::SERIES_P1P;
@@ -1450,7 +1450,26 @@ void MachineObject::parse_version_func()
             else {
                 is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
             }
+        } else if (printer_type == "C12") {
+        is_support_ai_monitoring = true;
+        is_cloud_print_only      = true;
+        local_camera_proto       = 1;
+
+        if (ota_version != module_vers.end()) {
+            is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.03.50.01") >= 0 ||
+                                      (esp32_version != module_vers.end() && esp32_version->second.sw_ver.compare("01.05.15.00") >= 0));
+            is_support_remote_tunnel = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
+            if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
+                is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
+            }
+            else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+                is_support_mqtt_alive = ota_version->second.sw_ver.compare("00.06.03.51") >= 0;
+            }
+            else {
+                is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
+            }
         }
+    } 
     }
 }
 
