@@ -827,13 +827,6 @@ void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const Ge
 
 void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 {
-    if (m_name.length() == 0) { 
-		if (m_name_change) { 
-			m_name_change = false;
-			calc_vertex_for_plate_name_edit_icon(nullptr, 0, m_plate_name_edit_icon);
-		}
-		return;
-	}
 	if (m_name_change == true) { 
 		 m_name_change = false;
 		if (m_plate_name_vbo_id > 0) {
