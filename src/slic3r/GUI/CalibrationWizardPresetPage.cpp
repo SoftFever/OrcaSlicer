@@ -64,11 +64,13 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
         input_panel->Show(false);
         m_stage = CALI_MANUAL_STAGE_1;
         GetParent()->Layout();
+        GetParent()->Fit();
         });
     m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this, input_panel](auto& e) {
         input_panel->Show();
         m_stage = CALI_MANUAL_STAGE_2;
         GetParent()->Layout();
+        GetParent()->Fit();
         });
     flow_ratio_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this](auto& e) {
         float flow_ratio = 0.0f;
