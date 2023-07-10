@@ -1444,6 +1444,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         }
     }
     else {
+        update_filament_combobox();
         m_multi_ams_panel->Hide();
     }
 
