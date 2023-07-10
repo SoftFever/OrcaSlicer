@@ -135,7 +135,7 @@ void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
         else {
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
-            m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
+            m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
     }
     else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
@@ -235,6 +235,7 @@ void CalibrationFlowRateStartPage::on_device_connected(MachineObject* obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
         }
         else {
+            m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
         }
     }
