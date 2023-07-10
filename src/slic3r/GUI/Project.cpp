@@ -324,11 +324,14 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
                     pfile_obj["filename"] = wxGetApp().url_encode(file_path_obj.filename().string().c_str());
                     pfile_obj["size"] = formatBytes((unsigned long)filelen);
 
+                    std::string file_extension = file_path_obj.extension().string();
+                    boost::algorithm::to_lower(file_extension);
+
                     //image
-                    if (file_path_obj.extension() == ".jpg" ||
-                        file_path_obj.extension() == ".jpeg" ||
-                        file_path_obj.extension() == ".png" ||
-                        file_path_obj.extension() == ".bmp")
+                    if (file_extension == ".jpg" ||
+                        file_extension == ".jpeg" ||
+                        file_extension == ".png" ||
+                        file_extension == ".bmp")
                     {
 
                         wxString base64_str = to_base64(file_path);
@@ -363,7 +366,9 @@ wxString ProjectPanel::to_base64(std::string file_path)
     base64_format[".png"] = wxBITMAP_TYPE_PNG;
     base64_format[".bmp"] = wxBITMAP_TYPE_BMP;
 
+    
     std::string extension = file_path.substr(file_path.rfind("."), file_path.length());
+    boost::algorithm::to_lower(extension);
 
     auto image = new wxImage(encode_path(file_path.c_str()));
     wxMemoryOutputStream mem;
