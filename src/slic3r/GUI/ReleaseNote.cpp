@@ -59,10 +59,9 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this, wxEmptyString, LB_AUTO_WRAP);
-    m_text_up_info->SetFont(::Label::Head_14);
+    m_text_up_info = new Label(this, Label::Head_14, wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
-    m_sizer_right->Add(m_text_up_info, 0, 0, 0);
+    m_sizer_right->Add(m_text_up_info, 0, wxEXPAND, 0);
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
 
@@ -126,14 +125,12 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     wxBoxSizer* m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString, LB_AUTO_WRAP);
-    m_text_up_info->SetFont(::Label::Head_13);
+    m_text_up_info = new Label(this, Label::Head_13, wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
 
 
-    operation_tips = new ::Label(this, _L("Click OK to update the Network plug-in when Bambu Studio launches next time."), LB_AUTO_WRAP);
-    operation_tips->SetFont(::Label::Body_12);
+    operation_tips = new ::Label(this, Label::Body_12, _L("Click OK to update the Network plug-in when Bambu Studio launches next time."), LB_AUTO_WRAP);
     operation_tips->SetMinSize(wxSize(FromDIP(260), -1));
     operation_tips->SetMaxSize(wxSize(FromDIP(260), -1));
 
@@ -180,7 +177,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
 
-    m_sizer_right->Add(m_text_up_info, 0, 0, 0);
+    m_sizer_right->Add(m_text_up_info, 0, wxEXPAND, 0);
     m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(5));
     m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
     m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(5));
@@ -235,8 +232,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
     m_text_up_info->SetMinSize(wxSize(FromDIP(260), -1));
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_text_label = new ::Label(m_vebview_release_note, description, LB_AUTO_WRAP);
-    m_text_label->SetFont(::Label::Body_13);
+    auto        m_text_label            = new ::Label(m_vebview_release_note, Label::Body_13, description, LB_AUTO_WRAP);
     m_text_label->SetMinSize(wxSize(FromDIP(235), -1));
     m_text_label->SetMaxSize(wxSize(FromDIP(235), -1));
 
@@ -273,11 +269,8 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString, LB_AUTO_WRAP);
-    m_text_up_info->SetFont(::Label::Head_14);
+    m_text_up_info = new Label(this, Label::Head_14, wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
-
-    
 
     m_simplebook_release_note = new wxSimplebook(this);
     m_simplebook_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
@@ -356,7 +349,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
 
-    m_sizer_right->Add(m_text_up_info, 0, wxBOTTOM|wxTOP, FromDIP(15));
+    m_sizer_right->Add(m_text_up_info, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(15));
     m_sizer_right->Add(m_simplebook_release_note, 1, wxEXPAND | wxRIGHT, 0);
     m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT, FromDIP(20));
 
@@ -1042,13 +1035,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_input_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
     m_input_area->Add(m_input_access_code, 0, wxALIGN_CENTER, 0);
 
-    m_error_msg = new Label(this, wxEmptyString, LB_AUTO_WRAP);
-    m_error_msg->SetFont(::Label::Body_13);
+    m_error_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
     m_error_msg->SetForegroundColour(wxColour(208,27,27));
     m_error_msg->Hide();
 
-    m_tip3 = new Label(this, _L("Where to find your printer's IP and Access Code?"), LB_AUTO_WRAP);
-    m_tip3->SetFont(::Label::Body_12);
+    m_tip3 = new Label(this, Label::Body_12, _L("Where to find your printer's IP and Access Code?"), LB_AUTO_WRAP);
     m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
 
