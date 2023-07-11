@@ -4222,8 +4222,8 @@ void GUI_App::check_track_enable()
         header_json["name"] = std::string(SLIC3R_APP_NAME);
         header_json["uuid"] = app_config->get("slicer_uuid");
         if (m_agent) {
-            m_agent->track_header(header_json.dump());
             m_agent->track_enable(true);
+            m_agent->track_header(header_json.dump());
         }
         /* record studio start event */
         json j;
