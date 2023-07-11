@@ -918,10 +918,6 @@ void Selection::translate(const Vec3d& displacement, bool local)
 
     if (m_model->calib_pa_pattern) {
         m_model->calib_pa_pattern->translate_starting_point(displacement);
-
-        m_model->plates_custom_gcodes[m_model->curr_plate_index] =
-            m_model->calib_pa_pattern->generate_gcodes()
-        ;
     }
 
     ensure_not_below_bed();

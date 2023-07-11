@@ -8135,7 +8135,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     CalibPressureAdvancePattern pa_pattern(
         params,
-        model(),
         full_config,
         preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
         fff_print().get_plate_origin()
@@ -8162,7 +8161,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
             bbox.merge(obj->instance_bounding_box(i, false));
         }
     }
-    pa_pattern.starting_point(Vec3d(bbox.min.x(), bbox.max.y(), 0));
+    pa_pattern.starting_point(Vec3d(bbox.min.x(), bbox.max.y(), 0), model());
 
     DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -8185,9 +8184,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
 
-    model().plates_custom_gcodes[model().curr_plate_index] =
-        pa_pattern.generate_gcodes()
-    ;
+    pa_pattern.generate_gcodes(model());
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 

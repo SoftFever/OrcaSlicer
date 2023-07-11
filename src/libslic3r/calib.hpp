@@ -36,7 +36,6 @@ protected:
         Bottom_To_Top
     };
 
-    virtual bool is_delta() const =0;
     void delta_scale_bed_ext(BoundingBoxf& bed_ext) const { bed_ext.scale(1.0f / 1.41421f); }
 
     std::string move_to(Vec2d pt, GCodeWriter writer, std::string comment = std::string());
@@ -122,8 +121,6 @@ private:
     PatternSettings() { };
     PatternSettings(const CalibPressureAdvancePattern& cpap);
 
-    PatternSettings& operator= (const PatternSettings& rhs) =default;
-
     double anchor_line_width;
     int anchor_perimeters;
     double encroachment;
@@ -171,27 +168,20 @@ friend struct PatternSettings;
 public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
-        Model& model,
         DynamicPrintConfig& config,
         const bool& is_bbl_machine,
         const Vec3d& origin
     );
 
-    bool is_delta() const
-    {
-        return pattern_config().option<ConfigOptionPoints>("printable_area")->values.size() > 4;
-    }
-
     double handle_xy_size() const { return m_handle_xy_size; };
-
     double height_first_layer() const { return m_height_first_layer; };
     double height_layer() const { return m_height_layer; };
     double max_layer_z() const { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
 
-    void starting_point(Vec3d pt);
+    void starting_point(Vec3d pt, Model& model);
     void translate_starting_point(Vec3d displacement);
 
-    CustomGCode::Info generate_gcodes();
+    void generate_gcodes(Model& model);
 protected:
     double line_width() const { return m_nozzle_diameter * m_line_ratio / 100; };
     double line_width_anchor() const { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
@@ -201,16 +191,28 @@ protected:
     int anchor_perimeters() const { return m_anchor_perimeters; };
     double encroachment() const { return m_encroachment; };
 private:
-    DynamicPrintConfig pattern_config() const;
-    GCodeWriter pattern_writer() const; // travel_to and extrude_to require a non-const GCodeWriter
+    bool is_delta(Model& model)
+    {
+        return pattern_config(model).option<ConfigOptionPoints>("printable_area")->values.size() > 4;
+    }
+
+    DynamicPrintConfig pattern_config(const Model& model);
+    GCodeWriter pattern_writer(const Model& model); // travel_to and extrude_to require a non-const GCodeWriter
 
     const int get_num_patterns() const
     {
         return std::ceil((m_params.end - m_params.start) / m_params.step + 1);
     }
 
-    std::string draw_line(Vec2d to_pt, DrawLineOptArgs opt_args);
-    std::string draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args);
+    std::string draw_line(Vec2d to_pt, DrawLineOptArgs opt_args, Model& model);
+    std::string draw_box(
+        double min_x,
+        double min_y,
+        double size_x,
+        double size_y,
+        DrawBoxOptArgs opt_args,
+        Model& model
+    );
 
     double to_radians(double degrees) const { return degrees * M_PI / 180; };
     double get_distance(Vec2d from, Vec2d to) const;
@@ -240,7 +242,6 @@ private:
 
     const Calib_Params& m_params;
     const DynamicPrintConfig m_initial_config;
-    Model& m_model;
     const bool& m_is_bbl_machine;
     const Vec3d& m_origin;
 
