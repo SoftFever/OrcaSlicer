@@ -12,9 +12,9 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
     for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
         if (filament_name.compare(it->name) == 0) {
             if (!it->alias.empty())
-                filament_name = it->alias;
+                filament_name = from_u8(it->alias);
             else
-                filament_name = it->name;
+                filament_name = from_u8(it->name);
         }
     }
 
@@ -347,7 +347,7 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
             *out_msg = _L("The name cannot exceed 40 characters.");
             *out_is_valid = false;
         }
-        m_calib_results[tray_id].name = name.ToStdString();
+        m_calib_results[tray_id].name = into_u8(name);
     }
     
     auto childern = window->GetChildren();
@@ -503,7 +503,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
     }
 
     out_result.k_value = k;
-    out_result.name = name.ToStdString();
+    out_result.name = into_u8(name);
     if (m_obj) {
         assert(m_obj->selected_cali_preset.size() <= 1);
         if (!m_obj->selected_cali_preset.empty()) {
@@ -679,7 +679,7 @@ void CaliSavePresetValuePanel::get_value(double& value)
 
 void CaliSavePresetValuePanel::get_save_name(std::string& name)
 { 
-    name = m_input_name->GetTextCtrl()->GetValue().ToStdString(); 
+    name = into_u8(m_input_name->GetTextCtrl()->GetValue()); 
 }
 
 void CaliSavePresetValuePanel::set_save_name(const std::string& name)

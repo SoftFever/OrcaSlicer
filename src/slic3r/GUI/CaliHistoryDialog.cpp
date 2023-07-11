@@ -23,9 +23,9 @@ static wxString get_preset_name_by_filament_id(std::string filament_id)
     for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
         if (filament_id.compare(it->filament_id) == 0) {
             if (!it->alias.empty())
-                preset_name = it->alias;
+                preset_name = from_u8(it->alias);
             else
-                preset_name = it->name;
+                preset_name = from_u8(it->name);
         }
     }
     return preset_name;
@@ -220,7 +220,7 @@ void HistoryWindow::sync_history_data() {
 
     int i = 1;
     for (auto& result : m_calib_results_history) {
-        auto name_value = new wxStaticText(m_history_data_panel, wxID_ANY, result.name);
+        auto name_value = new wxStaticText(m_history_data_panel, wxID_ANY, from_u8(result.name));
 
         wxString preset_name = get_preset_name_by_filament_id(result.filament_id);
         auto preset_name_value = new wxStaticText(m_history_data_panel, wxID_ANY, preset_name);

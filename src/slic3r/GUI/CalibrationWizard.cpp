@@ -16,6 +16,20 @@ wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 
 static const wxString NA_STR = _L("N/A");
 
+bool check_preset_name_valid(const wxString& name) {
+    wxString error_message;
+    if (name.IsEmpty()) {
+        error_message = _L("Please enter the name you want to save to printer.");
+    } else if (name.Length() > 40) {
+        error_message = _L("The name cannot exceed 40 characters.");
+    }
+    if (!error_message.IsEmpty()) {
+        MessageDialog error_msg_dlg(nullptr, error_message, wxEmptyString, wxICON_WARNING | wxOK);
+        error_msg_dlg.ShowModal();
+        return false;
+    }
+    return true;
+}
 
 CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style) 
@@ -889,6 +903,7 @@ void FlowRateWizard::on_cali_save()
             {
                 auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(m_curr_step->page);
                 if (!coarse_save_page->get_result(&new_flow_ratio, &new_preset_name)) {
+                    BOOST_LOG_TRIVIAL(info) << "flow_rate_cali: get coarse result failed";
                     return;
                 }
             }
@@ -896,12 +911,18 @@ void FlowRateWizard::on_cali_save()
             {
                 auto fine_save_page = static_cast<CalibrationFlowFineSavePage*>(m_curr_step->page);
                 if (!fine_save_page->get_result(&new_flow_ratio, &new_preset_name)) {
+                    BOOST_LOG_TRIVIAL(info) << "flow_rate_cali: get fine result failed";
                     return;
                 }
             }
             else {
+                BOOST_LOG_TRIVIAL(info) << "flow_rate_cali: get result failed, not get result";
                 return;
             }
+
+            if (!check_preset_name_valid(new_preset_name))
+                return;
+
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
@@ -912,7 +933,7 @@ void FlowRateWizard::on_cali_save()
             key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_flow_ratio }));
 
             std::string message;
-            if (!save_preset(old_preset_name, new_preset_name.ToStdString(), key_value_map, message)) {
+            if (!save_preset(old_preset_name, into_u8(new_preset_name), key_value_map, message)) {
                 MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                 error_msg_dlg.ShowModal();
                 return;
@@ -1177,8 +1198,12 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     double value = 0;
     CalibrationMaxVolumetricSpeedSavePage *save_page = (static_cast<CalibrationMaxVolumetricSpeedSavePage *>(save_step->page));
     if (!save_page->get_save_result(value, new_preset_name)) {
+        BOOST_LOG_TRIVIAL(info) << "max_volumetric_speed_cali: get result failed";
         return;
     }
+
+    if (!check_preset_name_valid(new_preset_name))
+        return;
 
     std::map<std::string, ConfigOption *> key_value_map;
     key_value_map.insert(std::make_pair("filament_max_volumetric_speed", new ConfigOptionFloats{ value }));

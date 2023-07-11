@@ -316,6 +316,9 @@ void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::strin
 
     if (calib_infos.calib_datas.size() > 0)
         obj_->command_start_flow_ratio_calibration(calib_infos);
+    else {
+        BOOST_LOG_TRIVIAL(info) << "flow_rate_cali: auto | send info | cali_datas is empty.";
+    }
 }
 
 void CalibUtils::emit_get_flow_ratio_calib_results(float nozzle_diameter)
