@@ -1996,6 +1996,8 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
 
 int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values)
 {
+    CNumericLocalesSetter locales_setter;
+
     if ((printer_type == "BL-P001" || printer_type == "BL-P002") && pa_calib_values.size() > 0) {
         json j;
         j["print"]["command"]     = "extrusion_cali_set";
@@ -2622,6 +2624,8 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
 
 int MachineObject::parse_json(std::string payload)
 {
+    CNumericLocalesSetter locales_setter;
+
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
