@@ -178,9 +178,9 @@ public:
     double height_layer() const { return m_height_layer; };
     double max_layer_z() const { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
 
-    void starting_point(const Model& model);
+    void set_starting_point(const Model& model);
 
-    void generate_gcodes(Model& model);
+    void generate_custom_gcodes(Model& model);
 protected:
     double line_width() const { return m_nozzle_diameter * m_line_ratio / 100; };
     double line_width_anchor() const { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };

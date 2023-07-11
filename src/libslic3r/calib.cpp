@@ -377,7 +377,7 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
 };
 
-void CalibPressureAdvancePattern::starting_point(const Model& model)
+void CalibPressureAdvancePattern::set_starting_point(const Model& model)
 {
     ModelObject* obj = model.objects.front();
     BoundingBoxf3 bbox =
@@ -397,7 +397,7 @@ void CalibPressureAdvancePattern::starting_point(const Model& model)
     }
 }
 
-void CalibPressureAdvancePattern::generate_gcodes(Model& model)
+void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model)
 {
     std::stringstream gcode;
 
@@ -564,7 +564,7 @@ void CalibPressureAdvancePattern::refresh_pattern_config(const Model& model)
 
     m_is_delta = (updated_config.option<ConfigOptionPoints>("printable_area")->values.size() > 4);
 
-    starting_point(model);
+    set_starting_point(model);
 
     m_nozzle_diameter = updated_config.option<ConfigOptionFloats>("nozzle_diameter")->values[0];
     m_line_width = line_width();
