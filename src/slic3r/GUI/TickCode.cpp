@@ -93,7 +93,7 @@ bool TickCodeInfo::add_tick(const int tick, Type type, const int extruder, doubl
         //BBS do not set pause extra message
         //extra = get_pause_print_msg(pause_print_msg, print_z);
         //if (extra.empty()) return false;
-        //pause_print_msg = extra;
+        pause_print_msg = extra;
     }
     else {
         color = get_color_for_tick(TickCode{ tick }, type, extruder);
