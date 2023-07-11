@@ -151,6 +151,7 @@ public:
     void update_user_machine_list();
     void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void update_print_error_info(int code, std::string msg, std::string extra);
+    void on_change_color_mode() { wxGetApp().UpdateDlgDarkUI(this); }
     wxString format_text(wxString& m_msg);
 	std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
