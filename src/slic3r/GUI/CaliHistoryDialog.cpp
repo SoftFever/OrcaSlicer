@@ -19,13 +19,23 @@ namespace GUI {
 static wxString get_preset_name_by_filament_id(std::string filament_id)
 {
     auto preset_bundle = wxGetApp().preset_bundle;
+    auto collection = &preset_bundle->filaments;
     wxString preset_name = "";
     for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
         if (filament_id.compare(it->filament_id) == 0) {
-            if (!it->alias.empty())
-                preset_name = from_u8(it->alias);
-            else
-                preset_name = from_u8(it->name);
+            auto preset_parent = collection->get_preset_parent(*it);
+            if (preset_parent) {
+                if (!preset_parent->alias.empty())
+                    preset_name = from_u8(preset_parent->alias);
+                else
+                    preset_name = from_u8(preset_parent->name);
+            }
+            else {
+                if (!it->alias.empty())
+                    preset_name = from_u8(it->alias);
+                else
+                    preset_name = from_u8(it->name);
+            }
         }
     }
     return preset_name;
@@ -201,7 +211,7 @@ void HistoryWindow::sync_history_data() {
     title_name->SetFont(Label::Head_14);
     gbSizer->Add(title_name, { 0, 0 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
-    auto title_preset_name = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Filament Preset"));
+    auto title_preset_name = new wxStaticText(m_history_data_panel, wxID_ANY, _L("Filament"));
     title_preset_name->SetFont(Label::Head_14);
     gbSizer->Add(title_preset_name, { 0, 1 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
@@ -328,7 +338,7 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     flex_sizer->Add(name_title);
     flex_sizer->Add(name_value);
 
-    wxStaticText* preset_name_title = new wxStaticText(top_panel, wxID_ANY, _L("Filament Preset"));
+    wxStaticText* preset_name_title = new wxStaticText(top_panel, wxID_ANY, _L("Filament"));
     wxString preset_name = get_preset_name_by_filament_id(result.filament_id);
     wxStaticText* preset_name_value = new wxStaticText(top_panel, wxID_ANY, preset_name);
     flex_sizer->Add(preset_name_title);
