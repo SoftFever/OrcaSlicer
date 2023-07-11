@@ -31,6 +31,21 @@ bool check_preset_name_valid(const wxString& name) {
     return true;
 }
 
+std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
+    std::map<int, Preset*> selected_filament_map;
+    if (!obj) return selected_filament_map;
+
+    PresetCollection* filament_presets = &wxGetApp().preset_bundle->filaments;
+    for (auto selected_prest : obj->selected_cali_preset) {
+        Preset* preset = filament_presets->find_preset(selected_prest.name);
+        if (!preset)
+            continue;
+
+        selected_filament_map.emplace(std::make_pair(selected_prest.tray_id, preset));
+    }
+    return selected_filament_map;
+}
+
 CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style) 
     , m_mode(mode)
@@ -735,16 +750,23 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
     std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
-    if (selected_filaments.empty()) {
-        MessageDialog msg_dlg(nullptr, _L("Please select filament to calibrate."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return;
-    }
-
-    if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE)
+    if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE) {
+        if (selected_filaments.empty()) {
+            MessageDialog msg_dlg(nullptr, _L("Please select filament to calibrate."), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
         CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
-    else if (from_page == FlowRatioCaliSource::FROM_COARSE_PAGE)
+    }
+    else if (from_page == FlowRatioCaliSource::FROM_COARSE_PAGE) {
+        selected_filaments = get_cached_selected_filament(curr_obj);
+        if (selected_filaments.empty()) {
+            MessageDialog msg_dlg(nullptr, _L("Please select filament to calibrate."), wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        }
         cache_coarse_info(curr_obj);
+    }
 
     if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
         X1CCalibInfos calib_infos;
