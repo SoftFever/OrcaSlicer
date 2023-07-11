@@ -445,7 +445,9 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
     n_value_text->Wrap(-1);
     n_value_text->Hide();
     m_k_val = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
+    m_k_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_n_val = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
+    m_n_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_n_val->Hide();
     m_top_sizer->Add(k_value_text, 0);
     m_top_sizer->Add(m_k_val, 0);
@@ -584,7 +586,9 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
     n_value_text->Wrap(-1);
     n_value_text->SetFont(::Label::Head_14);
     m_k_val = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
+    m_k_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_n_val = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
+    m_n_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     n_value_text->Hide();
     m_n_val->Hide();
     value_sizer->Add(k_value_text, 0, wxALIGN_CENTER_VERTICAL, 0);
