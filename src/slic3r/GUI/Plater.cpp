@@ -12151,7 +12151,7 @@ void Plater::show_object_info()
     int obj_idx = selection.get_object_idx();
     std::string info_text;
 
-    if (selCount > 1) {
+    if (selCount > 1 && !selection.is_single_full_object()) {
         notify_manager->bbl_close_objectsinfo_notification();
         if (selection.get_mode() == Selection::EMode::Volume) {
             info_text += (boost::format(_utf8(L("Number of currently selected parts: %1%\n"))) % selCount).str();
@@ -12200,12 +12200,12 @@ void Plater::show_object_info()
         size = vol->get_convex_hull().transformed_bounding_box(t).size();
     }
     else {
-        int obj_idx, vol_idx;
-        wxGetApp().obj_list()->get_selected_item_indexes(obj_idx, vol_idx);
-        if (obj_idx < 0) {
-            //corner case when merge/split/remove
-            return;
-        }
+        //int obj_idx, vol_idx;
+        //wxGetApp().obj_list()->get_selected_item_indexes(obj_idx, vol_idx);
+        //if (obj_idx < 0) {
+        //    //corner case when merge/split/remove
+        //    return;
+        //}
         info_text += (boost::format(_utf8(L("Object name: %1%\n"))) % model_object->name).str();
         face_count = static_cast<int>(model_object->facets_count());
         size = model_object->instance_convex_hull_bounding_box(inst_idx).size();
