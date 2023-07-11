@@ -916,10 +916,6 @@ void Selection::translate(const Vec3d& displacement, bool local)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
-    if (m_model->calib_pa_pattern) {
-        m_model->calib_pa_pattern->translate_starting_point(displacement);
-    }
-
     ensure_not_below_bed();
     set_bounding_boxes_dirty();
     wxGetApp().plater()->canvas3D()->requires_check_outside_state();

@@ -1,4 +1,5 @@
 #include "calib.hpp"
+#include "BoundingBox.hpp"
 #include "Model.hpp"
 
 namespace Slic3r {
@@ -376,23 +377,27 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
 };
 
-void CalibPressureAdvancePattern::starting_point(Vec3d pt, Model& model)
+void CalibPressureAdvancePattern::starting_point(const Model& model)
 {
+    ModelObject* obj = model.objects.front();
+    BoundingBoxf3 bbox =
+        obj->instance_bounding_box(
+            *obj->instances.front(),
+            false
+        )
+    ;
+
+    Vec3d pt(bbox.min.x(), bbox.max.y(), 0);
+
     m_starting_point = pt;
 
-    if (is_delta(model)) {
+    if (m_is_delta) {
         m_starting_point.x() *= -1;
         m_starting_point.y() -= (frame_size_y() / 2);
     }
 
     m_last_pos = m_starting_point;
 }
-
-void CalibPressureAdvancePattern::translate_starting_point(const Vec3d displacement)
-{
-    m_starting_point += displacement;
-    m_last_pos = m_starting_point;
-};
 
 void CalibPressureAdvancePattern::generate_gcodes(Model& model)
 {
@@ -557,6 +562,10 @@ DynamicPrintConfig CalibPressureAdvancePattern::pattern_config(const Model& mode
     DynamicPrintConfig updated_config(m_initial_config);
     updated_config.apply(model.objects.front()->config.get(), true);
     updated_config.apply(model.objects.front()->volumes.front()->config.get(), true);
+
+    m_is_delta = (updated_config.option<ConfigOptionPoints>("printable_area")->values.size() > 4);
+
+    starting_point(model);
 
     m_nozzle_diameter = updated_config.option<ConfigOptionFloats>("nozzle_diameter")->values[0];
     m_line_width = line_width();

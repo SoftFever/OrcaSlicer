@@ -8155,14 +8155,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     );
     center_selection();
 
-    BoundingBoxf3 bbox;
-    for (const ModelObject* obj : model().objects) {
-        for (size_t i = 0; i < obj->instances.size(); ++i) {
-            bbox.merge(obj->instance_bounding_box(i, false));
-        }
-    }
-    pa_pattern.starting_point(Vec3d(bbox.min.x(), bbox.max.y(), 0), model());
-
     DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;

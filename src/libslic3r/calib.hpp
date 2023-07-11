@@ -178,8 +178,7 @@ public:
     double height_layer() const { return m_height_layer; };
     double max_layer_z() const { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
 
-    void starting_point(Vec3d pt, Model& model);
-    void translate_starting_point(Vec3d displacement);
+    void starting_point(const Model& model);
 
     void generate_gcodes(Model& model);
 protected:
@@ -191,11 +190,6 @@ protected:
     int anchor_perimeters() const { return m_anchor_perimeters; };
     double encroachment() const { return m_encroachment; };
 private:
-    bool is_delta(Model& model)
-    {
-        return pattern_config(model).option<ConfigOptionPoints>("printable_area")->values.size() > 4;
-    }
-
     DynamicPrintConfig pattern_config(const Model& model);
     GCodeWriter pattern_writer(const Model& model); // travel_to and extrude_to require a non-const GCodeWriter
 
@@ -245,6 +239,7 @@ private:
     const bool& m_is_bbl_machine;
     const Vec3d& m_origin;
 
+    bool m_is_delta;
     Vec3d m_starting_point;
     
     PatternSettings m_pattern_settings;
