@@ -190,7 +190,7 @@ protected:
     int anchor_perimeters() const { return m_anchor_perimeters; };
     double encroachment() const { return m_encroachment; };
 private:
-    DynamicPrintConfig pattern_config(const Model& model);
+    void refresh_pattern_config(const Model& model);
     GCodeWriter pattern_writer(const Model& model); // travel_to and extrude_to require a non-const GCodeWriter
 
     const int get_num_patterns() const
@@ -239,6 +239,7 @@ private:
     const bool& m_is_bbl_machine;
     const Vec3d& m_origin;
 
+    DynamicPrintConfig m_config;
     bool m_is_delta;
     Vec3d m_starting_point;
     

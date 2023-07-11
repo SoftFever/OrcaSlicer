@@ -395,8 +395,6 @@ void CalibPressureAdvancePattern::starting_point(const Model& model)
         m_starting_point.x() *= -1;
         m_starting_point.y() -= (frame_size_y() / 2);
     }
-
-    m_last_pos = m_starting_point;
 }
 
 void CalibPressureAdvancePattern::generate_gcodes(Model& model)
@@ -405,6 +403,7 @@ void CalibPressureAdvancePattern::generate_gcodes(Model& model)
 
     gcode << "; start pressure advance pattern for layer\n";
 
+    refresh_pattern_config(model);
     GCodeWriter writer = pattern_writer(model);
 
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), writer, "Move to start XY position");
@@ -557,7 +556,7 @@ void CalibPressureAdvancePattern::generate_gcodes(Model& model)
     model.plates_custom_gcodes[model.curr_plate_index] = info;
 }
 
-DynamicPrintConfig CalibPressureAdvancePattern::pattern_config(const Model& model)
+void CalibPressureAdvancePattern::refresh_pattern_config(const Model& model)
 {
     DynamicPrintConfig updated_config(m_initial_config);
     updated_config.apply(model.objects.front()->config.get(), true);
@@ -571,13 +570,13 @@ DynamicPrintConfig CalibPressureAdvancePattern::pattern_config(const Model& mode
     m_line_width = line_width();
     m_pattern_settings = PatternSettings(*this);
     
-    return updated_config;
+    m_config = updated_config;
 }
 
 GCodeWriter CalibPressureAdvancePattern::pattern_writer(const Model& model)
 {
     PrintConfig print_config;
-    print_config.apply(pattern_config(model), true);
+    print_config.apply(m_config, true);
 
     GCodeWriter writer;
     writer.apply_print_config(print_config);
@@ -599,13 +598,11 @@ std::string CalibPressureAdvancePattern::draw_line(
     Model& model
 )
 {
-    const DynamicPrintConfig& config = pattern_config(model);
-
     const double e_per_mm = CalibPressureAdvance::e_per_mm(
         opt_args.line_width,
         opt_args.height,
-        config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
-        config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0)
+        m_config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
+        m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0)
     );
 
     const double length = get_distance(Vec2d(m_last_pos.x(), m_last_pos.y()), to_pt);
