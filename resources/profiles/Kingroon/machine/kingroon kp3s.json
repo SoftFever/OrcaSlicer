@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Kingroon KP3S",
+    "model_id": "KP3S",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Kingroon",
+    "bed_model": "mini_bed.stl",
+    "bed_texture": "mini.svg",
+    "hotend_model": "",
+    "default_materials": "kingroon Generic ABS;Kingroon Generic PLA;Kingroon Generic PLA-CF;Kingroon Generic PETG;Kingroon Generic TPU;Kingroon Generic ASA;Kingroon Generic PC;Kingroon Generic PVA;Kingroon Generic PA;Kingroon Generic PA-CF"
+}

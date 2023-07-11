@@ -5370,7 +5370,7 @@ msgid "Volumetric speed limitation"
 msgstr "Limitación de la velocidad volumétrica"
 
 msgid "Cooling"
-msgstr "Enfriando"
+msgstr "Refrigeración"
 
 msgid "Cooling for specific layer"
 msgstr "Ventilación para la capa específica"
@@ -8174,7 +8174,7 @@ msgstr ""
 "la retracción"
 
 msgid "Retract when change layer"
-msgstr "Retirada al cambiar de capa"
+msgstr "Retracción al cambiar de capa"
 
 msgid "Force a retraction when changes layer"
 msgstr "Forzar una retracción al cambiar de capa"
