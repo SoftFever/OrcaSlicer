@@ -177,7 +177,7 @@ void wxMediaCtrl2::Stop()
 }
 
 #ifdef __LINUX__
-extern int gst_bambu_last_error;
+extern "C" int gst_bambu_last_error;
 #endif
 
 int wxMediaCtrl2::GetLastError() const

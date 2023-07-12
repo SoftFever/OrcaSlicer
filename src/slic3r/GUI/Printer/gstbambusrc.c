@@ -365,14 +365,16 @@ gst_bambusrc_start (GstBaseSrc * bsrc)
     return FALSE;
   }
 
+  int rv = 0;
   BAMBULIB(Bambu_SetLogger)(src->tnl, _log, (void *)src);
-  if (BAMBULIB(Bambu_Open)(src->tnl) != Bambu_success) {
+  if ((rv = BAMBULIB(Bambu_Open)(src->tnl)) != Bambu_success) {
     BAMBULIB(Bambu_Destroy)(src->tnl);
     src->tnl = NULL;
+    gst_bambu_last_error = rv;
     return FALSE;
   }
 
-  int rv, n = 0;
+  int n = 0;
   while ((rv = BAMBULIB(Bambu_StartStream)(src->tnl, 1 /* video */)) == Bambu_would_block) {
     usleep(100000);
   }
