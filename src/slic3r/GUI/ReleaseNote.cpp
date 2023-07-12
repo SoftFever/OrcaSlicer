@@ -1202,7 +1202,7 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     m_input_ip->GetTextCtrl()->SetLabelText(m_obj->dev_ip);
     m_input_access_code->GetTextCtrl()->SetLabelText(m_obj->get_access_code());
 
-    if (m_obj->printer_type == "C11") {
+    if (m_obj->printer_type == "C11" || m_obj->printer_type == "C12") {
         m_img_help1->Hide();
         m_img_help2->Show();
     }
