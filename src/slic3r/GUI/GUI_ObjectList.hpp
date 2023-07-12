@@ -479,6 +479,7 @@ private:
     void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix = true);
 
     std::vector<int> m_columns_width;
+    wxSize           m_last_size;
 };
 
 

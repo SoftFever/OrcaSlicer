@@ -272,6 +272,12 @@ ObjectList::ObjectList(wxWindow* parent) :
     //Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
 
     Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) {
+             if (m_last_size == this->GetSize()) {
+                 e.Skip();
+                 return;
+             } else {
+                 m_last_size = this->GetSize();
+             }
 #ifdef __WXGTK__
         // On GTK, the EnsureVisible call is postponed to Idle processing (see wxDataViewCtrl::m_ensureVisibleDefered).
         // So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
@@ -286,7 +292,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #endif
         e.Skip();
     }));
-    
+    m_last_size = this->GetSize();
 }
 
 ObjectList::~ObjectList()
