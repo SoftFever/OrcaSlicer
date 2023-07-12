@@ -805,7 +805,8 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     for (auto plate_data : plate_data_list) {
         plate_data->gcode_file      = temp_gcode_path;
         plate_data->is_sliced_valid = true;
-        plate_data->slice_filaments_info;
+        FilamentInfo& filament_info = plate_data->slice_filaments_info.front();
+        filament_info.type          = full_config.opt_string("filament_type", 0);
     }
 
     //draw thumbnails

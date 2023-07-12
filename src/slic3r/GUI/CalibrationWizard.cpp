@@ -157,7 +157,7 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
     Preset* preset = filament_presets->find_preset(old_preset_name);
     if (!preset) {
-        message = L("The selected preset has been deleted.");
+        message = (boost::format(L("The selected preset: %1% is not found.")) % old_preset_name).str();
         return false;
     }
 
