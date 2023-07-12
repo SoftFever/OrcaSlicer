@@ -257,7 +257,6 @@ private:
     const double m_speed_first_layer {30};
     const double m_speed_perimeter {100};
     
-    const double m_prime_zone_buffer {10};
     const int m_wall_count {3};
     const double m_wall_side_length {30.0};
     const int m_corner_angle {90};
