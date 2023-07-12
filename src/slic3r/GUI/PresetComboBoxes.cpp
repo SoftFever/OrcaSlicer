@@ -1522,8 +1522,18 @@ void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
     }
     m_is_compatible = true;
     static_cast<FilamentComboBox*>(m_parent)->Enable(true);
-    std::string preset_name = m_collection->get_preset_name_by_alias(evt.GetString().ToUTF8().data());
+
+    std::string selected_name = evt.GetString().ToUTF8().data();
+    selected_name             = Preset::remove_suffix_modified(selected_name);
+    std::string preset_name = m_collection->get_preset_name_by_alias(selected_name);
     m_selected_preset       = m_collection->find_preset(preset_name);
+
+    // if the selected preset is null, do not send tray_change event
+    if (!m_selected_preset) {
+        MessageDialog msg_dlg(nullptr, _L("The selected preset is null!"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    }
 
     wxCommandEvent e(EVT_CALI_TRAY_CHANGED);
     e.SetEventObject(m_parent);
