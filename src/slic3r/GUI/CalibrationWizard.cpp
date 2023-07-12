@@ -573,8 +573,8 @@ void PressureAdvanceWizard::on_cali_save()
                 BOOST_LOG_TRIVIAL(error) << "CaliPreset: get selected filaments error";
                 return;
             }
-            int tray_id = curr_obj->selected_cali_preset.begin()->tray_id;
-            std::string setting_id = curr_obj->selected_cali_preset.begin()->setting_id;
+            int tray_id = selected_filaments.begin()->first;
+            std::string setting_id = selected_filaments.begin()->second->setting_id;
 
             int nozzle_temp = -1;
             int bed_temp = -1;
