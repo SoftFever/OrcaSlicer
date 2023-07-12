@@ -86,7 +86,7 @@ ARG USER=root
 ARG UID=0
 ARG GID=0
 RUN [[ "$UID" != "0" ]] \
-  && groupadd -g $GID $USER \
+  && groupadd -f -g $GID $USER \
   && useradd -u $UID -g $GID $USER
 
 # Using an entrypoint instead of CMD because the binary
