@@ -607,7 +607,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                     "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
                     "bridge_no_support", "max_bridge_length", "support_top_z_distance", "support_bottom_z_distance",
                      //BBS: add more support params to dependent of enable_support
-                    "support_type", "support_on_build_plate_only", "support_critical_regions_only",
+                    "support_type", "support_on_build_plate_only",
                     "support_remove_small_overhang",
                     "support_object_xy_distance"/*, "independent_support_layer_height"*/})
         toggle_field(el, have_support_material);
@@ -621,6 +621,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // hide tree support settings when normal is selected
     for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length","tree_support_brim_width" })
         toggle_line(el, support_is_tree);
+    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
     // tree support use max_bridge_length instead of bridge_no_support
     toggle_line("bridge_no_support", !support_is_tree);

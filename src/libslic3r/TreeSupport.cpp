@@ -1101,7 +1101,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
         auto layer = m_object->get_layer(layer_nr);
         auto lower_layer = layer->lower_layer;
-        if (support_critical_regions_only) {
+        if (support_critical_regions_only && is_auto(stype)) {
             ts_layer->overhang_areas.clear();
             if (lower_layer == nullptr)
                 ts_layer->overhang_areas = layer->sharp_tails;
@@ -1153,7 +1153,8 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         if (svg.is_opened()) {
             svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
             svg.draw(layer->overhang_areas, "orange");
-            svg.draw(blockers[layer->id()], "red");
+            if (blockers.size() > layer->id())
+                svg.draw(blockers[layer->id()], "red");
             for (auto& overhang : layer->overhang_areas) {
                 double aarea = overhang.area()/ area_thresh_well_supported;
                 auto pt = get_extents(overhang).center();
@@ -3481,7 +3482,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     curr_nodes.emplace_back(contact_node);
                 }
             }
-            if (ts_layer->overhang_types[&overhang_part] == SupportLayer::Detected) {
+            // add supports at corners for both auto and manual overhangs, github #2008
+            if (/*ts_layer->overhang_types[&overhang_part] == SupportLayer::Detected*/1) {
                 // add points at corners
                 auto &points = overhang_part.contour.points;
                 int   nSize  = points.size();
