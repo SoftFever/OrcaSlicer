@@ -842,7 +842,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                 file.path = path;
                 return FILE_SIZE_ERR;
             }
-            auto n = path.find_last_of('#');
+            auto n = type == ModelMetadata ? std::string::npos : path.find_last_of('#'); // ModelMetadata is zipped without subpath
             auto path2 = n == std::string::npos ? path : path.substr(0, n);
             auto iter = std::find_if(files->begin(), files->end(), [&path2](auto &f) { return f.path == path2; });
             if (cont) {
@@ -851,7 +851,10 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                 return 0;
             }
             if (type == ModelMetadata) {
-                file.local_path = iter->local_path + std::string((char *) data, size);
+                if (iter != files->end())
+                    file.local_path = iter->local_path + std::string((char *) data, size);
+                else
+                    file.local_path = std::string((char *) data, size);
                 ParseThumbnail(file);
             } else {
                 if (mimetype.empty()) {
