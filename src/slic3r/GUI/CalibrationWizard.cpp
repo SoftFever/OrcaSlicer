@@ -568,7 +568,7 @@ void PressureAdvanceWizard::on_cali_save()
             BedType plate_type = BedType::btDefault;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
             preset_page->get_preset_info(nozzle_dia, plate_type);
-            std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
+            std::map<int, Preset*> selected_filaments = get_cached_selected_filament(curr_obj);
             if (selected_filaments.empty()) {
                 BOOST_LOG_TRIVIAL(error) << "CaliPreset: get selected filaments error";
                 return;
@@ -900,7 +900,7 @@ void FlowRateWizard::on_cali_save()
 
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
-            std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
+            std::map<int, Preset*> selected_filaments = get_cached_selected_filament(curr_obj);
             if (!selected_filaments.empty()) {
                 old_preset_name = selected_filaments.begin()->second->name;
             }
@@ -947,7 +947,7 @@ void FlowRateWizard::on_cali_save()
 
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
-            std::map<int, Preset*> selected_filaments = preset_page->get_selected_filaments();
+            std::map<int, Preset*> selected_filaments = get_cached_selected_filament(curr_obj);
             if (!selected_filaments.empty()) {
                 old_preset_name = selected_filaments.begin()->second->name;
             }
@@ -1212,7 +1212,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     std::string new_preset_name;
 
     CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(preset_step->page));
-    std::map<int, Preset *> selected_filaments = preset_page->get_selected_filaments();
+    std::map<int, Preset *> selected_filaments = get_cached_selected_filament(curr_obj);
     if (!selected_filaments.empty()) {
         old_preset_name = selected_filaments.begin()->second->name;
     }
