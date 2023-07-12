@@ -10333,9 +10333,9 @@ void Plater::reslice()
     // Stop arrange and (or) optimize rotation tasks.
     this->stop_jobs();
 
-    // regenerate CalibPressureAdvancePattern custom G-code to account for changes
-    if (p->model.calib_pa_pattern) {
-        p->model.calib_pa_pattern->generate_gcodes(p->model);
+    // regenerate CalibPressureAdvancePattern custom G-code to apply changes
+    if (this->model().calib_pa_pattern) {
+        this->model().calib_pa_pattern->generate_custom_gcodes(this->model());
     }
 
     if (printer_technology() == ptSLA) {
