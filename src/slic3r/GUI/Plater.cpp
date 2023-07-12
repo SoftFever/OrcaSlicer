@@ -8131,13 +8131,47 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     changed_objects({ 0 });
     _calib_pa_select_added_objects();
 
+    const DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    // DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
+    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().float_pairs) {
+        print_config.set_key_value(
+            opt.first,
+            new ConfigOptionFloat(opt.second)
+        );
+    }
+
+    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().nozzle_ratio_pairs) {
+        double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+        print_config.set_key_value(
+            opt.first,
+            new ConfigOptionFloat(nozzle_diameter * opt.second / 100)
+        );
+    }
+
+    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().int_pairs) {
+        print_config.set_key_value(
+            opt.first,
+            new ConfigOptionInt(opt.second)
+        );
+    }
+
+    // wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+
+    // wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+    // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+
     DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     CalibPressureAdvancePattern pa_pattern(
         params,
         full_config,
         preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
-        fff_print().get_plate_origin()
+        model()
     );
 
     GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
@@ -8155,28 +8189,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     );
     center_selection();
 
-    DynamicPrintConfig* print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    DynamicPrintConfig* printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-
-    print_config->set_key_value(
-        "layer_height",
-        new ConfigOptionFloat(pa_pattern.height_layer())
-    );
-    print_config->set_key_value(
-        "initial_layer_print_height",
-        new ConfigOptionFloat(pa_pattern.height_first_layer())
-    );
-
-    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
-
-    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
-
-    pa_pattern.generate_custom_gcodes(model());
+    pa_pattern.generate_custom_gcodes(model(), fff_print().get_plate_origin());
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 
@@ -10335,7 +10348,10 @@ void Plater::reslice()
 
     // regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (this->model().calib_pa_pattern) {
-        this->model().calib_pa_pattern->generate_custom_gcodes(this->model());
+        this->model().calib_pa_pattern->generate_custom_gcodes(
+            this->model(),
+            this->fff_print().get_plate_origin()
+        );
     }
 
     if (printer_technology() == ptSLA) {

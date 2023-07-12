@@ -42,6 +42,7 @@ protected:
     double      e_per_mm(
         double line_width,
         double layer_height,
+        float nozzle_diameter,
         float filament_diameter,
         float print_flow_ratio
     ) const;
@@ -76,15 +77,14 @@ protected:
     const double m_digit_segment_len {2};
     const double m_digit_gap_len {1};
     const std::string::size_type m_max_number_len {5};
-
-    double m_nozzle_diameter {-1};
-    double m_line_width {-1};
-    double m_height_layer {-1};
 };
 
 class CalibPressureAdvanceLine : public CalibPressureAdvance {
 public:
-    CalibPressureAdvanceLine(GCode* gcodegen);
+    CalibPressureAdvanceLine(GCode* gcodegen) :
+        CalibPressureAdvance(gcodegen),
+        m_nozzle_diameter(gcodegen->config().nozzle_diameter.get_at(0))
+    { };
     ~CalibPressureAdvanceLine() { };
 
     std::string generate_test(double start_pa = 0, double step_pa = 0.002, int count = 50);
@@ -94,7 +94,7 @@ public:
         m_fast_speed = fast;
     }
     
-    double& line_width() { return m_line_width; };
+    const double& line_width() { return m_line_width; };
     bool is_delta() const;
     bool& draw_numbers() { return m_draw_numbers; }
 
@@ -103,12 +103,17 @@ private:
     
     void delta_modify_start(double& startx, double& starty, int count);
 
-    double m_thin_line_width;
-    double m_number_line_width;
-    double m_length_short, m_length_long;
-    double m_space_y;
+    double m_nozzle_diameter;
     double m_slow_speed, m_fast_speed;
-    bool   m_draw_numbers;
+    
+    const double m_height_layer {0.2};
+    const double m_line_width {0.6};
+    const double m_thin_line_width {0.44};
+    const double m_number_line_width {0.48};
+    const double m_space_y {3.5};
+
+    double m_length_short {20.0}, m_length_long {40.0};
+    bool m_draw_numbers {true};
 };
 
 class CalibPressureAdvancePattern;
@@ -163,6 +168,24 @@ private:
     double speed;
 };
 
+struct SuggestedCalibPressureAdvancePatternConfig {
+    const std::vector<std::pair<std::string, double>> float_pairs {
+        {"initial_layer_print_height", 0.25},
+        {"layer_height", 0.2},
+        {"initial_layer_speed", 30},
+        {"outer_wall_speed", 100}
+    };
+
+    const std::vector<std::pair<std::string, double>> nozzle_ratio_pairs {
+        {"line_width", 112.5},
+        {"initial_layer_line_width", 140}
+    };
+
+    const std::vector<std::pair<std::string, int>> int_pairs {
+        {"wall_loops", 3}
+    };
+};
+
 class CalibPressureAdvancePattern : public CalibPressureAdvance {
 friend struct PatternSettings;
 public:
@@ -170,42 +193,51 @@ public:
         const Calib_Params& params,
         DynamicPrintConfig& config,
         const bool& is_bbl_machine,
-        const Vec3d& origin
+        Model& model
     );
 
     double handle_xy_size() const { return m_handle_xy_size; };
-    double height_first_layer() const { return m_height_first_layer; };
-    double height_layer() const { return m_height_layer; };
-    double max_layer_z() const { return m_height_first_layer + ((m_num_layers - 1) * m_height_layer); };
+    double height_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_print_height")->value; };
+    double height_layer() const { return m_config.option<ConfigOptionFloat>("layer_height")->value; };
+    double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
 
     void set_starting_point(const Model& model);
 
-    void generate_custom_gcodes(Model& model);
+    void generate_custom_gcodes(Model& model, const Vec3d& origin);
 protected:
-    double line_width() const { return m_nozzle_diameter * m_line_ratio / 100; };
-    double line_width_anchor() const { return m_nozzle_diameter * m_anchor_layer_line_ratio / 100; };
-
-    double speed_first_layer() const { return m_speed_first_layer; };
-    double speed_perimeter() const { return m_speed_perimeter; };
-    int anchor_perimeters() const { return m_anchor_perimeters; };
+    double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
+    double speed_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_speed")->value; };
+    double line_width() const { return m_config.option<ConfigOptionFloat>("line_width")->value; };
+    double line_width_anchor() const { return m_config.option<ConfigOptionFloat>("initial_layer_line_width")->value; };
+    int wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
+    
     double encroachment() const { return m_encroachment; };
 private:
     void refresh_pattern_config(const Model& model);
-    GCodeWriter pattern_writer(const Model& model); // travel_to and extrude_to require a non-const GCodeWriter
+    GCodeWriter pattern_writer(
+        const Model& model,
+        const Vec3d& origin
+    ); // would return const, but travel_to and extrude_to require a non-const GCodeWriter
 
     const int get_num_patterns() const
     {
         return std::ceil((m_params.end - m_params.start) / m_params.step + 1);
     }
 
-    std::string draw_line(Vec2d to_pt, DrawLineOptArgs opt_args, Model& model);
+    std::string draw_line(
+        Vec2d to_pt,
+        DrawLineOptArgs opt_args,
+        const Model& model,
+        const Vec3d& origin
+    );
     std::string draw_box(
         double min_x,
         double min_y,
         double size_x,
         double size_y,
         DrawBoxOptArgs opt_args,
-        Model& model
+        const Model& model,
+        const Vec3d& origin
     );
 
     double to_radians(double degrees) const { return degrees * M_PI / 180; };
@@ -217,8 +249,8 @@ private:
         https://manual.slic3r.org/advanced/flow-math
         https://ellis3dp.com/Print-Tuning-Guide/articles/misconceptions.html#two-04mm-perimeters--08mm
     */
-    double line_spacing() const { return line_width() - m_height_layer * (1 - M_PI / 4); };
-    double line_spacing_anchor() const { return line_width_anchor() - m_height_first_layer * (1 - M_PI / 4); };
+    double line_spacing() const { return line_width() - height_layer() * (1 - M_PI / 4); };
+    double line_spacing_anchor() const { return line_width_anchor() - height_first_layer() * (1 - M_PI / 4); };
     double line_spacing_angle() const { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
 
     double object_size_x() const;
@@ -237,27 +269,15 @@ private:
     const Calib_Params& m_params;
     const DynamicPrintConfig m_initial_config;
     const bool& m_is_bbl_machine;
-    const Vec3d& m_origin;
 
     DynamicPrintConfig m_config;
     bool m_is_delta;
     Vec3d m_starting_point;
-    
     PatternSettings m_pattern_settings;
 
     const double m_handle_xy_size {5};
-
     const int m_num_layers {4};
-    const double m_height_first_layer {0.25};
-
-    const double m_line_ratio {112.5};
-    const int m_anchor_layer_line_ratio {140};
-    const int m_anchor_perimeters {4};
     
-    const double m_speed_first_layer {30};
-    const double m_speed_perimeter {100};
-    
-    const int m_wall_count {3};
     const double m_wall_side_length {30.0};
     const int m_corner_angle {90};
     const int m_pattern_spacing {2};
