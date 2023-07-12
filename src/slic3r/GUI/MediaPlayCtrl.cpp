@@ -106,6 +106,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
+    m_last_user_play = wxDateTime::Now();
     std::string stream_url;
     if (get_stream_url(&stream_url)) {
         m_streaming = boost::algorithm::contains(stream_url, "device=" + m_machine);
@@ -271,6 +272,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["dev_ip"]         = m_lan_ip;
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
+        j["failed_retry"]   = m_failed_retry;
         bool remote         = m_url.find("/local/") == wxString::npos;
         j["tunnel"]         = remote ? "remote" : "local";
         j["code"]           = m_failed_code;
@@ -290,7 +292,10 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_user_triggered = true;
-            m_last_failed_codes.clear();
+            if (m_last_user_play + wxTimeSpan::Minutes(5) < wxDateTime::Now()) {
+                m_last_failed_codes.clear();
+                m_last_user_play = wxDateTime::Now();
+            }
             m_next_retry   = wxDateTime::Now();
             return;
         }
@@ -309,8 +314,11 @@ void MediaPlayCtrl::TogglePlay()
     } else {
         m_failed_retry = 0;
         m_user_triggered = true;
-        m_last_failed_codes.clear();
-        m_next_retry   = wxDateTime::Now();
+        if (m_last_user_play + wxTimeSpan::Minutes(5) < wxDateTime::Now()) {
+            m_last_failed_codes.clear();
+            m_last_user_play = wxDateTime::Now();
+        }
+        m_next_retry = wxDateTime::Now();
         Play();
     }
 }
