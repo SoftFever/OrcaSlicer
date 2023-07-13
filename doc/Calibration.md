@@ -64,7 +64,11 @@ First and foremost, when you initiate the test, you'll only see a small rectangu
 2. The prism acts as a handle, enabling you to move the test pattern wherever you'd like on the plate by moving the prism
 3. The filament selected for the prism is also used for the test pattern
 
-Next, Ellis' generator provided the ability to adjust specific printer, filament, and print profile settings. You can make these same changes in Orca Slicer by adjusting the settings in the Prepare pane as you would with any other print. When you initiate the calibration test, Ellis' default settings are applied. Note that Ellis specified line widths as a percent of filament diameter. The Orca pattern method does the same to provide its suggested defaults, making use of Ellis' percentages in combination with your specified nozzle diameter.
+Next, Ellis' generator provided the ability to adjust specific printer, filament, and print profile settings. You can make these same changes in Orca Slicer by adjusting the settings in the Prepare pane as you would with any other print. When you initiate the calibration test, Ellis' default settings are applied. A few things to note about these settings:
+
+1. Ellis specified line widths as a percent of filament diameter. The Orca pattern method does the same to provide its suggested defaults, making use of Ellis' percentages in combination with your specified nozzle diameter
+2. In terms of line width, the pattern only makes use of the `Default` and `First layer` widths
+3. In terms of speed, the pattern only uses the `First layer speed -> First layer` and `Other layers speed -> Outer wall` speeds
 
 ### Tower method
 
