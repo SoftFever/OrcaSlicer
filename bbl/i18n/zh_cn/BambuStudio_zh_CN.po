@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-07 19:29+0800\n"
+"POT-Creation-Date: 2023-07-13 17:13+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1364,17 +1364,14 @@ msgstr "自定义模板："
 msgid "Custom G-code:"
 msgstr "自定义G-code："
 
-msgid "Pause Print"
-msgstr "暂停打印"
-
-msgid "OK"
-msgstr "确认"
-
 msgid "Custom G-code"
 msgstr "自定义 G-code"
 
 msgid "Enter Custom G-code used on current layer:"
 msgstr "输入当前层上使用的自定义G-code："
+
+msgid "OK"
+msgstr "确认"
 
 msgid "Jump to Layer"
 msgstr "跳转到层"
@@ -1409,11 +1406,8 @@ msgstr "耗材丝"
 msgid "Change filament at the beginning of this layer."
 msgstr "在该层的起始位置更换耗材丝。"
 
-msgid "Edit Pause Print Message"
-msgstr "编辑暂停打印信息"
-
-msgid "Delete Pause Print"
-msgstr "删除暂停打印"
+msgid "Delete Pause"
+msgstr "删除暂停"
 
 msgid "Delete Custom Template"
 msgstr "删除自定义模板"
@@ -4802,6 +4796,9 @@ msgstr "添加/删除打印机"
 
 msgid "Incompatible"
 msgstr "不兼容的预设"
+
+msgid "The selected preset is null!"
+msgstr "选择的预设为空！"
 
 msgid "Same as Global Print Sequence"
 msgstr "跟随全局打印顺序"
@@ -9018,11 +9015,18 @@ msgstr "流量比例"
 msgid "Max Volumetric Speed"
 msgstr "最大容积速度"
 
+msgid "Please enter the name you want to save to printer."
+msgstr "请输入要保存到打印机的名称。"
+
+msgid "The name cannot exceed 40 characters."
+msgstr "名称不能超过40个字符。"
+
 msgid "The name cannot be empty."
 msgstr "名称不能为空。"
 
-msgid "The selected preset has been deleted."
-msgstr "所选预设已被删除。"
+#, boost-format
+msgid "The selected preset: %1% is not found."
+msgstr "未找到选定的预设：%1%。"
 
 msgid "The name cannot be the same as the system preset name."
 msgstr "名称不能与系统预设名称相同。"
@@ -9189,12 +9193,6 @@ msgstr ""
 msgid "Failed"
 msgstr "失败"
 
-msgid "Please enter the name you want to save to printer."
-msgstr "请输入要保存到打印机的名称。"
-
-msgid "The name cannot exceed 40 characters."
-msgstr ""
-
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
@@ -9332,9 +9330,6 @@ msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
 
 msgid "No History Result"
-msgstr ""
-
-msgid "Filament Preset"
 msgstr ""
 
 msgid "Action"
@@ -9503,35 +9498,74 @@ msgid "Progress"
 msgstr ""
 
 msgid "Host"
-msgstr ""
+msgstr "主机"
 
 msgctxt "OfFile"
 msgid "Size"
 msgstr ""
 
 msgid "Filename"
-msgstr ""
+msgstr "文件名"
 
 msgid "Error Message"
-msgstr ""
+msgstr "错误信息"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "取消选中"
 
 msgid "Show error message"
-msgstr ""
+msgstr "显示错误信息"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "已加入队列"
 
 msgid "Uploading"
 msgstr "正在上传"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "取消中"
 
 msgid "Error uploading to print host:"
+msgstr "上传到打印主机时出错："
+
+msgid "Unable to perform boolean operation on selected parts"
+msgstr "无法对所选部件执行布尔运算"
+
+msgid "Mesh Boolean"
+msgstr "布尔运算"
+
+msgid "Union"
+msgstr "并集"
+
+msgid "Difference"
+msgstr "差集"
+
+msgid "Intersection"
+msgstr "交集"
+
+msgid "Source Volume"
 msgstr ""
+
+msgid "Tool Volume"
+msgstr ""
+
+msgid "selected"
+msgstr "已选中"
+
+msgid "Part 1"
+msgstr "零件 1"
+
+msgid "Subtract from"
+msgstr "从中减去"
+
+msgid "Part 2"
+msgstr "零件 2"
+
+msgid "Subtract with"
+msgstr "与之相减"
+
+msgid "Delete input"
+msgstr "删除输入"
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -9778,6 +9812,18 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
+#~ msgid "Pause Print"
+#~ msgstr "暂停打印"
+
+#~ msgid "Edit Pause Print Message"
+#~ msgstr "编辑暂停打印信息"
+
+#~ msgid "Delete Pause Print"
+#~ msgstr "删除暂停打印"
+
+#~ msgid "The selected preset has been deleted."
+#~ msgstr "所选预设已被删除。"
+
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "动态流量标定系数"
 
@@ -10005,9 +10051,6 @@ msgstr ""
 #~ "Extrusion compensation calibration is not supported when using Textured "
 #~ "PEI Plate"
 #~ msgstr "使用带纹理的PEI板时不支持挤出补偿校准"
-
-#~ msgid "Delete Pause"
-#~ msgstr "删除暂停"
 
 #~ msgid "The region parameter is incorrrect"
 #~ msgstr "区域设置不正确"

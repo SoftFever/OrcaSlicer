@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-07 19:29+0800\n"
+"POT-Creation-Date: 2023-07-13 17:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1413,17 +1413,14 @@ msgstr "Modèle personnalisé :"
 msgid "Custom G-code:"
 msgstr "G-code personnalisé:"
 
-msgid "Pause Print"
-msgstr "Pause d'impression"
-
-msgid "OK"
-msgstr "OK"
-
 msgid "Custom G-code"
 msgstr "G-code personnalisé"
 
 msgid "Enter Custom G-code used on current layer:"
 msgstr "Entrez le G-code personnalisé a utiliser sur la couche actuelle :"
+
+msgid "OK"
+msgstr "OK"
 
 msgid "Jump to Layer"
 msgstr "Aller à la couche"
@@ -1458,11 +1455,8 @@ msgstr "Filament"
 msgid "Change filament at the beginning of this layer."
 msgstr "Changez le filament au début de cette couche."
 
-msgid "Edit Pause Print Message"
-msgstr "Modifier le message de pause"
-
-msgid "Delete Pause Print"
-msgstr "Supprimer la Pause"
+msgid "Delete Pause"
+msgstr ""
 
 msgid "Delete Custom Template"
 msgstr "Supprimer le modèle personnalisé"
@@ -5042,6 +5036,9 @@ msgstr "Ajouter/Supprimer des imprimantes"
 
 msgid "Incompatible"
 msgstr "Incompatible"
+
+msgid "The selected preset is null!"
+msgstr ""
 
 msgid "Same as Global Print Sequence"
 msgstr "Identique à la séquence d'impression globale"
@@ -9734,10 +9731,17 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please enter the name you want to save to printer."
+msgstr ""
+
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr ""
 
-msgid "The selected preset has been deleted."
+#, boost-format
+msgid "The selected preset: %1% is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -9905,12 +9909,6 @@ msgstr ""
 msgid "Failed"
 msgstr "Échoué"
 
-msgid "Please enter the name you want to save to printer."
-msgstr ""
-
-msgid "The name cannot exceed 40 characters."
-msgstr ""
-
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
@@ -10045,9 +10043,6 @@ msgid "Flow Dynamics Calibration Result"
 msgstr ""
 
 msgid "No History Result"
-msgstr ""
-
-msgid "Filament Preset"
 msgstr ""
 
 msgid "Action"
@@ -10244,6 +10239,45 @@ msgid "Cancelling"
 msgstr ""
 
 msgid "Error uploading to print host:"
+msgstr ""
+
+msgid "Unable to perform boolean operation on selected parts"
+msgstr ""
+
+msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Union"
+msgstr ""
+
+msgid "Difference"
+msgstr ""
+
+msgid "Intersection"
+msgstr ""
+
+msgid "Source Volume"
+msgstr ""
+
+msgid "Tool Volume"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "Part 1"
+msgstr ""
+
+msgid "Subtract from"
+msgstr ""
+
+msgid "Part 2"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
+msgid "Delete input"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -10521,6 +10555,15 @@ msgstr ""
 "Améliorer la résistance\n"
 "Saviez-vous que vous pouvez définir un plus grand nombre de périmètre et une "
 "densité de remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#~ msgid "Pause Print"
+#~ msgstr "Pause d'impression"
+
+#~ msgid "Edit Pause Print Message"
+#~ msgstr "Modifier le message de pause"
+
+#~ msgid "Delete Pause Print"
+#~ msgstr "Supprimer la Pause"
 
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "Calibration des facteurs de flux dynamique"

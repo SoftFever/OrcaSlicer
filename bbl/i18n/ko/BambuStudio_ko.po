@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-07 19:29+0800\n"
+"POT-Creation-Date: 2023-07-13 17:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1375,17 +1375,14 @@ msgstr "커스텀 템플릿:"
 msgid "Custom G-code:"
 msgstr "커스텀 G 코드:"
 
-msgid "Pause Print"
-msgstr "출력 일시정지"
-
-msgid "OK"
-msgstr "확인"
-
 msgid "Custom G-code"
 msgstr "커스텀 G 코드"
 
 msgid "Enter Custom G-code used on current layer:"
 msgstr "현재 레이어에 사용된 사용자 지정 G 코드 입력:"
+
+msgid "OK"
+msgstr "확인"
 
 msgid "Jump to Layer"
 msgstr "레이어로 이동"
@@ -1420,11 +1417,8 @@ msgstr "필라멘트 "
 msgid "Change filament at the beginning of this layer."
 msgstr "이 레이어의 시작 부분에서 필라멘트를 변경합니다."
 
-msgid "Edit Pause Print Message"
-msgstr "일시정지 메시지 편집"
-
-msgid "Delete Pause Print"
-msgstr "일시정지 삭제"
+msgid "Delete Pause"
+msgstr ""
 
 msgid "Delete Custom Template"
 msgstr "커스텀 템플릿 삭제"
@@ -4908,6 +4902,9 @@ msgstr "프린터 추가/제거"
 
 msgid "Incompatible"
 msgstr "호환되지 않음"
+
+msgid "The selected preset is null!"
+msgstr ""
 
 msgid "Same as Global Print Sequence"
 msgstr "글로벌 출력 시퀀스와 동일"
@@ -9312,10 +9309,17 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please enter the name you want to save to printer."
+msgstr ""
+
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr ""
 
-msgid "The selected preset has been deleted."
+#, boost-format
+msgid "The selected preset: %1% is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -9483,12 +9487,6 @@ msgstr ""
 msgid "Failed"
 msgstr "실패"
 
-msgid "Please enter the name you want to save to printer."
-msgstr ""
-
-msgid "The name cannot exceed 40 characters."
-msgstr ""
-
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
@@ -9623,9 +9621,6 @@ msgid "Flow Dynamics Calibration Result"
 msgstr ""
 
 msgid "No History Result"
-msgstr ""
-
-msgid "Filament Preset"
 msgstr ""
 
 msgid "Action"
@@ -9822,6 +9817,45 @@ msgid "Cancelling"
 msgstr ""
 
 msgid "Error uploading to print host:"
+msgstr ""
+
+msgid "Unable to perform boolean operation on selected parts"
+msgstr ""
+
+msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Union"
+msgstr ""
+
+msgid "Difference"
+msgstr ""
+
+msgid "Intersection"
+msgstr ""
+
+msgid "Source Volume"
+msgstr ""
+
+msgid "Tool Volume"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "Part 1"
+msgstr ""
+
+msgid "Subtract from"
+msgstr ""
+
+msgid "Part 2"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
+msgid "Delete input"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -10087,6 +10121,15 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid "Pause Print"
+#~ msgstr "출력 일시정지"
+
+#~ msgid "Edit Pause Print Message"
+#~ msgstr "일시정지 메시지 편집"
+
+#~ msgid "Delete Pause Print"
+#~ msgstr "일시정지 삭제"
 
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "동적 압출량 캘리의 요인"

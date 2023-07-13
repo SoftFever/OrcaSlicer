@@ -144,3 +144,4 @@ src/slic3r/GUI/calib_dlg.cpp
 src/slic3r/GUI/BonjourDialog.cpp
 src/slic3r/GUI/calib_dlg.cpp
 src/slic3r/GUI/PrintHostDialogs.cpp
+src/slic3r/GUI/Gizmos/GLGizmoMeshBoolean.cpp

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-07 19:29+0800\n"
+"POT-Creation-Date: 2023-07-13 17:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1359,16 +1359,13 @@ msgstr ""
 msgid "Custom G-code:"
 msgstr ""
 
-msgid "Pause Print"
-msgstr ""
-
-msgid "OK"
-msgstr ""
-
 msgid "Custom G-code"
 msgstr ""
 
 msgid "Enter Custom G-code used on current layer:"
+msgstr ""
+
+msgid "OK"
 msgstr ""
 
 msgid "Jump to Layer"
@@ -1404,10 +1401,7 @@ msgstr ""
 msgid "Change filament at the beginning of this layer."
 msgstr ""
 
-msgid "Edit Pause Print Message"
-msgstr ""
-
-msgid "Delete Pause Print"
+msgid "Delete Pause"
 msgstr ""
 
 msgid "Delete Custom Template"
@@ -4686,6 +4680,9 @@ msgid "Add/Remove printers"
 msgstr ""
 
 msgid "Incompatible"
+msgstr ""
+
+msgid "The selected preset is null!"
 msgstr ""
 
 msgid "Same as Global Print Sequence"
@@ -8684,10 +8681,17 @@ msgstr ""
 msgid "Max Volumetric Speed"
 msgstr ""
 
+msgid "Please enter the name you want to save to printer."
+msgstr ""
+
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr ""
 
-msgid "The selected preset has been deleted."
+#, possible-boost-format
+msgid "The selected preset: %1% is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -8855,12 +8859,6 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
-msgid "Please enter the name you want to save to printer."
-msgstr ""
-
-msgid "The name cannot exceed 40 characters."
-msgstr ""
-
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
@@ -8995,9 +8993,6 @@ msgid "Flow Dynamics Calibration Result"
 msgstr ""
 
 msgid "No History Result"
-msgstr ""
-
-msgid "Filament Preset"
 msgstr ""
 
 msgid "Action"
@@ -9194,6 +9189,45 @@ msgid "Cancelling"
 msgstr ""
 
 msgid "Error uploading to print host:"
+msgstr ""
+
+msgid "Unable to perform boolean operation on selected parts"
+msgstr ""
+
+msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Union"
+msgstr ""
+
+msgid "Difference"
+msgstr ""
+
+msgid "Intersection"
+msgstr ""
+
+msgid "Source Volume"
+msgstr ""
+
+msgid "Tool Volume"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "Part 1"
+msgstr ""
+
+msgid "Subtract from"
+msgstr ""
+
+msgid "Part 2"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
+msgid "Delete input"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
