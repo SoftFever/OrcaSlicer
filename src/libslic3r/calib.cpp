@@ -388,7 +388,6 @@ void CalibPressureAdvancePattern::set_starting_point(const Model& model)
 void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec3d& origin)
 {
     std::stringstream gcode;
-
     gcode << "; start pressure advance pattern for layer\n";
 
     refresh_pattern_config(model);
@@ -446,7 +445,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
             gcode << writer.travel_to_z(layer_height, "Move to layer height");
         }
 
-        // // line numbering
+        // line numbering
         if (i == 1) {
             gcode << writer.set_pressure_advance(m_params.start);
 

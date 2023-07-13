@@ -8132,7 +8132,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     _calib_pa_select_added_objects();
 
     const DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    // DynamicPrintConfig* filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
     for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().float_pairs) {
@@ -8157,12 +8156,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         );
     }
 
-    // wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
-    // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-
-    // wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
-    // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
 
     DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
