@@ -594,6 +594,7 @@ std::string CalibPressureAdvancePattern::draw_line(
 
     std::stringstream gcode;
 
+    gcode << pattern_writer(model, origin).set_speed(speed_adjust(opt_args.speed));
     gcode << pattern_writer(model, origin).extrude_to_xy(to_pt, dE, opt_args.comment);
 
     m_last_pos = Vec3d(to_pt.x(), to_pt.y(), 0);
