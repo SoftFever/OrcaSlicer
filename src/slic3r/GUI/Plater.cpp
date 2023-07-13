@@ -8126,6 +8126,7 @@ void Plater::calib_pa(const Calib_Params& params)
 
 void Plater::_calib_pa_pattern(const Calib_Params& params)
 {
+    // add "handle" cube
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
     orient();
     changed_objects({ 0 });
@@ -8168,6 +8169,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         model()
     );
 
+    // scale cube to suit test
     GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
         get_gizmos_manager().get_object_manipulation();
     giz_obj_manip.set_uniform_scaling(true);
@@ -10342,10 +10344,10 @@ void Plater::reslice()
     this->stop_jobs();
 
     // regenerate CalibPressureAdvancePattern custom G-code to apply changes
-    if (this->model().calib_pa_pattern) {
-        this->model().calib_pa_pattern->generate_custom_gcodes(
-            this->model(),
-            this->fff_print().get_plate_origin()
+    if (model().calib_pa_pattern) {
+        model().calib_pa_pattern->generate_custom_gcodes(
+            model(),
+            fff_print().get_plate_origin()
         );
     }
 
