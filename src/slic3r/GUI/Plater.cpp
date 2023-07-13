@@ -8135,25 +8135,25 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
     for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().float_pairs) {
-        print_config.set_key_value(
+        assert(!print_config.set_key_value(
             opt.first,
             new ConfigOptionFloat(opt.second)
-        );
+        ));
     }
 
     for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().nozzle_ratio_pairs) {
         double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
-        print_config.set_key_value(
+        assert(!print_config.set_key_value(
             opt.first,
             new ConfigOptionFloat(nozzle_diameter * opt.second / 100)
-        );
+        ));
     }
 
     for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().int_pairs) {
-        print_config.set_key_value(
+        assert(!print_config.set_key_value(
             opt.first,
             new ConfigOptionInt(opt.second)
-        );
+        ));
     }
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
