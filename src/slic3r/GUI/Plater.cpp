@@ -8185,6 +8185,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     pa_pattern.generate_custom_gcodes(model(), fff_print().get_plate_origin());
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
+    changed_objects({ 0 });
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {
