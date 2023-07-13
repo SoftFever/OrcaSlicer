@@ -217,7 +217,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         return res;
     };
 
-    auto operate_button = [this](const wxString& label, bool enable) {
+    auto operate_button = [this](const wxString &label, bool enable) {
         if (!enable) {
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
             if (m_is_dark_mode) {
@@ -254,7 +254,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     ImGui::PopStyleVar();
 
     ImGui::AlignTextToFramePadding();
-    wxString cap_str1 = m_operation_mode != MeshBooleanOperation::Difference ? _L("Part 1") : _L("Subtract from");
+    std::string cap_str1 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 1") : _u8L("Subtract from");
     m_imgui->text(cap_str1);
     ImGui::SameLine(max_cap_length);
     wxString select_src_str = m_src.mv ? "1 " + _L("selected") : _L("Select");
@@ -282,7 +282,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     }
 
     ImGui::AlignTextToFramePadding();
-    wxString cap_str2 = m_operation_mode != MeshBooleanOperation::Difference ? _L("Part 2") : _L("Subtract with");
+    std::string cap_str2 = m_operation_mode != MeshBooleanOperation::Difference ? _u8L("Part 2") : _u8L("Subtract with");
     m_imgui->text(cap_str2);
     ImGui::SameLine(max_cap_length);
     wxString select_tool_str = m_tool.mv ? "1 " + _L("selected") : _L("Select");
