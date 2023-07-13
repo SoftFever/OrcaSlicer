@@ -40,9 +40,7 @@
           "FUNC_VIRTUAL_CAMERA": false,
           "FUNC_PRINT_WITHOUT_SD": false,
           "FUNC_ALTER_RESOLUTION": false,
-          "FUNC_PRINT_ALL": false,
-          "FUNC_VIRTUAL_TYAY": true,
-          "FUNC_EXTRUSION_CALI": true
+          "FUNC_PRINT_ALL": false
         },
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
@@ -53,7 +51,6 @@
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
       {
-
         "display_name": "Bambu Lab X1",
         "func": {
           "FUNC_VIRTUAL_TYAY": true,

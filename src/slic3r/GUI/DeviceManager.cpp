@@ -725,6 +725,27 @@ bool MachineObject::is_support_ams_mapping()
     }
 }
 
+bool MachineObject::is_support_command_ams_switch()
+{
+    auto ota_ver_it = module_vers.find("ota");
+    if (ota_ver_it != module_vers.end()) {
+        if (printer_type == "BL-P001" || printer_type == "BL-P002") {
+
+            if (ota_ver_it->second.sw_ver.compare("01.05.06.01") < 0) {
+                return false;
+            }
+
+        }else if (printer_type == "C11" || printer_type == "C12") {
+
+            if (ota_ver_it->second.sw_ver.compare("01.02.99.10") < 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 bool MachineObject::is_support_ams_mapping_version(std::string module, std::string version)
 {
     bool result = true;
@@ -1709,21 +1730,33 @@ int MachineObject::command_set_nozzle(int temp)
 int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp)
 {
     BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_index << " with temp: " << old_temp << ", " << new_temp;
+
     if (old_temp < 0) old_temp = FILAMENT_DEF_TEMP;
     if (new_temp < 0) new_temp = FILAMENT_DEF_TEMP;
-    int tray_id_int = tray_index;
+    int result = 0;
 
-    std::string gcode = "";
-    if (tray_index == 255) {
-        gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
-    } else {
-        // include VIRTUAL_TRAY_ID
-        gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
-        boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
-        boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
+
+    //command
+    if (is_support_command_ams_switch()) {
+        command_ams_change_filament(tray_index, old_temp, new_temp);
+    }
+    //gcode
+    else {
+        std::string gcode = "";
+        if (tray_index == 255) {
+            gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
+        }
+        else {
+            // include VIRTUAL_TRAY_ID
+            gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
+            boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
+            boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
+        }
+
+        result = this->publish_gcode(gcode);
     }
 
-    return this->publish_gcode(gcode);
+    return result;
 }
 
 int MachineObject::command_ams_change_filament(int tray_id, int old_temp, int new_temp)

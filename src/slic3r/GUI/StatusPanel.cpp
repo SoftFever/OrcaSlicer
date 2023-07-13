@@ -31,6 +31,7 @@ static const wxFont   SWITCH_FONT    = Label::Body_10;
 /* const values */
 static const int bed_temp_range[2]    = {20, 120};
 static const int nozzle_temp_range[2] = {20, 300};
+static const int nozzle_chamber_range[2] = {20, 60};
 
 /* colors */
 static const wxColour STATUS_PANEL_BG     = wxColour(238, 238, 238);
@@ -143,7 +144,6 @@ PrintingTaskPanel::PrintingTaskPanel(wxWindow* parent, PrintingTaskType type)
 PrintingTaskPanel::~PrintingTaskPanel()
 {
 }
-
 
 void PrintingTaskPanel::create_panel(wxWindow* parent)
 {
@@ -833,6 +833,17 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_bmToggleBtn_timelapse->Hide();
     bSizer_monitoring_title->Add(m_bmToggleBtn_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
+#if !BBL_RELEASE_TO_PUBLIC
+    m_staticText_timelapse->Show();
+    m_bmToggleBtn_timelapse->Show();
+    m_bmToggleBtn_timelapse->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        if (e.IsChecked())
+            wxGetApp().getAgent()->start_subscribe("tunnel");
+        else
+            wxGetApp().getAgent()->stop_subscribe("tunnel");
+    });
+#endif
+
     //m_bitmap_camera_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_camera , wxDefaultPosition, wxSize(FromDIP(32), FromDIP(18)), 0);
     //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
     //bSizer_monitoring_title->Add(m_bitmap_camera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
@@ -1034,15 +1045,17 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
     wxWindowID frame_id = wxWindow::NewControlId();
-    m_tempCtrl_frame    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp"), wxDefaultPosition,
+    m_tempCtrl_chamber    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp"), wxDefaultPosition,
                                      wxDefaultSize, wxALIGN_CENTER);
-    m_tempCtrl_frame->SetReadOnly(true);
-    m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
-    m_tempCtrl_frame->SetBorderWidth(FromDIP(2));
-    m_tempCtrl_frame->SetTextColor(tempinput_text_colour);
-    m_tempCtrl_frame->SetBorderColor(tempinput_border_colour);
+    m_tempCtrl_chamber->SetReadOnly(true);
+    m_tempCtrl_chamber->SetMinTemp(nozzle_chamber_range[0]);
+    m_tempCtrl_chamber->SetMaxTemp(nozzle_chamber_range[1]);
+    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_chamber->SetBorderWidth(FromDIP(2));
+    m_tempCtrl_chamber->SetTextColor(tempinput_text_colour);
+    m_tempCtrl_chamber->SetBorderColor(tempinput_border_colour);
 
-    sizer->Add(m_tempCtrl_frame, 0, wxEXPAND | wxALL, 1);
+    sizer->Add(m_tempCtrl_chamber, 0, wxEXPAND | wxALL, 1);
     line = new StaticLine(parent);
     line->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
@@ -1181,12 +1194,12 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_nozzle->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_bed->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_bed->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-    m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+    m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_button_unload->Show();
 
     m_tempCtrl_nozzle->Enable(true);
-    m_tempCtrl_frame->Enable(true);
+    m_tempCtrl_chamber->Enable(true);
     m_tempCtrl_bed->Enable(true);
 
     // reset misc control
@@ -1401,11 +1414,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     return sizer;
 }
 
-void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_extrustion_cali)
+void StatusBasePanel::show_ams_group(bool show)
 {
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode(show, support_virtual_tray, support_extrustion_cali);
+    m_ams_control->show_noams_mode();
     if (m_show_ams_group != show) {
         Fit();
     }
@@ -1530,6 +1543,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
             on_set_bed_temp();
         } else if (id == m_tempCtrl_nozzle->GetType()) {
             on_set_nozzle_temp();
+        } else if (id == m_tempCtrl_chamber->GetType()) {
+            on_set_chamber_temp();
         }
     });
 
@@ -1547,10 +1562,12 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_set_focus), NULL, this);
+    m_tempCtrl_chamber->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_cham_temp_kill_focus), NULL, this);
+    m_tempCtrl_chamber->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_cham_temp_set_focus), NULL, this);
     m_switch_lamp->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_lamp_switch), NULL, this);
     m_switch_nozzle_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); // TODO
     m_switch_printing_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
-    m_switch_cham_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this);
+    m_switch_cham_fan->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_nozzle_fan_switch), NULL, this); 
     m_bpButton_xy->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_xy), NULL, this); // TODO
     m_bpButton_z_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_10), NULL, this);
     m_bpButton_z_1->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_up_1), NULL, this);
@@ -1787,6 +1804,14 @@ void StatusPanel::update(MachineObject *obj)
     update_subtask(obj);
     m_project_task_panel->Thaw();
 
+#if !BBL_RELEASE_TO_PUBLIC
+    m_staticText_timelapse
+        ->SetLabel(obj->is_lan_mode_printer() ? "Local Mqtt" : obj->is_tunnel_mqtt ? "Tunnel Mqtt" : "Cloud Mqtt");
+    m_bmToggleBtn_timelapse
+        ->Enable(!obj->is_lan_mode_printer());
+    m_bmToggleBtn_timelapse
+        ->SetValue(obj->is_tunnel_mqtt);
+#endif
 
     m_machine_ctrl_panel->Freeze();
 
@@ -1803,11 +1828,9 @@ void StatusPanel::update(MachineObject *obj)
 
     if (obj) {
         // update extrusion calibration
-        if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
-            if (m_extrusion_cali_dlg) {
-                m_extrusion_cali_dlg->update_machine_obj(obj);
-                m_extrusion_cali_dlg->update();
-            }
+        if (m_extrusion_cali_dlg) {
+            m_extrusion_cali_dlg->update_machine_obj(obj);
+            m_extrusion_cali_dlg->update();
         }
 
         // update calibration status
@@ -1836,12 +1859,15 @@ void StatusPanel::update(MachineObject *obj)
             m_options_btn->Hide();
         }
 
+        //support edit chamber temp
         if (obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_TEMP)) {
-            m_tempCtrl_frame->Enable();
+            m_tempCtrl_chamber->SetReadOnly(false);
+            m_tempCtrl_chamber->Enable();
         } else {
-            m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-            m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-            m_tempCtrl_frame->Disable();
+            m_tempCtrl_chamber->SetReadOnly(true);
+            m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
+            m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+            m_tempCtrl_chamber->Disable();
         }
 
         if (!obj->dev_connection_type.empty()) {
@@ -1921,13 +1947,11 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
         }
         m_print_error_dlg->update_text(msg);
-        
         m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
             if (obj) {
                 obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
             }
         });
-        
 
         m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_RETRY, [this, obj](wxCommandEvent& e) {
             if (m_ams_control) {
@@ -2023,7 +2047,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
     if (!temp_area) {
         m_tempCtrl_nozzle->Enable(false);
         m_tempCtrl_bed->Enable(false);
-        m_tempCtrl_frame->Enable(false);
+        m_tempCtrl_chamber->Enable(false);
         m_switch_speed->Enable(false);
         m_switch_speed->SetValue(false);
         m_switch_lamp->Enable(false);
@@ -2033,7 +2057,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
     } else {
         m_tempCtrl_nozzle->Enable();
         m_tempCtrl_bed->Enable();
-        m_tempCtrl_frame->Enable();
+        m_tempCtrl_chamber->Enable();
         m_switch_speed->Enable();
         m_switch_speed->SetValue(true);
         m_switch_lamp->Enable();
@@ -2064,6 +2088,13 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     }
 
     m_tempCtrl_nozzle->SetCurrTemp((int) obj->nozzle_temp);
+    int nozzle_max_temp = 0;
+    if (DeviceManager::get_nozzle_max_temperature(obj->printer_type, nozzle_max_temp)) {
+        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_max_temp);
+    }
+    else {
+        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
+    }
 
     if (m_temp_nozzle_timeout > 0) {
         m_temp_nozzle_timeout--;
@@ -2077,8 +2108,21 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_nozzle->SetIconNormal();
     }
 
-    m_tempCtrl_frame->SetCurrTemp(obj->chamber_temp);
-    m_tempCtrl_frame->SetTagTemp(obj->chamber_temp);
+    m_tempCtrl_chamber->SetCurrTemp(obj->chamber_temp);
+    // update temprature if not input temp target
+    if (m_temp_chamber_timeout > 0) {
+        m_temp_chamber_timeout--;
+    }
+    else {
+        if (!cham_temp_input) { m_tempCtrl_chamber->SetTagTemp(obj->chamber_temp_target); }
+    }
+
+    if ((obj->chamber_temp_target - obj->chamber_temp) >= TEMP_THRESHOLD_VAL) {
+        m_tempCtrl_chamber->SetIconActive();
+    }
+    else {
+        m_tempCtrl_chamber->SetIconNormal();
+    }
 }
 
 void StatusPanel::update_misc_ctrl(MachineObject *obj)
@@ -2095,6 +2139,12 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
             m_button_unload->Hide();
             m_button_unload->GetParent()->Layout();
         }
+    }
+
+    if (obj->is_core_xy()) {
+        m_staticText_z_tip->SetLabel(_L("Bed"));
+    } else {
+        m_staticText_z_tip->SetLabel("Z");
     }
 
     // update extruder icon
@@ -2219,9 +2269,9 @@ void StatusPanel::update_ams(MachineObject *obj)
         CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
     }
 
-    bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-    bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+    bool is_support_virtual_tray    = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
     bool is_support_filament_backup = obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP);
+    AMSModel ams_mode               = AMSModel::GENERIC_AMS;
 
     if (!obj
         || !obj->is_connected()
@@ -2237,11 +2287,18 @@ void StatusPanel::update_ams(MachineObject *obj)
             BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         }
 
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali);
+        
+        if (obj->printer_type == "N1" || obj->printer_type == "N2") { ams_mode = AMSModel::EXTRA_AMS; }
+        m_ams_control->SetAmsModel(AMSModel::NO_AMS, ams_mode);
+
+        show_ams_group(false);
         m_ams_control->show_auto_refill(false);
     }
     else {
-        show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali);
+        if (obj->printer_type == "N1" || obj->printer_type == "N2") { ams_mode = AMSModel::EXTRA_AMS; }
+        m_ams_control->SetAmsModel(ams_mode, ams_mode);
+
+        show_ams_group(true);
 
         if (!obj->m_is_support_show_bak || !is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
             m_ams_control->show_auto_refill(false); 
@@ -2275,7 +2332,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     //}
 
     // must select a current can
-    m_ams_control->UpdateAms(ams_info, false, is_support_extrusion_cali);
+    m_ams_control->UpdateAms(ams_info, false);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -2309,13 +2366,15 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     // set segment 3
     if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->vt_tray.get_color());
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->m_ams_id, obj->vt_tray.get_color());
     } else {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, obj->m_ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
        
     }
 
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        update_filament_step();
+
         if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_ID) && (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID) || obj->m_tray_now != "255")) {
             // wait to heat hotend
             if (obj->ams_status_sub == 0x02) {
@@ -2386,6 +2445,14 @@ void StatusPanel::update_ams(MachineObject *obj)
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
+            }
+            else if (obj->ams_status_sub == 0x08) {
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
+                }
+                else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
+                }
             } else {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
             }
@@ -2443,10 +2510,10 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_curr_tray_selected = true;
     }
         
-    update_ams_control_state(is_support_extrusion_cali, is_curr_tray_selected);
+    update_ams_control_state(is_curr_tray_selected);
 }
 
-void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected)
+void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
 {
     // set default value to true
     bool enable[ACTION_BTN_COUNT];
@@ -2454,21 +2521,18 @@ void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is
     enable[ACTION_BTN_LOAD] = true;
     enable[ACTION_BTN_UNLOAD] = true;
 
-    if (!is_support_virtual_tray) {
-        enable[ACTION_BTN_CALI] = false;
-    }
-    else {
-        if (obj->is_in_printing()) {
-            if (obj->is_in_extrusion_cali()) {
-                enable[ACTION_BTN_LOAD] = false;
-                enable[ACTION_BTN_UNLOAD] = false;
-                enable[ACTION_BTN_CALI] = true;
-            } else {
-                enable[ACTION_BTN_CALI] = false;
-            }
-        } else {
+    if (obj->is_in_printing()) {
+        if (obj->is_in_extrusion_cali()) {
+            enable[ACTION_BTN_LOAD] = false;
+            enable[ACTION_BTN_UNLOAD] = false;
             enable[ACTION_BTN_CALI] = true;
         }
+        else {
+            enable[ACTION_BTN_CALI] = false;
+        }
+    }
+    else {
+        enable[ACTION_BTN_CALI] = true;
     }
 
     if (obj->is_in_printing() && !obj->can_resume()) {
@@ -2943,10 +3007,36 @@ void StatusPanel::on_set_nozzle_temp()
     }
 }
 
+void StatusPanel::on_set_chamber_temp()
+{
+    wxString str = m_tempCtrl_chamber->GetTextCtrl()->GetValue();
+    try {
+        long chamber_temp;
+        if (str.ToLong(&chamber_temp) && obj) {
+            set_hold_count(m_temp_chamber_timeout);
+            obj->command_set_chamber(chamber_temp);
+        }
+    }
+    catch (...) {
+        ;
+    }
+}
+
 void StatusPanel::on_ams_load(SimpleEvent &event)
 {
     BOOST_LOG_TRIVIAL(info) << "on_ams_load";
     on_ams_load_curr();
+}
+
+void StatusPanel::update_filament_step()
+{
+    m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
+    if (!obj->is_filament_at_extruder()) {
+        m_is_load_with_temp = true;
+    }
+    else {
+        m_is_load_with_temp = false;
+    }
 }
 
 void StatusPanel::on_ams_load_curr()
@@ -2955,41 +3045,26 @@ void StatusPanel::on_ams_load_curr()
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
-        m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
-        if(!obj->is_filament_at_extruder()){
-            m_is_load_with_temp = true;
-        }else{
-            m_is_load_with_temp = false;
-        }
         
-        
+        update_filament_step();
         //virtual tray
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            /*if (con_load_dlg == nullptr) {
-                con_load_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Confirm"));
-                con_load_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {*/
-                        int old_temp = -1;
-                        int new_temp = -1;
-                        AmsTray* curr_tray = &obj->vt_tray;
+            int old_temp = -1;
+            int new_temp = -1;
+            AmsTray* curr_tray = &obj->vt_tray;
 
-                        if (!curr_tray) return;
+            if (!curr_tray) return;
 
-                        try {
-                            if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
-                                old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
-                            if (!obj->vt_tray.nozzle_temp_max.empty() && !obj->vt_tray.nozzle_temp_min.empty())
-                                new_temp = (atoi(obj->vt_tray.nozzle_temp_min.c_str()) + atoi(obj->vt_tray.nozzle_temp_max.c_str())) / 2;
-                        }
-                        catch (...) {
-                            ;
-                        }
-                        obj->command_ams_switch(VIRTUAL_TRAY_ID, old_temp, new_temp);
-                    /*}
-                );
+            try {
+                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
+                    old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
+                if (!obj->vt_tray.nozzle_temp_max.empty() && !obj->vt_tray.nozzle_temp_min.empty())
+                    new_temp = (atoi(obj->vt_tray.nozzle_temp_min.c_str()) + atoi(obj->vt_tray.nozzle_temp_max.c_str())) / 2;
             }
-            con_load_dlg->update_text(_L("Please confirm the filament is ready?"));
-            con_load_dlg->on_show();*/
-            return;
+            catch (...) {
+                ;
+            }
+            obj->command_ams_switch(VIRTUAL_TRAY_ID, old_temp, new_temp);
         }
 
         std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
@@ -3303,7 +3378,6 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
             } catch (...) {
                 ;
             }
-            //update_ams_control_state(curr_ams_id, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
         }
     }
 }
@@ -3353,6 +3427,18 @@ void StatusPanel::on_fan_changed(wxCommandEvent& event)
         m_switch_cham_fan->SetValue(speed > 0 ? true : false);
         m_switch_cham_fan->setFanValue(speed * 10);
     }
+}
+
+void StatusPanel::on_cham_temp_kill_focus(wxFocusEvent& event)
+{
+    event.Skip();
+    cham_temp_input = false;
+}
+
+void StatusPanel::on_cham_temp_set_focus(wxFocusEvent& event)
+{
+    event.Skip();
+    cham_temp_input = true;
 }
 
 void StatusPanel::on_bed_temp_kill_focus(wxFocusEvent &event)
@@ -3635,6 +3721,7 @@ void StatusPanel::set_default()
     m_switch_lamp_timeout = 0;
     m_temp_nozzle_timeout = 0;
     m_temp_bed_timeout = 0;
+    m_temp_chamber_timeout = 0;
     m_switch_nozzle_fan_timeout = 0;
     m_switch_printing_fan_timeout = 0;
     m_switch_cham_fan_timeout = 0;
@@ -3645,7 +3732,7 @@ void StatusPanel::set_default()
     m_bitmap_recording_img->Hide();
     m_bitmap_vcamera_img->Hide();
     m_setting_button->Show();
-    m_tempCtrl_frame->Show();
+    m_tempCtrl_chamber->Show();
     m_options_btn->Show();
 
     reset_temp_misc_control();
@@ -3779,8 +3866,8 @@ void StatusPanel::msw_rescale()
     m_line_nozzle->SetSize(wxSize(-1, FromDIP(1)));
     m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_bed->Rescale();
-    m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
-    m_tempCtrl_frame->Rescale();
+    m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_chamber->Rescale();
 
     m_bitmap_speed.msw_rescale();
     m_bitmap_speed_active.msw_rescale();

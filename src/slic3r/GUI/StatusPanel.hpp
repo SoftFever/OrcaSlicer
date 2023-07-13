@@ -305,12 +305,13 @@ protected:
     /* TempInput */
     wxBoxSizer *    m_misc_ctrl_sizer;
     StaticBox*      m_fan_panel; 
-    TempInput *     m_tempCtrl_nozzle;
-    int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
+    TempInput* m_tempCtrl_nozzle;
+    int             m_temp_nozzle_timeout{ 0 };
     TempInput *     m_tempCtrl_bed;
     int             m_temp_bed_timeout {0};
-    TempInput *     m_tempCtrl_frame;
+    TempInput *     m_tempCtrl_chamber;
+    int             m_temp_chamber_timeout {0};
     bool             m_current_support_cham_fan{true};
     FanSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
@@ -403,7 +404,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_extrustion_cali = true);
+    void show_ams_group(bool show = true);
 };
 
 
@@ -446,6 +447,7 @@ protected:
     wxWebRequest web_request;
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
+    bool cham_temp_input   = false;
     int speed_lvl = 1; // 0 - 3
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
@@ -489,9 +491,11 @@ protected:
     void on_nozzle_temp_kill_focus(wxFocusEvent &event);
     void on_nozzle_temp_set_focus(wxFocusEvent &event);
     void on_set_nozzle_temp();
+    void on_set_chamber_temp();
 
     /* extruder apis */
     void on_ams_load(SimpleEvent &event);
+    void update_filament_step();
     void on_ams_load_curr();
     void on_ams_unload(SimpleEvent &event);
     void on_ams_filament_backup(SimpleEvent& event);
@@ -506,6 +510,8 @@ protected:
     void on_print_error_func(wxCommandEvent& event);
 
     void on_fan_changed(wxCommandEvent& event);
+    void on_cham_temp_kill_focus(wxFocusEvent& event);
+    void on_cham_temp_set_focus(wxFocusEvent& event);
     void on_switch_speed(wxCommandEvent& event);
     void on_lamp_switch(wxCommandEvent &event);
     void on_printing_fan_switch(wxCommandEvent &event);
@@ -539,7 +545,7 @@ protected:
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
-    void update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected);
+    void update_ams_control_state(bool is_curr_tray_selected);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();
