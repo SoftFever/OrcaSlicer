@@ -280,6 +280,13 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         filament_diameter,
         print_flow_ratio
     );
+    const double number_e_per_mm = CalibPressureAdvance::e_per_mm(
+        m_number_line_width,
+        m_height_layer,
+        m_nozzle_diameter,
+        filament_diameter,
+        print_flow_ratio
+    );
 
     const double fast = CalibPressureAdvance::speed_adjust(m_fast_speed);
     const double slow = CalibPressureAdvance::speed_adjust(m_slow_speed);
@@ -318,9 +325,9 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
                 start_x + m_length_short + m_length_long + m_length_short + 3,
                 y_pos + i * m_space_y + m_space_y / 2,
                 start_pa + i * step_pa,
-                DrawDigitMode::Left_To_Right,
+                m_draw_digit_mode,
                 m_number_line_width,
-                m_height_layer,
+                number_e_per_mm,
                 writer
             );
         }
