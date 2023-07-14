@@ -27,9 +27,8 @@ struct Calib_Params {
 
 class CalibPressureAdvance {
 protected:
-    CalibPressureAdvance() { };
-    CalibPressureAdvance(GCode* gcodegen);
-    ~CalibPressureAdvance() { };
+    CalibPressureAdvance() =default;
+    ~CalibPressureAdvance() =default;
 
     enum class DrawDigitMode {
         Left_To_Right,
@@ -68,8 +67,6 @@ protected:
         double layer_height,
         GCodeWriter& writer
     );
-
-    GCode* mp_gcodegen {nullptr};
     
     Vec3d m_last_pos;
 
@@ -82,7 +79,7 @@ protected:
 class CalibPressureAdvanceLine : public CalibPressureAdvance {
 public:
     CalibPressureAdvanceLine(GCode* gcodegen) :
-        CalibPressureAdvance(gcodegen),
+        mp_gcodegen(gcodegen),
         m_nozzle_diameter(gcodegen->config().nozzle_diameter.get_at(0))
     { };
     ~CalibPressureAdvanceLine() { };
@@ -102,6 +99,8 @@ private:
     std::string print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num);
     
     void delta_modify_start(double& startx, double& starty, int count);
+
+    GCode* mp_gcodegen;
 
     double m_nozzle_diameter;
     double m_slow_speed, m_fast_speed;

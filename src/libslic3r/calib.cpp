@@ -3,10 +3,6 @@
 #include "Model.hpp"
 
 namespace Slic3r {
-CalibPressureAdvance::CalibPressureAdvance(GCode* gcodegen) :
-    mp_gcodegen(gcodegen)
-{ };
-
 std::string CalibPressureAdvance::move_to(Vec2d pt, GCodeWriter writer, std::string comment)
 {
     std::stringstream gcode;
