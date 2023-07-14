@@ -1,5 +1,6 @@
 #include "calib.hpp"
 #include "BoundingBox.hpp"
+#include "GCode/GCodeProcessor.hpp"
 #include "Model.hpp"
 
 namespace Slic3r {
@@ -384,6 +385,10 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
 
     refresh_pattern_setup(model);
     GCodeWriter writer = pattern_writer(model, origin);
+    GCodeProcessor processor;
+    processor.s_IsBBLPrinter = m_is_bbl_machine;
+
+    gcode << ";" + processor.reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
 
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), writer, "Move to start XY position");
     gcode << writer.travel_to_z(height_first_layer(), "Move to start Z position");
@@ -432,6 +437,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
 
             gcode = std::stringstream(); // reset for next layer contents
             gcode << "; start pressure advance pattern for layer\n";
+            gcode << ";" + processor.reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
             
             const double layer_height = height_first_layer() + (i * height_layer());
             gcode << writer.travel_to_z(layer_height, "Move to layer height");
