@@ -156,7 +156,7 @@ bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 
 bool Repetier::validate_version_text(const boost::optional<std::string> &version_text) const
 {
-    return version_text ? boost::starts_with(*version_text, "Repetier") : true;
+    return version_text ? (!version_text->empty()) : true;
 }
 
 void Repetier::set_auth(Http &http) const

@@ -185,6 +185,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // These steps have no influence on the G-code whatsoever. Just ignore them.
         } else if (
                opt_key == "skirt_loops"
+            || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
@@ -197,6 +198,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
             || opt_key == "filament_shrink"
+            || opt_key == "resolution"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
@@ -248,7 +250,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "initial_layer_line_width"
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
-            || opt_key == "resolution"
+            //|| opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting"
             || opt_key == "wall_infill_order") {
@@ -912,9 +914,29 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         return { L("No extrusions under current settings.") };
 
     if (extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
-        auto ret = check_multi_filament_valid(*this);
-        if (!ret.string.empty())
-            return ret;
+        if (m_config.single_extruder_multi_material) {
+            auto ret = check_multi_filament_valid(*this);
+            if (!ret.string.empty())
+                return ret;
+        }
+
+        if (warning) {
+            for (unsigned int extruder_a: extruders) {
+                const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+                const ConfigOptionInts* bed_temp_1st_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key(m_config.curr_bed_type));
+                int bed_temp_a = bed_temp_opt->get_at(extruder_a);
+                int bed_temp_1st_a = bed_temp_1st_opt->get_at(extruder_a);
+                for (unsigned int extruder_b: extruders) {
+                    int bed_temp_b = bed_temp_opt->get_at(extruder_b);
+                    int bed_temp_1st_b = bed_temp_1st_opt->get_at(extruder_b);
+                    if (std::abs(bed_temp_a - bed_temp_b) > 15 || std::abs(bed_temp_1st_a - bed_temp_1st_b) > 15) {
+                        warning->string = L("Bed temperatures for the used filaments differ significantly.");
+                        goto DONE;
+                    }
+                }
+            }
+        DONE:;
+        }
     }
 
     if (m_config.print_sequence == PrintSequence::ByObject) {

@@ -1,0 +1,79 @@
+# name: Build Deps
+name: Build deps
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'deps/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'deps/**'
+
+jobs:
+  build_deps:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-22.04
+          - os: windows-2019
+          - os: macos-12
+            arch: x86_64
+          - os: macos-12
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: setup dev on Windows
+        if: matrix.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build on Windows
+        if: matrix.os == 'windows-2019'
+        working-directory: ${{ github.workspace }}
+        run: |
+            choco install strawberryperl
+            mkdir ${{ github.workspace }}/deps/build
+            mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+            .\build_release.bat deps
+
+      - name: Build on Mac x86_64
+        if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
+        working-directory: ${{ github.workspace }}
+        run: |
+            brew install cmake git gettext
+            mkdir -p ${{ github.workspace }}/deps/build_x86_64
+            mkdir -p ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
+            ./build_release_macos.sh -d -a x86_64
+
+      - name: Build on Mac arm64
+        if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
+        working-directory: ${{ github.workspace }}
+        run: |
+            brew install cmake git gettext
+            mkdir -p ${{ github.workspace }}/deps/build_arm64
+            mkdir -p ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
+            ./build_release_macos.sh -d -a arm64
+
+      - name: Build on Ubuntu
+        if: matrix.os == 'ubuntu-22.04'
+        working-directory: ${{ github.workspace }}
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y cmake git g++ build-essential libgl1-mesa-dev m4 \
+            libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules pkgconf \
+            libglu1-mesa-dev libcairo2-dev libgtk-3-dev libsoup2.4-dev libwebkit2gtk-4.0-dev \
+            libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
+            gstreamer1.0-plugins-bad libosmesa6-dev wget sudo autoconf curl libunwind-dev
+            mkdir -p ${{ github.workspace }}/deps/build
+            mkdir -p ${{ github.workspace }}/deps/build/destdir
+            sudo ./BuildLinux.sh -ur
+            sudo chown $USER -R ./
+            ./BuildLinux.sh -dr

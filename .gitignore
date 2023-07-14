@@ -24,3 +24,5 @@ install_*
 build_*/
 SVG
 src/OrcaSlicer-doc/
+.idea/
+bbl/i18n/es/OrcaSlicer_es.mo

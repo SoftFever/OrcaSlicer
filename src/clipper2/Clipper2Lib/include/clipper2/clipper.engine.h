@@ -17,6 +17,8 @@ constexpr auto CLIPPER2_VERSION = "1.0.6";
 #include <stdexcept>
 #include <vector>
 #include <functional>
+#include <cstddef>
+#include <cstdint>
 #include "clipper.core.h"
 
 namespace Clipper2Lib {
@@ -31,19 +33,19 @@ namespace Clipper2Lib {
 
 	//Note: all clipping operations except for Difference are commutative.
 	enum class ClipType { None, Intersection, Union, Difference, Xor };
-	
+
 	enum class PathType { Subject, Clip };
 
 	enum class VertexFlags : uint32_t {
 		None = 0, OpenStart = 1, OpenEnd = 2, LocalMax = 4, LocalMin = 8
 	};
 
-	constexpr enum VertexFlags operator &(enum VertexFlags a, enum VertexFlags b) 
+	constexpr enum VertexFlags operator &(enum VertexFlags a, enum VertexFlags b)
 	{
 		return (enum VertexFlags)(uint32_t(a) & uint32_t(b));
 	}
 
-	constexpr enum VertexFlags operator |(enum VertexFlags a, enum VertexFlags b) 
+	constexpr enum VertexFlags operator |(enum VertexFlags a, enum VertexFlags b)
 	{
 		return (enum VertexFlags)(uint32_t(a) | uint32_t(b));
 	}
@@ -97,7 +99,7 @@ namespace Clipper2Lib {
 	//Important: UP and DOWN here are premised on Y-axis positive down
 	//displays, which is the orientation used in Clipper's development.
 	///////////////////////////////////////////////////////////////////
-	
+
 	struct Active {
 		Point64 bot;
 		Point64 top;
@@ -168,7 +170,7 @@ namespace Clipper2Lib {
 		std::vector<LocalMinima*>::iterator current_locmin_iter_;
 		std::vector<Vertex*> vertex_lists_;
 		std::priority_queue<int64_t> scanline_list_;
-		std::vector<IntersectNode> intersect_nodes_; 
+		std::vector<IntersectNode> intersect_nodes_;
 		std::vector<Joiner*> joiner_list_;				//pointers in case of memory reallocs
 		void Reset();
 		void InsertScanline(int64_t y);
@@ -197,7 +199,7 @@ namespace Clipper2Lib {
 		void ProcessIntersectList();
 		void SwapPositionsInAEL(Active& edge1, Active& edge2);
 		OutPt* AddOutPt(const Active &e, const Point64& pt);
-		OutPt* AddLocalMinPoly(Active &e1, Active &e2, 
+		OutPt* AddLocalMinPoly(Active &e1, Active &e2,
 			const Point64& pt, bool is_new = false);
 		OutPt* AddLocalMaxPoly(Active &e1, Active &e2, const Point64& pt);
 		void DoHorizontal(Active &horz);
@@ -254,7 +256,7 @@ namespace Clipper2Lib {
 		PolyPath* parent_;
 	public:
 		PolyPath(PolyPath* parent = nullptr): parent_(parent){}
-		virtual ~PolyPath() { Clear(); };		
+		virtual ~PolyPath() { Clear(); };
 		//https://en.cppreference.com/w/cpp/language/rule_of_three
 		PolyPath(const PolyPath&) = delete;
 		PolyPath& operator=(const PolyPath&) = delete;
@@ -274,7 +276,7 @@ namespace Clipper2Lib {
 
 		const PolyPath* Parent() const { return parent_; }
 
-		bool IsHole() const 
+		bool IsHole() const
 		{
 			const PolyPath* pp = parent_;
 			bool is_hole = pp;
@@ -364,13 +366,13 @@ namespace Clipper2Lib {
 		PathD polygon_;
 		typedef typename std::vector<PolyPathD*>::const_iterator ppD_itor;
 	public:
-		PolyPathD(PolyPathD* parent = nullptr) : PolyPath(parent) 
+		PolyPathD(PolyPathD* parent = nullptr) : PolyPath(parent)
 		{
 			inv_scale_ = parent ? parent->inv_scale_ : 1.0;
 		}
-		PolyPathD* operator [] (size_t index) 
-		{ 
-			return static_cast<PolyPathD*>(childs_[index]); 
+		PolyPathD* operator [] (size_t index)
+		{
+			return static_cast<PolyPathD*>(childs_[index]);
 		}
 		ppD_itor begin() const { return childs_.cbegin(); }
 		ppD_itor end() const { return childs_.cend(); }
@@ -437,7 +439,7 @@ namespace Clipper2Lib {
 			return Execute(clip_type, fill_rule, closed_paths, dummy);
 		}
 
-		bool Execute(ClipType clip_type, FillRule fill_rule, 
+		bool Execute(ClipType clip_type, FillRule fill_rule,
 			Paths64& closed_paths, Paths64& open_paths)
 		{
 			closed_paths.clear();
@@ -509,12 +511,12 @@ namespace Clipper2Lib {
 		void CheckCallback()
 		{
 			if(zCallback_)
-				// if the user defined float point callback has been assigned 
+				// if the user defined float point callback has been assigned
 				// then assign the proxy callback function
-				ClipperBase::zCallback_ = 
+				ClipperBase::zCallback_ =
 					std::bind(&ClipperD::ZCB, this, std::placeholders::_1,
 					std::placeholders::_2, std::placeholders::_3,
-					std::placeholders::_4, std::placeholders::_5); 
+					std::placeholders::_4, std::placeholders::_5);
 			else
 				ClipperBase::zCallback_ = nullptr;
 		}
@@ -581,6 +583,6 @@ namespace Clipper2Lib {
 
 	};
 
-}  // namespace 
+}  // namespace
 
 #endif  // CLIPPER_ENGINE_H

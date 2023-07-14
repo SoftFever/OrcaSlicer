@@ -1845,6 +1845,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
         optgroup->append_single_option_line("seam_position", "Seam");
+        optgroup->append_single_option_line("staggered_inner_seams", "Seam");
         optgroup->append_single_option_line("seam_gap","Seam");
         optgroup->append_single_option_line("role_based_wipe_speed","Seam");
         optgroup->append_single_option_line("wipe_speed", "Seam");
@@ -1905,6 +1906,9 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("infill_anchor");
+        optgroup->append_single_option_line("infill_anchor_max");
+
         optgroup->append_single_option_line("filter_out_gap_fill");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
@@ -2030,6 +2034,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("skirt_loops");
         optgroup->append_single_option_line("skirt_distance");
         optgroup->append_single_option_line("skirt_height");
+        optgroup->append_single_option_line("skirt_speed");
         //optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
