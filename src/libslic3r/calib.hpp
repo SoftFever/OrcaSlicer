@@ -115,58 +115,6 @@ private:
     bool m_draw_numbers {true};
 };
 
-class CalibPressureAdvancePattern;
-
-struct PatternSettings {
-friend class CalibPressureAdvancePattern;
-friend struct DrawLineOptArgs;
-friend struct DrawBoxOptArgs;
-private:
-    PatternSettings() { };
-    PatternSettings(const CalibPressureAdvancePattern& cpap);
-
-    double anchor_line_width;
-    int anchor_perimeters;
-    double encroachment;
-    double first_layer_height;
-    int first_layer_speed;
-    double layer_height;
-    double line_width;
-    int perim_speed;
-};
-
-struct DrawLineOptArgs {
-friend class CalibPressureAdvancePattern;
-private:
-    DrawLineOptArgs(const PatternSettings& ps) {
-        height = ps.layer_height;
-        line_width = ps.line_width;
-        speed = ps.perim_speed;
-    };
-
-    double height;
-    double line_width;
-    int speed;
-    std::string comment {"Print line"};
-};
-
-struct DrawBoxOptArgs {
-friend class CalibPressureAdvancePattern;
-private:
-    DrawBoxOptArgs(const PatternSettings& ps) {
-        num_perimeters = ps.anchor_perimeters;
-        height = ps.first_layer_height;
-        line_width = ps.anchor_line_width;
-        speed = ps.first_layer_speed;
-    };
-
-    bool is_filled {false};
-    int num_perimeters;
-    double height;
-    double line_width;
-    double speed;
-};
-
 struct SuggestedCalibPressureAdvancePatternConfig {
     const std::vector<std::pair<std::string, double>> float_pairs {
         {"initial_layer_print_height", 0.25},
@@ -186,7 +134,9 @@ struct SuggestedCalibPressureAdvancePatternConfig {
 };
 
 class CalibPressureAdvancePattern : public CalibPressureAdvance {
-friend struct PatternSettings;
+friend struct DrawLineOptArgs;
+friend struct DrawBoxOptArgs;
+
 public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
@@ -203,15 +153,43 @@ public:
     void set_starting_point(const Model& model);
 
     void generate_custom_gcodes(Model& model, const Vec3d& origin);
+
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_speed")->value; };
-    double line_width() const { return m_config.option<ConfigOptionFloat>("line_width")->value; };
     double line_width_anchor() const { return m_config.option<ConfigOptionFloat>("initial_layer_line_width")->value; };
+    double line_width() const { return m_config.option<ConfigOptionFloat>("line_width")->value; };
     int wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
-    
-    double encroachment() const { return m_encroachment; };
+
 private:
+    struct DrawLineOptArgs {
+        DrawLineOptArgs(const CalibPressureAdvancePattern& p) :
+            height {p.height_layer()},
+            line_width {p.line_width()},
+            speed {p.speed_adjust(p.speed_perimeter())}
+        { };
+
+        double height;
+        double line_width;
+        double speed;
+        std::string comment {"Print line"};
+    };
+
+    struct DrawBoxOptArgs {
+        DrawBoxOptArgs(const CalibPressureAdvancePattern& p) :
+            num_perimeters {p.wall_count()},
+            height {p.height_first_layer()},
+            line_width {p.line_width()},
+            speed {p.speed_adjust(p.speed_first_layer())}
+        { };
+
+        bool is_filled {false};
+        int num_perimeters;
+        double height;
+        double line_width;
+        double speed;
+    };
+
     void refresh_pattern_config(const Model& model);
     GCodeWriter pattern_writer(
         const Model& model,
@@ -272,7 +250,6 @@ private:
     DynamicPrintConfig m_config;
     bool m_is_delta;
     Vec3d m_starting_point;
-    PatternSettings m_pattern_settings;
 
     const double m_handle_xy_size {5};
     const int m_num_layers {4};

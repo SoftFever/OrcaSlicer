@@ -341,17 +341,6 @@ void CalibPressureAdvanceLine::delta_modify_start(double& startx, double& starty
     starty = -(count * m_space_y) / 2;
 }
 
-PatternSettings::PatternSettings(const CalibPressureAdvancePattern& cpap) :    
-    anchor_line_width(cpap.line_width_anchor()),
-    anchor_perimeters(cpap.wall_count()),
-    encroachment(cpap.encroachment()),
-    first_layer_height(cpap.height_first_layer()),
-    first_layer_speed(cpap.speed_adjust(cpap.speed_first_layer())),
-    layer_height(cpap.height_layer()),
-    line_width(cpap.line_width()),
-    perim_speed(cpap.speed_adjust(cpap.speed_perimeter()))
-{ };
-
 CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     const Calib_Params& params,
     DynamicPrintConfig& config,
@@ -400,7 +389,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
     gcode << writer.travel_to_z(height_first_layer(), "Move to start Z position");
     gcode << writer.set_pressure_advance(m_params.start);
 
-    const DrawBoxOptArgs default_box_opt_args(m_pattern_settings);
+    const DrawBoxOptArgs default_box_opt_args(*this);
 
     // create anchor frame
     gcode << draw_box(
@@ -428,7 +417,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
     );
 
     std::vector<CustomGCode::Item> gcode_items;
-    const DrawLineOptArgs default_line_opt_args(m_pattern_settings);
+    const DrawLineOptArgs default_line_opt_args(*this);
     const int num_patterns = get_num_patterns(); // "cache" for use in loops
 
     // draw pressure advance pattern
@@ -557,7 +546,6 @@ void CalibPressureAdvancePattern::refresh_pattern_config(const Model& model)
 
     m_is_delta = (updated_config.option<ConfigOptionPoints>("printable_area")->values.size() > 4);
     set_starting_point(model);
-    m_pattern_settings = PatternSettings(*this);
 }
 
 GCodeWriter CalibPressureAdvancePattern::pattern_writer(const Model& model, const Vec3d& origin)
@@ -639,7 +627,7 @@ std::string CalibPressureAdvancePattern::draw_box(
 
     gcode << move_to(Vec2d(min_x, min_y), writer, "Move to box start");
 
-    DrawLineOptArgs line_opt_args(m_pattern_settings);
+    DrawLineOptArgs line_opt_args(*this);
     line_opt_args.height = opt_args.height;
     line_opt_args.line_width = opt_args.line_width;
     line_opt_args.speed = opt_args.speed;
