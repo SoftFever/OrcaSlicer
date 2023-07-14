@@ -179,7 +179,7 @@ private:
         DrawBoxOptArgs(const CalibPressureAdvancePattern& p) :
             num_perimeters {p.wall_count()},
             height {p.height_first_layer()},
-            line_width {p.line_width()},
+            line_width {p.line_width_anchor()},
             speed {p.speed_adjust(p.speed_first_layer())}
         { };
 
