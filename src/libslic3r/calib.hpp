@@ -157,7 +157,7 @@ public:
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_speed")->value; };
-    double line_width_anchor() const { return m_config.option<ConfigOptionFloat>("initial_layer_line_width")->value; };
+    double line_width_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_line_width")->value; };
     double line_width() const { return m_config.option<ConfigOptionFloat>("line_width")->value; };
     int wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
@@ -179,7 +179,7 @@ private:
         DrawBoxOptArgs(const CalibPressureAdvancePattern& p) :
             num_perimeters {p.wall_count()},
             height {p.height_first_layer()},
-            line_width {p.line_width_anchor()},
+            line_width {p.line_width_first_layer()},
             speed {p.speed_adjust(p.speed_first_layer())}
         { };
 
@@ -227,7 +227,7 @@ private:
         https://ellis3dp.com/Print-Tuning-Guide/articles/misconceptions.html#two-04mm-perimeters--08mm
     */
     double line_spacing() const { return line_width() - height_layer() * (1 - M_PI / 4); };
-    double line_spacing_anchor() const { return line_width_anchor() - height_first_layer() * (1 - M_PI / 4); };
+    double line_spacing_first_layer() const { return line_width_first_layer() - height_first_layer() * (1 - M_PI / 4); };
     double line_spacing_angle() const { return line_spacing() / std::sin(to_radians(m_corner_angle) / 2); };
 
     double object_size_x() const;

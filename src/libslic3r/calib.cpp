@@ -391,7 +391,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
 
     const DrawBoxOptArgs default_box_opt_args(*this);
 
-    // create anchor frame
+    // create anchoring frame
     gcode << draw_box(
         m_starting_point.x(),
         m_starting_point.y(),
@@ -408,9 +408,9 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
     draw_box_opt_args.num_perimeters = wall_count();
     gcode << draw_box(
         m_starting_point.x(),
-        m_starting_point.y() + frame_size_y() + line_spacing_anchor(),
+        m_starting_point.y() + frame_size_y() + line_spacing_first_layer(),
         glyph_tab_max_x() - m_starting_point.x(),
-        max_numbering_height() + line_spacing_anchor() + m_glyph_padding_vertical * 2,
+        max_numbering_height() + line_spacing_first_layer() + m_glyph_padding_vertical * 2,
         draw_box_opt_args,
         model,
         origin
@@ -465,15 +465,15 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
         if (i == 0) {
             double shrink =
                 (
-                    line_spacing_anchor() * (wall_count() - 1) +
-                    (line_width_anchor() * (1 - m_encroachment))
+                    line_spacing_first_layer() * (wall_count() - 1) +
+                    (line_width_first_layer() * (1 - m_encroachment))
                 ) / std::sin(to_radians(m_corner_angle) / 2)
             ;
             side_length = m_wall_side_length - shrink;
             to_x += shrink * std::sin(to_radians(90) - to_radians(m_corner_angle) / 2);
             to_y +=
-                line_spacing_anchor() * (wall_count() - 1) +
-                (line_width_anchor() * (1 - m_encroachment))
+                line_spacing_first_layer() * (wall_count() - 1) +
+                (line_width_first_layer() * (1 - m_encroachment))
             ;
         }
 
@@ -492,7 +492,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
                 
                 draw_line_opt_args = default_line_opt_args;
                 draw_line_opt_args.height       = i == 0 ? height_first_layer()                 : height_layer();
-                draw_line_opt_args.line_width   = i == 0 ? line_width_anchor()                  : line_width();
+                draw_line_opt_args.line_width   = i == 0 ? line_width_first_layer()             : line_width();
                 draw_line_opt_args.speed        = i == 0 ? speed_adjust(speed_first_layer())    : speed_adjust(speed_perimeter());
                 draw_line_opt_args.comment = "Print pattern wall";
                 gcode << draw_line(Vec2d(to_x, to_y), draw_line_opt_args, model, origin);
@@ -802,7 +802,7 @@ double CalibPressureAdvancePattern::object_size_x() const
     return get_num_patterns() * ((wall_count() - 1) * line_spacing_angle()) +
         (get_num_patterns() - 1) * (m_pattern_spacing + line_width()) +
         std::cos(to_radians(m_corner_angle) / 2) * m_wall_side_length +
-        line_spacing_anchor() * wall_count()
+        line_spacing_first_layer() * wall_count()
     ;
 }
 
@@ -811,7 +811,7 @@ double CalibPressureAdvancePattern::object_size_y() const
     return 2 * (std::sin(to_radians(m_corner_angle) / 2) * m_wall_side_length) +
         max_numbering_height() +
         m_glyph_padding_vertical * 2 +
-        line_width_anchor();
+        line_width_first_layer();
 }
 
 double CalibPressureAdvancePattern::glyph_start_x(int pattern_i) const
@@ -889,8 +889,8 @@ double CalibPressureAdvancePattern::max_numbering_height() const
 double CalibPressureAdvancePattern::pattern_shift() const
 {
     return
-        (wall_count() - 1) * line_spacing_anchor() +
-        line_width_anchor() +
+        (wall_count() - 1) * line_spacing_first_layer() +
+        line_width_first_layer() +
         m_glyph_padding_horizontal
     ;
 }
