@@ -343,7 +343,7 @@ void CalibPressureAdvanceLine::delta_modify_start(double& startx, double& starty
 
 CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     const Calib_Params& params,
-    DynamicPrintConfig& config,
+    DynamicPrintConfig config,
     const bool& is_bbl_machine,
     Model& model
 ) :

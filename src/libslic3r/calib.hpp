@@ -140,7 +140,7 @@ friend struct DrawBoxOptArgs;
 public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
-        DynamicPrintConfig& config,
+        DynamicPrintConfig config,
         const bool& is_bbl_machine,
         Model& model
     );

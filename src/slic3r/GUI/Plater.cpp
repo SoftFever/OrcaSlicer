@@ -8160,7 +8160,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
 
-    DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
+    const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     CalibPressureAdvancePattern pa_pattern(
         params,
