@@ -69,6 +69,7 @@ Next, Ellis' generator provided the ability to adjust specific printer, filament
 1. Ellis specified line widths as a percent of filament diameter. The Orca pattern method does the same to provide its suggested defaults, making use of Ellis' percentages in combination with your specified nozzle diameter
 2. In terms of line width, the pattern only makes use of the `Default` and `First layer` widths
 3. In terms of speed, the pattern only uses the `First layer speed -> First layer` and `Other layers speed -> Outer wall` speeds
+4. The infill pattern beneath the numbers cannot be changed becuase it's not pulled from the settings, by "drawn by hand" by the G-Code generator embedded in the underlying code
 
 ### Tower method
 
