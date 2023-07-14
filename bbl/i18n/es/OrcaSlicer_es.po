@@ -3,11 +3,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-07-07 00:37+0800\n"
-<<<<<<< Updated upstream
-"PO-Revision-Date: 2023-07-14 12:45+0200\n"
-=======
-"PO-Revision-Date: \n"
->>>>>>> Stashed changes
+"PO-Revision-Date: 2023-07-14 12:45+0200\n"3
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: https://t.me/orca_slicer_es\n"
 "Language: es\n"
@@ -103,11 +99,7 @@ msgid "No auto support"
 msgstr "No auto soportes"
 
 msgid "Support Generated"
-<<<<<<< Updated upstream
 msgstr "Soportes Generados"
-=======
-msgstr "Soporte Generado"
->>>>>>> Stashed changes
 
 msgid "Lay on face"
 msgstr "Tumbar boca abajo"
@@ -597,13 +589,8 @@ msgid ""
 "OrcaSlicer will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
-<<<<<<< Updated upstream
-"OrcaSlicer terminará debido a un error de localización. Le agradeceremos que "
-"nos informe del escenario específico en el que se ha producido este problema."
-=======
 "OrcaSlicer terminará debido a un error de posición. Le agradeceremos que nos "
 "informe del escenario específico en el que se ha producido este problema."
->>>>>>> Stashed changes
 
 # msgid "OrcaSlicer will terminate because of a localization error. It will be appreciated if you report the specific scenario this issue happened."
 # msgstr "OrcaSlicer terminará debido a un error de localización. Le agradeceríamos que nos informara del escenario específico en el que se ha producido este problema"
@@ -631,11 +618,7 @@ msgid ""
 "Please delete the file and try again."
 msgstr ""
 "El archivo de configuración de OrcaSlicer puede estar dañado y no puede ser "
-<<<<<<< Updated upstream
-"procesado."
-=======
 "procesado. Por favor borre el archivo e inténtelo otra vez."
->>>>>>> Stashed changes
 
 # msgid "OrcaSlicer configuration file may be corrupted and is not abled to be parsed.Please delete the file and try again."
 # msgstr "Es posible que el archivo de configuración de OrcaSlicer esté dañado y no pueda ser procesado. Por favor, borre el archivo e inténtelo de nuevo."
@@ -692,26 +675,16 @@ msgid ""
 "You can keep the modifield presets to the new project, discard or save "
 "changes as new presets."
 msgstr ""
-<<<<<<< Updated upstream
-"Puede mantener los preajustes de los campos de trabajo en el nuevo proyecto, "
-"descartar o guardar los cambios como nuevos preajustes."
-=======
 "Puede mantener los preajustes modificados en el nuevo proyecto, descartar o "
 "guardar los cambios como nuevos preajustes."
->>>>>>> Stashed changes
 
 msgid "User logged out"
 msgstr "Usuario desconectado"
 
 msgid "new or open project file is not allowed during the slicing process!"
 msgstr ""
-<<<<<<< Updated upstream
-"¡crear o abrir achivo de proyecto nuevo no está permitido durante el proceso "
-"de laminado!"
-=======
-"¡crear o abrir un achivo de proyecto nuevo no está permitido durante el "
+"¡crear o abrir un archivo de proyecto nuevo no está permitido durante el "
 "proceso de laminado!"
->>>>>>> Stashed changes
 
 msgid "Open Project"
 msgstr "Abrir proyecto"
@@ -757,11 +730,7 @@ msgid "Ongoing uploads"
 msgstr "Cargas en curso"
 
 msgid "Select a G-code file:"
-<<<<<<< Updated upstream
 msgstr "Seleccione un archivo de G-Code:"
-=======
-msgstr "Seleccione un archivo de G-code:"
->>>>>>> Stashed changes
 
 msgid "Import File"
 msgstr "Importar Archivo"
@@ -1155,20 +1124,12 @@ msgstr[1] "%1$d contornos no moldeados"
 
 msgid "Right click the icon to fix model object"
 msgstr ""
-<<<<<<< Updated upstream
-"Haga clic con el botón derecho del ratón en el icono para fijar el objeto "
-=======
 "Haga clic con el botón derecho del ratón en el icono para reparar el objeto "
->>>>>>> Stashed changes
 "del modelo"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr ""
-<<<<<<< Updated upstream
-"Haga clic con el botón derecho del ratón en el icono para ajustar la "
-=======
-"Haga clic con el botón derecho del ratón en el icono para descargar la "
->>>>>>> Stashed changes
+"Haga clic con el botón derecho del ratón en el icono para descartar la "
 "configuración del objeto"
 
 msgid "Click the icon to reset all settings of the object"
@@ -1177,11 +1138,7 @@ msgstr "Haga clic en el icono para restablecer todos los ajustes del objeto"
 #, fuzzy
 msgid "Right button click the icon to drop the object printable property"
 msgstr ""
-<<<<<<< Updated upstream
-"Haga clic con el botón derecho en el icono para soltar la característica "
-=======
 "Haga clic con el botón derecho en el icono para descartar la característica "
->>>>>>> Stashed changes
 "imprimible del objeto"
 
 msgid "Click the icon to toggle printable property of the object"
@@ -1234,13 +1191,8 @@ msgid ""
 "To save cut correspondence you can delete all connectors from all related "
 "objects."
 msgstr ""
-<<<<<<< Updated upstream
-"Para salvar la correspondencia cortada puedes borrar todos los conectores de "
-"los objetos."
-=======
 "Para salvar la correspondencia de corte puedes borrar todos los conectores "
 "de los objetos relacionados."
->>>>>>> Stashed changes
 
 msgid ""
 "This action will break a cut correspondence.\n"
@@ -1252,11 +1204,7 @@ msgstr ""
 "La acción interrumpirá la correspondencia de corte.\n"
 "Después de esto la consistencia no podrá ser garantizada.\n"
 "\n"
-<<<<<<< Updated upstream
-"Para manipular partes sólidas o volumenes negativos tienes que invalidar la "
-=======
 "Para manipular partes sólidas o volúmenes negativos tienes que invalidar la "
->>>>>>> Stashed changes
 "información de corte primero."
 
 msgid "Delete all connectors"
@@ -1633,11 +1581,7 @@ msgstr "Organizando..."
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr ""
-<<<<<<< Updated upstream
-"La organización ha fallado. Se han encontrado algunas excepciones al "
-=======
 "El posicionamiento ha fallado. Se han encontrado algunas excepciones al "
->>>>>>> Stashed changes
 "procesar las geometrías de los objetos."
 
 msgid "Arranging"
@@ -1661,13 +1605,8 @@ msgid ""
 "bed:\n"
 "%s"
 msgstr ""
-<<<<<<< Updated upstream
-"La organización ignoró los siguientes objetos que no pueden caber en una "
-"sola cama:\n"
-=======
 "Organizar ignoró los siguientes objetos que no pueden caber en una sola "
 "bandeja:\n"
->>>>>>> Stashed changes
 "%s"
 
 msgid ""
@@ -2006,23 +1945,11 @@ msgstr "Por favor, introduce un valor válido (K en 0~0.5, N en 0.6~2.0)"
 msgid "You need to select the material type and color first."
 msgstr "Necesitas seleccionar el tipo y el color del material primero."
 
-<<<<<<< Updated upstream
 msgid "Other Color"
 msgstr "Otro color"
 
 msgid "Custom Color"
 msgstr "Color Personalizado"
-=======
-#, fuzzy
-#| msgid "Other color"
-msgid "Other Color"
-msgstr "Otro color"
-
-#, fuzzy
-#| msgid "Custom"
-msgid "Custom Color"
-msgstr "Personalizado"
->>>>>>> Stashed changes
 
 msgid "Dynamic flow calibration"
 msgstr "Calibración de flujo dinámico"
@@ -2072,13 +1999,9 @@ msgid ""
 "hot bed like the picture below, and fill the value on its left side into the "
 "factor K input box."
 msgstr ""
-<<<<<<< Updated upstream
 "Calibración completada. Por favor, observe cual es línea de extrusión más "
-=======
-"Calibración completada. Por favor, encuentre la línea de extrusión más "
->>>>>>> Stashed changes
-"uniforme en su cama caliente como la imagen de abajo, y rellene el valor en "
-"su lado izquierdo en el factor K cuadro de entrada."
+"uniforme en su cama caliente, parecida a la imagen de abajo, e inserte el valor en "
+"el cuadro de texto de su lado izquierdo, donde dice factor K."
 
 msgid "Save"
 msgstr "Guardar"
@@ -2261,11 +2184,7 @@ msgid ""
 "automatically when current filament runs out"
 msgstr ""
 "El AMS continuará con otra bobina con las mismas propiedades de filamento "
-<<<<<<< Updated upstream
 "automáticamente cuando el filamento se termine"
-=======
-"automaticamente cuando el filamento se termine"
->>>>>>> Stashed changes
 
 msgid "File"
 msgstr "Archivo"
@@ -2382,13 +2301,8 @@ msgid ""
 "Distance of the 0,0 G-code coordinate from the front left corner of the "
 "rectangle."
 msgstr ""
-<<<<<<< Updated upstream
 "Distancia de la coordenada del G-Code de 0,0 de la esquina frontal izquierda "
 "del rectángulo."
-=======
-"Distancia de la coordenada del código G de 0,0 de la esquina frontal "
-"izquierda del rectángulo."
->>>>>>> Stashed changes
 
 msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
@@ -2477,13 +2391,8 @@ msgid ""
 msgstr ""
 "La temperatura del lecho de la otra capa es inferior a la temperatura del "
 "lecho de la capa inicial durante más de %d grados centígrados.\n"
-<<<<<<< Updated upstream
-"Esto puede hacer que el modelo se desprenda de la cama de impresión durante "
-"la impresión"
-=======
-"Esto puede hacer que el modelo se desprenda de la bandeja de impresión "
+"Esto puede hacer que el modelo se desprenda de la bandeja "
 "durante la impresión"
->>>>>>> Stashed changes
 
 msgid ""
 "Bed temperature is higher than vitrification temperature of this filament.\n"
@@ -3108,23 +3017,14 @@ msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
-<<<<<<< Updated upstream
 "Se han encontrado conflictos de rutas G-Code en la capa %d, z = %.2lf mm. "
 "Por favor, separe más los objetos en conflicto (%s <-> %s)."
-=======
-"Se han encontrado conflictos de rutas gcode en la capa %d, z = %.2lf mm. Por "
-"favor, separe más los objetos en conflicto (%s <-> %s)."
->>>>>>> Stashed changes
 
 msgid "An object is layed over the boundary of plate."
 msgstr "Un objeto está sobre el límite de la bandeja."
 
 msgid "A G-code path goes beyond the boundary of plate."
-<<<<<<< Updated upstream
-msgstr "Una ruta de G-Code va más allá del límite de la cama."
-=======
-msgstr "Una ruta de código G va más allá del límite de la bandeja."
->>>>>>> Stashed changes
+msgstr "Una ruta de G-Code va más allá del límite de la bandeja."
 
 msgid "Only the object being edit is visible."
 msgstr "Sólo es visible el objeto que se está editando."
@@ -3134,17 +3034,10 @@ msgid ""
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
-<<<<<<< Updated upstream
-"Un objeto está colocado en el límite de la cama o excede el límite de "
-"altura.\n"
-"Por favor solucione el problema moviéndolo totalmente fuera o dentro de la "
-"cama, y confirme que la altura está entre el volumen de construcción."
-=======
 "Un objeto está colocado en el límite de la bandeja o excede el límite de "
 "altura.\n"
 "Por favor solucione el problema moviéndolo totalmente fuera o dentro de la "
 "bandeja, y confirme que la altura está entre el volumen de construcción."
->>>>>>> Stashed changes
 
 msgid "Jump to"
 msgstr "Ir a"
@@ -4564,11 +4457,7 @@ msgid ""
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
 "Previsualizar solo el modo:\n"
-<<<<<<< Updated upstream
 "El archivo cargado contiene solo G-Code, no puedo entrar a la página de "
-=======
-"El archivo cargado contiene solo gcode, no puedo entrar a la página de "
->>>>>>> Stashed changes
 "Preparación"
 
 msgid "You can keep the modified presets to the new project or discard them"
@@ -4743,15 +4632,9 @@ msgid ""
 "still want to do this printing, please set this filament's bed temperature "
 "to non zero."
 msgstr ""
-<<<<<<< Updated upstream
-"Cama% d: %s no está sugerido para ser usado para imprimir filamento %s(%s). "
-"Si usted aún quiere imprimir, por favor, seleccione 0 en la temperatura de "
-"cama."
-=======
 "Bandeja% d: %s no está sugerido para ser usado para imprimir filamento "
 "%s(%s). Si usted aún quiere imprimir, por favor, seleccione 0 en la "
 "temperatura de Bandeja."
->>>>>>> Stashed changes
 
 msgid "Switching the language requires application restart.\n"
 msgstr "El cambio de idioma requiere el reinicio de la aplicación.\n"
@@ -5456,12 +5339,8 @@ msgid ""
 "Prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
 msgstr ""
-<<<<<<< Updated upstream
-"La torre primaria es necesaria para que el intervalo sea fluido. Puede haber "
-=======
-"La torre primaria es necesaria para que el timelapse sea fluido. Puede haber "
->>>>>>> Stashed changes
-"defectos en el modelo sin torre primaria. ¿Desea activar la torre primaria?"
+"La torre de purga es necesaria para que el intervalo sea fluido. Puede haber "
+"defectos en el modelo sin torre de purga. ¿Desea activar la torre de purga"
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -5510,11 +5389,7 @@ msgid ""
 msgstr ""
 "Cuando grabamos intervalos de tiempo sin cabezal de impresión, es "
 "recomendable añadir un \"Torre de Purga de Intervalo\" \n"
-<<<<<<< Updated upstream
-"presionando con el botón derecho la posición vacía de la cama de "
-=======
 "presionando con el botón derecho la posición vacía de la bandeja de "
->>>>>>> Stashed changes
 "construcción y elegir \"Añadir Primitivo\"->\"Intervalo de Torre de Purga\"."
 
 msgid "Line width"
@@ -5595,21 +5470,12 @@ msgid_plural ""
 "estimation."
 msgstr[0] ""
 "La siguiente línea %s contiene palabras clave reservadas.\n"
-<<<<<<< Updated upstream
-"Por favor, elimínela, o vencerá la visualización del G-Code y la estimación "
-"del tiempo de impresión."
-msgstr[1] ""
-"Las siguientes líneas %s contienen palabras clave reservadas.\n"
-"Por favor, elimínelas, o vencerá la visualización del G-Code y la estimación "
-"del tiempo de impresión."
-=======
 "Por favor, elimínela, o vencerá la visualización del código G y la "
 "estimación del tiempo de impresión."
 msgstr[1] ""
 "Las siguientes líneas %s contienen palabras clave reservadas.\n"
 "Por favor, elimínelas, o vencerá la visualización del código G y la "
 "estimación del tiempo de impresión."
->>>>>>> Stashed changes
 
 msgid "Reserved keywords found"
 msgstr "Palabras clave utilizadas y encontradas"
@@ -5653,14 +5519,9 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr ""
-<<<<<<< Updated upstream
-"Esta es la temperatura de la cama cuando la cama fría está instalada. Un "
-"valor de 0 significa que el filamento no admite la impresión en la cama fría"
-=======
 "Esta es la temperatura de la bandeja cuando la Bandeja Fría está instalada. "
 "Un valor de 0 significa que el filamento no admite la impresión en la "
 "Bandeja Fría"
->>>>>>> Stashed changes
 
 msgid "Engineering plate"
 msgstr "Bandeja de Ingeniería"
@@ -5669,43 +5530,25 @@ msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
-<<<<<<< Updated upstream
-"Esta es la temperatura de la cama cuando la cama de ingeniería está "
-"instalada. Un valor de 0 significa que el filamento no admite la impresión "
-"en la cama de ingeniería"
-=======
 "Esta es la temperatura de la cama cuando la Bandeja de Ingeniería está "
 "instalada. Un valor de 0 significa que el filamento no admite la impresión "
 "en la Bandeja de Ingeniería"
->>>>>>> Stashed changes
 
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
-<<<<<<< Updated upstream
-"Esta es la temperatura de la cama cuando la cama de alta temperatura está "
-"instalada. Un valor de 0 significa que el filamento no admite la impresión "
-"en la cama de alta temperatura"
-=======
 "Esta es la temperatura de la cama cuando la bandeja de alta temperatura está "
 "instalada. Un valor de 0 significa que el filamento no admite la impresión "
 "en la bandeja de alta temperatura"
->>>>>>> Stashed changes
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
 msgstr ""
-<<<<<<< Updated upstream
-"Temperatura del lecho cuando la cama PEI texturizada está instalada. El "
-"valor 0 significa que el filamento no es compatible para imprimir en la cama "
-"PEI texturizada"
-=======
 "Temperatura del lecho cuando la Bandeja PEI Texturizada está instalada. El "
 "valor 0 significa que el filamento no es compatible para imprimir en la "
 "Bandeja PEI Texturizada"
->>>>>>> Stashed changes
 
 msgid "Volumetric speed limitation"
 msgstr "Limitación de la velocidad volumétrica"
@@ -6314,11 +6157,7 @@ msgstr "Espacio"
 
 msgid "Select the object/part and press space to change the name"
 msgstr ""
-<<<<<<< Updated upstream
-"Seleccione el objeto/parte y pulse la barra espaciadora para cambiar el "
-=======
 "Seleccione el objeto/pieza y pulse la barra espaciadora para cambiar el "
->>>>>>> Stashed changes
 "nombre"
 
 msgid "Mouse click"
@@ -6554,11 +6393,7 @@ msgid ""
 "Maybe parts of the object at these height are too thin, or the object has "
 "faulty mesh"
 msgstr ""
-<<<<<<< Updated upstream
-"Tal vez las partes del objeto a esa altura son demasiado finas, o el objeto "
-=======
 "Tal vez las piezas del objeto a esa altura son demasiado finas, o el objeto "
->>>>>>> Stashed changes
 "tiene una malla defectuosa"
 
 msgid "No object can be printed. Maybe too small"
@@ -6568,21 +6403,12 @@ msgid ""
 "Failed to generate gcode for invalid custom G-code.\n"
 "\n"
 msgstr ""
-<<<<<<< Updated upstream
-"Ha fallado la generación del G-Code por un G-Code personalizado no válido.\n"
-=======
-"Ha fallado la generación del código G por un código G personalizado no "
-"válido.\n"
->>>>>>> Stashed changes
+"La generación ha fallado del G-Code por un G-Code personalizado no válido.\n"
 "\n"
 
 msgid "Please check the custom G-code or use the default custom G-code."
 msgstr ""
-<<<<<<< Updated upstream
 "Por favor, compruebe el G-Code personalizado o utilice el G-Code "
-=======
-"Por favor, compruebe el código G personalizado o utilice el código G "
->>>>>>> Stashed changes
 "personalizado por defecto."
 
 #, boost-format
@@ -6771,11 +6597,7 @@ msgid "No extrusions under current settings."
 msgstr "No hay extrusiones con los ajustes actuales."
 
 msgid "Bed temperatures for the used filaments differ significantly."
-msgstr ""
-<<<<<<< Updated upstream
-"La temperaturas de la cama para los filamentos usados difieren bastante."
-=======
->>>>>>> Stashed changes
+msgstr "Las temperaturas de la cama para los filamentos usados difieren bastante."
 
 msgid ""
 "Smooth mode of timelapse is not supported when \"by object\" sequence is "
@@ -6905,13 +6727,8 @@ msgid ""
 "Shrink the initial layer on build plate to compensate for elephant foot "
 "effect"
 msgstr ""
-<<<<<<< Updated upstream
-"Contraer la capa inicial en la cama de impresión para compensar el efecto de "
-"la pata de elefante"
-=======
 "Contraer la capa inicial en la bandeja de impresión para compensar el efecto "
 "de la pata de elefante"
->>>>>>> Stashed changes
 
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
@@ -7044,12 +6861,8 @@ msgid ""
 "filament does not support to print on the Cool Plate"
 msgstr ""
 "Esta es la temperatura de la cama para las capas excepto la inicial. Un "
-<<<<<<< Updated upstream
-"valor de 0 significa que el filamento no admite la impresión en la cama fría"
-=======
 "valor de 0 significa que el filamento no admite la impresión en la Bandeja "
 "Fría"
->>>>>>> Stashed changes
 
 msgid "°C"
 msgstr "°C"
@@ -7059,37 +6872,23 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 "Esta es la temperatura de la cama para las capas excepto la inicial. Un "
-<<<<<<< Updated upstream
-"valor de 0 significa que el filamento no admite la impresión en la cama de "
-"ingeniería"
-=======
 "valor de 0 significa que el filamento no admite la impresión en la Bandeja "
 "de Ingeniería"
->>>>>>> Stashed changes
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
 "Esta es la temperatura de la cama para las capas excepto la inicial. Un "
-<<<<<<< Updated upstream
-"valor de 0 significa que el filamento no admite la impresión en la cama de "
-"alta temperatura"
-=======
 "valor de 0 significa que el filamento no admite la impresión en la bandeja "
 "de alta temperatura"
->>>>>>> Stashed changes
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
 msgstr ""
 "Temperatura de cama para las capas excepto la inicial. El valor 0 significa "
-<<<<<<< Updated upstream
-"que el filamento no es compatible para imprimir en la cama PEI texturizada"
-=======
 "que el filamento no es compatible para imprimir en la Bandeja PEI Texturizada"
->>>>>>> Stashed changes
 
 msgid "Initial layer"
 msgstr "Capa inicial"
@@ -7102,33 +6901,21 @@ msgid ""
 "support to print on the Cool Plate"
 msgstr ""
 "Esta es la temperatura de la cama de la capa inicial. Un valor de 0 "
-<<<<<<< Updated upstream
-"significa que el filamento no admite la impresión en la cama fría"
-=======
 "significa que el filamento no admite la impresión en la Bandeja Fría"
->>>>>>> Stashed changes
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Esta es la temperatura de la cama de la capa inicial. Un valor de 0 "
-<<<<<<< Updated upstream
-"significa que el filamento no admite la impresión en la cama de ingeniería"
-=======
 "significa que el filamento no admite la impresión en la Bandeja de Ingeniería"
->>>>>>> Stashed changes
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the High Temp Plate"
 msgstr ""
 "Esta es la temperatura de la cama de la capa inicial. Un valor de 0 "
-<<<<<<< Updated upstream
-"significa que el filamento no admite la impresión en la cama de alta "
-=======
 "significa que el filamento no admite la impresión en la bandeja de alta "
->>>>>>> Stashed changes
 "temperatura"
 
 msgid ""
@@ -7136,11 +6923,7 @@ msgid ""
 "support to print on the Textured PEI Plate"
 msgstr ""
 "Temperatura del lecho de la capa inicial. El valor 0 significa que el "
-<<<<<<< Updated upstream
-"filamento no es compatible para imprimir en la cama PEI texturizada"
-=======
 "filamento no es compatible para imprimir en la Bandeja PEI Texturizada"
->>>>>>> Stashed changes
 
 msgid "Bed types supported by the printer"
 msgstr "Tipos de cama que admite la impresora"
@@ -7424,15 +7207,9 @@ msgid ""
 "Close all cooling fan for the first certain layers. Cooling fan of the first "
 "layer used to be closed to get better build plate adhesion"
 msgstr ""
-<<<<<<< Updated upstream
 "Apague todos los ventiladores de refrigeración de las primeras capas. El "
 "ventilador de la primera capa debe estar cerrado para conseguir una mejor "
-"adhesión de la cama de impresión"
-=======
-"Apaga todos los ventiladores de refrigeración de las primeras capas. El "
-"ventilador de la primera capa debe estar cerrado para conseguir una mejor "
 "adhesión de la bandeja de impresión"
->>>>>>> Stashed changes
 
 msgid "layers"
 msgstr "capas"
@@ -7665,11 +7442,7 @@ msgid ""
 msgstr ""
 "El material puede tener un cambio volumétrico después de cambiar entre el "
 "estado fundido y el estado cristalino. Este ajuste cambia proporcionalmente "
-<<<<<<< Updated upstream
-"todo el flujo de extrusión de este filamento en G-Code. El rango de valores "
-=======
 "todo el flujo de extrusión de este filamento en gcode. El rango de valores "
->>>>>>> Stashed changes
 "recomendado es entre 0.95 y 1.05. Tal vez usted puede ajustar este valor "
 "para obtener una superficie plana agradable cuando hay un ligero "
 "desbordamiento o sub-desbordamiento"
@@ -7789,13 +7562,8 @@ msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
 "and should be accurate"
 msgstr ""
-<<<<<<< Updated upstream
 "El diámetro del filamento se utiliza para calcular la extrusión en el G-"
 "Code, por lo que es importante y debe ser preciso"
-=======
-"El diámetro del filamento se utiliza para calcular la extrusión en el gcode, "
-"por lo que es importante y debe ser preciso"
->>>>>>> Stashed changes
 
 msgid "Shrinkage"
 msgstr "Retracción"
@@ -7883,13 +7651,8 @@ msgstr "Densidad de relleno"
 #, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr ""
-<<<<<<< Updated upstream
-"Densidad del relleno interno disperso, el 100%% significa sólido en todo el "
-"territorio"
-=======
 "Densidad del relleno interno disperso, el 100%% significa sólido en toda la "
 "superficie"
->>>>>>> Stashed changes
 
 msgid "Sparse infill pattern"
 msgstr "Patrón de relleno disperso"
@@ -8037,11 +7800,7 @@ msgid ""
 "adhensive"
 msgstr ""
 "Aceleración de la capa inicial. El uso de un valor más bajo puede mejorar la "
-<<<<<<< Updated upstream
-"adherencia de la cama de impresión"
-=======
 "adherencia de la bandeja de impresión"
->>>>>>> Stashed changes
 
 msgid "Enable accel_to_decel"
 msgstr "Activar acel_a_decel"
@@ -8085,11 +7844,7 @@ msgid ""
 "can improve build plate adhension"
 msgstr ""
 "Altura de la capa inicial. Hacer que la altura de la capa inicial sea "
-<<<<<<< Updated upstream
-"ligeramente gruesa puede mejorar la adherencia de la cama de impresión"
-=======
 "ligeramente gruesa puede mejorar la adherencia de la bandeja de impresión"
->>>>>>> Stashed changes
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Velocidad de la capa inicial excepto la parte sólida de relleno"
@@ -8220,11 +7975,7 @@ msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
 "tolerance is same with resolution"
 msgstr ""
-<<<<<<< Updated upstream
 "Habilite esto para obtener un archivo de G-Code que tiene movimientos G2 y "
-=======
-"Habilite esto para obtener un archivo de código G que tiene movimientos G2 y "
->>>>>>> Stashed changes
 "G3. Y la tolerancia de ajuste es la misma con la resolución"
 
 msgid "Add line number"
@@ -8307,19 +8058,11 @@ msgid ""
 "gcode' is activated.\n"
 "Use 0 to deactivate."
 msgstr ""
-<<<<<<< Updated upstream
 "Inicia el ventilador este nÚmero de segundos antes que el tiempo de inicio "
 "objetivo (puede usar segundos fraccionales). Se asume aceleración infinita "
 "para esta estimación de tiempo, y solo se tendrán en cuenta los movimientos "
 "G1 y G0 (no soporta el ajuste de arco).\n"
 "Esto no moverá comandos de ventilador desde G-Codes personalizados (estos "
-=======
-"Inicia el ventilador este numero de segundos antes que el tiempo de inicio "
-"objetivo (puedes usar segundos fraccionales). Esto asume aceleración para "
-"esta estimación de tiempo, y esto solo se tendrá en cuenta los movimientos "
-"G1 y g0 (no soporta el montaje de arco).\n"
-"Esto no moverá comandos de ventilador desde gcodes personalizados (ellos "
->>>>>>> Stashed changes
 "actúan como un tipo de 'barrera').\n"
 "Usar 0 para desactivar."
 
@@ -8485,11 +8228,7 @@ msgstr "Velocidad de impresión de las líneas de alisado"
 #| msgid "This G-Code part is inserted at every layer change after lift z"
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
-<<<<<<< Updated upstream
 "Esta parte de G-Code se inserta en cada cambio de capa después de levantar z"
-=======
-"Esta parte de gcode se inserta en cada cambio de capa después de levantar z"
->>>>>>> Stashed changes
 
 msgid "Supports silent mode"
 msgstr "Admite el modo silencioso"
@@ -8510,11 +8249,7 @@ msgid ""
 "pause G-code in gcode viewer"
 msgstr ""
 "Este G-code se usará como cídugo para la pausa de impresión. El usuario "
-<<<<<<< Updated upstream
 "puede insertar una pausa en el visor de G-Code"
-=======
-"puede insertar una pausa en el visor de gcode"
->>>>>>> Stashed changes
 
 msgid "This G-code will be used as a custom code"
 msgstr "Este G-code se usará para el código personalizado"
@@ -8786,11 +8521,7 @@ msgstr "Expansión de la capa inicial"
 msgid "Expand the first raft or support layer to improve bed plate adhesion"
 msgstr ""
 "Expandir la primera base de impresión o capa de soporte para mejorar la "
-<<<<<<< Updated upstream
-"adherencia de la cama de la cama"
-=======
 "adherencia de la cama de la bandeja"
->>>>>>> Stashed changes
 
 msgid "Raft layers"
 msgstr "Capas de base de impresión"
@@ -8812,16 +8543,9 @@ msgid ""
 "much points and gcode lines in gcode file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
-<<<<<<< Updated upstream
 "La ruta del G-Code se genera después de simplificar el contorno del modelo "
-"para evitar demasiados puntos y líneas de G-Code en el archivo de G-Code. Un "
+"para evitar demasiados puntos y líneas de código en el archivo de G-Code. Un "
 "valor más pequeño significa una mayor resolución y más tiempo para cortar"
-=======
-"La ruta del código G se genera después de simplificar el contorno del modelo "
-"para evitar demasiados puntos y líneas de código G en el archivo de código "
-"G. Un valor más pequeño significa una mayor resolución y más tiempo para "
-"cortar"
->>>>>>> Stashed changes
 
 msgid "Travel distance threshold"
 msgstr "Umbral de distancia de desplazamiento"
@@ -8959,11 +8683,8 @@ msgid ""
 "This option causes the inner seams to be shifted backwards based on their "
 "depth, forming a zigzag pattern."
 msgstr ""
-<<<<<<< Updated upstream
 "Esta opción causa que las costuras internas sean desplazadas hacía detrás en "
 "función de su profundidad, formando un patrón en zigzag."
-=======
->>>>>>> Stashed changes
 
 msgid "Seam gap"
 msgstr "Separación entre costuras"
@@ -9042,7 +8763,6 @@ msgstr "Velocidad inicial: "
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr ""
-<<<<<<< Updated upstream
 "Velocidad de la falda, en mm/s. Cero significa utilizar la velocidad de capa "
 "por defecto."
 
@@ -9051,18 +8771,11 @@ msgstr ""
 #| "The printing speed in exported G-Code will be slowed down, when the "
 #| "estimated layer time is shorter than this value, to get better cooling "
 #| "for these layers"
-=======
-
->>>>>>> Stashed changes
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
 "layer time is shorter than this value, to get better cooling for these layers"
 msgstr ""
-<<<<<<< Updated upstream
 "La velocidad de impresión en el G-Code exportado se ralentizará, cuando el "
-=======
-"La velocidad de impresión en el gcode exportado se ralentizará, cuando el "
->>>>>>> Stashed changes
 "tiempo estimado de la capa sea inferior a este valor, para conseguir una "
 "mejor refrigeración de estas capas"
 
@@ -9209,11 +8922,7 @@ msgstr "Sólo en la bandeja de impresión"
 
 msgid "Don't create support on model surface, only on build plate"
 msgstr ""
-<<<<<<< Updated upstream
-"No crear soporte en la superficie del modelo, sólo en la cama de impresión"
-=======
 "No crear soporte en la superficie del modelo, sólo en la bandeja de impresión"
->>>>>>> Stashed changes
 
 msgid "Support critical regions only"
 msgstr "Añadir soportes en regiones críticas solo"
@@ -9478,11 +9187,7 @@ msgid ""
 msgstr ""
 "No se recomienda que la temperatura de la otra capa sea inferior a la de la "
 "capa inicial por encima de este umbral. Una temperatura demasiado baja de la "
-<<<<<<< Updated upstream
-"otra capa puede hacer que el modelo se desprenda de la cama de impresión"
-=======
 "otra capa puede hacer que el modelo se desprenda de la bandeja de impresión"
->>>>>>> Stashed changes
 
 msgid "Detect thin wall"
 msgstr "Detectar la pared delgada"
@@ -9503,13 +9208,8 @@ msgid ""
 "This gcode is inserted when change filament, including T command to trigger "
 "tool change"
 msgstr ""
-<<<<<<< Updated upstream
 "Este G-Code se inserta cuando se cambia de filamento, incluyendo el comando "
 "T para activar el cambio de herramienta"
-=======
-"Este gcode se inserta cuando se cambia de filamento, incluyendo el comando T "
-"para activar el cambio de herramienta"
->>>>>>> Stashed changes
 
 msgid "Line width for top surfaces"
 msgstr "Ancho de línea para las superficies superiores"
@@ -9677,11 +9377,7 @@ msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
 "following format: \"XxY, XxY, ...\""
 msgstr ""
-<<<<<<< Updated upstream
 "Los tamaños de las imágenes deben almacenarse en archivos .G-Code y .sl1 / ."
-=======
-"Los tamaños de las imágenes deben almacenarse en archivos .gcode y .sl1 / ."
->>>>>>> Stashed changes
 "sl1s, en el siguiente formato: \"XxY, XxY, ...\""
 
 msgid "Use relative E distances"
@@ -9886,11 +9582,7 @@ msgstr "No comprobado"
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 "No ejecute ninguna comprobación de validez, como la comprobación de "
-<<<<<<< Updated upstream
 "conflictos de ruta de G-Code."
-=======
-"conflictos de ruta de gcode."
->>>>>>> Stashed changes
 
 msgid "Normative check"
 msgstr "Comprobación de normativa"
@@ -10298,14 +9990,9 @@ msgstr ""
 #~ "Timelapse\n"
 #~ "Did you know that you can generate a timelapse video during each print?"
 #~ msgstr ""
-<<<<<<< Updated upstream
 #~ "Intervalo\n"
 #~ "¿Sabías que puedes generar un vídeo de intervalo de trabajo durante cada "
 #~ "impresión?"
-=======
-#~ "Timelapse\n"
-#~ "¿Sabías que puedes generar un vídeo timelapse durante cada impresión?"
->>>>>>> Stashed changes
 
 #~ msgid ""
 #~ "Auto-Arrange\n"
@@ -10428,11 +10115,7 @@ msgstr ""
 #~ "keeping track of all the parts."
 #~ msgstr ""
 #~ "Divide tus impresiones en planchas\n"
-<<<<<<< Updated upstream
-#~ "¿Sabías que puedes dividir un modelo con muchas piezas en camas "
-=======
 #~ "¿Sabías que puedes dividir un modelo con muchas piezas en bandejas "
->>>>>>> Stashed changes
 #~ "individuales listas para imprimir? Esto simplificará el proceso de "
 #~ "seguimiento de todas las piezas."
 
@@ -10612,15 +10295,9 @@ msgstr ""
 #~ "An object is layed over the boundary of plate.\n"
 #~ "Please solve the problem by moving it totally inside or outside plate."
 #~ msgstr ""
-<<<<<<< Updated upstream
-#~ "Un objeto está colocado sobre el límite de la cama.\n"
-#~ "Por favor, resuelva el problema moviéndolo totalmente dentro o fuera de "
-#~ "la cama."
-=======
 #~ "Un objeto está colocado sobre el límite de la bandeja.\n"
 #~ "Por favor, resuelva el problema moviéndolo totalmente dentro o fuera de "
 #~ "la bandeja."
->>>>>>> Stashed changes
 
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
@@ -10713,11 +10390,7 @@ msgstr ""
 #~ "No se recomienda que la temperatura de la cama de la otra capa sea "
 #~ "inferior a la de la capa inicial por más de este umbral. Una temperatura "
 #~ "demasiado baja de la otra capa puede hacer que el modelo se desprenda de "
-<<<<<<< Updated upstream
-#~ "la cama de impresión."
-=======
 #~ "la bandeja de impresión."
->>>>>>> Stashed changes
 
 #~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
@@ -10758,11 +10431,7 @@ msgstr ""
 #~ "calculará automáticamente durante el corte en función de la pendiente de "
 #~ "la superficie del modelo.\n"
 #~ "Tenga en cuenta que esta opción sólo surte efecto si no se genera ninguna "
-<<<<<<< Updated upstream
-#~ "torre de purga en la cama actual."
-=======
 #~ "torre de purga en la bandeja actual."
->>>>>>> Stashed changes
 
 #~ msgid "Enter a search term"
 #~ msgstr "Teclea un término de búsqueda"
