@@ -190,7 +190,7 @@ private:
         double speed;
     };
 
-    void refresh_pattern_config(const Model& model);
+    void refresh_pattern_setup(const Model& model);
     GCodeWriter pattern_writer(
         const Model& model,
         const Vec3d& origin

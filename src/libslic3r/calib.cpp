@@ -354,7 +354,7 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
 {
     this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
 
-    refresh_pattern_config(model);
+    refresh_pattern_setup(model);
 };
 
 void CalibPressureAdvancePattern::set_starting_point(const Model& model)
@@ -382,7 +382,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
     std::stringstream gcode;
     gcode << "; start pressure advance pattern for layer\n";
 
-    refresh_pattern_config(model);
+    refresh_pattern_setup(model);
     GCodeWriter writer = pattern_writer(model, origin);
 
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), writer, "Move to start XY position");
@@ -538,7 +538,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
     model.plates_custom_gcodes[model.curr_plate_index] = info;
 }
 
-void CalibPressureAdvancePattern::refresh_pattern_config(const Model& model)
+void CalibPressureAdvancePattern::refresh_pattern_setup(const Model& model)
 {
     DynamicPrintConfig updated_config(m_initial_config);
     updated_config.apply(model.objects.front()->config.get(), true);
