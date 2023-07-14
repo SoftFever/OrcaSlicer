@@ -145,6 +145,14 @@ static t_config_enum_values s_keys_map_IroningType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(IroningType)
 
+//BBS:
+static t_config_enum_values s_keys_map_TopOneWallType {
+    {"not apply", int(TopOneWallType::None)},
+    {"all top", int(TopOneWallType::Alltop)},
+    {"topmost", int(TopOneWallType::Topmost)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TopOneWallType)
+
 //BBS
 static t_config_enum_values s_keys_map_WallInfillOrder {
     { "inner wall/outer wall/infill",     int(WallInfillOrder::InnerOuterInfill) },
@@ -721,11 +729,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(1));
 
-    def = this->add("only_one_wall_top", coBool);
-    def->label = L("Only one wall on top surfaces");
+    def = this->add("top_one_wall_type", coEnum);
+    def->label = L("Only one wall type");
     def->category = L("Quality");
-    def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern. Could be applyed on topmost surface or all top surface.");
+    def->enum_keys_map = &ConfigOptionEnum<TopOneWallType>::get_enum_values();
+    def->enum_values.push_back("not apply");
+    def->enum_values.push_back("all top");
+    def->enum_values.push_back("topmost");
+    def->enum_labels.push_back(L("Not apply"));
+    def->enum_labels.push_back(L("Top surfaces"));
+    def->enum_labels.push_back(L("Topmost surface"));
+    def->set_default_value(new ConfigOptionEnum<TopOneWallType>(TopOneWallType::Alltop));
 
     def           = this->add("only_one_wall_first_layer", coBool);
     def->label    = L("Only one wall on first layer");
@@ -4240,7 +4255,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type","nozzle_hrc","chamber_temperature"
+        "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

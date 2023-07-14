@@ -174,6 +174,13 @@ enum class PerimeterGeneratorType
     Arachne
 };
 
+enum class TopOneWallType
+{
+    None,
+    Alltop,
+    Topmost
+};
+
 // BBS
 enum OverhangFanThreshold {
     Overhang_threshold_none = 0,
@@ -304,7 +311,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
-
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -704,7 +711,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                wall_distribution_count))
     ((ConfigOptionPercent,            min_feature_size))
     ((ConfigOptionPercent,            min_bead_width))
-    ((ConfigOptionBool,               only_one_wall_top))
+    ((ConfigOptionEnum<TopOneWallType>, top_one_wall_type))
     ((ConfigOptionBool,               only_one_wall_first_layer))
     // OrcaSlicer
     ((ConfigOptionPercent,            seam_gap))
