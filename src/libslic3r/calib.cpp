@@ -433,7 +433,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
             gcode = std::stringstream(); // reset for next layer contents
             gcode << "; start pressure advance pattern for layer\n";
             
-            double layer_height = height_first_layer() + (i * height_layer());
+            const double layer_height = height_first_layer() + (i * height_layer());
             gcode << writer.travel_to_z(layer_height, "Move to layer height");
         }
 
@@ -491,8 +491,9 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
                 to_y += std::sin(to_radians(m_corner_angle) / 2) * side_length;
                 
                 draw_line_opt_args = default_line_opt_args;
-                draw_line_opt_args.height = i == 0 ? height_first_layer() : height_layer();
-                draw_line_opt_args.speed = i == 0 ? speed_adjust(speed_first_layer()) : speed_adjust(speed_perimeter());
+                draw_line_opt_args.height       = i == 0 ? height_first_layer()                 : height_layer();
+                draw_line_opt_args.line_width   = i == 0 ? line_width_anchor()                  : line_width();
+                draw_line_opt_args.speed        = i == 0 ? speed_adjust(speed_first_layer())    : speed_adjust(speed_perimeter());
                 draw_line_opt_args.comment = "Print pattern wall";
                 gcode << draw_line(Vec2d(to_x, to_y), draw_line_opt_args, model, origin);
 
