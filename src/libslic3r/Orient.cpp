@@ -4,7 +4,6 @@
 #include <ClipperUtils.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include <tbb/parallel_for.h>
-#include <tbb/atomic.h>
 
 #if defined(_MSC_VER) && defined(__clang__)
 #define BOOST_NO_CXX17_HDR_STRING_VIEW

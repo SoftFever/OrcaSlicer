@@ -3580,7 +3580,7 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
     const auto& radius = key.radius;
     const auto& layer_nr = key.layer_nr;
     BOOST_LOG_TRIVIAL(debug) << "calculate_avoidance on radius=" << radius << ", layer=" << layer_nr<<", recursion="<<key.recursions;
-    std::pair<tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash>::iterator,bool> ret;
+    std::pair<tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash, RadiusLayerPairEquality>::iterator,bool> ret;
     constexpr auto max_recursion_depth = 100;
     if (key.recursions <= max_recursion_depth*2) {
         if (layer_nr == 0) {
