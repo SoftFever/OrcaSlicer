@@ -344,18 +344,16 @@ void CalibPressureAdvanceLine::delta_modify_start(double& startx, double& starty
 
 CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     const Calib_Params& params,
-    DynamicPrintConfig config,
+    const DynamicPrintConfig& config,
     const bool& is_bbl_machine,
     Model& model
 ) :
-    CalibPressureAdvance(),
     m_params(params),
-    m_initial_config(config),
     m_is_bbl_machine(is_bbl_machine)
 {
     this->m_draw_digit_mode = DrawDigitMode::Bottom_To_Top;
 
-    refresh_pattern_setup(model);
+    refresh_setup(config, model);
 };
 
 void CalibPressureAdvancePattern::set_starting_point(const Model& model)
@@ -378,12 +376,16 @@ void CalibPressureAdvancePattern::set_starting_point(const Model& model)
     }
 }
 
-void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec3d& origin)
+void CalibPressureAdvancePattern::generate_custom_gcodes(
+    const DynamicPrintConfig& config,
+    Model& model,
+    const Vec3d& origin
+)
 {
     std::stringstream gcode;
     gcode << "; start pressure advance pattern for layer\n";
 
-    refresh_pattern_setup(model);
+    refresh_setup(config, model);
     GCodeWriter writer = pattern_writer(model, origin);
     GCodeProcessor processor;
     processor.s_IsBBLPrinter = m_is_bbl_machine;
@@ -544,14 +546,16 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(Model& model, const Vec
     model.plates_custom_gcodes[model.curr_plate_index] = info;
 }
 
-void CalibPressureAdvancePattern::refresh_pattern_setup(const Model& model)
+void CalibPressureAdvancePattern::refresh_setup(
+    const DynamicPrintConfig& config,
+    const Model& model
+)
 {
-    DynamicPrintConfig updated_config(m_initial_config);
-    updated_config.apply(model.objects.front()->config.get(), true);
-    updated_config.apply(model.objects.front()->volumes.front()->config.get(), true);
-    m_config = updated_config;
+    m_config = config;
+    m_config.apply(model.objects.front()->config.get(), true);
+    m_config.apply(model.objects.front()->volumes.front()->config.get(), true);
 
-    m_is_delta = (updated_config.option<ConfigOptionPoints>("printable_area")->values.size() > 4);
+    m_is_delta = (m_config.option<ConfigOptionPoints>("printable_area")->values.size() > 4);
     set_starting_point(model);
 }
 

@@ -8185,7 +8185,11 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     );
     center_selection();
 
-    pa_pattern.generate_custom_gcodes(model(), get_partplate_list().get_current_plate_origin());
+    pa_pattern.generate_custom_gcodes(
+        full_config,
+        model(),
+        get_partplate_list().get_current_plate_origin()
+    );
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
     changed_objects({ 0 });
 }
@@ -10346,6 +10350,7 @@ void Plater::reslice()
     // regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (model().calib_pa_pattern) {
         model().calib_pa_pattern->generate_custom_gcodes(
+            wxGetApp().preset_bundle->full_config(),
             model(),
             get_partplate_list().get_current_plate_origin()
         );

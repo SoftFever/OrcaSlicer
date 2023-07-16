@@ -140,7 +140,7 @@ friend struct DrawBoxOptArgs;
 public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
-        DynamicPrintConfig config,
+        const DynamicPrintConfig& config,
         const bool& is_bbl_machine,
         Model& model
     );
@@ -152,7 +152,11 @@ public:
 
     void set_starting_point(const Model& model);
 
-    void generate_custom_gcodes(Model& model, const Vec3d& origin);
+    void generate_custom_gcodes(
+        const DynamicPrintConfig& config,
+        Model& model,
+        const Vec3d& origin
+    );
 
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
@@ -190,7 +194,7 @@ private:
         double speed;
     };
 
-    void refresh_pattern_setup(const Model& model);
+    void refresh_setup(const DynamicPrintConfig& config, const Model& model);
     GCodeWriter pattern_writer(
         const Model& model,
         const Vec3d& origin
@@ -244,10 +248,9 @@ private:
     double print_size_y() const { return object_size_y(); };
 
     const Calib_Params& m_params;
-    const DynamicPrintConfig m_initial_config;
-    const bool& m_is_bbl_machine;
 
     DynamicPrintConfig m_config;
+    const bool& m_is_bbl_machine;
     bool m_is_delta;
     Vec3d m_starting_point;
 
