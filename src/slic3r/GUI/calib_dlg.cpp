@@ -165,7 +165,12 @@ void PA_Calibration_Dlg::reset_params() {
 
     if (!isDDE) {
         m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
-        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.02));
+        
+        if (m_params.mode = CalibMode::Calib_PA_Pattern) {
+            m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.05));
+        } else {
+            m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.02));
+        }
     }
 }
 
