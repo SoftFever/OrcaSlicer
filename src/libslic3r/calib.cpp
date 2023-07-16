@@ -421,6 +421,14 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(
         if (i == 1) {
             gcode << m_writer.set_pressure_advance(m_params.start);
 
+            double number_e_per_mm = e_per_mm(
+                line_width(),
+                height_layer(),
+                m_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0),
+                m_config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
+                m_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0)
+            );
+
             // glyph on every other line
             for (int j = 0; j < num_patterns; j += 2) {
                 gcode << draw_number(
@@ -429,7 +437,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(
                     m_params.start + (j * m_params.step),
                     m_draw_digit_mode,
                     line_width(),
-                    height_layer(),
+                    number_e_per_mm,
                     speed_first_layer(),
                     m_writer
                 );
