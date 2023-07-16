@@ -354,26 +354,6 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
     refresh_setup(config, model);
 };
 
-void CalibPressureAdvancePattern::set_starting_point(const Model& model)
-{
-    ModelObject* obj = model.objects.front();
-    BoundingBoxf3 bbox =
-        obj->instance_bounding_box(
-            *obj->instances.front(),
-            false
-        )
-    ;
-
-    Vec3d pt(bbox.min.x(), bbox.max.y(), 0);
-
-    m_starting_point = pt;
-
-    if (m_is_delta) {
-        m_starting_point.x() *= -1;
-        m_starting_point.y() -= (frame_size_y() / 2);
-    }
-}
-
 void CalibPressureAdvancePattern::generate_custom_gcodes(
     const DynamicPrintConfig& config,
     bool is_bbl_machine,
@@ -557,7 +537,25 @@ void CalibPressureAdvancePattern::refresh_setup(
     m_config.apply(model.objects.front()->volumes.front()->config.get(), true);
 
     m_is_delta = (m_config.option<ConfigOptionPoints>("printable_area")->values.size() > 4);
-    set_starting_point(model);
+    _refresh_starting_point(model);
+}
+
+void CalibPressureAdvancePattern::_refresh_starting_point(const Model& model)
+{
+    ModelObject* obj = model.objects.front();
+    BoundingBoxf3 bbox =
+        obj->instance_bounding_box(
+            *obj->instances.front(),
+            false
+        )
+    ;
+
+    m_starting_point = Vec3d(bbox.min.x(), bbox.max.y(), 0);
+
+    if (m_is_delta) {
+        m_starting_point.x() *= -1;
+        m_starting_point.y() -= (frame_size_y() / 2);
+    }
 }
 
 GCodeWriter CalibPressureAdvancePattern::pattern_writer(

@@ -149,8 +149,6 @@ public:
     double height_layer() const { return m_config.option<ConfigOptionFloat>("layer_height")->value; };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
 
-    void set_starting_point(const Model& model);
-
     void generate_custom_gcodes(
         const DynamicPrintConfig& config,
         bool is_bbl_machine,
@@ -195,6 +193,7 @@ private:
     };
 
     void refresh_setup(const DynamicPrintConfig& config, const Model& model);
+    void _refresh_starting_point(const Model& model);
     GCodeWriter pattern_writer(
         bool is_bbl_machine,
         const Model& model,
