@@ -191,12 +191,13 @@ std::string CalibPressureAdvance::draw_number(
     CalibPressureAdvance::DrawDigitMode mode,
     double line_width,
     double e_per_mm,
+    double speed,
     GCodeWriter& writer
 )
 {
     auto sNumber = convert_number_to_string(value);
     std::stringstream gcode;
-    gcode << writer.set_speed(3600);
+    gcode << writer.set_speed(speed);
 
     for (std::string::size_type i = 0; i < sNumber.length(); ++i) {
         if (i > m_max_number_len) {
@@ -328,6 +329,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
                 m_draw_digit_mode,
                 m_number_line_width,
                 number_e_per_mm,
+                3600,
                 writer
             );
         }
@@ -428,6 +430,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(
                     m_draw_digit_mode,
                     line_width(),
                     height_layer(),
+                    speed_first_layer(),
                     m_writer
                 );
             }

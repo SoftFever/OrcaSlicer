@@ -65,6 +65,7 @@ protected:
         CalibPressureAdvance::DrawDigitMode mode,
         double line_width,
         double layer_height,
+        double speed,
         GCodeWriter& writer
     );
     
