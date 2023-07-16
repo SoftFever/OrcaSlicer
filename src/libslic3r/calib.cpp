@@ -103,18 +103,18 @@ std::string CalibPressureAdvance::draw_digit(
 
     switch (c) {
     case '0':
-        gcode << move_to(p0, writer);
+        gcode << move_to(p0, writer, "Glyph: 0");
         gcode << writer.extrude_to_xy(p1, dE);
         gcode << writer.extrude_to_xy(p5, two_dE);
         gcode << writer.extrude_to_xy(p4, dE);
         gcode << writer.extrude_to_xy(gap_p0_toward_p3, two_dE);
         break;
     case '1':
-        gcode << move_to(p0_5, writer);
+        gcode << move_to(p0_5, writer, "Glyph: 1");
         gcode << writer.extrude_to_xy(p4_5, two_dE);
         break;
     case '2':
-        gcode << move_to(p0, writer);
+        gcode << move_to(p0, writer, "Glyph: 2");
         gcode << writer.extrude_to_xy(p1, dE);
         gcode << writer.extrude_to_xy(p2, dE);
         gcode << writer.extrude_to_xy(p3, dE);
@@ -122,7 +122,7 @@ std::string CalibPressureAdvance::draw_digit(
         gcode << writer.extrude_to_xy(p5, dE);
         break;
     case '3':
-        gcode << move_to(p0, writer);
+        gcode << move_to(p0, writer, "Glyph: 3");
         gcode << writer.extrude_to_xy(p1, dE);
         gcode << writer.extrude_to_xy(p5, two_dE);
         gcode << writer.extrude_to_xy(p4, dE);
@@ -130,14 +130,14 @@ std::string CalibPressureAdvance::draw_digit(
         gcode << writer.extrude_to_xy(p3, dE);
         break;
     case '4':
-        gcode << move_to(p0, writer);
+        gcode << move_to(p0, writer, "Glyph: 4");
         gcode << writer.extrude_to_xy(p3, dE);
         gcode << writer.extrude_to_xy(p2, dE);
         gcode << move_to(p1, writer);
         gcode << writer.extrude_to_xy(p5, two_dE);
         break;
     case '5':
-        gcode << move_to(p1, writer);
+        gcode << move_to(p1, writer, "Glyph: 5");
         gcode << writer.extrude_to_xy(p0, dE);
         gcode << writer.extrude_to_xy(p3, dE);
         gcode << writer.extrude_to_xy(p2, dE);
@@ -145,7 +145,7 @@ std::string CalibPressureAdvance::draw_digit(
         gcode << writer.extrude_to_xy(p4, dE);
         break;
     case '6':
-        gcode << move_to(p1, writer);
+        gcode << move_to(p1, writer, "Glyph: 6");
         gcode << writer.extrude_to_xy(p0, dE);
         gcode << writer.extrude_to_xy(p4, two_dE);
         gcode << writer.extrude_to_xy(p5, dE);
@@ -153,12 +153,12 @@ std::string CalibPressureAdvance::draw_digit(
         gcode << writer.extrude_to_xy(p3, dE);
         break;
     case '7':
-        gcode << move_to(p0, writer);
+        gcode << move_to(p0, writer, "Glyph: 7");
         gcode << writer.extrude_to_xy(p1, dE);
         gcode << writer.extrude_to_xy(p5, two_dE);
         break;
     case '8':
-        gcode << move_to(p2, writer);
+        gcode << move_to(p2, writer, "Glyph: 8");
         gcode << writer.extrude_to_xy(p3, dE);
         gcode << writer.extrude_to_xy(p4, dE);
         gcode << writer.extrude_to_xy(p5, dE);
@@ -167,14 +167,14 @@ std::string CalibPressureAdvance::draw_digit(
         gcode << writer.extrude_to_xy(p3, dE);
         break;
     case '9':
-        gcode << move_to(p5, writer);
+        gcode << move_to(p5, writer, "Glyph: 9");
         gcode << writer.extrude_to_xy(p1, two_dE);
         gcode << writer.extrude_to_xy(p0, dE);
         gcode << writer.extrude_to_xy(p3, dE);
         gcode << writer.extrude_to_xy(p2, dE);
         break;
     case '.':
-        gcode << move_to(p4_5, writer);
+        gcode << move_to(p4_5, writer, "Glyph: .");
         gcode << writer.extrude_to_xy(p4_5 + dot_direction, dE);
         break;
     default:
