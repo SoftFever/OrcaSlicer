@@ -481,7 +481,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(
                 
                 draw_line_opt_args = default_line_opt_args;
                 draw_line_opt_args.height       = i == 0 ? height_first_layer()                 : height_layer();
-                draw_line_opt_args.line_width   = i == 0 ? line_width_first_layer()             : line_width();
+                draw_line_opt_args.line_width   = line_width(); // don't use line_width_first_layer so results are consistent across all layers
                 draw_line_opt_args.speed        = i == 0 ? speed_adjust(speed_first_layer())    : speed_adjust(speed_perimeter());
                 draw_line_opt_args.comment = "Print pattern wall";
                 gcode << draw_line(Vec2d(to_x, to_y), draw_line_opt_args);
