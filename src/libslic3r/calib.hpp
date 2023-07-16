@@ -37,7 +37,7 @@ protected:
 
     void delta_scale_bed_ext(BoundingBoxf& bed_ext) const { bed_ext.scale(1.0f / 1.41421f); }
 
-    std::string move_to(Vec2d pt, GCodeWriter writer, std::string comment = std::string());
+    std::string move_to(Vec2d pt, GCodeWriter& writer, std::string comment = std::string());
     double      e_per_mm(
         double line_width,
         double layer_height,
@@ -141,7 +141,9 @@ public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
         const DynamicPrintConfig& config,
-        Model& model
+        bool is_bbl_machine,
+        Model& model,
+        const Vec3d& origin
     );
 
     double handle_xy_size() const { return m_handle_xy_size; };
@@ -192,13 +194,18 @@ private:
         double speed;
     };
 
-    void refresh_setup(const DynamicPrintConfig& config, const Model& model);
-    void _refresh_starting_point(const Model& model);
-    GCodeWriter pattern_writer(
+    void refresh_setup(
+        const DynamicPrintConfig& config,
         bool is_bbl_machine,
         const Model& model,
         const Vec3d& origin
-    ); // would return const, but travel_to and extrude_to require a non-const GCodeWriter
+    );
+    void _refresh_starting_point(const Model& model);
+    void _refresh_writer(
+        bool is_bbl_machine,
+        const Model& model,
+        const Vec3d& origin
+    );
 
     const int get_num_patterns() const
     {
@@ -207,20 +214,14 @@ private:
 
     std::string draw_line(
         Vec2d to_pt,
-        DrawLineOptArgs opt_args,
-        bool is_bbl_machine,
-        const Model& model,
-        const Vec3d& origin
+        DrawLineOptArgs opt_args
     );
     std::string draw_box(
         double min_x,
         double min_y,
         double size_x,
         double size_y,
-        DrawBoxOptArgs opt_args,
-        bool is_bbl_machine,
-        const Model& model,
-        const Vec3d& origin
+        DrawBoxOptArgs opt_args
     );
 
     double to_radians(double degrees) const { return degrees * M_PI / 180; };
@@ -252,6 +253,7 @@ private:
     const Calib_Params& m_params;
 
     DynamicPrintConfig m_config;
+    GCodeWriter m_writer;
     bool m_is_delta;
     Vec3d m_starting_point;
 
