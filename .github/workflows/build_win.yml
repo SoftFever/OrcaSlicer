@@ -20,6 +20,7 @@ on:
        - 'version.inc'
        - 'bbl/**'
        - 'resources/**'
+       - '.github/workflows/build_win.yml'
 
 jobs:
   build_win64:
