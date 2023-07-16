@@ -25,12 +25,13 @@ on:
 jobs:
   build_win64:
     name: Build Win64
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v3
       - uses: ilammy/msvc-dev-cmd@v1
         with:
+          arch: amd64
           vsversion: 17.0
       - name: Install perl
         run: |
