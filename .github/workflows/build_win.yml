@@ -30,6 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+          vsversion: 2022
       - name: Install perl
         run: |
           choco install strawberryperl
