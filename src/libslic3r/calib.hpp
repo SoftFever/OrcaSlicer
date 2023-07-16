@@ -141,7 +141,6 @@ public:
     CalibPressureAdvancePattern(
         const Calib_Params& params,
         const DynamicPrintConfig& config,
-        const bool& is_bbl_machine,
         Model& model
     );
 
@@ -154,6 +153,7 @@ public:
 
     void generate_custom_gcodes(
         const DynamicPrintConfig& config,
+        bool is_bbl_machine,
         Model& model,
         const Vec3d& origin
     );
@@ -196,6 +196,7 @@ private:
 
     void refresh_setup(const DynamicPrintConfig& config, const Model& model);
     GCodeWriter pattern_writer(
+        bool is_bbl_machine,
         const Model& model,
         const Vec3d& origin
     ); // would return const, but travel_to and extrude_to require a non-const GCodeWriter
@@ -208,6 +209,7 @@ private:
     std::string draw_line(
         Vec2d to_pt,
         DrawLineOptArgs opt_args,
+        bool is_bbl_machine,
         const Model& model,
         const Vec3d& origin
     );
@@ -217,6 +219,7 @@ private:
         double size_x,
         double size_y,
         DrawBoxOptArgs opt_args,
+        bool is_bbl_machine,
         const Model& model,
         const Vec3d& origin
     );
@@ -250,7 +253,6 @@ private:
     const Calib_Params& m_params;
 
     DynamicPrintConfig m_config;
-    const bool& m_is_bbl_machine;
     bool m_is_delta;
     Vec3d m_starting_point;
 

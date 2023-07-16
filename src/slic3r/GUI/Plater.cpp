@@ -8165,7 +8165,6 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     CalibPressureAdvancePattern pa_pattern(
         params,
         full_config,
-        preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
         model()
     );
 
@@ -8187,6 +8186,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     pa_pattern.generate_custom_gcodes(
         full_config,
+        preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
         model(),
         get_partplate_list().get_current_plate_origin()
     );
@@ -10349,8 +10349,11 @@ void Plater::reslice()
 
     // regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (model().calib_pa_pattern) {
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+
         model().calib_pa_pattern->generate_custom_gcodes(
             wxGetApp().preset_bundle->full_config(),
+            preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
             model(),
             get_partplate_list().get_current_plate_origin()
         );
