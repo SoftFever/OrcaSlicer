@@ -40,6 +40,8 @@ public:
 
     void ToggleStream();
 
+    void msw_rescale();
+
 protected:
     void onStateChanged(wxMediaEvent & event);
 

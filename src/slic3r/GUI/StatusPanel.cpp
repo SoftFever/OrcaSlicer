@@ -162,7 +162,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
     m_staticText_printing = new wxStaticText(m_panel_printing_title, wxID_ANY ,_L("Printing Progress"));
     m_staticText_printing->Wrap(-1);
-    m_staticText_printing->SetFont(PAGE_TITLE_FONT);
+    //m_staticText_printing->SetFont(PAGE_TITLE_FONT);
     m_staticText_printing->SetForegroundColour(PAGE_TITLE_FONT_COL);
 
     bSizer_printing_title->Add(m_staticText_printing, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
@@ -515,7 +515,7 @@ void PrintingTaskPanel::msw_rescale()
 {
     m_panel_printing_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
-    m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
+    //m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     m_gauge_progress->Rescale();
     m_button_abort->msw_rescale();
@@ -843,7 +843,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     m_staticText_monitoring = new Label(m_panel_monitoring_title, _L("Camera"));
     m_staticText_monitoring->Wrap(-1);
-    m_staticText_monitoring->SetFont(PAGE_TITLE_FONT);
+    //m_staticText_monitoring->SetFont(PAGE_TITLE_FONT);
     m_staticText_monitoring->SetForegroundColour(PAGE_TITLE_FONT_COL);
     bSizer_monitoring_title->Add(m_staticText_monitoring, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
 
@@ -930,7 +930,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     wxBoxSizer *bSizer_control_title = new wxBoxSizer(wxHORIZONTAL);
     m_staticText_control             = new Label(m_panel_control_title,_L("Control"));
     m_staticText_control->Wrap(-1);
-    m_staticText_control->SetFont(PAGE_TITLE_FONT);
+    //m_staticText_control->SetFont(PAGE_TITLE_FONT);
     m_staticText_control->SetForegroundColour(PAGE_TITLE_FONT_COL);
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -3982,10 +3982,11 @@ void StatusPanel::msw_rescale()
     m_project_task_panel->init_bitmaps();
     m_project_task_panel->msw_rescale();
     m_panel_monitoring_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
-    m_staticText_monitoring->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
+    //m_staticText_monitoring->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_bmToggleBtn_timelapse->Rescale();
     m_panel_control_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
-    m_staticText_control->SetMinSize(wxSize(-1, PAGE_TITLE_HEIGHT));
+    //m_staticText_control->SetMinSize(wxSize(-1, PAGE_TITLE_HEIGHT));
+    m_media_play_ctrl->msw_rescale();
     m_bpButton_xy->SetBitmap(m_bitmap_axis_home);
     m_bpButton_xy->SetMinSize(AXIS_MIN_SIZE);
     m_bpButton_xy->SetSize(AXIS_MIN_SIZE);

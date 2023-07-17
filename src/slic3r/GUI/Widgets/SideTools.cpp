@@ -92,6 +92,18 @@ bool SideToolsPanel::is_in_interval()
 
 void SideToolsPanel::msw_rescale() 
 { 
+    m_printing_img.msw_rescale();
+    m_arrow_img.msw_rescale();
+
+    m_none_printing_img.msw_rescale();
+    m_none_arrow_img.msw_rescale();
+    m_none_add_img.msw_rescale();
+
+    m_wifi_none_img.msw_rescale();
+    m_wifi_weak_img.msw_rescale();
+    m_wifi_middle_img.msw_rescale();
+    m_wifi_strong_img.msw_rescale();
+
     Refresh();
 }
 

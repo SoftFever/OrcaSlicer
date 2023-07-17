@@ -430,6 +430,10 @@ void MediaPlayCtrl::ToggleStream()
     });
 }
 
+void MediaPlayCtrl::msw_rescale() { 
+    m_button_play->Rescale(); 
+}
+
 void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
