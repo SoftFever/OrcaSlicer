@@ -777,6 +777,10 @@ void PrintObject::slice()
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
     this->slice_volumes();
     m_print->throw_if_canceled();
+
+    this->apply_conical_overhang();
+    m_print->throw_if_canceled();
+
     int firstLayerReplacedBy = 0;
 
 #if 1
@@ -1164,6 +1168,67 @@ void PrintObject::slice_volumes()
 
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - end";
+}
+
+void PrintObject::apply_conical_overhang() {
+    BOOST_LOG_TRIVIAL(info) << "Make overhang printable...";
+
+    if (m_layers.empty()) {
+        return;
+    }
+
+    const double angle_radians = 62. * M_PI / 180.;
+    const double max_hole_area = 0.;
+    const double tan_angle = tan(angle_radians); // the XY-component of the angle
+    BOOST_LOG_TRIVIAL(info) << "angle " << angle_radians << " maxHoleArea " << max_hole_area << " tan_angle "
+                            << tan_angle;
+    const coordf_t layer_thickness = m_config.layer_height.value;
+    const coordf_t max_dist_from_lower_layer = tan_angle * layer_thickness; // max dist which can be bridged
+    BOOST_LOG_TRIVIAL(info) << "layer_thickness " << layer_thickness << " max_dist_from_lower_layer "
+                            << max_dist_from_lower_layer;
+
+    for (auto i = m_layers.rbegin() + 1; i != m_layers.rend(); ++i) {
+        m_print->throw_if_canceled();
+        Layer *layer = *i;
+        Layer *upper_layer = layer->upper_layer;
+
+        //layer->export_region_slices_to_svg_debug("layer_before_conical_overhang");
+        //upper_layer->export_region_slices_to_svg_debug("upper_layer_before_conical_overhang");
+
+        
+        auto merged_poly = upper_layer->merged(float(SCALED_EPSILON));
+        merged_poly = union_ex(merged_poly);
+        merged_poly = offset_ex(merged_poly, -float(scale_(max_dist_from_lower_layer)));
+
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            // export_to_svg(
+            //     debug_out_path("Surface-layer-%d-region-%d.svg", layer->id(), region_id).c_str(),
+            //               layer->m_regions[region_id]->slices.surfaces);
+            
+            ExPolygons layer_polygons = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
+            // ExPolygons upper_layer_polygons = to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces);
+            
+            // if (std::abs(max_dist_from_lower_layer) < 5) {
+            //     constexpr coord_t safe_dist = 20;
+            //     ExPolygons diff = diff_ex(upper_layer_polygons, offset_ex(layer_polygons, -safe_dist));
+            // } else {
+                // Now go through all the holes in the current layer and check if they intersect anything in the
+                // layer above If not, then they're the top of a hole and should be cut from the layer above before
+                // the union
+                if (max_hole_area > 0.0) {
+                    for (auto layer_polygon : layer_polygons) {
+                        for (auto hole : layer_polygon.holes) {
+            
+                        }
+                    }
+                }
+                auto p = intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, merged_poly);
+                // And now union with offset of the resulting above layer
+                layer->m_regions[region_id]->slices.set(union_ex(layer_polygons, p), stInternal);
+            // }
+        }
+        //layer->export_region_slices_to_svg_debug("layer_after_conical_overhang");
+    }
 }
 
 //BBS: this function is used to offset contour and holes of expolygons seperately by different value

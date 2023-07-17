@@ -464,6 +464,7 @@ private:
     void simplify_extrusion_path();
 
     void slice_volumes();
+    void apply_conical_overhang();
     //BBS
     ExPolygons _shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const;
     // BBS
