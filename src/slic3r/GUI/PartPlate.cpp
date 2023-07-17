@@ -827,7 +827,7 @@ void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const Ge
 
 void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 {
-	if (m_name_change == true) { 
+	if (m_name_change) { 
 		 m_name_change = false;
 		if (m_plate_name_vbo_id > 0) {
 			glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
@@ -841,6 +841,10 @@ void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 	if (m_plate_name_vbo_id==0) {
 		if (generate_plate_name_texture()) {
 			calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
+			if (m_plate_name_edit_vbo_id > 0) { //for redo
+				glsafe(::glDeleteBuffers(1, &m_plate_name_edit_vbo_id));
+				m_plate_name_edit_vbo_id = 0;
+			}
 			calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
 		}
 		else {
@@ -891,6 +895,7 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
         if (tex_coords_id != -1) {
             glsafe(::glEnableVertexAttribArray(tex_coords_id));
         }
+        render_plate_name_texture(position_id, tex_coords_id);
         if (!only_body) {
             if (hover_id == 1)
                 render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_hovered_texture, m_del_vbo_id);
@@ -943,7 +948,6 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
                 render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
             }
         }
-		render_plate_name_texture(position_id, tex_coords_id);
         if (tex_coords_id != -1)
             glsafe(::glDisableVertexAttribArray(tex_coords_id));
 
@@ -1700,8 +1704,9 @@ bool PartPlate::generate_plate_name_texture()
 void PartPlate::set_plate_name(const std::string &name)
 {
     // compare if name equal to m_name, case sensitive
-    if (boost::equals(m_name, name)) return;
-    m_name = name;
+	if (boost::equals(m_name, name)) return;
+	m_plater->take_snapshot("set_plate_name");
+	m_name = name;
     
     std::regex reg("[\\\\/:*?\"<>|\\0]");
     m_name= regex_replace(m_name, reg, "");
