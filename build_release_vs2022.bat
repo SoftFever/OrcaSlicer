@@ -8,7 +8,7 @@ if "%1"=="studio" (
 )
 echo "building deps.."
 cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%CD%/OrcaSlicer_dep" -DCMAKE_BUILD_TYPE=Release
-@REM cmake --build . --config Release --target ALL_BUILD -- -m
+cmake --build . --config Release --target ALL_BUILD -- -m
 
 if "%1"=="deps" exit /b 0
 
