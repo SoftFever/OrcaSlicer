@@ -955,7 +955,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
         auto ret = check_multi_filament_valid(*this);
         if (!ret.string.empty())
+        {
+            ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
             return ret;
+        }
     }
 
     if (m_config.print_sequence == PrintSequence::ByObject) {
@@ -964,13 +967,16 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
         //BBS: refine seq-print validation logic
         auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
-    	if (!ret.string.empty())
+        if (!ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT;
             return ret;
+        }
     }
     else {
         //BBS
         auto ret = layered_print_cleareance_valid(*this, warning);
         if (!ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
             return ret;
         }
     }
@@ -3141,7 +3147,14 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     if (fs::exists(directory_path)) {
         fs::remove_all(directory_path);
     }
-    if (!fs::create_directory(directory_path)) {
+    try {
+        if (!fs::create_directory(directory_path)) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
+            return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
+        }
+    }
+    catch (...)
+    {
         BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
         return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
     }
