@@ -307,6 +307,13 @@ static const t_config_enum_values s_keys_map_ZHopType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
 
+static const t_config_enum_values s_keys_map_RetractLiftTopType = {
+    {"All Surfaces",        int(RetractLiftTopType::rlttAllSurfaces)},
+    {"Not on Top",          int(RetractLiftTopType::rlttNotOnTop)},
+    {"Only on Top",         int(RetractLiftTopType::rlttOnlyOnTop)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(RetractLiftTopType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -2553,6 +2560,25 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
 
+    def = this->add("retract_lift_first_layer", coBool);
+    def->label = L("First Layer Z Hop");
+    def->tooltip = L("Force Z Hop on first layer.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("retract_lift_top", coEnum);
+    def->label = L("Top Layer Z Hop");
+    def->tooltip = L("Enforce Z Hop behavior on top layers.");
+    def->enum_keys_map = &ConfigOptionEnum<RetractLiftTopType>::get_enum_values();
+    def->enum_values.push_back("All Surfaces");
+    def->enum_values.push_back("Not on Top");
+    def->enum_values.push_back("Only on Top");
+    def->enum_labels.push_back(L("All Surfaces"));
+    def->enum_labels.push_back(L("Not on Top"));
+    def->enum_labels.push_back(L("Only on Top"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<RetractLiftTopType>(rlttAllSurfaces));
+
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
     def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
@@ -3592,11 +3618,11 @@ void PrintConfigDef::init_fff_params()
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
         // floats
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
+        "retraction_length", "z_hop", "z_hop_types", "retract_lift_top", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
         // BBS: floats
-        "wipe_distance",
+        "wipe_distance", 
         // bools
-        "retract_when_changing_layer", "wipe",
+        "retract_when_changing_layer", "wipe", "retract_lift_first_layer", 
         // percents
         "retract_before_wipe"}) {
         auto it_opt = options.find(opt_key);
@@ -3639,7 +3665,7 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "retract_lift_first_layer", "retract_lift_top", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
@@ -3656,7 +3682,9 @@ void PrintConfigDef::init_extruder_option_keys()
         "wipe",
         "wipe_distance",
         "z_hop",
-        "z_hop_types"
+        "z_hop_types",           
+        "retract_lift_first_layer",
+        "retract_lift_top"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
@@ -3665,7 +3693,7 @@ void PrintConfigDef::init_filament_option_keys()
 {
     m_filament_option_keys = {
         "filament_diameter", "min_layer_height", "max_layer_height",
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "retract_lift_first_layer", "retract_lift_top", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile"/*,"filament_seam_gap"*/
@@ -3682,7 +3710,9 @@ void PrintConfigDef::init_filament_option_keys()
         "wipe",
         "wipe_distance",
         "z_hop",
-        "z_hop_types"
+        "z_hop_types",           
+        "retract_lift_first_layer",
+        "retract_lift_top"
     };
     assert(std::is_sorted(m_filament_retract_keys.begin(), m_filament_retract_keys.end()));
 }

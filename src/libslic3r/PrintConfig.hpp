@@ -218,6 +218,12 @@ enum ZHopType {
     zhtCount
 };
 
+enum RetractLiftTopType {
+    rlttAllSurfaces = 0,
+    rlttNotOnTop,
+    rlttOnlyOnTop
+};
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -863,6 +869,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              z_hop))
     // BBS
     ((ConfigOptionEnumsGeneric,        z_hop_types))
+    ((ConfigOptionBool,                retract_lift_first_layer))
+    ((ConfigOptionEnum<RetractLiftTopType>,        retract_lift_top))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))
