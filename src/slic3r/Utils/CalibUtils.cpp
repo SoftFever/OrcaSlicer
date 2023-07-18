@@ -737,6 +737,20 @@ int CalibUtils::get_selected_calib_idx(const std::vector<PACalibResult> &pa_cali
     return -1;
 }
 
+bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali_idx, float &out_k, float &out_n) {
+    if (!obj)
+        return false;
+
+    for (auto pa_calib_info : obj->pa_calib_tab) {
+        if (pa_calib_info.cali_idx == cali_idx) {
+            out_k = pa_calib_info.k_value;
+            out_n = pa_calib_info.n_coef;
+            return true;
+        }
+    }
+    return false;
+}
+
 void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message)
 {
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;

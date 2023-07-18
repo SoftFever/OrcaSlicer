@@ -94,8 +94,8 @@ public:
     std::string filament_id;
     std::string setting_id;
     std::string name;
-    float       k_value;
-    float       n_coef;
+    float       k_value = 0.0;
+    float       n_coef = 0.0;
     int         confidence = -1; // 0: success  1: uncertain  2: failed
 };
 

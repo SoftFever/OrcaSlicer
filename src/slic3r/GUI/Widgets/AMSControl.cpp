@@ -6,6 +6,7 @@
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
+#include "CalibUtils.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -33,7 +34,7 @@ wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 
-bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
+bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, bool humidity_flag)
 {
     if (!ams) return false;
     this->ams_id = ams->id;
@@ -87,9 +88,13 @@ bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
                 wxColour(255, 255, 255);
             }
 
-            info.k = it->second->k;
-            info.n = it->second->n;
-
+            if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+                CalibUtils::get_pa_k_n_value_by_cali_idx(obj, it->second->cali_idx, info.k, info.n);
+            }
+            else {
+                info.k = it->second->k;
+                info.n = it->second->n;
+            }
         } else {
             info.can_id         = i;
             info.material_state = AMSCanType::AMS_CAN_TYPE_EMPTY;
@@ -2689,10 +2694,21 @@ void AMSControl::show_vams_kn_value(bool show)
 void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 {
     m_vams_lib->m_obj = obj;
-    m_vams_info.k = tray.k;
-    m_vams_info.n = tray.n;
-    m_vams_lib->m_info.k = tray.k;
-    m_vams_lib->m_info.n = tray.n;
+    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+        float k_value = 0;
+        float n_value = 0;
+        CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, k_value, n_value);
+        m_vams_info.k        = k_value;
+        m_vams_info.n        = n_value;
+        m_vams_lib->m_info.k = k_value;
+        m_vams_lib->m_info.n = n_value;
+    }
+    else { // the remaining printer types
+        m_vams_info.k        = tray.k;
+        m_vams_info.n        = tray.n;
+        m_vams_lib->m_info.k = tray.k;
+        m_vams_lib->m_info.n = tray.n;
+    }
     m_vams_info.material_name = tray.get_display_filament_type();
     m_vams_info.material_colour = tray.get_color();
     m_vams_lib->m_info.material_name = tray.get_display_filament_type();

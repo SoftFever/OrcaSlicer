@@ -1561,7 +1561,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         AMSinfo info;
         info.ams_id = ams->first;
         if (ams->second->is_exists 
-            && info.parse_ams_info(ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
+            && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
             ams_info.push_back(info);
         }
     }

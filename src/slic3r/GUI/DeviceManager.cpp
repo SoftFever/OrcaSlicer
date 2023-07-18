@@ -415,7 +415,7 @@ bool MachineObject::is_lan_mode_printer()
 
 bool MachineObject::is_high_printer_type()
 {
-    return this->printer_type == "BL-P001" || this->printer_type == "BL-P002";
+    return get_printer_series() == PrinterSeries::SERIES_X1;
 }
 
 PrinterSeries MachineObject::get_printer_series() const
@@ -693,7 +693,7 @@ bool MachineObject::is_U0_firmware()
 
 bool MachineObject::is_support_ams_mapping()
 {
-    if (printer_type == "BL-P001" || printer_type == "BL-P002") {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
         if (config) {
             if (config->get("check_ams_version") == "0")
@@ -1324,7 +1324,7 @@ PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
 
 int MachineObject::get_bed_temperature_limit()
 {
-    if (printer_type == "BL-P001" || printer_type == "BL-P002") {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         if (is_220V_voltage)
             return 110;
         else {
@@ -1379,8 +1379,7 @@ void MachineObject::parse_version_func()
     auto ota_version = module_vers.find("ota");
     auto esp32_version = module_vers.find("esp32");
     auto rv1126_version = module_vers.find("rv1126");
-    if (printer_type == "BL-P001" ||
-        printer_type == "BL-P002") {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         if (ota_version != module_vers.end()) {
             if (ota_version->second.sw_ver.compare("01.01.01.00") <= 0) {
                 ams_support_remain                      = false;
@@ -1938,8 +1937,7 @@ int MachineObject::command_axis_control(std::string axis, double unit, double va
 
 bool MachineObject::is_support_command_calibration()
 {
-    if (printer_type == "BL-P001"
-        || printer_type == "BL-P002") {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         auto ap_ver_it = module_vers.find("rv1126");
         if (ap_ver_it != module_vers.end()) {
             if (ap_ver_it->second.sw_ver.compare("00.00.15.79") < 0)
@@ -1972,7 +1970,7 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
 int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, int mode)
 {
     pa_calib_results.clear();
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         json j;
         j["print"]["command"]     = "extrusion_cali";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -1998,7 +1996,7 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& 
 {
     CNumericLocalesSetter locales_setter;
 
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002") && pa_calib_values.size() > 0) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1 && pa_calib_values.size() > 0) {
         json j;
         j["print"]["command"]     = "extrusion_cali_set";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2026,7 +2024,7 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& 
 
 int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_calib)
 {
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         json j;
         j["print"]["command"]     = "extrusion_cali_del";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2044,7 +2042,7 @@ int MachineObject::command_get_pa_calibration_tab(float nozzle_diameter, const s
 {
     reset_pa_cali_history_result();
 
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         json j;
         j["print"]["command"]     = "extrusion_cali_get";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2059,7 +2057,7 @@ int MachineObject::command_get_pa_calibration_tab(float nozzle_diameter, const s
 
 int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
 {
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         json j;
         j["print"]["command"]     = "extrusion_cali_get_result";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2073,7 +2071,7 @@ int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
 
 int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info)
 {
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         json j;
         j["print"]["command"]     = "extrusion_cali_sel";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2090,7 +2088,7 @@ int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_cali
 
 int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data)
 {
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002") && calib_data.calib_datas.size() > 0) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1 && calib_data.calib_datas.size() > 0) {
         json j;
         j["print"]["command"]     = "flowrate_cali";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2115,7 +2113,7 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
 
 int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diameter)
 {
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002")) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1) {
         json j;
         j["print"]["command"]     = "flowrate_get_result";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2129,7 +2127,7 @@ int MachineObject::command_get_flow_ratio_calibration_result(float nozzle_diamet
 
 int MachineObject::command_unload_filament()
 {
-    if ((printer_type == "BL-P001" || printer_type == "BL-P002")
+    if (get_printer_series() == PrinterSeries::SERIES_X1
         && !this->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY)) {
         // fixed gcode file
         json j;
@@ -2139,7 +2137,7 @@ int MachineObject::command_unload_filament()
         return this->publish_json(j.dump());
     }
     else if (printer_type == "C11"
-        || ((printer_type == "BL-P001" || printer_type == "BL-P002")
+        || (get_printer_series() == PrinterSeries::SERIES_X1
         && this->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY))
         ) {
         std::string gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
@@ -3437,10 +3435,10 @@ int MachineObject::parse_json(std::string payload)
                                         }
                                         if (!curr_tray) continue;
 
-                                        //if (curr_tray->hold_count > 0) {
-                                        //    curr_tray->hold_count--;
-                                        //    continue;
-                                        //}
+                                        if (curr_tray->hold_count > 0) {
+                                            curr_tray->hold_count--;
+                                            continue;
+                                        }
 
                                         curr_tray->id = (*tray_it)["id"].get<std::string>();
                                         if (tray_it->contains("tag_uid"))
@@ -3904,6 +3902,47 @@ int MachineObject::parse_json(std::string payload)
                     extrusion_cali_set_tray_id = curr_tray_id;
                     extrusion_cali_set_hold_start = std::chrono::system_clock::now();
                 }
+                else if (jj["command"].get<std::string>() == "extrusion_cali_sel") {
+#ifdef CALI_DEBUG
+                    std::string str = jj.dump();
+                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_sel: " << str;
+#endif
+                    int ams_id       = -1;
+                    int tray_id      = -1;
+                    int curr_tray_id = -1;
+                    if (jj.contains("tray_id")) {
+                        try {
+                            curr_tray_id = jj["tray_id"].get<int>();
+                            if (curr_tray_id == VIRTUAL_TRAY_ID)
+                                tray_id = curr_tray_id;
+                            else if (curr_tray_id >= 0 && curr_tray_id < 16) {
+                                ams_id  = curr_tray_id / 4;
+                                tray_id = curr_tray_id % 4;
+                            } else {
+                                BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: unsupported tray_id = " << curr_tray_id;
+                            }
+                        } catch (...) {
+                            ;
+                        }
+                    }
+                    if (tray_id == VIRTUAL_TRAY_ID) {
+                        if (jj.contains("cali_idx")) {
+                            vt_tray.cali_idx = jj["cali_idx"].get<int>();
+                            vt_tray.set_hold_count();
+                        }
+                    } else {
+                        auto ams_item = this->amsList.find(std::to_string(ams_id));
+                        if (ams_item != this->amsList.end()) {
+                            auto tray_item = ams_item->second->trayList.find(std::to_string(tray_id));
+                            if (tray_item != ams_item->second->trayList.end()) {
+                                if (jj.contains("cali_idx")) {
+                                    tray_item->second->cali_idx = jj["cali_idx"].get<int>();
+                                    tray_item->second->set_hold_count();
+                                }
+                            }
+                        }
+                    }
+                }   
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
                     reset_pa_cali_history_result();
                     has_get_pa_calib_tab = true;
