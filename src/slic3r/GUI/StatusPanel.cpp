@@ -2295,10 +2295,10 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_control->show_auto_refill(false);
     }
     else {
-        if (obj->printer_type == "N1") { ams_mode = AMSModel::EXTRA_AMS; }
-        m_ams_control->SetAmsModel(ams_mode, ams_mode);
+        if (obj->printer_type == "N1") { m_ams_control->SetAmsModel(AMSModel::EXTRA_AMS); }
+        else { m_ams_control->SetAmsModel(AMSModel::GENERIC_AMS); }
 
-        show_ams_group(true);
+        show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), obj->is_support_filament_edit_virtual_tray);
 
         if (!obj->m_is_support_show_bak || !is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
             m_ams_control->show_auto_refill(false); 
