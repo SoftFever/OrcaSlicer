@@ -425,7 +425,7 @@ void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GeometryBuffer &b
 		ExPolygon poly;
 		float     offset_x = 1;
 		w                  = int(factor * (texture.get_width() * 16) / texture.get_height());
-		h                  = PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE; 
+		h                  = PARTPLATE_PLATE_NAME_FIX_HEIGHT_SIZE;
 		Vec2d p            = bed_ext[3] + Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h * texture.m_original_height / texture.get_height());
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) - h )});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w - offset_x), scale_(p(1) - h )});
@@ -450,14 +450,14 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
 	p += Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h);
 	if (texture && texture->get_width() > 0 && texture->get_height()) {
 		w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
-		
+
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) - h )});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1) - h)});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
 
 		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-		if (!buffer.set_from_triangles(triangles, GROUND_Z)) 
+		if (!buffer.set_from_triangles(triangles, GROUND_Z))
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 	} else {
 
@@ -827,7 +827,7 @@ void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const Ge
 
 void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 {
-	if (m_name_change) { 
+	if (m_name_change) {
 		 m_name_change = false;
 		if (m_plate_name_vbo_id > 0) {
 			glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
@@ -848,7 +848,7 @@ void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 			calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
 		}
 		else {
-			if (m_plate_name_edit_vbo_id==0) { 
+			if (m_plate_name_edit_vbo_id==0) {
 				calc_vertex_for_plate_name_edit_icon(nullptr, 0, m_plate_name_edit_icon);
 			}
 			return;
@@ -928,7 +928,7 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
 				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture, m_plate_name_edit_vbo_id);
 			else
 				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture, m_plate_name_edit_vbo_id);
-            
+
 			if (m_partplate_list->render_plate_settings) {
                 if (hover_id == 5) {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
@@ -1687,7 +1687,7 @@ bool PartPlate::generate_plate_name_texture()
 	wxString cur_plate_name = from_u8(m_name);
 	wxGCDC   dc;
 	wxString limitTextWidth = wxControl::Ellipsize(cur_plate_name, dc, wxELLIPSIZE_END, bed_width);
-	if (limitTextWidth.Length()==0) { 
+	if (limitTextWidth.Length()==0) {
 		return false;
 	}
 	// generate m_name_texture texture from m_name with generate_from_text_string
@@ -1705,20 +1705,21 @@ void PartPlate::set_plate_name(const std::string &name)
 {
     // compare if name equal to m_name, case sensitive
 	if (boost::equals(m_name, name)) return;
-	m_plater->take_snapshot("set_plate_name");
+	if (m_plater)
+		m_plater->take_snapshot("set_plate_name");
 	m_name = name;
-    
+
     std::regex reg("[\\\\/:*?\"<>|\\0]");
     m_name= regex_replace(m_name, reg, "");
     m_name_change = true;
     if (m_plater) {
         ObjectList *obj_list = wxGetApp().obj_list();
-        if (obj_list) { 
+        if (obj_list) {
 			obj_list->GetModel()->SetCurSelectedPlateFullName(m_plate_index, m_name);
 		}
     }
 
-    if (m_print != nullptr) 
+    if (m_print != nullptr)
 		m_print->set_plate_name(m_name);
 }
 
@@ -4467,11 +4468,11 @@ bool PartPlateList::is_all_slice_results_ready_for_print() const
 	bool res = false;
 
 	for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
-		if (!m_plate_list[i]->empty() && !m_plate_list[i]->is_slice_result_valid()) { 
-			return false; 
+		if (!m_plate_list[i]->empty() && !m_plate_list[i]->is_slice_result_valid()) {
+			return false;
 		}
-		if (m_plate_list[i]->is_slice_result_ready_for_print() && m_plate_list[i]->has_printable_instances()) { 
-			res = true; 
+		if (m_plate_list[i]->is_slice_result_ready_for_print() && m_plate_list[i]->has_printable_instances()) {
+			res = true;
 		}
 	}
 
