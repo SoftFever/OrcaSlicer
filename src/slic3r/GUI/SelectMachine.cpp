@@ -3389,7 +3389,15 @@ void SelectMachineDialog::set_flow_calibration_state(bool state)
         select_flow->SetToolTip(tool_tip);
     }
     else {
-        m_checkbox_list["flow_cali"]->SetValue(state);
+
+        AppConfig* config = wxGetApp().app_config;
+        if (config && config->get("print", "flow_cali") == "0") {
+            m_checkbox_list["flow_cali"]->SetValue(false);
+        }
+        else {
+            m_checkbox_list["flow_cali"]->SetValue(true);
+        }
+
         m_checkbox_list["flow_cali"]->Enable();
         //m_checkbox_state_list["flow_cali"] = state;
         for (auto win : select_flow->GetWindowChildren()) {
