@@ -8163,12 +8163,13 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const bool is_bbl_machine = preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle);
+    const Vec3d plate_origin = get_partplate_list().get_current_plate_origin();
     CalibPressureAdvancePattern pa_pattern(
         params,
         full_config,
         is_bbl_machine,
         model(),
-        get_partplate_list().get_current_plate_origin()
+        plate_origin
     );
 
     // scale cube to suit test
@@ -8181,17 +8182,30 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         pa_pattern.handle_xy_size()
     );
     giz_obj_manip.set_uniform_scaling(false);
-    giz_obj_manip.on_change("size",
+    giz_obj_manip.on_change(
+        "size",
         2,
         pa_pattern.max_layer_z()
     );
+    // start with pattern centered on plate
     center_selection();
+    const Vec3d plate_center = get_partplate_list().get_curr_plate()->get_center_origin();
+    giz_obj_manip.on_change(
+        "position",
+        0,
+        plate_center.x() - (pa_pattern.print_size_x() / 2)
+    );
+    giz_obj_manip.on_change(
+        "position",
+        1,
+        plate_center.y() - (pa_pattern.print_size_y() / 2)
+    );
 
     pa_pattern.generate_custom_gcodes(
         full_config,
         is_bbl_machine,
         model(),
-        get_partplate_list().get_current_plate_origin()
+        plate_origin
     );
     model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
     changed_objects({ 0 });

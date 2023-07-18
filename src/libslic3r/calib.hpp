@@ -148,8 +148,8 @@ public:
     );
 
     double handle_xy_size() const { return m_handle_xy_size; };
-    double height_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_print_height")->value; };
-    double height_layer() const { return m_config.option<ConfigOptionFloat>("layer_height")->value; };
+    double print_size_x() const { return object_size_x() + pattern_shift(); };
+    double print_size_y() const { return object_size_y(); };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
 
     void generate_custom_gcodes(
@@ -208,6 +208,8 @@ private:
         const Vec3d& origin
     );
 
+    double height_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_print_height")->value; };
+    double height_layer() const { return m_config.option<ConfigOptionFloat>("layer_height")->value; };
     const int get_num_patterns() const
     {
         return std::ceil((m_params.end - m_params.start) / m_params.step + 1);
@@ -248,8 +250,6 @@ private:
     double max_numbering_height() const;
 
     double pattern_shift() const;
-    double print_size_x() const { return object_size_x() + pattern_shift(); };
-    double print_size_y() const { return object_size_y(); };
 
     const Calib_Params& m_params;
 
