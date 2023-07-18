@@ -900,6 +900,7 @@ void Model::load_from(Model& model)
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
+    model.calib_pa_pattern.reset();
 }
 
 // BBS: backup
