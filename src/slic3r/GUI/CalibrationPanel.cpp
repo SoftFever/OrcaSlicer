@@ -653,6 +653,22 @@ bool CalibrationPanel::Show(bool show) {
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
         wxPostEvent(this, wxTimerEvent());
+
+        DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (dev) {
+            //set a default machine when obj is null
+            obj = dev->get_selected_machine();
+            if (obj == nullptr) {
+                dev->load_last_machine();
+                obj = dev->get_selected_machine();
+                if (obj)
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+            }
+            else {
+                obj->reset_update_time();
+            }
+        }
+
     }
     else {
         m_refresh_timer->Stop();
