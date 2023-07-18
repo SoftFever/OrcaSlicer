@@ -8198,7 +8198,9 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     giz_obj_manip.on_change(
         "position",
         1,
-        plate_center.y() - (pa_pattern.print_size_y() / 2)
+        plate_center.y() -
+            (pa_pattern.print_size_y() / 2) -
+            pa_pattern.handle_spacing()
     );
 
     pa_pattern.generate_custom_gcodes(

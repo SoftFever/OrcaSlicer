@@ -555,6 +555,7 @@ void CalibPressureAdvancePattern::_refresh_starting_point(const Model& model)
     ;
 
     m_starting_point = Vec3d(bbox.min.x(), bbox.max.y(), 0);
+    m_starting_point.y() += m_handle_spacing;
 
     if (m_is_delta) {
         m_starting_point.x() *= -1;

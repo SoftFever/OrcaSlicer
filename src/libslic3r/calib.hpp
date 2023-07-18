@@ -148,6 +148,7 @@ public:
     );
 
     double handle_xy_size() const { return m_handle_xy_size; };
+    double handle_spacing() const { return m_handle_spacing; };
     double print_size_x() const { return object_size_x() + pattern_shift(); };
     double print_size_y() const { return object_size_y(); };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
@@ -259,6 +260,7 @@ private:
     Vec3d m_starting_point;
 
     const double m_handle_xy_size {5};
+    const double m_handle_spacing {2};
     const int m_num_layers {4};
     
     const double m_wall_side_length {30.0};
