@@ -897,7 +897,8 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_DUTCH,
         wxLANGUAGE_HUNGARIAN,
         wxLANGUAGE_JAPANESE,
-        wxLANGUAGE_ITALIAN
+        wxLANGUAGE_ITALIAN,
+        wxLANGUAGE_KOREAN
     };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
