@@ -118,6 +118,7 @@ enum CaliPresetPageStatus
     CaliPresetStatusNeedForceUpgrading,
     CaliPresetStatusNeedConsistencyUpgrading,
     CaliPresetStatusUnsupportedPrinter,
+    CaliPresetStatusFilamentIncompatible,
 };
 
 class CalibrationPresetPage : public CalibrationWizardPage
@@ -204,6 +205,7 @@ protected:
 
     void check_filament_compatible();
     bool is_filaments_compatiable(const std::vector<Preset*>& prests);
+    bool is_filament_in_blacklist(Preset* preset, std::string& error_tips);
     bool is_filaments_compatiable(const std::vector<Preset*>& prests,
         int& bed_temp,
         std::string& incompatiable_filament_name,
@@ -211,6 +213,7 @@ protected:
 
     float get_nozzle_value();
 
+    void update_plate_type_collection(CalibrationMethod method);
     void update_combobox_filaments(MachineObject* obj);
     void update_show_status();
     void show_status(CaliPresetPageStatus status);
@@ -267,6 +270,7 @@ protected:
     CaliPresetPageStatus    m_page_status { CaliPresetPageStatus::CaliPresetStatusInit };
 
     bool m_show_custom_range { false };
+    bool m_has_filament_incompatible { false };
     MachineObject* curr_obj { nullptr };
 };
 

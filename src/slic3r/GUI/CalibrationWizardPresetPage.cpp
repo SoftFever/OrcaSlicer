@@ -935,9 +935,13 @@ void CalibrationPresetPage::check_filament_compatible()
             wxString tips = wxString::Format(_L("%s is not compatible with %s"), m_comboBox_bed_type->GetValue(), incompatiable_filament_name);
             m_warning_panel->set_warning(tips);
         }
+        m_has_filament_incompatible = true;
+        update_show_status();
     } else {
         m_tips_panel->set_params(0, bed_temp, 0);
         m_warning_panel->set_warning("");
+        m_has_filament_incompatible = false;
+        update_show_status();
     }
 
     Layout();
@@ -949,6 +953,46 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*>&
     std::string error_tips;
     int bed_temp = 0;
     return is_filaments_compatiable(prests, bed_temp, incompatiable_filament_name, error_tips);
+}
+
+bool CalibrationPresetPage::is_filament_in_blacklist(Preset* preset, std::string& error_tips)
+{
+    if (m_ams_radiobox->GetValue() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+        bool in_blacklist = false;
+        std::string action;
+        std::string info;
+        std::string filamnt_type;
+        preset->get_filament_type(filamnt_type);
+
+        if (preset->vendor) {
+            DeviceManager::check_filaments_in_blacklist(preset->vendor->name, filamnt_type, in_blacklist, action, info);
+        }
+
+        if (in_blacklist) {
+            error_tips = info;
+            if (action == "prohibition") {
+                return false;
+            }
+            else if (action == "warning") {
+                return true;
+            }
+        }
+        else {
+            error_tips = "";
+            return true;
+        }
+    }
+    if (m_ext_spool_radiobox->GetValue()) {
+        if (m_cali_mode == CalibMode::Calib_PA_Line && m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
+            std::string filamnt_type;
+            preset->get_filament_type(filamnt_type);
+            if (filamnt_type == "TPU") {
+                error_tips = _u8L("TPU is not supported for Flow Dynamics Auto-Calibration.");
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> &prests,
@@ -980,12 +1024,16 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
 
             return false;
         } else {
-            // set for firset preset
+            // set for first preset
             if (bed_temp == 0)
                 bed_temp = bed_temp_int;
         }
         std::string display_filament_type;
         filament_types.push_back(item->config.get_filament_type(display_filament_type, 0));
+
+        // check is it in the filament blacklist
+        if (!is_filament_in_blacklist(item, error_tips))
+            return false;
     }
 
     if (!Print::check_multi_filaments_compatibility(filament_types)) {
@@ -994,6 +1042,23 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
     }
 
     return true;
+}
+
+void CalibrationPresetPage::update_plate_type_collection(CalibrationMethod method)
+{
+    m_comboBox_bed_type->Clear();
+    const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
+    if (bed_type_def && bed_type_def->enum_keys_map) {
+        for (int i = 0; i < bed_type_def->enum_labels.size(); i++) {
+            if(btDefault + 1 + i == btPTE) {
+                if (method == CalibrationMethod::CALI_METHOD_AUTO) {
+                    continue;
+                }
+            }
+            m_comboBox_bed_type->AppendString(_L(bed_type_def->enum_labels[i]));
+        }
+        m_comboBox_bed_type->SetSelection(0);
+    }
 }
 
 void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
@@ -1119,6 +1184,11 @@ void CalibrationPresetPage::update_show_status()
         }
     }
 
+    if (m_has_filament_incompatible) {
+        show_status(CaliPresetPageStatus::CaliPresetStatusFilamentIncompatible);
+        return;
+    }
+
     show_status(CaliPresetPageStatus::CaliPresetStatusNormal);
 }
 
@@ -1236,6 +1306,11 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
     }
+    else if (status == CaliPresetPageStatus::CaliPresetStatusFilamentIncompatible) {
+        update_print_status_msg(wxEmptyString, false);
+        Enable_Send_Button(false);
+    }
+
     Layout();
 }
 
@@ -1342,6 +1417,7 @@ void CalibrationPresetPage::set_cali_filament_mode(CalibrationFilamentMode mode)
 
 void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
 {
+    CalibrationWizardPage::set_cali_method(method);
     if (method == CalibrationMethod::CALI_METHOD_MANUAL && m_cali_mode == CalibMode::Calib_Flow_Rate) {
         wxArrayString steps;
         steps.Add(_L("Preset"));
@@ -1381,6 +1457,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 {
     if (!obj) return;
 
+    // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
         if (abs(obj->nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
@@ -1403,22 +1480,29 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
     }
 
+    // set bed type collection from machine
+    if (m_cali_mode == CalibMode::Calib_PA_Line)
+        update_plate_type_collection(m_cali_method);
+
     // init default for filament source
     // TODO if user change ams/ext, need to update
     if ( !obj->has_ams() || (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) )
     {
         m_ext_spool_radiobox->SetValue(true);
+        m_ams_radiobox->SetValue(false);
         wxCommandEvent event(wxEVT_RADIOBUTTON);
         event.SetEventObject(this);
         wxPostEvent(this->m_ext_spool_radiobox, event);
     }
     else {
         m_ams_radiobox->SetValue(true);
+        m_ext_spool_radiobox->SetValue(false);
         wxCommandEvent event(wxEVT_RADIOBUTTON);
         event.SetEventObject(this);
         wxPostEvent(this->m_ams_radiobox, event);
     }
     Layout();
+
     // init filaments for calibration
     sync_ams_info(obj);
 }
