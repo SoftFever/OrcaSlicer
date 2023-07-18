@@ -10367,9 +10367,7 @@ void Plater::reslice()
     this->stop_jobs();
 
     // regenerate CalibPressureAdvancePattern custom G-code to apply changes
-    if (p->background_process.fff_print()->calib_mode() == CalibMode::Calib_PA_Pattern) {
-        assert(model().calib_pa_pattern);
-
+    if (model().calib_pa_pattern) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
 
         model().calib_pa_pattern->generate_custom_gcodes(
