@@ -78,6 +78,12 @@ static std::vector<std::string> message_containing_retry{
     "07FF 8013",
 };
 
+static std::vector<std::string> message_containing_done{
+    "07FF 8007",
+    "12FF 8007"
+};
+
+
 /* size */
 #define PAGE_TITLE_HEIGHT FromDIP(36)
 #define PAGE_TITLE_TEXT_WIDTH FromDIP(200)
@@ -1816,17 +1822,18 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
     } else {
         m_project_task_panel->show_error_msg(msg);
 
-        auto it = std::find(message_containing_retry.begin(), message_containing_retry.end(), print_error_str);
+        auto it_retry = std::find(message_containing_retry.begin(), message_containing_retry.end(), print_error_str);
+        auto it_done = std::find(message_containing_done.begin(), message_containing_done.end(), print_error_str);
 
         BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
         if (m_print_error_dlg == nullptr) {
             m_print_error_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
         }
-        if (print_error_str == "07FF 8007") {
+        if (it_done != message_containing_done.end()) {
             m_print_error_dlg->update_func_btn("Done");
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_FUNC, this);
         }
-        else if (it != message_containing_retry.end()) {
+        else if (it_retry != message_containing_retry.end()) {
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RETRY, this);
         }else {
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
