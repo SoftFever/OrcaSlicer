@@ -556,6 +556,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_ok->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -572,6 +573,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_retry->SetFont(Label::Body_12);
     m_button_retry->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_retry->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_retry->SetCornerRadius(FromDIP(12));
 
     m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -587,6 +589,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_cancel->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_cancel->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -602,6 +605,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_fn->SetFont(Label::Body_12);
     m_button_fn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_fn->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_fn->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_fn->SetCornerRadius(FromDIP(12));
 
     m_button_fn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
