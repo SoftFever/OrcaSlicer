@@ -85,6 +85,7 @@ typedef int (*func_track_enable)(void *agent, bool enable);
 typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
 typedef int (*func_track_header)(void *agent, std::string header);
 typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
+typedef int (*func_track_get_property)(void *agent, std::string name, std::string& value, std::string type);
 
 
 //the NetworkAgent class
@@ -178,6 +179,7 @@ public:
     int track_event(std::string evt_key, std::string content);
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
+    int track_get_property(std::string name, std::string& value, std::string type = "string");
     bool get_track_enable() { return enable_track; }
 private:
     bool enable_track = false;
@@ -261,6 +263,7 @@ private:
     static func_track_event                    track_event_ptr;
     static func_track_header                   track_header_ptr;
     static func_track_update_property          track_update_property_ptr;
+    static func_track_get_property             track_get_property_ptr;
 };
 
 }

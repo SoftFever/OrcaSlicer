@@ -105,6 +105,7 @@ func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
 func_track_event                    NetworkAgent::track_event_ptr = nullptr;
 func_track_header                   NetworkAgent::track_header_ptr = nullptr;
 func_track_update_property          NetworkAgent::track_update_property_ptr = nullptr;
+func_track_get_property             NetworkAgent::track_get_property_ptr = nullptr;
 
 
 NetworkAgent::NetworkAgent()
@@ -256,6 +257,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     track_event_ptr                   =  reinterpret_cast<func_track_event>(get_network_function("bambu_network_track_event"));
     track_header_ptr                  =  reinterpret_cast<func_track_header>(get_network_function("bambu_network_track_header"));
     track_update_property_ptr         = reinterpret_cast<func_track_update_property>(get_network_function("bambu_network_track_update_property"));
+    track_get_property_ptr            = reinterpret_cast<func_track_get_property>(get_network_function("bambu_network_track_get_property"));
 
     return 0;
 }
@@ -360,6 +362,7 @@ int NetworkAgent::unload_network_module()
     track_event_ptr                   =  nullptr;
     track_header_ptr                  =  nullptr;
     track_update_property_ptr         =  nullptr;
+    track_get_property_ptr            =  nullptr;
 
     return 0;
 }
@@ -1246,6 +1249,20 @@ int NetworkAgent::track_update_property(std::string name, std::string value, std
     int ret = 0;
     if (network_agent && track_update_property_ptr) {
         ret = track_update_property_ptr(network_agent, name, value, type);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::track_get_property(std::string name, std::string& value, std::string type)
+{
+    if (!this->enable_track)
+        return 0;
+
+    int ret = 0;
+    if (network_agent && track_get_property_ptr) {
+        ret = track_get_property_ptr(network_agent, name, value, type);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
     }
