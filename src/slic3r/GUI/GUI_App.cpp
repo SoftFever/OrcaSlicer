@@ -4928,7 +4928,8 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLANGUAGE_HUNGARIAN,
             wxLANGUAGE_JAPANESE,
             wxLANGUAGE_ITALIAN,
-            wxLANGUAGE_KOREAN
+            wxLANGUAGE_KOREAN,
+            wxLANGUAGE_RUSSIAN
         };
         std::string cur_language = app_config->get("language");
         if (cur_language != "") {
