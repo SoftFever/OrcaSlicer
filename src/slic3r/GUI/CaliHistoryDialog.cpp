@@ -199,6 +199,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
 }
 
 void HistoryWindow::sync_history_data() {
+    m_history_data_panel->Freeze();
     m_history_data_panel->DestroyChildren();
     wxGridBagSizer* gbSizer;
     gbSizer = new wxGridBagSizer(FromDIP(0), FromDIP(50));
@@ -291,7 +292,8 @@ void HistoryWindow::sync_history_data() {
         i++;
     }
 
-    Layout();
+    m_history_data_panel->Layout();
+    m_history_data_panel->Thaw();
 }
 
 float HistoryWindow::get_nozzle_value()
