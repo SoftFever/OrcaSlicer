@@ -58,6 +58,7 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     main_sizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
     m_browser->Bind(wxEVT_WEBVIEW_NAVIGATED, &ProjectPanel::on_navigated, this);
     m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &ProjectPanel::OnScriptMessage, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_NAVIGATING, &ProjectPanel::onWebNavigating, this, m_browser->GetId());
 
     Bind(EVT_PROJECT_RELOAD, &ProjectPanel::on_reload, this);
 
@@ -67,6 +68,19 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 }
 
 ProjectPanel::~ProjectPanel() {}
+
+
+void ProjectPanel::onWebNavigating(wxWebViewEvent& evt)
+{
+    wxString tmpUrl = evt.GetURL();
+    //wxString NowUrl = m_browser->GetCurrentURL();
+
+    if (boost::starts_with(tmpUrl, "http://") || boost::starts_with(tmpUrl, "https://")) {
+        m_browser->Stop();
+        evt.Veto();
+        wxLaunchDefaultApplication(tmpUrl);
+    }
+}
 
 void ProjectPanel::on_reload(wxCommandEvent& evt)
 {
