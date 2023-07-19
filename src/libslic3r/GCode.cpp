@@ -4519,25 +4519,34 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
     gcode += m_writer.reset_e();
 
-    // check if need to lift (roughly from SuperSlicer)
+    // check if should to lift (roughly from SuperSlicer)
+    RetractLiftEnforceType retract_lift_type = RetractLiftEnforceType(EXTRUDER_CONFIG(retract_lift_enforce));
+
     bool needs_lift = toolchange
-        || (EXTRUDER_CONFIG(retract_lift_first_layer) && m_writer.extruder()->retraction_length() > 0 && this->m_layer_index == 0)
+        || m_writer.extruder()->retraction_length() > 0
         || m_config.use_firmware_retraction;
+
+    bool can_lift = true;
 
     bool last_fill_extrusion_role_top_infill = (this->m_last_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_extrusion_role == ExtrusionRole::erIroning);
     if (this->m_last_extrusion_role == ExtrusionRole::erGapFill)
         last_fill_extrusion_role_top_infill = (this->m_last_notgapfill_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_notgapfill_extrusion_role == ExtrusionRole::erIroning);
-    if (!needs_lift && m_writer.extruder()->retraction_length() > 0) {
-      if (RetractLiftTopType(EXTRUDER_CONFIG(retract_lift_top)) == RetractLiftTopType::rlttNotOnTop)
-        needs_lift = !last_fill_extrusion_role_top_infill;
-      else if (RetractLiftTopType(EXTRUDER_CONFIG(retract_lift_top)) == RetractLiftTopType::rlttOnlyOnTop)
-        needs_lift = last_fill_extrusion_role_top_infill;
-      else
-        needs_lift = true;
+
+    if (retract_lift_type == RetractLiftEnforceType::rletAllSurfaces) {
+        can_lift = true;
+    }
+    else if (this->m_layer_index == 0 && (retract_lift_type == RetractLiftEnforceType::rletOnlyOnBottom || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom)) {
+        can_lift = true;
+    }
+    else if (retract_lift_type == RetractLiftEnforceType::rletOnlyOnTop || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom) {
+        can_lift = last_fill_extrusion_role_top_infill;
+    }
+    else {
+        can_lift = false;
     }
 
     //BBS
-    if (needs_lift) {
+    if (needs_lift && can_lift) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
         gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
