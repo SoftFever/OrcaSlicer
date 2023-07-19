@@ -3838,9 +3838,27 @@ int MachineObject::parse_json(std::string payload)
                      }
                      catch(...) {
                      }
-                } else if (jj["command"].get<std::string>() == "extrusion_cali") {
-                    if (jj.contains("result") && jj["result"].get<std::string>() == "success") {
-                        // enter extrusion cali
+                } else if (jj["command"].get<std::string>() == "extrusion_cali" || jj["command"].get<std::string>() == "flowrate_cali") {
+                    if (jj.contains("result")) {
+                        if (jj["result"].get<std::string>() == "success") {
+                            ;
+                        }
+                        else if (jj["result"].get<std::string>() == "fail") {
+                            std::string cali_mode = jj["command"].get<std::string>();
+                            std::string reason = jj["reason"].get<std::string>();
+                            GUI::wxGetApp().CallAfter([cali_mode, reason] {
+                                wxString info = "";
+                                if (reason == "invalid nozzle_diameter") {
+                                    info = _L("Invalid nozzle diameter");
+                                }
+                                else {
+                                    info = reason;
+                                }
+                                GUI::MessageDialog msg_dlg(nullptr, info, _L("Calibration error"), wxICON_WARNING | wxOK);
+                                msg_dlg.ShowModal();
+                                BOOST_LOG_TRIVIAL(trace) << cali_mode << " result fail, reason = " << reason;
+                                });
+                        }
                     }
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
 #ifdef CALI_DEBUG
