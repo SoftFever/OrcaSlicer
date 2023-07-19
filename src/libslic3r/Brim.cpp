@@ -1622,6 +1622,13 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
     }
 
     islands_area = to_polygons(islands_area_ex);
+
+    // BBS: plate offset is applied
+    const Vec3d plate_offset = print.get_plate_origin();
+    Point plate_shift = Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
+    for (size_t iia = 0; iia < islands_area.size(); ++iia)
+        islands_area[iia].translate(plate_shift);
+
     for (auto iter = brimAreaMap.begin(); iter != brimAreaMap.end(); ++iter) {
         if (!iter->second.empty()) {
             brimMap.insert(std::make_pair(iter->first, makeBrimInfill(iter->second, print, islands_area)));

@@ -1731,7 +1731,7 @@ void Print::process(bool use_cache)
         // BBS: m_brimMap and m_supportBrimMap are used instead of m_brim to generate brim of objs and supports seperately
         m_brimMap.clear();
         m_supportBrimMap.clear();
-        m_first_layer_convex_hull.points.clear();
+        m_first_layer_convex_hull.points.clear(); // BBS: plate offset is contained in this convexhull
         if (this->has_brim()) {
             Polygons islands_area;
             make_brim(*this, this->make_try_cancel(), islands_area, m_brimMap,
