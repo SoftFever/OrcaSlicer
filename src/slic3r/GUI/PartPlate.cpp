@@ -1577,7 +1577,7 @@ void PartPlate::generate_plate_name_texture()
 	auto* font = &Label::Head_32;
 
 	wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
-    if (!m_name_texture.generate_from_text_string(text.ToStdString(), *font, *wxBLACK, foreground))
+    if (!m_name_texture.generate_from_text_string(text.ToUTF8().data(), *font, *wxBLACK, foreground))
 		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
     auto bed_ext = get_extents(m_shape);
     auto factor = bed_ext.size()(1) / 200.0;

@@ -2079,7 +2079,15 @@ void ImGuiWrapper::init_font(bool compress)
     cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, m_font_cjk ? ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() : ranges.Data);
+
+    // Orca: temp fix for Korean font
+    auto font_name_regular = "HarmonyOS_Sans_SC_Regular.ttf";
+    auto font_name_bold = "HarmonyOS_Sans_SC_Bold.ttf";
+    if(m_glyph_ranges == ImGui::GetIO().Fonts->GetGlyphRangesKorean()) {
+        font_name_regular = "NotoSansKR-Regular.otf";
+        font_name_bold = "NotoSansKR-Bold.otf";
+    }
+    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + font_name_regular).c_str(), m_font_size, &cfg, ranges.Data);
     if (default_font == nullptr) {
         default_font = io.Fonts->AddFontDefault();
         if (default_font == nullptr) {
@@ -2087,7 +2095,7 @@ void ImGuiWrapper::init_font(bool compress)
         }
     }
 
-    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
+    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + font_name_bold).c_str(), m_font_size, &cfg, ranges.Data);
     if (bold_font == nullptr) {
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
