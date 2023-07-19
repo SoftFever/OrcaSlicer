@@ -2366,6 +2366,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 90.;
     def->set_default_value(new ConfigOptionFloat(62.));
 
+    def = this->add("make_overhang_printable_hole_size", coFloat);
+    def->label = L("Make overhang printable hole area");
+    def->category = L("Quality");
+    def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material."
+                     "A value of 0 will fill all the holes in the model base.");
+    def->sidetext = L("mm²");
+    def->mode = comAdvanced;
+    def->min = 0.;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("detect_overhang_wall", coBool);
     def->label = L("Detect overhang wall");
     def->category = L("Quality");

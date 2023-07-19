@@ -710,6 +710,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // SoftFever
     ((ConfigOptionBool,               make_overhang_printable))
     ((ConfigOptionFloat,              make_overhang_printable_angle))
+    ((ConfigOptionFloat,              make_overhang_printable_hole_size))
 
 )
 

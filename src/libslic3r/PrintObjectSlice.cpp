@@ -1183,7 +1183,7 @@ void PrintObject::apply_conical_overhang() {
 
     const double conical_overhang_angle = this->config().make_overhang_printable_angle;
     const double angle_radians = conical_overhang_angle * M_PI / 180.;
-    const double max_hole_area = 0.;  // in MM^2
+    const double max_hole_area = this->config().make_overhang_printable_hole_size; // in MM^2
     const double tan_angle = tan(angle_radians); // the XY-component of the angle
     BOOST_LOG_TRIVIAL(info) << "angle " << angle_radians << " maxHoleArea " << max_hole_area << " tan_angle "
                             << tan_angle;
