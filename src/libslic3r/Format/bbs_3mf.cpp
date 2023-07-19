@@ -3422,7 +3422,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Importer::_handle_start_component(const char** attributes, unsigned int num_attributes)
     {
-        std::string path      = bbs_get_attribute_value_string(attributes, num_attributes, PPATH_ATTR);
+        std::string path      = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, PPATH_ATTR));
         int         object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
         Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
 
@@ -6295,7 +6295,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (ppath->empty())
                 stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_id; // << "\"/>\n";
             else
-                stream << "    <" << COMPONENT_TAG << " p:path=\"" << *ppath << "\" objectid=\"" << volume_id; // << "\"/>\n";
+                stream << "    <" << COMPONENT_TAG << " p:path=\"" << xml_escape(*ppath) << "\" objectid=\"" << volume_id; // << "\"/>\n";
             const Transform3d &transf = volume->get_matrix();
             stream << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c) {
