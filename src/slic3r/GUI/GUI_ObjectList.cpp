@@ -2055,6 +2055,8 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
         mesh = TriangleMesh(its_make_cone(0.5 * side, side));
     else if (type_name == "Bambu Cube")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/Bambu_Cube.stl").c_str(), true, nullptr);
+    else if (type_name == "Bambu Cube V2")
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/Bambu_Cube_V2.stl").c_str(), true, nullptr);
     else if (type_name == "3DBenchy")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/3DBenchy.stl").c_str(), true, nullptr);
     else if (type_name == "ksr FDMTest")
