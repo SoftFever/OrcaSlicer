@@ -870,7 +870,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              z_hop))
     // BBS
     ((ConfigOptionEnumsGeneric,        z_hop_types))
-    ((ConfigOptionBools,               retract_lift_first_layer))
     ((ConfigOptionEnumsGeneric,        retract_lift_enforce))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))

@@ -3508,7 +3508,6 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
             optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_retraction", -1, true);
-            optgroup->append_single_option_line("retract_lift_first_layer", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
 
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
