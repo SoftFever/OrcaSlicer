@@ -4522,13 +4522,12 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     // check if need to lift (roughly from SuperSlicer)
     bool needs_lift = toolchange
         || (EXTRUDER_CONFIG(retract_lift_first_layer) && m_writer.extruder()->retraction_length() > 0 && this->m_layer_index == 0)
-        || m_writer.extruder()->retraction_length() > 0
         || m_config.use_firmware_retraction;
 
     bool last_fill_extrusion_role_top_infill = (this->m_last_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_extrusion_role == ExtrusionRole::erIroning);
     if (this->m_last_extrusion_role == ExtrusionRole::erGapFill)
         last_fill_extrusion_role_top_infill = (this->m_last_notgapfill_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_notgapfill_extrusion_role == ExtrusionRole::erIroning);
-    if (needs_lift) {
+    if (!needs_lift && m_writer.extruder()->retraction_length() > 0) {
       if (RetractLiftTopType(EXTRUDER_CONFIG(retract_lift_top)) == RetractLiftTopType::rlttNotOnTop)
         needs_lift = !last_fill_extrusion_role_top_infill;
       else if (RetractLiftTopType(EXTRUDER_CONFIG(retract_lift_top)) == RetractLiftTopType::rlttOnlyOnTop)
