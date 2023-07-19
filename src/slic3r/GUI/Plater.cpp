@@ -2305,6 +2305,9 @@ private:
     std::vector<std::pair<Slic3r::PrintStateBase::Warning, size_t>> current_warnings;
     bool show_warning_dialog { false };
 
+    //record print preset
+    void record_start_print_preset(std::string action);
+
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf)", std::regex::icase);
@@ -6308,6 +6311,7 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
     m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
     m_select_machine_dlg->ShowModal();
+    record_start_print_preset("print_plate");
 }
 
 void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
@@ -6360,6 +6364,7 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
     m_select_machine_dlg->prepare(PLATE_ALL_IDX);
     m_select_machine_dlg->ShowModal();
+    record_start_print_preset("print_all");
 }
 
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
@@ -7705,6 +7710,51 @@ bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint&
     return true;
 }
 
+
+void Plater::priv::record_start_print_preset(std::string action) {
+    // record start print preset
+    try {
+        json j;
+        int  plate_count = partplate_list.get_plate_count();
+        j["plate_count"] = plate_count;
+        unsigned int obj_count = model.objects.size();
+        j["obj_count"] = obj_count;
+        auto printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset_with_vendor_profile().preset;
+        if (printer_preset.is_system) {
+            j["printer_preset_name"] = printer_preset.name;
+        }
+        else {
+            j["printer_preset_name"] = printer_preset.config.opt_string("inherits");
+        }
+        auto filament_presets = wxGetApp().preset_bundle->filament_presets;
+        for (int i = 0; i < filament_presets.size(); ++i) {
+            auto filament_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[i]);
+            if (filament_preset->is_system) {
+                j["filament_preset_" + std::to_string(i)] = filament_preset->name;
+            }
+            else {
+                j["filament_preset_" + std::to_string(i)] = filament_preset->config.opt_string("inherits");
+            }
+        }
+
+        Preset& print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
+        if (print_preset.is_system) {
+            j["process_preset"] = print_preset.name;
+        }
+        else {
+            j["process_preset"] = print_preset.config.opt_string("inherits");
+        }
+
+        j["record_event"] = action;
+        NetworkAgent* agent = wxGetApp().getAgent();
+        if (agent) agent->track_event("user_start_print", j.dump());
+    }
+    catch (...) {
+        return;
+    }
+
+}
+
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
 {
     switch (btn_type)
@@ -7966,6 +8016,17 @@ int Plater::save_project(bool saveAs)
 
     wxGetApp().update_saved_preset_from_current_preset();
     reset_project_dirty_after_save();
+    try {
+        json j;
+        boost::uintmax_t size = boost::filesystem::file_size(into_path(filename));
+        j["file_size"] = size;
+        j["file_name"] = std::string(filename.mb_str());
+
+        NetworkAgent* agent = wxGetApp().getAgent();
+        if (agent) agent->track_event("save_project", j.dump());
+    }
+    catch (...) {}
+
     return wxID_YES;
 }
 
