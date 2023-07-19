@@ -718,8 +718,12 @@ bool AMSMaterialsSetting::is_virtual_tray()
 
 void AMSMaterialsSetting::update_widgets()
 {
-    // virtual tray
-    if (is_virtual_tray()) {
+    if (obj && obj->get_printer_series() == PrinterSeries::SERIES_X1 && obj->cali_version <= -1) {
+        // Low version firmware does not display k value
+        m_panel_kn->Hide();
+    }
+    else if(is_virtual_tray()) // virtual tray
+    {
         if (obj)
             m_panel_normal->Show();
         else
