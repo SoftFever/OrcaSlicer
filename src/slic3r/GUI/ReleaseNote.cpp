@@ -32,6 +32,7 @@ wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -899,9 +900,27 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
         m_button_cancel->Hide();
     else
         m_button_cancel->Show();
+    
+    m_button_update_nozzle = new Button(this, _L("Confirm and Update Nozzle"));
+    m_button_update_nozzle->SetBackgroundColor(btn_bg_white);
+    m_button_update_nozzle->SetBorderColor(wxColour(38, 46, 48));
+    m_button_update_nozzle->SetFont(Label::Body_12);
+    m_button_update_nozzle->SetSize(wxSize(-1, FromDIP(24)));
+    m_button_update_nozzle->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_update_nozzle->SetCornerRadius(FromDIP(12));
+
+    m_button_update_nozzle->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_UPDATE_NOZZLE);
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        this->on_hide();
+    });
+
+    m_button_update_nozzle->Hide();
 
     sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    sizer_button->Add(m_button_update_nozzle, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     sizer_button->Add(FromDIP(5),0, 0, 0);
     bottom_sizer->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
@@ -1005,6 +1024,12 @@ ConfirmBeforeSendDialog::~ConfirmBeforeSendDialog()
 void ConfirmBeforeSendDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     rescale();
+}
+
+void ConfirmBeforeSendDialog::show_update_nozzle_button()
+{
+    m_button_update_nozzle->Show(true);
+    Layout();
 }
 
 void ConfirmBeforeSendDialog::rescale()

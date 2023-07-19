@@ -1864,6 +1864,20 @@ int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, i
     return this->publish_json(j.dump());
 }
 
+
+int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float diameter)
+{
+    BOOST_LOG_TRIVIAL(info) << "command_set_printer_nozzle, nozzle_type = " << nozzle_type << " diameter = " << diameter;
+    json j;
+    j["system"]["command"] = "set_accessories";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["accessory_type"] = "nozzle";
+    j["system"]["nozzle_type"] = nozzle_type;
+    j["system"]["nozzle_diameter"] = diameter;
+    return this->publish_json(j.dump());
+}
+
+
 int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
 {
     json j;
@@ -3296,6 +3310,17 @@ int MachineObject::parse_json(std::string payload)
                         }
                     }
                     catch(...) {
+                        ;
+                    }
+
+                    try {
+                        if (jj.contains("nozzle_type")) {
+                            if (jj["nozzle_type"].is_string()) {
+                                nozzle_type = jj["nozzle_type"].get<std::string>();
+                            }
+                        }
+                    }
+                    catch (...) {
                         ;
                     }
 

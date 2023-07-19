@@ -1421,13 +1421,13 @@ void SelectMachineDialog::init_bind()
             on_send_print();
         }
         else if (e.GetInt() == -2 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
-            show_status(PrintDialogStatus::PrintStatusSendingCanceled);
+            show_status(PrintDialogStatus::PrintStatusInit);
             prepare_mode();
             MessageDialog msg_wingow(nullptr, _L("Printer local connection failed, please try again."), "", wxAPPLY | wxOK);
             msg_wingow.ShowModal();
         }
         else if (e.GetInt() == 5 && (m_print_type == PrintFromType::FROM_SDCARD_VIEW)) {
-            show_status(PrintDialogStatus::PrintStatusSendingCanceled);
+            show_status(PrintDialogStatus::PrintStatusInit);
             prepare_mode();
 
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2208,6 +2208,100 @@ bool SelectMachineDialog::is_blocking_printing()
     return false;
 }
 
+bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std::string& nozzle_diameter)
+{
+    bool  is_same_nozzle_diameters = true;
+
+    float       preset_nozzle_diameters;
+    std::string preset_nozzle_type;
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return true;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) return true;
+
+    try
+    {
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
+
+        const ConfigOptionEnum<NozzleType>* nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
+
+        if (nozzle_type->value == NozzleType::ntHardenedSteel) {
+            preset_nozzle_type = "hardened_steel";
+        }
+        else if (nozzle_type->value == NozzleType::ntStainlessSteel) {
+            preset_nozzle_type = "stainless_steel";
+        }
+
+        if (obj_->nozzle_type != preset_nozzle_type) {
+            is_same_nozzle_diameters = false;
+        }
+
+        auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
+        if (opt_nozzle_diameters != nullptr) {
+            for (auto i = 0; i < extruders.size(); i++) {
+                auto extruder = extruders[i] - 1;
+                preset_nozzle_diameters = float(opt_nozzle_diameters->get_at(extruder));
+                if (preset_nozzle_diameters != obj_->nozzle_diameter) {
+                    is_same_nozzle_diameters = false;
+                }
+            }
+        }
+            
+    }
+    catch (...)
+    {	
+    }
+
+    nozzle_type = preset_nozzle_type;
+    nozzle_diameter = wxString::Format("%.1f",preset_nozzle_diameters).ToStdString();
+
+    return is_same_nozzle_diameters;
+}
+
+bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type)
+{
+    bool  is_same_nozzle_type = true;
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return true;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) return true;
+
+
+    NozzleType nozzle_type = NozzleType::ntUndefine;
+
+    if (obj_->nozzle_type == "stainless_steel") {
+        nozzle_type = NozzleType::ntStainlessSteel;
+    }
+    else if (obj_->nozzle_type == "hardened_steel") {
+        nozzle_type = NozzleType::ntHardenedSteel;
+    }
+
+    auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
+
+    auto preset_bundle = wxGetApp().preset_bundle;
+    for (auto filament_name : preset_bundle->filament_presets) {
+        for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
+            if (filament_name.compare(iter->name) == 0) {
+                std::string display_filament_type;
+                filament_type = iter->config.get_filament_type(display_filament_type);
+                auto filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_type(filament_type);
+
+                if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
+                    BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
+                    is_same_nozzle_type = false;
+                }
+            }
+        }
+    }
+
+    return is_same_nozzle_type;
+}
+
 bool SelectMachineDialog::is_same_printer_model()
 {
     bool result = true;
@@ -2242,6 +2336,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
 
     bool has_slice_warnings = false;
+    bool has_update_nozzle  = false;
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -2342,9 +2437,41 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_text.push_back(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.") + "\n");
     }
 
+    std::string nozzle_type;
+    std::string nozzle_diameter;
+    std::string filament_type;
+
+    if (!obj_->nozzle_type.empty()) {
+        if (!is_same_nozzle_diameters(nozzle_type, nozzle_diameter)) {
+            has_slice_warnings = true;
+            has_update_nozzle  = true;
+            
+            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, format_steel_name(nozzle_type));
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, format_steel_name(obj_->nozzle_type));
+
+            confirm_text.push_back(_L("Your nozzle type in preset is not consistent with memorized nozzle.Did you change your nozzle lately ? ") 
+                + "\n    " + nozzle_in_preset 
+                + "\n    " + nozzle_in_printer
+                + "\n");
+        }
+        else if (!is_same_nozzle_type(filament_type)){
+            has_slice_warnings = true;
+            has_update_nozzle = true;
+            nozzle_type = "hardened_steel";
+            nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
+
+                wxString nozzle_in_preset = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, format_steel_name(nozzle_type));
+            confirm_text.push_back(nozzle_in_preset + "\n");
+        }
+    }
+    
+
     if (has_slice_warnings) {
         wxString confirm_title = _L("Warning");
         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, confirm_title);
+
+        if(has_update_nozzle){confirm_dlg.show_update_nozzle_button();}
+
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
             confirm_dlg.on_hide();
             if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
@@ -2353,7 +2480,18 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             else {
                 this->on_send_print();
             }
+        });
 
+        confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
+            if (obj_ && !nozzle_type.empty() && !nozzle_diameter.empty()) {
+                try
+                {
+                    float diameter = std::stof(nozzle_diameter); 
+                    diameter = round(diameter * 10) / 10;
+                    obj_->command_set_printer_nozzle(nozzle_type, diameter);
+                }
+                catch (...) {} 
+            }
         });
 
         confirm_text.push_back(_L("Please click the confirm button if you still want to proceed with printing.") + "\n");
@@ -2382,6 +2520,18 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             this->on_send_print();
         }
     }
+}
+
+wxString SelectMachineDialog::format_steel_name(std::string name)
+{
+    if (name == "hardened_steel") {
+        return _L("Hardened Steel");
+    }
+    else if (name == "stainless_steel") {
+        return _L("Stainless Steel");
+    }
+
+    return wxEmptyString;
 }
 
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
@@ -2686,7 +2836,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
-    show_status(PrintDialogStatus::PrintStatusSendingCanceled);
+    show_status(PrintDialogStatus::PrintStatusInit);
     // enter prepare mode
     prepare_mode();
 }
@@ -3210,6 +3360,7 @@ void SelectMachineDialog::update_show_status()
             return;
         }
     }
+
 
     // do ams mapping if no ams result
     if (m_ams_mapping_result.empty()) {

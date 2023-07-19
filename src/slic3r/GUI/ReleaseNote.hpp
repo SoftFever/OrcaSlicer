@@ -42,8 +42,9 @@ namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
-wxDECLARE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
 {
@@ -175,16 +176,19 @@ public:
     void on_show();
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
-    wxString format_text(wxString str, int warp);
     void rescale();
-    ~ConfirmBeforeSendDialog();
     void on_dpi_changed(const wxRect& suggested_rect);
+    void show_update_nozzle_button();
+    wxString format_text(wxString str, int warp);
+
+    ~ConfirmBeforeSendDialog();
 
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow* m_vebview_release_note{ nullptr };
     Label* m_staticText_release_note{ nullptr };
     Button* m_button_ok;
     Button* m_button_cancel;
+    Button* m_button_update_nozzle;
     wxCheckBox* m_show_again_checkbox;
     bool not_show_again = false;
     std::string show_again_config_text = "";

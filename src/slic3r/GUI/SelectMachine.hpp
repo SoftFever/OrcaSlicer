@@ -445,6 +445,8 @@ public:
     bool is_show_timelapse();
     bool is_same_printer_model();
     bool is_blocking_printing();
+    bool is_same_nozzle_diameters(std::string& nozzle_type, std::string& nozzle_diameter);
+    bool is_same_nozzle_type(std::string& filament_type);
     bool has_tips(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
@@ -454,6 +456,7 @@ public:
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& ams_mapping_info);
 
     PrintFromType get_print_type() {return m_print_type;};
+    wxString    format_steel_name(std::string name);
     wxString    format_text(wxString &m_msg);
     wxWindow*   create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     wxWindow*   create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);

@@ -394,6 +394,7 @@ public:
     bool        local_use_ssl_for_mqtt { true };
     bool        local_use_ssl_for_ftp { true };
     float       nozzle_diameter { 0.0f };
+    std::string nozzle_type;
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     std::string dev_connection_name;    /* lan | eth */
@@ -770,6 +771,7 @@ public:
     int command_request_push_all(bool request_now = false);
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
+    int command_set_printer_nozzle(std::string nozzle_type, float diameter);
 
     /* command upgrade */
     int command_upgrade_confirm();
