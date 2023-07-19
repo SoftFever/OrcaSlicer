@@ -4519,18 +4519,17 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
     gcode += m_writer.reset_e();
 
-    // check if should to lift (roughly from SuperSlicer)
+    // check if should + can lift (roughly from SuperSlicer)
     RetractLiftEnforceType retract_lift_type = RetractLiftEnforceType(EXTRUDER_CONFIG(retract_lift_enforce));
 
     bool needs_lift = toolchange
         || m_writer.extruder()->retraction_length() > 0
         || m_config.use_firmware_retraction;
 
-    bool can_lift = true;
+    bool last_fill_extrusion_role_top_infill = (this->m_last_notgapfill_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_notgapfill_extrusion_role == ExtrusionRole::erIroning);
 
-    bool last_fill_extrusion_role_top_infill = (this->m_last_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_extrusion_role == ExtrusionRole::erIroning);
-    if (this->m_last_extrusion_role == ExtrusionRole::erGapFill)
-        last_fill_extrusion_role_top_infill = (this->m_last_notgapfill_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_notgapfill_extrusion_role == ExtrusionRole::erIroning);
+    // assume we can lift on retraction; conditions left explicit 
+    bool can_lift = true;
 
     if (retract_lift_type == RetractLiftEnforceType::rletAllSurfaces) {
         can_lift = true;
