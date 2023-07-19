@@ -308,9 +308,9 @@ static const t_config_enum_values s_keys_map_ZHopType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
 
 static const t_config_enum_values s_keys_map_RetractLiftTopType = {
-    {"All Surfaces",        int(RetractLiftTopType::rlttAllSurfaces)},
-    {"Not on Top",          int(RetractLiftTopType::rlttNotOnTop)},
-    {"Only on Top",         int(RetractLiftTopType::rlttOnlyOnTop)}
+    {"All Surfaces",        rlttAllSurfaces},
+    {"Not on Top",          rlttNotOnTop},
+    {"Only on Top",         rlttOnlyOnTop}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(RetractLiftTopType)
 
@@ -2560,14 +2560,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
 
-    def = this->add("retract_lift_first_layer", coBool);
+    def = this->add("retract_lift_first_layer", coBools);
     def->label = L("First Layer Z Hop");
     def->tooltip = L("Force Z Hop on first layer.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBools{false});
 
-    def = this->add("retract_lift_top", coEnum);
-    def->label = L("Top Layer Z Hop");
+    def = this->add("retract_lift_top", coEnums);
+    def->label = L("On Surfaces");
     def->tooltip = L("Enforce Z Hop behavior on top layers.");
     def->enum_keys_map = &ConfigOptionEnum<RetractLiftTopType>::get_enum_values();
     def->enum_values.push_back("All Surfaces");
@@ -2577,7 +2577,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Not on Top"));
     def->enum_labels.push_back(L("Only on Top"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<RetractLiftTopType>(rlttAllSurfaces));
+    def->set_default_value(new ConfigOptionEnumsGeneric{RetractLiftTopType ::rlttAllSurfaces});
 
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");

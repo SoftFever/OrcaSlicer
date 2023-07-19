@@ -869,8 +869,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              z_hop))
     // BBS
     ((ConfigOptionEnumsGeneric,        z_hop_types))
-    ((ConfigOptionBool,                retract_lift_first_layer))
-    ((ConfigOptionEnum<RetractLiftTopType>,        retract_lift_top))
+    ((ConfigOptionBools,               retract_lift_first_layer))
+    ((ConfigOptionEnumsGeneric,        retract_lift_top))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))
