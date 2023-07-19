@@ -40,7 +40,7 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
 
-#define WRAP_GAP FromDIP(10)
+#define WRAP_GAP FromDIP(2)
 
 static wxString task_canceled_text = _L("Task canceled");
 
@@ -1369,7 +1369,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(11));
     m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(16));
-    m_sizer_main->Add(m_sizer_select, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
+    m_sizer_main->Add(m_sizer_select, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1594,15 +1594,15 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
 
     sizer_check->Add(check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
 
-    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
-    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(11));
-
     auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-    text->SetFont(::Label::Body_13);
+    text->SetFont(::Label::Body_12);
     text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
     text->Wrap(-1);
-    text->SetMinSize(wxSize(FromDIP(120), -1));
-    text->SetMaxSize(wxSize(FromDIP(120), -1));
+    text->SetMinSize(wxSize(FromDIP(140), -1));
+    text->SetMaxSize(wxSize(FromDIP(140), -1));
+
+    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
+    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(7));
     sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
 
     checkbox->SetSizer(sizer_checkbox);
