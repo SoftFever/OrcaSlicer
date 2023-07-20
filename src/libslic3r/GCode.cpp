@@ -4534,10 +4534,10 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     if (retract_lift_type == RetractLiftEnforceType::rletAllSurfaces) {
         can_lift = true;
     }
-    else if (this->m_layer_index == 0 && (retract_lift_type == RetractLiftEnforceType::rletOnlyOnBottom || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom)) {
+    else if (this->m_layer_index == 0 && (retract_lift_type == RetractLiftEnforceType::rletBottomOnly || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom)) {
         can_lift = true;
     }
-    else if (retract_lift_type == RetractLiftEnforceType::rletOnlyOnTop || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom) {
+    else if (retract_lift_type == RetractLiftEnforceType::rletTopOnly || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom) {
         can_lift = last_fill_extrusion_role_top_infill;
     }
     else {

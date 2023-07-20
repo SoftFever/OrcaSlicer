@@ -309,8 +309,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
 
 static const t_config_enum_values s_keys_map_RetractLiftEnforceType = {
     {"All Surfaces",        rletAllSurfaces},
-    {"Only on Top",         rletOnlyOnTop},
-    {"Only on Bottom",      rletOnlyOnBottom},
+    {"Top Only",         rletTopOnly},
+    {"Bottom Only",      rletBottomOnly},
     {"Top and Bottom",      rletTopAndBottom}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(RetractLiftEnforceType)
@@ -2580,12 +2580,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enforce Z Hop behavior. This setting is impacted by the above settings (Only lift Z above/below).");
     def->enum_keys_map = &ConfigOptionEnum<RetractLiftEnforceType>::get_enum_values();
     def->enum_values.push_back("All Surfaces");
-    def->enum_values.push_back("Only on Top");
-    def->enum_values.push_back("Only on Bottom");
+    def->enum_values.push_back("Top Only");
+    def->enum_values.push_back("Bottom Only");
     def->enum_values.push_back("Top and Bottom");
     def->enum_labels.push_back(L("All Surfaces"));
-    def->enum_labels.push_back(L("Only on Top"));
-    def->enum_labels.push_back(L("Only on Bottom"));
+    def->enum_labels.push_back(L("Top Only"));
+    def->enum_labels.push_back(L("Bottom Only"));
     def->enum_labels.push_back(L("Top and Bottom"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{RetractLiftEnforceType ::rletAllSurfaces});
@@ -3684,19 +3684,19 @@ void PrintConfigDef::init_extruder_option_keys()
 
     m_extruder_retract_keys = {
         "deretraction_speed",
-        "retract_before_wipe",
-        "retract_restart_extra",
-        "retract_when_changing_layer",
         "retraction_length",
         "retraction_minimum_travel",
         "retraction_speed",
+        "retract_before_wipe",
+        "retract_lift_above",
+        "retract_lift_below",
+        "retract_lift_enforce",
+        "retract_restart_extra",
+        "retract_when_changing_layer",
         "wipe",
         "wipe_distance",
         "z_hop",
-        "z_hop_types",           
-        "retract_lift_above",
-        "retract_lift_below",
-        "retract_lift_enforce"
+        "z_hop_types"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
@@ -3713,19 +3713,19 @@ void PrintConfigDef::init_filament_option_keys()
 
     m_filament_retract_keys = {
         "deretraction_speed",
-        "retract_before_wipe",
-        "retract_restart_extra",
-        "retract_when_changing_layer",
         "retraction_length",
         "retraction_minimum_travel",
         "retraction_speed",
+        "retract_before_wipe",
+        "retract_lift_above",
+        "retract_lift_below",
+        "retract_lift_enforce",
+        "retract_restart_extra",
+        "retract_when_changing_layer",
         "wipe",
         "wipe_distance",
         "z_hop",
-        "z_hop_types",           
-        "retract_lift_above",
-        "retract_lift_below",
-        "retract_lift_enforce"
+        "z_hop_types"
     };
     assert(std::is_sorted(m_filament_retract_keys.begin(), m_filament_retract_keys.end()));
 }

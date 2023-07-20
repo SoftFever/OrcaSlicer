@@ -220,8 +220,8 @@ enum ZHopType {
 
 enum RetractLiftEnforceType {
     rletAllSurfaces = 0,
-    rletOnlyOnTop,
-    rletOnlyOnBottom,
+    rletTopOnly,
+    rletBottomOnly,
     rletTopAndBottom
 };
 
