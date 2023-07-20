@@ -6528,7 +6528,7 @@ void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
     view3D->get_canvas3d()->on_change_color_mode(m_is_dark);
     preview->get_canvas3d()->on_change_color_mode(m_is_dark);
     assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
-    m_send_to_sdcard_dlg->on_change_color_mode();
+    if (m_send_to_sdcard_dlg) m_send_to_sdcard_dlg->on_change_color_mode();
 }
 
 void Plater::priv::on_right_click(RBtnEvent& evt)
