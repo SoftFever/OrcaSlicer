@@ -1127,16 +1127,24 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         for (auto &area : ts_layer->overhang_areas) {
             ts_layer->overhang_types.emplace(&area, SupportLayer::Detected);
         }
-        // enforcers
-        if (layer_nr < enforcers.size()) {
+        // enforcers now follow same logic as normal support. See STUDIO-3692
+        if (layer_nr < enforcers.size() && lower_layer) {
+            float no_interface_offset = std::accumulate(layer->regions().begin(), layer->regions().end(), FLT_MAX,
+                [](float acc, const LayerRegion* layerm) { return std::min(acc, float(layerm->flow(frExternalPerimeter).scaled_width())); });
+            Polygons  lower_layer_polygons = (layer_nr == 0) ? Polygons() : to_polygons(lower_layer->lslices);
             Polygons& enforcer = enforcers[layer_nr];
-            // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
-            // is not good. For example: tails of animals needs extra support except the lowest tip.
-            //enforcer = std::move(offset2_ex(enforcer, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-            enforcer = offset(enforcer, 0.1 * extrusion_width_scaled);
-            for (const Polygon& poly : enforcer) {
-                ts_layer->overhang_areas.emplace_back(poly);
-                ts_layer->overhang_types.emplace(&ts_layer->overhang_areas.back(), SupportLayer::Enforced);
+            if (!enforcer.empty()) {
+                Polygons enforcer_polygons = diff(intersection(layer->lslices, enforcer),
+                    // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
+                    expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
+                // is not good. For example: tails of animals needs extra support except the lowest tip.
+                //enforcer = std::move(offset2_ex(enforcer, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+                enforcer_polygons = offset(enforcer_polygons, 0.1 * extrusion_width_scaled);
+                for (const Polygon& poly : enforcer_polygons) {
+                    ts_layer->overhang_areas.emplace_back(poly);
+                    ts_layer->overhang_types.emplace(&ts_layer->overhang_areas.back(), SupportLayer::Enforced);
+                }
             }
         }
 
