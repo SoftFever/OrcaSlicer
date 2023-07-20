@@ -500,6 +500,11 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     m_staticText_progress_left->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
 
+    m_staticText_progress_end = new wxStaticText(penel_text, wxID_ANY, NA_STR, wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_end->Wrap(-1);
+    m_staticText_progress_end->SetFont(
+        wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_progress_end->SetForegroundColour(wxColour(146, 146, 146));
     //fgSizer_task->Add(bSizer_buttons, 0, wxEXPAND, 0);
     //fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
 
@@ -521,6 +526,8 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     bSizer_text->Add(m_staticText_layers, 0, wxALIGN_CENTER | wxALL, 0);
     bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER | wxALL, 0);
+    bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(8));
+    bSizer_text->Add(m_staticText_progress_end, 0, wxALIGN_CENTER | wxALL, 0);
 
     penel_text->SetMaxSize(wxSize(FromDIP(600), -1));
     penel_text->SetSizer(bSizer_text);
@@ -2226,6 +2233,19 @@ void StatusPanel::update_left_time(int mc_left_time)
 
     // update current subtask progress
     m_staticText_progress_left->SetLabelText(left_time_text);
+
+    //Update end time
+    try {
+        left_time = get_bbl_monitor_end_time_dhm(mc_left_time);
+    } catch (...) {
+        ;
+    }
+    if (!left_time.empty())
+        left_time_text = wxString::Format("%s", left_time);
+    else
+        left_time_text = NA_STR;
+
+    m_staticText_progress_end->SetLabelText(left_time_text);
 }
 
 void StatusPanel::update_basic_print_data(bool def)
@@ -2304,6 +2324,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_staticText_progress_percent->SetLabelText(NA_STR);
             m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
             m_staticText_progress_left->SetLabel(NA_STR);
+            m_staticText_progress_end->SetLabel(NA_STR);
             m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
             wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
             m_staticText_subtask_value->SetLabelText(subtask_text);
@@ -2421,6 +2442,7 @@ void StatusPanel::reset_printing_values()
     update_basic_print_data(false);
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText(NA_STR);
+    m_staticText_progress_end->SetLabel(NA_STR);
     m_staticText_layers->SetLabelText(wxString::Format(_L("Layer: %s"), NA_STR));
     m_staticText_progress_percent->SetLabelText(NA_STR);
     m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
