@@ -122,6 +122,7 @@ public:
 
     void show_prev_btn(bool show = true);
     void show_help_icon(bool show = true);
+    void on_sys_color_changed();
 
 protected:
     ScalableButton* m_prev_btn;
@@ -131,7 +132,7 @@ private:
     void init_bitmaps();
     void create_wiki(wxWindow* parent);
 
-    wxStaticText* m_wiki_text;
+    Label* m_wiki_text;
     wxString  m_wiki_url;
     ScalableBitmap m_prev_bmp_normal;
     ScalableBitmap m_prev_bmp_hover;
@@ -154,7 +155,7 @@ public:
 protected:
     wxArrayString m_steps;
     wxBoxSizer* m_step_sizer;
-    std::vector<wxStaticText*> m_text_steps;
+    std::vector<Label*> m_text_steps;
 };
 
 class CaliPagePicture : public wxPanel 
@@ -276,6 +277,9 @@ public:
         }
     }
 
+    void msw_rescale();
+    void on_sys_color_changed();
+
 protected:
     CalibMode             m_cali_mode;
     CaliPageType          m_page_type;
@@ -286,7 +290,7 @@ protected:
     wxWindow*             m_parent { nullptr };
     CaliPageCaption*      m_page_caption { nullptr };
     CaliPageActionPanel*  m_action_panel { nullptr };
-    wxStaticText*         m_statictext_printer_msg{ nullptr };
+    Label*         m_statictext_printer_msg{ nullptr };
 
 private:
     CalibrationWizardPage* m_prev_page {nullptr};

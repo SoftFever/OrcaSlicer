@@ -66,6 +66,9 @@ public:
     virtual void recover_preset_info(MachineObject *obj);
     virtual void back_preset_info(MachineObject *obj, bool cali_finish);
 
+    void msw_rescale();
+    void on_sys_color_changed();
+
 protected:
     void on_cali_go_home();
 

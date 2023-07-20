@@ -351,6 +351,8 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
 {
     init_bitmaps();
 
+    SetBackgroundColour(*wxWHITE);
+
     auto top_sizer = new wxBoxSizer(wxVERTICAL);
     auto caption_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_prev_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_prev",
@@ -359,7 +361,7 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
     caption_sizer->Add(m_prev_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
 
     wxString title = get_cali_mode_caption_string(cali_mode);
-    wxStaticText* title_text = new wxStaticText(this, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    Label* title_text = new Label(this, title);
     title_text->SetFont(Label::Head_20);
     title_text->Wrap(-1);
     caption_sizer->Add(title_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
@@ -391,13 +393,13 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
     });
 
     // hover effect
-    m_help_btn->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
-        m_help_btn->SetBitmap(m_help_bmp_hover.bmp());
-        });
+    //m_help_btn->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+    //    m_help_btn->SetBitmap(m_help_bmp_hover.bmp());
+    //    });
 
-    m_help_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
-        m_help_btn->SetBitmap(m_help_bmp_normal.bmp());
-        });
+    //m_help_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
+    //    m_help_btn->SetBitmap(m_help_bmp_normal.bmp());
+    //    });
 
     // send event
     m_prev_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
@@ -406,6 +408,14 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
         event.SetInt((int)(CaliPageActionType::CALI_ACTION_GO_HOME));
         wxPostEvent(m_parent, event);
         });
+
+#ifdef __linux__
+    wxGetApp().CallAfter([this, title_text]() {
+        title_text->SetMinSize(title_text->GetSize() + wxSize{ FromDIP(150), title_text->GetCharHeight() / 2 });
+        Layout();
+        Fit();
+        });
+#endif
 }
 
 void CaliPageCaption::init_bitmaps() {
@@ -417,7 +427,7 @@ void CaliPageCaption::init_bitmaps() {
 
 void CaliPageCaption::create_wiki(wxWindow* parent)
 {
-    m_wiki_text = new wxStaticText(parent, wxID_ANY, _L("Wiki"));
+    m_wiki_text = new Label(parent, _L("Wiki"));
     m_wiki_text->SetFont(Label::Head_14);
     m_wiki_text->SetForegroundColour({ 0, 88, 220 });
     m_wiki_text->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
@@ -445,18 +455,25 @@ void CaliPageCaption::show_help_icon(bool show)
     m_help_btn->Hide();
 }
 
+void CaliPageCaption::on_sys_color_changed()
+{
+    m_prev_btn->msw_rescale();
+}
+
 CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,
     wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style),
     m_steps(steps)
 {
+    SetBackgroundColour(*wxWHITE);
+
     auto top_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_step_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_step_sizer->AddSpacer(FromDIP(90));
     for (int i = 0; i < m_steps.size(); i++) {
-        wxStaticText* step_text = new wxStaticText(this, wxID_ANY, m_steps[i]);
-        step_text->SetForegroundColour(wxColour(181, 181, 181));
+        Label* step_text = new Label(this, m_steps[i]);
+        step_text->SetForegroundColour(wxColour(206, 206, 206));
         m_text_steps.push_back(step_text);
         m_step_sizer->Add(step_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
         if (i != m_steps.size() - 1) {
@@ -471,14 +488,18 @@ CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,
     top_sizer->AddSpacer(FromDIP(30));
     this->SetSizer(top_sizer);
     top_sizer->Fit(this);
+
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void CaliPageStepGuide::set_steps(int index)
 {
-    for (wxStaticText* text_step : m_text_steps) {
-        text_step->SetForegroundColour(wxColour(181, 181, 181));
+    for (Label* text_step : m_text_steps) {
+        text_step->SetForegroundColour(wxColour(206, 206, 206));
     }
     m_text_steps[index]->SetForegroundColour(*wxBLACK);
+
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void CaliPageStepGuide::set_steps_string(wxArrayString steps)
@@ -489,8 +510,8 @@ void CaliPageStepGuide::set_steps_string(wxArrayString steps)
     m_steps = steps;
     m_step_sizer->AddSpacer(FromDIP(90));
     for (int i = 0; i < m_steps.size(); i++) {
-        wxStaticText* step_text = new wxStaticText(this, wxID_ANY, m_steps[i]);
-        step_text->SetForegroundColour(wxColour(181, 181, 181));
+        Label* step_text = new Label(this, m_steps[i]);
+        step_text->SetForegroundColour(wxColour(206, 206, 206));
         m_text_steps.push_back(step_text);
         m_step_sizer->Add(step_text, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(15));
         if (i != m_steps.size() - 1) {
@@ -500,6 +521,9 @@ void CaliPageStepGuide::set_steps_string(wxArrayString steps)
         }
     }
     m_step_sizer->AddSpacer(FromDIP(90));
+
+    wxGetApp().UpdateDarkUIWin(this);
+
     Layout();
 }
 
@@ -535,12 +559,12 @@ PAPageHelpPanel::PAPageHelpPanel(wxWindow* parent, bool ground_panel, wxWindowID
     wxBoxSizer* top_sizer = new wxBoxSizer(wxVERTICAL);
     top_sizer->AddSpacer(FromDIP(10));
 
-    auto help_text_title = new wxStaticText(this, wxID_ANY, _L("How to use calibration result?"));
+    auto help_text_title = new Label(this, _L("How to use calibration result?"));
     help_text_title->SetFont(Label::Head_14);
     top_sizer->Add(help_text_title, 0, wxLEFT | wxRIGHT, left_align_padding);
 
     wxBoxSizer* help_text_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto help_text = new wxStaticText(this, wxID_ANY, _L("You could change the Flow Dynamics Calibration Factor in material editing"));
+    auto help_text = new Label(this, _L("You could change the Flow Dynamics Calibration Factor in material editing"));
     help_text->SetFont(Label::Body_14);
     m_help_btn = new ScalableButton(this, wxID_ANY, "cali_page_caption_help", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 24);
     m_help_btn->SetBackgroundColour(m_help_btn->GetParent()->GetBackgroundColour());
@@ -734,5 +758,13 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
     SetMinSize({ MIN_CALIBRATION_PAGE_WIDTH, -1 });
 }
 
+void CalibrationWizardPage::msw_rescale()
+{
+}
+
+void CalibrationWizardPage::on_sys_color_changed()
+{
+    m_page_caption->on_sys_color_changed();
+}
 
 }}

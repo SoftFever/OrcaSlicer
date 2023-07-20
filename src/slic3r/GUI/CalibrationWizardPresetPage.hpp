@@ -54,7 +54,7 @@ public:
     void set_warning(wxString text);
 protected:
     wxBoxSizer*   m_top_sizer;
-    wxStaticText* m_warning_text;
+    Label* m_warning_text;
 };
 
 class CaliPresetTipsPanel : public wxPanel
@@ -73,7 +73,7 @@ public:
 protected:
     wxBoxSizer*     m_top_sizer;
     TextInput*      m_nozzle_temp;
-    wxStaticText*   m_bed_temp;
+    Label*   m_bed_temp;
     TextInput*      m_max_volumetric_speed;
 };
 
@@ -97,7 +97,7 @@ public:
 protected:
     wxBoxSizer*     m_top_sizer;
     int                       m_input_value_nums;
-    std::vector<wxStaticText*> m_title_texts;
+    std::vector<Label*> m_title_texts;
     std::vector<TextInput*>    m_value_inputs;
 };
 
@@ -230,7 +230,7 @@ protected:
     CaliPresetCaliStagePanel* m_cali_stage_panel { nullptr };
     wxPanel*                  m_selection_panel { nullptr };
     wxPanel*                  m_filament_from_panel { nullptr };
-    wxStaticText*             m_filament_list_tips{ nullptr };
+    Label*             m_filament_list_tips{ nullptr };
     wxPanel*                  m_multi_ams_panel { nullptr };
     wxPanel*                  m_filament_list_panel { nullptr };
     wxPanel*                  m_ext_spool_panel { nullptr };

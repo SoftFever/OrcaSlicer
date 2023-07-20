@@ -105,6 +105,8 @@ CaliPASaveAutoPanel::CaliPASaveAutoPanel(
     long style)
     : wxPanel(parent, id, pos, size, style) 
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
     
     create_panel(this);
@@ -117,9 +119,10 @@ CaliPASaveAutoPanel::CaliPASaveAutoPanel(
 void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
 {
     m_complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_complete_text_panel->SetBackgroundColour(*wxWHITE);
     m_complete_text_panel->Hide();
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best Flow Dynamics Calibration Factor"));
+    auto complete_text = new Label(m_complete_text_panel, _L("We found the best Flow Dynamics Calibration Factor"));
     complete_text->SetFont(Label::Head_14);
     complete_text_sizer->Add(complete_text, 0, wxEXPAND);
     m_complete_text_panel->SetSizer(complete_text_sizer);
@@ -129,7 +132,7 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     wxBoxSizer* part_failed_sizer = new wxBoxSizer(wxVERTICAL);
     m_part_failed_panel->SetSizer(part_failed_sizer);
     part_failed_sizer->AddSpacer(FromDIP(10));
-    auto part_failed_text = new wxStaticText(m_part_failed_panel, wxID_ANY, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
+    auto part_failed_text = new Label(m_part_failed_panel, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
     part_failed_text->SetFont(Label::Body_14);
     part_failed_sizer->Add(part_failed_text, 0, wxLEFT | wxRIGHT, FromDIP(20));
     part_failed_sizer->AddSpacer(FromDIP(10));
@@ -143,11 +146,12 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     m_top_sizer->AddSpacer(FromDIP(20));
 
     m_grid_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_grid_panel->SetBackgroundColour(*wxWHITE);
     m_top_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
 
     m_top_sizer->AddSpacer(FromDIP(10));
 
-    wxStaticText* naming_hints = new wxStaticText(parent, wxID_ANY, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
     m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
@@ -169,15 +173,15 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     const int ROW_GAP = FromDIP(30);
     wxBoxSizer* left_title_sizer = new wxBoxSizer(wxVERTICAL);
     left_title_sizer->AddSpacer(FromDIP(52));
-    auto k_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Factor K"), wxDefaultPosition, wxDefaultSize, 0);
+    auto k_title = new Label(m_grid_panel, _L("Factor K"));
     k_title->SetFont(Label::Head_14);
     left_title_sizer->Add(k_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
-    auto n_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Factor N"), wxDefaultPosition, wxDefaultSize, 0);
+    auto n_title = new Label(m_grid_panel, _L("Factor N"));
     n_title->SetFont(Label::Head_14);
     // hide n value
     n_title->Hide();
     left_title_sizer->Add(n_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
-    auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Name"), wxDefaultPosition, wxDefaultSize, 0);
+    auto brand_title = new Label(m_grid_panel, _L("Name"));
     brand_title->SetFont(Label::Head_14);
     left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER);
     grid_sizer->Add(left_title_sizer);
@@ -198,7 +202,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         }
 
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
-        auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
+        auto tray_title = new Label(m_grid_panel, "");
         tray_title->SetFont(Label::Head_14);
         wxString tray_name;
         if (item.tray_id == VIRTUAL_TRAY_ID) {
@@ -215,11 +219,11 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         auto n_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::N);
         k_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         n_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-        auto k_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition);
-        auto n_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition);
+        auto k_value_failed = new Label(m_grid_panel, _L("Failed"));
+        auto n_value_failed = new Label(m_grid_panel, _L("Failed"));
 
         auto comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id);
-        auto tray_name_failed = new wxStaticText(m_grid_panel, wxID_ANY, " - ", wxDefaultPosition);
+        auto tray_name_failed = new Label(m_grid_panel, " - ");
         wxArrayString selections;
         static std::vector<PACalibResult> filtered_results;
         filtered_results.clear();
@@ -313,6 +317,8 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         m_complete_text_panel->Show();
         m_part_failed_panel->Hide();
     }
+
+    wxGetApp().UpdateDarkUIWin(this);
 
     Layout();
 }
@@ -412,6 +418,8 @@ CaliPASaveManualPanel::CaliPASaveManualPanel(
     long style)
     : wxPanel(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
 
     create_panel(this);
@@ -423,8 +431,9 @@ CaliPASaveManualPanel::CaliPASaveManualPanel(
 void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 {
     auto complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    complete_text_panel->SetBackgroundColour(*wxWHITE);
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("Please find the best line on your plate"));
+    auto complete_text = new Label(complete_text_panel, _L("Please find the best line on your plate"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     complete_text_sizer->Add(complete_text, 0);
@@ -439,10 +448,10 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    auto k_value_text = new wxStaticText(parent, wxID_ANY, _L("Factor K"), wxDefaultPosition, wxDefaultSize, 0);
+    auto k_value_text = new Label(parent, _L("Factor K"));
     k_value_text->SetFont(::Label::Head_14);
     k_value_text->Wrap(-1);
-    auto n_value_text = new wxStaticText(parent, wxID_ANY, _L("Factor N"), wxDefaultPosition, wxDefaultSize, 0);
+    auto n_value_text = new Label(parent, _L("Factor N"));
     n_value_text->SetFont(::Label::Head_14);
     n_value_text->Wrap(-1);
     n_value_text->Hide();
@@ -456,7 +465,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    auto save_text = new wxStaticText(parent, wxID_ANY, _L("Name"), wxDefaultPosition, wxDefaultSize, 0);
+    auto save_text = new Label(parent, _L("Name"));
     save_text->SetFont(Label::Head_14);
     m_top_sizer->Add(save_text, 0, 0, 0);
 
@@ -465,7 +474,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(10));
 
-    wxStaticText* naming_hints = new wxStaticText(parent, wxID_ANY, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
     m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
@@ -553,6 +562,8 @@ CaliPASaveP1PPanel::CaliPASaveP1PPanel(
     long style)
     : wxPanel(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
 
     create_panel(this);
@@ -564,8 +575,9 @@ CaliPASaveP1PPanel::CaliPASaveP1PPanel(
 void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
 {
     auto complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    complete_text_panel->SetBackgroundColour(*wxWHITE);
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(complete_text_panel, wxID_ANY, _L("Please find the best line on your plate"));
+    auto complete_text = new Label(complete_text_panel, _L("Please find the best line on your plate"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     complete_text_sizer->Add(complete_text, 0, wxEXPAND);
@@ -581,10 +593,10 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
     m_top_sizer->AddSpacer(FromDIP(20));
 
     auto value_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto k_value_text = new wxStaticText(parent, wxID_ANY, _L("Factor K"), wxDefaultPosition, wxDefaultSize, 0);
+    auto k_value_text = new Label(parent, _L("Factor K"));
     k_value_text->Wrap(-1);
     k_value_text->SetFont(::Label::Head_14);
-    auto n_value_text = new wxStaticText(parent, wxID_ANY, _L("Factor N"), wxDefaultPosition, wxDefaultSize, 0);
+    auto n_value_text = new Label(parent, _L("Factor N"));
     n_value_text->Wrap(-1);
     n_value_text->SetFont(::Label::Head_14);
     m_k_val = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0);
@@ -631,6 +643,8 @@ CaliSavePresetValuePanel::CaliSavePresetValuePanel(
     long style)
     : wxPanel(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
 
     create_panel(this);
@@ -643,13 +657,13 @@ void CaliSavePresetValuePanel::create_panel(wxWindow *parent)
 {
     m_picture_panel = new CaliPagePicture(parent);
 
-    m_value_title = new wxStaticText(parent, wxID_ANY, _L("Input Value"), wxDefaultPosition, wxDefaultSize, 0);
+    m_value_title = new Label(parent, _L("Input Value"));
     m_value_title->SetFont(Label::Head_14);
     m_value_title->Wrap(-1);
     m_input_value = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, wxTE_PROCESS_ENTER);
     m_input_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
-    m_save_name_title = new wxStaticText(parent, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    m_save_name_title = new Label(parent, _L("Save to Filament Preset"));
     m_save_name_title->Wrap(-1);
     m_save_name_title->SetFont(Label::Head_14);
 
@@ -698,6 +712,8 @@ void CaliSavePresetValuePanel::set_save_name(const std::string& name)
 CalibrationPASavePage::CalibrationPASavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationCommonSavePage(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_cali_mode = CalibMode::Calib_PA_Line;
 
     m_page_type = CaliPageType::CALI_PAGE_PA_SAVE;
@@ -815,6 +831,8 @@ bool CalibrationPASavePage::Show(bool show) {
 CalibrationFlowX1SavePage::CalibrationFlowX1SavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationCommonSavePage(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_cali_mode = CalibMode::Calib_Flow_Rate;
 
     m_page_type = CaliPageType::CALI_PAGE_FLOW_SAVE;
@@ -844,7 +862,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     m_complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_complete_text_panel->Hide();
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new wxStaticText(m_complete_text_panel, wxID_ANY, _L("We found the best flow ratio for you"));
+    auto complete_text = new Label(m_complete_text_panel, _L("We found the best flow ratio for you"));
     complete_text->SetFont(Label::Head_14);
     complete_text_sizer->Add(complete_text, 0, wxEXPAND);
     m_complete_text_panel->SetSizer(complete_text_sizer);
@@ -854,7 +872,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     wxBoxSizer* part_failed_sizer = new wxBoxSizer(wxVERTICAL);
     m_part_failed_panel->SetSizer(part_failed_sizer);
     part_failed_sizer->AddSpacer(FromDIP(10));
-    auto part_failed_text = new wxStaticText(m_part_failed_panel, wxID_ANY, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
+    auto part_failed_text = new Label(m_part_failed_panel, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
     part_failed_text->SetFont(Label::Body_14);
     part_failed_sizer->Add(part_failed_text, 0, wxLEFT | wxRIGHT, FromDIP(20));
     part_failed_sizer->AddSpacer(FromDIP(10));
@@ -868,6 +886,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     m_top_sizer->AddSpacer(FromDIP(20));
 
     m_grid_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_grid_panel->SetBackgroundColour(*wxWHITE);
     m_top_sizer->Add(m_grid_panel, 0, wxALIGN_CENTER);
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_FLOW_SAVE);
@@ -883,10 +902,10 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
     const int ROW_GAP = FromDIP(30);
     wxBoxSizer* left_title_sizer = new wxBoxSizer(wxVERTICAL);
     left_title_sizer->AddSpacer(FromDIP(49));
-    auto flow_ratio_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Flow Ratio"), wxDefaultPosition, wxDefaultSize, 0);
+    auto flow_ratio_title = new Label(m_grid_panel, _L("Flow Ratio"));
     flow_ratio_title->SetFont(Label::Head_14);
     left_title_sizer->Add(flow_ratio_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP + FromDIP(10));
-    auto brand_title = new wxStaticText(m_grid_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    auto brand_title = new Label(m_grid_panel, _L("Save to Filament Preset"));
     brand_title->SetFont(Label::Head_14);
     left_title_sizer->Add(brand_title, 0, wxALIGN_CENTER);
     grid_sizer->Add(left_title_sizer);
@@ -907,7 +926,7 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         }
 
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
-        auto tray_title = new wxStaticText(m_grid_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
+        auto tray_title = new Label(m_grid_panel, "");
         tray_title->SetFont(Label::Head_14);
         wxString tray_name;
         if (item.tray_id == VIRTUAL_TRAY_ID) {
@@ -922,10 +941,10 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
 
         auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio);
         flow_ratio_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-        auto flow_ratio_value_failed = new wxStaticText(m_grid_panel, wxID_ANY, _L("Failed"), wxDefaultPosition);
+        auto flow_ratio_value_failed = new Label(m_grid_panel, _L("Failed"));
 
         auto save_name_input = new GridTextInput(m_grid_panel, "", "", { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, item.tray_id, GridTextInputType::Name);
-        auto save_name_input_failed = new wxStaticText(m_grid_panel, wxID_ANY, " - ", wxDefaultPosition);
+        auto save_name_input_failed = new Label(m_grid_panel, " - ");
 
         column_data_sizer->Add(tray_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
         column_data_sizer->Add(flow_ratio_value, 0, wxALIGN_LEFT | wxBOTTOM, ROW_GAP);
@@ -988,6 +1007,8 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         m_complete_text_panel->Show();
         m_part_failed_panel->Hide();
     }
+
+    wxGetApp().UpdateDarkUIWin(this);
 
     Layout();
 }
@@ -1056,6 +1077,8 @@ bool CalibrationFlowX1SavePage::Show(bool show) {
 CalibrationFlowCoarseSavePage::CalibrationFlowCoarseSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationCommonSavePage(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_cali_mode = CalibMode::Calib_Flow_Rate;
 
     m_page_type = CaliPageType::CALI_PAGE_COARSE_SAVE;
@@ -1083,7 +1106,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     m_step_panel->set_steps(1);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
-    auto complete_text = new wxStaticText(parent, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
+    auto complete_text = new Label(parent, _L("Please find the best object on your plate"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(-1);
     m_top_sizer->Add(complete_text, 0, wxEXPAND, 0);
@@ -1096,7 +1119,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     m_top_sizer->AddSpacer(FromDIP(20));
 
     auto coarse_value_sizer = new wxBoxSizer(wxVERTICAL);
-    auto coarse_value_text = new wxStaticText(parent, wxID_ANY, _L("Fill in the value above the block with smoothest top surface"), wxDefaultPosition, wxDefaultSize, 0);
+    auto coarse_value_text = new Label(parent, _L("Fill in the value above the block with smoothest top surface"));
     coarse_value_text->SetFont(Label::Head_14);
     coarse_value_text->Wrap(-1);
     m_optimal_block_coarse = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
@@ -1105,7 +1128,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
         coarse_block_items.Add(std::to_string(-20 + (i * 5)));
     }
     m_optimal_block_coarse->Set(coarse_block_items);
-    auto coarse_calc_result_text = new wxStaticText(parent, wxID_ANY, "");
+    auto coarse_calc_result_text = new Label(parent, "");
     coarse_value_sizer->Add(coarse_value_text, 0, 0);
     coarse_value_sizer->Add(m_optimal_block_coarse, 0, 0);
     coarse_value_sizer->Add(coarse_calc_result_text, 0);
@@ -1113,12 +1136,13 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     m_top_sizer->AddSpacer(FromDIP(20));
 
     auto checkBox_panel = new wxPanel(parent);
+    checkBox_panel->SetBackgroundColour(*wxWHITE);
     auto cb_sizer = new wxBoxSizer(wxHORIZONTAL);
     checkBox_panel->SetSizer(cb_sizer);
     auto checkBox_skip_calibration = new CheckBox(checkBox_panel);
     cb_sizer->Add(checkBox_skip_calibration);
 
-    auto cb_text = new wxStaticText(checkBox_panel, wxID_ANY, _L("Skip Calibration2"));
+    auto cb_text = new Label(checkBox_panel, _L("Skip Calibration2"));
     cb_sizer->Add(cb_text);
     cb_text->Bind(wxEVT_LEFT_DOWN, [this, checkBox_skip_calibration](auto&) {
         checkBox_skip_calibration->SetValue(!checkBox_skip_calibration->GetValue());
@@ -1130,10 +1154,11 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     m_top_sizer->Add(checkBox_panel, 0, 0, 0);
 
     auto save_panel = new wxPanel(parent);
+    save_panel->SetBackgroundColour(*wxWHITE);
     auto save_sizer = new wxBoxSizer(wxVERTICAL);
     save_panel->SetSizer(save_sizer);
 
-    auto save_text = new wxStaticText(save_panel, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    auto save_text = new Label(save_panel, _L("Save to Filament Preset"));
     save_text->Wrap(-1);
     save_text->SetFont(Label::Head_14);
     save_sizer->Add(save_text, 0, 0, 0);
@@ -1227,6 +1252,8 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
 CalibrationFlowFineSavePage::CalibrationFlowFineSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationCommonSavePage(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_cali_mode = CalibMode::Calib_Flow_Rate;
 
     m_page_type = CaliPageType::CALI_PAGE_FINE_SAVE;
@@ -1254,7 +1281,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
     m_step_panel->set_steps(3);
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
-    auto complete_text = new wxStaticText(parent, wxID_ANY, _L("Please find the best object on your plate"), wxDefaultPosition, wxDefaultSize, 0);
+    auto complete_text = new Label(parent, _L("Please find the best object on your plate"));
     complete_text->SetFont(Label::Head_14);
     complete_text->Wrap(-1);
     m_top_sizer->Add(complete_text, 0, wxEXPAND, 0);
@@ -1267,7 +1294,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
     m_top_sizer->AddSpacer(FromDIP(20));
 
     auto fine_value_sizer = new wxBoxSizer(wxVERTICAL);
-    auto fine_value_text = new wxStaticText(parent, wxID_ANY, _L("Fill in the value above the block with smoothest top surface"), wxDefaultPosition, wxDefaultSize, 0);
+    auto fine_value_text = new Label(parent, _L("Fill in the value above the block with smoothest top surface"));
     fine_value_text->Wrap(-1);
     fine_value_text->SetFont(::Label::Head_14);
     m_optimal_block_fine = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, CALIBRATION_OPTIMAL_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
@@ -1276,14 +1303,14 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
         fine_block_items.Add(std::to_string(-9 + (i)));
     }
     m_optimal_block_fine->Set(fine_block_items);
-    auto fine_calc_result_text = new wxStaticText(parent, wxID_ANY, "");
+    auto fine_calc_result_text = new Label(parent, "");
     fine_value_sizer->Add(fine_value_text, 0, 0);
     fine_value_sizer->Add(m_optimal_block_fine, 0, 0);
     fine_value_sizer->Add(fine_calc_result_text, 0);
     m_top_sizer->Add(fine_value_sizer, 0, 0, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    auto save_text = new wxStaticText(parent, wxID_ANY, _L("Save to Filament Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    auto save_text = new Label(parent, _L("Save to Filament Preset"));
     save_text->Wrap(-1);
     save_text->SetFont(Label::Head_14);
     m_top_sizer->Add(save_text, 0, 0, 0);
@@ -1356,6 +1383,8 @@ CalibrationMaxVolumetricSpeedSavePage::CalibrationMaxVolumetricSpeedSavePage(
     long style)
     : CalibrationCommonSavePage(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_cali_mode = CalibMode::Calib_Vol_speed_Tower;
 
     m_page_type = CaliPageType::CALI_PAGE_COMMON_SAVE;

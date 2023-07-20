@@ -111,6 +111,8 @@ public:
     bool Show(bool show);
     void on_printer_clicked(wxMouseEvent& event);
     void set_default();
+    void msw_rescale();
+    void on_sys_color_changed();
 protected:
     void init_tabpanel();
     void init_timer();

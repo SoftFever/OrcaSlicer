@@ -21,10 +21,10 @@ protected:
 
     wxBoxSizer*   m_top_sizer;
     wxBoxSizer*   m_images_sizer;
-    wxStaticText* m_when_title;
-    wxStaticText* m_when_content;
-    wxStaticText* m_about_title;
-    wxStaticText* m_about_content;
+    Label*        m_when_title;
+    Label*        m_when_content;
+    Label*        m_about_title;
+    Label*        m_about_content;
     wxStaticBitmap* m_before_bmp{ nullptr };
     wxStaticBitmap* m_after_bmp{ nullptr };
     wxStaticBitmap* m_bmp_intro{ nullptr };

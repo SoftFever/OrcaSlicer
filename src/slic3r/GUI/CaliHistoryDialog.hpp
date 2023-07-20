@@ -26,7 +26,7 @@ protected:
 
     wxPanel*                   m_history_data_panel;
     ComboBox*                  m_comboBox_nozzle_dia;
-    wxStaticText*              m_tips;
+    Label*              m_tips;
 
     wxTimer*                   m_refresh_timer { nullptr };
 

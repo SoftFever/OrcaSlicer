@@ -52,8 +52,8 @@ class CaliSavePresetValuePanel : public wxPanel
 protected:
     wxBoxSizer* m_top_sizer;
     CaliPagePicture* m_picture_panel;
-    wxStaticText* m_value_title;
-    wxStaticText* m_save_name_title;
+    Label* m_value_title;
+    Label* m_save_name_title;
     ::TextInput* m_input_value;
     ::TextInput* m_input_name;
 

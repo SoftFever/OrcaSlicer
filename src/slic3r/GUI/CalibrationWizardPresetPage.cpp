@@ -20,6 +20,8 @@ CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
     long style)
     : wxPanel(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
 
     create_panel(this);
@@ -30,18 +32,20 @@ CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
 
 void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
 {
-    auto title = new wxStaticText(parent, wxID_ANY, _L("Calibration Type"));
+    auto title = new Label(parent, _L("Calibration Type"));
     title->SetFont(Label::Head_14);
     m_top_sizer->Add(title);
     m_top_sizer->AddSpacer(FromDIP(15));
 
     m_complete_radioBox = new wxRadioButton(parent, wxID_ANY, _L("Complete Calibration"));
+    m_complete_radioBox->SetForegroundColour(*wxBLACK);
     m_complete_radioBox->SetValue(true);
     m_stage = CALI_MANUAL_STAGE_1;
     m_top_sizer->Add(m_complete_radioBox);
     m_top_sizer->AddSpacer(FromDIP(10));
 
     m_fine_radioBox = new wxRadioButton(parent, wxID_ANY, _L("Fine Calibration based on flow ratio"));
+    m_fine_radioBox->SetForegroundColour(*wxBLACK);
     m_top_sizer->Add(m_fine_radioBox);
 
     auto input_panel = new wxPanel(parent);
@@ -135,6 +139,8 @@ CaliPresetWarningPanel::CaliPresetWarningPanel(
     long style)
     : wxPanel(parent, id, pos, size, style)
 {
+    SetBackgroundColour(*wxWHITE);
+
     m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     create_panel(this);
@@ -145,7 +151,7 @@ CaliPresetWarningPanel::CaliPresetWarningPanel(
 
 void CaliPresetWarningPanel::create_panel(wxWindow* parent)
 {
-    m_warning_text = new wxStaticText(parent, wxID_ANY, wxEmptyString);
+    m_warning_text = new Label(parent, wxEmptyString);
     m_warning_text->SetFont(Label::Body_13);
     m_warning_text->SetForegroundColour(wxColour(230, 92, 92));
     m_warning_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
@@ -226,7 +232,7 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
 
         wxBoxSizer *item_sizer;
         item_sizer = new wxBoxSizer(wxVERTICAL);
-        m_title_texts[i] = new wxStaticText(parent, wxID_ANY, _L("Title"), wxDefaultPosition, wxDefaultSize, 0);
+        m_title_texts[i] = new Label(parent, _L("Title"));
         m_title_texts[i]->Wrap(-1);
         m_title_texts[i]->SetFont(::Label::Body_14);
         item_sizer->Add(m_title_texts[i], 0, wxALL, 0);
@@ -263,7 +269,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
 {
     m_top_sizer->AddSpacer(FromDIP(10));
 
-    auto preset_panel_tips = new wxStaticText(parent, wxID_ANY, _L("A test model will be printed. Please clear the build plate and place it back to the hot bed before calibration."));
+    auto preset_panel_tips = new Label(parent, _L("A test model will be printed. Please clear the build plate and place it back to the hot bed before calibration."));
     preset_panel_tips->SetFont(Label::Body_14);
     preset_panel_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH * 1.5f);
     m_top_sizer->Add(preset_panel_tips, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
@@ -275,7 +281,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     info_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
     auto nozzle_temp_sizer = new wxBoxSizer(wxVERTICAL);
-    auto nozzle_temp_text = new wxStaticText(parent, wxID_ANY, _L("Nozzle temperature"));
+    auto nozzle_temp_text = new Label(parent, _L("Nozzle temperature"));
     nozzle_temp_text->SetFont(Label::Body_12);
     m_nozzle_temp = new TextInput(parent, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_nozzle_temp->SetBorderWidth(0);
@@ -285,20 +291,20 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     m_nozzle_temp->Hide();
 
     auto bed_temp_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto printing_param_text = new wxStaticText(parent, wxID_ANY, _L("Printing Parameters"));
+    auto printing_param_text = new Label(parent, _L("Printing Parameters"));
     printing_param_text->SetFont(Label::Head_12);
     printing_param_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     bed_temp_sizer->Add(printing_param_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
-    auto bed_temp_text = new wxStaticText(parent, wxID_ANY, _L("Bed temperature"));
+    auto bed_temp_text = new Label(parent, _L("Bed temperature"));
     bed_temp_text->SetFont(Label::Body_12);
 
-    m_bed_temp = new wxStaticText(parent, wxID_ANY, _L("- \u2103"));
+    m_bed_temp = new Label(parent, _L("- \u2103"));
     m_bed_temp->SetFont(Label::Body_12);
     bed_temp_sizer->Add(bed_temp_text, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
     bed_temp_sizer->Add(m_bed_temp, 0, wxALIGN_CENTER);
 
     auto max_flow_sizer = new wxBoxSizer(wxVERTICAL);
-    auto max_flow_text = new wxStaticText(parent, wxID_ANY, _L("Max volumetric speed"));
+    auto max_flow_text = new Label(parent, _L("Max volumetric speed"));
     max_flow_text->SetFont(Label::Body_12);
     m_max_volumetric_speed = new TextInput(parent, wxEmptyString, _L("mm\u00B3"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_max_volumetric_speed->SetBorderWidth(0);
@@ -382,7 +388,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto nozzle_combo_text = new wxStaticText(parent, wxID_ANY, _L("Nozzle Diameter"), wxDefaultPosition, wxDefaultSize, 0);
+    auto nozzle_combo_text = new Label(parent, _L("Nozzle Diameter"));
     nozzle_combo_text->SetFont(Label::Head_14);
     nozzle_combo_text->Wrap(-1);
     panel_sizer->Add(nozzle_combo_text, 0, wxALL, 0);
@@ -392,7 +398,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 
     panel_sizer->AddSpacer(PRESET_GAP);
 
-    auto plate_type_combo_text = new wxStaticText(parent, wxID_ANY, _L("Plate Type"), wxDefaultPosition, wxDefaultSize, 0);
+    auto plate_type_combo_text = new Label(parent, _L("Plate Type"));
     plate_type_combo_text->SetFont(Label::Head_14);
     plate_type_combo_text->Wrap(-1);
     panel_sizer->Add(plate_type_combo_text, 0, wxALL, 0);
@@ -405,7 +411,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     m_filament_from_panel = new wxPanel(parent);
     m_filament_from_panel->Hide();
     auto filament_from_sizer = new wxBoxSizer(wxVERTICAL);
-    auto filament_from_text = new wxStaticText(m_filament_from_panel, wxID_ANY, _L("filament position"));
+    auto filament_from_text = new Label(m_filament_from_panel, _L("filament position"));
     filament_from_text->SetFont(Label::Head_14);
     filament_from_sizer->Add(filament_from_text, 0);
     auto raioBox_sizer = new wxFlexGridSizer(2, 1, 0, FromDIP(10));
@@ -420,7 +426,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     panel_sizer->Add(m_filament_from_panel, 0, wxBOTTOM, PRESET_GAP);
 
     auto filament_for_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto filament_for_text = new wxStaticText(parent, wxID_ANY, _L("Filament For Calibration"), wxDefaultPosition, wxDefaultSize, 0);
+    auto filament_for_text = new Label(parent, _L("Filament For Calibration"));
     filament_for_text->SetFont(Label::Head_14);
     filament_for_title_sizer->Add(filament_for_text, 0, wxALIGN_CENTER);
     filament_for_title_sizer->AddSpacer(FromDIP(25));
@@ -472,7 +478,7 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_filament_list_tips = new wxStaticText(parent, wxID_ANY, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"), wxDefaultPosition, wxDefaultSize, 0);
+    m_filament_list_tips = new Label(parent, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"));
     m_filament_list_tips->Hide();
     m_filament_list_tips->SetFont(Label::Body_13);
     m_filament_list_tips->SetForegroundColour(wxColour(145, 145, 145));
@@ -606,8 +612,8 @@ void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
     wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
 
-    auto st_title_error_code = new wxStaticText(m_sw_print_failed_info, wxID_ANY, _L("Error code"));
-    auto st_title_error_code_doc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, ": ");
+    auto st_title_error_code = new Label(m_sw_print_failed_info, _L("Error code"));
+    auto st_title_error_code_doc = new Label(m_sw_print_failed_info, ": ");
     m_st_txt_error_code = new Label(m_sw_print_failed_info, wxEmptyString);
     st_title_error_code->SetForegroundColour(0x909090);
     st_title_error_code_doc->SetForegroundColour(0x909090);
@@ -623,8 +629,8 @@ void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
     sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
     sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
 
-    auto st_title_error_desc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, _L("Error desc"));
-    auto st_title_error_desc_doc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, ": ");
+    auto st_title_error_desc = new Label(m_sw_print_failed_info, _L("Error desc"));
+    auto st_title_error_desc_doc = new Label(m_sw_print_failed_info, ": ");
     m_st_txt_error_desc = new Label(m_sw_print_failed_info, wxEmptyString);
     st_title_error_desc->SetForegroundColour(0x909090);
     st_title_error_desc_doc->SetForegroundColour(0x909090);
@@ -640,8 +646,8 @@ void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
     sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
     sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
 
-    auto st_title_extra_info = new wxStaticText(m_sw_print_failed_info, wxID_ANY, _L("Extra info"));
-    auto st_title_extra_info_doc = new wxStaticText(m_sw_print_failed_info, wxID_ANY, ": ");
+    auto st_title_extra_info = new Label(m_sw_print_failed_info, _L("Extra info"));
+    auto st_title_extra_info_doc = new Label(m_sw_print_failed_info, ": ");
     m_st_txt_extra_info = new Label(m_sw_print_failed_info, wxEmptyString);
     st_title_extra_info->SetForegroundColour(0x909090);
     st_title_extra_info_doc->SetForegroundColour(0x909090);
@@ -698,10 +704,12 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_cali_stage_panel, 0);
 
     m_selection_panel = new wxPanel(parent);
+    m_selection_panel->SetBackgroundColour(*wxWHITE);
     create_selection_panel(m_selection_panel);
     init_selection_values();
 
     m_filament_list_panel = new wxPanel(parent);
+    m_filament_list_panel->SetBackgroundColour(*wxWHITE);
     create_filament_list_panel(m_filament_list_panel);
     
     m_ext_spool_panel = new wxPanel(parent);
@@ -713,6 +721,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_tips_panel = new CaliPresetTipsPanel(parent);
 
     m_sending_panel = new wxPanel(parent);
+    m_sending_panel->SetBackgroundColour(*wxWHITE);
     create_sending_panel(m_sending_panel);
 
     m_sending_panel->Hide();
@@ -723,7 +732,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_PRESET);
 
-    m_statictext_printer_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    m_statictext_printer_msg = new Label(this, wxEmptyString, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_printer_msg->SetFont(::Label::Body_13);
     m_statictext_printer_msg->Hide();
 

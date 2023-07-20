@@ -13,22 +13,22 @@ CalibrationStartPage::CalibrationStartPage(wxWindow* parent, wxWindowID id, cons
 
 void CalibrationStartPage::create_when(wxWindow* parent, wxString title, wxString content)
 {
-    m_when_title = new wxStaticText(this, wxID_ANY, title);
+    m_when_title = new Label(this, title);
     m_when_title->SetFont(Label::Head_14);
     m_when_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
 
-    m_when_content = new wxStaticText(this, wxID_ANY, content);
+    m_when_content = new Label(this, content);;
     m_when_content->SetFont(Label::Body_14);
     m_when_content->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
 }
 
 void CalibrationStartPage::create_about(wxWindow* parent, wxString title, wxString content)
 {
-    m_about_title = new wxStaticText(this, wxID_ANY, title);
+    m_about_title = new Label(this, title);
     m_about_title->SetFont(Label::Head_14);
     m_about_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
 
-    m_about_content = new wxStaticText(this, wxID_ANY, content);
+    m_about_content = new Label(this, content);
     m_about_content->SetFont(Label::Body_14);
     m_about_content->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
 }
@@ -110,6 +110,15 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_action_panel = new CaliPageActionPanel(parent, CalibMode::Calib_PA_Line, CaliPageType::CALI_PAGE_START);
 
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
+
+#ifdef __linux__
+    wxGetApp().CallAfter([this]() {
+        m_when_content->SetMinSize(m_when_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
+        m_about_content->SetMinSize(m_about_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
+        Layout();
+        Fit();
+        });
+#endif
 }
 
 void CalibrationPAStartPage::on_reset_page()
@@ -194,7 +203,7 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    auto extra_text = new wxStaticText(parent, wxID_ANY, _L("In addition, Flow Rate Calibration is crucial for foaming materials like LW-PLA used in RC planes. These materials expand greatly when heated, and calibration provides a useful reference flow rate."));
+    auto extra_text = new Label(parent, _L("In addition, Flow Rate Calibration is crucial for foaming materials like LW-PLA used in RC planes. These materials expand greatly when heated, and calibration provides a useful reference flow rate."));
     extra_text->SetFont(Label::Body_14);
     extra_text->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     m_top_sizer->Add(extra_text);
@@ -208,11 +217,11 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_about_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    auto auto_cali_title = new wxStaticText(parent, wxID_ANY, _L("Auto-Calibration"));
+    auto auto_cali_title = new Label(parent, _L("Auto-Calibration"));
     auto_cali_title->SetFont(Label::Head_14);
     auto_cali_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
 
-    auto auto_cali_content = new wxStaticText(this, wxID_ANY, 
+    auto auto_cali_content = new Label(this, 
         _L("Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration and can produce less-than-desirable results.\
 \n\nThe calibration results may vary between each calibration or filament. We are still improving the accuracy and compatibility of this calibration through firmware updates over time.\
 \n\nCaution: Flow Rate Calibration is an advanced process, to be attempted only by those who fully understand its purpose and implications. Incorrect usage can lead to sub-par prints or printer damage. Please make sure to carefully read and understand the process before doing it."));
@@ -226,6 +235,15 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_action_panel = new CaliPageActionPanel(parent, CalibMode::Calib_Flow_Rate, CaliPageType::CALI_PAGE_START);
 
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
+
+#ifdef __linux__
+    wxGetApp().CallAfter([this, auto_cali_content]() {
+        m_when_content->SetMinSize(m_when_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
+        auto_cali_content->SetMinSize(auto_cali_content->GetSize() + wxSize{ 0, wxWindow::GetCharHeight() / 2 });
+        Layout();
+        Fit();
+        });
+#endif
 }
 
 void CalibrationFlowRateStartPage::on_reset_page()
@@ -293,15 +311,15 @@ void CalibrationMaxVolumetricSpeedStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_when_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    auto recommend_title = new wxStaticText(parent, wxID_ANY, _L("Max Volumetric Speed calibration is recommended when you print with:"));
+    auto recommend_title = new Label(parent, _L("Max Volumetric Speed calibration is recommended when you print with:"));
     recommend_title->SetFont(Label::Head_14);
     recommend_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     m_top_sizer->Add(recommend_title);
-    auto recommend_text1 = new wxStaticText(parent, wxID_ANY, _L("material with significant thermal shrinkage/expansion, such as..."));
+    auto recommend_text1 = new Label(parent, _L("material with significant thermal shrinkage/expansion, such as..."));
     recommend_text1->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     recommend_text1->SetFont(Label::Body_14);
     m_top_sizer->Add(recommend_text1);
-    auto recommend_text2 = new wxStaticText(parent, wxID_ANY, _L("materials with inaccurate filament diameter"));
+    auto recommend_text2 = new Label(parent, _L("materials with inaccurate filament diameter"));
     recommend_text2->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     recommend_text2->SetFont(Label::Body_14);
     m_top_sizer->Add(recommend_text2);

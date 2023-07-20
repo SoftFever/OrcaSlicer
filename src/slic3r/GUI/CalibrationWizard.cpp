@@ -275,6 +275,22 @@ void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish)
     wxGetApp().app_config->save_printer_cali_infos(printer_cali_info);
 }
 
+void CalibrationWizard::msw_rescale() 
+{
+    for (int i = 0; i < m_page_steps.size(); i++) {
+        if (m_page_steps[i]->page)
+            m_page_steps[i]->page->msw_rescale();
+    }
+}
+
+void CalibrationWizard::on_sys_color_changed()
+{
+    for (int i = 0; i < m_page_steps.size(); i++) {
+        if (m_page_steps[i]->page)
+            m_page_steps[i]->page->on_sys_color_changed();
+    }
+}
+
 void CalibrationWizard::on_cali_go_home()
 {
     // can go home? confirm to continue

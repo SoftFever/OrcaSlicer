@@ -703,6 +703,20 @@ void CalibrationPanel::set_default()
     wxGetApp().sidebar().load_ams_list({}, {});
 }
 
+void CalibrationPanel::msw_rescale()
+{
+    for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
+        m_cali_panels[i]->msw_rescale();
+    }
+}
+
+void CalibrationPanel::on_sys_color_changed()
+{
+    for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
+        m_cali_panels[i]->on_sys_color_changed();
+    }
+}
+
 CalibrationPanel::~CalibrationPanel() {
     m_side_tools->get_panel()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CalibrationPanel::on_printer_clicked), NULL, this);
     if (m_refresh_timer)
