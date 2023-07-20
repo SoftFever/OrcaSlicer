@@ -384,13 +384,13 @@ CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
     top_sizer->Fit(this);
 
     // hover effect
-    m_prev_btn->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
-        m_prev_btn->SetBitmap(m_prev_bmp_hover.bmp());
-    });
+    //m_prev_btn->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+    //    m_prev_btn->SetBitmap(m_prev_bmp_hover.bmp());
+    //});
 
-    m_prev_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
-        m_prev_btn->SetBitmap(m_prev_bmp_normal.bmp());
-    });
+    //m_prev_btn->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
+    //    m_prev_btn->SetBitmap(m_prev_bmp_normal.bmp());
+    //});
 
     // hover effect
     //m_help_btn->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
