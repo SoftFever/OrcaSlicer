@@ -513,6 +513,8 @@ std::string AppConfig::load()
                     PrinterCaliInfo cali_info;
                     if (calis_j.contains("dev_id"))
                         cali_info.dev_id = calis_j["dev_id"].get<std::string>();
+                    if (calis_j.contains("cali_finished"))
+                        cali_info.cali_finished = bool(calis_j["cali_finished"].get<int>());
                     if (calis_j.contains("flow_ratio"))
                         cali_info.cache_flow_ratio = calis_j["flow_ratio"].get<float>();
                     if (calis_j.contains("presets")) {
@@ -638,6 +640,7 @@ void AppConfig::save()
         json cali_json;
         cali_json["dev_id"]             = cali_info.dev_id;
         cali_json["flow_ratio"]         = cali_info.cache_flow_ratio;
+        cali_json["cali_finished"]      = cali_info.cali_finished ? 1 : 0;
         for (auto filament_preset : cali_info.selected_presets) {
             json preset_json;
             preset_json["tray_id"] = filament_preset.tray_id;
@@ -985,6 +988,7 @@ void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
     if (iter == m_printer_cali_infos.end()) {
         m_printer_cali_infos.emplace_back(cali_info);
     } else {
+        (*iter).cali_finished = cali_info.cali_finished;
         (*iter).cache_flow_ratio = cali_info.cache_flow_ratio;
         (*iter).selected_presets = cali_info.selected_presets;
     }

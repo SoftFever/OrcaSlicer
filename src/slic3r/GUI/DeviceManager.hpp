@@ -630,6 +630,7 @@ public:
     // 3: save tray_id, filament_id, setting_id, and name, nozzle_dia
     std::vector<CaliPresetInfo> selected_cali_preset;
     float                      cache_flow_ratio { 0.0 };
+    bool                       cali_finished = true;
 
     bool                       has_get_pa_calib_tab{ false };
     std::vector<PACalibResult> pa_calib_tab;

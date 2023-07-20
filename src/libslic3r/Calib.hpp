@@ -76,6 +76,7 @@ public:
 struct PrinterCaliInfo
 {
     std::string                 dev_id;
+    bool                        cali_finished = true;
     float                       cache_flow_ratio;
     std::vector<CaliPresetInfo> selected_presets;
 };

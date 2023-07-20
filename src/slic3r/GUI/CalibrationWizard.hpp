@@ -64,6 +64,7 @@ public:
 
     virtual void cache_preset_info(MachineObject* obj, float nozzle_dia);
     virtual void recover_preset_info(MachineObject *obj);
+    virtual void back_preset_info(MachineObject *obj, bool cali_finish);
 
 protected:
     void on_cali_go_home();

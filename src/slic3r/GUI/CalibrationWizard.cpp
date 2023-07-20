@@ -249,11 +249,7 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
     CaliPresetStage stage;
     preset_page->get_cali_stage(stage, obj->cache_flow_ratio);
 
-    PrinterCaliInfo printer_cali_info;
-    printer_cali_info.dev_id = obj->dev_id;
-    printer_cali_info.cache_flow_ratio = obj->cache_flow_ratio;
-    printer_cali_info.selected_presets = obj->selected_cali_preset;
-    wxGetApp().app_config->save_printer_cali_infos(printer_cali_info);
+    back_preset_info(obj, false);
 }
 
 void CalibrationWizard::recover_preset_info(MachineObject *obj)
@@ -262,10 +258,21 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
     for (const auto& back_info : back_infos) {
         if (obj && (obj->dev_id == back_info.dev_id) ) {
             obj->dev_id = back_info.dev_id;
+            obj->cali_finished    = back_info.cali_finished;
             obj->cache_flow_ratio = back_info.cache_flow_ratio;
             obj->selected_cali_preset = back_info.selected_presets;
         }
     }
+}
+
+void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish)
+{
+    PrinterCaliInfo printer_cali_info;
+    printer_cali_info.dev_id           = obj->dev_id;
+    printer_cali_info.cali_finished    = cali_finish;
+    printer_cali_info.cache_flow_ratio = obj->cache_flow_ratio;
+    printer_cali_info.selected_presets = obj->selected_cali_preset;
+    wxGetApp().app_config->save_printer_cali_infos(printer_cali_info);
 }
 
 void CalibrationWizard::on_cali_go_home()
@@ -294,14 +301,19 @@ void CalibrationWizard::on_cali_go_home()
             } else {
                 assert(false);
             }
-            if (!m_page_steps.empty())
+            if (!m_page_steps.empty()) {
+                back_preset_info(curr_obj, true);
                 show_step(m_page_steps.front());
+            }
         });
 
         go_home_dialog->update_text(_L("Are you sure to cancel the current calibration and return to the home page?"));
         go_home_dialog->on_show();
     } else {
-        if (!m_page_steps.empty()) show_step(m_page_steps.front());
+        if (!m_page_steps.empty()) {
+            back_preset_info(curr_obj, true);
+            show_step(m_page_steps.front());
+        }
     }
 }
 
@@ -401,7 +413,7 @@ void PressureAdvanceWizard::on_device_connected(MachineObject* obj)
 
         if (m_curr_step != cali_step) {
             if (obj_cali_mode == m_mode) {
-                if (obj->is_in_printing() /*|| obj->is_printing_finished()*/ || obj->print_status == "FINISH") {
+                if (!obj->cali_finished && (obj->is_in_printing() || obj->is_printing_finished())) {
                     CalibrationWizard::set_cali_method(method);
                     show_step(cali_step);
                 }
@@ -568,6 +580,9 @@ void PressureAdvanceWizard::on_cali_save()
                 }
                 CalibUtils::set_PA_calib_result({ new_pa_cali_result });
             }
+            back_preset_info(curr_obj, true);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            msg_dlg.ShowModal();
         }
         else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             auto save_page = static_cast<CalibrationPASavePage*>(save_step->page);
@@ -598,12 +613,13 @@ void PressureAdvanceWizard::on_cali_save()
             }
 
             curr_obj->command_extrusion_cali_set(tray_id, setting_id, "", new_k_value, new_n_value, bed_temp, nozzle_temp, max_volumetric_speed);
+            back_preset_info(curr_obj, true);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            msg_dlg.ShowModal();
         }
         else {
             assert(false);
         }
-        MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
-        msg_dlg.ShowModal();
     }
     show_step(start_step);
 }
@@ -928,6 +944,7 @@ void FlowRateWizard::on_cali_save()
                 }
             }
 
+            back_preset_info(curr_obj, true);
             MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
@@ -974,6 +991,7 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
 
+            back_preset_info(curr_obj, true);
             MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
@@ -1001,7 +1019,7 @@ void FlowRateWizard::on_device_connected(MachineObject* obj)
     if (obj) {
         this->set_cali_method(method);
         if (obj_cali_mode == m_mode) {
-            if (obj->is_in_printing() /*|| obj->is_printing_finished()*/ || obj->print_status == "FINISH") {
+            if (!obj->cali_finished && (obj->is_in_printing() || obj->is_printing_finished())) {
                 if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
                     if (cali_stage == 1) {
                         if (m_curr_step != cali_coarse_step)
@@ -1089,6 +1107,8 @@ void FlowRateWizard::cache_coarse_info(MachineObject *obj)
 
     wxString out_name;
     coarse_page->get_result(&obj->cache_flow_ratio, &out_name);
+    
+    back_preset_info(obj, false);
 }
 
 MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -1280,7 +1300,7 @@ void MaxVolumetricSpeedWizard::on_device_connected(MachineObject *obj)
     if (obj) {
         this->set_cali_method(method);
         if (obj_cali_mode == m_mode) {
-            if (obj->is_in_printing() /*|| obj->is_printing_finished()*/ || obj->print_status == "FINISH") {
+            if (!obj->cali_finished && (obj->is_in_printing() || obj->is_printing_finished())) {
                 if (m_curr_step != cali_step) {
                     show_step(cali_step);
                 }
