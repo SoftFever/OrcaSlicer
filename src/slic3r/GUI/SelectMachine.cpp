@@ -2868,6 +2868,18 @@ void SelectMachineDialog::on_rename_enter()
     }
 
     auto     new_file_name = m_rename_input->GetTextCtrl()->GetValue();
+    wxString temp;
+    int      num = 0;
+    for (auto t : new_file_name) {
+        if (t == wxString::FromUTF8("\x20")) {
+            num++;
+            if (num == 1) temp += t;
+        } else {
+            num = 0;
+            temp += t;
+        }
+    }
+    new_file_name         = temp;
     auto     m_valid_type = Valid;
     wxString info_line;
 
