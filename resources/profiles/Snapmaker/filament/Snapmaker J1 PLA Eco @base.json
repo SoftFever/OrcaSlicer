@@ -1,0 +1,23 @@
+{
+    "name": "Snapmaker J1 PLA Eco @base",
+    "instantiation": "false",
+    "filament_id": "SMF56",
+    "inherits": "fdm_filament_pla",
+    "default_filament_colour": [
+        "#D5DDDC"
+    ],
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "filament_density": [
+        "1.26"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "type": "filament",
+    "from": "system"
+}

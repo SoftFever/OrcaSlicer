@@ -6,7 +6,7 @@
   "nozzle_diameter": "0.2;0.4;0.6;0.8",
   "machine_tech": "FFF",
   "family": "Snapmaker",
-  "bed_model": "J1_bed.stl",
-  "bed_texture": "J1_texture.svg",
+  "bed_model": "Snapmaker J1_bed.stl",
+  "bed_texture": "Snapmaker J1_texture.svg",
   "hotend_model": ""
 }

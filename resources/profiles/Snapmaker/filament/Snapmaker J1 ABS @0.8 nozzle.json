@@ -1,0 +1,20 @@
+{
+    "name": "Snapmaker J1 ABS @0.8 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS44",
+    "inherits": "Snapmaker J1 ABS @base",
+    "compatible_printers": [
+        "Snapmaker J1 (0.8 nozzle)"
+    ],
+    "filament_max_volumetric_speed": [
+        "22"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "type": "filament",
+    "from": "system"
+}

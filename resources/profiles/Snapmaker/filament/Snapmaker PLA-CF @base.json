@@ -3,20 +3,17 @@
     "instantiation": "false",
     "filament_id": "SMF25",
     "inherits": "fdm_filament_pla",
-    "required_nozzle_HRC": [
-        "40"
-    ],
-    "cool_plate_temp": [
-        "45"
-    ],
-    "cool_plate_temp_initial_layer": [
-        "45"
-    ],
-    "filament_flow_ratio": [
-        "0.95"
+    "default_filament_colour": [
+        "#3D3C39"
     ],
     "filament_type": [
         "PLA-CF"
+    ],
+    "required_nozzle_HRC": [
+        "40"
+    ],
+    "filament_flow_ratio": [
+        "0.95"
     ],
     "filament_max_volumetric_speed": [
         "12"
@@ -28,7 +25,7 @@
         "0"
     ],
     "temperature_vitrification": [
-        "55"
+        "150"
     ],
     "nozzle_temperature_range_low": [
         "190"
@@ -37,22 +34,28 @@
         "240"
     ],
     "eng_plate_temp": [
-        "45"
+        "60"
     ],
     "hot_plate_temp": [
-        "45"
+        "60"
     ],
     "textured_plate_temp": [
-        "45"
+        "60"
+    ],
+    "cool_plate_temp": [
+        "60"
+    ],
+    "cool_plate_temp_initial_layer": [
+        "60"
     ],
     "eng_plate_temp_initial_layer": [
-        "45"
+        "60"
     ],
     "hot_plate_temp_initial_layer": [
-        "45"
+        "60"
     ],
     "textured_plate_temp_initial_layer": [
-        "45"
+        "60"
     ],
     "type": "filament",
     "from": "system"

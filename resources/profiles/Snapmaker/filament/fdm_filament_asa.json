@@ -2,17 +2,20 @@
     "name": "fdm_filament_asa",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "default_filament_colour": [
+        "#F35887"
+    ],
     "cool_plate_temp": [
-        "100"
+        "90"
     ],
     "eng_plate_temp": [
-        "100"
+        "90"
     ],
     "hot_plate_temp": [
-        "100"
+        "90"
     ],
     "textured_plate_temp": [
-        "100"
+        "90"
     ],
     "cool_plate_temp_initial_layer": [
         "90"
@@ -51,10 +54,10 @@
         "0.7"
     ],
     "filament_retraction_length": [
-        "0.5"
+        "0.6"
     ],
     "nozzle_temperature_initial_layer": [
-        "260"
+        "255"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -72,7 +75,7 @@
         "80"
     ],
     "nozzle_temperature": [
-        "260"
+        "255"
     ],
     "temperature_vitrification": [
         "182"

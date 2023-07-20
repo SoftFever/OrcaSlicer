@@ -1,0 +1,14 @@
+{
+    "name": "Snapmaker J1 PLA Silk @0.2 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS74",
+    "inherits": "Snapmaker J1 PLA Silk @base",
+    "compatible_printers": [
+        "Snapmaker J1 (0.2 nozzle)"
+    ],
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "type": "filament",
+    "from": "system"
+}

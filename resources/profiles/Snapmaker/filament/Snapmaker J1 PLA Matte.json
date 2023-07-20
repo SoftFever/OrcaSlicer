@@ -1,0 +1,12 @@
+{
+    "name": "Snapmaker J1 PLA Matte",
+    "instantiation": "true",
+    "setting_id": "SMFS63",
+    "inherits": "Snapmaker J1 PLA Matte @base",
+    "compatible_printers": [
+        "Snapmaker J1 (0.4 nozzle)",
+        "Snapmaker J1 (0.6 nozzle)"
+    ],
+    "type": "filament",
+    "from": "system"
+}

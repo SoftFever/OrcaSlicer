@@ -1,0 +1,17 @@
+{
+    "name": "Snapmaker J1 PLA Matte @0.8 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS65",
+    "inherits": "Snapmaker J1 PLA Matte @base",
+    "compatible_printers": [
+        "Snapmaker J1 (0.8 nozzle)"
+    ],
+    "filament_max_volumetric_speed": [
+        "22"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "type": "filament",
+    "from": "system"
+}

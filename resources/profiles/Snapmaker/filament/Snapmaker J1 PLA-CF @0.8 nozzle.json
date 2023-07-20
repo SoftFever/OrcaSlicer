@@ -1,0 +1,20 @@
+{
+    "name": "Snapmaker J1 PLA-CF @0.8 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS71",
+    "inherits": "Snapmaker J1 PLA-CF @base",
+    "compatible_printers": [
+        "Snapmaker J1 (0.8 nozzle)"
+    ],
+    "filament_max_volumetric_speed": [
+        "18"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "230"
+    ],
+    "nozzle_temperature": [
+        "230"
+    ],
+    "type": "filament",
+    "from": "system"
+}

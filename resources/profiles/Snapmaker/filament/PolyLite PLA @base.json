@@ -3,8 +3,11 @@
     "instantiation": "false",
     "filament_id": "SMF30",
     "inherits": "fdm_filament_pla",
+    "default_filament_colour": [
+        "#8269AC"
+    ],
     "filament_cost": [
-        "110"
+        "90"
     ],
     "filament_density": [
         "1.24"

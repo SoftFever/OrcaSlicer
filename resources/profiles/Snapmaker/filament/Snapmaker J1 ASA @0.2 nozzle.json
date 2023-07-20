@@ -1,0 +1,14 @@
+{
+    "name": "Snapmaker J1 ASA @0.2 nozzle",
+    "instantiation": "true",
+    "setting_id": "SMFS47",
+    "inherits": "Snapmaker J1 ASA @base",
+    "compatible_printers": [
+        "Snapmaker J1 (0.2 nozzle)"
+    ],
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "type": "filament",
+    "from": "system"
+}
