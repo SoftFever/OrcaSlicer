@@ -1,0 +1,17 @@
+{
+    "name": "Snapmaker J1 PLA @base",
+    "instantiation": "false",
+    "filament_id": "SMF60",
+    "inherits": "fdm_filament_pla",
+    "default_filament_colour": [
+        "#F8C827"
+    ],
+    "nozzle_temperature": [
+        "220"
+    ],
+    "filament_retraction_length": [
+        "nil"
+    ],
+    "type": "filament",
+    "from": "system"
+}

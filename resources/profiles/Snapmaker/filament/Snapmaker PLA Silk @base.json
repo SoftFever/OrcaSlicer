@@ -3,6 +3,9 @@
     "instantiation": "false",
     "filament_id": "SMF27",
     "inherits": "fdm_filament_pla",
+    "default_filament_colour": [
+        "#CF942B"
+    ],
     "filament_cost": [
         "70"
     ],
@@ -17,6 +20,9 @@
     ],
     "filament_retraction_length": [
         "0.5"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "65"
     ],
     "type": "filament",
     "from": "system"

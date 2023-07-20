@@ -2,6 +2,9 @@
     "name": "fdm_filament_tpu",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "default_filament_colour": [
+        "#302730"
+    ],
     "cool_plate_temp": [
         "35"
     ],

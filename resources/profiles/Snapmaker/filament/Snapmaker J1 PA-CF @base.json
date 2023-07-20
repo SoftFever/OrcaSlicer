@@ -1,0 +1,38 @@
+{
+    "name": "Snapmaker J1 PA-CF @base",
+    "instantiation": "false",
+    "filament_id": "SMF48",
+    "inherits": "fdm_filament_pa",
+    "default_filament_colour": [
+        "#3D3C39"
+    ],
+    "required_nozzle_HRC": [
+        "40"
+    ],
+    "filament_flow_ratio": [
+        "0.96"
+    ],
+    "overhang_fan_threshold": [
+        "0%"
+    ],
+    "overhang_fan_speed": [
+        "55"
+    ],
+    "filament_type": [
+        "PA-CF"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "fan_max_speed": [
+        "55"
+    ],
+    "fan_min_speed": [
+        "29"
+    ],
+    "fan_cooling_layer_time": [
+        "20"
+    ],
+    "type": "filament",
+    "from": "system"
+}

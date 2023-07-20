@@ -1,0 +1,17 @@
+{
+    "name": "Snapmaker J1 ASA @base",
+    "instantiation": "false",
+    "filament_id": "SMF45",
+    "inherits": "fdm_filament_asa",
+    "fan_min_speed": [
+        "0"
+    ],
+    "fan_max_speed": [
+        "20"
+    ],
+    "overhang_fan_speed": [
+        "20"
+    ],
+    "type": "filament",
+    "from": "system"
+}

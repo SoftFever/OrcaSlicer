@@ -2,6 +2,9 @@
     "name": "fdm_filament_pla",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "default_filament_colour": [
+        "#F8C827"
+    ],
     "fan_cooling_layer_time": [
         "100"
     ],
@@ -60,7 +63,7 @@
         "100"
     ],
     "overhang_fan_threshold": [
-        "50%"
+        "0%"
     ],
     "close_fan_the_first_x_layers": [
         "1"
@@ -78,7 +81,7 @@
         "240"
     ],
     "slow_down_min_speed": [
-        "20"
+        "15"
     ],
     "slow_down_layer_time": [
         "8"

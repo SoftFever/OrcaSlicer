@@ -2,38 +2,41 @@
     "name": "fdm_filament_pva",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "default_filament_colour": [
+        "#D9DFE3"
+    ],
     "cool_plate_temp": [
-        "55"
+        "50"
     ],
     "eng_plate_temp": [
-        "55"
+        "50"
     ],
     "hot_plate_temp": [
-        "55"
+        "50"
     ],
     "textured_plate_temp": [
-        "55"
+        "50"
     ],
     "cool_plate_temp_initial_layer": [
-        "55"
+        "50"
     ],
     "eng_plate_temp_initial_layer": [
-        "55"
+        "50"
     ],
     "hot_plate_temp_initial_layer": [
-        "55"
+        "50"
     ],
     "textured_plate_temp_initial_layer": [
-        "55"
+        "50"
     ],
     "fan_cooling_layer_time": [
         "100"
     ],
     "filament_max_volumetric_speed": [
-        "16"
+        "2.4"
     ],
     "filament_soluble": [
-        "1"
+        "0"
     ],
     "filament_is_support": [
         "1"
@@ -42,13 +45,22 @@
         "PVA"
     ],
     "filament_density": [
-        "1.24"
+        "1.37"
     ],
     "filament_cost": [
         "120"
     ],
-    "nozzle_temperature_initial_layer": [
-        "220"
+    "filament_retraction_length": [
+        "2"
+    ],
+    "filament_retraction_speed": [
+        "28"
+    ],
+    "filament_deretraction_speed": [
+        "15"
+    ],
+    "filament_retract_restart_extra": [
+        "nil"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -60,7 +72,7 @@
         "100"
     ],
     "fan_min_speed": [
-        "100"
+        "35"
     ],
     "overhang_fan_speed": [
         "100"
@@ -69,19 +81,22 @@
         "50%"
     ],
     "close_fan_the_first_x_layers": [
-        "1"
+        "2"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "215"
     ],
     "nozzle_temperature": [
-        "220"
+        "215"
     ],
     "temperature_vitrification": [
-        "154"
+        "150"
     ],
     "nozzle_temperature_range_low": [
         "190"
     ],
     "nozzle_temperature_range_high": [
-        "240"
+        "225"
     ],
     "slow_down_min_speed": [
         "20"
@@ -90,10 +105,10 @@
         "7"
     ],
     "additional_cooling_fan_speed": [
-        "70"
+        "50"
     ],
     "filament_flow_ratio": [
-        "0.95"
+        "1"
     ],
     "type": "filament",
     "from": "system"

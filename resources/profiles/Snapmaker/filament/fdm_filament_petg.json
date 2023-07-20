@@ -2,6 +2,9 @@
     "name": "fdm_filament_petg",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "default_filament_colour": [
+        "#DF6734"
+    ],
     "cool_plate_temp": [
         "70"
     ],
@@ -47,8 +50,8 @@
     "filament_cost": [
         "30"
     ],
-    "nozzle_temperature_initial_layer": [
-        "255"
+    "filament_retraction_minimum_travel": [
+        "0"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -62,11 +65,14 @@
     "overhang_fan_speed": [
         "90"
     ],
+    "nozzle_temperature_initial_layer": [
+        "255"
+    ],
     "nozzle_temperature": [
         "245"
     ],
     "temperature_vitrification": [
-        "178"
+        "160"
     ],
     "nozzle_temperature_range_low": [
         "220"
@@ -90,7 +96,7 @@
         "1"
     ],
     "filament_retraction_length": [
-        "1.5"
+        "1.8"
     ],
     "type": "filament",
     "from": "system"

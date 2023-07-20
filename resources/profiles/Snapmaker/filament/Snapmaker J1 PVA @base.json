@@ -1,0 +1,11 @@
+{
+    "name": "Snapmaker J1 PVA @base",
+    "instantiation": "false",
+    "filament_id": "SMF79",
+    "inherits": "fdm_filament_pva",
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "type": "filament",
+    "from": "system"
+}

@@ -3,6 +3,9 @@
     "instantiation": "false",
     "filament_id": "SMF33",
     "inherits": "fdm_filament_pla",
+    "default_filament_colour": [
+        "#73CEC8"
+    ],
     "filament_cost": [
         "80"
     ],

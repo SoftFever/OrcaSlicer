@@ -1,0 +1,20 @@
+{
+    "name": "Snapmaker J1 TPU @base",
+    "instantiation": "false",
+    "filament_id": "SMF82",
+    "inherits": "fdm_filament_tpu",
+    "filament_density": [
+        "1.22"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "230"
+    ],
+    "nozzle_temperature": [
+        "230"
+    ],
+    "filament_max_volumetric_speed": [
+        "3.6"
+    ],
+    "type": "filament",
+    "from": "system"
+}

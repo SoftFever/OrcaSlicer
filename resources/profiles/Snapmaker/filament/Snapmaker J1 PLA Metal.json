@@ -1,0 +1,13 @@
+{
+    "name": "Snapmaker J1 PLA Metal",
+    "instantiation": "true",
+    "setting_id": "SMFS67",
+    "inherits": "Snapmaker J1 PLA Metal @base",
+    "compatible_printers": [
+        "Snapmaker J1 (0.4 nozzle)",
+        "Snapmaker J1 (0.6 nozzle)",
+        "Snapmaker J1 (0.8 nozzle)"
+    ],
+    "type": "filament",
+    "from": "system"
+}
