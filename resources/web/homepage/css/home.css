@@ -422,6 +422,7 @@ body
 	height: 184px;
 	border-radius: 8px;
 	display: inline-block;
+	object-fit: cover;
 }
 
 .FileName
