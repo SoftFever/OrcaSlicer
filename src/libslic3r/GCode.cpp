@@ -3882,8 +3882,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // calculate extrusion length per distance unit
     if( path.role() == erTopSolidInfill )
         _mm3_per_mm *= m_config.top_solid_infill_flow_ratio.value;
-    else if (path.role() == erBottomSurface)
-        _mm3_per_mm *= m_config.bottom_solid_infill_flow_ratio.value;
+    else if (this->on_first_layer())
+        _mm3_per_mm *= m_config.initial_layer_flow_ratio.value;
 
     double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 

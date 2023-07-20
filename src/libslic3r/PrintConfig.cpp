@@ -713,9 +713,9 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(1));
 
-    def = this->add("bottom_solid_infill_flow_ratio", coFloat);
-    def->label = L("Bottom surface flow ratio");
-    def->tooltip = L("This factor affects the amount of material for bottom solid infill");
+    def = this->add("initial_layer_flow_ratio", coFloat);
+    def->label = L("Initial layer flow ratio");
+    def->tooltip = L("This factor affects the amount of material for the initial layer");
     def->min = 0;
     def->max = 2;
     def->mode = comDevelop;
@@ -4155,6 +4155,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "enable_prime_tower";
     } else if (opt_key == "wipe_tower_width") {
         opt_key = "prime_tower_width";
+    } else if (opt_key == "bottom_solid_infill_flow_ratio") {
+        opt_key = "initial_layer_flow_ratio";
     } else if (opt_key == "wiping_volume") {
         opt_key = "prime_volume";
     } else if (opt_key == "wipe_tower_brim_width") {

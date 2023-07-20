@@ -1880,7 +1880,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bridge_flow");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
-        optgroup->append_single_option_line("bottom_solid_infill_flow_ratio");
+        optgroup->append_single_option_line("initial_layer_flow_ratio");
         optgroup->append_single_option_line("only_one_wall_top");
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("detect_overhang_wall");

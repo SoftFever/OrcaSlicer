@@ -772,7 +772,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor_max))
     //OrcaSlicer
     ((ConfigOptionFloat, top_solid_infill_flow_ratio))
-    ((ConfigOptionFloat, bottom_solid_infill_flow_ratio))
+    ((ConfigOptionFloat, initial_layer_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))
     //calib
     ((ConfigOptionFloat, print_flow_ratio)))
