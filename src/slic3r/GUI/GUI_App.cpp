@@ -4669,17 +4669,17 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         cancelFn = [this, dlg]() {
             return dlg->WasCanceled();
         };
-        finishFn = [this, dlg](bool ok) {
+        finishFn = [this, userid = m_agent->get_user_id(), dlg](bool ok) {
             CallAfter([=]{
                 dlg->Destroy();
-                if (ok) reload_settings();
+                if (ok && userid == m_agent->get_user_id()) reload_settings();
             });
         };
     }
     else {
-        finishFn = [this](bool ok) {
+        finishFn = [this, userid = m_agent->get_user_id()](bool ok) {
             CallAfter([=] {
-                if (ok) reload_settings();
+                if (ok && userid == m_agent->get_user_id()) reload_settings();
             });
         };
     }
