@@ -860,6 +860,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
     m_complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_complete_text_panel->SetBackgroundColour(*wxWHITE);
     m_complete_text_panel->Hide();
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
     auto complete_text = new Label(m_complete_text_panel, _L("We found the best flow ratio for you"));
