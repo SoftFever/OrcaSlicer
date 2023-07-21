@@ -1830,7 +1830,7 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             m_print_error_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
         }
         if (it_done != message_containing_done.end()) {
-            m_print_error_dlg->update_func_btn("Done");
+            m_print_error_dlg->update_func_btn(_L("Done"));
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_FUNC, this);
         }
         else if (it_retry != message_containing_retry.end()) {
