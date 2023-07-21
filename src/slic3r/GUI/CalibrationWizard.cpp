@@ -603,7 +603,7 @@ void PressureAdvanceWizard::on_cali_save()
                 }
                 CalibUtils::set_PA_calib_result({ new_pa_cali_result });
             }
-            back_preset_info(curr_obj, true);
+
             MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
@@ -636,7 +636,7 @@ void PressureAdvanceWizard::on_cali_save()
             }
 
             curr_obj->command_extrusion_cali_set(tray_id, setting_id, "", new_k_value, new_n_value, bed_temp, nozzle_temp, max_volumetric_speed);
-            back_preset_info(curr_obj, true);
+
             MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
@@ -644,6 +644,7 @@ void PressureAdvanceWizard::on_cali_save()
             assert(false);
         }
     }
+    back_preset_info(curr_obj, true);
     show_step(start_step);
 }
 
@@ -967,7 +968,6 @@ void FlowRateWizard::on_cali_save()
                 }
             }
 
-            back_preset_info(curr_obj, true);
             MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
@@ -1014,7 +1014,6 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
 
-            back_preset_info(curr_obj, true);
             MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
@@ -1022,6 +1021,7 @@ void FlowRateWizard::on_cali_save()
             assert(false);
         }
     }
+    back_preset_info(curr_obj, true);
     show_step(start_step);
 }
 
