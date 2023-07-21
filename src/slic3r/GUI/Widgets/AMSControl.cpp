@@ -801,17 +801,15 @@ void AMSLib::render(wxDC &dc)
 
             } else {
                 auto pot = wxPoint(0, 0);
-                if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+                if (m_obj) {
                     pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9));
-                } else {
-                    pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
-                }
+                } 
                 dc.DrawText(m_info.material_name, pot);
             }
         }
 
         //draw k&n
-        if (m_obj && m_obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+        if (m_obj) {
             if (m_show_kn){
                 wxString str_k = wxString::Format("K %1.3f", m_info.k);
                 wxString str_n = wxString::Format("N %1.3f", m_info.n);
@@ -2771,7 +2769,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
             if (ifo.ams_id == cans->amsIndex) {
                 cans->amsCans->m_info = ifo;
                 cans->amsCans->Update(ifo);
-                cans->amsCans->show_sn_value(has_extrusion_cali);
+                cans->amsCans->show_sn_value(true);
             }
         }
     }
