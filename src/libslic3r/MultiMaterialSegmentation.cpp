@@ -1662,9 +1662,12 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 self = union_ex(self);
             }
             // Trim one region by the other if some of the regions overlap.
-            for (size_t color_idx = 1; color_idx < triangles_by_color_merged.size(); ++ color_idx)
-                triangles_by_color_merged[color_idx][layer_idx] = diff_ex(triangles_by_color_merged[color_idx][layer_idx],
-                                                                          triangles_by_color_merged[color_idx - 1][layer_idx]);
+            ExPolygons painted_regions;
+            for (size_t color_idx = 1; color_idx < triangles_by_color_merged.size(); ++color_idx) {
+                triangles_by_color_merged[color_idx][layer_idx] = diff_ex(triangles_by_color_merged[color_idx][layer_idx], painted_regions);
+                append(painted_regions, triangles_by_color_merged[color_idx][layer_idx]);
+            }
+            triangles_by_color_merged[0][layer_idx] = diff_ex(triangles_by_color_merged[0][layer_idx], painted_regions);
         }
     });
 
