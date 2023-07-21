@@ -2634,7 +2634,13 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
                 const float margin = 15.f;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();
+                coordf_t plate_bbox_x_max_local_coord = plate_bbox.max(0) - plate_origin(0);
                 coordf_t plate_bbox_y_max_local_coord = plate_bbox.max(1) - plate_origin(1);
+                if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
+                    x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
+                    ConfigOptionFloat wt_x_opt(x);
+                    dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
+                }
                 if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
                     y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
                     ConfigOptionFloat wt_y_opt(y);
