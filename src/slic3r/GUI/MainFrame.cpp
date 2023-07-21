@@ -470,6 +470,56 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         //}
     #endif
 
+        try {
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) {
+                json j;
+                std::string value;
+                agent->track_get_property("auto_orient", value);
+                j["auto_orient"] = value;
+                value = "";
+                agent->track_get_property("auto_arrange", value);
+                j["auto_arrange"] = value;
+                value = "";
+                agent->track_get_property("split_to_object", value);
+                j["split_to_object"] = value;
+                value = "";
+                agent->track_get_property("split_to_part", value);
+                j["split_to_part"] = value;
+                value = "";
+                agent->track_get_property("custom_height", value);
+                j["custom_height"] = value;
+                value = "";
+
+                agent->track_get_property("Move", value);
+                j["move"] = value;
+                value = "";
+                agent->track_get_property("Rotate", value);
+                j["rotate"] = value;
+                value = "";
+                agent->track_get_property("Scale", value);
+                j["scale"] = value;
+                value = "";
+                agent->track_get_property("Lay on face", value);
+                j["flatten"] = value;
+                value = "";
+                agent->track_get_property("Support Painting", value);
+                j["custom_support"] = value;
+                value = "";
+                agent->track_get_property("Seam painting", value);
+                j["custom_seam"] = value;
+                value = "";
+                agent->track_get_property("Text shape", value);
+                j["text_shape"] = value;
+                value = "";
+                agent->track_get_property("custom_painting", value);
+                j["custom_painting"] = value;
+                agent->track_event("key_func", j.dump());
+            }
+
+        }
+        catch (...) {}
+
         MarkdownTip::ExitTip();
 
         m_plater->reset();

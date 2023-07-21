@@ -6087,6 +6087,8 @@ bool GLCanvas3D::_init_main_toolbar()
             wxGetApp().plater()->orient();
             //BBS do not show orient menu
             //_render_orient_menu(left, right, bottom, top);
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) agent->track_update_property("auto_orient", std::to_string(++auto_orient_count));
         }
     };
     if (!m_main_toolbar.add_item(item))
@@ -6096,7 +6098,12 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg";
     item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [Shift+A]";
     item.sprite_id++;
-    item.left.action_callback = []() {};
+    item.left.action_callback = [this]() {
+        if (m_canvas != nullptr) {
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) agent->track_update_property("auto_arrange", std::to_string(++auto_arrange_count));
+        }
+    };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
     item.left.toggable = true;
     //BBS: GUI refactor: adjust the main toolbar position
@@ -6121,7 +6128,13 @@ bool GLCanvas3D::_init_main_toolbar()
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
+    item.left.action_callback = [this]() { 
+        if (m_canvas != nullptr) {
+            wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS));
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) agent->track_update_property("split_to_objects", std::to_string(++split_to_objects_count));
+        }
+    };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
     if (!m_main_toolbar.add_item(item))
@@ -6131,7 +6144,13 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "split_parts_dark.svg" : "split_parts.svg";
     item.tooltip = _utf8(L("Split to parts"));
     item.sprite_id++;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
+    item.left.action_callback = [this]() { 
+        if (m_canvas != nullptr) {
+            wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES));
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) agent->track_update_property("split_to_part", std::to_string(++split_to_part_count));
+        }
+    };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
     if (!m_main_toolbar.add_item(item))
@@ -6141,7 +6160,13 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
+    item.left.action_callback = [this]() { 
+        if (m_canvas != nullptr) {
+            wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) agent->track_update_property("custom_height", std::to_string(++custom_height_count));
+        }
+    };
     item.visibility_callback = [this]()->bool {
         bool res = current_printer_technology() == ptFFF;
         // turns off if changing printer technology
@@ -6244,7 +6269,13 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     item.tooltip = _utf8(L("Assembly View"));
     item.sprite_id = 1;
     item.left.toggable = false;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states(); };
+    item.left.action_callback = [this]() { 
+        if (m_canvas != nullptr) {
+            wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states();
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) agent->track_update_property("custom_painting", std::to_string(++custom_painting_count));
+        }
+    };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = true;
     item.visibility_callback = [this]()->bool { return true; };

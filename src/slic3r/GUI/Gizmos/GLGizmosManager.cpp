@@ -983,6 +983,15 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 update_data();
                 m_parent.set_as_dirty();
             }
+            try {
+                std::string name = m_gizmos[m_hover]->get_gizmo_name();
+                int count = m_gizmos[m_hover]->get_count();
+                NetworkAgent* agent = GUI::wxGetApp().getAgent();
+                if (agent) {
+                    agent->track_update_property(name, std::to_string(count));
+                }
+            }
+            catch (...) {}
         }
         else if (evt.MiddleDown()) {
             m_mouse_capture.middle = true;

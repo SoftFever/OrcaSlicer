@@ -628,6 +628,15 @@ private:
 
     ArrangeSettings &get_arrange_settings() { return get_arrange_settings(this); }
 
+
+    //BBS:record key botton frequency
+    int auto_orient_count = 0;
+    int auto_arrange_count = 0;
+    int split_to_objects_count = 0;
+    int split_to_part_count = 0;
+    int custom_height_count = 0;
+    int custom_painting_count = 0;
+
 public:
     OrientSettings& get_orient_settings()
     {
