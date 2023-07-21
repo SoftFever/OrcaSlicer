@@ -48,6 +48,20 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
     return filament_name;
 }
 
+static wxString get_tray_name_by_tray_id(int tray_id) 
+{
+    wxString tray_name;
+    if (tray_id == VIRTUAL_TRAY_ID) {
+        tray_name = "Ext";
+    }
+    else {
+        char prefix = 'A' + (tray_id / 4);
+        char suffix = '0' + 1 + tray_id % 4;
+        tray_name = std::string(1, prefix) + std::string(1, suffix);
+    }
+    return tray_name;
+}
+
 CalibrationCommonSavePage::CalibrationCommonSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizardPage(parent, id, pos, size, style)
 {
@@ -159,6 +173,23 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     m_top_sizer->AddSpacer(FromDIP(20));
 }
 
+std::vector<std::pair<int, std::string>> CaliPASaveAutoPanel::default_naming(std::vector<std::pair<int, std::string>> preset_names)
+{
+    std::unordered_set<std::string> set;
+    int i = 1;
+    for (auto& item : preset_names) {
+        if (!set.insert(item.second).second) {
+            item.second = get_default_name(item.second, CalibMode::Calib_PA_Line).ToUTF8().data();
+            item.second += "_" + std::to_string(i);
+            i++;
+        }
+        else {
+            item.second = get_default_name(item.second, CalibMode::Calib_PA_Line).ToUTF8().data();
+        }
+    }
+    return preset_names;
+}
+
 void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
 {
     m_history_results = history_result;
@@ -191,6 +222,13 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     bool part_failed = false;
     if (cali_result.empty())
         part_failed = true;
+
+    std::vector<std::pair<int, std::string>> preset_names;
+    for (auto& info : m_obj->selected_cali_preset) {
+        preset_names.push_back({ info.tray_id, info.name });
+    }
+    preset_names = default_naming(preset_names);
+
     for (auto& item : cali_result) {
         bool result_failed = false;
         if (item.confidence != 0) {
@@ -204,15 +242,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new Label(m_grid_panel, "");
         tray_title->SetFont(Label::Head_14);
-        wxString tray_name;
-        if (item.tray_id == VIRTUAL_TRAY_ID) {
-            tray_name = "Ext";
-        }
-        else {
-            char prefix = 'A' + (item.tray_id / 4);
-            char suffix = '0' + 1 + item.tray_id % 4;
-            tray_name = std::string(1, prefix) + std::string(1, suffix);
-        }
+        wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
         tray_title->SetLabel(tray_name);
 
         auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::K);
@@ -278,13 +308,10 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
             auto n_str = wxString::Format("%.3f", item.n_coef);
             k_value->GetTextCtrl()->SetValue(k_str);
             n_value->GetTextCtrl()->SetValue(n_str);
-            for (auto& info : m_obj->selected_cali_preset) {
-                if (item.tray_id == info.tray_id) {
-                    comboBox_tray_name->SetValue(get_default_name(info.name, CalibMode::Calib_PA_Line) + "_" + tray_name);
-                    break;
-                }
-                else {
-                    BOOST_LOG_TRIVIAL(trace) << "CaliPASaveAutoPanel : obj->selected_cali_preset doesn't contain correct tray_id";
+
+            for (auto& name : preset_names) {
+                if (item.tray_id == name.first) {
+                    comboBox_tray_name->SetValue(name.second);
                 }
             }
 
@@ -929,15 +956,7 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new Label(m_grid_panel, "");
         tray_title->SetFont(Label::Head_14);
-        wxString tray_name;
-        if (item.tray_id == VIRTUAL_TRAY_ID) {
-            tray_name = "Ext";
-        }
-        else {
-            char prefix = 'A' + (item.tray_id / 4);
-            char suffix = '0' + 1 + item.tray_id % 4;
-            tray_name = std::string(1, prefix) + std::string(1, suffix);
-        }
+        wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
         tray_title->SetLabel(tray_name);
 
         auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio);

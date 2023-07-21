@@ -91,6 +91,7 @@ public:
 
     void set_machine_obj(MachineObject* obj) { m_obj = obj; }
 
+    std::vector<std::pair<int, std::string>> default_naming(std::vector<std::pair<int, std::string>> preset_names);
     void sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result);
     void save_to_result_from_widgets(wxWindow* window, bool* out_is_valid, wxString* out_msg);
     bool get_result(std::vector<PACalibResult>& out_result);
