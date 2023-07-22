@@ -428,16 +428,16 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
     //    return false;
     //};
 
-    //int count = 0;
-    //std::vector<double> ret = profile;
-    //bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-    //while (has_steep_change && count < 6) {
-    //    ret = gauss_blur(ret, smoothing_params);
-    //    has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-    //    count++;
-    //}
-    //return ret;
-    return gauss_blur(profile, smoothing_params);
+    int count = 0;
+    std::vector<double> ret = profile;
+    // bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+    while (/*has_steep_change &&*/ count < 6) {
+       ret = gauss_blur(ret, smoothing_params);
+       //has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+       count++;
+    }
+    return ret;
+    // return gauss_blur(profile, smoothing_params);
 }
 
 void adjust_layer_height_profile(
