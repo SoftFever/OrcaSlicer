@@ -40,11 +40,11 @@ jobs:
         run: ./BuildLinux.sh -ir
       - uses: actions/upload-artifact@v3
         with:
-          name: BambuStudio_Linux
+          name: BambuStudio_Linux_ubu64_20.04
           path: './build/BambuStudio_ubu64.AppImage'
 
-  appimage-builder-u2004:
-    name: Linux AppImage Build Ubuntu 20.04
+  appimage-builder-using-container:
+    name: Linux AppImage Build Ubuntu 20.04 using container
 
     runs-on: ubuntu-latest
 
@@ -113,5 +113,5 @@ jobs:
           podman rm bambu-studio-builder
       - uses: actions/upload-artifact@v3
         with:
-          name: BambuStudio_Linux
+          name: BambuStudio_Linux_ubu64_using_container
           path: './BambuStudio_ubu64.AppImage'
