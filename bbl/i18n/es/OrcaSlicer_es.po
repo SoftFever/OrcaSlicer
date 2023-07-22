@@ -8545,7 +8545,7 @@ msgid "Number of loops for the skirt. Zero means disabling skirt"
 msgstr "Número de bucles de la falda. Cero significa desactivar el faldón"
 
 msgid "Skirt speed"
-msgstr "Velocidad de falda "
+msgstr "Velocidad de falda"
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
 msgstr ""
