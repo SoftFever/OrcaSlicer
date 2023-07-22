@@ -100,7 +100,7 @@ using namespace Slic3r;
 std::map<int, std::string> cli_errors = {
     {CLI_SUCCESS, "Success."},
     {CLI_ENVIRONMENT_ERROR, "Failed setting up server environment."},
-    {CLI_INVALID_PARAMS, "Invalid parameters to the slicer"},
+    {CLI_INVALID_PARAMS, "Invalid parameters to the slicer."},
     {CLI_FILE_NOTFOUND, "The input files to the slicer are not found."},
     {CLI_FILELIST_INVALID_ORDER, "File list order to the slicer is invalid. Please make sure the 3mf in the first place."},
     {CLI_CONFIG_FILE_ERROR, "The input preset file is invalid and can not be parsed."},
@@ -116,8 +116,11 @@ std::map<int, std::string> cli_errors = {
     {CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE, "The selected printer is not supported."},
     {CLI_3MF_NEW_MACHINE_NOT_SUPPORTED, "The selected printer is not compatible with the 3mf."},
     {CLI_PROCESS_NOT_COMPATIBLE, "The selected printer is not compatible with the process preset in the 3mf."},
-    {CLI_INVALID_VALUES_IN_3MF, "Invalid parameter value(s) included in the 3mf file"},
-    {CLI_POSTPROCESS_NOT_SUPPORTED, "post_process is not supported under CLI"},
+    {CLI_INVALID_VALUES_IN_3MF, "Invalid parameter value(s) included in the 3mf file."},
+    {CLI_POSTPROCESS_NOT_SUPPORTED, "post_process is not supported under CLI."},
+    {CLI_PRINTABLE_SIZE_REDUCED, "The selected printer's bed size is smaller than the bed size used in the print profile."},
+    {CLI_OBJECT_ARRANGE_FAILED, "An error occurred when auto-arranging object(s)."},
+    {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_NO_SUITABLE_OBJECTS, "An empty plate was found. Please check that all plates are not empty in Bambu Studio before uploading."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
@@ -459,8 +462,10 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false;
-    int current_width, current_depth, current_height;
+    bool translate_old = false, regenerate_thumbnails = false, shrink_to_new_bed = false;
+    int current_printable_width, current_printable_depth, current_printable_height;
+    int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
+    Pointfs old_printable_area, old_exclude_area;
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
@@ -692,6 +697,16 @@ int CLI::run(int argc, char **argv)
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
                     current_print_compatible_printers  = config.option<ConfigOptionStrings>("print_compatible_printers", true)->values;
                     current_different_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
+
+                    //use Pointfs insteadof Points
+                    old_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
+                    old_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
+                    if (old_printable_area.size() >= 4) {
+                        old_printable_width = (int)(old_printable_area[2].x() - old_printable_area[0].x());
+                        old_printable_depth = (int)(old_printable_area[2].y() - old_printable_area[0].y());
+                    }
+                    old_printable_height = (int)(config.opt_float("printable_height"));
+                    BOOST_LOG_TRIVIAL(info) << boost::format("old printable size from 3mf: {%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
                 }
                 else
                 {
@@ -1538,29 +1553,58 @@ int CLI::run(int argc, char **argv)
     //BBS: partplate list
     Slic3r::GUI::PartPlateList partplate_list(NULL, m_models.data(), printer_technology);
     //use Pointfs insteadof Points
-    Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
-    Pointfs excluse_areas = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
+    Pointfs current_printable_area = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
+    Pointfs current_exclude_area = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
     //update part plate's size
     double print_height = m_print_config.opt_float("printable_height");
     double height_to_lid = m_print_config.opt_float("extruder_clearance_height_to_lid");
     double height_to_rod = m_print_config.opt_float("extruder_clearance_height_to_rod");
-    double plate_stride;
+    //double plate_stride;
     std::string bed_texture;
-    if (m_models.size() > 0)
+
+    current_printable_width = current_printable_area[2].x() - current_printable_area[0].x();
+    current_printable_depth = current_printable_area[2].y() - current_printable_area[0].y();
+    current_printable_height = print_height;
+    if (old_printable_width == 0)
+        old_printable_width = current_printable_width;
+    if (old_printable_depth == 0)
+        old_printable_depth = current_printable_depth;
+    if (old_printable_height == 0)
+        old_printable_height = current_printable_height;
+    if ((old_printable_width > 0)&&(old_printable_depth > 0)&&(old_printable_height > 0))
     {
-        if (translate_old) {
-            current_width = bedfs[2].x() - bedfs[0].x();
-            current_depth = bedfs[2].y() - bedfs[0].y();
-            current_height = print_height;
-            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch to old bed size,{%1%, %2%, %3%}")%(current_width + bed3d_ax3s_default_tip_radius)%(current_depth+bed3d_ax3s_default_tip_radius) %current_height;
-            partplate_list.reset_size(current_width + bed3d_ax3s_default_tip_radius, current_depth + bed3d_ax3s_default_tip_radius, current_height, false);
+        //check the printable size logic
+        if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("old printable size {%1%, %2%, %3%} is larger than new printable size {%4%, %5%, %6%}, can not print")
+                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
+            record_fail_reson(outfile_dir, CLI_PRINTABLE_SIZE_REDUCED, 0, cli_errors[CLI_PRINTABLE_SIZE_REDUCED]);
+            flush_and_exit(CLI_PRINTABLE_SIZE_REDUCED);
+        }
+        else if ((old_printable_width < current_printable_width) || (old_printable_depth < current_printable_depth))
+        {
+            BOOST_LOG_TRIVIAL(info) << boost::format("old printable size {%1%, %2%, %3%} is smaller than new printable size {%4%, %5%, %6%}, need to center the model")
+                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
+            shrink_to_new_bed = true;
         }
         else {
-            partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), print_height, false);
+            BOOST_LOG_TRIVIAL(info) << boost::format("old printable size {%1%, %2%, %3%}, new printable size {%4%, %5%, %6%}")
+                %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
         }
-        partplate_list.set_shapes(bedfs, excluse_areas, bed_texture, height_to_lid, height_to_rod);
-        plate_stride = partplate_list.plate_stride_x();
-        BOOST_LOG_TRIVIAL(info) << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< print_height <<"\n";
+    }
+
+    if (m_models.size() > 0)
+    {
+        BOOST_LOG_TRIVIAL(info) << boost::format("translate_old %1%, shrink_to_new_bed %2%, old bed size {%3%, %4%, %5%}")%translate_old%shrink_to_new_bed %old_printable_width %old_printable_depth %old_printable_height;
+        if (translate_old) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch to older bed size,{%1%, %2%, %3%}")%(old_printable_width + bed3d_ax3s_default_tip_radius)%(old_printable_depth+bed3d_ax3s_default_tip_radius) %old_printable_height;
+            partplate_list.reset_size(old_printable_width + bed3d_ax3s_default_tip_radius, old_printable_depth + bed3d_ax3s_default_tip_radius, old_printable_height, false);
+        }
+        else {
+            partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, false);
+        }
+        partplate_list.set_shapes(current_printable_area, current_exclude_area, bed_texture, height_to_lid, height_to_rod);
+        //plate_stride = partplate_list.plate_stride_x();
     }
     if (plate_data_src.size() > 0)
     {
@@ -1573,12 +1617,32 @@ int CLI::run(int argc, char **argv)
                 Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
 
                 Vec3d cur_origin = cur_plate->get_origin();
-                Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, current_width, current_depth);
+                Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, old_printable_width, old_printable_depth);
 
                 cur_plate->translate_all_instance(new_origin - cur_origin);
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch back to current bed size,{%1%, %2%, %3%}")%current_width %current_depth %current_height;
-            partplate_list.reset_size(current_width, current_depth, current_height, true, true);
+            BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch back to current bed size,{%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
+            partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, true, true);
+        }
+
+        if (shrink_to_new_bed)
+        {
+            int plate_count = partplate_list.get_plate_count();
+            for (int index = 0; index < plate_count; index ++) {
+                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+
+                Vec3d cur_origin = cur_plate->get_origin();
+                Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, current_printable_width, current_printable_depth);
+                Vec3d cur_center_offset { ((double)old_printable_width)/2, ((double)old_printable_depth)/2, 0}, new_center_offset { ((double)current_printable_width)/2, ((double)current_printable_depth)/2, 0};
+                Vec3d cur_center = cur_origin + cur_center_offset;
+                Vec3d new_center = new_origin + new_center_offset;
+                Vec3d offset  = new_center - cur_center;
+
+                cur_plate->translate_all_instance(offset);
+                BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1% translate offset: {%2%, %3%, %4%}")%(index+1) %offset[0] %offset[1] %offset[2];
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, shrink all the models to current bed size,{%1%, %2%, %3%}")%current_printable_width %current_printable_depth %current_printable_height;
+            partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
         }
     }
 
