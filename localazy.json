@@ -43,6 +43,16 @@
 				"type": "po",
 				"pattern": "bbl/i18n/ja/OrcaSlicer_ja.po",
 				"lang": "ja"
+			},
+			{
+				"type": "po",
+				"pattern": "bbl/i18n/ko/OrcaSlicer_ko.po",
+				"lang": "ko"
+			},
+			{
+				"type": "po",
+				"pattern": "bbl/i18n/ru/OrcaSlicer_ru.po",
+				"lang": "ru"
 			}
 		]
 	},
