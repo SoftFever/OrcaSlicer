@@ -4057,19 +4057,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double F = speed * 60;  // convert mm/sec to mm/min
 
     // extrude arc or line
-    if (m_enable_extrusion_role_markers)
-    {
-        if (path.role() != m_last_extrusion_role)
-        {
-            m_last_extrusion_role = path.role();
-            if (m_enable_extrusion_role_markers)
-            {
-                char buf[32];
-                sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(m_last_extrusion_role));
-                gcode += buf;
-            }
-        }
+    if (m_enable_extrusion_role_markers) {
+        if (path.role() != m_last_extrusion_role) {
+            char buf[32];
+            sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(path.role()));
+            gcode += buf;
+      }
     }
+
+    m_last_extrusion_role = path.role();
 
     // adds processor tags and updates processor tracking data
     // PrusaMultiMaterial::Writer may generate GCodeProcessor::Height_Tag lines without updating m_last_height
@@ -4288,6 +4284,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (m_enable_cooling_markers) {
         gcode += ";_EXTRUDE_END\n";
     }
+
+    if (path.role() != ExtrusionRole::erGapFill) {
+      m_last_notgapfill_extrusion_role = path.role();
+    }
+
     this->set_last_pos(path.last_point());
     return gcode;
 }
@@ -4519,8 +4520,34 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
 
     gcode += m_writer.reset_e();
+
+    // check if should + can lift (roughly from SuperSlicer)
+    RetractLiftEnforceType retract_lift_type = RetractLiftEnforceType(EXTRUDER_CONFIG(retract_lift_enforce));
+
+    bool needs_lift = toolchange
+        || m_writer.extruder()->retraction_length() > 0
+        || m_config.use_firmware_retraction;
+
+    bool last_fill_extrusion_role_top_infill = (this->m_last_notgapfill_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_notgapfill_extrusion_role == ExtrusionRole::erIroning);
+
+    // assume we can lift on retraction; conditions left explicit 
+    bool can_lift = true;
+
+    if (retract_lift_type == RetractLiftEnforceType::rletAllSurfaces) {
+        can_lift = true;
+    }
+    else if (this->m_layer_index == 0 && (retract_lift_type == RetractLiftEnforceType::rletBottomOnly || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom)) {
+        can_lift = true;
+    }
+    else if (retract_lift_type == RetractLiftEnforceType::rletTopOnly || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom) {
+        can_lift = last_fill_extrusion_role_top_infill;
+    }
+    else {
+        can_lift = false;
+    }
+
     //BBS
-    if (m_writer.extruder()->retraction_length() > 0 || m_config.use_firmware_retraction) {
+    if (needs_lift && can_lift) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
         gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);

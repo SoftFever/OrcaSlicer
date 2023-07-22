@@ -2560,7 +2560,10 @@ void TabFilament::add_filament_overrides_page()
 
     for (const std::string opt_key : {  "filament_retraction_length",
                                         "filament_z_hop",
-                                        "filament_z_hop_types",
+                                        "filament_z_hop_types", 
+                                        "filament_retract_lift_above",
+                                        "filament_retract_lift_below",
+                                        "filament_retract_lift_enforce",
                                         "filament_retraction_speed",
                                         "filament_deretraction_speed",
                                         "filament_retract_restart_extra",
@@ -2594,7 +2597,10 @@ void TabFilament::update_filament_overrides_page()
 
     std::vector<std::string> opt_keys = {   "filament_retraction_length",
                                             "filament_z_hop",
-                                            "filament_z_hop_types",
+                                            "filament_z_hop_types", 
+                                            "filament_retract_lift_above",
+                                            "filament_retract_lift_below", 
+                                            "filament_retract_lift_enforce",
                                             "filament_retraction_speed",
                                             "filament_deretraction_speed",
                                             "filament_retract_restart_extra",
@@ -3507,6 +3513,11 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
+            optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_retraction", -1, true);
+            optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
+
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
@@ -3706,6 +3717,12 @@ void TabPrinter::toggle_options()
         std::vector<std::string> vec = { "z_hop", "retract_when_changing_layer" };
         for (auto el : vec)
             toggle_option(el, retraction, i);
+
+        // retract lift above / below + enforce only applies if using retract lift
+        vec.resize(0);
+        vec = {"retract_lift_above", "retract_lift_below", "retract_lift_enforce"};
+        for (auto el : vec)
+          toggle_option(el, retraction && (m_config->opt_float("z_hop", i) > 0), i);
 
         // some options only apply when not using firmware retraction
         vec.resize(0);
