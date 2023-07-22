@@ -1432,6 +1432,92 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	return plate_extruders;
 }
 
+std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const
+{
+    std::vector<int> plate_extruders;
+
+    // if 3mf file
+    int glb_support_intf_extr = full_config.opt_int("support_interface_filament");
+    int glb_support_extr = full_config.opt_int("support_filament");
+    bool glb_support = full_config.opt_bool("enable_support");
+    glb_support |= full_config.opt_int("raft_layers") > 0;
+
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+    {
+        int obj_id = it->first;
+        int instance_id = it->second;
+
+        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        {
+            ModelObject* object = m_model->objects[obj_id];
+            for (ModelVolume* mv : object->volumes) {
+                std::vector<int> volume_extruders = mv->get_extruders();
+                plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
+            }
+
+            // layer range
+            for (auto layer_range : object->layer_config_ranges) {
+                if (layer_range.second.has("extruder")) {
+                    if (auto id = layer_range.second.option("extruder")->getInt(); id > 0)
+                        plate_extruders.push_back(id);
+                }
+            }
+
+            bool obj_support = false;
+            const ConfigOption* obj_support_opt = object->config.option("enable_support");
+            const ConfigOption *obj_raft_opt    = object->config.option("raft_layers");
+            if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
+                if (obj_support_opt != nullptr)
+                    obj_support = obj_support_opt->getBool();
+                if (obj_raft_opt != nullptr)
+                    obj_support |= obj_raft_opt->getInt() > 0;
+            }
+            else
+                obj_support = glb_support;
+
+            if (!obj_support)
+                continue;
+
+            int obj_support_intf_extr = 0;
+            const ConfigOption* support_intf_extr_opt = object->config.option("support_interface_filament");
+            if (support_intf_extr_opt != nullptr)
+                obj_support_intf_extr = support_intf_extr_opt->getInt();
+            if (obj_support_intf_extr != 0)
+                plate_extruders.push_back(obj_support_intf_extr);
+            else if (glb_support_intf_extr != 0)
+                plate_extruders.push_back(glb_support_intf_extr);
+
+            int obj_support_extr = 0;
+            const ConfigOption* support_extr_opt = object->config.option("support_filament");
+            if (support_extr_opt != nullptr)
+                obj_support_extr = support_extr_opt->getInt();
+            if (obj_support_extr != 0)
+                plate_extruders.push_back(obj_support_extr);
+            else if (glb_support_extr != 0)
+                plate_extruders.push_back(glb_support_extr);
+        }
+    }
+
+    if (conside_custom_gcode) {
+        //BBS
+        int nums_extruders = 0;
+        if (const ConfigOptionStrings *color_option = dynamic_cast<const ConfigOptionStrings *>(full_config.option("filament_colour"))) {
+            nums_extruders = color_option->values.size();
+            if (m_model->plates_custom_gcodes.find(m_plate_index) != m_model->plates_custom_gcodes.end()) {
+                for (auto item : m_model->plates_custom_gcodes.at(m_plate_index).gcodes) {
+                    if (item.type == CustomGCode::Type::ToolChange && item.extruder <= nums_extruders)
+                        plate_extruders.push_back(item.extruder);
+                }
+            }
+        }
+    }
+
+    std::sort(plate_extruders.begin(), plate_extruders.end());
+    auto it_end = std::unique(plate_extruders.begin(), plate_extruders.end());
+    plate_extruders.resize(std::distance(plate_extruders.begin(), it_end));
+    return plate_extruders;
+}
+
 std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gcode) const
 {
 	std::vector<int> plate_extruders;
@@ -2017,6 +2103,36 @@ void PartPlate::translate_all_instance(Vec3d position)
     }
     return;
 }
+
+void PartPlate::duplicate_all_instance(unsigned int dup_count)
+{
+    std::set<std::pair<int, int>> old_obj_list = obj_to_instance_set;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, dup_count %2%") % m_plate_index % dup_count;
+    for (std::set<std::pair<int, int>>::iterator it = old_obj_list.begin(); it != old_obj_list.end(); ++it)
+    {
+        int obj_id = it->first;
+        int instance_id = it->second;
+
+        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        {
+            ModelObject* object = m_model->objects[obj_id];
+            for (size_t index = 0; index < dup_count; index ++)
+            {
+                ModelObject* newObj = m_model->add_object(*object);
+                newObj->name = object->name +"_"+ std::to_string(index+1);
+                int new_obj_id = m_model->objects.size() - 1;
+                for ( size_t new_instance_id = 0; new_instance_id < object->instances.size(); new_instance_id++ )
+                {
+                    obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % newObj->id().id;
+                }
+            }
+        }
+    }
+
+    return;
+}
+
 
 
 //update instance exclude state
@@ -4491,15 +4607,15 @@ bool PartPlateList::is_all_slice_results_ready_for_print() const
 
     for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
         if (!m_plate_list[i]->empty()) {
-            if (m_plate_list[i]->is_all_instances_unprintable()) { 
-				continue; 
+            if (m_plate_list[i]->is_all_instances_unprintable()) {
+				continue;
 			}
-            if (!m_plate_list[i]->is_slice_result_ready_for_print()) { 
-				return false; 
+            if (!m_plate_list[i]->is_slice_result_ready_for_print()) {
+				return false;
 			}
         }
-        if (m_plate_list[i]->is_slice_result_ready_for_print()) { 
-			res = true; 
+        if (m_plate_list[i]->is_slice_result_ready_for_print()) {
+			res = true;
 		}
     }
 

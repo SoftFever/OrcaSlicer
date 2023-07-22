@@ -263,7 +263,7 @@ public:
     // set the plate's name
     void set_plate_name(const std::string &name);
 
-   
+
 
     //get the print's object, result and index
     void get_print(PrintBase **print, GCodeResult **result, int *index);
@@ -289,6 +289,7 @@ public:
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const double w, const double wipe_volume) const;
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
+    std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
     std::vector<int> get_used_extruders();
 
@@ -316,6 +317,9 @@ public:
 
     //translate instance on the plate
     void translate_all_instance(Vec3d position);
+
+    //duplicate all instance for count
+    void duplicate_all_instance(unsigned int dup_count);
 
     //update instance exclude state
     void update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);
@@ -403,7 +407,7 @@ public:
     {
         bool result = m_slice_result_valid;
         if (result)
-            result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print 
+            result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
         return result;
     }
 
