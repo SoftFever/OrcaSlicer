@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
-    "name": "Kingroon KP3S PRO S1",
-    "model_id": "Kingroon-KP3S-PRO-S1",
+    "name": "Kingroon KP3S PRO V2",
+    "model_id": "Kingroon-KP3S-PRO-V2",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "Kingroon",
