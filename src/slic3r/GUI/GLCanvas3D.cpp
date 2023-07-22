@@ -5561,7 +5561,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //camera.select_view("top");
     }
     else {
-        camera.zoom_to_box(volumes_box);
+        //camera.zoom_to_box(volumes_box);
 
         //const Vec3d& target = camera.get_target();
         //double distance = camera.get_distance();
@@ -5569,6 +5569,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
         //BBS: use original iso view for thumbnail
         camera.select_view("iso");
+        camera.zoom_to_box(volumes_box);
     }
 
     camera.apply_view_matrix();
@@ -6128,7 +6129,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
-    item.left.action_callback = [this]() { 
+    item.left.action_callback = [this]() {
         if (m_canvas != nullptr) {
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS));
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -6144,7 +6145,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "split_parts_dark.svg" : "split_parts.svg";
     item.tooltip = _utf8(L("Split to parts"));
     item.sprite_id++;
-    item.left.action_callback = [this]() { 
+    item.left.action_callback = [this]() {
         if (m_canvas != nullptr) {
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES));
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -6160,7 +6161,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
-    item.left.action_callback = [this]() { 
+    item.left.action_callback = [this]() {
         if (m_canvas != nullptr) {
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -6269,7 +6270,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     item.tooltip = _utf8(L("Assembly View"));
     item.sprite_id = 1;
     item.left.toggable = false;
-    item.left.action_callback = [this]() { 
+    item.left.action_callback = [this]() {
         if (m_canvas != nullptr) {
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states();
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -8949,9 +8950,9 @@ std::vector<std::array<float, 4>> GLCanvas3D::_parse_colors(const std::vector<st
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     enum ErrorType{
-        PLATER_WARNING, 
-        PLATER_ERROR, 
-        SLICING_SERIOUS_WARNING, 
+        PLATER_WARNING,
+        PLATER_ERROR,
+        SLICING_SERIOUS_WARNING,
         SLICING_ERROR
     };
     std::string text;
