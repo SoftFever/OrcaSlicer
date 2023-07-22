@@ -1202,6 +1202,16 @@ void PrintObject::apply_conical_overhang() {
         Layer *layer = *i;
         Layer *upper_layer = layer->upper_layer;
 
+        if (upper_layer->empty()) {
+          continue;
+        }
+
+        // Skip if entire layer has this disabled
+        if (std::all_of(upper_layer->m_regions.begin(), upper_layer->m_regions.end(),
+                        [](const LayerRegion *r) { return  r->slices.empty() || r->region().config().make_overhang_printable_disable; })) {
+            continue;
+        }
+
         //layer->export_region_slices_to_svg_debug("layer_before_conical_overhang");
         //upper_layer->export_region_slices_to_svg_debug("upper_layer_before_conical_overhang");
 
