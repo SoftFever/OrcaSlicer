@@ -11,7 +11,6 @@
 #include "Print.hpp"
 #include "Utils.hpp"
 #include "ClipperUtils.hpp"
-#include "libslic3r.h"
 #include "LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
 #include "Time.hpp"
@@ -1056,7 +1055,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     GCodeProcessor::s_IsBBLPrinter = print->is_BBL_printer();
     print->set_started(psGCodeExport);
 
-
     // check if any custom gcode contains keywords used by the gcode processor to
     // produce time estimation and gcode toolpaths
     std::vector<std::pair<std::string, std::string>> validation_res = DoExport::validate_custom_gcode(*print);
@@ -1886,14 +1884,18 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             gcode += m_writer.set_jerk_xy(jerk);
         }
 
-        calib_pressure_advance pa_test(this);
+        auto params = print.calib_params();
+
+        CalibPressureAdvanceLine pa_test(this);
+
         double filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
         Flow pattern_line = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
         auto fast_speed = std::min(print.default_region_config().outer_wall_speed.value, filament_max_volumetric_speed / pattern_line.mm3_per_mm());
         auto slow_speed = std::max(20.0, fast_speed / 10.0);
+        
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
-        auto params = print.calib_params();
+        
         gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
 
         file.write(gcode);
@@ -4055,19 +4057,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double F = speed * 60;  // convert mm/sec to mm/min
 
     // extrude arc or line
-    if (m_enable_extrusion_role_markers)
-    {
-        if (path.role() != m_last_extrusion_role)
-        {
-            m_last_extrusion_role = path.role();
-            if (m_enable_extrusion_role_markers)
-            {
-                char buf[32];
-                sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(m_last_extrusion_role));
-                gcode += buf;
-            }
-        }
+    if (m_enable_extrusion_role_markers) {
+        if (path.role() != m_last_extrusion_role) {
+            char buf[32];
+            sprintf(buf, ";_EXTRUSION_ROLE:%d\n", int(path.role()));
+            gcode += buf;
+      }
     }
+
+    m_last_extrusion_role = path.role();
 
     // adds processor tags and updates processor tracking data
     // PrusaMultiMaterial::Writer may generate GCodeProcessor::Height_Tag lines without updating m_last_height
@@ -4286,6 +4284,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (m_enable_cooling_markers) {
         gcode += ";_EXTRUDE_END\n";
     }
+
+    if (path.role() != ExtrusionRole::erGapFill) {
+      m_last_notgapfill_extrusion_role = path.role();
+    }
+
     this->set_last_pos(path.last_point());
     return gcode;
 }
@@ -4517,8 +4520,34 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
 
     gcode += m_writer.reset_e();
+
+    // check if should + can lift (roughly from SuperSlicer)
+    RetractLiftEnforceType retract_lift_type = RetractLiftEnforceType(EXTRUDER_CONFIG(retract_lift_enforce));
+
+    bool needs_lift = toolchange
+        || m_writer.extruder()->retraction_length() > 0
+        || m_config.use_firmware_retraction;
+
+    bool last_fill_extrusion_role_top_infill = (this->m_last_notgapfill_extrusion_role == ExtrusionRole::erTopSolidInfill || this->m_last_notgapfill_extrusion_role == ExtrusionRole::erIroning);
+
+    // assume we can lift on retraction; conditions left explicit 
+    bool can_lift = true;
+
+    if (retract_lift_type == RetractLiftEnforceType::rletAllSurfaces) {
+        can_lift = true;
+    }
+    else if (this->m_layer_index == 0 && (retract_lift_type == RetractLiftEnforceType::rletBottomOnly || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom)) {
+        can_lift = true;
+    }
+    else if (retract_lift_type == RetractLiftEnforceType::rletTopOnly || retract_lift_type == RetractLiftEnforceType::rletTopAndBottom) {
+        can_lift = last_fill_extrusion_role_top_infill;
+    }
+    else {
+        can_lift = false;
+    }
+
     //BBS
-    if (m_writer.extruder()->retraction_length() > 0 || m_config.use_firmware_retraction) {
+    if (needs_lift && can_lift) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
         gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
