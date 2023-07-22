@@ -5,12 +5,8 @@
     "description": "Kingroon configurations",
     "machine_model_list": [
         {
-            "name": "Kingroon KP3S",
-            "sub_path": "machine/kingroon kp3s.json"
-        },
-        {
-            "name": "Kingroon KP5L",
-            "sub_path": "machine/kingroon kp5l.json"
+            "name": "Kingroon KP3S PRO S1",
+            "sub_path": "machine/kingroon kp3s pro S1.json"
         }
     ],
     "process_list": [
@@ -21,10 +17,6 @@
         {
             "name": "0.20mm Standard @KP3S",
             "sub_path": "process/0.20mm Standard @KP3S.json"
-        },
-        {
-            "name": "0.20mm Standard @KP5L",
-            "sub_path": "process/0.20mm Standard @KP5L.json"
         }
     ],
     "filament_list": [
