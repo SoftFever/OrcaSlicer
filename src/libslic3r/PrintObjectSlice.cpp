@@ -1248,7 +1248,7 @@ void PrintObject::apply_conical_overhang() {
             //               layer->m_regions[region_id]->slices.surfaces);
 
             // Disable on given region
-            if (layer->m_regions[region_id]->region().config().make_overhang_printable_disable) {
+            if (upper_layer->m_regions[region_id]->region().config().make_overhang_printable_disable) {
                 continue;
             }
 
