@@ -1247,6 +1247,11 @@ void PrintObject::apply_conical_overhang() {
             // export_to_svg(debug_out_path("Surface-obj-%d-layer-%d-region-%d.svg", id().id, layer->id(), region_id).c_str(),
             //               layer->m_regions[region_id]->slices.surfaces);
 
+            // Disable on given region
+            if (layer->m_regions[region_id]->region().config().make_overhang_printable_disable) {
+                continue;
+            }
+
             // Calculate the scaled upper poly that belongs to current region
             auto p = intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, upper_poly);
             // And now union it

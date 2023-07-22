@@ -706,6 +706,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_make_overhang_printable = config->opt_bool("make_overhang_printable");
     toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
     toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
+    toggle_line("make_overhang_printable_disable", !is_global_config && have_make_overhang_printable);
 
     toggle_line("exclude_object", gcflavor == gcfKlipper);
 

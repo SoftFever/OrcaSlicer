@@ -789,6 +789,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bottom_solid_infill_flow_ratio))
     ((ConfigOptionFloatOrPercent,       infill_anchor))
     ((ConfigOptionFloatOrPercent,       infill_anchor_max))
+    ((ConfigOptionBool,                 make_overhang_printable_disable))
 
 )
 

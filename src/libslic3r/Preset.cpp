@@ -708,7 +708,6 @@ static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
-    "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size",
     "seam_position", "staggered_inner_seams", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction",
     "minimum_sparse_infill_area", "reduce_infill_retraction",
@@ -757,7 +756,8 @@ static std::vector<std::string> s_Preset_print_options {
      "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
      "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
-     "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max"
+     "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max",
+     "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size", "make_overhang_printable_disable", 
 
 };
 
