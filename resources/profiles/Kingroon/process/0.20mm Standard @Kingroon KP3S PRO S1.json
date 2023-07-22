@@ -1,7 +1,7 @@
 {
   "type": "process",
   "setting_id": "GP004",
-  "name": "0.20mm Standard @KP3S",
+  "name": "0.20mm Standard @Kingroon KP3S PRO S1",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_process_common",
@@ -16,11 +16,11 @@
   "is_custom_defined": "0",
   "outer_wall_speed": "40",
   "overhang_2_4_speed": "30",
-  "print_settings_id": "KP3S",
+  "print_settings_id": "",
   "sparse_infill_speed": "140",
   "top_surface_speed": "40",
   "travel_speed": "150",
   "compatible_printers": [
-    "Kingroon KP3S 0.4 nozzle"
+    "Kingroon KP3S PRO S1 0.4 nozzle"
   ]
 }

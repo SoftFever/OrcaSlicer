@@ -5,10 +5,9 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_machine_common",
-  "printer_model": "Kingroon KP3S pro s1",
-  "default_filament_profile": [
-      "Kingroon Generic PLA"
-  ],
+  "printer_model": "Kingroon KP3S PRO S1",
+  "default_filament_profile": "Kingroon Generic PLA",
+  "default_print_profile": "0.20mm Standard @Kingroon KP3S PRO S1",
   "nozzle_diameter": [
       "0.4"
   ],
