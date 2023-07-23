@@ -689,7 +689,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
         m_object_config->support_interface_pattern == smipConcentric ?
         ipConcentric :
         (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-    m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
+    m_support_params.support_extrusion_width = m_object_config->get_abs_value("support_line_width") > 0 ? m_object_config->get_abs_value("support_line_width") : m_object_config->get_abs_value("line_width");
     is_slim                                  = is_tree_slim(support_type, support_style);
     is_strong = is_tree(support_type) && support_style == smsTreeStrong;
     MAX_BRANCH_RADIUS                        = 10.0;
@@ -723,7 +723,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     const PrintObjectConfig& config = m_object->config();
     SupportType stype = support_type;
     const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
-    const coordf_t extrusion_width = config.line_width.value;
+    const coordf_t extrusion_width = config.get_abs_value("line_width");
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;

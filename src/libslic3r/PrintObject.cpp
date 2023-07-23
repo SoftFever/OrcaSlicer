@@ -2591,7 +2591,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
 #if 0
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
     int enforce_support_layers = m_config.enforce_support_layers;
-    const coordf_t extrusion_width = m_config.line_width.value;
+    const coordf_t extrusion_width = m_config.get_abs_value("line_width");
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     float max_bridge_length = scale_(m_config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
