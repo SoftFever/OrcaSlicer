@@ -80,7 +80,7 @@
   "machine_max_jerk_y": ["20", "7"],
   "machine_start_gcode": "START_PRINT EXTRUDER_TEMP=[first_layer_temperature] BED_TEMP=[first_layer_bed_temperature]\nCANCEL_POWEROFF\nG90 ; use absolute coordinates\nM83 ; extruder relative mode\nG92 E0",
   "max_layer_height": ["0.32"],
-  "print_host": "192.168.20.64",
+  "print_host": "",
   "printable_area": ["0x0", "205x0", "205x205", "0x205"],
   "printable_height": "200",
   "printer_settings_id": "Kingroon KP3S PRO V2 0.4 nozzle",
