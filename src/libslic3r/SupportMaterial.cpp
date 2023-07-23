@@ -2345,7 +2345,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     // BBS group overhang clusters
     if (g_config_remove_small_overhangs) {
         std::vector<OverhangCluster> clusters;
-        double fw_scaled = scale_(m_object_config->line_width);
+      double fw_scaled = scale_(extrusion_width);
         std::set<ExPolygon*> removed_overhang;
 
         for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {

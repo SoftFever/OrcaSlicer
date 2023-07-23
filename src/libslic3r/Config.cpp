@@ -653,6 +653,11 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
 {
     // Get stored option value.
     const ConfigOption *raw_opt = this->option(opt_key);
+    if (raw_opt == nullptr) {
+      std::stringstream ss;
+      ss << "You can't define an option that need " << opt_key << " without defining it!";
+      throw std::runtime_error(ss.str());
+    }
     assert(raw_opt != nullptr);
 
     if (raw_opt->type() == coFloat)
@@ -690,7 +695,7 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
     // Compute absolute value over the absolute value of the base option.
     //FIXME there are some ratio_over chains, which end with empty ratio_with.
     // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-    return !opt_def->ratio_over.empty() ? 0. :
+    return opt_def->ratio_over.empty() ? 0. :
         static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
     
 

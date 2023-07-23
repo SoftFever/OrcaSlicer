@@ -727,7 +727,8 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     const PrintObjectConfig& config = m_object->config();
     SupportType stype = support_type;
     const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
-    const coordf_t extrusion_width = config.get_abs_value("line_width");
+    const double nozzle_diameter = m_object->print()->config().nozzle_diameter.get_at(0);
+    const coordf_t extrusion_width = config.get_abs_value("line_width", nozzle_diameter);
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;
@@ -2015,7 +2016,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const size_t   top_interface_layers = config.support_interface_top_layers.value;
     const size_t   bottom_interface_layers = config.support_interface_bottom_layers.value;
     const double diameter_angle_scale_factor = tan(tree_support_branch_diameter_angle * M_PI / 180.);// * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
-    const coordf_t line_width = config.support_line_width;
+    const double nozzle_diameter = m_object->print()->config().nozzle_diameter.get_at(0);
+    const coordf_t line_width = config.get_abs_value("support_line_width", nozzle_diameter);
     const coordf_t line_width_scaled           = scale_(line_width);
 
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;

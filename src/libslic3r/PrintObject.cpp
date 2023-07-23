@@ -423,6 +423,7 @@ static const float g_min_overhang_percent_for_lift = 0.3f;
 void PrintObject::detect_overhangs_for_lift()
 {
     if (this->set_started(posDetectOverhangsForLift)) {
+        // TODO for extrusion width PR 
         const float min_overlap = m_config.line_width * g_min_overhang_percent_for_lift;
         size_t num_layers = this->layer_count();
         size_t num_raft_layers = m_slicing_params.raft_layers();
