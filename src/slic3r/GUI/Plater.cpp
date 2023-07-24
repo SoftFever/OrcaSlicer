@@ -4144,6 +4144,7 @@ void Plater::priv::delete_all_objects_from_model()
     object_list_changed();
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 }
 
@@ -4195,6 +4196,7 @@ void Plater::priv::reset(bool apply_presets_change)
         wxGetApp().load_current_presets(false, false);
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 
     // BBS
