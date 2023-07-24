@@ -86,6 +86,9 @@ public:
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
+    // Orca: update selected filament and print
+    void           update_selections(AppConfig &config);
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;

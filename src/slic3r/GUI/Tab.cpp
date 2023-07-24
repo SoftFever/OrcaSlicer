@@ -1642,6 +1642,8 @@ void Tab::on_presets_changed()
         return;
 
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
+    if(m_type == Preset::TYPE_PRINTER)
+        m_preset_bundle->update_selections(*wxGetApp().app_config);
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
     bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
@@ -1651,6 +1653,7 @@ void Tab::on_presets_changed()
             !printer_cfg.option<ConfigOptionBool>("bbl_calib_mark_logo")->value, true);
     else
         wxGetApp().plater()->get_partplate_list().set_render_option(false, true);
+
 
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
