@@ -51,6 +51,9 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     auto scroll_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
     scroll_window->SetScrollRate(5, 5);
     scroll_window->SetBackgroundColour(*wxWHITE);
+    scroll_window->SetMinSize(HISTORY_WINDOW_SIZE);
+    scroll_window->SetSize(HISTORY_WINDOW_SIZE);
+    scroll_window->SetMaxSize(HISTORY_WINDOW_SIZE);
 
     auto scroll_sizer = new wxBoxSizer(wxVERTICAL);
     scroll_window->SetSizer(scroll_sizer);
@@ -66,11 +69,11 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     comboBox_sizer->Add(nozzle_dia_title, 0, wxLEFT | wxRIGHT, FromDIP(15));
     comboBox_sizer->AddSpacer(10);
 
-    m_comboBox_nozzle_dia = new ComboBox(comboBox_panel, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(600), FromDIP(24)), 0, nullptr, wxCB_READONLY);
-    comboBox_sizer->Add(m_comboBox_nozzle_dia, 0, wxLEFT | wxRIGHT, FromDIP(15));
+    m_comboBox_nozzle_dia = new ComboBox(comboBox_panel, wxID_ANY, "", wxDefaultPosition, wxSize(-1, FromDIP(24)), 0, nullptr, wxCB_READONLY);
+    comboBox_sizer->Add(m_comboBox_nozzle_dia, 0, wxLEFT | wxEXPAND | wxRIGHT, FromDIP(15));
     comboBox_sizer->AddSpacer(10);
 
-    scroll_sizer->Add(comboBox_panel);
+    scroll_sizer->Add(comboBox_panel, 0, wxEXPAND | wxRIGHT, FromDIP(10));
 
     scroll_sizer->AddSpacer(FromDIP(15));
 
@@ -92,10 +95,10 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     scroll_sizer->Add(m_history_data_panel, 1, wxEXPAND);
 
     main_sizer->Add(scroll_window, 1, wxEXPAND | wxALL, FromDIP(10));
+
     SetSizer(main_sizer);
+    Layout();
     main_sizer->Fit(this);
-    SetMinSize(HISTORY_WINDOW_SIZE);
-    SetSize(HISTORY_WINDOW_SIZE);
     CenterOnParent();
 
     wxGetApp().UpdateDlgDarkUI(this);
@@ -201,7 +204,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
 }
 
 void HistoryWindow::sync_history_data() {
-    m_history_data_panel->Freeze();
+    Freeze();
     m_history_data_panel->DestroyChildren();
     wxGridBagSizer* gbSizer;
     gbSizer = new wxGridBagSizer(FromDIP(0), FromDIP(50));
@@ -296,8 +299,9 @@ void HistoryWindow::sync_history_data() {
 
     wxGetApp().UpdateDlgDarkUI(this);
 
-    m_history_data_panel->Layout();
-    m_history_data_panel->Thaw();
+    Layout();
+    Fit();
+    Thaw();
 }
 
 float HistoryWindow::get_nozzle_value()
