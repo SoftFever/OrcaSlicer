@@ -1046,7 +1046,7 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
     }
 
     if (!Print::check_multi_filaments_compatibility(filament_types)) {
-        error_tips = L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing");
+        error_tips = _u8L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing");
         return false;
     }
 
@@ -1164,11 +1164,12 @@ void CalibrationPresetPage::update_show_status()
         }
     }
 
-    if (is_blocking_printing()) {
-        show_status(CaliPresetPageStatus::CaliPresetStatusUnsupportedPrinter);
-        return;
-    }
-    else if (obj_->is_connecting() || !obj_->is_connected()) {
+    //if (is_blocking_printing()) {
+    //    show_status(CaliPresetPageStatus::CaliPresetStatusUnsupportedPrinter);
+    //    return;
+    //}
+    //else
+    if (obj_->is_connecting() || !obj_->is_connected()) {
         show_status(CaliPresetPageStatus::CaliPresetStatusInConnecting);
         return;
     }
