@@ -4672,14 +4672,14 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         finishFn = [this, userid = m_agent->get_user_id(), dlg](bool ok) {
             CallAfter([=]{
                 dlg->Destroy();
-                if (ok && userid == m_agent->get_user_id()) reload_settings();
+                if (ok && m_agent && userid == m_agent->get_user_id()) reload_settings();
             });
         };
     }
     else {
         finishFn = [this, userid = m_agent->get_user_id()](bool ok) {
             CallAfter([=] {
-                if (ok && userid == m_agent->get_user_id()) reload_settings();
+                if (ok && m_agent && userid == m_agent->get_user_id()) reload_settings();
             });
         };
     }
@@ -4760,7 +4760,7 @@ void GUI_App::stop_sync_user_preset()
 
     enable_sync = false;
     if (m_sync_update_thread.joinable())
-        m_sync_update_thread.join();
+        m_sync_update_thread.detach();
 }
 
 void GUI_App::start_http_server()
