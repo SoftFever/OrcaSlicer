@@ -2231,7 +2231,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Detect overhang wall");
     def->category = L("Quality");
     def->tooltip = L("Detect the overhang percentage relative to line width and use different speed to print. "
-                     "For 100%% overhang, bridge speed is used.");
+                     "For 100 percent overhang, bridge speed is used.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
