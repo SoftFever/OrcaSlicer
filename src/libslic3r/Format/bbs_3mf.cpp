@@ -4259,7 +4259,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             const ObjectMetadata::VolumeMetadata* volume_data = nullptr;
             ObjectMetadata::VolumeMetadata default_volume_data(sub_object->id);
-            for (const ObjectMetadata::VolumeMetadata& volume_iter : volumes) {
+            if (index < volumes.size() && volumes[index].subobject_id == sub_object->id)
+                volume_data = &volumes[index];
+            else for (const ObjectMetadata::VolumeMetadata& volume_iter : volumes) {
                 if (volume_iter.subobject_id == sub_object->id) {
                     volume_data = &volume_iter;
                     break;
