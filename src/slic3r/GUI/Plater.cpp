@@ -6375,7 +6375,6 @@ void Plater::priv::update_plugin_when_launch(wxCommandEvent &event)
     else if (result == wxID_NO) {
         app_config->set("update_network_plugin", "false");
     }
-    app_config->save();
 }
 
 void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
