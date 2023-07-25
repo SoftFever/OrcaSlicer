@@ -2322,8 +2322,9 @@ bool GUI_App::on_init_inner()
         }
     }
 
-    app_config->set("version", SLIC3R_VERSION);
-    app_config->save();
+    if(app_config->get("version") != SLIC3R_VERSION) {
+        app_config->set("version", SLIC3R_VERSION);
+    }
 
     BBLSplashScreen * scrn = nullptr;
     const bool show_splash_screen = true;
@@ -2623,9 +2624,6 @@ bool GUI_App::on_init_inner()
         if (! plater_)
             return;
 
-        if (app_config->dirty())
-            app_config->save();
-
         // BBS
         //this->obj_manipul()->update_if_dirty();
 
@@ -2650,6 +2648,9 @@ bool GUI_App::on_init_inner()
                 m_download_file_url = "";
             }
         }
+
+        if (m_post_initialized && app_config->dirty())
+            app_config->save();
     });
 
     m_initialized = true;
@@ -4220,12 +4221,10 @@ void GUI_App::show_check_privacy_dlg(wxCommandEvent& evt)
     privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CONFIRM, [this, online_login](wxCommandEvent &e) {
         app_config->set("privacy_version", privacy_version_info.version_str);
         app_config->set_bool("privacy_update_checked", true);
-        app_config->save();
         request_user_handle(online_login);
         });
     privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CANCEL, [this](wxCommandEvent &e) {
             app_config->set_bool("privacy_update_checked", false);
-            app_config->save();
             if (m_agent) {
                 m_agent->user_logout();
             }
@@ -4777,7 +4776,6 @@ bool GUI_App::select_language()
             //    m_wxLocale->GetCanonicalName()
             // 3) new_language_info->CanonicalName is a safe bet. It points to a valid dictionary name.
 			app_config->set("language", new_language_info->CanonicalName.ToUTF8().data());
-			app_config->save();
     		return true;
     	}
     }
@@ -5019,7 +5017,6 @@ void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)
                                  mode == comSimple ? "simple" :
                                  mode == comDevelop ? "develop" : "simple";
     app_config->set("user_mode", mode_str);
-    app_config->save();
     update_mode();
 }
 
