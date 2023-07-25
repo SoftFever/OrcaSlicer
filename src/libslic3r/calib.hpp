@@ -116,7 +116,7 @@ private:
     bool m_draw_numbers {true};
 };
 
-struct SuggestedCalibPressureAdvancePatternConfig {
+struct SuggestedConfigCalibPAPattern {
     const std::vector<std::pair<std::string, double>> float_pairs {
         {"initial_layer_print_height", 0.25},
         {"layer_height", 0.2},
@@ -130,8 +130,11 @@ struct SuggestedCalibPressureAdvancePatternConfig {
     };
 
     const std::vector<std::pair<std::string, int>> int_pairs {
+        {"skirt_loops", 0},
         {"wall_loops", 3}
     };
+
+    const std::pair<std::string, BrimType> brim_pair {"brim_type", BrimType::btNoBrim};
 };
 
 class CalibPressureAdvancePattern : public CalibPressureAdvance {
