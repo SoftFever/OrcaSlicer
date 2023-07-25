@@ -39,7 +39,6 @@ void Camera::set_type(EType type)
         m_type = type;
         if (m_update_config_on_type_change_enabled) {
             wxGetApp().app_config->set_bool("use_perspective_camera", m_type == EType::Perspective);
-            wxGetApp().app_config->save();
         }
     }
 }
