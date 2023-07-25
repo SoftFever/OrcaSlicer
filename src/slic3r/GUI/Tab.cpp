@@ -1641,9 +1641,13 @@ void Tab::on_presets_changed()
     if (wxGetApp().plater() == nullptr)
         return;
 
-    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
-    if(m_type == Preset::TYPE_PRINTER)
+    // Orca: update presets for the selected printer
+    if(m_type == Preset::TYPE_PRINTER) {
         m_preset_bundle->update_selections(*wxGetApp().app_config);
+        wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
+    }
+
+    // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
     bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
