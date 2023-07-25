@@ -1471,6 +1471,9 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         mesh.merge(sub_mesh);
     }
 
+    if (mesh.empty())
+        return;
+
     Plater *plater = wxGetApp().plater();
     if (!plater)
         return;
