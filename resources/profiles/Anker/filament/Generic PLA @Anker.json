@@ -7,12 +7,13 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
     "filament_flow_ratio": [
-        "0.98"
+        "1.00"
     ],
-    "slow_down_layer_time": [
-        "8"
+    "filament_max_volumetric_speed": [
+        "17"
     ],
     "compatible_printers": [
-        "Anker M5 0.4 nozzle"
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
     ]
 }

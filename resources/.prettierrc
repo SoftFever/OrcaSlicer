@@ -1,0 +1,15 @@
+{
+    "parser": "json-stringify",
+    "trailingComma": "all",
+    "printWidth": 80,
+    "tabWidth": 4,
+    "useTabs": false,
+    "overrides": [
+        {
+            "files": ".json",
+            "options": {
+                "parser": "json-stringify"
+            }
+        }
+    ]
+}

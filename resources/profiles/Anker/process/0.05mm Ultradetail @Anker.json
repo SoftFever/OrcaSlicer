@@ -1,0 +1,21 @@
+{
+    "type": "process",
+    "setting_id": "GP_Anker_000",
+    "name": "0.05mm Ultradetail @Anker",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_common",
+    "bottom_shell_layers": "10",
+    "bridge_flow": "0.70",
+    "initial_layer_print_height": "0.05",
+    "layer_height": "0.05",
+    "raft_contact_distance": "0.05",
+    "top_shell_layers": "14",
+    "support_object_xy_distance": "1.50",
+    "support_bottom_z_distance": "0.05",
+    "support_top_z_distance": "0.05",
+    "compatible_printers": [
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
+    ]
+}
