@@ -81,7 +81,6 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     //// save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent &e) {
         app_config->set(param, std::to_string(e.GetSelection()));
-        app_config->save();
         e.Skip();
     });
     return m_sizer_combox;
@@ -199,7 +198,6 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             m_current_language_selected = combobox->GetSelection();
             if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {
                 app_config->set(param, vlist[m_current_language_selected]->CanonicalName.ToUTF8().data());
-                app_config->save();
 
                 wxGetApp().load_language(vlist[m_current_language_selected]->CanonicalName, false);
                 Close();
@@ -324,7 +322,6 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
         auto level = Slic3r::get_string_logging_level(e.GetSelection());
         Slic3r::set_logging_level(Slic3r::level_string_to_boost(level));
         app_config->set("severity_level",level);
-        app_config->save();
         e.Skip();
      });
     return m_sizer_combox;
@@ -376,14 +373,12 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
     combobox_left->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, combobox_right](wxCommandEvent &e) {
         auto config = e.GetString() + wxString("/") + combobox_right->GetValue();
         app_config->set(param, std::string(config.mb_str()));
-        app_config->save();
         e.Skip();
     });
 
     combobox_right->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, combobox_left](wxCommandEvent &e) {
         auto config = combobox_left->GetValue() + wxString("/") + e.GetString();
         app_config->set(param, std::string(config.mb_str()));
-        app_config->save();
         e.Skip();
     });
 
@@ -427,7 +422,6 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input, onchange](wxFocusEvent &e) {
         auto value = input->GetTextCtrl()->GetValue();
         app_config->set(param, std::string(value.mb_str()));
-        app_config->save();
         onchange(value);
         e.Skip();
     });
