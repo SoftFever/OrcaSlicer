@@ -773,8 +773,8 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetToolTip(_L("Add one filament"));
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // BBS: limit filament choices to 16
-        if (p->combos_filament.size() >= 16)
+        // Orca: limit filament choices to 64
+        if (p->combos_filament.size() >= 64)
             return;
 
         int filament_count = p->combos_filament.size() + 1;
@@ -1035,7 +1035,13 @@ void Sidebar::update_all_preset_comboboxes()
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
         m_bed_type_list->Enable();
-
+        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(), "curr_bed_type");
+        if(!str_bed_type.empty()){
+            int bed_type_value = atoi(str_bed_type.c_str());
+            if(bed_type_value == 0)
+                bed_type_value = 1;
+            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+        }
 
     } else {
         connection_btn->Show();
@@ -5591,6 +5597,8 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
                 // update app_config
                 AppConfig* app_config = wxGetApp().app_config;
                 app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
+                app_config->set_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                "curr_bed_type", std::to_string(int(new_bed_type)));
 
                 //update slice status
                 auto plate_list = partplate_list.get_plate_list();
