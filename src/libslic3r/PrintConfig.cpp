@@ -1191,10 +1191,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("print_flow_ratio", coFloat);
     def->label = L("Flow ratio");
     def->tooltip = L("The material may have volumetric change after switching between molten state and crystalline state. "
-                     "This setting changes the extrusion flow of this object in gcode proportionally. "
+                     "This setting changes all extrusion flow of this filament in gcode proportionally. "
                      "Recommended value range is between 0.95 and 1.05. "
-                     "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow."
-                     "Calculated as a % of [filament_flow_ratio] (i.e. filament_flow_ratio * print_flow_ratio = requested flow rate)");
+                     "Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow");
     def->mode = comAdvanced;
     def->max = 2;
     def->min = 0.01;
@@ -1222,7 +1221,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 1000;
     def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.4, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
     def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");

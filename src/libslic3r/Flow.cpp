@@ -67,8 +67,6 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 {
 	assert(opt != nullptr);
 
-	bool first_layer = boost::starts_with(opt_key, "initial_layer_");
-
 #if 0
 // This is the logic used for skit / brim, but not for the rest of the 1st layer.
 	if (opt->value == 0. && first_layer) {
@@ -84,24 +82,18 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 		opt = config.option<ConfigOptionFloatOrPercent>("line_width");
 		if (opt == nullptr)
     		throw_on_missing_variable(opt_key, "line_width");
-    	// Use the "layer_height" instead of "initial_layer_print_height".
-    	first_layer = false;
 	}
 
-	if (opt->percent) {
-		auto opt_key_layer_height = first_layer ? "initial_layer_print_height" : "layer_height";
-        auto opt_layer_height = config.option(opt_key_layer_height);
-    	if (opt_layer_height == nullptr)
-    		throw_on_missing_variable(opt_key, opt_key_layer_height);
-        assert(! first_layer || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_layer_height)->percent);
-		return opt->get_abs_value(opt_layer_height->getFloat());
+    auto opt_nozzle_diameters = config.option<ConfigOptionFloats>("nozzle_diameter");
+    if (opt_nozzle_diameters == nullptr)
+        throw_on_missing_variable(opt_key, "nozzle_diameter");
+
+    if (opt->percent) {
+		return opt->get_abs_value(float(opt_nozzle_diameters->get_at(first_printing_extruder)));
 	}
 
 	if (opt->value == 0.) {
         // If user left option to 0, calculate a sane default width.
-    	auto opt_nozzle_diameters = config.option<ConfigOptionFloats>("nozzle_diameter");
-    	if (opt_nozzle_diameters == nullptr)
-    		throw_on_missing_variable(opt_key, "nozzle_diameter");
         return auto_extrusion_width(opt_key_to_flow_role(opt_key), float(opt_nozzle_diameters->get_at(first_printing_extruder)));
     }
 
