@@ -1866,7 +1866,7 @@ bool MainFrame::get_enable_print_status()
     }
     else if (m_print_select == eExportSlicedFile)
     {
-        if (!current_plate->is_slice_result_ready_for_print())
+        if (!current_plate->is_slice_result_ready_for_export())
         {
             enable = false;
         }
@@ -1889,7 +1889,7 @@ bool MainFrame::get_enable_print_status()
     }
     else if (m_print_select == eExportAllSlicedFile)
     {
-        if (!part_plate_list.is_all_slice_results_ready_for_print())
+        if (!part_plate_list.is_all_slice_result_ready_for_export())
         {
             enable = false;
         }

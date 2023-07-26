@@ -411,6 +411,12 @@ public:
         return result;
     }
 
+    // check whether plate's slice result valid for export to file
+    bool is_slice_result_ready_for_export()
+    {
+        return is_slice_result_ready_for_print() && has_printable_instances();
+    }
+
     //invalid sliced result
     void update_slice_result_valid_state(bool valid = false);
 
@@ -775,6 +781,7 @@ public:
     bool is_all_slice_results_valid() const;
     bool is_all_slice_results_ready_for_print() const;
     bool is_all_plates_ready_for_slice() const;
+    bool is_all_slice_result_ready_for_export() const;
     void print() const;
 
     //get the all the sliced result
