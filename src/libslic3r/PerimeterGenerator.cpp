@@ -1382,10 +1382,17 @@ void PerimeterGenerator::process_arachne()
                 Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(1),
                                                      wall_0_inset, layer_height, input_params);
                 out_shell = wallToolPaths.getToolPaths();
+                // Make sure infill not overlap with wall
+                top_fills = intersection_ex(top_fills, wallToolPaths.getInnerContour());
 
-                // Then get the inner part that needs more walls
-                last = intersection_ex(non_top_polygons, wallToolPaths.getInnerContour());
-                loop_number--;
+                if (!top_fills.empty()) {
+                    // Then get the inner part that needs more walls
+                    last = intersection_ex(non_top_polygons, wallToolPaths.getInnerContour());
+                    loop_number--;
+                } else {
+                    // Give up the outer shell because we don't have any meaningful top surface
+                    out_shell.clear();
+                }
             }
         }
 
