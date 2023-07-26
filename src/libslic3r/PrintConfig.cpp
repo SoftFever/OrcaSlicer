@@ -1675,15 +1675,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<NozzleType>(ntUndefine));
 
-    def                = this->add("nozzle_hrc", coInt);
-    def->label         = L("Nozzle HRC");
-    def->tooltip       = L("The nozzle's hardness. Zero means no checking for nozzle's hardness during slicing.");
-    def->sidetext      = L("HRC");
-    def->min           = 0;
-    def->max           = 500;
-    def->mode          = comDevelop;
-    def->set_default_value(new ConfigOptionInt{0});
-
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");
     def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
@@ -4247,7 +4238,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type"
+        "z_hop_type","nozzle_hrc"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

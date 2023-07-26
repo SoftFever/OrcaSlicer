@@ -192,7 +192,7 @@ namespace Slic3r {
         std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
         //BBS
         std::vector<SliceWarning> warnings;
-        int nozzle_hrc;
+        NozzleType nozzle_type;
         BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
@@ -237,7 +237,7 @@ namespace Slic3r {
         static const std::vector<std::string> Reserved_Tags;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
-
+        static const std::map<NozzleType, int>Nozzle_Type_To_HRC;
     public:
         enum class ETags : unsigned char
         {

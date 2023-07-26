@@ -146,7 +146,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "curr_bed_type",
         "nozzle_volume",
         "chamber_temperature",
-        "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine",
         //OrcaSlicer

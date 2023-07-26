@@ -63,6 +63,13 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
+const std::map<NozzleType,int> GCodeProcessor::Nozzle_Type_To_HRC={
+    {NozzleType::ntStainlessSteel,20},
+    {NozzleType::ntHardenedSteel,55},
+    {NozzleType::ntBrass,2},
+    {NozzleType::ntUndefine,0}
+};
+
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
 
@@ -910,8 +917,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.filament_densities.resize(extruders_count);
     m_result.filament_vitrification_temperature.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
-    m_result.nozzle_hrc = static_cast<int>(config.nozzle_hrc.getInt());
-
+    m_result.nozzle_type = config.nozzle_type;
     for (size_t i = 0; i < extruders_count; ++ i) {
         m_extruder_offsets[i]           = to_3d(config.extruder_offset.get_at(i).cast<float>().eval(), 0.f);
         m_extruder_colors[i]            = static_cast<unsigned char>(i);
@@ -967,8 +973,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (nozzle_volume != nullptr)
         m_nozzle_volume = nozzle_volume->value;
 
-    const ConfigOptionInt *nozzle_HRC = config.option<ConfigOptionInt>("nozzle_hrc");
-    if (nozzle_HRC != nullptr) m_result.nozzle_hrc = nozzle_HRC->value;
+    const ConfigOptionEnum<NozzleType>* nozzle_type = config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
+    if (nozzle_type != nullptr)
+        m_result.nozzle_type=nozzle_type->value;
 
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     if (gcode_flavor != nullptr)
@@ -4281,12 +4288,14 @@ void GCodeProcessor::update_slice_warnings()
     //bbs:HRC checker
     warning.params.clear();
     warning.level=1;
-    if (m_result.nozzle_hrc!=0) {
+
+    int nozzle_hrc = Nozzle_Type_To_HRC.find(m_result.nozzle_type)->second;
+    if (nozzle_hrc!=0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int HRC=0;
             if (used_extruders[i] < m_result.required_nozzle_HRC.size())
                 HRC = m_result.required_nozzle_HRC[used_extruders[i]];
-            if (HRC != 0 && (m_result.nozzle_hrc<HRC))
+            if (HRC != 0 && (nozzle_hrc<HRC))
                 warning.params.push_back(std::to_string(used_extruders[i]));
         }
     }

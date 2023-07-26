@@ -866,7 +866,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              template_custom_gcode))
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
-    ((ConfigOptionInt,                 nozzle_hrc))
     ((ConfigOptionBool,                auxiliary_fan))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
