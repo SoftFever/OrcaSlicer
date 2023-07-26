@@ -349,7 +349,7 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
     return(ret);}
 #endif
 
-void record_exit_reson(std::string outputdir, int code, int plate_id, std::string error_message, int extra_param1 = 0)
+void record_exit_reson(std::string outputdir, int code, int plate_id, std::string error_message, std::map<std::string, std::string> key_values = std::map<std::string, std::string>())
 {
 #if defined(__linux__) || defined(__LINUX__)
     std::string result_file;
@@ -365,8 +365,8 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         j["plate_index"] = plate_id;
         j["return_code"] = code;
         j["error_string"] = error_message;
-        if (extra_param1 != 0)
-            j["extra_param1"] = extra_param1;
+        for (auto& iter: key_values)
+            j[iter.first] = iter.second;
 
         boost::nowide::ofstream c;
         c.open(result_file, std::ios::out | std::ios::trunc);
@@ -549,7 +549,7 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data_src;
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -573,6 +573,10 @@ int CLI::run(int argc, char **argv)
     if (uptodate_option)
         up_config_to_date = uptodate_option->value;
 
+    ConfigOptionBool* load_defaultfila_option = m_config.option<ConfigOptionBool>("load_defaultfila");
+    if (load_defaultfila_option)
+        use_first_fila_as_default = load_defaultfila_option->value;
+
     ConfigOptionString* pipe_option = m_config.option<ConfigOptionString>("pipe");
     if (pipe_option) {
         pipe_name = pipe_option->value;
@@ -586,13 +590,23 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    //skip model object map construct
+    if (need_skip) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("need to skip objects, size %1%:")%skip_objects.size();
+        for (int index = 0; index < skip_objects.size(); index++)
+        {
+            skip_maps[skip_objects[index]] = false;
+            BOOST_LOG_TRIVIAL(info) << boost::format("object %1%, id %2%")%index %skip_objects[index];
+        }
+    }
+
     /*for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
             BOOST_LOG_TRIVIAL(info) << "found a gcode file:" << file << ", will start as gcode viewer\n";
             break;
         }*/
-    BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice=%1%, normative_check=%2%")%plate_to_slice %normative_check;
+    BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice=%1%, normative_check=%2%, use_first_fila_as_default=%3%")%plate_to_slice %normative_check %use_first_fila_as_default;
     //if (!start_as_gcodeviewer) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
@@ -878,6 +892,41 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string> load_filaments_id;
     std::vector<std::string> load_filaments_name;
     int current_index = 0;
+    std::string default_load_fila_name, default_load_fila_id, default_filament_file;
+    DynamicPrintConfig  default_load_fila_config;
+    if (use_first_fila_as_default) {
+        //construct default filament
+        for (int index = 0; index < load_filament_count; index++) {
+            const std::string& file = load_filaments[index];
+            if (default_filament_file.empty() && !file.empty()) {
+                DynamicPrintConfig  config;
+                std::string config_type, config_name, filament_id;
+                int ret = load_system_config_file(file, config, config_type, config_name, filament_id);
+                if (ret) {
+                    record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
+                    flush_and_exit(ret);
+                }
+
+                if (config_type != "filament") {
+                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(": unknown config type %1% of file %2% in load-filaments") % config_type % file;
+                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR]);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
+
+                default_filament_file = file;
+                default_load_fila_name = config_name;
+                default_load_fila_id = filament_id;
+                default_load_fila_config = std::move(config);
+                break;
+            }
+        }
+        if ((load_filament_count > 0) && default_filament_file.empty())
+        {
+            BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(": load_filament_count is %1%, but can not load a default filament") % load_filament_count;
+            record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR]);
+            flush_and_exit(CLI_CONFIG_FILE_ERROR);
+        }
+    }
     for (int index = 0; index < load_filament_count; index++) {
         const std::string& file = load_filaments[index];
         current_index++;
@@ -891,7 +940,7 @@ int CLI::run(int argc, char **argv)
             }
 
             if (config_type != "filament") {
-                boost::nowide::cerr <<__FUNCTION__ << boost::format(": unknown config type %1% of file %2% in load-filaments") % config_type % file;
+                BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(": unknown config type %1% of file %2% in load-filaments") % config_type % file;
                 record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR]);
                 flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
@@ -901,7 +950,7 @@ int CLI::run(int argc, char **argv)
                 printer_technology = other_printer_technology;
             }
             if ((printer_technology != other_printer_technology) && (other_printer_technology != ptUnknown)) {
-                boost::nowide::cerr << "invalid printer_technology " <<printer_technology<<", from filament file "<< file <<std::endl;
+                BOOST_LOG_TRIVIAL(error) << "invalid printer_technology " <<printer_technology<<", from filament file "<< file;
                 record_exit_reson(outfile_dir, CLI_INVALID_PRINTER_TECH, 0, cli_errors[CLI_INVALID_PRINTER_TECH]);
                 flush_and_exit(CLI_INVALID_PRINTER_TECH);
             }
@@ -911,6 +960,13 @@ int CLI::run(int argc, char **argv)
             load_filaments_index.push_back(current_index);
         }
         else {
+            if (use_first_fila_as_default) {
+                BOOST_LOG_TRIVIAL(info)<<__FUNCTION__ << boost::format(": load filament %1% from default, config name %2%, filament_id %3%, current_index %4%") % (index+1) % default_load_fila_name %default_load_fila_id %current_index;
+                load_filaments_id.push_back(default_load_fila_id);
+                load_filaments_name.push_back(default_load_fila_name);
+                load_filaments_config.push_back(default_load_fila_config);
+                load_filaments_index.push_back(current_index);
+            }
             continue;
         }
     }
@@ -1758,7 +1814,7 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << ", will copy model object first\n";
                 Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
                 //copy model objects and instances on plate
-                cur_plate->duplicate_all_instance(repetitions_count-1);
+                cur_plate->duplicate_all_instance(repetitions_count-1, need_skip, skip_maps);
 
                 need_arrange = true;
                 duplicate_count = repetitions_count - 1;
@@ -2112,44 +2168,52 @@ int CLI::run(int argc, char **argv)
                     float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
                     float v = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_volume"))->value;
                     unsigned int filaments_cnt = plate_data_src[plate_to_slice-1]->slice_filaments_info.size();
-                    if (filaments_cnt == 0)
+                    if ((filaments_cnt == 0) || need_skip)
                     {
                         // slice filaments info invalid
                         std::vector<int> extruders = cur_plate->get_extruders_under_cli(true, m_print_config);
                         filaments_cnt = extruders.size();
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slice filaments info invalid, get from partplate: filament_count %1%")%filaments_cnt;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
                     }
-                    float layer_height = 0.2;
-                    ConfigOption* layer_height_opt = m_print_config.option("layer_height");
-                    if (layer_height_opt)
-                        layer_height = layer_height_opt->getFloat();
 
-                    float depth = v * (filaments_cnt - 1) / (layer_height * w);
+                    if (filaments_cnt <= 1)
+                    {
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": not a multi-color object anymore, drop the wipe tower before arrange.");
+                    }
+                    else
+                    {
+                        float layer_height = 0.2;
+                        ConfigOption* layer_height_opt = m_print_config.option("layer_height");
+                        if (layer_height_opt)
+                            layer_height = layer_height_opt->getFloat();
 
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%")
-                        %x %y %w %depth %a %v %filaments_cnt %layer_height;
+                        float depth = v * (filaments_cnt - 1) / (layer_height * w);
 
-                    Vec3d plate_origin = cur_plate->get_origin();
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%")
+                            %x %y %w %depth %a %v %filaments_cnt %layer_height;
 
-                    ArrangePolygon wipe_tower_ap;
+                        Vec3d plate_origin = cur_plate->get_origin();
 
-                    Polygon ap({
-                        {scaled(x), scaled(y)},
-                        {scaled(x + w), scaled(y)},
-                        {scaled(x + w), scaled(y + depth)},
-                        {scaled(x), scaled(y + depth)}
-                        });
-                    wipe_tower_ap.bed_idx = 0;
-                    wipe_tower_ap.setter = NULL; // do not move wipe tower
+                        ArrangePolygon wipe_tower_ap;
 
-                    wipe_tower_ap.poly.contour = std::move(ap);
-                    wipe_tower_ap.translation  = {scaled(0.f), scaled(0.f)};
-                    wipe_tower_ap.rotation     = a;
-                    wipe_tower_ap.name = "WipeTower";
-                    wipe_tower_ap.is_virt_object = true;
-                    wipe_tower_ap.is_wipe_tower = true;
-                    ++wipe_tower_ap.priority;
-                    unselected.emplace_back(std::move(wipe_tower_ap));
+                        Polygon ap({
+                            {scaled(x), scaled(y)},
+                            {scaled(x + w), scaled(y)},
+                            {scaled(x + w), scaled(y + depth)},
+                            {scaled(x), scaled(y + depth)}
+                            });
+                        wipe_tower_ap.bed_idx = 0;
+                        wipe_tower_ap.setter = NULL; // do not move wipe tower
+
+                        wipe_tower_ap.poly.contour = std::move(ap);
+                        wipe_tower_ap.translation  = {scaled(0.f), scaled(0.f)};
+                        wipe_tower_ap.rotation     = a;
+                        wipe_tower_ap.name = "WipeTower";
+                        wipe_tower_ap.is_virt_object = true;
+                        wipe_tower_ap.is_wipe_tower = true;
+                        ++wipe_tower_ap.priority;
+                        unselected.emplace_back(std::move(wipe_tower_ap));
+                    }
                 }
 
                 // add the virtual object into unselect list if has
@@ -2399,6 +2463,8 @@ int CLI::run(int argc, char **argv)
             }
         } else if (opt_key == "uptodate") {
             //already processed before
+        } else if (opt_key == "load_defaultfila") {
+            //already processed before
         } else if (opt_key == "mtcpp") {
             max_triangle_count_per_plate = m_config.option<ConfigOptionInt>("mtcpp")->value;
         } else if (opt_key == "mstpp") {
@@ -2444,15 +2510,6 @@ int CLI::run(int argc, char **argv)
                 pre_check = false;
             bool finished = false;
 
-            //skip model object logic
-            if (need_skip) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("need to skip objects, size %1%:")%skip_objects.size();
-                for (int index = 0; index < skip_objects.size(); index++)
-                {
-                    skip_maps[skip_objects[index]] = false;
-                    BOOST_LOG_TRIVIAL(info) << boost::format("object %1%, id %2%")%index %skip_objects[index];
-                }
-            }
             /*if (opt_key == "export_gcode" && printer_technology == ptSLA) {
                 boost::nowide::cerr << "error: cannot export G-code for an FFF configuration" << std::endl;
                 record_exit_reson(outfile_dir, 1, 0, cli_errors[1]);
@@ -2540,7 +2597,7 @@ int CLI::run(int argc, char **argv)
                                     if (skip_maps.find(i->loaded_id) != skip_maps.end()) {
                                         skip_maps[i->loaded_id] = true;
                                         i->printable = false;
-                                        if (i->print_volume_state == ModelInstancePVS_Inside) {
+                                        if (i->print_volume_state == ModelInstancePVS_Inside || need_arrange) {
                                             skipped_count++;
                                             plate_has_skips[index] = true;
                                             plate_skipped_objects[index].emplace_back(i->loaded_id);
@@ -3387,7 +3444,9 @@ int CLI::run(int argc, char **argv)
     //record the duplicate here
     if ((duplicate_count > 0) && duplicate_single_object)
     {
-        record_exit_reson(outfile_dir, 0, plate_to_slice, cli_errors[0], real_duplicate_count);
+        std::map<std::string, std::string> key_values;
+        key_values["sliced_count"] = std::to_string(real_duplicate_count);
+        record_exit_reson(outfile_dir, 0, plate_to_slice, cli_errors[0], key_values);
     }
     else
         record_exit_reson(outfile_dir, 0, plate_to_slice, cli_errors[0]);

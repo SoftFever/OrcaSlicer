@@ -319,7 +319,7 @@ public:
     void translate_all_instance(Vec3d position);
 
     //duplicate all instance for count
-    void duplicate_all_instance(unsigned int dup_count);
+    void duplicate_all_instance(unsigned int dup_count, bool need_skip, std::map<int, bool>& skip_objects);
 
     //update instance exclude state
     void update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);

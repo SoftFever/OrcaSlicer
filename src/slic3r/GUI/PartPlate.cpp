@@ -1450,6 +1450,11 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
         if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
         {
             ModelObject* object = m_model->objects[obj_id];
+            ModelInstance* instance = object->instances[instance_id];
+
+            if (!instance->printable)
+                continue;
+
             for (ModelVolume* mv : object->volumes) {
                 std::vector<int> volume_extruders = mv->get_extruders();
                 plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
@@ -2104,7 +2109,7 @@ void PartPlate::translate_all_instance(Vec3d position)
     return;
 }
 
-void PartPlate::duplicate_all_instance(unsigned int dup_count)
+void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, std::map<int, bool>& skip_objects)
 {
     std::set<std::pair<int, int>> old_obj_list = obj_to_instance_set;
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, dup_count %2%") % m_plate_index % dup_count;
@@ -2116,6 +2121,17 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count)
         if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
         {
             ModelObject* object = m_model->objects[obj_id];
+            ModelInstance* instance = object->instances[instance_id];
+
+            if (need_skip)
+            {
+                if (skip_objects.find(instance->loaded_id) != skip_objects.end())
+                {
+                    instance->printable = false;
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": skipped object, loaded_id %1%, name %2%, set to unprintable, no need to duplicate") % instance->loaded_id % object->name;
+                    continue;
+                }
+            }
             for (size_t index = 0; index < dup_count; index ++)
             {
                 ModelObject* newObj = m_model->add_object(*object);

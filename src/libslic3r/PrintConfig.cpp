@@ -4945,6 +4945,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli = "uptodate";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("load_defaultfila", coBool);
+    def->label = L("Load default filaments");
+    def->tooltip = L("Load first filament as default for those not loaded");
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("mtcpp", coInt);
     def->label = L("mtcpp");
     def->tooltip = L("max triangle count per plate for slicing.");
