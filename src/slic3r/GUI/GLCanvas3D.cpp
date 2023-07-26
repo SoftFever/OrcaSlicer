@@ -7534,6 +7534,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImVec2 size = ImVec2(button_width, button_height * all_plates_stats_item->percent / 100.0f);
             ImVec2 rect_start_pos = ImVec2(start_pos.x, start_pos.y + size.y);
             ImVec2 rect_end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, rect_end_pos, IM_COL32(0, 0, 0, 10));
             ImGui::GetForegroundDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
         }
         else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
@@ -7541,6 +7542,11 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
             ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
             ImGui::GetForegroundDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
+        }
+        else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICED) {
+            ImVec2 size = ImVec2(button_width, button_height);
+            ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 10));
         }
 
         // draw text
@@ -7596,12 +7602,17 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImVec2 size = ImVec2(button_width, button_height * item->percent / 100.0f);
             ImVec2 rect_start_pos = ImVec2(start_pos.x, start_pos.y + size.y);
             ImVec2 rect_end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, rect_end_pos, IM_COL32(0, 0, 0, 10));
             ImGui::GetForegroundDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
             ImVec2 size    = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
             ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
             ImGui::GetForegroundDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
+        } else if (item->slice_state == IMToolbarItem::SliceState::SLICED) {
+            ImVec2 size = ImVec2(button_width, button_height);
+            ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 10));
         }
 
         // draw text
