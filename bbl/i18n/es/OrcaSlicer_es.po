@@ -5620,16 +5620,16 @@ msgid "Before layer change G-code"
 msgstr "G-Code para antes del cambio de capa"
 
 msgid "Layer change G-code"
-msgstr "Cambiar el G-Code de la capa"
+msgstr "Cambiar el G-Code tras el cambio de capa"
 
 msgid "Change filament G-code"
-msgstr "Cambiar el G-Code del filamento"
+msgstr "G-Code para el cambio de filamento"
 
 msgid "Pause G-code"
 msgstr "G-Code de pausa"
 
 msgid "Template Custom G-code"
-msgstr "Plantilla de G-code personalizada"
+msgstr "G-Code para el cambio de herramienta"
 
 msgid "Motion ability"
 msgstr "Capacidad de movimiento"
