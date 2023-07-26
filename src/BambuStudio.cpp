@@ -470,6 +470,7 @@ int CLI::run(int argc, char **argv)
     Pointfs old_printable_area, old_exclude_area;
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
+    const std::vector<std::string>              &uptodate_configs          = m_config.option<ConfigOptionStrings>("uptodate_settings", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
@@ -920,51 +921,99 @@ int CLI::run(int argc, char **argv)
     //load system config if needed
     bool fetch_compatible_values = false, fetch_upward_values = false;
     if (is_bbl_3mf && up_config_to_date) {
-        if (new_printer_name.empty() && !current_printer_system_name.empty()) {
-            //use the original printer name in 3mf
-            std::string system_printer_path = resources_dir() + "/profiles/BBL/machine_full/"+current_printer_system_name+".json";
-            if (! boost::filesystem::exists(system_printer_path)) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_printer_path;
-                //use original one
-            }
-            else {
+        if (uptodate_configs.size() > 0)
+        {
+            for (auto const &file : uptodate_configs) {
                 DynamicPrintConfig  config;
                 std::string config_type, config_name, filament_id;
-                int ret = load_system_config_file(system_printer_path, config, config_type, config_name, filament_id);
+                int ret = load_system_config_file(file, config, config_type, config_name, filament_id);
                 if (ret) {
                     record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                     flush_and_exit(ret);
                 }
-                upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
-                config.set("printer_settings_id", config_name, true);
-                load_machine_config = std::move(config);
-            }
-        }
-        else
-            fetch_upward_values = true;
 
-        if (new_process_name.empty() && !current_process_system_name.empty()) {
-            //use the original printer name in 3mf
-            std::string system_process_path = resources_dir() + "/profiles/BBL/process_full/"+current_process_system_name+".json";
-            if (! boost::filesystem::exists(system_process_path)) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_process_path;
-                //use original one
-            }
-            else {
-                DynamicPrintConfig  config;
-                std::string config_type, config_name, filament_id;
-                int ret = load_system_config_file(system_process_path, config, config_type, config_name, filament_id);
-                if (ret) {
-                    record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
-                    flush_and_exit(ret);
+                if (config_type == "machine") {
+                    if ( config_name != current_printer_system_name ) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("wrong machine config file %1% loaded, current machine config name %2% ")%config_name %current_printer_system_name;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR]);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+                    upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("load a machine config %1% from file %2%, upward_compatible_printers size is %3% ")%config_name %file %upward_compatible_printers.size();
+                    if (new_printer_name.empty() && !current_printer_system_name.empty())
+                    {
+                        config.set("printer_settings_id", config_name, true);
+                        load_machine_config = std::move(config);
+                    }
                 }
-                current_print_compatible_printers  = config.option<ConfigOptionStrings>("compatible_printers", true)->values;
-                config.set("print_settings_id", config_name, true);
-                load_process_config = std::move(config);
+                else if (config_type == "process") {
+                    if ( config_name != current_process_system_name ) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("wrong process config file %1% loaded, current process config name %2% ")%config_name %current_process_system_name;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR]);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+                    current_print_compatible_printers  = config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("load a process config %1% from file %2%, current_print_compatible_printers size is %3% ")%config_name %file %current_print_compatible_printers.size();
+                    if (new_process_name.empty() && !current_process_system_name.empty())
+                    {
+                        config.set("print_settings_id", config_name, true);
+                        load_process_config = std::move(config);
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("found invalid config type %1% from config %2% ")%config_type %file;
+                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR]);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
             }
         }
-        else
-            fetch_compatible_values = true;
+        else {
+            if (new_printer_name.empty() && !current_printer_system_name.empty()) {
+                //use the original printer name in 3mf
+                std::string system_printer_path = resources_dir() + "/profiles/BBL/machine_full/"+current_printer_system_name+".json";
+                if (! boost::filesystem::exists(system_printer_path)) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_printer_path;
+                    //use original one
+                }
+                else {
+                    DynamicPrintConfig  config;
+                    std::string config_type, config_name, filament_id;
+                    int ret = load_system_config_file(system_printer_path, config, config_type, config_name, filament_id);
+                    if (ret) {
+                        record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
+                        flush_and_exit(ret);
+                    }
+                    upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
+                    config.set("printer_settings_id", config_name, true);
+                    load_machine_config = std::move(config);
+                }
+            }
+            else
+                fetch_upward_values = true;
+
+            if (new_process_name.empty() && !current_process_system_name.empty()) {
+                //use the original printer name in 3mf
+                std::string system_process_path = resources_dir() + "/profiles/BBL/process_full/"+current_process_system_name+".json";
+                if (! boost::filesystem::exists(system_process_path)) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_process_path;
+                    //use original one
+                }
+                else {
+                    DynamicPrintConfig  config;
+                    std::string config_type, config_name, filament_id;
+                    int ret = load_system_config_file(system_process_path, config, config_type, config_name, filament_id);
+                    if (ret) {
+                        record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
+                        flush_and_exit(ret);
+                    }
+                    current_print_compatible_printers  = config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+                    config.set("print_settings_id", config_name, true);
+                    load_process_config = std::move(config);
+                }
+            }
+            else
+                fetch_compatible_values = true;
+        }
 
         if (load_filaments_config.empty() && !current_filaments_system_name.empty()) {
             for (int index = 0; index < current_filaments_system_name.size(); index++) {
@@ -1104,20 +1153,20 @@ int CLI::run(int argc, char **argv)
                 }
             }
             if (!process_compatible) {
-                boost::nowide::cout <<__FUNCTION__ << boost::format(": current 3mf file not support the new printer %1%")%new_printer_name;
+                BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1% : current 3mf file not support the new printer %2%")%__LINE__%new_printer_name;
                 record_exit_reson(outfile_dir, CLI_3MF_NEW_MACHINE_NOT_SUPPORTED, 0, cli_errors[CLI_3MF_NEW_MACHINE_NOT_SUPPORTED]);
                 flush_and_exit(CLI_3MF_NEW_MACHINE_NOT_SUPPORTED);
             }
         }
         else {
-            boost::nowide::cout <<__FUNCTION__ << boost::format(": current 3mf file not support upward_compatible_printers, can not change machine preset.");
+            BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1%: current 3mf file not support upward_compatible_printers, can not change machine preset.")%__LINE__;
             record_exit_reson(outfile_dir, CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE, 0, cli_errors[CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE]);
             flush_and_exit(CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE);
         }
     }
 
     if (!process_compatible) {
-        boost::nowide::cout <<__FUNCTION__ << boost::format(": process not compatible with printer.");
+        BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1%: process not compatible with printer.")%__LINE__;
         record_exit_reson(outfile_dir, CLI_PROCESS_NOT_COMPATIBLE, 0, cli_errors[CLI_PROCESS_NOT_COMPATIBLE]);
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
     }

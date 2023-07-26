@@ -5162,6 +5162,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"3,5,10,77\"";
     def->set_default_value(new ConfigOptionInts());
 
+    def = this->add("uptodate_settings", coStrings);
+    def->label = L("load uptodate process/machine settings when using uptodate");
+    def->tooltip = L("load uptodate process/machine settings from the specified file when using uptodate");
+    def->cli_params = "\"setting1.json;setting2.json\"";
+    def->set_default_value(new ConfigOptionStrings());
+
     /*def = this->add("output", coString);
     def->label = L("Output File");
     def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");
