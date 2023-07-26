@@ -773,8 +773,8 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetToolTip(_L("Add one filament"));
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // BBS: limit filament choices to 16
-        if (p->combos_filament.size() >= 16)
+        // Orca: limit filament choices to 64
+        if (p->combos_filament.size() >= 64)
             return;
 
         int filament_count = p->combos_filament.size() + 1;
@@ -1035,7 +1035,13 @@ void Sidebar::update_all_preset_comboboxes()
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
         m_bed_type_list->Enable();
-
+        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(), "curr_bed_type");
+        if(!str_bed_type.empty()){
+            int bed_type_value = atoi(str_bed_type.c_str());
+            if(bed_type_value == 0)
+                bed_type_value = 1;
+            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+        }
 
     } else {
         connection_btn->Show();
@@ -4144,6 +4150,7 @@ void Plater::priv::delete_all_objects_from_model()
     object_list_changed();
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 }
 
@@ -4195,6 +4202,7 @@ void Plater::priv::reset(bool apply_presets_change)
         wxGetApp().load_current_presets(false, false);
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 
     // BBS
@@ -5591,6 +5599,8 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
                 // update app_config
                 AppConfig* app_config = wxGetApp().app_config;
                 app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
+                app_config->set_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                "curr_bed_type", std::to_string(int(new_bed_type)));
 
                 //update slice status
                 auto plate_list = partplate_list.get_plate_list();
@@ -6375,7 +6385,6 @@ void Plater::priv::update_plugin_when_launch(wxCommandEvent &event)
     else if (result == wxID_NO) {
         app_config->set("update_network_plugin", "false");
     }
-    app_config->save();
 }
 
 void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
@@ -8135,14 +8144,14 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     const DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
-    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().float_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloat(opt.second)
         );
     }
 
-    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().nozzle_ratio_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
         print_config.set_key_value(
             opt.first,
@@ -8150,12 +8159,17 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         );
     }
 
-    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().int_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionInt(opt.second)
         );
     }
+
+    print_config.set_key_value(
+        SuggestedConfigCalibPAPattern().brim_pair.first,
+        new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second)
+    );
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();

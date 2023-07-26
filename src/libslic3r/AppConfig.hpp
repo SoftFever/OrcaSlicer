@@ -167,7 +167,33 @@ public:
 	void 				set_vendors(VendorMap &&vendors) { m_vendors = std::move(vendors); m_dirty = true; }
 	const VendorMap&    vendors() const { return m_vendors; }
 
-	const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
+	// Orca printer settings
+    typedef std::map<std::string, nlohmann::json> MachineSettingMap;
+    bool has_printer_settings(std::string printer) const {
+        return m_printer_settings.find(printer) != m_printer_settings.end();
+    }
+    void clear_printer_settings(std::string printer) {
+        m_printer_settings.erase(printer);
+        m_dirty = true;
+    }
+    bool has_printer_setting(std::string printer, std::string name) {
+        if (!has_printer_settings(printer))
+            return false;
+        if (!m_printer_settings[printer].contains(name))
+            return false;
+        return true;
+    }
+    std::string get_printer_setting(std::string printer, std::string name) {
+        if (!has_printer_setting(printer, name))
+            return "";
+        return m_printer_settings[printer][name];
+    }
+    std::string set_printer_setting(std::string printer, std::string name, std::string value) {
+        return m_printer_settings[printer][name] = value;
+        m_dirty                = true;
+    }
+
+    const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
     void set_filament_presets(const std::vector<std::string> &filament_presets){
         m_filament_presets = filament_presets;
         m_dirty            = true;
@@ -265,6 +291,9 @@ private:
 
 	// Map of enabled vendors / models / variants
 	VendorMap                                                   m_vendors;
+
+	// Preset for each machine
+	MachineSettingMap											m_printer_settings;
 	// Has any value been modified since the config.ini has been last saved or loaded?
 	bool														m_dirty;
 	// Original version found in the ini file before it was overwritten

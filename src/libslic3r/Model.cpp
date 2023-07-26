@@ -71,6 +71,7 @@ Model& Model::assign_copy(const Model &rhs)
     // BBS
     this->plates_custom_gcodes = rhs.plates_custom_gcodes;
     this->curr_plate_index = rhs.curr_plate_index;
+    this->calib_pa_pattern.reset();
 
     if (rhs.calib_pa_pattern) {
         this->calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(
@@ -106,7 +107,8 @@ Model& Model::assign_copy(Model &&rhs)
     // BBS
     this->plates_custom_gcodes = std::move(rhs.plates_custom_gcodes);
     this->curr_plate_index = rhs.curr_plate_index;
-    this->calib_pa_pattern = std::move(rhs.calib_pa_pattern);
+    this->calib_pa_pattern.reset();
+    this->calib_pa_pattern.swap(rhs.calib_pa_pattern);
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
