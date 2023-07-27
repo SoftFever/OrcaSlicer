@@ -823,15 +823,14 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     // get the real top surface
     ExPolygons grown_lower_slices;
     ExPolygons bridge_checker;
-    // BBS: check whether surface be bridge or not
+    auto nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->wall_filament - 1);
+    // Check whether surface be bridge or not
     if (this->lower_slices != NULL) {
         // BBS: get the Polygons below the polygon this layer
         Polygons lower_polygons_series_clipped =
             ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, last_box);
-
         double bridge_offset = std::max(double(ext_perimeter_spacing), (double(perimeter_width)));
         // SoftFever: improve bridging
-        auto nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->wall_filament - 1);
         const float bridge_margin =
             std::min(float(scale_(BRIDGE_INFILL_MARGIN)), float(scale_(nozzle_diameter * BRIDGE_INFILL_MARGIN / 0.4)));
         bridge_checker = offset_ex(diff_ex(orig_polygons, lower_polygons_series_clipped, ApplySafetyOffset::Yes),
@@ -852,9 +851,9 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     top_polygons = diff_ex(fill_clip, inner_polygons, ApplySafetyOffset::Yes);
     // increase by half peri the inner space to fill the frontier between last and stored.
     top_fills = union_ex(top_fills, top_polygons);
-    // set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't
-    // go outside even with a 100% overlap.
-    double infill_spacing_unscaled = this->config->sparse_infill_line_width.value;
+    //set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't go outside even with a 100% overlap.
+    double infill_spacing_unscaled = this->config->sparse_infill_line_width.get_abs_value(nozzle_diameter);
+    if (infill_spacing_unscaled == 0) infill_spacing_unscaled = Flow::auto_extrusion_width(frInfill, nozzle_diameter);
     fill_clip = offset_ex(orig_polygons, double(ext_perimeter_spacing / 2) - scale_(infill_spacing_unscaled / 2));
     // ExPolygons oldLast = last;
 

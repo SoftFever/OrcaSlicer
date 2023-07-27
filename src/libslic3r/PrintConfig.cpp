@@ -1057,14 +1057,17 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
-    def = this->add("outer_wall_line_width", coFloat);
+    def = this->add("outer_wall_line_width", coFloatOrPercent);
     def->label = L("Outer wall");
     def->category = L("Quality");
-    def->tooltip = L("Line width of outer wall");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of outer wall. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("outer_wall_speed", coFloat);
     def->label = L("Outer wall");
@@ -1208,15 +1211,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
 
-    def = this->add("line_width", coFloat);
+    def = this->add("line_width", coFloatOrPercent);
     def->label = L("Default");
     def->category = L("Quality");
-    def->tooltip = L("Default line width if some line width is set to be zero");
-    def->sidetext = L("mm");
+    def->tooltip = L("Default line width if other line widths are set to 0. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
-    def->max = 10;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
     def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");
@@ -1637,14 +1642,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(12));
 
-    def = this->add("initial_layer_line_width", coFloat);
+    def = this->add("initial_layer_line_width", coFloatOrPercent);
     def->label = L("Initial layer");
     def->category = L("Quality");
-    def->tooltip = L("Line width of initial layer");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of initial layer. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
+
 
     def = this->add("initial_layer_print_height", coFloat);
     def->label = L("Initial layer height");
@@ -1942,14 +1951,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("sparse_infill_line_width", coFloat);
+    def = this->add("sparse_infill_line_width", coFloatOrPercent);
     def->label = L("Sparse infill");
     def->category = L("Quality");
-    def->tooltip = L("Line width of internal sparse infill");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of internal sparse infill. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("infill_wall_overlap", coPercent);
     def->label = L("Infill/Wall overlap");
@@ -2374,14 +2386,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("inner_wall_line_width", coFloat);
+    def = this->add("inner_wall_line_width", coFloatOrPercent);
     def->label = L("Inner wall");
     def->category = L("Quality");
-    def->tooltip = L("Line width of inner wall");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of inner wall. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("inner_wall_speed", coFloat);
     def->label = L("Inner wall");
@@ -2773,14 +2788,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("internal_solid_infill_line_width", coFloat);
+    def = this->add("internal_solid_infill_line_width", coFloatOrPercent);
     def->label = L("Internal solid infill");
     def->category = L("Quality");
-    def->tooltip = L("Line width of internal solid infill");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of internal solid infill. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("internal_solid_infill_speed", coFloat);
     def->label = L("Internal solid infill");
@@ -2995,14 +3013,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("support_line_width", coFloat);
+    def = this->add("support_line_width", coFloatOrPercent);
     def->label = L("Support");
     def->category = L("Quality");
-    def->tooltip = L("Line width of support");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of support. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("support_interface_loop_pattern", coBool);
     def->label = L("Interface use loop pattern");
@@ -3318,14 +3339,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("top_surface_line_width", coFloat);
+    def = this->add("top_surface_line_width", coFloatOrPercent);
     def->label = L("Top surface");
     def->category = L("Quality");
-    def->tooltip = L("Line width for top surfaces");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width for top surfaces. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("top_surface_speed", coFloat);
     def->label = L("Top surface");
@@ -4993,7 +5017,7 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
             "initial_layer_line_width" };
         for (size_t i = 0; i < sizeof(widths) / sizeof(widths[i]); ++ i) {
             std::string key(widths[i]);
-            if (cfg.get_abs_value(key) > 2.5 * max_nozzle_diameter) {
+            if (cfg.get_abs_value(key, max_nozzle_diameter) > 2.5 * max_nozzle_diameter) {
                 error_message.emplace(key, L("too large line width ") + std::to_string(cfg.get_abs_value(key)));
                 //return std::string("Too Large line width: ") + key;
             }
