@@ -844,6 +844,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
             }
             auto n = type == ModelMetadata ? std::string::npos : path.find_last_of('#'); // ModelMetadata is zipped without subpath
             auto path2 = n == std::string::npos ? path : path.substr(0, n);
+            auto subpath = n == std::string::npos ? path : path.substr(n + 1);
             auto iter = std::find_if(files->begin(), files->end(), [&path2](auto &f) { return f.path == path2; });
             if (cont) {
                 if (iter != files->end())
@@ -858,10 +859,12 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                 ParseThumbnail(file);
             } else {
                 if (mimetype.empty()) {
-                    if (!path.empty()) thumbnail = path;
-                    auto n = thumbnail.find_last_of('.');
+                    if (subpath.empty()) subpath = thumbnail;
+                    auto n = subpath.find_last_of('.');
                     if (n != std::string::npos)
-                        mimetype = "image/" + thumbnail.substr(n + 1);
+                        mimetype = "image/" + subpath.substr(n + 1);
+                    else if (subpath == "thumbnail")
+                        mimetype = "image/jpeg"; // default jpg
                 }
                 if (iter != files->end() && !iter->local_path.empty()) {
                     iter->local_path += std::string((char *) data, size);
@@ -1258,7 +1261,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
 #ifdef PRINTER_FILE_SYSTEM_TEST
     PostCallback([this] { SendChangedEvent(EVT_FILE_CHANGED); });
 #else
-    PostCallback([this] { ListAllFiles(); });
+    PostCallback([this] { m_task_flags = 0; ListAllFiles(); });
 #endif
 }
 
