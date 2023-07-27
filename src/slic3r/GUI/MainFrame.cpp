@@ -1148,7 +1148,8 @@ void MainFrame::show_device(bool bBBLPrinter) {
   }
   if (bBBLPrinter) {
     if (m_tabpanel->GetPage(tpMonitor) != m_monitor) {
-        m_printer_view->Hide();
+      m_printer_view->Hide();
+      m_monitor->Show(true);
       m_tabpanel->RemovePage(tpMonitor);
       m_tabpanel->InsertPage(tpMonitor, m_monitor, _L("Device"),
                              std::string("tab_monitor_active"),
@@ -1158,6 +1159,7 @@ void MainFrame::show_device(bool bBBLPrinter) {
   } else {
     if (m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
       m_printer_view->Show();
+      m_monitor->Show(false);
       m_tabpanel->RemovePage(tpMonitor);
       m_tabpanel->InsertPage(tpMonitor, m_printer_view, _L("Device"),
                           std::string("tab_monitor_active"),
