@@ -166,8 +166,8 @@ public:
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_speed")->value; };
-    double line_width_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_line_width")->value; };
-    double line_width() const { return m_config.option<ConfigOptionFloat>("line_width")->value; };
+    double line_width_first_layer() const { return m_config.get_abs_value("initial_layer_line_width"); };
+    double line_width() const { return m_config.get_abs_value("line_width"); };
     int wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
 private:
