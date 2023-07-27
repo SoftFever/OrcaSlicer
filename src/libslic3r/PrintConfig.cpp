@@ -1769,7 +1769,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filter_out_gap_fill", coFloat);
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");
-    def->tooltip = L("Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers");
+    def->tooltip = L("Filter out gaps smaller than the threshold specified. This setting won't affect top/bottom layers");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
     

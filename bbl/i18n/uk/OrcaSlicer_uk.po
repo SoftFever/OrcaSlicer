@@ -7890,7 +7890,7 @@ msgstr "Шари та периметри"
 
 msgid ""
 "Filter out gaps smaller than the threshold specified. This setting won't "
-"affact top/bottom layers"
+"affect top/bottom layers"
 msgstr ""
 "Фільтрація проміжків менша за вказаний поріг. Цей параметр не впливає на "
 "верхні та нижні шари"
