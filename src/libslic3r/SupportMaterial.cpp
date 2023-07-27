@@ -2252,7 +2252,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // check if the sharp tails should be extended higher
     bool detect_first_sharp_tail_only = false;
-    const coordf_t extrusion_width = m_object_config->line_width.value;
+    const coordf_t extrusion_width = m_object_config->line_width.get_abs_value(object.print()->config().nozzle_diameter.get_at(object.config().support_interface_filament-1));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
         for (size_t layer_nr = 0; layer_nr < object.layer_count(); layer_nr++) {
@@ -2345,7 +2345,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     // BBS group overhang clusters
     if (g_config_remove_small_overhangs) {
         std::vector<OverhangCluster> clusters;
-        double fw_scaled = scale_(m_object_config->line_width);
+      double fw_scaled = scale_(extrusion_width);
         std::set<ExPolygon*> removed_overhang;
 
         for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {
