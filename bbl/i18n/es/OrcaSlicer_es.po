@@ -2288,7 +2288,7 @@ msgstr ""
 "Anfitrión"
 
 msgid "Origin"
-msgstr ""
+msgstr "Origen"
 
 msgid "Diameter"
 msgstr "Diámetro"
@@ -3154,7 +3154,7 @@ msgid "Slice plate"
 msgstr "Laminar bandeja"
 
 msgid "Print plate"
-msgstr "Bandeja de impresión"
+msgstr "Imprimir bandeja de impresión"
 
 msgid "Slice all"
 msgstr "Laminar todo"
@@ -3166,7 +3166,7 @@ msgid "Send"
 msgstr "Enviar"
 
 msgid "Export plate sliced file"
-msgstr "Exporar archivo de laminado de bandeja de impresión"
+msgstr "Explorar archivo de laminado de bandeja de impresión"
 
 msgid "Export all sliced file"
 msgstr "Exportar todos los archivos de laminado"
@@ -5629,7 +5629,7 @@ msgid "Pause G-code"
 msgstr "G-Code de pausa"
 
 msgid "Template Custom G-code"
-msgstr "G-Code para el cambio de herramienta"
+msgstr "G-Code para el cambio de plantilla"
 
 msgid "Motion ability"
 msgstr "Capacidad de movimiento"
