@@ -503,6 +503,9 @@ find_package(glfw3 REQUIRED)
 
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
+if (NOT TARGET cereal::cereal)
+    add_library(cereal::cereal ALIAS cereal)
+endif ()
 
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/i18n")

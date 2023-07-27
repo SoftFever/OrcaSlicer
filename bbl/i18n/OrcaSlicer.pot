@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-16 18:57+0200\n"
+"POT-Creation-Date: 2023-07-27 22:08+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4961,8 +4961,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -5193,6 +5193,9 @@ msgid "Jerk limitation"
 msgstr ""
 
 msgid "Layer height limits"
+msgstr ""
+
+msgid "Lift Z Enforcement"
 msgstr ""
 
 msgid "Retraction when switching material"
@@ -7091,10 +7094,10 @@ msgstr ""
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -7668,6 +7671,42 @@ msgid "Slope"
 msgstr ""
 
 msgid "Spiral"
+msgstr ""
+
+msgid "Only lift Z above"
+msgstr ""
+
+msgid ""
+"If you set this to a positive value, Z lift will only take place above the "
+"specified absolute Z."
+msgstr ""
+
+msgid "Only lift Z below"
+msgstr ""
+
+msgid ""
+"If you set this to a positive value, Z lift will only take place below the "
+"specified absolute Z."
+msgstr ""
+
+msgid "On surfaces"
+msgstr ""
+
+msgid ""
+"Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
+"lift Z above/below)."
+msgstr ""
+
+msgid "All Surfaces"
+msgstr ""
+
+msgid "Top Only"
+msgstr ""
+
+msgid "Bottom Only"
+msgstr ""
+
+msgid "Top and Bottom"
 msgstr ""
 
 msgid "Extra length on restart"
@@ -8623,6 +8662,9 @@ msgid "PA Tower"
 msgstr ""
 
 msgid "PA Line"
+msgstr ""
+
+msgid "PA Pattern"
 msgstr ""
 
 msgid "Method"

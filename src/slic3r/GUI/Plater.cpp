@@ -4151,6 +4151,7 @@ void Plater::priv::delete_all_objects_from_model()
     object_list_changed();
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 }
 
@@ -4202,6 +4203,7 @@ void Plater::priv::reset(bool apply_presets_change)
         wxGetApp().load_current_presets(false, false);
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 
     // BBS
@@ -8143,14 +8145,14 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     const DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 
-    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().float_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloat(opt.second)
         );
     }
 
-    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().nozzle_ratio_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
         print_config.set_key_value(
             opt.first,
@@ -8158,12 +8160,17 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         );
     }
 
-    for (const auto opt : SuggestedCalibPressureAdvancePatternConfig().int_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
         print_config.set_key_value(
             opt.first,
             new ConfigOptionInt(opt.second)
         );
     }
+
+    print_config.set_key_value(
+        SuggestedConfigCalibPAPattern().brim_pair.first,
+        new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second)
+    );
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
