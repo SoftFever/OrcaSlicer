@@ -6,7 +6,7 @@
   "instantiation": "true",
   "inherits": "fdm_machine_common",
   "printer_model": "Kingroon KP3S PRO S1",
-  "default_print_profile": "0.20mm Standard @Kingroon KP3S PRO S1",
+  "default_print_profile": "0.20mm @Kingroon KP3S PRO S1 (0.4 nozzle)",
   "default_filament_profile": "Kingroon Generic PLA",
   "change_filament_gcode": "M600",
   "deretraction_speed": ["30"],
