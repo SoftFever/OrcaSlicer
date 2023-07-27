@@ -1099,13 +1099,9 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 return ("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
-        auto validate_extrusion_width = [/*min_nozzle_diameter,*/ max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
-            // This may change in the future, if we switch to "extrusion width wrt. nozzle diameter"
-            // instead of currently used logic "extrusion width wrt. layer height", see GH issues #1923 #2829.
-//        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
-//        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
-            double extrusion_width_min = config.get_abs_value(opt_key);
-            double extrusion_width_max = config.get_abs_value(opt_key);
+        auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
+            double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
+            double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
         	if (extrusion_width_min == 0) {
         		// Default "auto-generated" extrusion width is always valid.
         	} else if (extrusion_width_min <= layer_height) {
@@ -1297,10 +1293,10 @@ double Print::skirt_first_layer_height() const
 
 Flow Print::brim_flow() const
 {
-    ConfigOptionFloat width = m_config.initial_layer_line_width;
-    if (width.value == 0)
+    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
+    if (width.value <= 0)
         width = m_print_regions.front()->config().inner_wall_line_width;
-    if (width.value == 0)
+    if (width.value <= 0)
         width = m_objects.front()->config().line_width;
 
     /* We currently use a random region's perimeter extruder.
@@ -1310,6 +1306,7 @@ Flow Print::brim_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
+        // Flow::new_from_config_width takes care of the percent to value substitution
 		width,
         (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().wall_filament-1),
 		(float)this->skirt_first_layer_height());
@@ -1317,8 +1314,8 @@ Flow Print::brim_flow() const
 
 Flow Print::skirt_flow() const
 {
-    ConfigOptionFloat width = m_config.initial_layer_line_width;
-    if (width.value == 0)
+    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
+    if (width.value <= 0)
         width = m_objects.front()->config().line_width;
 
     /* We currently use a random object's support material extruder.
@@ -1328,6 +1325,7 @@ Flow Print::skirt_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
+        // Flow::new_from_config_width takes care of the percent to value substitution
 		width,
 		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_filament-1),
 		(float)this->skirt_first_layer_height());

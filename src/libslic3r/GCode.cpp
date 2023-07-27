@@ -1783,11 +1783,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
+
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
-            float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
+            const double nozzle_diameter = m_config.nozzle_diameter.get_at(initial_non_support_extruder_id);
+            float outer_wall_line_width = this->config().get_abs_value("outer_wall_line_width", nozzle_diameter);
             if (outer_wall_line_width == 0.0) {
-                float default_line_width = print.default_object_config().line_width.value;
-                outer_wall_line_width = default_line_width == 0.0 ? m_config.nozzle_diameter.get_at(initial_non_support_extruder_id) : default_line_width;
+                float default_line_width =  this->config().get_abs_value("line_width", nozzle_diameter);
+                outer_wall_line_width = default_line_width == 0.0 ? nozzle_diameter : default_line_width;
             }
             Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_non_support_extruder_id));
             float outer_wall_speed = print.default_region_config().outer_wall_speed.value;
@@ -2957,10 +2959,12 @@ GCode::LayerResult GCode::process_layer(
         Skirt::make_skirt_loops_per_extruder_1st_layer(print, layer_tools, m_skirt_done) :
         Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
 
-    for (const auto& layer_to_print : layers) {
-      m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object, layer_to_print.object_layer);
+    if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic) {
+        for (const auto &layer_to_print : layers) {
+            m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
+                                                                layer_to_print.object_layer);
+        }
     }
-
 
     // Group extrusions by an extruder, then by an object, an island and a region.
     std::map<unsigned int, std::vector<ObjectByExtruder>> by_extruder;
@@ -3273,7 +3277,9 @@ GCode::LayerResult GCode::process_layer(
                 // ref to: https://github.com/SoftFever/OrcaSlicer/pull/205/commits/7f1fe0bd544077626080aa1a9a0576aa735da1a4#r1083470162
                 if (reset_e && !m_config.use_relative_e_distances)
                     gcode += m_writer.reset_e(true);
-                m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
+                
+                if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic)
+                    m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
 
                 // When starting a new object, use the external motion planner for the first travel move.
                 const Point &offset = inst.shift;
