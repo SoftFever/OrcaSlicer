@@ -75,9 +75,7 @@ Generator::Generator(const PrintObject &print_object, const std::function<void()
     // Note: There's not going to be a layer below the first one, so the 'initial layer height' doesn't have to be taken into account.
     const double               layer_thickness      = scaled<double>(object_config.layer_height.value);
 
-    //m_infill_extrusion_width = scaled<float>(region_config.infill_extrusion_width.percent ? default_infill_extrusion_width * 0.01 * region_config.infill_extrusion_width : region_config.infill_extrusion_width);
-    //m_supporting_radius      = coord_t(m_infill_extrusion_width) * 100 / coord_t(region_config.fill_density.value);
-    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.value);
+    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.get_abs_value(max_nozzle_diameter));
     m_supporting_radius = coord_t(m_infill_extrusion_width) * 100 / region_config.sparse_infill_density;
 
     const double lightning_infill_overhang_angle      = M_PI / 4; // 45 degrees
@@ -103,7 +101,7 @@ Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std
     // Note: There's not going to be a layer below the first one, so the 'initial layer height' doesn't have to be taken into account.
     const double               layer_thickness      = scaled<double>(object_config.layer_height.value);
 
-    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.value);
+    m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.get_abs_value(max_nozzle_diameter));
     //m_supporting_radius: against to the density of lightning, failures may happen if set to high density
     //higher density lightning makes support harder, more time-consuming on computing and printing, but more reliable on supporting overhangs
     //lower density lightning performs opposite

@@ -307,6 +307,14 @@ static const t_config_enum_values s_keys_map_ZHopType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
 
+static const t_config_enum_values s_keys_map_RetractLiftEnforceType = {
+    {"All Surfaces",        rletAllSurfaces},
+    {"Top Only",         rletTopOnly},
+    {"Bottom Only",      rletBottomOnly},
+    {"Top and Bottom",      rletTopAndBottom}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(RetractLiftEnforceType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -751,8 +759,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Classic mode");
     def->category = L("Speed");
     def->tooltip = L("Enable this option to use classic mode");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool{ false });
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool{ true });
 
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
@@ -761,47 +769,51 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool{ true });
 
-    def = this->add("overhang_1_4_speed", coFloat);
+    def = this->add("overhang_1_4_speed", coFloatOrPercent);
     def->label = "(10%, 25%)";
     def->category = L("Speed");
     def->full_label = "(10%, 25%)";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 10% and 25% line width. "
     //                 "0 means using original wall speed");
-    def->sidetext = L("mm/s");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("overhang_2_4_speed", coFloat);
+    def = this->add("overhang_2_4_speed", coFloatOrPercent);
     def->label = "[25%, 50%)";
     def->category = L("Speed");
     def->full_label = "[25%, 50%)";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 25% and 50% line width. "
     //                 "0 means using original wall speed");
-    def->sidetext = L("mm/s");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("overhang_3_4_speed", coFloat);
+    def = this->add("overhang_3_4_speed", coFloatOrPercent);
     def->label = "[50%, 75%)";
     def->category = L("Speed");
     def->full_label = "[50%, 75%)";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 50% and 75% line width. 0 means using original wall speed");
-    def->sidetext = L("mm/s");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("overhang_4_4_speed", coFloat);
+    def = this->add("overhang_4_4_speed", coFloatOrPercent);
     def->label = "[75%, 100%)";
     def->category = L("Speed");
     def->full_label = "[75%, 100%)";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
-    def->sidetext = L("mm/s");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
     def = this->add("bridge_speed", coFloat);
     def->label = L("Bridge");
@@ -1049,14 +1061,17 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
-    def = this->add("outer_wall_line_width", coFloat);
+    def = this->add("outer_wall_line_width", coFloatOrPercent);
     def->label = L("Outer wall");
     def->category = L("Quality");
-    def->tooltip = L("Line width of outer wall");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of outer wall. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("outer_wall_speed", coFloat);
     def->label = L("Outer wall");
@@ -1200,15 +1215,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
 
-    def = this->add("line_width", coFloat);
+    def = this->add("line_width", coFloatOrPercent);
     def->label = L("Default");
     def->category = L("Quality");
-    def->tooltip = L("Default line width if some line width is set to be zero");
-    def->sidetext = L("mm");
+    def->tooltip = L("Default line width if other line widths are set to 0. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
-    def->max = 10;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
     def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");
@@ -1629,14 +1646,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(12));
 
-    def = this->add("initial_layer_line_width", coFloat);
+    def = this->add("initial_layer_line_width", coFloatOrPercent);
     def->label = L("Initial layer");
     def->category = L("Quality");
-    def->tooltip = L("Line width of initial layer");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of initial layer. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
+
 
     def = this->add("initial_layer_print_height", coFloat);
     def->label = L("Initial layer height");
@@ -1761,7 +1782,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filter_out_gap_fill", coFloat);
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");
-    def->tooltip = L("Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers");
+    def->tooltip = L("Filter out gaps smaller than the threshold specified. This setting won't affect top/bottom layers");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
     
@@ -1934,14 +1955,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("sparse_infill_line_width", coFloat);
+    def = this->add("sparse_infill_line_width", coFloatOrPercent);
     def->label = L("Sparse infill");
     def->category = L("Quality");
-    def->tooltip = L("Line width of internal sparse infill");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of internal sparse infill. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("infill_wall_overlap", coPercent);
     def->label = L("Infill/Wall overlap");
@@ -2395,14 +2419,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("inner_wall_line_width", coFloat);
+    def = this->add("inner_wall_line_width", coFloatOrPercent);
     def->label = L("Inner wall");
     def->category = L("Quality");
-    def->tooltip = L("Line width of inner wall");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of inner wall. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("inner_wall_speed", coFloat);
     def->label = L("Inner wall");
@@ -2581,6 +2608,35 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
+
+    def = this->add("retract_lift_above", coFloats);
+    def->label = L("Only lift Z above");
+    def->tooltip = L("If you set this to a positive value, Z lift will only take place above the specified absolute Z.");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{0.});
+
+    def = this->add("retract_lift_below", coFloats);
+    def->label = L("Only lift Z below");
+    def->tooltip = L("If you set this to a positive value, Z lift will only take place below the specified absolute Z.");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{0.});
+
+    def = this->add("retract_lift_enforce", coEnums);
+    def->label = L("On surfaces");
+    def->tooltip = L("Enforce Z Hop behavior. This setting is impacted by the above settings (Only lift Z above/below).");
+    def->enum_keys_map = &ConfigOptionEnum<RetractLiftEnforceType>::get_enum_values();
+    def->enum_values.push_back("All Surfaces");
+    def->enum_values.push_back("Top Only");
+    def->enum_values.push_back("Bottom Only");
+    def->enum_values.push_back("Top and Bottom");
+    def->enum_labels.push_back(L("All Surfaces"));
+    def->enum_labels.push_back(L("Top Only"));
+    def->enum_labels.push_back(L("Bottom Only"));
+    def->enum_labels.push_back(L("Top and Bottom"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnumsGeneric{RetractLiftEnforceType ::rletAllSurfaces});
 
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
@@ -2765,14 +2821,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("internal_solid_infill_line_width", coFloat);
+    def = this->add("internal_solid_infill_line_width", coFloatOrPercent);
     def->label = L("Internal solid infill");
     def->category = L("Quality");
-    def->tooltip = L("Line width of internal solid infill");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of internal solid infill. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("internal_solid_infill_speed", coFloat);
     def->label = L("Internal solid infill");
@@ -2987,14 +3046,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("support_line_width", coFloat);
+    def = this->add("support_line_width", coFloatOrPercent);
     def->label = L("Support");
     def->category = L("Quality");
-    def->tooltip = L("Line width of support");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width of support. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("support_interface_loop_pattern", coBool);
     def->label = L("Interface use loop pattern");
@@ -3310,14 +3372,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("top_surface_line_width", coFloat);
+    def = this->add("top_surface_line_width", coFloatOrPercent);
     def->label = L("Top surface");
     def->category = L("Quality");
-    def->tooltip = L("Line width for top surfaces");
-    def->sidetext = L("mm");
+    def->tooltip = L("Line width for top surfaces. If expressed as a %, it will be computed over the nozzle diameter.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "nozzle_diameter";
     def->min = 0;
+    def->max = 1000;
+    def->max_literal = 10;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.4));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("top_surface_speed", coFloat);
     def->label = L("Top surface");
@@ -3621,7 +3686,7 @@ void PrintConfigDef::init_fff_params()
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
         // floats
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
+        "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
         // BBS: floats
         "wipe_distance",
         // bools
@@ -3668,7 +3733,7 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
@@ -3677,6 +3742,9 @@ void PrintConfigDef::init_extruder_option_keys()
     m_extruder_retract_keys = {
         "deretraction_speed",
         "retract_before_wipe",
+        "retract_lift_above",
+        "retract_lift_below",
+        "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
         "retraction_length",
@@ -3694,7 +3762,7 @@ void PrintConfigDef::init_filament_option_keys()
 {
     m_filament_option_keys = {
         "filament_diameter", "min_layer_height", "max_layer_height",
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile"/*,"filament_seam_gap"*/
@@ -3703,6 +3771,9 @@ void PrintConfigDef::init_filament_option_keys()
     m_filament_retract_keys = {
         "deretraction_speed",
         "retract_before_wipe",
+        "retract_lift_above",
+        "retract_lift_below",
+        "retract_lift_enforce",
         "retract_restart_extra",
         "retract_when_changing_layer",
         "retraction_length",
@@ -4438,7 +4509,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type", "z_lift_type"
+        "z_hop_type", "z_lift_type", "overhang_speed_classic"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -4979,7 +5050,7 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
             "initial_layer_line_width" };
         for (size_t i = 0; i < sizeof(widths) / sizeof(widths[i]); ++ i) {
             std::string key(widths[i]);
-            if (cfg.get_abs_value(key) > 2.5 * max_nozzle_diameter) {
+            if (cfg.get_abs_value(key, max_nozzle_diameter) > 2.5 * max_nozzle_diameter) {
                 error_message.emplace(key, L("too large line width ") + std::to_string(cfg.get_abs_value(key)));
                 //return std::string("Too Large line width: ") + key;
             }

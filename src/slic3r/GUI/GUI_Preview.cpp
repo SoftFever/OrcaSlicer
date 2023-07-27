@@ -738,7 +738,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
             unsigned int number_extruders = wxGetApp().is_editor() ?
                 (unsigned int)print->extruders().size() :
                 m_canvas->get_gcode_extruders_count();
-            std::vector<Item> gcodes = wxGetApp().is_editor() ?
+            std::vector<CustomGCode::Item> gcodes = wxGetApp().is_editor() ?
                 //BBS
                 wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes :
                 m_canvas->get_custom_gcode_per_print_z();
