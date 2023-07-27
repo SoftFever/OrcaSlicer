@@ -8072,7 +8072,7 @@ void Plater::import_model_id(wxString download_info)
     wxString msg;
     wxString dlg_title = _L("Importing Model");
 
-    int percent = 1;
+    int percent = 0;
     ProgressDialog dlg(dlg_title,
         wxString(' ', 100) + "\n\n\n\n",
         100,    // range
