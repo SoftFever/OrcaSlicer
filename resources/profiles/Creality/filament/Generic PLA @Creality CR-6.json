@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "filament_id": "CRL99",
+    "setting_id": "CRSL99_CREALITY_00",
+    "name": "Generic PLA @Creality CR-6",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "compatible_printers": [
+        "Creality CR-6 SE 0.2 nozzle",
+        "Creality CR-6 SE 0.4 nozzle",
+        "Creality CR-6 SE 0.6 nozzle",
+        "Creality CR-6 SE 0.8 nozzle",
+        "Creality CR-6 Max 0.2 nozzle",
+        "Creality CR-6 Max 0.4 nozzle",
+        "Creality CR-6 Max 0.6 nozzle",
+        "Creality CR-6 Max 0.8 nozzle"
+    ]
+}

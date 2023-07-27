@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFL99",
-    "setting_id": "GFSL99_Creality_00",
+    "setting_id": "GFSL99_CREALITY_00",
     "name": "Generic PLA @Creality",
     "from": "system",
     "instantiation": "true",

@@ -43,6 +43,14 @@
         {
             "name": "Creality Ender-6",
             "sub_path": "machine/Creality Ender-6.json"
+        },
+        {
+            "name": "Creality CR-6 SE",
+            "sub_path": "machine/Creality CR-6 SE.json"
+        },
+        {
+            "name": "Creality CR-6 Max",
+            "sub_path": "machine/Creality CR-6 Max.json"
         }
     ],
     "process_list": [
@@ -53,6 +61,34 @@
         {
             "name": "fdm_process_creality_common",
             "sub_path": "process/fdm_process_creality_common.json"
+        },
+        {
+            "name": "0.10mm HighDetail @Creality CR-6",
+            "sub_path": "process/0.10mm HighDetail @Creality CR-6.json"
+        },
+        {
+            "name": "0.12mm Detail @Creality CR-6",
+            "sub_path": "process/0.12mm Detail @Creality CR-6.json"
+        },
+        {
+            "name": "0.16mm Opitmal @Creality CR-6",
+            "sub_path": "process/0.16mm Opitmal @Creality CR-6.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality CR-6 0.2",
+            "sub_path": "process/0.16mm Optimal @Creality CR-6 0.2.json"
+        },
+        {
+            "name": "0.16mm Optimal @Creality CR-6 0.4",
+            "sub_path": "process/0.16mm Optimal @Creality CR-6 0.4.json"
+        },
+        {
+            "name": "0.24mm Draft @Creality CR-6",
+            "sub_path": "process/0.24mm Draft @Creality CR-6.json"
+        },
+        {
+            "name": "0.28mm SuperDraft @Creality CR-6",
+            "sub_path": "process/0.28mm SuperDraft @Creality CR-6.json"
         },
         {
             "name": "0.12mm Fine @Creality CR10Max",
@@ -103,6 +139,10 @@
             "sub_path": "process/0.16mm Optimal @Creality Ender6.json"
         },
         {
+            "name": "0.20mm Normal @Creality CR-6",
+            "sub_path": "process/0.20mm Normal @Creality CR-6.json"
+        },
+        {
             "name": "0.20mm Standard @Creality CR10V2",
             "sub_path": "process/0.20mm Standard @Creality CR10V2.json"
         },
@@ -149,6 +189,66 @@
         {
             "name": "0.24mm Draft @Creality Ender3V2",
             "sub_path": "process/0.24mm Draft @Creality Ender3V2.json"
+        },
+        {
+            "name": "0.08mm SuperDetail @Creality CR-6 0.2",
+            "sub_path": "process/0.08mm SuperDetail @Creality CR-6 0.2.json"
+        },
+        {
+            "name": "0.32mm Chunky @Creality CR-6 0.6",
+            "sub_path": "process/0.32mm Chunky @Creality CR-6 0.6.json"
+        },
+        {
+            "name": "0.36mm SuperChunky @Creality CR-6",
+            "sub_path": "process/0.36mm SuperChunky @Creality CR-6.json"
+        },
+        {
+            "name": "0.44mm SuperExtraChunky @Creality CR-6",
+            "sub_path": "process/0.44mm SuperExtraChunky @Creality CR-6.json"
+        },
+        {
+            "name": "0.24mm Optimal @Creality CR-6",
+            "sub_path": "process/0.24mm Optimal @Creality CR-6.json"
+        },
+        {
+            "name": "0.32mm Normal @Creality CR-6 0.8",
+            "sub_path": "process/0.32mm Normal @Creality CR-6 0.8.json"
+        },
+        {
+            "name": "0.40mm Draft @Creality CR-6",
+            "sub_path": "process/0.40mm Draft @Creality CR-6.json"
+        },
+        {
+            "name": "0.48mm Chunky @Creality CR-6",
+            "sub_path": "process/0.48mm Chunky @Creality CR-6.json"
+        },
+        {
+            "name": "0.48mm Draft @Creality CR-6",
+            "sub_path": "process/0.48mm Draft @Creality CR-6.json"
+        },
+        {
+            "name": "0.56mm SuperChunky @Creality CR-6",
+            "sub_path": "process/0.56mm SuperChunky @Creality CR-6.json"
+        },
+        {
+            "name": "0.12mm Detail @Creality 0.2 CR-6",
+            "sub_path": "process/0.12mm Detail @Creality 0.2 CR-6.json"
+        },
+        {
+            "name": "0.12mm Detail @Creality 0.4 CR-6",
+            "sub_path": "process/0.12mm Detail @Creality 0.4 CR-6.json"
+        },
+        {
+            "name": "0.24mm Draft @Creality 0.6 CR-6",
+            "sub_path": "process/0.24mm Draft @Creality 0.6 CR-6.json"
+        },
+        {
+            "name": "0.28mm SuperDraft @Creality 0.6 CR-6",
+            "sub_path": "process/0.28mm SuperDraft @Creality 0.6 CR-6.json"
+        },
+        {
+            "name": "0.20mm Normal @Creality CR-6 0.6",
+            "sub_path": "process/0.20mm Normal @Creality CR-6 0.6.json"
         }
     ],
     "filament_list": [
@@ -179,6 +279,18 @@
         {
             "name": "Generic PLA @Creality",
             "sub_path": "filament/Generic PLA @Creality.json"
+        },
+        {
+            "name": "Generic PETG @Creality CR-6",
+            "sub_path": "filament/Generic PETG @Creality CR-6.json"
+        },
+        {
+            "name": "Generic ABS @Creality CR-6",
+            "sub_path": "filament/Generic ABS @Creality CR-6.json"
+        },
+        {
+            "name": "Generic PLA @Creality CR-6",
+            "sub_path": "filament/Generic PLA @Creality CR-6.json"
         }
     ],
     "machine_list": [
@@ -229,6 +341,38 @@
         {
             "name": "Creality Ender-6 0.4 nozzle",
             "sub_path": "machine/Creality Ender-6 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 SE 0.2 nozzle",
+            "sub_path": "machine/Creality CR-6 SE 0.2 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 SE 0.4 nozzle",
+            "sub_path": "machine/Creality CR-6 SE 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 SE 0.6 nozzle",
+            "sub_path": "machine/Creality CR-6 SE 0.6 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 SE 0.8 nozzle",
+            "sub_path": "machine/Creality CR-6 SE 0.8 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 Max 0.2 nozzle",
+            "sub_path": "machine/Creality CR-6 Max 0.2 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 Max 0.4 nozzle",
+            "sub_path": "machine/Creality CR-6 Max 0.4 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 Max 0.6 nozzle",
+            "sub_path": "machine/Creality CR-6 Max 0.6 nozzle.json"
+        },
+        {
+            "name": "Creality CR-6 Max 0.8 nozzle",
+            "sub_path": "machine/Creality CR-6 Max 0.8 nozzle.json"
         }
     ]
 }

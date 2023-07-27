@@ -20,7 +20,7 @@ def traverse_files(path):
                         setting_id = data['setting_id']
                         if isinstance(setting_id, str):
                             setting_id_values.append(setting_id)
-                            # print(f"Found setting_id value: {setting_id}")
+                            #print(f"Found setting_id value: {setting_id}")
                 except (KeyError, json.JSONDecodeError):
                     pass
 

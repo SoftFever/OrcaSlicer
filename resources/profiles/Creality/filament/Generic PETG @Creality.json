@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFG99",
-    "setting_id": "GFSG99_Creality_00",
+    "setting_id": "GFSG99_CREALITY_00",
     "name": "Generic PETG @Creality",
     "from": "system",
     "instantiation": "true",
