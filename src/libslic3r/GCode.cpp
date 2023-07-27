@@ -1012,8 +1012,7 @@ namespace DoExport {
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Layer change G-code")), config.layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Change filament G-code")), config.change_filament_gcode.value);
-        //BBS
-        //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause G-code")), config.machine_pause_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
@@ -1993,10 +1992,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
                     m_placeholder_parser.set("current_object_idx", int(finished_objects));
-                    // BBS: remove printing_by_object_gcode
-                    // std::string printing_by_object_gcode = this->placeholder_parser_process("printing_by_object_gcode", print.config().printing_by_object_gcode.value,
-                    // initial_extruder_id);
-                    std::string printing_by_object_gcode;
+                    std::string printing_by_object_gcode = this->placeholder_parser_process("printing_by_object_gcode", print.config().printing_by_object_gcode.value,
+                    initial_extruder_id);
                     // Set first layer bed and extruder temperatures, don't wait for it to reach the temperature.
                     this->_print_first_layer_bed_temperature(file, print, printing_by_object_gcode, initial_extruder_id, false);
                     this->_print_first_layer_extruder_temperatures(file, print, printing_by_object_gcode, initial_extruder_id, false);

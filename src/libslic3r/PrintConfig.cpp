@@ -1021,6 +1021,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n"));
 
+    def             = this->add("printing_by_object_gcode", coString);
+    def->label      = L("Between Object Gcode");
+    def->tooltip    = L("Insert Gcode between objects. This parameter will only come into effect when you print your models object by object");
+    def->multiline  = true;
+    def->full_width = true;
+    def->height     = 12;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("filament_end_gcode", coStrings);
     def->label = L("End G-code");
     def->tooltip = L("End G-code when finish the printing of this filament");
