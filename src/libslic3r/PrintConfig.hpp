@@ -218,6 +218,13 @@ enum ZHopType {
     zhtCount
 };
 
+enum RetractLiftEnforceType {
+    rletAllSurfaces = 0,
+    rletTopOnly,
+    rletBottomOnly,
+    rletTopAndBottom
+};
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -636,7 +643,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                bridge_no_support))
     ((ConfigOptionFloat,               elefant_foot_compensation))
     ((ConfigOptionFloat,               max_bridge_length))
-    ((ConfigOptionFloat,               line_width))
+    ((ConfigOptionFloatOrPercent,      line_width))
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))
     ((ConfigOptionFloat,               layer_height))
@@ -660,7 +667,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_bottom_z_distance))
     ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))
-    ((ConfigOptionFloat,               support_line_width))
+    ((ConfigOptionFloatOrPercent,      support_line_width))
     ((ConfigOptionBool,                support_interface_loop_pattern))
     ((ConfigOptionInt,                 support_interface_filament))
     ((ConfigOptionInt,                 support_interface_top_layers))
@@ -726,7 +733,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
-    ((ConfigOptionFloat,                outer_wall_line_width))
+    ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
     ((ConfigOptionFloat,                outer_wall_speed))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
@@ -736,7 +743,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
-    ((ConfigOptionFloat,                sparse_infill_line_width))
+    ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
     ((ConfigOptionPercent,              infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
     //BBS
@@ -749,17 +756,17 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Detect bridging perimeters
     ((ConfigOptionBool, detect_overhang_wall))
     ((ConfigOptionInt, wall_filament))
-    ((ConfigOptionFloat, inner_wall_line_width))
+    ((ConfigOptionFloatOrPercent, inner_wall_line_width))
     ((ConfigOptionFloat, inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt, wall_loops))
     ((ConfigOptionFloat, minimum_sparse_infill_area))
     ((ConfigOptionInt, solid_infill_filament))
-    ((ConfigOptionFloat, internal_solid_infill_line_width))
+    ((ConfigOptionFloatOrPercent, internal_solid_infill_line_width))
     ((ConfigOptionFloat, internal_solid_infill_speed))
     // Detect thin walls.
     ((ConfigOptionBool, detect_thin_wall))
-    ((ConfigOptionFloat, top_surface_line_width))
+    ((ConfigOptionFloatOrPercent, top_surface_line_width))
     ((ConfigOptionInt, top_shell_layers))
     ((ConfigOptionFloat, top_shell_thickness))
     ((ConfigOptionFloat, top_surface_speed))
@@ -870,6 +877,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              z_hop))
     // BBS
     ((ConfigOptionEnumsGeneric,        z_hop_types))
+    ((ConfigOptionFloats,              retract_lift_above))
+    ((ConfigOptionFloats,              retract_lift_below))
+    ((ConfigOptionEnumsGeneric,        retract_lift_enforce))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))
@@ -943,7 +953,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              travel_acceleration))
     ((ConfigOptionFloatOrPercent,     sparse_infill_acceleration))
     ((ConfigOptionFloatOrPercent,     internal_solid_infill_acceleration))
-    ((ConfigOptionFloat,              initial_layer_line_width))
+    ((ConfigOptionFloatOrPercent,     initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
     ((ConfigOptionFloat,              initial_layer_speed))
     ((ConfigOptionFloat,              default_jerk))

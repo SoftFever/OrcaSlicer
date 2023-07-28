@@ -423,7 +423,10 @@ static const float g_min_overhang_percent_for_lift = 0.3f;
 void PrintObject::detect_overhangs_for_lift()
 {
     if (this->set_started(posDetectOverhangsForLift)) {
-        const float min_overlap = m_config.line_width * g_min_overhang_percent_for_lift;
+        const double nozzle_diameter = m_print->config().nozzle_diameter.get_at(0);
+        const coordf_t line_width = this->config().get_abs_value("line_width", nozzle_diameter);
+
+        const float min_overlap = line_width * g_min_overhang_percent_for_lift;
         size_t num_layers = this->layer_count();
         size_t num_raft_layers = m_slicing_params.raft_layers();
 
@@ -433,14 +436,14 @@ void PrintObject::detect_overhangs_for_lift()
 
         tbb::spin_mutex layer_storage_mutex;
         tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
-            [this, min_overlap](const tbb::blocked_range<size_t>& range)
+            [this, min_overlap, line_width](const tbb::blocked_range<size_t>& range)
             {
                 for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
                     Layer& layer = *m_layers[layer_id];
                     Layer& lower_layer = *layer.lower_layer;
 
                     ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
-                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
+                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(line_width), 0.1f * scale_(line_width)));
                 }
             });
 
@@ -2591,6 +2594,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
 #if 0
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
     int enforce_support_layers = m_config.enforce_support_layers;
+    // not fixing in extrusion width % PR b/c never called 
     const coordf_t extrusion_width = m_config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     float max_bridge_length = scale_(m_config.max_bridge_length.value);

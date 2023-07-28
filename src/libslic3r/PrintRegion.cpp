@@ -21,7 +21,7 @@ unsigned int PrintRegion::extruder(FlowRole role) const
 Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_height, bool first_layer) const
 {
     const PrintConfig          &print_config = object.print()->config();
-    ConfigOptionFloat  config_width;
+    ConfigOptionFloatOrPercent config_width;
     // Get extrusion width from configuration.
     // (might be an absolute value, or a percent value, or zero for auto)
     if (first_layer && print_config.initial_layer_line_width.value > 0) {

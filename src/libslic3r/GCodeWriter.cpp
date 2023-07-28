@@ -176,11 +176,13 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
         // This is new MarlinFirmware with separated print/retraction/travel acceleration.
         // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
         gcode << "M204 P" << acceleration;
-    } else if (FLAVOR_IS(gcfKlipper) && this->config.accel_to_decel_enable) {
-        gcode << "SET_VELOCITY_LIMIT ACCEL=" << acceleration
-              << " ACCEL_TO_DECEL=" << acceleration * this->config.accel_to_decel_factor / 100;
-        if (GCodeWriter::full_gcode_comment)
-            gcode << " ; adjust ACCEL_TO_DECEL";
+    } else if (FLAVOR_IS(gcfKlipper)) {
+        gcode << "SET_VELOCITY_LIMIT ACCEL=" << acceleration;
+        if (this->config.accel_to_decel_enable) {
+            gcode << " ACCEL_TO_DECEL=" << acceleration * this->config.accel_to_decel_factor / 100;
+            if (GCodeWriter::full_gcode_comment)
+                gcode << " ; adjust ACCEL_TO_DECEL";
+        }
     } else
         gcode << "M204 S" << acceleration;
 
@@ -691,7 +693,10 @@ std::string GCodeWriter::lift(LiftType lift_type)
     double target_lift = 0;
     {
         //BBS
-        target_lift = this->config.z_hop.get_at(m_extruder->id());
+        double above = this->config.retract_lift_above.get_at(m_extruder->id());
+        double below = this->config.retract_lift_below.get_at(m_extruder->id());
+        if (m_pos(2) >= above && (below == 0 || m_pos(2) <= below))
+            target_lift = this->config.z_hop.get_at(m_extruder->id());
     }
     // BBS
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {

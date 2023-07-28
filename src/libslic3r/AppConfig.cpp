@@ -505,7 +505,11 @@ std::string AppConfig::load()
                         m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                     }
                 }
-            } else {
+            } else if (it.key() == "orca_presets") {
+                for (auto& j_model : it.value()) {
+                    m_printer_settings[j_model["machine"].get<std::string>()] = j_model;
+                }
+            }else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
                         if (iter.value().is_boolean()) {
@@ -630,7 +634,8 @@ void AppConfig::save()
                     j[category.first][kvp.first] = kvp.second;
                 }
             }
-            j["presets"]["filaments"] = j_filament_array;
+            if(j_filament_array.size() > 0)
+                j["presets"]["filaments"] = j_filament_array;
             continue;
         }
         for (const auto& kvp : category.second) {
@@ -665,6 +670,10 @@ void AppConfig::save()
         }
     }
 
+    // write machine settings
+    for (const auto& preset : m_printer_settings) {
+        j["orca_presets"].push_back(preset.second);
+    }
     boost::nowide::ofstream c;
     c.open(path_pid, std::ios::out | std::ios::trunc);
     c << std::setw(4) << j << std::endl;

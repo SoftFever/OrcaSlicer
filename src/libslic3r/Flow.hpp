@@ -98,7 +98,7 @@ public:
 
     static Flow bridging_flow(float dmr, float nozzle_diameter) { return Flow { dmr, dmr, bridge_extrusion_spacing(dmr), nozzle_diameter, true }; }
 
-    static Flow new_from_config_width(FlowRole role, const ConfigOptionFloat &width, float nozzle_diameter, float height);
+    static Flow new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent &width, float nozzle_diameter, float height);
 
     // Spacing of extrusions with rounded extrusion model.
     static float rounded_rectangle_extrusion_spacing(float width, float height);

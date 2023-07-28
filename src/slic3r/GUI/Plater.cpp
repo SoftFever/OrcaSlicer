@@ -1,4 +1,6 @@
 #include "Plater.hpp"
+#include "libslic3r/Config.hpp"
+
 #include <cstddef>
 #include <algorithm>
 #include <numeric>
@@ -100,6 +102,7 @@
 #include "MsgDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
+#include "Gizmos/GizmoObjectManipulation.hpp"
 
 // BBS
 #include "Widgets/ProgressDialog.hpp"
@@ -771,8 +774,8 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetToolTip(_L("Add one filament"));
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // BBS: limit filament choices to 16
-        if (p->combos_filament.size() >= 16)
+        // Orca: limit filament choices to 64
+        if (p->combos_filament.size() >= 64)
             return;
 
         int filament_count = p->combos_filament.size() + 1;
@@ -1033,7 +1036,13 @@ void Sidebar::update_all_preset_comboboxes()
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
         m_bed_type_list->Enable();
-
+        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(), "curr_bed_type");
+        if(!str_bed_type.empty()){
+            int bed_type_value = atoi(str_bed_type.c_str());
+            if(bed_type_value == 0)
+                bed_type_value = 1;
+            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+        }
 
     } else {
         connection_btn->Show();
@@ -4142,6 +4151,7 @@ void Plater::priv::delete_all_objects_from_model()
     object_list_changed();
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 }
 
@@ -4193,6 +4203,7 @@ void Plater::priv::reset(bool apply_presets_change)
         wxGetApp().load_current_presets(false, false);
 
     //BBS
+    model.calib_pa_pattern.reset();
     model.plates_custom_gcodes.clear();
 
     // BBS
@@ -5589,6 +5600,8 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
                 // update app_config
                 AppConfig* app_config = wxGetApp().app_config;
                 app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
+                app_config->set_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                "curr_bed_type", std::to_string(int(new_bed_type)));
 
                 //update slice status
                 auto plate_list = partplate_list.get_plate_list();
@@ -6373,7 +6386,6 @@ void Plater::priv::update_plugin_when_launch(wxCommandEvent &event)
     else if (result == wxID_NO) {
         app_config->set("update_network_plugin", "false");
     }
-    app_config->save();
 }
 
 void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
@@ -8100,60 +8112,170 @@ std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3& bbox, const double& cut_
     return plane_pts;
 }
 
-void Plater::calib_pa(const Calib_Params& params) {
-    
+void Plater::calib_pa(const Calib_Params& params)
+{
     const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    if (params.mode == CalibMode::Calib_PA_Line) {
-        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+
+    switch (params.mode) {
+        case CalibMode::Calib_PA_Line:
+            add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+            break;
+        case CalibMode::Calib_PA_Pattern:
+            _calib_pa_pattern(params);
+            break;
+        case CalibMode::Calib_PA_Tower:
+            _calib_pa_tower(params);
+            break;
+        default: break;
     }
-    else {
-        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
-        auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-        auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-        filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
-        print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
-        print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
-        print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
-        if(print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator")->value == PerimeterGeneratorType::Arachne)
-            print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
-        model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
 
-        changed_objects({ 0 });
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
-        wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
-        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
-        wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
-
-        auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
-        auto obj_bb = model().objects[0]->bounding_box();
-        if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
-            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
-        }
-
-        // automatic selection of added objects
-        // update printable state for new volumes on canvas3D
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
-
-        Selection& selection = p->view3D->get_canvas3d()->get_selection();
-        selection.clear();
-        selection.add_object(0, false);
-
-        // BBS: update object list selection
-        p->sidebar->obj_list()->update_selections();
-        selection.notify_instance_update(-1, -1);
-        if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
-            // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
-            p->view3D->get_canvas3d()->update_gizmos_on_off_state();
-    }
     p->background_process.fff_print()->set_calib_params(params);
+}
 
+void Plater::_calib_pa_pattern(const Calib_Params& params)
+{
+    // add "handle" cube
+    sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
+    orient();
+    changed_objects({ 0 });
+    _calib_pa_select_added_objects();
 
+    const DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+        print_config.set_key_value(
+            opt.first,
+            new ConfigOptionFloat(opt.second)
+        );
+    }
+
+    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+        double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+        print_config.set_key_value(
+            opt.first,
+            new ConfigOptionFloatOrPercent(nozzle_diameter * opt.second / 100, false)
+        );
+    }
+
+    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
+        print_config.set_key_value(
+            opt.first,
+            new ConfigOptionInt(opt.second)
+        );
+    }
+
+    print_config.set_key_value(
+        SuggestedConfigCalibPAPattern().brim_pair.first,
+        new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second)
+    );
+
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+
+    const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    const bool is_bbl_machine = preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle);
+    const Vec3d plate_origin = get_partplate_list().get_current_plate_origin();
+    CalibPressureAdvancePattern pa_pattern(
+        params,
+        full_config,
+        is_bbl_machine,
+        model(),
+        plate_origin
+    );
+
+    // scale cube to suit test
+    GizmoObjectManipulation& giz_obj_manip = p->view3D->get_canvas3d()->
+        get_gizmos_manager().get_object_manipulation();
+    giz_obj_manip.set_uniform_scaling(true);
+    giz_obj_manip.on_change(
+        "size",
+        0,
+        pa_pattern.handle_xy_size()
+    );
+    giz_obj_manip.set_uniform_scaling(false);
+    giz_obj_manip.on_change(
+        "size",
+        2,
+        pa_pattern.max_layer_z()
+    );
+    // start with pattern centered on plate
+    center_selection();
+    const Vec3d plate_center = get_partplate_list().get_curr_plate()->get_center_origin();
+    giz_obj_manip.on_change(
+        "position",
+        0,
+        plate_center.x() - (pa_pattern.print_size_x() / 2)
+    );
+    giz_obj_manip.on_change(
+        "position",
+        1,
+        plate_center.y() -
+            (pa_pattern.print_size_y() / 2) -
+            pa_pattern.handle_spacing()
+    );
+
+    pa_pattern.generate_custom_gcodes(
+        full_config,
+        is_bbl_machine,
+        model(),
+        plate_origin
+    );
+    model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
+    changed_objects({ 0 });
+}
+
+void Plater::_calib_pa_tower(const Calib_Params& params) {
+    add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
+
+    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
+    print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+    if(print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator")->value == PerimeterGeneratorType::Arachne)
+        print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
+    model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+
+    changed_objects({ 0 });
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+
+    auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
+    auto obj_bb = model().objects[0]->bounding_box();
+    if (new_height < obj_bb.size().z()) {
+        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
+        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+    }
+
+    _calib_pa_select_added_objects();
+}
+
+void Plater::_calib_pa_select_added_objects() {
+    // update printable state for new volumes on canvas3D
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
+
+    Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    selection.clear();
+    selection.add_object(0, false);
+
+    // BBS: update object list selection
+    p->sidebar->obj_list()->update_selections();
+    selection.notify_instance_update(-1, -1);
+    if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled()) {
+        // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
+        p->view3D->get_canvas3d()->update_gizmos_on_off_state();
+    }
 }
 
 void Plater::calib_flowrate(int pass) {
@@ -8212,8 +8334,8 @@ void Plater::calib_flowrate(int pass) {
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
-        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
+        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
+        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter * 1.2f, false));
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
@@ -8243,7 +8365,6 @@ void Plater::calib_flowrate(int pass) {
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
-
 }
 
 void Plater::calib_temp(const Calib_Params& params) {
@@ -8335,7 +8456,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
-    print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloat(line_width));
+    print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloatOrPercent(line_width, false));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
@@ -10259,6 +10380,18 @@ void Plater::reslice()
 
     // Stop arrange and (or) optimize rotation tasks.
     this->stop_jobs();
+
+    // regenerate CalibPressureAdvancePattern custom G-code to apply changes
+    if (model().calib_pa_pattern) {
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+
+        model().calib_pa_pattern->generate_custom_gcodes(
+            wxGetApp().preset_bundle->full_config(),
+            preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
+            model(),
+            get_partplate_list().get_current_plate_origin()
+        );
+    }
 
     if (printer_technology() == ptSLA) {
         for (auto& object : model().objects)
