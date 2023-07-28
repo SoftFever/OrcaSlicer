@@ -144,6 +144,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
             language_name = wxString::FromUTF8("\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
+            language_name = wxString::FromUTF8("Ukrainian");
+        }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
@@ -896,7 +899,8 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_JAPANESE,
         wxLANGUAGE_ITALIAN,
         wxLANGUAGE_KOREAN,
-        wxLANGUAGE_RUSSIAN
+        wxLANGUAGE_RUSSIAN,
+        wxLANGUAGE_UKRAINIAN
     };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
