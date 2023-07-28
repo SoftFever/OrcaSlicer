@@ -778,9 +778,6 @@ void PrintObject::slice()
     this->slice_volumes();
     m_print->throw_if_canceled();
 
-    this->apply_conical_overhang();
-    m_print->throw_if_canceled();
-
     int firstLayerReplacedBy = 0;
 
 #if 1
@@ -1032,6 +1029,8 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
+    this->apply_conical_overhang();
+    m_print->throw_if_canceled();
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
