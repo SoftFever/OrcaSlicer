@@ -766,10 +766,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, top_surface_speed))
     //BBS
     ((ConfigOptionBool,                 enable_overhang_speed))
-    ((ConfigOptionFloat,                overhang_1_4_speed))
-    ((ConfigOptionFloat,                overhang_2_4_speed))
-    ((ConfigOptionFloat,                overhang_3_4_speed))
-    ((ConfigOptionFloat,                overhang_4_4_speed))
+    ((ConfigOptionFloatOrPercent,       overhang_1_4_speed))
+    ((ConfigOptionFloatOrPercent,       overhang_2_4_speed))
+    ((ConfigOptionFloatOrPercent,       overhang_3_4_speed))
+    ((ConfigOptionFloatOrPercent,       overhang_4_4_speed))
     ((ConfigOptionBool,                 only_one_wall_top))
 
     //SoftFever
