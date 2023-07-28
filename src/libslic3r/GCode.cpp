@@ -1777,6 +1777,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     {
         int curr_bed_type = m_config.curr_bed_type.getInt();
 
+        int max_chamber_temp = *std::max_element(m_config.chamber_temperatures.values.begin(), m_config.chamber_temperatures.values.end());
+
         std::string first_layer_bed_temp_str;
         const ConfigOptionInts* first_bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)curr_bed_type));
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key((BedType)curr_bed_type));
@@ -1785,7 +1787,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("bed_temperature", new ConfigOptionInts(*bed_temp_opt));
         m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
         m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
-        m_placeholder_parser.set("chamber_temperature", new ConfigOptionInt(m_config.chamber_temperature));
+        m_placeholder_parser.set("chamber_temperature", new ConfigOptionInts({max_chamber_temp}));
 
          //support variables `first_layer_temperature` and `first_layer_bed_temperature`
         m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));

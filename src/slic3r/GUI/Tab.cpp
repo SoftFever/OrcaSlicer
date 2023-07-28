@@ -2645,7 +2645,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
-        optgroup->append_single_option_line("chamber_temperature");
+        optgroup->append_single_option_line("chamber_temperatures");
 
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
@@ -2862,7 +2862,7 @@ void TabFilament::toggle_options()
             toggle_line("pressure_advance", true);
             toggle_option("pressure_advance", m_config->opt_bool("enable_pressure_advance", 0));
         }
-        toggle_line("chamber_temperature", !is_BBL_printer);
+        toggle_line("chamber_temperatures", !is_BBL_printer);
         for (auto el :
              {"cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
             toggle_line(el, is_BBL_printer);
