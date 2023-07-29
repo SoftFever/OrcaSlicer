@@ -714,11 +714,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            min_feature_size))
     ((ConfigOptionPercent,            min_bead_width))
 
-    // SoftFever
-    ((ConfigOptionBool,               make_overhang_printable))
+    // Orca
     ((ConfigOptionFloat,              make_overhang_printable_angle))
     ((ConfigOptionFloat,              make_overhang_printable_hole_size))
-
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -796,8 +794,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bottom_solid_infill_flow_ratio))
     ((ConfigOptionFloatOrPercent,       infill_anchor))
     ((ConfigOptionFloatOrPercent,       infill_anchor_max))
-    ((ConfigOptionBool,                 make_overhang_printable_disable))
 
+    // Orca
+    ((ConfigOptionBool,               make_overhang_printable))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

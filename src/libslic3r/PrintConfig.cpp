@@ -2400,13 +2400,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("make_overhang_printable_disable", coBool);
-    def->label = L("Disable make overhang printable");
-    def->category = L("Quality");
-    def->tooltip = L("Do not add conical overhang material in current area.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("detect_overhang_wall", coBool);
     def->label = L("Detect overhang wall");
     def->category = L("Quality");

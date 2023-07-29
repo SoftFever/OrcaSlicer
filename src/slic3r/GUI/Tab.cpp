@@ -1897,7 +1897,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("make_overhang_printable");
         optgroup->append_single_option_line("make_overhang_printable_angle");
         optgroup->append_single_option_line("make_overhang_printable_hole_size");
-        optgroup->append_single_option_line("make_overhang_printable_disable");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
 
@@ -2443,9 +2442,8 @@ void TabPrintModel::update_custom_dirty()
 
 //BBS: GUI refactor
 
-static std::string make_overhang_printable_disable = "make_overhang_printable_disable";
 TabPrintObject::TabPrintObject(ParamsPanel* parent) :
-    TabPrintModel(parent, substruct(concat(PrintObjectConfig().keys(), PrintRegionConfig().keys()), {make_overhang_printable_disable}))
+    TabPrintModel(parent, concat(PrintObjectConfig().keys(), PrintRegionConfig().keys()))
 {
     m_parent_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
 }

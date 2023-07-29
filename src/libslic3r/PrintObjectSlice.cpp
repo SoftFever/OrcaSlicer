@@ -1176,11 +1176,14 @@ void PrintObject::apply_conical_overhang() {
         return;
     }
 
-    if (!this->config().make_overhang_printable) {
+    if (!this->print()->default_region_config().make_overhang_printable) {
         return;
     }
 
     const double conical_overhang_angle = this->config().make_overhang_printable_angle;
+    if (conical_overhang_angle == 90.0) {
+        return;
+    }
     const double angle_radians = conical_overhang_angle * M_PI / 180.;
     const double max_hole_area = this->config().make_overhang_printable_hole_size; // in MM^2
     const double tan_angle = tan(angle_radians); // the XY-component of the angle
@@ -1205,11 +1208,11 @@ void PrintObject::apply_conical_overhang() {
           continue;
         }
 
-        // Skip if entire layer has this disabled
-        if (std::all_of(upper_layer->m_regions.begin(), upper_layer->m_regions.end(),
-                        [](const LayerRegion *r) { return  r->slices.empty() || r->region().config().make_overhang_printable_disable; })) {
-            continue;
-        }
+        // // Skip if entire layer has this disabled
+        // if (std::all_of(layer->m_regions.begin(), layer->m_regions.end(),
+        //                 [](const LayerRegion *r) { return  r->slices.empty() || !r->region().config().make_overhang_printable; })) {
+        //     continue;
+        // }
 
         //layer->export_region_slices_to_svg_debug("layer_before_conical_overhang");
         //upper_layer->export_region_slices_to_svg_debug("upper_layer_before_conical_overhang");
@@ -1257,7 +1260,7 @@ void PrintObject::apply_conical_overhang() {
             //               layer->m_regions[region_id]->slices.surfaces);
 
             // Disable on given region
-            if (upper_layer->m_regions[region_id]->region().config().make_overhang_printable_disable) {
+            if (!upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
                 continue;
             }
 
