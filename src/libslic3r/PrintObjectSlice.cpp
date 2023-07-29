@@ -1208,11 +1208,11 @@ void PrintObject::apply_conical_overhang() {
           continue;
         }
 
-        // // Skip if entire layer has this disabled
-        // if (std::all_of(layer->m_regions.begin(), layer->m_regions.end(),
-        //                 [](const LayerRegion *r) { return  r->slices.empty() || !r->region().config().make_overhang_printable; })) {
-        //     continue;
-        // }
+        // Skip if entire layer has this disabled
+        if (std::all_of(layer->m_regions.begin(), layer->m_regions.end(),
+                        [](const LayerRegion *r) { return  r->slices.empty() || !r->region().config().make_overhang_printable; })) {
+            continue;
+        }
 
         //layer->export_region_slices_to_svg_debug("layer_before_conical_overhang");
         //upper_layer->export_region_slices_to_svg_debug("upper_layer_before_conical_overhang");
