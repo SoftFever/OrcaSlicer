@@ -2388,7 +2388,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
-    def->set_default_value(new ConfigOptionFloat(62.));
+    def->set_default_value(new ConfigOptionFloat(55.));
 
     def = this->add("make_overhang_printable_hole_size", coFloat);
     def->label = L("Make overhang printable hole area");
