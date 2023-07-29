@@ -78,6 +78,7 @@ public:
 
 private:
     std::map<int, Polygons> generate_lower_polygons_series(float width);
+    void split_top_surfaces(const ExPolygons &orig_polygons, ExPolygons &top_fills, ExPolygons &non_top_polygons, ExPolygons &fill_clip) const;
 
 private:
     bool        m_spiral_vase;
