@@ -555,7 +555,7 @@ int CLI::run(int argc, char **argv)
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
-    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name;//, printer_inherits, print_inherits;
+    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name;//, printer_inherits, print_inherits;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
@@ -646,7 +646,7 @@ int CLI::run(int argc, char **argv)
                         record_exit_reson(outfile_dir, CLI_FILELIST_INVALID_ORDER, 0, cli_errors[CLI_FILELIST_INVALID_ORDER]);
                         flush_and_exit(CLI_FILELIST_INVALID_ORDER);
                     }
-                    BOOST_LOG_TRIVIAL(info) << "the first file is a 3mf, got plate count:" << plate_data_src.size() << "\n";
+                    BOOST_LOG_TRIVIAL(info) << boost::format("the first file is a 3mf, version %1%, got plate count %2%") %file_version.to_string() %plate_data_src.size();
                     need_arrange = false;
                     for (ModelObject* o : model.objects)
                     {
@@ -685,32 +685,45 @@ int CLI::run(int argc, char **argv)
                     current_printer_name = config.option<ConfigOptionString>("printer_settings_id")->value;
                     current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
                     current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
+
+                    BOOST_LOG_TRIVIAL(info) << boost::format("current_printer_name %1%, current_process_name %2%")%current_printer_name %current_process_name;
                     ConfigOptionStrings* option_strings = config.option<ConfigOptionStrings>("inherits_group");
                     if (option_strings) {
                         current_inherits_group = option_strings->values;
                         size_t size = current_inherits_group.size();
-                        if (current_inherits_group[size-1].empty())
+                        if (current_inherits_group[size-1].empty()) {
                             current_printer_system_name = current_printer_name;
-                        else
+                            BOOST_LOG_TRIVIAL(info) << boost::format("inherits of printer is null, should be system preset");
+                        }
+                        else {
                             current_printer_system_name = current_inherits_group[size-1];
+                            BOOST_LOG_TRIVIAL(info) << boost::format("inherits of printer valid, current_printer_system_name is %1%") %current_printer_system_name;
+                        }
 
-                        if (current_inherits_group[0].empty())
+                        if (current_inherits_group[0].empty()) {
                             current_process_system_name = current_process_name;
-                        else
+                            BOOST_LOG_TRIVIAL(info) << boost::format("inherits of process is null, should be system preset");
+                        }
+                        else {
                             current_process_system_name = current_inherits_group[0];
+                            BOOST_LOG_TRIVIAL(info) << boost::format("inherits of process valid, current_process_system_name is %1%") %current_process_system_name;
+                        }
 
                         current_filaments_system_name.resize(size - 2);
                         for (int index = 1; index < (size - 1); index++) {
-                            if (current_inherits_group[index].empty())
+                            if (current_inherits_group[index].empty()) {
                                 current_filaments_system_name[index-1] = current_filaments_name[index-1];
-                            else
+                            }
+                            else {
                                 current_filaments_system_name[index-1] = current_inherits_group[index];
+                            }
                         }
                     }
                     else {
                         current_printer_system_name = current_printer_name;
                         current_process_system_name = current_process_name;
                         current_filaments_system_name = current_filaments_name;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("no inherits_group: use system name the same as current name");
                     }
                     filament_count = current_filaments_name.size();
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
@@ -1148,6 +1161,8 @@ int CLI::run(int argc, char **argv)
     //upwards check
     bool process_compatible = false, machine_upwards = false;
     BOOST_LOG_TRIVIAL(info) << boost::format("current printer %1%, new printer %2%, current process %3%, new process %4%")%current_printer_name %new_printer_name %current_process_name %new_process_name;
+    BOOST_LOG_TRIVIAL(info) << boost::format("current printer inherits %1%, new printer inherits %2%, current process inherits %3%, new process inherits %4%")
+        %current_printer_system_name %new_printer_system_name %current_process_system_name %new_process_system_name;
     for (int index = 0; index < current_print_compatible_printers.size(); index++) {
         BOOST_LOG_TRIVIAL(info) << boost::format("index %1%, current print compatible printer %2%")%index %current_print_compatible_printers[index];
     }
@@ -1165,7 +1180,8 @@ int CLI::run(int argc, char **argv)
                     break;
                 }
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("new printer %1%, new process %2%, compatible %3%")%new_printer_name %new_process_name %process_compatible;
+            BOOST_LOG_TRIVIAL(info) << boost::format("new printer %1%, inherited from %2%, new process %3%, inherited from %4% ,compatible %5%")
+                %new_printer_name %new_printer_system_name %new_process_name %new_process_system_name %process_compatible;
         }
         else {
             for (int index = 0; index < current_print_compatible_printers.size(); index++) {
@@ -1174,22 +1190,24 @@ int CLI::run(int argc, char **argv)
                     break;
                 }
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("new printer %1%, old process %2%, compatible %3%")%new_printer_name %current_process_name %process_compatible;
+            BOOST_LOG_TRIVIAL(info) << boost::format("new printer %1%, inherited from %2%, old process %3%, inherited from %4% ,compatible %5%")
+                %new_printer_name %new_printer_system_name %current_process_name %current_process_system_name %process_compatible;
         }
     }
     else if (!new_process_name.empty()) {
         for (int index = 0; index < new_print_compatible_printers.size(); index++) {
-            if (new_print_compatible_printers[index] == current_printer_name) {
+            if (new_print_compatible_printers[index] == current_printer_system_name) {
                 process_compatible = true;
                 break;
             }
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("old printer %1%, new process %2%, compatible %3%")%current_printer_name %new_process_name %process_compatible;
+        BOOST_LOG_TRIVIAL(info) << boost::format("old printer %1%, inherited from %2%, new process %3%, inherited from %4% ,compatible %5%")
+            %current_printer_name %current_printer_system_name %new_process_name %new_process_system_name %process_compatible;
     }
     else {
         //check the compatible of old printer&&process
         for (int index = 0; index < current_print_compatible_printers.size(); index++) {
-            if (current_print_compatible_printers[index] == current_printer_name) {
+            if (current_print_compatible_printers[index] == current_printer_system_name) {
                 process_compatible = true;
                 break;
             }
@@ -1199,7 +1217,8 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf, no compatible printers, set to compatible");
             process_compatible = true;
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("old printer %1%, old process %2%, compatible %3%")%current_printer_name %current_process_name %process_compatible;
+        BOOST_LOG_TRIVIAL(info) << boost::format("old printer %1%, inherited from %2%, old process %3%, inherited from %4% ,compatible %5%")
+            %current_printer_name %current_printer_system_name %current_process_name %current_process_system_name %process_compatible;
     }
     if (!process_compatible && !new_printer_name.empty() && !current_printer_name.empty() && (new_printer_name != current_printer_name)) {
         if (upward_compatible_printers.size() > 0) {
