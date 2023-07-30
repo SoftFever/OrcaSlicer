@@ -8144,6 +8144,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     const DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
 
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(
@@ -8151,9 +8152,13 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
             new ConfigOptionFloat(opt.second)
         );
     }
+    print_config.set_key_value(
+        "outer_wall_speed",
+        new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
+            wxGetApp().preset_bundle->full_config(), print_config.get_abs_value("line_width", nozzle_diameter),
+            print_config.get_abs_value("layer_height"), 0)));
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
-        double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
         print_config.set_key_value(
             opt.first,
             new ConfigOptionFloatOrPercent(nozzle_diameter * opt.second / 100, false)
@@ -8235,12 +8240,19 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
+    const double nozzle_diameter = printer_config->option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
     print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
     print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
     print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
-    if(print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator")->value == PerimeterGeneratorType::Arachne)
-        print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
+    auto full_config = wxGetApp().preset_bundle->full_config();
+    auto wall_speed = CalibPressureAdvance::find_optimal_PA_speed(
+        full_config, full_config.get_abs_value("line_width", nozzle_diameter),
+        full_config.get_abs_value("layer_height"), 0);
+    print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
+    print_config->set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
+    print_config->set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
     model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
 
     changed_objects({ 0 });
