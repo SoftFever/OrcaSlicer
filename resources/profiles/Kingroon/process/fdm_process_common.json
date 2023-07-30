@@ -10,7 +10,10 @@
   "bridge_speed": "50",
   "brim_width": "5",
   "brim_object_gap": "0.1",
-  "compatible_printers": [],
+  "compatible_printers": [
+    "Kingroon KP3S PRO S1 0.4 nozzle",
+    "Kingroon KP3S PRO V2 0.4 nozzle"
+  ],
   "compatible_printers_condition": "",
   "default_acceleration": "1000",
   "bridge_no_support": "0",
