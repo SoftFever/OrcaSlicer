@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include "Config.hpp"
 #include "Exception.hpp"
 #include "Preset.hpp"
 #include "PresetBundle.hpp"
@@ -686,7 +687,7 @@ bool Preset::is_custom_defined()
 
 bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
 {
-    bool is_bbl_vendor_preset = true;
+    bool is_bbl_vendor_preset = false;
     if (preset_bundle) {
         auto config = &preset_bundle->printers.get_edited_preset().config;
         std::string vendor_name;
@@ -1698,11 +1699,13 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
     // SoftFever: ignore print connection info from project
-    cfg.erase("print_host");
-    cfg.erase("print_host_webui");
-    cfg.erase("printhost_apikey");
-    cfg.erase("printhost_cafile");
-    const auto        &keys = cfg.keys();
+    auto        keys = cfg.keys();
+    keys.erase(std::remove_if(keys.begin(), keys.end(),
+                              [](std::string &val) {
+                                return val == "print_host" || val == "print_host_webui" || val == "printhost_apikey" ||
+                                       val == "printhost_cafile";
+                              }),
+               keys.end());
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
 
