@@ -1175,11 +1175,7 @@ void PrintObject::apply_conical_overhang() {
     if (m_layers.empty()) {
         return;
     }
-
-    if (!this->print()->default_region_config().make_overhang_printable) {
-        return;
-    }
-
+    
     const double conical_overhang_angle = this->config().make_overhang_printable_angle;
     if (conical_overhang_angle == 90.0) {
         return;
