@@ -1,7 +1,7 @@
 {
   "name": "Kingroon",
   "url": "https://kingroon.com/",
-  "version": "00.02.01.00",
+  "version": "01.06.04.00",
   "force_update": "0",
   "description": "Kingroon configuration files",
   "machine_model_list": [
@@ -20,12 +20,20 @@
       "sub_path": "process/fdm_process_common.json"
     },
     {
-      "name": "0.20mm @Kingroon KP3S PRO S1 (0.4 nozzle)",
-      "sub_path": "process/0.20mm @Kingroon KP3S PRO S1 (0.4 nozzle).json"
+      "name": "0.08mm Standard @Kingroon KP3S PRO S1",
+      "sub_path": "process/0.08mm Standard @Kingroon KP3S PRO S1.json"
     },
     {
-      "name": "0.20mm @Kingroon KP3S PRO V2 (0.4 nozzle)",
-      "sub_path": "process/0.20mm @Kingroon KP3S PRO V2 (0.4 nozzle).json"
+      "name": "0.12mm Standard @Kingroon KP3S PRO S1",
+      "sub_path": "process/0.12mm Standard @Kingroon KP3S PRO S1.json"
+    },
+    {
+      "name": "0.20mm Standard @Kingroon KP3S PRO S1",
+      "sub_path": "process/0.20mm Standard @Kingroon KP3S PRO S1.json"
+    },
+    {
+      "name": "0.20mm Standard @Kingroon KP3S PRO V2",
+      "sub_path": "process/0.20mm Standard @Kingroon KP3S PRO V2.json"
     }
   ],
   "filament_list": [
