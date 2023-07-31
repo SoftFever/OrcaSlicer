@@ -1929,6 +1929,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(20));
 
+    def           = this->add("ironing_direction", coFloat);
+    def->label    = L("ironing direction");
+    def->category = L("Quality");
+    def->tooltip  = L("Angle for ironing, which controls the angle of the nozzle when ironing");
+    def->sidetext = L("°");
+    def->min      = 0;
+    def->max      = 360;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(45));
+
     def = this->add("layer_change_gcode", coString);
     def->label = L("Layer change G-code");
     def->tooltip = L("This gcode part is inserted at every layer change after lift z");
