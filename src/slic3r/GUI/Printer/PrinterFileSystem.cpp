@@ -19,6 +19,16 @@
 //#define PRINTER_FILE_SYSTEM_TEST
 #endif
 
+std::string last_system_error() {
+    return std::error_code(
+#ifdef _WIN32
+        GetLastError(), 
+#else
+        errno, 
+#endif
+        std::system_category()).message();
+}
+
 wxDEFINE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
@@ -628,6 +638,7 @@ void PrinterFileSystem::DownloadNextFile()
             prog.total  = resp["total"];
             if (prog.size == 0) {
                 download->ofs.open(download->local_path, std::ios::binary);
+                wxLogWarning("PrinterFileSystem::DownloadNextFile open error: %s\n", wxString::FromUTF8(last_system_error()));
                 if (!download->ofs) return FILE_OPEN_ERR;
             }
             if (download->total && (download->size != prog.size || download->total != prog.total)) {
@@ -635,6 +646,10 @@ void PrinterFileSystem::DownloadNextFile()
             }
             // receive data
             download->ofs.write((char const *) data, size);
+            if (!download->ofs) {
+                wxLogWarning("PrinterFileSystem::DownloadNextFile write error: %s\n", wxString::FromUTF8(last_system_error()));
+                return FILE_READ_WRITE_ERR;
+            }
             download->boost_md5.process_bytes(data, size);
             prog.size += size;
             download->total = prog.total;
@@ -993,7 +1008,7 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
     if (!str.empty())
         event.SetString(wxString::FromUTF8(str.c_str()));
     else if (auto iter = error_messages.find(extra); iter != error_messages.end())     
-        event.SetString(wxString::FromUTF8(iter->second.c_str()));
+        event.SetString(_L(iter->second.c_str()));
     event.SetExtraLong(extra);
     if (wxThread::IsMain())
         ProcessEventLocally(event);

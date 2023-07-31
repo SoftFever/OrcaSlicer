@@ -48,7 +48,7 @@ public:
         FILE_NAME_INVALID   = 11,
         FILE_SIZE_ERR       = 12,
         FILE_OPEN_ERR       = 13,
-        FILE_READ_ERR       = 14,
+        FILE_READ_WRITE_ERR = 14,
         FILE_CHECK_ERR      = 15,
         FILE_TYPE_ERR       = 16,
         STORAGE_UNAVAILABLE = 17,
