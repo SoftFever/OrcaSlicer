@@ -3235,31 +3235,45 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                     } else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
-                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
-                                                             file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                            wxString text  = wxString::Format(_L("This slicer file version %s is newer than %s's version:"),
+                                                             file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME));
                             text += "\n";
                             bool     first = true;
                             // std::string context = into_u8(text);
                             wxString context = text;
-                            for (auto &key : config_substitutions.unrecogized_keys) {
-                                context += "  -";
-                                context += key;
-                                context += ";\n";
-                                first = false;
+                            if (wxGetApp().app_config->get("user_mode") == "develop") {
+                                for (auto &key : config_substitutions.unrecogized_keys) {
+                                    context += "  -";
+                                    context += key;
+                                    context += ";\n";
+                                    first = false;
+                                }
                             }
-                            wxString append = _L("You'd better upgrade your software.\n");
+                            wxString append = _L("Would you like to update your Bambu Studio software to enable all functionality in this slicer file?\n");
                             context += "\n\n";
                             // context += into_u8(append);
                             context += append;
-                            show_info(q, context, _L("Newer 3mf version"));
+                            MessageDialog msg_window(q, context, wxString(SLIC3R_APP_FULL_NAME " - ") + _L("Newer 3mf version"), wxYES | wxNO | wxICON_INFORMATION);
+                            auto res = msg_window.ShowModal();
+                            if (res == wxID_YES) {
+                                wxGetApp().check_new_version(true, 1);
+                            } else if (res == wxID_NO) {
+                                show_info(q, _L("you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."));
+                            }
                         }
                         else {
                             //if the minor version is not matched
                             if (file_version.min() != app_version.min()) {
-                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software."),
-                                                 file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                wxString text  = wxString::Format(_L("This slicer file version %s is newer than %s's version.\n\nWould you like to update your Bambu Studio software to enable all functionality in this slicer file?"),
+                                                 file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME));
                                 text += "\n";
-                                show_info(q, text, _L("Newer 3mf version"));
+                                MessageDialog msg_window(q, text, wxString(SLIC3R_APP_FULL_NAME " - ") + _L("Newer 3mf version"), wxYES | wxNO | wxICON_INFORMATION);
+                                auto res = msg_window.ShowModal();
+                                if (res == wxID_YES) {
+                                    wxGetApp().check_new_version(true, 1);
+                                } else if (res == wxID_NO) {
+                                    show_info(q, _L("you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."));
+                                }
                             }
                         }
                     } else if (!load_config) {
