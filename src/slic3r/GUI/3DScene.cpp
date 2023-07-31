@@ -98,7 +98,15 @@ std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colo
                 new_color[2] = 1;
                 new_color[3] = FullTransparentModdifiedToFixAlpha;
                 return new_color;
-    } 
+    }
+    else if ((colors[0] < 0.1) && (colors[1] < 0.1) && (colors[2] < 0.1)) {//black filament deal
+        std::array<float, 4> new_color;
+        new_color[0] = 0.1;
+        new_color[1] = 0.1;
+        new_color[2] = 0.1;
+        new_color[3] = colors[3];
+        return new_color;
+    }
     return colors;
 }
 
