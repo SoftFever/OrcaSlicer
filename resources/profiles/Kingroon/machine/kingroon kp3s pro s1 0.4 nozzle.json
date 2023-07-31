@@ -79,7 +79,6 @@
   "upward_compatible_machine": [],
   "use_firmware_retraction": "0",
   "use_relative_e_distances": "1",
-  "version": "1.6.0.0",
   "wipe": ["0"],
   "wipe_distance": ["2"],
   "z_hop": ["0.5"],
