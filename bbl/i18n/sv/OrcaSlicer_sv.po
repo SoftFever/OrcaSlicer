@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-27 22:18+0800\n"
+"POT-Creation-Date: 2023-07-31 21:29+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6682,11 +6682,14 @@ msgid "Enable this option to slow printing down for different overhang degree"
 msgstr ""
 "Aktivera detta val för att sänka hastigheten för olika överhängs grader"
 
-msgid "mm/s"
-msgstr "mm/s"
+msgid "mm/s or %"
+msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Hastighet för bridges/bryggor och hela överhängs väggar"
+
+msgid "mm/s"
+msgstr "mm/s"
 
 msgid "Brim width"
 msgstr "Brim bredd"
@@ -6893,8 +6896,10 @@ msgstr "Botten ytans mönster"
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Botten ytans ifyllnads linjemönster, inte bridge/brygg ifyllnad"
 
-msgid "Line width of outer wall"
-msgstr "Linjebredd på yttre vägg"
+msgid ""
+"Line width of outer wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
@@ -6911,9 +6916,6 @@ msgid ""
 "small_perimeter_threshold (usually holes). If expressed as percentage (for "
 "example: 80%) it will be calculated on the outer wall speed setting above. "
 "Set to zero for auto."
-msgstr ""
-
-msgid "mm/s or %"
 msgstr ""
 
 msgid "Small perimeters threshold"
@@ -7001,8 +7003,10 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 
-msgid "Default line width if some line width is set to be zero"
-msgstr "Standard linjebredd för linjebredder är satt till 0"
+msgid ""
+"Default line width if other line widths are set to 0. If expressed as a %, "
+"it will be computed over the nozzle diameter."
+msgstr ""
 
 msgid "Keep fan always on"
 msgstr "Behåll alltid fläkten på"
@@ -7322,8 +7326,10 @@ msgstr ""
 msgid "Jerk for travel"
 msgstr ""
 
-msgid "Line width of initial layer"
-msgstr "Linjebredd för första lager"
+msgid ""
+"Line width of initial layer. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr ""
 
 msgid "Initial layer height"
 msgstr "Första lagerhöjd"
@@ -7584,8 +7590,10 @@ msgstr ""
 msgid "Filament to print internal sparse infill."
 msgstr "Filamentet är avsett för sparsam ifyllnad."
 
-msgid "Line width of internal sparse infill"
-msgstr "Linjebredd för sparsam ifyllnad"
+msgid ""
+"Line width of internal sparse infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr ""
 
 msgid "Infill/Wall overlap"
 msgstr "Ifyllnad/Vägg överlapp"
@@ -7874,6 +7882,32 @@ msgstr "Filnamns format"
 msgid "User can self-define the project file name when export"
 msgstr "Användaren kan bestämma projekt namn när den ska exporteras"
 
+msgid "Make overhang printable"
+msgstr ""
+
+msgid "Modify the geometry to print overhangs without support material."
+msgstr ""
+
+msgid "Make overhang printable maximum angle"
+msgstr ""
+
+msgid ""
+"Maximum angle of overhangs to allow after making more steep overhangs "
+"printable.90° will not change the model at all and allow any overhang, while "
+"0 will replace all overhangs with conical material."
+msgstr ""
+
+msgid "Make overhang printable hole area"
+msgstr ""
+
+msgid ""
+"Maximum area of a hole in the base of the model before it's filled by "
+"conical material.A value of 0 will fill all the holes in the model base."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
 msgid "Detect overhang wall"
 msgstr "Upptäck överhängs vägg"
 
@@ -7886,8 +7920,10 @@ msgstr ""
 "hastigheter för att skriva ut. Vid 100%% överhäng, bridge/brygg hastighet "
 "användas."
 
-msgid "Line width of inner wall"
-msgstr "Linjebredd för inre vägg"
+msgid ""
+"Line width of inner wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid "Speed of inner wall"
 msgstr "Hastighet för inre vägg"
@@ -8119,7 +8155,7 @@ msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
 "This amount can be specified in millimeters or as a percentage of the "
-"current extruder diameter. The default value for this parameter is 15%."
+"current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
 
 msgid "Role base wipe speed"
@@ -8191,11 +8227,10 @@ msgstr ""
 "Sparsam ifyllnads ytor som är mindre än detta gränsvärde ersätts med inre "
 "solid ifyllnad"
 
-msgid "mm²"
-msgstr "mm²"
-
-msgid "Line width of internal solid infill"
-msgstr "Linjebredd med inre solid ifyllnad"
+msgid ""
+"Line width of internal solid infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr ""
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Hastighet för inre solid ifyllnad, förrutom topp och botten ytorna"
@@ -8337,8 +8372,10 @@ msgid ""
 "filament for support and current filament is used"
 msgstr ""
 
-msgid "Line width of support"
-msgstr "Linjebredd för support"
+msgid ""
+"Line width of support. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid "Interface use loop pattern"
 msgstr "Loop mönstrets gränssnitt"
@@ -8559,8 +8596,10 @@ msgstr ""
 "G-koden sätts in vid filament byte, inklusive T kommando som aktiverar "
 "verktygs byte"
 
-msgid "Line width for top surfaces"
-msgstr "Linjebredd för topp ytor"
+msgid ""
+"Line width for top surfaces. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr ""
 
 msgid "Speed of top surface infill which is solid"
 msgstr "Hastighet för solida topp ytors ifyllnad"
@@ -9206,6 +9245,30 @@ msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
+
+#~ msgid "Line width of outer wall"
+#~ msgstr "Linjebredd på yttre vägg"
+
+#~ msgid "Default line width if some line width is set to be zero"
+#~ msgstr "Standard linjebredd för linjebredder är satt till 0"
+
+#~ msgid "Line width of initial layer"
+#~ msgstr "Linjebredd för första lager"
+
+#~ msgid "Line width of internal sparse infill"
+#~ msgstr "Linjebredd för sparsam ifyllnad"
+
+#~ msgid "Line width of inner wall"
+#~ msgstr "Linjebredd för inre vägg"
+
+#~ msgid "Line width of internal solid infill"
+#~ msgstr "Linjebredd med inre solid ifyllnad"
+
+#~ msgid "Line width of support"
+#~ msgstr "Linjebredd för support"
+
+#~ msgid "Line width for top surfaces"
+#~ msgstr "Linjebredd för topp ytor"
 
 #~ msgid "Keep upper part"
 #~ msgstr "Behåll övre del"

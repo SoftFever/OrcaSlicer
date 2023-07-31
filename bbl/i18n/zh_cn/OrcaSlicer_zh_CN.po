@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-27 22:18+0800\n"
+"POT-Creation-Date: 2023-07-31 21:44+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5333,7 +5333,7 @@ msgid "Layer height limits"
 msgstr "层高限制"
 
 msgid "Lift Z Enforcement"
-msgstr ""
+msgstr "强化抬Z策略"
 
 msgid "Retraction when switching material"
 msgstr "切换材料时的回抽量"
@@ -6632,11 +6632,14 @@ msgstr "悬垂降速"
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
 
-msgid "mm/s"
-msgstr "mm/s"
+msgid "mm/s or %"
+msgstr "mm/s 或 %"
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "桥接和完全悬空的外墙的打印速度"
+
+msgid "mm/s"
+msgstr "mm/s"
 
 msgid "Brim width"
 msgstr "Brim宽度"
@@ -6841,8 +6844,10 @@ msgstr "底面图案"
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "除了桥接外的底面填充的走线图案"
 
-msgid "Line width of outer wall"
-msgstr "外墙的线宽"
+msgid ""
+"Line width of outer wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr "外墙的线宽。如果以%表示，它将基于喷嘴直径来计算"
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
@@ -6858,9 +6863,6 @@ msgid ""
 "example: 80%) it will be calculated on the outer wall speed setting above. "
 "Set to zero for auto."
 msgstr ""
-
-msgid "mm/s or %"
-msgstr "mm/s 或 %"
 
 msgid "Small perimeters threshold"
 msgstr "微小部位周长阈值"
@@ -6945,8 +6947,10 @@ msgstr "启用压力提前，一旦启用会覆盖自动检测的结果"
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr "压力提前(Klipper)或者线性提前(Marlin)"
 
-msgid "Default line width if some line width is set to be zero"
-msgstr "当线宽设置为0时走线的默认线宽"
+msgid ""
+"Default line width if other line widths are set to 0. If expressed as a %, "
+"it will be computed over the nozzle diameter."
+msgstr "当线宽设置为0时走线的默认线宽。如果以%表示，它将基于喷嘴直径来计算。"
 
 msgid "Keep fan always on"
 msgstr "保持风扇常开"
@@ -7231,13 +7235,13 @@ msgid ""
 msgstr "首层加速度。使用较低值可以改善和构建板的粘接。"
 
 msgid "Enable accel_to_decel"
-msgstr ""
+msgstr "启用制动速度"
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically"
 msgstr ""
 
 msgid "accel_to_decel"
-msgstr ""
+msgstr "制动速度"
 
 #, c-format, boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
@@ -7261,8 +7265,10 @@ msgstr "首层抖动值"
 msgid "Jerk for travel"
 msgstr "空驶抖动值"
 
-msgid "Line width of initial layer"
-msgstr "首层的线宽"
+msgid ""
+"Line width of initial layer. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr "首层的线宽。如果以%表示，它将基于喷嘴直径来计算。"
 
 msgid "Initial layer height"
 msgstr "首层层高"
@@ -7510,8 +7516,10 @@ msgstr ""
 msgid "Filament to print internal sparse infill."
 msgstr "打印内部稀疏填充的耗材丝"
 
-msgid "Line width of internal sparse infill"
-msgstr "内部稀疏填充的线宽"
+msgid ""
+"Line width of internal sparse infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr "内部稀疏填充的线宽。如果以%表示，它将基于喷嘴直径来计算。"
 
 msgid "Infill/Wall overlap"
 msgstr "填充/墙 重叠"
@@ -7789,6 +7797,36 @@ msgstr "文件名格式"
 msgid "User can self-define the project file name when export"
 msgstr "用户可以自定义导出项目文件的名称。"
 
+msgid "Make overhang printable"
+msgstr "悬垂可打印化"
+
+msgid "Modify the geometry to print overhangs without support material."
+msgstr "修改几何形状使得悬垂部分无需支撑材料或者搭桥打印。"
+
+msgid "Make overhang printable maximum angle"
+msgstr "悬垂可打印化的最大角度"
+
+msgid ""
+"Maximum angle of overhangs to allow after making more steep overhangs "
+"printable.90° will not change the model at all and allow any overhang, while "
+"0 will replace all overhangs with conical material."
+msgstr ""
+"在使悬垂可打印化后，允许的悬垂最大角度。90°将完全不改变模型并允许任何悬垂，而"
+"0°将用圆锥形材料替换所有悬垂部分。"
+
+msgid "Make overhang printable hole area"
+msgstr "最大孔洞面积"
+
+msgid ""
+"Maximum area of a hole in the base of the model before it's filled by "
+"conical material.A value of 0 will fill all the holes in the model base."
+msgstr ""
+"模型底部的孔洞在被圆锥形材料填充前所允许的最大面积。值为0将填充模型底部的所有"
+"孔洞。"
+
+msgid "mm²"
+msgstr "mm²"
+
 msgid "Detect overhang wall"
 msgstr "识别悬空外墙"
 
@@ -7799,8 +7837,10 @@ msgid ""
 msgstr ""
 "检测悬空相对于线宽的百分比，并应用不同的速度打印。100%%的悬空将使用桥接速度。"
 
-msgid "Line width of inner wall"
-msgstr "内墙的线宽"
+msgid ""
+"Line width of inner wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr "内墙的线宽。如果以%表示，它将基于喷嘴直径来计算。"
 
 msgid "Speed of inner wall"
 msgstr "内圈墙打印速度"
@@ -7912,7 +7952,7 @@ msgid "Spiral"
 msgstr "螺旋"
 
 msgid "Only lift Z above"
-msgstr ""
+msgstr "仅在高度以上抬Z"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place above the "
@@ -7920,7 +7960,7 @@ msgid ""
 msgstr ""
 
 msgid "Only lift Z below"
-msgstr ""
+msgstr "仅在高度以下抬Z"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place below the "
@@ -7928,7 +7968,7 @@ msgid ""
 msgstr ""
 
 msgid "On surfaces"
-msgstr ""
+msgstr "仅表面抬Z"
 
 msgid ""
 "Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
@@ -7936,16 +7976,16 @@ msgid ""
 msgstr ""
 
 msgid "All Surfaces"
-msgstr ""
+msgstr "所有表面"
 
 msgid "Top Only"
-msgstr ""
+msgstr "仅顶面"
 
 msgid "Bottom Only"
-msgstr ""
+msgstr "仅底面"
 
 msgid "Top and Bottom"
-msgstr ""
+msgstr "顶面和地面"
 
 msgid "Extra length on restart"
 msgstr "额外回填长度"
@@ -8004,12 +8044,12 @@ msgid "Random"
 msgstr "随机"
 
 msgid "Staggered inner seams"
-msgstr ""
+msgstr "交错的内墙接缝"
 
 msgid ""
 "This option causes the inner seams to be shifted backwards based on their "
 "depth, forming a zigzag pattern."
-msgstr ""
+msgstr "此选项会根据内墙深度使接缝向后移动，形成锯齿形模式。"
 
 msgid "Seam gap"
 msgstr "接缝间隔"
@@ -8018,7 +8058,7 @@ msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
 "This amount can be specified in millimeters or as a percentage of the "
-"current extruder diameter. The default value for this parameter is 15%."
+"current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
 
 msgid "Role base wipe speed"
@@ -8086,11 +8126,10 @@ msgid ""
 "internal solid infill"
 msgstr "小于这个阈值的稀疏填充区域将会被内部实心填充替代。"
 
-msgid "mm²"
-msgstr "mm²"
-
-msgid "Line width of internal solid infill"
-msgstr "内部实心填充的线宽"
+msgid ""
+"Line width of internal solid infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr "内部实心填充的线宽。如果以%表示，它将基于喷嘴直径来计算。"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "内部实心填充的速度，不是顶面和底面。"
@@ -8238,8 +8277,10 @@ msgid ""
 msgstr ""
 "打印支撑主体和筏层的耗材丝。\"缺省\"代表不指定特定的耗材丝，并使用当前耗材"
 
-msgid "Line width of support"
-msgstr "支撑的线宽"
+msgid ""
+"Line width of support. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr "支撑的线宽。如果以%表示，它将基于喷嘴直径来计算。"
 
 msgid "Interface use loop pattern"
 msgstr "接触面采用圈形走线。"
@@ -8453,8 +8494,10 @@ msgid ""
 "tool change"
 msgstr "换料时插入的G-code，包括T命令。"
 
-msgid "Line width for top surfaces"
-msgstr "顶面的线宽"
+msgid ""
+"Line width for top surfaces. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr "顶面的线宽。如果以%表示，它将基于喷嘴直径来计算。"
 
 msgid "Speed of top surface infill which is solid"
 msgstr "顶面实心填充的速度"
@@ -8964,28 +9007,28 @@ msgid "Extruder type"
 msgstr "挤出机类型"
 
 msgid "PA Tower"
-msgstr ""
+msgstr "PA塔"
 
 msgid "PA Line"
-msgstr ""
+msgstr "划线模式"
 
 msgid "PA Pattern"
-msgstr ""
+msgstr "V形模式"
 
 msgid "Method"
-msgstr ""
+msgstr "方法"
 
 msgid "Start PA: "
-msgstr ""
+msgstr "起始值"
 
 msgid "End PA: "
-msgstr ""
+msgstr "结束值"
 
 msgid "PA step: "
-msgstr ""
+msgstr "步距"
 
 msgid "Print numbers"
-msgstr ""
+msgstr "打印数字"
 
 msgid ""
 "Please input valid values:\n"

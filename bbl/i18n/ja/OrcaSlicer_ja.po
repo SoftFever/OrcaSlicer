@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-27 22:18+0800\n"
+"POT-Creation-Date: 2023-07-31 21:29+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6688,11 +6688,14 @@ msgstr ""
 "オーバーハングを造形時に速度を下げます。各角度のオーバーハングに対して、下記"
 "の減速パラメータを設定してください。"
 
-msgid "mm/s"
-msgstr "mm/s"
+msgid "mm/s or %"
+msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "ブリッジを造形する時に速度です。"
+
+msgid "mm/s"
+msgstr "mm/s"
 
 msgid "Brim width"
 msgstr "ブリム幅"
@@ -6895,8 +6898,10 @@ msgstr "底面パターン"
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "底面のインフィル パターンです、ブリッジインフィルが含まれていません。"
 
-msgid "Line width of outer wall"
-msgstr "外壁の線幅"
+msgid ""
+"Line width of outer wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
@@ -6912,9 +6917,6 @@ msgid ""
 "small_perimeter_threshold (usually holes). If expressed as percentage (for "
 "example: 80%) it will be calculated on the outer wall speed setting above. "
 "Set to zero for auto."
-msgstr ""
-
-msgid "mm/s or %"
 msgstr ""
 
 msgid "Small perimeters threshold"
@@ -7004,8 +7006,10 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 
-msgid "Default line width if some line width is set to be zero"
-msgstr "線幅が0に設定された時のデフォルト線幅"
+msgid ""
+"Default line width if other line widths are set to 0. If expressed as a %, "
+"it will be computed over the nozzle diameter."
+msgstr ""
 
 msgid "Keep fan always on"
 msgstr "ファン常時ON"
@@ -7318,8 +7322,10 @@ msgstr ""
 msgid "Jerk for travel"
 msgstr ""
 
-msgid "Line width of initial layer"
-msgstr "1層目の線幅"
+msgid ""
+"Line width of initial layer. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr ""
 
 msgid "Initial layer height"
 msgstr "1層目の高さ"
@@ -7566,8 +7572,10 @@ msgstr ""
 msgid "Filament to print internal sparse infill."
 msgstr "スパース インフィルを造形時使用するフィラメントです。"
 
-msgid "Line width of internal sparse infill"
-msgstr "スパース インフィルの線幅"
+msgid ""
+"Line width of internal sparse infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr ""
 
 msgid "Infill/Wall overlap"
 msgstr "インフィル/壁面 オーバーラップ"
@@ -7847,6 +7855,32 @@ msgstr "ファイル名形式"
 msgid "User can self-define the project file name when export"
 msgstr "エクスポート時ファイル名を設定できます"
 
+msgid "Make overhang printable"
+msgstr ""
+
+msgid "Modify the geometry to print overhangs without support material."
+msgstr ""
+
+msgid "Make overhang printable maximum angle"
+msgstr ""
+
+msgid ""
+"Maximum angle of overhangs to allow after making more steep overhangs "
+"printable.90° will not change the model at all and allow any overhang, while "
+"0 will replace all overhangs with conical material."
+msgstr ""
+
+msgid "Make overhang printable hole area"
+msgstr ""
+
+msgid ""
+"Maximum area of a hole in the base of the model before it's filled by "
+"conical material.A value of 0 will fill all the holes in the model base."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
 msgid "Detect overhang wall"
 msgstr "オーバーハングを検出"
 
@@ -7858,8 +7892,10 @@ msgstr ""
 "この設定により、線幅に対するオーバーハングの割合を検出し、異なる速度で造形し"
 "ます。100%%のオーバーハングの場合、ブリッジの速度が使用されます。"
 
-msgid "Line width of inner wall"
-msgstr "内壁の線幅"
+msgid ""
+"Line width of inner wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid "Speed of inner wall"
 msgstr "内壁の造形速度です。"
@@ -8085,7 +8121,7 @@ msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
 "This amount can be specified in millimeters or as a percentage of the "
-"current extruder diameter. The default value for this parameter is 15%."
+"current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
 
 msgid "Role base wipe speed"
@@ -8155,11 +8191,10 @@ msgstr ""
 "スパース インフィルの面積がこの値以下の場合、ソリッド インフィルに変換されま"
 "す"
 
-msgid "mm²"
-msgstr "mm²"
-
-msgid "Line width of internal solid infill"
-msgstr "ソリッド インフィルの線幅"
+msgid ""
+"Line width of internal solid infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr ""
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "ソリッド インフィルの造形速度です。"
@@ -8308,8 +8343,10 @@ msgstr ""
 "サポートとラフトを造形用のフィラメント。「デフォルト」では当時のフィラメント"
 "を使用する意味です。"
 
-msgid "Line width of support"
-msgstr "サポートの線幅"
+msgid ""
+"Line width of support. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid "Interface use loop pattern"
 msgstr "接触面は同心パターンにする"
@@ -8529,8 +8566,10 @@ msgid ""
 "tool change"
 msgstr "フィラメントを切り替える直後に実行するG-codeです。"
 
-msgid "Line width for top surfaces"
-msgstr "トップ面の線幅"
+msgid ""
+"Line width for top surfaces. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr ""
 
 msgid "Speed of top surface infill which is solid"
 msgstr "トップ面のインフィルの造形速度です。"
@@ -9195,6 +9234,30 @@ msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
+
+#~ msgid "Line width of outer wall"
+#~ msgstr "外壁の線幅"
+
+#~ msgid "Default line width if some line width is set to be zero"
+#~ msgstr "線幅が0に設定された時のデフォルト線幅"
+
+#~ msgid "Line width of initial layer"
+#~ msgstr "1層目の線幅"
+
+#~ msgid "Line width of internal sparse infill"
+#~ msgstr "スパース インフィルの線幅"
+
+#~ msgid "Line width of inner wall"
+#~ msgstr "内壁の線幅"
+
+#~ msgid "Line width of internal solid infill"
+#~ msgstr "ソリッド インフィルの線幅"
+
+#~ msgid "Line width of support"
+#~ msgstr "サポートの線幅"
+
+#~ msgid "Line width for top surfaces"
+#~ msgstr "トップ面の線幅"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"
