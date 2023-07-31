@@ -1579,7 +1579,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Enable accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
     
     def = this->add("accel_to_decel_factor", coPercent);
     def->label = L("accel_to_decel");
@@ -2712,7 +2712,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(15,true));
+    def->set_default_value(new ConfigOptionFloatOrPercent(10,true));
 
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");
