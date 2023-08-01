@@ -349,7 +349,7 @@ void AuFile::on_input_enter(wxCommandEvent &evt)
 
     
     wxString new_fullname_path = dir.wstring() + "/" + new_fullname;
-    fs::path new_dir_path(new_fullname_path.c_str());
+    fs::path new_dir_path(new_fullname_path.ToStdWstring());
     
 
     if (fs::exists(new_dir_path)) existing = true;
@@ -465,7 +465,7 @@ void AuFile::on_set_cover()
     auto full_root_path_str = encode_path(full_root_path.string().c_str());
     auto dir       = wxString::Format("%s/.thumbnails", full_root_path_str);
 
-    fs::path dir_path(dir.c_str());
+    fs::path dir_path(dir.ToStdWstring());
 
     if (!fs::exists(dir_path)) {
         fs::create_directory(dir_path); 
@@ -509,7 +509,7 @@ void AuFile::on_set_delete()
         auto full_root_path     = full_path.branch_path();
         auto full_root_path_str = encode_path(full_root_path.string().c_str());
         auto dir                = wxString::Format("%s/.thumbnails", full_root_path_str);
-        fs::path dir_path(dir.c_str());
+        fs::path dir_path(dir.ToStdWstring());
 
         auto cover_img_path = dir_path.string() + "/thumbnail_3mf.png";
         auto small_img_path = dir_path.string() + "/thumbnail_small.png";
@@ -774,7 +774,7 @@ AuxiliaryPanel::AuxiliaryPanel(wxWindow *parent, wxWindowID id, const wxPoint &p
             auto list = iter->second;
             for (auto i = 0; i < list.size(); i++) {
                 if (list[i].wstring() == old_name) {
-                    list[i] = fs::path(new_name.c_str());
+                    list[i] = fs::path(new_name.ToStdWstring());
                     break;
                 }
             }
@@ -952,7 +952,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
 
             // add in file list
             iter = m_paths_list.find(file_model.ToStdString());
-            auto file_fs_path = fs::path(dir_path.c_str());
+            auto file_fs_path = fs::path(dir_path.ToStdWstring());
             if (iter != m_paths_list.end()) {
                 m_paths_list[file_model.ToStdString()].push_back(file_fs_path);
             } else {
@@ -1032,7 +1032,7 @@ void AuxiliaryPanel::Reload(wxString aux_path)
                 auto idx = file_path.find(folder.ToStdString());
                 if (idx != std::string::npos) {
                     auto iter = m_paths_list.find(folder.ToStdString());
-                    auto     file_path_str = fs::path(file_path.c_str());
+                    auto     file_path_str = fs::path(file_path.ToStdWstring());
 
                     if (iter != m_paths_list.end()) {
                         m_paths_list[folder.ToStdString()].push_back(file_path_str);

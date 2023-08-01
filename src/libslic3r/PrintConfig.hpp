@@ -713,6 +713,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                wall_distribution_count))
     ((ConfigOptionPercent,            min_feature_size))
     ((ConfigOptionPercent,            min_bead_width))
+
+    // Orca
+    ((ConfigOptionFloat,              make_overhang_printable_angle))
+    ((ConfigOptionFloat,              make_overhang_printable_hole_size))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -791,6 +795,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       infill_anchor))
     ((ConfigOptionFloatOrPercent,       infill_anchor_max))
 
+    // Orca
+    ((ConfigOptionBool,               make_overhang_printable))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

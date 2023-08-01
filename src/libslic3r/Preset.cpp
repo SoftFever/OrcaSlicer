@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include "Config.hpp"
 #include "Exception.hpp"
 #include "Preset.hpp"
 #include "PresetBundle.hpp"
@@ -686,7 +687,7 @@ bool Preset::is_custom_defined()
 
 bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
 {
-    bool is_bbl_vendor_preset = true;
+    bool is_bbl_vendor_preset = false;
     if (preset_bundle) {
         auto config = &preset_bundle->printers.get_edited_preset().config;
         std::string vendor_name;
@@ -756,7 +757,8 @@ static std::vector<std::string> s_Preset_print_options {
      "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
      "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
-     "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max"
+     "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max",
+     "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" 
 
 };
 
@@ -1697,11 +1699,13 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
     // SoftFever: ignore print connection info from project
-    cfg.erase("print_host");
-    cfg.erase("print_host_webui");
-    cfg.erase("printhost_apikey");
-    cfg.erase("printhost_cafile");
-    const auto        &keys = cfg.keys();
+    auto        keys = cfg.keys();
+    keys.erase(std::remove_if(keys.begin(), keys.end(),
+                              [](std::string &val) {
+                                return val == "print_host" || val == "print_host_webui" || val == "printhost_apikey" ||
+                                       val == "printhost_cafile";
+                              }),
+               keys.end());
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
 

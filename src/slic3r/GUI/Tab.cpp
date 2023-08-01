@@ -1641,12 +1641,6 @@ void Tab::on_presets_changed()
     if (wxGetApp().plater() == nullptr)
         return;
 
-    // Orca: update presets for the selected printer
-    if(m_type == Preset::TYPE_PRINTER) {
-        m_preset_bundle->update_selections(*wxGetApp().app_config);
-        wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
-    }
-
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
@@ -1894,6 +1888,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("only_one_wall_top");
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("detect_overhang_wall");
+        optgroup->append_single_option_line("make_overhang_printable");
+        optgroup->append_single_option_line("make_overhang_printable_angle");
+        optgroup->append_single_option_line("make_overhang_printable_hole_size");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
 
@@ -4244,6 +4241,11 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         // check if there is something in the cache to move to the new selected preset
         apply_config_from_cache();
 
+        // Orca: update presets for the selected printer
+        if (m_type == Preset::TYPE_PRINTER) {
+          m_preset_bundle->update_selections(*wxGetApp().app_config);
+          wxGetApp().plater()->sidebar().on_filaments_change(m_preset_bundle->filament_presets.size());
+        }
         load_current_preset();
     }
 

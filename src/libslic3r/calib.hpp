@@ -26,7 +26,11 @@ struct Calib_Params {
 };
 
 class CalibPressureAdvance {
-protected:
+  public:
+    static float find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height,
+                                       int filament_idx = 0);
+
+  protected:
     CalibPressureAdvance() =default;
     ~CalibPressureAdvance() =default;
 
@@ -120,8 +124,7 @@ struct SuggestedConfigCalibPAPattern {
     const std::vector<std::pair<std::string, double>> float_pairs {
         {"initial_layer_print_height", 0.25},
         {"layer_height", 0.2},
-        {"initial_layer_speed", 30},
-        {"outer_wall_speed", 100}
+        {"initial_layer_speed", 30}
     };
 
     const std::vector<std::pair<std::string, double>> nozzle_ratio_pairs {
