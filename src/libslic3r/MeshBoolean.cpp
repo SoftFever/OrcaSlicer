@@ -670,6 +670,12 @@ void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &b
             indexed_triangle_set all_its;
             TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
             std::vector<indexed_triangle_set> src_parts = its_split(tri_src.its);
+            if (src_parts.size() == 1)
+            {
+                //can not split, return error directly
+                BOOST_LOG_TRIVIAL(error) << boost::format("bool operation %1% failed, also can not split")%boolean_opts;
+                return;
+            }
             for (size_t i = 0; i < src_parts.size(); i++)
             {
                 auto part = triangle_mesh_to_mcut(src_parts[i]);
