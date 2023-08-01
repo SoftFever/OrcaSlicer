@@ -299,12 +299,13 @@ public:
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
 #if BBL_INTERNAL_TESTING
-        wxSize text_rect = memDc.GetTextExtent("Internal Version");
+        wxString versionText = BBL_INTERNAL_TESTING == 1 ? "Internal Version" : "Beta Version";
+        wxSize text_rect = memDc.GetTextExtent(versionText);
         int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth();
         int start_y = version_rect.GetBottom() + 10;
         wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
         memDc.SetFont(m_constant_text.title_font);
-        memDc.DrawLabel("Internal Version", internal_sign_rect, wxALIGN_TOP | wxALIGN_LEFT);
+        memDc.DrawLabel(versionText, internal_sign_rect, wxALIGN_TOP | wxALIGN_LEFT);
 #endif
 
         // load bitmap for logo
@@ -2105,22 +2106,22 @@ void GUI_App::init_app_config()
     if (data_dir().empty()) {
         #ifndef __linux__
             std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
-            //BBS create folder if not exists
-            boost::filesystem::path data_dir_path(data_dir);
-            if (!boost::filesystem::exists(data_dir_path))
-                boost::filesystem::create_directory(data_dir_path);
-            set_data_dir(data_dir);
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/prusa3d/PrusaSlicer/issues/2911
             wxString dir;
             if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
-            set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
-            boost::filesystem::path data_dir_path(data_dir());
+            std::string data_dir = (dir + "/" + GetAppName()).ToUTF8().data();
+        #endif
+#if BBL_INTERNAL_TESTING
+            data_dir += BBL_INTERNAL_TESTING == 1 ? "Internal" : "Beta";
+#endif
+            //BBS create folder if not exists
+            boost::filesystem::path data_dir_path(data_dir);
             if (!boost::filesystem::exists(data_dir_path))
                 boost::filesystem::create_directory(data_dir_path);
-        #endif
+            set_data_dir(data_dir);
     } else {
         m_datadir_redefined = true;
     }
