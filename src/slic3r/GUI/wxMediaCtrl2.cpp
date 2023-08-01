@@ -79,14 +79,15 @@ void wxMediaCtrl2::Load(wxURI url)
             key2.QueryRawValue("Source Filter", clsid);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": clsid %1% path %2%") % clsid % path;
 
+        std::string             data_dir_str = Slic3r::data_dir();
+        boost::filesystem::path data_dir_path(data_dir_str);
+        auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
+
         if (path.empty() || !wxFile::Exists(path) || clsid != CLSID_BAMBU_SOURCE) {
-            std::string             data_dir_str = Slic3r::data_dir();
-            boost::filesystem::path data_dir_path(data_dir_str);
-            auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
             if (boost::filesystem::exists(dll_path)) {
                 CallAfter(
                     [dll_path] {
-                    int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO);
+                    int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO | wxICON_ERROR);
                     if (res == wxYES) {
                         SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE };
                         ::ShellExecuteEx(&info);
@@ -94,7 +95,7 @@ void wxMediaCtrl2::Load(wxURI url)
                 });
             } else {
                 CallAfter([] {
-                    wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"), wxOK);
+                    wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"), wxOK | wxICON_ERROR);
                 });
             }
             m_error = clsid != CLSID_BAMBU_SOURCE ? 101 : path.empty() ? 102 : 103;
@@ -103,6 +104,17 @@ void wxMediaCtrl2::Load(wxURI url)
             event.SetEventObject(this);
             wxPostEvent(this, event);
             return;
+        }
+        if (path != dll_path) {
+            static bool notified = false;
+            if (!notified) CallAfter([dll_path] {
+                int res = wxMessageBox(_L("Using a BambuSource from a different install, video play may not work correctly!"), _L("Warning"), wxOK | wxICON_WARNING);
+                if (res == wxYES) {
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE};
+                    ::ShellExecuteEx(&info);
+                }
+            });
+            notified = true;
         }
         wxRegKey keyWmp(wxRegKey::HKCU, "SOFTWARE\\Microsoft\\MediaPlayer\\Player\\Extensions\\.");
         keyWmp.Create();
