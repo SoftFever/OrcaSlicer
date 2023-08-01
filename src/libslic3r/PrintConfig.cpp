@@ -2407,6 +2407,8 @@ void PrintConfigDef::init_fff_params()
                      "Using spiral line to lift z can prevent stringing");
     def->sidetext = L("mm");
     def->mode = comSimple;
+    def->min = 0;
+    def->max = 5;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("z_hop_types", coEnums);
