@@ -254,8 +254,7 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
         }
     }
 
-    const float highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
-    Vec3f       vec_down              = (trafo_no_translate.inverse() * -Vec3d::UnitZ()).normalized().cast<float>();
+    const float highlight_angle_limit = -cos(Geometry::deg2rad(highlight_by_angle_deg));
 
     // BBS
     std::vector<int> start_facets;
@@ -333,8 +332,7 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_st
     facet_queue.push(facet_start);
 
     const double facet_angle_limit     = cos(Geometry::deg2rad(seed_fill_angle)) - EPSILON;
-    const float  highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
-    Vec3f        vec_down              = (trafo_no_translate.inverse() * -Vec3d::UnitZ()).normalized().cast<float>();
+    const float  highlight_angle_limit = -cos(Geometry::deg2rad(highlight_by_angle_deg));
 
     // Depth-first traversal of neighbors of the face hit by the ray thrown from the mouse cursor.
     while (!facet_queue.empty()) {
