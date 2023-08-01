@@ -982,16 +982,16 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 update_on_off_state(mouse_pos);
                 update_data();
                 m_parent.set_as_dirty();
-            }
-            try {
-                std::string name = m_gizmos[m_hover]->get_gizmo_name();
-                int count = m_gizmos[m_hover]->get_count();
-                NetworkAgent* agent = GUI::wxGetApp().getAgent();
-                if (agent) {
-                    agent->track_update_property(name, std::to_string(count));
+                try {
+                    std::string name = get_name_from_gizmo_etype(m_hover);
+                    int count = m_gizmos[m_hover]->get_count();
+                    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+                    if (agent) {
+                        agent->track_update_property(name, std::to_string(count));
+                    }
                 }
+                catch (...) {}
             }
-            catch (...) {}
         }
         else if (evt.MiddleDown()) {
             m_mouse_capture.middle = true;
@@ -1683,6 +1683,29 @@ bool GLGizmosManager::is_hiding_instances() const
 int GLGizmosManager::get_shortcut_key(GLGizmosManager::EType type) const
 {
     return m_gizmos[type]->get_shortcut_key();
+}
+
+std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)
+{
+    switch (type) {
+    case GLGizmosManager::EType::Move:
+        return "Move";
+    case GLGizmosManager::EType::Rotate:
+        return "Rotate";
+    case GLGizmosManager::EType::Scale:
+        return "Scale";
+    case GLGizmosManager::EType::Flatten:
+        return "Flatten";
+    case GLGizmosManager::EType::FdmSupports:
+        return "FdmSupports";
+    case GLGizmosManager::EType::Seam:
+        return "Seam";
+    case GLGizmosManager::EType::Text:
+        return "Text";
+    default:
+        return "";
+    }
+    return "";
 }
 
 } // namespace GUI

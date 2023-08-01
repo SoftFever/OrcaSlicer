@@ -328,7 +328,7 @@ private:
     bool grabber_contains_mouse() const;
 };
 
-
+std::string get_name_from_gizmo_etype(GLGizmosManager::EType type);
 
 } // namespace GUI
 } // namespace Slic3r
