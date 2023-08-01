@@ -163,7 +163,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "inner_wall_acceleration",
         "sparse_infill_acceleration",
         "exclude_object",
-        "use_relative_e_distances"
+        "use_relative_e_distances",
+        "activate_air_filtration",
+        "during_print_exhaust_fan_speed",
+        "end_print_exhaust_fan_speed",
+        "end_print_exhaust_fan_time",
+        "complete_print_exhaust_fan_speed"
     };
 
     static std::unordered_set<std::string> steps_ignore;

@@ -50,6 +50,7 @@ public:
     std::string postamble() const;
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
+    std::string set_chamber_temperature(int temperature, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
     std::string set_pressure_advance(double pa) const;
     std::string set_jerk_xy(double jerk);
@@ -91,6 +92,7 @@ public:
     std::string set_fan(unsigned int speed) const;
     //BBS: set additional fan speed for BBS machine only
     static std::string set_additional_fan(unsigned int speed);
+    static std::string set_exhaust_fan(int speed,bool add_eol);
     //BBS
     void set_object_start_str(std::string start_string) { m_gcode_label_objects_start = start_string; }
     bool empty_object_start_str() { return m_gcode_label_objects_start.empty(); }

@@ -57,7 +57,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
-    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER"
+    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
+    "_DURING_PRINT_EXHAUST_FAN"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
@@ -362,6 +363,12 @@ void GCodeProcessor::TimeProcessor::reset()
     machine_limits = MachineEnvelopeConfig();
     filament_load_times = 0.0f;
     filament_unload_times = 0.0f;
+
+    exhaust_fan_info.activate = false;
+    exhaust_fan_info.print_end_exhaust_fan_speed = 0;
+    exhaust_fan_info.print_end_exhaust_fan_time = 0;
+    insert_fan_control_flag = false;
+
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         machines[i].reset();
     }
@@ -404,6 +411,14 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         char line_M73[64];
         sprintf(line_M73, mask.c_str(), std::to_string(time).c_str());
         return std::string(line_M73);
+    };
+
+    auto format_line_exhaust_fan_control = [](const std::string& mask,int fan_index,int percent) {
+        char line_fan[64] = { 0 };
+        sprintf(line_fan,mask.c_str(),
+            std::to_string(fan_index).c_str(),
+            std::to_string(int((percent/100.0)*255)).c_str());
+        return std::string(line_fan);
     };
 
     auto format_time_float = [](float time) {
@@ -516,7 +531,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // add lines M73 to exported gcode
     auto process_line_move = [
         // Lambdas, mostly for string formatting, all with an empty capture block.
-        time_in_minutes, format_time_float, format_line_M73_main, format_line_M73_stop_int, format_line_M73_stop_float, time_in_last_minute,
+        time_in_minutes, format_time_float, format_line_M73_main, format_line_M73_stop_int, format_line_M73_stop_float, time_in_last_minute,format_line_exhaust_fan_control,
         &self = std::as_const(*this),
         // Caches, to be modified
         &g1_times_cache_it, &last_exported_main, &last_exported_stop,
@@ -535,6 +550,14 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 if (it != machine.g1_times_cache.end() && it->id == g1_lines_counter) {
                     std::pair<int, int> to_export_main = { int(100.0f * it->elapsed_time / machine.time),
                                                             time_in_minutes(machine.time - it->elapsed_time) };
+
+                    if (self.exhaust_fan_info.activate && !self.insert_fan_control_flag && machine.time - it->elapsed_time < self.exhaust_fan_info.print_end_exhaust_fan_time ) {
+                        //insert fan 
+                        self.insert_fan_control_flag = true;
+                        export_line += format_line_exhaust_fan_control("M106 P%s S%s ;open exhaust fan before print end \n", 3, self.exhaust_fan_info.print_end_exhaust_fan_speed);
+                        ++exported_lines_count;
+                    }
+
                     if (last_exported_main[i] != to_export_main) {
                         export_line += format_line_M73_main(machine.line_m73_main_mask.c_str(),
                             to_export_main.first, to_export_main.second);
@@ -629,6 +652,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 gcode_line.insert(gcode_line.end(), it, it_end);
                 if (eol) {
                     ++line_id;
+                    // disable origin exhaust_fan_speed during print
+                    if (insert_fan_control_flag&&gcode_line.find(reserved_tag(ETags::During_Print_Exhaust_Fan)) != std::string::npos)
+                        gcode_line.clear();
 
                     gcode_line += "\n";
                     // replace placeholder lines
@@ -962,6 +988,18 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
         m_spiral_vase_active = spiral_vase->value;
+
+
+    for (size_t i = 0; i < config.activate_air_filtration.values.size(); ++i) {
+        if (config.activate_air_filtration.get_at(i)) {
+            m_exhaust_fan_info.print_end_exhaust_fan_speed = std::max(m_exhaust_fan_info.print_end_exhaust_fan_speed, config.end_print_exhaust_fan_speed.get_at(i));
+            m_exhaust_fan_info.print_end_exhaust_fan_time = std::max(m_exhaust_fan_info.print_end_exhaust_fan_time, config.end_print_exhaust_fan_time.get_at(i));
+        }
+    }
+
+    const ConfigOptionBools* activate_air_filtration = config.option<ConfigOptionBools>("activate_air_filtration");
+    if (activate_air_filtration != nullptr)
+        m_exhaust_fan_info.activate = *std::max_element(activate_air_filtration->values.begin(), activate_air_filtration->values.end())&&config.support_air_filtration.getBool();
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -1459,9 +1497,11 @@ void GCodeProcessor::finalize(bool post_process)
     m_height_compare.output();
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
-
-    if (post_process)
+    if (post_process){
+        //control chamber fan
+        m_time_processor.exhaust_fan_info = m_exhaust_fan_info;
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
+    }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -1897,7 +1937,7 @@ template<typename T>
         // Legacy conversion, which is costly due to having to make a copy of the string before conversion.
         try {
             assert(sv.size() < 1024);
-	    assert(sv.data() != nullptr);
+            assert(sv.data() != nullptr);
             std::string str { sv };
             size_t read = 0;
             if constexpr (std::is_same_v<T, int>)

@@ -821,6 +821,8 @@ static std::vector<std::string> s_Preset_filament_options {
     "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "fan_min_speed",
     "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "overhang_fan_threshold", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
+    //exhaust fan control
+    "activate_air_filtration","during_print_exhaust_fan_speed","end_print_exhaust_fan_speed","end_print_exhaust_fan_time","complete_print_exhaust_fan_speed",
     // Retract overrides
     "filament_retraction_length", "filament_z_hop", "filament_z_hop_types", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
     "filament_retract_when_changing_layer", "filament_wipe", "filament_retract_before_wipe",
@@ -850,7 +852,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types",
+    "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","chamber_temp_control","support_air_filtration",
     //OrcaSlicer
     "host_type", "print_host", "printhost_apikey",
     "print_host_webui",
