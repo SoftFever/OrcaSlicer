@@ -983,11 +983,13 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 update_data();
                 m_parent.set_as_dirty();
                 try {
-                    std::string name = get_name_from_gizmo_etype(m_hover);
-                    int count = m_gizmos[m_hover]->get_count();
-                    NetworkAgent* agent = GUI::wxGetApp().getAgent();
-                    if (agent) {
-                        agent->track_update_property(name, std::to_string(count));
+                    if ((int)m_hover >= 0 && (int)m_hover < m_gizmos.size()) {
+                        std::string name = get_name_from_gizmo_etype(m_hover);
+                        int count = m_gizmos[m_hover]->get_count();
+                        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+                        if (agent) {
+                            agent->track_update_property(name, std::to_string(count));
+                        }
                     }
                 }
                 catch (...) {}
