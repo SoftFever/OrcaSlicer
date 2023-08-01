@@ -953,6 +953,47 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("activate_air_filtration",coBools);
+    def->label = L("Activate air filtration");
+    def->tooltip = L("Acivate for better air filtration");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBools{false});
+
+    def = this->add("during_print_exhaust_fan_speed", coInts);
+    def->label   = L("Fan speed");
+    def->tooltip=L("Speed of exhuast fan during printing.This speed will overwrite the speed in filament custom gcode");
+    def->sidetext = L("%");
+    def->min=0;
+    def->max=100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts{60});
+
+    def = this->add("end_print_exhaust_fan_speed", coInts);
+    def->label = L("Fan speed");
+    def->tooltip=L("Speed of exhuast fan before printing completes");
+    def->sidetext = L("%");
+    def->min=0;
+    def->max=100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts{60});
+
+
+    def = this->add("end_print_exhaust_fan_time", coInts);
+    def->label = L("Time");
+    def->tooltip=L("open exhuast fan x seconds before printing completes");
+    def->sidetext = L("s");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts{300});
+
+    def = this->add("complete_print_exhaust_fan_speed", coInts);
+    def->label = L("Fan speed");
+    def->sidetext = L("%");
+    def->tooltip=L("Speed of exhuast fan after printing completes");
+    def->min=0;
+    def->max=100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts{80});
+
     def = this->add("close_fan_the_first_x_layers", coInts);
     def->label = L("No cooling for the first");
     def->tooltip = L("Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
@@ -1701,6 +1742,19 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Auxiliary part cooling fan");
     def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
     def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def =this->add("chamber_temp_control",coBool);
+    def->label=L("Support control chamber temperature");
+    def->tooltip=L("Enable this option if machine support controlling chamber temperature");
+    def->mode=comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+    def->readonly=false;
+
+    def =this->add("support_air_filtration",coBool);
+    def->label=L("Support air filtration");
+    def->tooltip=L("Decide whether support activating air filtration");
+    def->mode=comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_flavor", coEnum);

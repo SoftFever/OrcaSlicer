@@ -2746,6 +2746,22 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed");
 
+        optgroup = page->new_optgroup(L("Exhaust fan"));
+
+        optgroup->append_single_option_line("activate_air_filtration");
+
+        line = {L("During print"), L("")};
+        line.append_option(optgroup->get_option("during_print_exhaust_fan_speed"));
+        optgroup->append_line(line);
+
+        line = {L("End of print"), L("")};
+        line.append_option(optgroup->get_option("end_print_exhaust_fan_speed"));
+        line.append_option(optgroup->get_option("end_print_exhaust_fan_time"));
+        optgroup->append_line(line);
+
+        line = {L("Complete print"), L("")};
+        line.append_option(optgroup->get_option("complete_print_exhaust_fan_speed"));
+        optgroup->append_line(line);
         //BBS
         add_filament_overrides_page();
 #if 0
@@ -2853,6 +2869,14 @@ void TabFilament::toggle_options()
         bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
         for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
             toggle_option(el, has_enable_overhang_bridge_fan);
+        bool support_air_filtration = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_air_filtration");
+        //this->m_preset_bundle.
+        //toggle_line("activate_air_filtration",support_air_filtration);
+        //m_config;
+        for (auto elem : { "during_print_exhaust_fan_speed","end_print_exhaust_fan_speed","end_print_exhaust_fan_time","complete_print_exhaust_fan_speed" })
+            //toggle_line(elem, m_config->opt_bool("activate_air_filtration",0)&&support_air_filtration);
+            toggle_line(elem, m_config->opt_bool("activate_air_filtration",0));
+
     }
     if (m_active_page->title() == "Filament")
     {
@@ -2864,7 +2888,7 @@ void TabFilament::toggle_options()
             toggle_line("pressure_advance", true);
             toggle_option("pressure_advance", m_config->opt_bool("enable_pressure_advance", 0));
         }
-        toggle_line("chamber_temperatures", !is_BBL_printer);
+
         for (auto el :
              {"cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})
             toggle_line(el, is_BBL_printer);
@@ -3083,6 +3107,8 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("auxiliary_fan");
+        optgroup->append_single_option_line("chamber_temp_control");
+        optgroup->append_single_option_line("support_air_filtration");
 
     const int gcode_field_height = 15; // 150
     page = add_options_page(L("Machine gcode"), "cog");
@@ -3637,6 +3663,8 @@ void TabPrinter::toggle_options()
         toggle_option("gcode_flavor", !is_BBL_printer);
         toggle_option("use_relative_e_distances", !is_BBL_printer);
 
+        toggle_option("chamber_temp_control",!is_BBL_printer);
+        toggle_option("support_air_filtration",!is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
