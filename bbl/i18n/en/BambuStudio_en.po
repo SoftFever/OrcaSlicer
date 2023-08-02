@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 18:14+0800\n"
+"POT-Creation-Date: 2023-08-02 19:05+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3866,6 +3866,9 @@ msgstr "Cancel print"
 msgid "Are you sure you want to cancel this print?"
 msgstr "Are you sure you want to cancel this print?"
 
+msgid "Done"
+msgstr "Done"
+
 msgid "Downloading..."
 msgstr "Downloading..."
 
@@ -6313,9 +6316,6 @@ msgstr "New version of Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr "Don't remind me about this version again."
 
-msgid "Done"
-msgstr "Done"
-
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN Connection Failed (Sending print file)"
 
@@ -7854,19 +7854,6 @@ msgstr "Stainless steel"
 msgid "Brass"
 msgstr "Brass"
 
-msgid "Nozzle HRC"
-msgstr "Nozzle HRC"
-
-msgid ""
-"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
-"slicing."
-msgstr ""
-"The nozzle's hardness. Zero means no checking for nozzle hardness during "
-"slicing."
-
-msgid "HRC"
-msgstr "HRC"
-
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Enable this option if the machine has an auxiliary part cooling fan"
 
@@ -9189,6 +9176,12 @@ msgstr "UpToDate"
 msgid "Update the configs values of 3mf to latest."
 msgstr "Update the configs values of 3mf to latest."
 
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -9272,6 +9265,14 @@ msgstr "Skip Objects"
 
 msgid "Skip some objects in this print"
 msgstr "Skip some objects in this print"
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
 
 msgid "Output directory"
 msgstr "Output directory"
@@ -9555,7 +9556,6 @@ msgstr ""
 msgid "About this calibration"
 msgstr ""
 
-#, c-format
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
 "\n"
@@ -10299,6 +10299,19 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid "Nozzle HRC"
+#~ msgstr "Nozzle HRC"
+
+#~ msgid ""
+#~ "The nozzle's hardness. Zero means no checking for nozzle's hardness "
+#~ "during slicing."
+#~ msgstr ""
+#~ "The nozzle's hardness. Zero means no checking for nozzle hardness during "
+#~ "slicing."
+
+#~ msgid "HRC"
+#~ msgstr "HRC"
 
 #, c-format, boost-format
 #~ msgid ""

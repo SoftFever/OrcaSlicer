@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 18:14+0800\n"
+"POT-Creation-Date: 2023-08-02 19:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3670,6 +3670,9 @@ msgstr ""
 msgid "Are you sure you want to cancel this print?"
 msgstr ""
 
+msgid "Done"
+msgstr ""
+
 msgid "Downloading..."
 msgstr ""
 
@@ -5942,9 +5945,6 @@ msgstr ""
 msgid "Don't remind me of this version again"
 msgstr ""
 
-msgid "Done"
-msgstr ""
-
 msgid "LAN Connection Failed (Sending print file)"
 msgstr ""
 
@@ -7283,17 +7283,6 @@ msgstr ""
 msgid "Brass"
 msgstr ""
 
-msgid "Nozzle HRC"
-msgstr ""
-
-msgid ""
-"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
-"slicing."
-msgstr ""
-
-msgid "HRC"
-msgstr ""
-
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 
@@ -8417,6 +8406,12 @@ msgstr ""
 msgid "Update the configs values of 3mf to latest."
 msgstr ""
 
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "mtcpp"
 msgstr ""
 
@@ -8499,6 +8494,14 @@ msgid "Skip Objects"
 msgstr ""
 
 msgid "Skip some objects in this print"
+msgstr ""
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
 msgstr ""
 
 msgid "Output directory"
@@ -8772,7 +8775,6 @@ msgstr ""
 msgid "About this calibration"
 msgstr ""
 
-#, possible-c-format
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
 "\n"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 18:14+0800\n"
+"POT-Creation-Date: 2023-08-02 19:05+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3915,6 +3915,9 @@ msgstr "Print annuleren"
 msgid "Are you sure you want to cancel this print?"
 msgstr "Weet je zeker dat je deze print wilt annuleren?"
 
+msgid "Done"
+msgstr "Done"
+
 msgid "Downloading..."
 msgstr "Downloaden..."
 
@@ -6440,9 +6443,6 @@ msgstr "Nieuwe versie van Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr "Herinner me niet meer aan deze versie."
 
-msgid "Done"
-msgstr "Done"
-
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-verbinding mislukt (verzenden afdrukbestand)"
 
@@ -8020,19 +8020,6 @@ msgstr "Roestvrij staal"
 msgid "Brass"
 msgstr "Messing"
 
-msgid "Nozzle HRC"
-msgstr "Nozzle HRC"
-
-msgid ""
-"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
-"slicing."
-msgstr ""
-"De hardheid van de nozzle. Nul betekent geen controle op de hardheid van het "
-"mondstuk tijdens het slicen."
-
-msgid "HRC"
-msgstr "HRC"
-
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 "Schakel deze optie in als de machine een ventilator voor de enclosure heeft"
@@ -9397,6 +9384,12 @@ msgstr "UpToDate"
 msgid "Update the configs values of 3mf to latest."
 msgstr "Update de configuratiewaarden van 3mf naar de nieuwste versie."
 
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -9480,6 +9473,14 @@ msgstr "Skip Objects"
 
 msgid "Skip some objects in this print"
 msgstr "Skip some objects in this print"
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
 
 msgid "Output directory"
 msgstr "Uitvoermap"
@@ -9765,7 +9766,6 @@ msgstr ""
 msgid "About this calibration"
 msgstr ""
 
-#, c-format
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
 "\n"
@@ -10510,6 +10510,19 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Nozzle HRC"
+#~ msgstr "Nozzle HRC"
+
+#~ msgid ""
+#~ "The nozzle's hardness. Zero means no checking for nozzle's hardness "
+#~ "during slicing."
+#~ msgstr ""
+#~ "De hardheid van de nozzle. Nul betekent geen controle op de hardheid van "
+#~ "het mondstuk tijdens het slicen."
+
+#~ msgid "HRC"
+#~ msgstr "HRC"
 
 #, c-format, boost-format
 #~ msgid ""

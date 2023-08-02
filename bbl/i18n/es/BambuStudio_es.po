@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 18:14+0800\n"
+"POT-Creation-Date: 2023-08-02 19:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3922,6 +3922,9 @@ msgstr "Cancelar impresión"
 msgid "Are you sure you want to cancel this print?"
 msgstr "¿Está seguro de cancelar la impresión?"
 
+msgid "Done"
+msgstr "Done"
+
 msgid "Downloading..."
 msgstr "Descargando…"
 
@@ -6426,9 +6429,6 @@ msgstr "Nueva versión de Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr "No vuelvas a recordarme esta versión."
 
-msgid "Done"
-msgstr "Done"
-
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "Fallo en la conexión LAN (envío del archivo de impresión)"
 
@@ -8006,19 +8006,6 @@ msgstr "Acero inoxidable"
 msgid "Brass"
 msgstr "Latón"
 
-msgid "Nozzle HRC"
-msgstr "Boquilla HRC"
-
-msgid ""
-"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
-"slicing."
-msgstr ""
-"La dureza de la boquilla. Cero significa que no se comprueba la dureza de la "
-"boquilla durante la generación del G-code."
-
-msgid "HRC"
-msgstr "HRC"
-
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 "Habilite esta opción si la máquina tiene un ventilador auxiliar de "
@@ -9375,6 +9362,12 @@ msgstr "Actualizado"
 msgid "Update the configs values of 3mf to latest."
 msgstr "Actualice los valores de configuración de 3mf a los más recientes."
 
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -9459,6 +9452,14 @@ msgstr "Skip Objects"
 
 msgid "Skip some objects in this print"
 msgstr "Skip some objects in this print"
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
 
 msgid "Output directory"
 msgstr "Directorio de salida"
@@ -9743,7 +9744,6 @@ msgstr ""
 msgid "About this calibration"
 msgstr ""
 
-#, c-format
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
 "\n"
@@ -10488,6 +10488,19 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "Nozzle HRC"
+#~ msgstr "Boquilla HRC"
+
+#~ msgid ""
+#~ "The nozzle's hardness. Zero means no checking for nozzle's hardness "
+#~ "during slicing."
+#~ msgstr ""
+#~ "La dureza de la boquilla. Cero significa que no se comprueba la dureza de "
+#~ "la boquilla durante la generación del G-code."
+
+#~ msgid "HRC"
+#~ msgstr "HRC"
 
 #, c-format, boost-format
 #~ msgid ""

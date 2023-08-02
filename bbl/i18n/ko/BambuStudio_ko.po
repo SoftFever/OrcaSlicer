@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 18:14+0800\n"
+"POT-Creation-Date: 2023-08-02 19:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3834,6 +3834,9 @@ msgstr "출력 취소"
 msgid "Are you sure you want to cancel this print?"
 msgstr "이 출력을 취소하시겠습니까?"
 
+msgid "Done"
+msgstr "완료"
+
 msgid "Downloading..."
 msgstr "다운로드 중…"
 
@@ -6248,9 +6251,6 @@ msgstr "뱀부 스튜디오의 새 버전"
 msgid "Don't remind me of this version again"
 msgstr "이 버전에 대해 다시 상기시키지 않습니다."
 
-msgid "Done"
-msgstr "완료"
-
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN 연결 실패 (출력 파일 전송 중)"
 
@@ -7741,18 +7741,6 @@ msgstr "스테인레스 스틸"
 msgid "Brass"
 msgstr "황동"
 
-msgid "Nozzle HRC"
-msgstr "노즐 HRC"
-
-msgid ""
-"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
-"slicing."
-msgstr ""
-"노즐의 경도. 0은 슬라이싱 중에 노즐 경도를 확인할 필요가 없음을 의미합니다."
-
-msgid "HRC"
-msgstr "HRC"
-
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "프린터에 보조 냉각 팬이 있는 경우 이 옵션을 활성화하십시오."
 
@@ -9032,6 +9020,12 @@ msgstr "최신"
 msgid "Update the configs values of 3mf to latest."
 msgstr "3mf의 설정값을 최신으로 업데이트합니다."
 
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -9115,6 +9109,14 @@ msgstr "객체 건너뛰기"
 
 msgid "Skip some objects in this print"
 msgstr "이 출력에서 일부 객체 건너뛰기"
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
 
 msgid "Output directory"
 msgstr "출력 디렉토리"
@@ -9398,7 +9400,6 @@ msgstr ""
 msgid "About this calibration"
 msgstr ""
 
-#, c-format
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
 "\n"
@@ -10139,6 +10140,19 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid "Nozzle HRC"
+#~ msgstr "노즐 HRC"
+
+#~ msgid ""
+#~ "The nozzle's hardness. Zero means no checking for nozzle's hardness "
+#~ "during slicing."
+#~ msgstr ""
+#~ "노즐의 경도. 0은 슬라이싱 중에 노즐 경도를 확인할 필요가 없음을 의미합니"
+#~ "다."
+
+#~ msgid "HRC"
+#~ msgstr "HRC"
 
 #, c-format, boost-format
 #~ msgid ""
