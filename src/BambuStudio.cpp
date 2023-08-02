@@ -559,6 +559,7 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
+    bool new_process_config_is_system = true, new_printer_config_is_system = true;
     std::string pipe_name;
 
     // Read input file(s) if any.
@@ -784,8 +785,8 @@ int CLI::run(int argc, char **argv)
         }
     //}
 
-    auto load_system_config_file = [config_substitution_rule](const std::string& file, DynamicPrintConfig& config, std::string& config_type,
-                                std::string& config_name, std::string& filament_id) {
+    auto load_config_file = [config_substitution_rule](const std::string& file, DynamicPrintConfig& config, std::string& config_type,
+                                std::string& config_name, std::string& filament_id, std::string& config_from) {
         if (! boost::filesystem::exists(file)) {
             boost::nowide::cerr << __FUNCTION__<< ": can not find setting file: " << file << std::endl;
             return CLI_FILE_NOTFOUND;
@@ -794,7 +795,7 @@ int CLI::run(int argc, char **argv)
         try {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ":load setting file "<< file << ", with rule "<< config_substitution_rule << std::endl;
             std::map<std::string, std::string> key_values;
-            std::string reason, config_from;
+            std::string reason;
 
             config_substitutions = config.load_from_json(file, config_substitution_rule, key_values, reason);
             if (!reason.empty()) {
@@ -807,7 +808,7 @@ int CLI::run(int argc, char **argv)
             if (from_iter != key_values.end()) {
                 config_from = from_iter->second;
             }
-            if (config_from != "system") {
+            if ((config_from != "system")&&(config_from != "User")&&(config_from != "user")) {
                 boost::nowide::cerr <<__FUNCTION__ << boost::format(":file %1%'s from %2% unsupported") % file % config_from;
                 return CLI_CONFIG_FILE_ERROR;
             }
@@ -857,8 +858,8 @@ int CLI::run(int argc, char **argv)
     // load config files supplied via --load
     for (auto const &file : load_configs) {
         DynamicPrintConfig  config;
-        std::string config_type, config_name, filament_id;
-        int ret = load_system_config_file(file, config, config_type, config_name, filament_id);
+        std::string config_type, config_name, filament_id, config_from;
+        int ret = load_config_file(file, config, config_type, config_name, filament_id, config_from);
         if (ret) {
             record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
             flush_and_exit(ret);
@@ -871,9 +872,18 @@ int CLI::run(int argc, char **argv)
                 flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
             new_printer_name = config_name;
+            if (config_from == "system") {
+                new_printer_system_name = new_printer_name;
+                new_printer_config_is_system = true;
+            }
+            else {
+                new_printer_system_name = config.option<ConfigOptionString>("inherits", true)->value;
+                new_printer_config_is_system = false;
+            }
             config.set("printer_settings_id", new_printer_name, true);
             //printer_inherits = config.option<ConfigOptionString>("inherits", true)->value;
             load_machine_config = std::move(config);
+            BOOST_LOG_TRIVIAL(info) << boost::format("loaded machine config %1%, type %2%, name %3%, inherits %4%")%file %config_name %config_from % new_printer_system_name;
         }
         else if (config_type == "process") {
             if (!new_process_name.empty()) {
@@ -882,10 +892,19 @@ int CLI::run(int argc, char **argv)
                 flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
             new_process_name = config_name;
+            if (config_from == "system") {
+                new_process_system_name = new_process_name;
+                new_process_config_is_system = true;
+            }
+            else {
+                new_process_system_name = config.option<ConfigOptionString>("inherits", true)->value;
+                new_process_config_is_system = false;
+            }
             config.set("print_settings_id", new_process_name, true);
             //print_inherits = config.option<ConfigOptionString>("inherits", true)->value;
             new_print_compatible_printers = config.option<ConfigOptionStrings>("compatible_printers", true)->values;
             load_process_config = std::move(config);
+            BOOST_LOG_TRIVIAL(info) << boost::format("loaded process config %1%, type %2%, name %3%, inherits %4%")%file %config_name %config_from % new_process_system_name;
         }
 
         PrinterTechnology other_printer_technology = get_printer_technology(config);
@@ -905,9 +924,9 @@ int CLI::run(int argc, char **argv)
     std::vector<int> load_filaments_index;
     std::vector<DynamicPrintConfig> load_filaments_config;
     std::vector<std::string> load_filaments_id;
-    std::vector<std::string> load_filaments_name;
+    std::vector<std::string> load_filaments_name, load_filaments_inherit;
     int current_index = 0;
-    std::string default_load_fila_name, default_load_fila_id, default_filament_file;
+    std::string default_load_fila_name, default_load_fila_id, default_filament_file, default_filament_inherit;
     DynamicPrintConfig  default_load_fila_config;
     if (use_first_fila_as_default) {
         //construct default filament
@@ -915,8 +934,8 @@ int CLI::run(int argc, char **argv)
             const std::string& file = load_filaments[index];
             if (default_filament_file.empty() && !file.empty()) {
                 DynamicPrintConfig  config;
-                std::string config_type, config_name, filament_id;
-                int ret = load_system_config_file(file, config, config_type, config_name, filament_id);
+                std::string config_type, config_name, filament_id, config_from;
+                int ret = load_config_file(file, config, config_type, config_name, filament_id, config_from);
                 if (ret) {
                     record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                     flush_and_exit(ret);
@@ -928,10 +947,16 @@ int CLI::run(int argc, char **argv)
                     flush_and_exit(CLI_CONFIG_FILE_ERROR);
                 }
 
+                if ((config_from == "User")||(config_from == "user")) {
+                    default_filament_inherit = config.option<ConfigOptionString>("inherits", true)->value;
+                }
+
                 default_filament_file = file;
                 default_load_fila_name = config_name;
                 default_load_fila_id = filament_id;
                 default_load_fila_config = std::move(config);
+
+                BOOST_LOG_TRIVIAL(info) << boost::format("loaded default filament config %1%, type %2%, name %3%, inherits %4%")%file  %config_from %config_name % default_filament_inherit;
                 break;
             }
         }
@@ -947,8 +972,8 @@ int CLI::run(int argc, char **argv)
         current_index++;
         if (!file.empty()) {
             DynamicPrintConfig  config;
-            std::string config_type, config_name, filament_id;
-            int ret = load_system_config_file(file, config, config_type, config_name, filament_id);
+            std::string config_type, config_name, filament_id, config_from;
+            int ret = load_config_file(file, config, config_type, config_name, filament_id, config_from);
             if (ret) {
                 record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                 flush_and_exit(ret);
@@ -969,10 +994,17 @@ int CLI::run(int argc, char **argv)
                 record_exit_reson(outfile_dir, CLI_INVALID_PRINTER_TECH, 0, cli_errors[CLI_INVALID_PRINTER_TECH]);
                 flush_and_exit(CLI_INVALID_PRINTER_TECH);
             }
+            std::string inherits;
+            if ((config_from == "User")||(config_from == "user")) {
+                inherits = config.option<ConfigOptionString>("inherits", true)->value;
+            }
+            load_filaments_inherit.push_back(inherits);
             load_filaments_id.push_back(filament_id);
             load_filaments_name.push_back(config_name);
             load_filaments_config.push_back(std::move(config));
             load_filaments_index.push_back(current_index);
+
+            BOOST_LOG_TRIVIAL(info) << boost::format("loaded filament %1% from file %2%, type %3%, name %4%, inherits %5%")%(index+1) %file %config_from %config_name % inherits;
         }
         else {
             if (use_first_fila_as_default) {
@@ -981,6 +1013,7 @@ int CLI::run(int argc, char **argv)
                 load_filaments_name.push_back(default_load_fila_name);
                 load_filaments_config.push_back(default_load_fila_config);
                 load_filaments_index.push_back(current_index);
+                load_filaments_inherit.push_back(default_filament_inherit);
             }
             continue;
         }
@@ -996,8 +1029,8 @@ int CLI::run(int argc, char **argv)
         {
             for (auto const &file : uptodate_configs) {
                 DynamicPrintConfig  config;
-                std::string config_type, config_name, filament_id;
-                int ret = load_system_config_file(file, config, config_type, config_name, filament_id);
+                std::string config_type, config_name, filament_id, config_from;
+                int ret = load_config_file(file, config, config_type, config_name, filament_id, config_from);
                 if (ret) {
                     record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                     flush_and_exit(ret);
@@ -1048,8 +1081,8 @@ int CLI::run(int argc, char **argv)
                 }
                 else {
                     DynamicPrintConfig  config;
-                    std::string config_type, config_name, filament_id;
-                    int ret = load_system_config_file(system_printer_path, config, config_type, config_name, filament_id);
+                    std::string config_type, config_name, filament_id, config_from;
+                    int ret = load_config_file(system_printer_path, config, config_type, config_name, filament_id, config_from);
                     if (ret) {
                         record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                         flush_and_exit(ret);
@@ -1071,8 +1104,8 @@ int CLI::run(int argc, char **argv)
                 }
                 else {
                     DynamicPrintConfig  config;
-                    std::string config_type, config_name, filament_id;
-                    int ret = load_system_config_file(system_process_path, config, config_type, config_name, filament_id);
+                    std::string config_type, config_name, filament_id, config_from;
+                    int ret = load_config_file(system_process_path, config, config_type, config_name, filament_id, config_from);
                     if (ret) {
                         record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                         flush_and_exit(ret);
@@ -1086,7 +1119,8 @@ int CLI::run(int argc, char **argv)
                 fetch_compatible_values = true;
         }
 
-        if (load_filaments_config.empty() && !current_filaments_system_name.empty()) {
+        //20230802 lhwei: remove below codes, don't replace filament currently
+        /*if (load_filaments_config.empty() && !current_filaments_system_name.empty()) {
             for (int index = 0; index < current_filaments_system_name.size(); index++) {
                 std::string system_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+current_filaments_system_name[index]+".json";
                 current_index++;
@@ -1095,8 +1129,8 @@ int CLI::run(int argc, char **argv)
                     continue;
                 }
                 DynamicPrintConfig  config;
-                std::string config_type, config_name, filament_id;
-                int ret = load_system_config_file(system_filament_path, config, config_type, config_name, filament_id);
+                std::string config_type, config_name, filament_id, config_from;
+                int ret = load_config_file(system_filament_path, config, config_type, config_name, filament_id, config_from);
                 if (ret) {
                     record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                     flush_and_exit(ret);
@@ -1106,8 +1140,13 @@ int CLI::run(int argc, char **argv)
                 load_filaments_name.push_back(config_name);
                 load_filaments_config.push_back(std::move(config));
                 load_filaments_index.push_back(current_index);
+                std::string inherits;
+                if ((config_from == "User")||(config_from == "user")) {
+                    inherits = config.option<ConfigOptionString>("inherits", true)->value;
+                }
+                load_filaments_inherit.push_back(inherits);
             }
-        }
+        }*/
     }
     else if (is_bbl_3mf){
         fetch_upward_values = true;
@@ -1125,8 +1164,8 @@ int CLI::run(int argc, char **argv)
             }
             else {
                 DynamicPrintConfig  config;
-                std::string config_type, config_name, filament_id;
-                int ret = load_system_config_file(system_printer_path, config, config_type, config_name, filament_id);
+                std::string config_type, config_name, filament_id, config_from;
+                int ret = load_config_file(system_printer_path, config, config_type, config_name, filament_id, config_from);
                 if (ret) {
                     record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                     flush_and_exit(ret);
@@ -1147,8 +1186,8 @@ int CLI::run(int argc, char **argv)
             }
             else {
                 DynamicPrintConfig  config;
-                std::string config_type, config_name, filament_id;
-                int ret = load_system_config_file(system_process_path, config, config_type, config_name, filament_id);
+                std::string config_type, config_name, filament_id, config_from;
+                int ret = load_config_file(system_process_path, config, config_type, config_name, filament_id, config_from);
                 if (ret) {
                     record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
                     flush_and_exit(ret);
@@ -1175,7 +1214,7 @@ int CLI::run(int argc, char **argv)
     if (!new_printer_name.empty()) {
         if (!new_process_name.empty()) {
             for (int index = 0; index < new_print_compatible_printers.size(); index++) {
-                if (new_print_compatible_printers[index] == new_printer_name) {
+                if (new_print_compatible_printers[index] == new_printer_system_name) {
                     process_compatible = true;
                     break;
                 }
@@ -1185,7 +1224,7 @@ int CLI::run(int argc, char **argv)
         }
         else {
             for (int index = 0; index < current_print_compatible_printers.size(); index++) {
-                if (current_print_compatible_printers[index] == new_printer_name) {
+                if (current_print_compatible_printers[index] == new_printer_system_name) {
                     process_compatible = true;
                     break;
                 }
@@ -1223,14 +1262,14 @@ int CLI::run(int argc, char **argv)
     if (!process_compatible && !new_printer_name.empty() && !current_printer_name.empty() && (new_printer_name != current_printer_name)) {
         if (upward_compatible_printers.size() > 0) {
             for (int index = 0; index < upward_compatible_printers.size(); index++) {
-                if (upward_compatible_printers[index] == new_printer_name) {
+                if (upward_compatible_printers[index] == new_printer_system_name) {
                     process_compatible = true;
                     machine_upwards = true;
                     break;
                 }
             }
             if (!process_compatible) {
-                BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1% : current 3mf file not support the new printer %2%")%__LINE__%new_printer_name;
+                BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1% : current 3mf file not support the new printer %2%, new_printer_system_name %3%")%__LINE__%new_printer_name %new_printer_system_name;
                 record_exit_reson(outfile_dir, CLI_3MF_NEW_MACHINE_NOT_SUPPORTED, 0, cli_errors[CLI_3MF_NEW_MACHINE_NOT_SUPPORTED]);
                 flush_and_exit(CLI_3MF_NEW_MACHINE_NOT_SUPPORTED);
             }
@@ -1251,6 +1290,7 @@ int CLI::run(int argc, char **argv)
     //create project embedded preset if needed
     Preset *new_preset = NULL;
     if (is_bbl_3mf && machine_upwards) {
+        //we need to update the compatible printer and create a new process here, or if we load the 3mf in studio, the process preset can not be loaded as not compatible
         Preset *current_preset = NULL;
         size_t project_presets_count = project_presets.size();
         for (int index = 0; index < project_presets_count; index++)
@@ -1266,13 +1306,13 @@ int CLI::run(int argc, char **argv)
             std::vector<std::string>& compatible_printers = new_preset->config.option<ConfigOptionStrings>("compatible_printers", true)->values;
             bool need_insert = true;
             for (int index = 0; index < compatible_printers.size(); index++) {
-                if (compatible_printers[index] == new_printer_name) {
+                if (compatible_printers[index] == new_printer_system_name) {
                     need_insert = false;
                     break;
                 }
             }
             if (need_insert)
-                compatible_printers.push_back(new_printer_name);
+                compatible_printers.push_back(new_printer_system_name);
         }
         else {
             //store a project-embedded preset
@@ -1280,7 +1320,7 @@ int CLI::run(int argc, char **argv)
             new_preset->config.apply_only(m_print_config, process_keys);
             std::vector<std::string>& compatible_printers = new_preset->config.option<ConfigOptionStrings>("compatible_printers", true)->values;
             compatible_printers = current_print_compatible_printers;
-            compatible_printers.push_back(new_printer_name);
+            compatible_printers.push_back(new_printer_system_name);
             if (current_process_system_name != current_process_name) {
                 std::string& inherits = new_preset->config.option<ConfigOptionString>("inherits", true)->value;
                 inherits = current_process_system_name;
@@ -1296,9 +1336,9 @@ int CLI::run(int argc, char **argv)
     }
 
     //update seperate configs into full config
-    auto update_full_config = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& config, std::set<std::string>& diff_key_sets) {
+    auto update_full_config = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& config, std::set<std::string>& diff_key_sets, bool update_all = false) {
         for (const t_config_option_key &opt_key : config.keys()) {
-            if (!diff_key_sets.empty() && (diff_key_sets.find(opt_key) != diff_key_sets.end())) {
+            if (!update_all && !diff_key_sets.empty() && (diff_key_sets.find(opt_key) != diff_key_sets.end())) {
                 //uptodate, diff keys, continue
                 BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                 continue;
@@ -1309,7 +1349,8 @@ int CLI::run(int argc, char **argv)
                 boost::nowide::cerr << __FUNCTION__<<": can not found option " <<opt_key<<"from config." <<std::endl;
                 return CLI_CONFIG_FILE_ERROR;
             }
-            if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "model_id" || opt_key == "inherits" ||opt_key == "dev_model_name")
+            if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "model_id" || opt_key == "inherits" ||opt_key == "dev_model_name"
+                || opt_key == "name" || opt_key == "from" || opt_key == "type" || opt_key == "version" || opt_key == "setting_id" || opt_key == "instantiation" )
                 continue;
             else {
                 ConfigOption *dest_opt = full_config.option(opt_key, true);
@@ -1340,13 +1381,27 @@ int CLI::run(int argc, char **argv)
             }
         }
         else {
+            //todo: support user machine preset's different settings
             different_settings[filament_count+1] = "";
-            inherits_group[filament_count+1] = "";
+            if (new_printer_config_is_system)
+                inherits_group[filament_count+1] = "";
+            else
+                inherits_group[filament_count+1] = new_printer_system_name;
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
         BOOST_LOG_TRIVIAL(info) << boost::format("update printer config to newest, different size %1%")%different_keys_set.size();
-        int ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
+
+        int ret;
+        if (new_printer_name.empty()) {
+            ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
+            BOOST_LOG_TRIVIAL(info) << boost::format("no new printer, only update the different key, ret %1%")%ret;
+        }
+        else {
+            ret = update_full_config(m_print_config, load_machine_config, different_keys_set, true);
+            BOOST_LOG_TRIVIAL(info) << boost::format("load a new printer, update all the keys, ret %1%")%ret;
+        }
+
         if (ret) {
             record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
             flush_and_exit(ret);
@@ -1379,14 +1434,28 @@ int CLI::run(int argc, char **argv)
             print_compatible_printers = std::move(current_print_compatible_printers);
         }
         else {
+            //todo: support system process preset
             different_settings[0] = "";
-            inherits_group[0] = "";
+            if (new_process_config_is_system)
+                inherits_group[0] = "";
+            else
+                inherits_group[0] = new_process_system_name;
             print_compatible_printers = std::move(new_print_compatible_printers);
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
         BOOST_LOG_TRIVIAL(info) << boost::format("update process config to newest, different size %1%")%different_keys_set.size();
-        int ret = update_full_config(m_print_config, load_process_config, different_keys_set);
+
+        int ret;
+        if (new_process_name.empty()) {
+            ret = update_full_config(m_print_config, load_process_config, different_keys_set);
+            BOOST_LOG_TRIVIAL(info) << boost::format("no new process, only update the different key, ret %1%")%ret;
+        }
+        else {
+            ret = update_full_config(m_print_config, load_process_config, different_keys_set, true);
+            BOOST_LOG_TRIVIAL(info) << boost::format("load a new process, update all the keys, ret %1%")%ret;
+        }
+
         if (ret) {
             record_exit_reson(outfile_dir, ret, 0, cli_errors[ret]);
             flush_and_exit(ret);
@@ -1394,7 +1463,7 @@ int CLI::run(int argc, char **argv)
     }
 
     if (machine_upwards) {
-        print_compatible_printers.push_back(new_printer_name);
+        print_compatible_printers.push_back(new_printer_system_name);
 
         std::string old_setting = different_settings[0];
         if (old_setting.empty())
@@ -1438,8 +1507,9 @@ int CLI::run(int argc, char **argv)
                     opt_filament_ids->resize(filament_count, filament_id_setting);
                 opt_filament_ids->set_at(filament_id_setting,  filament_index-1, 0);
 
+                //todo: update different settings of filaments
                 different_settings[filament_index] = "";
-                inherits_group[filament_index] = "";
+                inherits_group[filament_index] = load_filaments_inherit[index];
             }
             else {
                 std::string diff_settings;
@@ -1455,7 +1525,7 @@ int CLI::run(int argc, char **argv)
             std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
             BOOST_LOG_TRIVIAL(info) << boost::format("update filament %1%'s config to newest, different size %2%")%filament_index%different_keys_set.size();
             for (const t_config_option_key &opt_key : config.keys()) {
-                if (!different_keys_set.empty() && (different_keys_set.find(opt_key) != different_keys_set.end())) {
+                if ((load_filament_count == 0) && !different_keys_set.empty() && (different_keys_set.find(opt_key) != different_keys_set.end())) {
                     //uptodate, diff keys, continue
                     BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
                     continue;
