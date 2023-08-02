@@ -2665,6 +2665,31 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
     return result;
 }
 
+std::string MachineObject::setting_id_to_type(std::string setting_id, std::string tray_type)
+{
+    std::string type;
+
+    PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+
+            if (it->filament_id.compare(setting_id) == 0) {
+                std::string display_filament_type;
+                it->config.get_filament_type(display_filament_type);
+                type = display_filament_type;
+                break;
+            }
+        }
+    }
+
+    if (tray_type != type || type.empty()) {
+        if (type.empty()) {type = tray_type;}
+        BOOST_LOG_TRIVIAL(info) << "The values of tray_info_idx and tray_type do not match tray_info_idx " << setting_id << " tray_type " << tray_type;
+    }
+
+    return type;
+}
+
 int MachineObject::parse_json(std::string payload)
 {
     CNumericLocalesSetter locales_setter;
@@ -3492,7 +3517,8 @@ int MachineObject::parse_json(std::string payload)
                                             curr_tray->tag_uid = "0";
                                         if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
                                             curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
-                                            std::string type            = (*tray_it)["tray_type"].get<std::string>();
+                                            //std::string type            = (*tray_it)["tray_type"].get<std::string>();
+                                            std::string type = setting_id_to_type(curr_tray->setting_id, (*tray_it)["tray_type"].get<std::string>());
                                             if (curr_tray->setting_id == "GFS00") {
                                                 curr_tray->type = "PLA-S";
                                             }
@@ -3653,7 +3679,8 @@ int MachineObject::parse_json(std::string payload)
                                     vt_tray.tag_uid = "0";
                                 if (jj["vt_tray"].contains("tray_info_idx") && jj["vt_tray"].contains("tray_type")) {
                                     vt_tray.setting_id = jj["vt_tray"]["tray_info_idx"].get<std::string>();
-                                    std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
+                                    //std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
+                                    std::string type = setting_id_to_type(vt_tray.setting_id, jj["vt_tray"]["tray_type"].get<std::string>());
                                     if (vt_tray.setting_id == "GFS00") {
                                         vt_tray.type = "PLA-S";
                                     }
@@ -3792,9 +3819,10 @@ int MachineObject::parse_json(std::string payload)
                             BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
                             vt_tray.nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
                             vt_tray.nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                            vt_tray.type = jj["tray_type"].get<std::string>();
                             vt_tray.color = jj["tray_color"].get<std::string>();
                             vt_tray.setting_id = jj["tray_info_idx"].get<std::string>();
+                            //vt_tray.type = jj["tray_type"].get<std::string>();
+                            vt_tray.type = setting_id_to_type(vt_tray.setting_id, jj["tray_info_idx"].get<std::string>());
                             // delay update
                             vt_tray.set_hold_count();
                         } else {
@@ -3806,7 +3834,7 @@ int MachineObject::parse_json(std::string payload)
                                     BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
                                     tray_it->second->nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
                                     tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                                    tray_it->second->type = jj["tray_type"].get<std::string>();
+                                    //tray_it->second->type = jj["tray_type"].get<std::string>();
                                     tray_it->second->color = jj["tray_color"].get<std::string>();
 
                                     /*tray_it->second->cols.clear();
@@ -3819,6 +3847,7 @@ int MachineObject::parse_json(std::string payload)
                                     }*/
 
                                     tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
+                                    tray_it->second->type = setting_id_to_type(tray_it->second->setting_id, jj["tray_type"].get<std::string>());
                                     // delay update
                                     tray_it->second->set_hold_count();
                                 } else {

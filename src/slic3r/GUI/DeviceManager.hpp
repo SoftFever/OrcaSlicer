@@ -880,6 +880,7 @@ public:
     int parse_json(std::string payload);
     int publish_gcode(std::string gcode_str);
 
+    std::string setting_id_to_type(std::string setting_id, std::string tray_type);
     BBLSubTask* get_subtask();
     BBLModelTask* get_modeltask();
     void set_modeltask(BBLModelTask* task);
