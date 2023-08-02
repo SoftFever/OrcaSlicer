@@ -54,12 +54,12 @@
     "2.5"
   ],
   "machine_max_jerk_x": [
-    "9",
-    "9"
+    "12",
+    "12"
   ],
   "machine_max_jerk_y": [
-    "9",
-    "9"
+    "12",
+    "12"
   ],
   "machine_max_jerk_z": [
     "0.2",
@@ -74,7 +74,7 @@
     "0"
   ],
   "max_layer_height": [
-    "0.28"
+    "0.32"
   ],
   "min_layer_height": [
     "0.08"
