@@ -29,6 +29,18 @@ WX_DEFINE_LIST(RadioSelectorList);
 wxDEFINE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
 
+class MyscrolledWindow : public wxScrolledWindow {
+public:
+    MyscrolledWindow(wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxVSCROLL) : wxScrolledWindow(parent, id, pos, size, style) {}
+
+    bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; }
+};
+
+
 wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_title = new wxBoxSizer(wxHORIZONTAL);
@@ -836,7 +848,7 @@ void PreferencesDialog::create()
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_scrolledWindow = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_scrolledWindow = new MyscrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_scrolledWindow->SetScrollRate(5, 5);
 
     m_sizer_body = new wxBoxSizer(wxVERTICAL);

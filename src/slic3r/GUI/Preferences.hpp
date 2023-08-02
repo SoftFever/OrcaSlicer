@@ -41,6 +41,7 @@ public:
     RadioBox *m_radiobox;
     bool      m_selected = false;
 };
+
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 class CheckBox;
 class TextInput;
@@ -61,7 +62,7 @@ private:
 
 protected:
     wxBoxSizer *  m_sizer_body;
-    wxScrolledWindow *m_scrolledWindow;
+    wxScrolledWindow* m_scrolledWindow;
 
     // bool								m_settings_layout_changed {false};
     bool m_seq_top_layer_only_changed{false};
