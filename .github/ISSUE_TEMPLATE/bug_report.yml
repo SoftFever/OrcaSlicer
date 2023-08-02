@@ -90,10 +90,10 @@ body:
             You can export the project file from the application menu in `File`->`Save project as...`, then zip it
           * A **log file** for crashes and similar issues.
             You can find your log file here:
-            Windows: `%APPDATA%\BambuStudio\log` or usually `C:\Users\\<your username>\AppData\Roaming\BambuStudio\log`
-            MacOS: `$USER/Library/Application Support/BambuStudio/log`
-            Linux: `$USER/.config/BambuStudio/log
-            If the Cura user interface still starts, you can also reach this directory from the application menu in `Help` -> `Show Configuration Folder`
+            Windows: `%APPDATA%\BambuStudio\log` or usually `C:\Users\<your username>\AppData\Roaming\BambuStudio\log`
+            MacOS: `$HOME/Library/Application Support/BambuStudio/log`
+            Linux: `$HOME/.config/BambuStudio/log`
+            If Bambu Studio still starts, you can also reach this directory from the application menu in `Help` -> `Show Configuration Folder`
             You can zip the log directory, or just select the newest logs when this issue happens, and zip them
   - type: textarea
     id: file_uploads
@@ -101,7 +101,7 @@ body:
       label: Project file & Debug log uploads
       description:  Drop the project file and debug log here
       placeholder: |
-        Project File: `File`->`Save project as...` then zip it & drop it here
+        Project File: `File` -> `Save project as...` then zip it & drop it here
         Log File:  `Help` -> `Show Configuration Folder`, then zip the log directory, or just select the newest logs in `log` when this issue happens and zip them, then drop the zip file here
     validations:
       required: true
