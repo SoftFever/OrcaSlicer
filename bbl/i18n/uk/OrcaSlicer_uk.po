@@ -7514,7 +7514,7 @@ msgid ""
 msgstr "Допоміжний матеріал зазвичай використовується для друку підтримки"
 
 msgid "Temperature of vitrificaiton"
-msgstr ""Температура склування""
+msgstr "Температура склування"
 
 msgid ""
 "Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
@@ -8691,7 +8691,7 @@ msgid "Skirt speed"
 msgstr "Швидкість спідниці"
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
-msgstr "Швидкість спідниці, у мм/с. Нуль означає використання стандартної швидкості екструзії шару"
+msgstr "Швидкість спідниці, у мм/с. Нуль означає використання стандартної швидкості екструзії шару."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
