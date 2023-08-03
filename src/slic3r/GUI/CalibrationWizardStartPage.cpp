@@ -89,7 +89,11 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_when_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    create_bitmap(parent, "cali_page_before_pa", "cali_page_after_pa");
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+        create_bitmap(parent, "cali_page_before_pa_CN", "cali_page_after_pa_CN");
+    } else {
+        create_bitmap(parent, "cali_page_before_pa", "cali_page_after_pa");
+    }
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
@@ -199,7 +203,11 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_when_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    create_bitmap(parent, "cali_page_flow_introduction");
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+        create_bitmap(parent, "cali_page_flow_introduction_CN");
+    } else {
+        create_bitmap(parent, "cali_page_flow_introduction");
+    }
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
@@ -326,7 +334,11 @@ void CalibrationMaxVolumetricSpeedStartPage::create_page(wxWindow* parent)
 
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    create_bitmap(parent, "cali_page_before_pa", "cali_page_after_pa");
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        create_bitmap(parent, "cali_page_before_pa_CN", "cali_page_after_pa_CN");
+    } else {
+        create_bitmap(parent, "cali_page_before_pa", "cali_page_after_pa");
+    }
 
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
 

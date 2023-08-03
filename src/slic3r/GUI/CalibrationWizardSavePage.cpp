@@ -516,7 +516,11 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 }
 
 void CaliPASaveManualPanel::set_save_img() {
-    m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 330));
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result_CN", nullptr, 330));
+    } else {
+        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 330));
+    }
 }
 
 void CaliPASaveManualPanel::set_default_name(const wxString& name) {
@@ -651,7 +655,11 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
 }
 
 void CaliPASaveP1PPanel::set_save_img() {
-    m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 350));
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result_CN", nullptr, 350));
+    } else {
+        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 350));
+    }
 }
 
 bool CaliPASaveP1PPanel::get_result(float* out_k, float* out_n){
@@ -1222,7 +1230,11 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowCoarseSavePage::set_save_img() {
-    m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse_result", nullptr, 350));
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse_result_CN", nullptr, 350));
+    } else {
+        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse_result", nullptr, 350));
+    }
 }
 
 void CalibrationFlowCoarseSavePage::set_default_name(const wxString& name) {
@@ -1352,7 +1364,11 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowFineSavePage::set_save_img() {
-    m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_fine_result", nullptr, 350));
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_fine_result_CN", nullptr, 350));
+    } else {
+        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_fine_result", nullptr, 350));
+    }
 }
 
 void CalibrationFlowFineSavePage::set_default_name(const wxString& name) {
