@@ -318,7 +318,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_extrustion_cali = true, bool support_vt_load = true);
+    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_extrustion_cali = true);
 };
 
 
