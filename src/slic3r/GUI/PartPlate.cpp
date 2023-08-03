@@ -1778,6 +1778,18 @@ bool PartPlate::generate_plate_name_texture()
 	wxString cur_plate_name = from_u8(m_name);
 	wxGCDC   dc;
 	wxString limitTextWidth = wxControl::Ellipsize(cur_plate_name, dc, wxELLIPSIZE_END, bed_width);
+	if (limitTextWidth.size() ==4 && limitTextWidth.rfind("...") != std::string::npos && cur_plate_name.rfind('&') != std::string::npos) {
+		// Avoided a bug where the last bit of Ellipsize api in the wxwidgets is an out of bounds array with the '&' symbol
+		// wxwidgets version:3.2.2.1
+		for (auto it = cur_plate_name.rbegin(); it != cur_plate_name.rend(); ++it) {
+			if (*it == '&') {
+				cur_plate_name = cur_plate_name.RemoveLast();
+			} else {
+				break;
+			}
+		}
+		limitTextWidth = wxControl::Ellipsize(cur_plate_name, dc, wxELLIPSIZE_END, bed_width);
+	}
 	if (limitTextWidth.Length()==0) {
 		return false;
 	}
