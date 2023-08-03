@@ -29,28 +29,28 @@
     "fan_cooling_layer_time": [
         "5"
     ],
-    "cool_plate_temp" : [
+    "cool_plate_temp": [
         "0"
     ],
-    "eng_plate_temp" : [
+    "eng_plate_temp": [
         "80"
     ],
-    "hot_plate_temp" : [
+    "hot_plate_temp": [
         "100"
     ],
-    "textured_plate_temp" : [
+    "textured_plate_temp": [
         "100"
     ],
-    "cool_plate_temp_initial_layer" : [
+    "cool_plate_temp_initial_layer": [
         "0"
     ],
-    "eng_plate_temp_initial_layer" : [
+    "eng_plate_temp_initial_layer": [
         "80"
     ],
-    "hot_plate_temp_initial_layer" : [
+    "hot_plate_temp_initial_layer": [
         "100"
     ],
-    "textured_plate_temp_initial_layer" : [
+    "textured_plate_temp_initial_layer": [
         "100"
     ],
     "required_nozzle_HRC": [
@@ -79,5 +79,8 @@
     ],
     "nozzle_temperature": [
         "270"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n{if (bed_temperature[current_extruder] >80)||(bed_temperature_initial_layer[current_extruder] >80)}M106 P3 S255\n{elsif (bed_temperature[current_extruder] >60)||(bed_temperature_initial_layer[current_extruder] >60)}M106 P3 S180\n{endif}"
     ]
 }

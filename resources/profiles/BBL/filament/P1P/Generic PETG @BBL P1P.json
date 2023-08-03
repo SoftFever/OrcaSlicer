@@ -5,21 +5,21 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PETG @base",
-    "hot_plate_temp" : [
+    "hot_plate_temp": [
         "80"
     ],
-    "hot_plate_temp_initial_layer" : [
+    "hot_plate_temp_initial_layer": [
         "80"
     ],
-    "textured_plate_temp" : [
+    "textured_plate_temp": [
         "80"
     ],
-    "textured_plate_temp_initial_layer" : [
+    "textured_plate_temp_initial_layer": [
         "80"
     ],
     "compatible_printers": [
-      "Bambu Lab P1P 0.4 nozzle",
-      "Bambu Lab P1P 0.6 nozzle",
-      "Bambu Lab P1P 0.8 nozzle"
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle"
     ]
 }

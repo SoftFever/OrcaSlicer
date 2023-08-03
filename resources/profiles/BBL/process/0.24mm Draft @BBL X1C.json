@@ -7,6 +7,7 @@
     "inherits": "fdm_process_bbl_0.24",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",
-      "Bambu Lab X1 0.4 nozzle"
+      "Bambu Lab X1 0.4 nozzle",
+      "Bambu Lab P1S 0.4 nozzle"
     ]
 }
