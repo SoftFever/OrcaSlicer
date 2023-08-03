@@ -1,19 +1,16 @@
 {
-  "type": "filament",
-  "setting_id": "GFSA05_02",
-  "name": "Bambu PLA Silk @BBL X1",
-  "from": "system",
-  "instantiation": "true",
-  "inherits": "Bambu PLA Silk @base",
-  "filament_max_volumetric_speed": [
-    "12"
-  ],
-  "slow_down_layer_time": [
-    "8"
-  ],
-  "compatible_printers": [
-    "Bambu Lab X1 0.4 nozzle",
-    "Bambu Lab X1 0.6 nozzle",
-    "Bambu Lab X1 0.8 nozzle"
-  ]
+    "type": "filament",
+    "setting_id": "GFSA05_02",
+    "name": "Bambu PLA Silk @BBL X1",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PLA Silk @base",
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle"
+    ]
 }

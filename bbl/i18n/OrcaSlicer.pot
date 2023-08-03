@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-27 22:18+0800\n"
+"POT-Creation-Date: 2023-07-31 21:29+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -6456,10 +6456,13 @@ msgstr ""
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr ""
 
-msgid "mm/s"
+msgid "mm/s or %"
 msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
+msgstr ""
+
+msgid "mm/s"
 msgstr ""
 
 msgid "Brim width"
@@ -6651,7 +6654,9 @@ msgstr ""
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr ""
 
-msgid "Line width of outer wall"
+msgid ""
+"Line width of outer wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
 msgstr ""
 
 msgid ""
@@ -6667,9 +6672,6 @@ msgid ""
 "small_perimeter_threshold (usually holes). If expressed as percentage (for "
 "example: 80%) it will be calculated on the outer wall speed setting above. "
 "Set to zero for auto."
-msgstr ""
-
-msgid "mm/s or %"
 msgstr ""
 
 msgid "Small perimeters threshold"
@@ -6752,7 +6754,9 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 
-msgid "Default line width if some line width is set to be zero"
+msgid ""
+"Default line width if other line widths are set to 0. If expressed as a %, "
+"it will be computed over the nozzle diameter."
 msgstr ""
 
 msgid "Keep fan always on"
@@ -7049,7 +7053,9 @@ msgstr ""
 msgid "Jerk for travel"
 msgstr ""
 
-msgid "Line width of initial layer"
+msgid ""
+"Line width of initial layer. If expressed as a %, it will be computed over "
+"the nozzle diameter."
 msgstr ""
 
 msgid "Initial layer height"
@@ -7289,7 +7295,9 @@ msgstr ""
 msgid "Filament to print internal sparse infill."
 msgstr ""
 
-msgid "Line width of internal sparse infill"
+msgid ""
+"Line width of internal sparse infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
 msgstr ""
 
 msgid "Infill/Wall overlap"
@@ -7559,6 +7567,32 @@ msgstr ""
 msgid "User can self-define the project file name when export"
 msgstr ""
 
+msgid "Make overhang printable"
+msgstr ""
+
+msgid "Modify the geometry to print overhangs without support material."
+msgstr ""
+
+msgid "Make overhang printable maximum angle"
+msgstr ""
+
+msgid ""
+"Maximum angle of overhangs to allow after making more steep overhangs "
+"printable.90° will not change the model at all and allow any overhang, while "
+"0 will replace all overhangs with conical material."
+msgstr ""
+
+msgid "Make overhang printable hole area"
+msgstr ""
+
+msgid ""
+"Maximum area of a hole in the base of the model before it's filled by "
+"conical material.A value of 0 will fill all the holes in the model base."
+msgstr ""
+
+msgid "mm²"
+msgstr ""
+
 msgid "Detect overhang wall"
 msgstr ""
 
@@ -7568,7 +7602,9 @@ msgid ""
 "speed to print. For 100%% overhang, bridge speed is used."
 msgstr ""
 
-msgid "Line width of inner wall"
+msgid ""
+"Line width of inner wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
 msgstr ""
 
 msgid "Speed of inner wall"
@@ -7780,7 +7816,7 @@ msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
 "This amount can be specified in millimeters or as a percentage of the "
-"current extruder diameter. The default value for this parameter is 15%."
+"current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
 
 msgid "Role base wipe speed"
@@ -7847,10 +7883,9 @@ msgid ""
 "internal solid infill"
 msgstr ""
 
-msgid "mm²"
-msgstr ""
-
-msgid "Line width of internal solid infill"
+msgid ""
+"Line width of internal solid infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
 msgstr ""
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
@@ -7987,7 +8022,9 @@ msgid ""
 "filament for support and current filament is used"
 msgstr ""
 
-msgid "Line width of support"
+msgid ""
+"Line width of support. If expressed as a %, it will be computed over the "
+"nozzle diameter."
 msgstr ""
 
 msgid "Interface use loop pattern"
@@ -8192,7 +8229,9 @@ msgid ""
 "tool change"
 msgstr ""
 
-msgid "Line width for top surfaces"
+msgid ""
+"Line width for top surfaces. If expressed as a %, it will be computed over "
+"the nozzle diameter."
 msgstr ""
 
 msgid "Speed of top surface infill which is solid"

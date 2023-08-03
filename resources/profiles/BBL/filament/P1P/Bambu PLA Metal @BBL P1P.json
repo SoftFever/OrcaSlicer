@@ -11,16 +11,16 @@
     "slow_down_layer_time": [
         "8"
     ],
-    "hot_plate_temp" : [
+    "hot_plate_temp": [
         "65"
     ],
-    "hot_plate_temp_initial_layer" : [
+    "hot_plate_temp_initial_layer": [
         "65"
     ],
-    "textured_plate_temp" : [
+    "textured_plate_temp": [
         "65"
     ],
-    "textured_plate_temp_initial_layer" : [
+    "textured_plate_temp_initial_layer": [
         "65"
     ],
     "fan_min_speed": [

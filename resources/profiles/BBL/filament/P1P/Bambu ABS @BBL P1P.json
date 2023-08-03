@@ -14,16 +14,16 @@
     "reduce_fan_stop_start_freq": [
         "0"
     ],
-    "hot_plate_temp" : [
+    "hot_plate_temp": [
         "100"
     ],
-    "hot_plate_temp_initial_layer" : [
+    "hot_plate_temp_initial_layer": [
         "100"
     ],
-    "textured_plate_temp" : [
+    "textured_plate_temp": [
         "100"
     ],
-    "textured_plate_temp_initial_layer" : [
+    "textured_plate_temp_initial_layer": [
         "100"
     ],
     "compatible_printers": [

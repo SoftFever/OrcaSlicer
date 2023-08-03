@@ -57,7 +57,7 @@
     "only_one_wall_top": "1",
     "inner_wall_line_width": "0.45",
     "inner_wall_speed": "150",
-    "wall_loops": "3",
+    "wall_loops": "2",
     "print_settings_id": "",
     "raft_layers": "0",
     "seam_position": "aligned",
@@ -107,5 +107,6 @@
     "prime_tower_width": "35",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
+    "wall_generator": "arachne",
     "gcode_label_objects": "0"
 }
