@@ -1,26 +1,26 @@
 {
-  "type": "filament",
-  "filament_id": "GFN99",
-  "setting_id": "GFSN98_10",
-  "name": "Generic PA @BBL P1P",
-  "from": "system",
-  "instantiation": "true",
-  "inherits": "fdm_filament_pa",
-  "required_nozzle_HRC": [
-    "3"
-  ],
-  "nozzle_temperature_initial_layer": [
-    "280"
-  ],
-  "nozzle_temperature": [
-    "280"
-  ],
-  "filament_max_volumetric_speed": [
-    "16"
-  ],
-  "compatible_printers": [
-    "Bambu Lab P1P 0.4 nozzle",
-    "Bambu Lab P1P 0.6 nozzle",
-    "Bambu Lab P1P 0.8 nozzle"
-]  
+    "type": "filament",
+    "filament_id": "GFN99",
+    "setting_id": "GFSN98_10",
+    "name": "Generic PA @BBL P1P",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa",
+    "required_nozzle_HRC": [
+        "3"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle"
+    ]
 }

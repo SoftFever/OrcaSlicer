@@ -7,23 +7,26 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
     "required_nozzle_HRC": [
-      "3"
+        "3"
     ],
     "nozzle_temperature_initial_layer": [
-      "280"
+        "280"
     ],
     "nozzle_temperature": [
-      "280"
+        "280"
     ],
     "filament_max_volumetric_speed": [
-      "16"
+        "16"
     ],
     "compatible_printers": [
-      "Bambu Lab X1 Carbon 0.4 nozzle",
-      "Bambu Lab X1 Carbon 0.6 nozzle",
-      "Bambu Lab X1 Carbon 0.8 nozzle",
-      "Bambu Lab X1 0.4 nozzle",
-      "Bambu Lab X1 0.6 nozzle",
-      "Bambu Lab X1 0.8 nozzle"
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 Carbon 0.6 nozzle",
+        "Bambu Lab X1 Carbon 0.8 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle",
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab P1S 0.6 nozzle",
+        "Bambu Lab P1S 0.8 nozzle"
     ]
 }

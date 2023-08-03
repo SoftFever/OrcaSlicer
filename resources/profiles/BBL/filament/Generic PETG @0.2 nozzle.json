@@ -6,10 +6,11 @@
     "instantiation": "true",
     "inherits": "Generic PETG @base",
     "filament_max_volumetric_speed": [
-      "1"
+        "1"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",
-        "Bambu Lab X1 0.2 nozzle"
+        "Bambu Lab X1 0.2 nozzle",
+        "Bambu Lab P1S 0.2 nozzle"
     ]
 }

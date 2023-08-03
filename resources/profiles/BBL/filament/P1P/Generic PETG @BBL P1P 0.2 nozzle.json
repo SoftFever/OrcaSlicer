@@ -1,26 +1,26 @@
 {
-  "type": "filament",
-  "setting_id": "GFSG99_11",
-  "name": "Generic PETG @BBL P1P 0.2 nozzle",
-  "from": "system",
-  "instantiation": "true",
-  "inherits": "Generic PETG @base",
-  "hot_plate_temp" : [
-    "80"
-  ],
-  "hot_plate_temp_initial_layer" : [
-    "80"
-  ],
-  "textured_plate_temp" : [
-    "80"
-  ],
-  "textured_plate_temp_initial_layer" : [
-    "80"
-  ],
-  "filament_max_volumetric_speed": [
-    "1"
-  ],
-  "compatible_printers": [
-    "Bambu Lab P1P 0.2 nozzle"
-  ]
+    "type": "filament",
+    "setting_id": "GFSG99_11",
+    "name": "Generic PETG @BBL P1P 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PETG @base",
+    "hot_plate_temp": [
+        "80"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "80"
+    ],
+    "textured_plate_temp": [
+        "80"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "80"
+    ],
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.2 nozzle"
+    ]
 }

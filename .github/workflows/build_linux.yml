@@ -62,11 +62,11 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/deps/build
           mkdir -p ${{ github.workspace }}/deps/build/destdir
-          curl -LJO https://github.com/SoftFever/FileSharing/releases/download/OrcaSlicer_deps_Jun_2023/OrcaSlicer_dep_ubuntu_11-06-2023.tar.gz
-          tar -zxf OrcaSlicer_dep_ubuntu_11-06-2023.tar.gz -C ${{ github.workspace }}/deps/build
+          curl -LJO https://github.com/SoftFever/FileSharing/releases/download/2023.08/OrcaSlicer_dep_ubuntu_02-08-2023.tar.gz
+          tar -zxf OrcaSlicer_dep_ubuntu_02-08-2023.tar.gz -C ${{ github.workspace }}/deps/build
           chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/destdir
           ls -l ${{ github.workspace }}/deps/build/destdir
-          rm OrcaSlicer_dep_ubuntu_11-06-2023.tar.gz
+          rm OrcaSlicer_dep_ubuntu_02-08-2023.tar.gz
       
 
       - name: Build Studio
