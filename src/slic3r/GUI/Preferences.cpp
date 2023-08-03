@@ -149,6 +149,12 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_ITALIAN)) {
             language_name = wxString::FromUTF8("\x69\x74\x61\x6c\x69\x61\x6e\x6f");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_KOREAN)) {
+            language_name = wxString::FromUTF8("\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
+            language_name = wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA");
+        }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
             language_name = wxString::FromUTF8("Ukrainian");
         }
@@ -940,6 +946,8 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_HUNGARIAN,
         wxLANGUAGE_JAPANESE,
         wxLANGUAGE_ITALIAN,
+        wxLANGUAGE_KOREAN,
+        wxLANGUAGE_RUSSIAN,
         wxLANGUAGE_UKRAINIAN
     };
 
