@@ -2406,7 +2406,7 @@ void AMSControl::SetActionState(bool button_status[])
     else m_button_extruder_back->Disable();
 }
 
-void AMSControl::EnterNoneAMSMode(bool support_vt_load)
+void AMSControl::EnterNoneAMSMode()
 {
     if(m_is_none_ams_mode) return;
     m_simplebook_amsitems->Hide();
@@ -2417,13 +2417,8 @@ void AMSControl::EnterNoneAMSMode(bool support_vt_load)
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
     //m_button_retry->Hide();
-    if (support_vt_load) {
-        m_button_extruder_feed->Show();
-        m_button_extruder_back->Show();
-    } else {
-        m_button_extruder_feed->Hide();
-        m_button_extruder_back->Hide();
-    }
+    m_button_extruder_feed->Show();
+    m_button_extruder_back->Show();
 
     ShowFilamentTip(false);
     m_amswin->Layout();
@@ -2450,31 +2445,6 @@ void AMSControl::ExitNoneAMSMode()
     m_amswin->Fit();
     Layout();
     m_is_none_ams_mode = false;
-}
-
-void AMSControl::EnterSimpleMode() 
-{
-    // hide AmsLib edit button
-    // hide AmsRefresh bmp
-    for (auto ams_cans_window : m_ams_cans_list) {
-        ams_cans_window->set_disable_mode(true);
-    }
-    m_vams_lib->set_disable_mode(true);
-
-    // hide buttons
-    m_button_ams_setting->Hide();
-    m_button_extruder_feed->Hide();
-    m_button_extruder_back->Hide();
-    m_button_extrusion_cali->Hide();
-    m_button_guide->Hide();
-    m_button_retry->Hide();
-
-    // hide tips
-    ShowFilamentTip(false);
-
-    m_amswin->Layout();
-    m_amswin->Fit();
-    Layout();
 }
 
 void AMSControl::EnterCalibrationMode(bool read_to_calibration)
@@ -2642,7 +2612,7 @@ void AMSControl::Reset()
     m_current_senect    = "";
 }
 
-void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load, bool simple_mode)
+void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali)
 {
     show_vams(support_virtual_tray);
     m_sizer_ams_tips->Show(support_virtual_tray);
@@ -2654,8 +2624,7 @@ void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool supp
         m_button_extrusion_cali->Hide();
     }
 
-    show?ExitNoneAMSMode() : EnterNoneAMSMode(support_vt_load);
-    if (simple_mode)EnterSimpleMode();
+    show?ExitNoneAMSMode() : EnterNoneAMSMode();
 }
 
 void AMSControl::show_auto_refill(bool show)

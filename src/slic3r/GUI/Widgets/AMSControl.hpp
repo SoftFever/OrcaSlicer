@@ -605,9 +605,8 @@ public:
 
     bool m_is_none_ams_mode{false};
 	void SetActionState(bool button_status[]);
-    void EnterNoneAMSMode(bool support_vt_load = false);
+    void EnterNoneAMSMode();
     void ExitNoneAMSMode();
-    void EnterSimpleMode();
 
     void EnterCalibrationMode(bool read_to_calibration);
     void ExitcClibrationMode();
@@ -640,7 +639,7 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
-    void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load = false, bool simple_mode = false);
+    void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali);
     void show_auto_refill(bool show);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);

@@ -1325,11 +1325,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     return sizer;
 }
 
-void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load)
+void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_extrustion_cali)
 {
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode(show, support_virtual_tray, support_extrustion_cali, support_vt_load);
+    m_ams_control->show_noams_mode(show, support_virtual_tray, support_extrustion_cali);
     if (m_show_ams_group != show) {
         Fit();
     }
@@ -2155,11 +2155,11 @@ void StatusPanel::update_ams(MachineObject *obj)
             BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         }
 
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali, obj->is_support_filament_edit_virtual_tray);
+        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali);
         m_ams_control->show_auto_refill(false);
     }
     else {
-        show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali, obj->is_support_filament_edit_virtual_tray);
+        show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali);
 
         if (!obj->m_is_support_show_bak || !is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
             m_ams_control->show_auto_refill(false); 

@@ -718,7 +718,6 @@ public:
     bool is_support_1080dpi {false};
     bool is_support_ai_monitoring {false};
     bool is_support_ams_humidity {true};
-    bool is_support_filament_edit_virtual_tray {true};
     bool is_cloud_print_only {false};
     bool is_support_mqtt_alive {false};
 
