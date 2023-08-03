@@ -1,8 +1,8 @@
 {
     "type": "filament",
     "filament_id": "GFL98",
-    "setting_id": "GFSA04",
-    "name": "Anker Generic PLA-CF",
+    "setting_id": "GFSL98_Anker_00",
+    "name": "Generic PLA-CF @Anker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
@@ -19,6 +19,7 @@
         "7"
     ],
     "compatible_printers": [
-        "Anker M5 0.4 nozzle"
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
     ]
 }

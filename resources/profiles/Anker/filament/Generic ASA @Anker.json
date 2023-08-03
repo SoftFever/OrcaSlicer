@@ -1,8 +1,8 @@
 {
     "type": "filament",
     "filament_id": "GFB98",
-    "setting_id": "GFSA04",
-    "name": "Anker Generic ASA",
+    "setting_id": "GFSB98_Anker_00",
+    "name": "Generic ASA @Anker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_asa",
@@ -13,6 +13,7 @@
         "12"
     ],
     "compatible_printers": [
-      "Anker M5 0.4 nozzle"
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
     ]
 }
