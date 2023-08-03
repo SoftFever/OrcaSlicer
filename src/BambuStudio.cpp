@@ -1805,33 +1805,32 @@ int CLI::run(int argc, char **argv)
         partplate_list.set_shapes(current_printable_area, current_exclude_area, bed_texture, height_to_lid, height_to_rod);
         //plate_stride = partplate_list.plate_stride_x();
     }
-    if (plate_data_src.size() > 0)
-    {
-        partplate_list.load_from_3mf_structure(plate_data_src);
+
+    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height] (Slic3r::GUI::PartPlateList& plate_list) {
         //BBS: translate old 3mf to correct positions
         if (translate_old) {
             //translate the objects
-            int plate_count = partplate_list.get_plate_count();
+            int plate_count = plate_list.get_plate_count();
             for (int index = 1; index < plate_count; index ++) {
-                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)plate_list.get_plate(index);
 
                 Vec3d cur_origin = cur_plate->get_origin();
-                Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, old_printable_width, old_printable_depth);
+                Vec3d new_origin = plate_list.compute_origin_using_new_size(index, old_printable_width, old_printable_depth);
 
                 cur_plate->translate_all_instance(new_origin - cur_origin);
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("translate old 3mf, switch back to current bed size,{%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
-            partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, true, true);
+            plate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, true, true);
         }
 
         if (shrink_to_new_bed)
         {
-            int plate_count = partplate_list.get_plate_count();
+            int plate_count = plate_list.get_plate_count();
             for (int index = 0; index < plate_count; index ++) {
-                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)plate_list.get_plate(index);
 
                 Vec3d cur_origin = cur_plate->get_origin();
-                Vec3d new_origin = partplate_list.compute_origin_using_new_size(index, current_printable_width, current_printable_depth);
+                Vec3d new_origin = plate_list.compute_origin_using_new_size(index, current_printable_width, current_printable_depth);
                 Vec3d cur_center_offset { ((double)old_printable_width)/2, ((double)old_printable_depth)/2, 0}, new_center_offset { ((double)current_printable_width)/2, ((double)current_printable_depth)/2, 0};
                 Vec3d cur_center = cur_origin + cur_center_offset;
                 Vec3d new_center = new_origin + new_center_offset;
@@ -1841,8 +1840,14 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1% translate offset: {%2%, %3%, %4%}")%(index+1) %offset[0] %offset[1] %offset[2];
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, shrink all the models to current bed size,{%1%, %2%, %3%}")%current_printable_width %current_printable_depth %current_printable_height;
-            partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
+            plate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
         }
+    };
+    if (plate_data_src.size() > 0)
+    {
+        partplate_list.load_from_3mf_structure(plate_data_src);
+
+        translate_models(partplate_list);
     }
 
     /*for (ModelObject *model_object : m_models[0].objects)
@@ -1902,10 +1907,7 @@ int CLI::run(int argc, char **argv)
                     record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS]);
                     flush_and_exit(CLI_INVALID_PARAMS);
                 }
-                BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << ", will copy model object first\n";
-                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
-                //copy model objects and instances on plate
-                cur_plate->duplicate_all_instance(repetitions_count-1, need_skip, skip_maps);
+                BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << std::endl;
 
                 need_arrange = true;
                 duplicate_count = repetitions_count - 1;
@@ -2154,345 +2156,447 @@ int CLI::run(int argc, char **argv)
         if (m_models.size() > 0)
         {
             Model &model = m_models[0];
+            Model original_model;
+            std::set<std::pair<int, int>> backup_set;
+            bool finished_arrange = false, first_run = true;
+            Slic3r::GUI::PartPlate* cur_plate;
+            int low_duplicate_count = 0, up_duplicate_count = duplicate_count, arrange_count = 0;
 
             arrange_cfg.is_seq_print = false;
-
-            //Step-1: prepare arrange polygons
-            if (duplicate_count == 0)
-            {
-                for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
-                {
-                    ModelObject* mo = model.objects[oidx];
-                    for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
-                    {
-                        ModelInstance* minst = mo->instances[inst_idx];
-                        ArrangePolygon ap = get_instance_arrange_poly(minst, m_print_config);
-
-                        //preprocess by partplate list
-                        //remove the locked plate's instances, neither in selected, nor in un-selected
-                        bool locked = partplate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
-                        if (!locked)
-                        {
-                            ap.itemid = selected.size();
-                            if (minst->printable)
-                                selected.emplace_back(ap);
-                            else
-                                unprintable.emplace_back(ap);
-                        }
-                        else
-                        {
-                            //skip this object due to be locked in plate
-                            ap.itemid = locked_aps.size();
-                            locked_aps.emplace_back(ap);
-                            boost::nowide::cout <<__FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
-                        }
-                    }
-                }
-
-                if (m_print_config.has("print_sequence")) {
-                    PrintSequence seq = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
-                    arrange_cfg.is_seq_print = (seq == PrintSequence::ByObject);
-                }
-
-                //add the virtual object into unselect list if has
-                partplate_list.preprocess_exclude_areas(unselected);
+            if (duplicate_count > 0) {
+                original_model = model;
             }
-            else {
-                //only arrange current plate
-                Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
-                PrintSequence curr_plate_seq = cur_plate->get_print_seq();
-                if (curr_plate_seq == PrintSequence::ByDefault) {
-                    auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-                    if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
-                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from global")%plate_to_slice;
-                        arrange_cfg.is_seq_print = true;
-                    }
-                }
-                else if (curr_plate_seq == PrintSequence::ByObject) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%plate_to_slice;
-                    arrange_cfg.is_seq_print = true;
-                }
 
-                partplate_list.lock_plate(plate_to_slice - 1, false);
-                partplate_list.select_plate(plate_to_slice-1);
-                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected")%plate_to_slice;
-
-                for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
+            while(!finished_arrange)
+            {
+                arrange_count++;
+                //step-0: duplicate model
+                if (duplicate_count > 0)
                 {
-                    ModelObject* mo = model.objects[oidx];
+                    //copy model objects and instances on plate
+                    if (!first_run) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("restore model object and plate, new duplicate_count %1%, arrange_count=%2%")%duplicate_count%arrange_count;
+                        beds = get_bed_shape(m_print_config);
+                        model.clear_objects();
+                        model.clear_materials();
+                        model = original_model;
+                        partplate_list.load_from_3mf_structure(plate_data_src);
 
-                    for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
-                    {
-                        ModelInstance*   minst = mo->instances[inst_idx];
-                        bool             in_plate = cur_plate->contain_instance(oidx, inst_idx) || cur_plate->intersect_instance(oidx, inst_idx);
-                        ArrangePolygon   ap = get_instance_arrange_poly(minst, m_print_config);
-
-                        ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
-                            (in_plate ? selected : unselected) :
-                            unprintable;
-                        bool locked = partplate_list.preprocess_arrange_polygon_other_locked(oidx, inst_idx, ap, in_plate);
-                        BOOST_LOG_TRIVIAL(info) << boost::format("name %4% in_plate %1% printable %2%, locked %3%")%in_plate %mo->instances[inst_idx]->printable %locked % ap.name ;
-                        if (!locked)
-                        {
-                            ap.itemid = cont.size();
-                            cont.emplace_back(std::move(ap));
-                        }
-                        else
-                        {
-                            //skip this object due to be not in current plate, treated as locked
-                            ap.itemid = locked_aps.size();
-                            locked_aps.emplace_back(std::move(ap));
-                            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
-                        }
-                    }
-                }
-                if (selected.size() == (duplicate_count + 1))
-                {
-                    duplicate_single_object = true;
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": found single object mode");
-                }
-
-                if (m_print_config.has("wipe_tower_x")) {
-                    float x = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_x"))->get_at(plate_to_slice-1);
-                    float y = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_y"))->get_at(plate_to_slice-1);
-                    float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
-                    float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
-                    float v = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_volume"))->value;
-                    unsigned int filaments_cnt = plate_data_src[plate_to_slice-1]->slice_filaments_info.size();
-                    if ((filaments_cnt == 0) || need_skip)
-                    {
-                        // slice filaments info invalid
-                        std::vector<int> extruders = cur_plate->get_extruders_under_cli(true, m_print_config);
-                        filaments_cnt = extruders.size();
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
-                    }
-
-                    if (filaments_cnt <= 1)
-                    {
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": not a multi-color object anymore, drop the wipe tower before arrange.");
+                        selected.clear();
+                        unselected.clear();
+                        unprintable.clear();
+                        locked_aps.clear();
                     }
                     else
+                        first_run = false;
+
+                    cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
+                    cur_plate->duplicate_all_instance(duplicate_count, need_skip, skip_maps);
+                }
+
+                //Step-1: prepare arrange polygons
+                if (duplicate_count == 0)
+                {
+                    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
                     {
-                        float layer_height = 0.2;
-                        ConfigOption* layer_height_opt = m_print_config.option("layer_height");
-                        if (layer_height_opt)
-                            layer_height = layer_height_opt->getFloat();
-
-                        float depth = v * (filaments_cnt - 1) / (layer_height * w);
-
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%")
-                            %x %y %w %depth %a %v %filaments_cnt %layer_height;
-
-                        Vec3d plate_origin = cur_plate->get_origin();
-
-                        ArrangePolygon wipe_tower_ap;
-
-                        Polygon ap({
-                            {scaled(x), scaled(y)},
-                            {scaled(x + w), scaled(y)},
-                            {scaled(x + w), scaled(y + depth)},
-                            {scaled(x), scaled(y + depth)}
-                            });
-                        wipe_tower_ap.bed_idx = 0;
-                        wipe_tower_ap.setter = NULL; // do not move wipe tower
-
-                        wipe_tower_ap.poly.contour = std::move(ap);
-                        wipe_tower_ap.translation  = {scaled(0.f), scaled(0.f)};
-                        wipe_tower_ap.rotation     = a;
-                        wipe_tower_ap.name = "WipeTower";
-                        wipe_tower_ap.is_virt_object = true;
-                        wipe_tower_ap.is_wipe_tower = true;
-                        ++wipe_tower_ap.priority;
-                        unselected.emplace_back(std::move(wipe_tower_ap));
-                    }
-                }
-
-                // add the virtual object into unselect list if has
-                partplate_list.preprocess_exclude_areas(unselected, plate_to_slice);
-            }
-
-
-            //Step-2:prepare the arrange params
-            arrange_cfg.allow_rotations  = true;
-            arrange_cfg.allow_multi_materials_on_same_plate = true;
-            arrange_cfg.avoid_extrusion_cali_region         = false;
-            arrange_cfg.min_obj_distance = scaled(22.0);
-            arrange_cfg.clearance_height_to_rod             = height_to_rod;
-            arrange_cfg.clearance_height_to_lid             = height_to_lid;
-            arrange_cfg.cleareance_radius                   = cleareance_radius;
-            arrange_cfg.printable_height                    = print_height;
-
-            arrange_cfg.bed_shrink_x = 0;
-            arrange_cfg.bed_shrink_y = 0;
-            double skirt_distance = m_print_config.opt_float("skirt_distance");
-            double brim_width = m_print_config.opt_float("brim_width");
-            arrange_cfg.brim_skirt_distance = skirt_distance + brim_width;
-            BOOST_LOG_TRIVIAL(info) << boost::format("Arrange Params: brim_skirt_distance=%1%, min_obj_distance=%2%, is_seq_print=%3%\n") %  arrange_cfg.brim_skirt_distance % arrange_cfg.min_obj_distance % arrange_cfg.is_seq_print;
-
-            // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
-            // So we can't do max but do adding instead.
-            arrange_cfg.bed_shrink_x += arrange_cfg.brim_skirt_distance;
-            arrange_cfg.bed_shrink_y += arrange_cfg.brim_skirt_distance;
-
-            if (arrange_cfg.is_seq_print)
-            {
-                arrange_cfg.min_obj_distance = std::max(arrange_cfg.min_obj_distance, scaled(arrange_cfg.cleareance_radius + 0.001));
-                float shift_dist = arrange_cfg.cleareance_radius / 2 - 5;
-                arrange_cfg.bed_shrink_x -= shift_dist;
-                arrange_cfg.bed_shrink_y -= shift_dist;
-            }
-            // shrink bed
-            beds[0] += Point(scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
-            beds[1] += Point(-scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
-            beds[2] += Point(-scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
-            beds[3] += Point(scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
-
-            // do not inflate brim_width. Objects are allowed to have overlapped brim.
-            std::for_each(selected.begin(), selected.end(), [&](auto& ap) {ap.inflation = arrange_cfg.min_obj_distance / 2; });
-
-            {
-                BOOST_LOG_TRIVIAL(info) << "items selected before arranging: ";
-                for (auto selected : selected)
-                    BOOST_LOG_TRIVIAL(info) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
-                                            << ", trans: " << selected.translation.transpose();
-            }
-            arrange_cfg.progressind= [](unsigned st, std::string str = "") {
-                boost::nowide::cout << "st=" << st << ", " << str << std::endl;
-            };
-
-            //Step-3:do the arrange
-            arrangement::arrange(selected, unselected, beds, arrange_cfg);
-            arrangement::arrange(unprintable, {}, beds, arrange_cfg);
-
-            //Step-4:postprocess by partplate list&&apply the result
-            int bed_idx_max = 0;
-            if (duplicate_count == 0)
-            {
-                //clear all the relations before apply the arrangement results
-                partplate_list.clear();
-
-                // Apply the arrange result to all selected objects
-                for (ArrangePolygon &ap : selected) {
-                    //BBS: partplate postprocess
-                    partplate_list.postprocess_bed_index_for_selected(ap);
-
-                    bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                    boost::nowide::cout<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
-                }
-                for (ArrangePolygon &ap : locked_aps) {
-                    bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-
-                    partplate_list.postprocess_arrange_polygon(ap, false);
-
-                    ap.apply();
-                }
-
-                // Apply the arrange result to all selected objects
-                for (ArrangePolygon &ap : selected) {
-                    //BBS: partplate postprocess
-                    partplate_list.postprocess_arrange_polygon(ap, true);
-
-                    ap.apply();
-                }
-
-                // Move the unprintable items to the last virtual bed.
-                for (ArrangePolygon &ap : unprintable) {
-                    ap.bed_idx += bed_idx_max + 1;
-                    partplate_list.postprocess_arrange_polygon(ap, true);
-
-                    ap.apply();
-                }
-
-                //BBS: reload all objects due to arrange
-                partplate_list.rebuild_plates_after_arrangement();
-            }
-            else {
-                //only for partplate case
-                partplate_list.clear(false, false, true, plate_to_slice-1);
-
-                //BBS: adjust the bed_index, create new plates, get the max bed_index
-
-                for (ArrangePolygon& ap : selected) {
-                    if (ap.bed_idx != (plate_to_slice-1))
-                    {
-                        //
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
-                        if (!duplicate_single_object)
+                        ModelObject* mo = model.objects[oidx];
+                        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
                         {
-                            BOOST_LOG_TRIVIAL(error) << "arrange failed when duplicate multiple objects." << std::endl;
-                            record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED]);
-                            flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                            ModelInstance* minst = mo->instances[inst_idx];
+                            ArrangePolygon ap = get_instance_arrange_poly(minst, m_print_config);
+
+                            //preprocess by partplate list
+                            //remove the locked plate's instances, neither in selected, nor in un-selected
+                            bool locked = partplate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
+                            if (!locked)
+                            {
+                                ap.itemid = selected.size();
+                                if (minst->printable)
+                                    selected.emplace_back(ap);
+                                else
+                                    unprintable.emplace_back(ap);
+                            }
+                            else
+                            {
+                                //skip this object due to be locked in plate
+                                ap.itemid = locked_aps.size();
+                                locked_aps.emplace_back(ap);
+                                boost::nowide::cout <<__FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
+                            }
+                        }
+                    }
+
+                    if (m_print_config.has("print_sequence")) {
+                        PrintSequence seq = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+                        arrange_cfg.is_seq_print = (seq == PrintSequence::ByObject);
+                    }
+
+                    //add the virtual object into unselect list if has
+                    partplate_list.preprocess_exclude_areas(unselected);
+                }
+                else {
+                    //only arrange current plate
+                    //cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
+                    PrintSequence curr_plate_seq = cur_plate->get_print_seq();
+                    if (curr_plate_seq == PrintSequence::ByDefault) {
+                        auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                        if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from global")%plate_to_slice;
+                            arrange_cfg.is_seq_print = true;
+                        }
+                    }
+                    else if (curr_plate_seq == PrintSequence::ByObject) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%plate_to_slice;
+                        arrange_cfg.is_seq_print = true;
+                    }
+
+                    partplate_list.lock_plate(plate_to_slice - 1, false);
+                    partplate_list.select_plate(plate_to_slice-1);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected")%plate_to_slice;
+
+                    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
+                    {
+                        ModelObject* mo = model.objects[oidx];
+
+                        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+                        {
+                            ModelInstance*   minst = mo->instances[inst_idx];
+                            bool             in_plate = cur_plate->contain_instance(oidx, inst_idx) || cur_plate->intersect_instance(oidx, inst_idx);
+                            ArrangePolygon   ap = get_instance_arrange_poly(minst, m_print_config);
+
+                            ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
+                                (in_plate ? selected : unselected) :
+                                unprintable;
+                            bool locked = partplate_list.preprocess_arrange_polygon_other_locked(oidx, inst_idx, ap, in_plate);
+                            BOOST_LOG_TRIVIAL(info) << boost::format("name %4% in_plate %1% printable %2%, locked %3%")%in_plate %mo->instances[inst_idx]->printable %locked % ap.name ;
+                            if (!locked)
+                            {
+                                ap.itemid = cont.size();
+                                cont.emplace_back(std::move(ap));
+                            }
+                            else
+                            {
+                                //skip this object due to be not in current plate, treated as locked
+                                ap.itemid = locked_aps.size();
+                                locked_aps.emplace_back(std::move(ap));
+                                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
+                            }
+                        }
+                    }
+                    if (selected.size() == (duplicate_count + 1))
+                    {
+                        duplicate_single_object = true;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": found single object mode");
+                    }
+
+                    if (m_print_config.has("wipe_tower_x")) {
+                        float x = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_x"))->get_at(plate_to_slice-1);
+                        float y = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_y"))->get_at(plate_to_slice-1);
+                        float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
+                        float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
+                        float v = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_volume"))->value;
+                        unsigned int filaments_cnt = plate_data_src[plate_to_slice-1]->slice_filaments_info.size();
+                        if ((filaments_cnt == 0) || need_skip)
+                        {
+                            // slice filaments info invalid
+                            std::vector<int> extruders = cur_plate->get_extruders_under_cli(true, m_print_config);
+                            filaments_cnt = extruders.size();
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
+                        }
+
+                        if (filaments_cnt <= 1)
+                        {
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": not a multi-color object anymore, drop the wipe tower before arrange.");
+                        }
+                        else
+                        {
+                            float layer_height = 0.2;
+                            ConfigOption* layer_height_opt = m_print_config.option("layer_height");
+                            if (layer_height_opt)
+                                layer_height = layer_height_opt->getFloat();
+
+                            float depth = v * (filaments_cnt - 1) / (layer_height * w);
+
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%")
+                                %x %y %w %depth %a %v %filaments_cnt %layer_height;
+
+                            Vec3d plate_origin = cur_plate->get_origin();
+
+                            ArrangePolygon wipe_tower_ap;
+
+                            Polygon ap({
+                                {scaled(x), scaled(y)},
+                                {scaled(x + w), scaled(y)},
+                                {scaled(x + w), scaled(y + depth)},
+                                {scaled(x), scaled(y + depth)}
+                                });
+                            wipe_tower_ap.bed_idx = 0;
+                            wipe_tower_ap.setter = NULL; // do not move wipe tower
+
+                            wipe_tower_ap.poly.contour = std::move(ap);
+                            wipe_tower_ap.translation  = {scaled(0.f), scaled(0.f)};
+                            wipe_tower_ap.rotation     = a;
+                            wipe_tower_ap.name = "WipeTower";
+                            wipe_tower_ap.is_virt_object = true;
+                            wipe_tower_ap.is_wipe_tower = true;
+                            ++wipe_tower_ap.priority;
+                            unselected.emplace_back(std::move(wipe_tower_ap));
+                        }
+                    }
+
+                    // add the virtual object into unselect list if has
+                    partplate_list.preprocess_exclude_areas(unselected, plate_to_slice);
+                }
+
+
+                //Step-2:prepare the arrange params
+                arrange_cfg.allow_rotations  = true;
+                arrange_cfg.allow_multi_materials_on_same_plate = true;
+                arrange_cfg.avoid_extrusion_cali_region         = false;
+                arrange_cfg.min_obj_distance = scaled(22.0);
+                arrange_cfg.clearance_height_to_rod             = height_to_rod;
+                arrange_cfg.clearance_height_to_lid             = height_to_lid;
+                arrange_cfg.cleareance_radius                   = cleareance_radius;
+                arrange_cfg.printable_height                    = print_height;
+
+                arrange_cfg.bed_shrink_x = 0;
+                arrange_cfg.bed_shrink_y = 0;
+                double skirt_distance = m_print_config.opt_float("skirt_distance");
+                double brim_width = m_print_config.opt_float("brim_width");
+                arrange_cfg.brim_skirt_distance = skirt_distance + brim_width;
+                BOOST_LOG_TRIVIAL(info) << boost::format("Arrange Params: brim_skirt_distance=%1%, min_obj_distance=%2%, is_seq_print=%3%\n") %  arrange_cfg.brim_skirt_distance % arrange_cfg.min_obj_distance % arrange_cfg.is_seq_print;
+
+                // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
+                // So we can't do max but do adding instead.
+                arrange_cfg.bed_shrink_x += arrange_cfg.brim_skirt_distance;
+                arrange_cfg.bed_shrink_y += arrange_cfg.brim_skirt_distance;
+
+                if (arrange_cfg.is_seq_print)
+                {
+                    arrange_cfg.min_obj_distance = std::max(arrange_cfg.min_obj_distance, scaled(arrange_cfg.cleareance_radius + 0.001));
+                    float shift_dist = arrange_cfg.cleareance_radius / 2 - 5;
+                    arrange_cfg.bed_shrink_x -= shift_dist;
+                    arrange_cfg.bed_shrink_y -= shift_dist;
+                }
+                // shrink bed
+                beds[0] += Point(scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
+                beds[1] += Point(-scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
+                beds[2] += Point(-scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
+                beds[3] += Point(scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
+
+                // do not inflate brim_width. Objects are allowed to have overlapped brim.
+                std::for_each(selected.begin(), selected.end(), [&](auto& ap) {ap.inflation = arrange_cfg.min_obj_distance / 2; });
+
+                {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("items selected before arranging: %1%")%selected.size();
+                    for (auto selected : selected)
+                        BOOST_LOG_TRIVIAL(trace) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
+                                                << ", trans: " << selected.translation.transpose();
+                }
+                arrange_cfg.progressind= [](unsigned st, std::string str = "") {
+                    //boost::nowide::cout << "st=" << st << ", " << str << std::endl;
+                };
+
+                //Step-3:do the arrange
+                BOOST_LOG_TRIVIAL(info) << boost::format("start %1% th arranging...")%arrange_count;
+                arrangement::arrange(selected, unselected, beds, arrange_cfg);
+                arrangement::arrange(unprintable, {}, beds, arrange_cfg);
+                BOOST_LOG_TRIVIAL(info) << boost::format("finished %1% th arranging...")%arrange_count;
+
+                //Step-4:postprocess by partplate list&&apply the result
+                int bed_idx_max = 0;
+                if (duplicate_count == 0)
+                {
+                    //clear all the relations before apply the arrangement results
+                    partplate_list.clear();
+
+                    // Apply the arrange result to all selected objects
+                    for (ArrangePolygon &ap : selected) {
+                        //BBS: partplate postprocess
+                        partplate_list.postprocess_bed_index_for_selected(ap);
+
+                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                        BOOST_LOG_TRIVIAL(trace)<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
+                    }
+                    for (ArrangePolygon &ap : locked_aps) {
+                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+
+                        partplate_list.postprocess_arrange_polygon(ap, false);
+
+                        ap.apply();
+                    }
+
+                    // Apply the arrange result to all selected objects
+                    for (ArrangePolygon &ap : selected) {
+                        //BBS: partplate postprocess
+                        partplate_list.postprocess_arrange_polygon(ap, true);
+
+                        ap.apply();
+                    }
+
+                    // Move the unprintable items to the last virtual bed.
+                    for (ArrangePolygon &ap : unprintable) {
+                        ap.bed_idx += bed_idx_max + 1;
+                        partplate_list.postprocess_arrange_polygon(ap, true);
+
+                        ap.apply();
+                    }
+
+                    //BBS: reload all objects due to arrange
+                    partplate_list.rebuild_plates_after_arrangement();
+                }
+                else {
+                    //only for partplate case
+                    partplate_list.clear(false, false, true, plate_to_slice-1);
+
+                    //BBS: adjust the bed_index, create new plates, get the max bed_index
+                    bool failed_this_time = false;
+                    for (ArrangePolygon& ap : selected) {
+                        if (ap.bed_idx != (plate_to_slice-1))
+                        {
+                            //
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
+                            if (!duplicate_single_object)
+                            {
+                                BOOST_LOG_TRIVIAL(warning) << boost::format("arrange failed when duplicate multiple objects at count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
+
+                                if (duplicate_count == 1)
+                                {
+                                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": failed even on duplicate 1 copy, just print one original model");
+                                    duplicate_count = 0;
+                                }
+                                else
+                                {
+                                    if (duplicate_count == low_duplicate_count)
+                                    {
+                                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": previous success, but currently failed count %1%!!!")%duplicate_count;
+                                        up_duplicate_count = duplicate_count;
+                                        low_duplicate_count --;
+                                        duplicate_count --;
+                                    }
+                                    else {
+                                        up_duplicate_count = duplicate_count;
+                                        duplicate_count = (up_duplicate_count + low_duplicate_count)/2;
+                                    }
+                                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": try new count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
+                                }
+                                //record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED]);
+                                //flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                                failed_this_time = true;
+                                break;
+                            }
+                        }
+                        else {
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":arrange success: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
+                            real_duplicate_count ++;
+                        }
+                        partplate_list.postprocess_bed_index_for_current_plate(ap);
+
+                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                    }
+
+                    if (failed_this_time) {
+                        if (duplicate_count == 0)
+                        {
+                            //restore to the original
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restore to the original model and plates");
+                            finished_arrange = true;
+                            model = original_model;
+                            partplate_list.load_from_3mf_structure(plate_data_src);
+
+                            translate_models(partplate_list);
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
+                        }
+                        continue;
+                    }
+
+                    if (duplicate_single_object)
+                    {
+                        if (real_duplicate_count <= 0) {
+                            BOOST_LOG_TRIVIAL(warning) << "no object can be placed under single object mode, restore to the original model and plates also" << std::endl;
+                            //record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED]);
+                            //flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                            finished_arrange = true;
+                            model = original_model;
+                            partplate_list.load_from_3mf_structure(plate_data_src);
+
+                            translate_models(partplate_list);
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
+                            continue;
                         }
                     }
                     else {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":arrange success: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
-                        real_duplicate_count ++;
+                        //multiple objects case
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": multiple objects mode, arrange success on count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
+                        if ((duplicate_count == up_duplicate_count) || (duplicate_count == (up_duplicate_count - 1)))
+                        {
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": found the max arrangeable count %1%")%duplicate_count;
+                        }
+                        else {
+                            low_duplicate_count = duplicate_count;
+                            duplicate_count = (up_duplicate_count + low_duplicate_count)/2;
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": try new count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
+                            continue;
+                        }
                     }
-                    partplate_list.postprocess_bed_index_for_current_plate(ap);
 
-                    bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                    //BBS: adjust the bed_index, create new plates, get the max bed_index
+                    for (ArrangePolygon& ap : unselected)
+                    {
+                        if (ap.is_virt_object)
+                            continue;
+
+                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                    }
+
+                    for (ArrangePolygon& ap : locked_aps)
+                    {
+                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+
+                        partplate_list.postprocess_arrange_polygon(ap, false);
+
+                        ap.apply();
+                    }
+
+                    // Apply the arrange result to all selected objects
+                    for (ArrangePolygon& ap : selected) {
+                        //BBS: partplate postprocess
+                        partplate_list.postprocess_arrange_polygon(ap, true);
+
+                        ap.apply();
+                    }
+
+                    // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
+                    for (ArrangePolygon& ap : unselected)
+                    {
+                        if (ap.is_virt_object)
+                            continue;
+
+                        //BBS: partplate postprocess
+                        partplate_list.postprocess_arrange_polygon(ap, false);
+
+                        ap.apply();
+                    }
+
+                    // Move the unprintable items to the last virtual bed.
+                    // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
+                    for (ArrangePolygon& ap : unprintable)
+                    {
+                        ap.bed_idx = bed_idx_max + 1;
+                        partplate_list.postprocess_arrange_polygon(ap, true);
+
+                        ap.apply();
+                        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                    }
+
+                    partplate_list.rebuild_plates_after_arrangement(false, true, plate_to_slice-1);
                 }
-
-                if (duplicate_single_object && (real_duplicate_count <= 0))
-                {
-                    BOOST_LOG_TRIVIAL(error) << "no object can be placed under single object mode." << std::endl;
-                    record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED]);
-                    flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
-                }
-
-                //BBS: adjust the bed_index, create new plates, get the max bed_index
-                for (ArrangePolygon& ap : unselected)
-                {
-                    if (ap.is_virt_object)
-                        continue;
-
-                    bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-                }
-
-                for (ArrangePolygon& ap : locked_aps)
-                {
-                    bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-
-                    partplate_list.postprocess_arrange_polygon(ap, false);
-
-                    ap.apply();
-                }
-
-                // Apply the arrange result to all selected objects
-                for (ArrangePolygon& ap : selected) {
-                    //BBS: partplate postprocess
-                    partplate_list.postprocess_arrange_polygon(ap, true);
-
-                    ap.apply();
-                }
-
-                // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
-                for (ArrangePolygon& ap : unselected)
-                {
-                    if (ap.is_virt_object)
-                        continue;
-
-                    //BBS: partplate postprocess
-                    partplate_list.postprocess_arrange_polygon(ap, false);
-
-                    ap.apply();
-                }
-
-                // Move the unprintable items to the last virtual bed.
-                // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
-                for (ArrangePolygon& ap : unprintable)
-                {
-                    ap.bed_idx = bed_idx_max + 1;
-                    partplate_list.postprocess_arrange_polygon(ap, true);
-
-                    ap.apply();
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-                }
-
-                partplate_list.rebuild_plates_after_arrangement(false, true, plate_to_slice-1);
+                finished_arrange = true;
             }
+            original_model.clear_objects();
+            original_model.clear_materials();
         }
     }
 
@@ -3533,7 +3637,7 @@ int CLI::run(int argc, char **argv)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
 
     //record the duplicate here
-    if ((duplicate_count > 0) && duplicate_single_object)
+    if (duplicate_count > 0)
     {
         std::map<std::string, std::string> key_values;
         key_values["sliced_count"] = std::to_string(real_duplicate_count);
