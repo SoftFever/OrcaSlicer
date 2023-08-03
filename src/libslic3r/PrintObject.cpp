@@ -731,7 +731,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
-            || opt_key == "slicing_mode") {
+            || opt_key == "slicing_mode"
+            || opt_key == "make_overhang_printable"
+            || opt_key == "make_overhang_printable_angle"
+            || opt_key == "make_overhang_printable_hole_size") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"

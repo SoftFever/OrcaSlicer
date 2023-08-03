@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: Poedit 3.3.2\n"
 
 msgid "Supports Painting"
-msgstr "Pintar Soportes"
+msgstr "Soportes de pintura"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + Rueda del ratón"

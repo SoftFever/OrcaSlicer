@@ -1579,7 +1579,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Enable accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
     
     def = this->add("accel_to_decel_factor", coPercent);
     def->label = L("accel_to_decel");
@@ -2371,6 +2371,35 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[0]}_{print_time}.gcode"));
 
+    def = this->add("make_overhang_printable", coBool);
+    def->label = L("Make overhang printable");
+    def->category = L("Quality");
+    def->tooltip = L("Modify the geometry to print overhangs without support material.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("make_overhang_printable_angle", coFloat);
+    def->label = L("Make overhang printable maximum angle");
+    def->category = L("Quality");
+    def->tooltip = L("Maximum angle of overhangs to allow after making more steep overhangs printable."
+                     "90° will not change the model at all and allow any overhang, while 0 will "
+                     "replace all overhangs with conical material.");
+    def->sidetext = L("°");
+    def->mode = comAdvanced;
+    def->min = 0.;
+    def->max = 90.;
+    def->set_default_value(new ConfigOptionFloat(55.));
+
+    def = this->add("make_overhang_printable_hole_size", coFloat);
+    def->label = L("Make overhang printable hole area");
+    def->category = L("Quality");
+    def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material."
+                     "A value of 0 will fill all the holes in the model base.");
+    def->sidetext = L("mm²");
+    def->mode = comAdvanced;
+    def->min = 0.;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("detect_overhang_wall", coBool);
     def->label = L("Detect overhang wall");
     def->category = L("Quality");
@@ -2683,7 +2712,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(15,true));
+    def->set_default_value(new ConfigOptionFloatOrPercent(10,true));
 
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");

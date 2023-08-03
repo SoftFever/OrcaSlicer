@@ -1,8 +1,22 @@
 #include "calib.hpp"
 #include "BoundingBox.hpp"
+#include "Config.hpp"
 #include "Model.hpp"
+#include <cmath>
 
 namespace Slic3r {
+
+// Calculate the optimal Pressure Advance speed
+float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height,
+                                                                                                    int filament_idx) {
+    const double general_suggested_min_speed = 100.0;
+    double filament_max_volumetric_speed = config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
+    Flow pattern_line = Flow(line_width, layer_height, config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
+    auto pa_speed = std::min(std::max(general_suggested_min_speed,config.option<ConfigOptionFloat>("outer_wall_speed")->value), filament_max_volumetric_speed / pattern_line.mm3_per_mm());
+
+    return std::floor(pa_speed);
+}
+
 std::string CalibPressureAdvance::move_to(Vec2d pt, GCodeWriter& writer, std::string comment)
 {
     std::stringstream gcode;

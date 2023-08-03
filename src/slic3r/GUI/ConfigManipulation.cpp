@@ -702,6 +702,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     if(gcflavor == gcfKlipper)
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
 
+    // SoftFever
+    bool have_make_overhang_printable = config->opt_bool("make_overhang_printable");
+    toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
+    toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
+
     toggle_line("exclude_object", gcflavor == gcfKlipper);
 
 }

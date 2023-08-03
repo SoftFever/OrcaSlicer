@@ -529,6 +529,8 @@ Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons& poly1, const Slic3r::ExPol
 ClipperLib::PolyTree union_pt(const Slic3r::Polygons &subject);
 ClipperLib::PolyTree union_pt(const Slic3r::ExPolygons &subject);
 
+Slic3r::ExPolygons xor_ex(const Slic3r::ExPolygons &subject, const Slic3r::ExPolygon &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
+
 Slic3r::Polygons union_pt_chained_outside_in(const Slic3r::Polygons &subject);
 
 ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes);
