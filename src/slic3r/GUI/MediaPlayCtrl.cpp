@@ -83,6 +83,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_proto      = obj->get_local_camera_proto();
         m_lan_ip         = obj->dev_ip;
         m_lan_passwd     = obj->get_access_code();
+        m_dev_ver        = obj->get_ota_version();
         m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
         m_device_busy    = obj->is_camera_busy_off();
         m_tutk_state     = obj->tutk_state;
@@ -92,6 +93,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_proto = -1;
         m_lan_ip.clear();
         m_lan_passwd.clear();
+        m_dev_ver.clear();
         m_tutk_state.clear();
         m_remote_support = true;
         m_device_busy = false;
@@ -156,11 +158,14 @@ void MediaPlayCtrl::Play()
     if (m_lan_proto > 0 && (m_lan_mode ||!m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
         m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
         if (m_lan_proto == 1)
-            m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
+            m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         else if (m_lan_proto == 2)
-            m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
+            m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
         else if (m_lan_proto == 3)
-            m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
+            m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
+        m_url += "&device=" + m_machine;
+        m_url += "&version=" + agent_version;
+        m_url += "&dev_ver=" + m_dev_ver;
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << m_url;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
@@ -202,10 +207,11 @@ void MediaPlayCtrl::Play()
     SetStatus(_L("Initializing..."));
 
     if (agent) {
-        agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version](std::string url) {
+        agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + m;
                 url += "&version=" + v;
+                url += "&dev_ver=" + dv;
             }
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
             CallAfter([this, m, url] {
@@ -381,10 +387,11 @@ void MediaPlayCtrl::ToggleStream()
     }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
-    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version()](std::string url) {
+    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
         if (boost::algorithm::starts_with(url, "bambu:///")) {
             url += "&device=" + m;
             url += "&version=" + v;
+            url += "&dev_ver=" + dv;
         }
         BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
         CallAfter([this, m, url] {

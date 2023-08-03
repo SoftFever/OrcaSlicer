@@ -206,6 +206,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_lan_mode     = obj->is_lan_mode_printer();
         m_lan_ip       = obj->dev_ip;
         m_lan_passwd   = obj->get_access_code();
+        m_dev_ver      = obj->get_ota_version();
         m_local_support  = obj->has_local_file_proto();
         m_remote_support = obj->has_remote_file_proto();
     } else {
@@ -213,6 +214,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_lan_mode  = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
+        m_dev_ver.clear();
         m_local_support = false;
         m_remote_support = false;
     }
@@ -422,7 +424,8 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     if ((m_lan_mode || !m_remote_support) && m_local_support && !m_lan_ip.empty()) {
-        std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + 
+                "&device=" + m_machine + "&dev_ver=" + m_dev_ver;
         fs->SetUrl(url);
         return;
     }
@@ -439,13 +442,13 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     NetworkAgent *agent = wxGetApp().getAgent();
     if (agent) {
         agent->get_camera_url(m_machine,
-            [this, wfs](std::string url) {
+            [this, wfs, m = m_machine, v = m_dev_ver](std::string url) {
             BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << url;
-            CallAfter([this, url, wfs] {
+            CallAfter([=] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;
                 if (boost::algorithm::starts_with(url, "bambu:///")) {
-                    fs->SetUrl(url);
+                    fs->SetUrl(url + "&device=" + m + "&dev_ver=" + v);
                 } else {
                     m_image_grid->SetStatus(m_bmp_failed, wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
                     fs->SetUrl("3");
