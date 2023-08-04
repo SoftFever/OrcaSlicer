@@ -2036,7 +2036,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
     return -1;
 }
 
-int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values)
+int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &pa_calib_values, bool is_auto_cali)
 {
     CNumericLocalesSetter locales_setter;
 
@@ -2056,8 +2056,10 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult>& 
             j["print"]["filaments"][i]["setting_id"]  = pa_calib_values[i].setting_id;
             j["print"]["filaments"][i]["name"]        = pa_calib_values[i].name;
             j["print"]["filaments"][i]["k_value"]     = std::to_string(pa_calib_values[i].k_value);
-            // j["print"]["filaments"][i]["n_coef"]      = std::to_string(pa_calib_values[i].n_coef);
-            j["print"]["filaments"][i]["n_coef"] = "0.0";
+            if (is_auto_cali)
+                j["print"]["filaments"][i]["n_coef"]  = std::to_string(pa_calib_values[i].n_coef);
+            else
+                j["print"]["filaments"][i]["n_coef"]  = "0.0";
         }
 
         BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_set: " << j.dump();

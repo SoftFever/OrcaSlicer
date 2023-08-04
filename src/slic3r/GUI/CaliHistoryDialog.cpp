@@ -295,7 +295,7 @@ void HistoryWindow::sync_history_data() {
                 name_value->SetLabel(from_u8(new_result.name));
 
                 new_result.tray_id = -1;
-                CalibUtils::set_PA_calib_result({ new_result });
+                CalibUtils::set_PA_calib_result({ new_result }, true);
 
                 enbale_action_buttons(false);
             }
