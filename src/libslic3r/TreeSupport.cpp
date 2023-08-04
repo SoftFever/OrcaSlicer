@@ -1514,6 +1514,7 @@ void TreeSupport::generate_toolpaths()
 
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+                m_support_material_interface_flow = support_material_interface_flow(m_object, ts_layer->height); // update flow using real support layer height
                 coordf_t support_spacing         = object_config.support_base_pattern_spacing.value + support_flow.spacing();
                 coordf_t support_density         = std::min(1., support_flow.spacing() / support_spacing);
                 ts_layer->support_fills.no_sort = false;
@@ -2120,9 +2121,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const PrintObjectConfig& object_config = m_object->config();
     BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
 
-    // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, m_object->layer_count()),
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
         [&](const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
@@ -2182,26 +2181,27 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                             has_polygon_node = true;
                     }
                     else {
-                        Polygon circle;
+                        Polygon circle(branch_circle);
                         size_t layers_to_top = node.distance_to_top;
                         double  scale = calc_branch_radius(branch_radius, node.dist_mm_to_top, diameter_angle_scale_factor) / branch_radius;
+                        double moveX = node.movement.x() / (scale * branch_radius_scaled);
+                        double moveY = node.movement.y() / (scale * branch_radius_scaled);
+                        //BOOST_LOG_TRIVIAL(debug) << format("scale,moveX,moveY: %.3f,%.3f,%.3f", scale, moveX, moveY);
 
-                        if (/*is_slim*/1) { // draw ellipse along movement direction
-                            double moveX = node.movement.x() / (scale * branch_radius_scaled);
-                            double moveY = node.movement.y() / (scale * branch_radius_scaled);
+                        if (!SQUARE_SUPPORT && std::abs(moveX)>0.001 && std::abs(moveY)>0.001) { // draw ellipse along movement direction
                             const double vsize_inv = 0.5 / (0.01 + std::sqrt(moveX * moveX + moveY * moveY));
                             double       matrix[2*2]  = {
                                 scale * (1 + moveX * moveX * vsize_inv),scale * (0 + moveX * moveY * vsize_inv),
                                 scale * (0 + moveX * moveY * vsize_inv),scale * (1 + moveY * moveY * vsize_inv),
                             };
+                            int i = 0;
                             for (auto vertex: branch_circle.points) {
                                 vertex = Point(matrix[0] * vertex.x() + matrix[1] * vertex.y(), matrix[2] * vertex.x() + matrix[3] * vertex.y());
-                                circle.append(node.position + vertex);
+                                circle.points[i++] = node.position + vertex;
                             }
                         } else {
-                            for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++) {
-                                Point corner = (*iter) * scale;
-                                circle.append(node.position + corner);
+                            for (int i = 0;i< circle.points.size(); i++) {
+                                circle.points[i] = circle.points[i] * scale + node.position;
                             }
                         }
                         if (layer_nr == 0 && m_raft_layers == 0) {
@@ -2299,16 +2299,22 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 {
                     if (layer_nr >= bottom_interface_layers + bottom_gap_layers)
                     {
-                        for (size_t i = 0; i <= bottom_gap_layers; i++)
+                        // find the lowest interface layer
+                        // TODO the gap may not be exact when "independent support layer height" is enabled
+                        size_t layer_nr_next = layer_nr;
+                        for (size_t i = 0; i < bottom_interface_layers && layer_nr_next>0; i++) {
+                            layer_nr_next = m_ts_data->layer_heights[layer_nr_next].next_layer_nr;
+                        }
+                        for (size_t i = 0; i <= bottom_gap_layers && i<=layer_nr_next; i++)
                         {
-                            const Layer* below_layer = m_object->get_layer(layer_nr - bottom_interface_layers - i);
+                            const Layer* below_layer = m_object->get_layer(layer_nr_next - i);
                             ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
                             floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
                         }
                     }
                     if (floor_areas.empty() == false) {
-                        floor_areas = std::move(diff_ex(floor_areas, avoid_region_interface));
-                        floor_areas = std::move(offset2_ex(floor_areas, contact_dist_scaled, -contact_dist_scaled));
+                        //floor_areas = std::move(diff_ex(floor_areas, avoid_region_interface));
+                        //floor_areas = std::move(offset2_ex(floor_areas, contact_dist_scaled, -contact_dist_scaled));
                         base_areas = std::move(diff_ex(base_areas, offset_ex(floor_areas, 10)));
                     }
                 }
@@ -2415,6 +2421,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
             // check if poly's contour intersects with expoly's contour
             auto intersects_contour = [](Polygon poly, ExPolygon expoly, Point& pt_on_poly, Point& pt_on_expoly, Point& pt_far_on_poly, float dist_thresh = 0.01) {
+                Polylines pl_out = intersection_pl(to_polylines(expoly), ExPolygon(poly));
+                if (pl_out.empty()) return false;
                 float min_dist = std::numeric_limits<float>::max();
                 float max_dist = 0;
                 for (auto from : poly.points) {
@@ -3344,8 +3352,8 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
                 break;
             }
         }
-        BOOST_LOG_TRIVIAL(info) << "plan_layer_heights print_z, height, layer_nr->next_layer_nr: " << layer_heights[i].print_z << " " << layer_heights[i].height << "   "
-            << i << "->" << layer_heights[i].next_layer_nr << std::endl;
+        BOOST_LOG_TRIVIAL(debug) << "plan_layer_heights print_z, height, layer_nr->next_layer_nr: " << layer_heights[i].print_z << " " << layer_heights[i].height << "   "
+            << i << "->" << layer_heights[i].next_layer_nr;
     }
 
     return layer_heights;
