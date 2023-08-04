@@ -7,6 +7,8 @@
 namespace Slic3r { namespace GUI {
 
 #define CALIBRATION_SAVE_INPUT_SIZE     wxSize(FromDIP(240), FromDIP(24))
+#define FLOW_RATE_MAX_VALUE  1.15
+
 static wxString get_default_name(wxString filament_name, CalibMode mode){
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
@@ -945,7 +947,7 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         part_failed = true;
     for (auto& item : cali_result) {
         bool result_failed = false;
-        if (item.confidence != 0) {
+        if (item.confidence != 0 || item.flow_ratio < 1e-3 || item.flow_ratio > FLOW_RATE_MAX_VALUE) {
             result_failed = true;
             part_failed = true;
         }
