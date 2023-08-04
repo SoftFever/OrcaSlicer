@@ -22,6 +22,7 @@ public:
     void update(MachineObject* obj);
 protected:
     void sync_history_data();
+    void enbale_action_buttons(bool enable);
     float get_nozzle_value();
 
     wxPanel*                   m_history_data_panel;
