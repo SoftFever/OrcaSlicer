@@ -5346,6 +5346,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Render with a software renderer. The bundled MESA software renderer is loaded instead of the default OpenGL driver.");
     def->min = 0;*/
 #endif /* _MSC_VER */
+
+    def = this->add("load_custom_gcodes", coString);
+    def->label = L("Load custom gcode");
+    def->tooltip = L("Load custom gcode from json");
+    def->cli_params = "custom_gcode_toolchange.json";
+    def->set_default_value(new ConfigOptionString());
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;
