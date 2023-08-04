@@ -430,9 +430,6 @@ public:
     void            on_set_selected_machine(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
-    void            start_check_network_state();
-    bool            check_network_state();
-    void            start_test_url(std::string url);
     void            enable_user_preset_folder(bool enable);
 
     // BBS
