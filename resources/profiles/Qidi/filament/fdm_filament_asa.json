@@ -56,10 +56,10 @@
         "1"
     ],
     "fan_max_speed": [
-        "80"
+        "35"
     ],
     "fan_min_speed": [
-        "10"
+        "35"
     ],
     "overhang_fan_threshold": [
         "25%"
