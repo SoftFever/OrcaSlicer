@@ -2820,7 +2820,7 @@ void AMSControl::SetActionState(bool button_status[])
     else m_button_extruder_back->Disable();
 }
 
-void AMSControl::EnterNoneAMSMode(bool support_vt_load)
+void AMSControl::EnterNoneAMSMode()
 {
     m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::NO_AMS) return;
@@ -2832,13 +2832,8 @@ void AMSControl::EnterNoneAMSMode(bool support_vt_load)
     m_extruder->no_ams_mode(true);
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
-    if (support_vt_load) {
-        m_button_extruder_feed->Show();
-        m_button_extruder_back->Show();
-    } else {
-        m_button_extruder_feed->Hide();
-        m_button_extruder_back->Hide();
-    }
+    m_button_extruder_feed->Show();
+    m_button_extruder_back->Show();
 
     ShowFilamentTip(false);
     m_amswin->Layout();

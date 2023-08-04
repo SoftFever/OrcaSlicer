@@ -651,7 +651,7 @@ public:
     void SetAmsModel(AMSModel mode, AMSModel ext_mode) {m_ams_model = mode; m_ext_model = ext_mode;};
 
 	void SetActionState(bool button_status[]);
-    void EnterNoneAMSMode(bool support_vt_load = false);
+    void EnterNoneAMSMode();
     void EnterGenericAMSMode();
     void EnterExtraAMSMode();
 
