@@ -593,7 +593,7 @@ void PressureAdvanceWizard::on_cali_save()
                     return;
                 }
 
-                CalibUtils::set_PA_calib_result(new_pa_cali_results);
+                CalibUtils::set_PA_calib_result(new_pa_cali_results, true);
             }
             else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
                 PACalibResult new_pa_cali_result;
@@ -601,7 +601,7 @@ void PressureAdvanceWizard::on_cali_save()
                 if (!save_page->get_manual_result(new_pa_cali_result)) {
                     return;
                 }
-                CalibUtils::set_PA_calib_result({ new_pa_cali_result });
+                CalibUtils::set_PA_calib_result({ new_pa_cali_result }, false);
             }
 
             MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);

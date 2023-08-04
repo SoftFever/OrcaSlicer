@@ -818,7 +818,7 @@ public:
 
     // PA calibration
     int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode
-    int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values);
+    int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values, bool is_auto_cali);
     int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
     int command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id = "");
     int command_get_pa_calibration_result(float nozzle_diameter);

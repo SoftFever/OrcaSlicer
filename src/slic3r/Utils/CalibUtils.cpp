@@ -265,7 +265,7 @@ bool CalibUtils::get_PA_calib_info(PACalibResult & pa_calib_info) {
     return false;
 }
 
-void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_values)
+void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult> &pa_calib_values, bool is_auto_cali)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -275,7 +275,7 @@ void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult>& pa_calib_
     if (obj_ == nullptr)
         return;
 
-    obj_->command_set_pa_calibration(pa_calib_values);
+    obj_->command_set_pa_calibration(pa_calib_values, is_auto_cali);
 }
 
 void CalibUtils::select_PA_calib_result(const PACalibIndexInfo& pa_calib_info)
