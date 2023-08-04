@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-02 19:05+0800\n"
+"POT-Creation-Date: 2023-08-04 16:35+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9913,6 +9913,12 @@ msgid "Flow Dynamics Calibration Result"
 msgstr ""
 
 msgid "No History Result"
+msgstr ""
+
+msgid "Success to get history result"
+msgstr ""
+
+msgid "Refreshing the historical Flow Dynamics Calibration records"
 msgstr ""
 
 msgid "Action"
