@@ -655,6 +655,11 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    std::string custom_gcode_file;
+    ConfigOptionString* custom_gcode_option = m_config.option<ConfigOptionString>("load_custom_gcodes");
+    if (custom_gcode_option)
+        custom_gcode_file = custom_gcode_option->value;
+
     /*for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
@@ -844,6 +849,41 @@ int CLI::run(int argc, char **argv)
             m_models.push_back(std::move(model));
         }
     //}
+
+    //load custom gcode file
+    std::map<int, CustomGCode::Info> custom_gcodes_map;
+    if (!custom_gcode_file.empty()) {
+        // parse the custom gcode json file
+        std::string file = custom_gcode_file;
+        if(!boost::filesystem::exists(file)) {
+            boost::nowide::cerr << __FUNCTION__ << ": can not find custom_gcode file: " << file << std::endl;
+            record_exit_reson(outfile_dir, CLI_FILE_NOTFOUND, 0, cli_errors[CLI_FILE_NOTFOUND], sliced_info);
+            flush_and_exit(CLI_FILE_NOTFOUND);
+        }
+        try {
+            nlohmann::json jj;
+            boost::nowide::ifstream ifs(file);
+            ifs >> jj;
+            ifs.close();
+
+            int plate_id = 0;
+            if (plate_to_slice == 0)
+                plate_id = 0;
+            else
+                plate_id = plate_to_slice-1;
+
+            CustomGCode::Info info;
+            info.from_json(jj);
+
+            custom_gcodes_map.emplace(plate_id, info);
+            BOOST_LOG_TRIVIAL(info) << boost::format("load custom_gcode from file %1% success, store custom gcodes to plate %2%")%file %(plate_id+1);
+        }
+        catch (std::exception &ex) {
+            boost::nowide::cerr << __FUNCTION__<< ":Loading custom-gcode file \"" << file << "\" failed: " << ex.what() << std::endl;
+            record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+            flush_and_exit(CLI_CONFIG_FILE_ERROR);
+        }
+    }
 
     auto load_config_file = [config_substitution_rule](const std::string& file, DynamicPrintConfig& config, std::string& config_type,
                                 std::string& config_name, std::string& filament_id, std::string& config_from) {
@@ -1772,6 +1812,19 @@ int CLI::run(int argc, char **argv)
         m.add_default_instances();
         m_models.clear();
         m_models.emplace_back(std::move(m));
+    }
+
+    //load custom gcodes into model if needed
+    if ((custom_gcodes_map.size() > 0)&&(m_models.size() > 0))
+    {
+        m_models[0].plates_custom_gcodes = custom_gcodes_map;
+        /*m_models[0].plates_custom_gcodes.clear();
+
+        for (auto& custom_gcode: custom_gcodes_map)
+        {
+            BOOST_LOG_TRIVIAL(info) << boost::format("insert custom_gocde %1% into plate %2%")%plate_id;
+            m_models[0].plates_custom_gcodes.emplace(custom_gcode.first, custom_gcode.second);
+        }*/
     }
 
     // Apply command line options to a more specific DynamicPrintConfig which provides normalize()
