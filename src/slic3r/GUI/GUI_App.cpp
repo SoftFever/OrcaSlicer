@@ -2774,9 +2774,6 @@ bool GUI_App::on_init_inner()
         }
     });
 
-    BOOST_LOG_TRIVIAL(info) << "start_check_network_state...";
-    start_check_network_state();
-
     m_initialized = true;
 
     flush_logs();
@@ -4139,81 +4136,6 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         mainframe->update_side_preset_ui();
 
         GUI::wxGetApp().mainframe->show_sync_dialog();
-    }
-}
-
-void GUI_App::start_check_network_state()
-{
-    boost::thread* test_microsoft = new boost::thread([this] {
-        start_test_url("www.microsoft.com");
-        });
-    boost::thread* test_apple = new boost::thread([this] {
-        start_test_url("www.apple.com");
-        });
-    boost::thread* test_amazon = new boost::thread([this] {
-        start_test_url("www.amazon.com");
-        });
-
-    m_check_network_thread = boost::thread([this] {
-        int sec_count = 1;
-        while (!m_is_closing) {
-            if (sec_count % 10 == 0) {
-                bool link_result = check_network_state();
-                if (!link_result) {
-                    BOOST_LOG_TRIVIAL(info) << "link_result = " << link_result;
-                }
-            }
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-            sec_count++;
-        }
-    });
-}
-
-bool GUI_App::check_network_state()
-{
-    bool result = false;
-    for (auto link : test_url_state) {
-        result = result | link.second;
-    }
-    if (m_agent) {
-        if (result)
-            m_agent->track_update_property("link_state", "1");
-        else
-            m_agent->track_update_property("link_state", "0");
-    }
-    return result;
-}
-
-void GUI_App::start_test_url(std::string url)
-{
-    int sec_count = 0;
-    while (!m_is_closing) {
-        if (sec_count % 10 == 0) {
-            Slic3r::Http http = Slic3r::Http::get(url);
-            int result = -1;
-            http.timeout_max(5)
-                .on_complete([&result](std::string body, unsigned status) {
-                    try {
-                        if (status == 200) {
-                            result = 0;
-                        }
-                    }
-                    catch (...) {
-                        ;
-                    }
-                })
-                .on_error([](std::string body, std::string error, unsigned int status) {
-                    ;
-                }).perform_sync();
-
-            if (result == 0) {
-                test_url_state[url] = true;
-            } else {
-                test_url_state[url] = false;
-            }
-        }
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-        sec_count++;
     }
 }
 
