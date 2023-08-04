@@ -203,9 +203,20 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
     }
 }
 
+void HistoryWindow::enbale_action_buttons(bool enable) {
+    auto childern = m_history_data_panel->GetChildren();
+    for (auto child : childern) {
+        auto button = dynamic_cast<Button*>(child);
+        if (button) {
+            button->Enable(enable);
+        }
+    }
+}
+
 void HistoryWindow::sync_history_data() {
     Freeze();
     m_history_data_panel->DestroyChildren();
+    m_history_data_panel->Enable();
     wxGridBagSizer* gbSizer;
     gbSizer = new wxGridBagSizer(FromDIP(0), FromDIP(50));
     gbSizer->SetFlexibleDirection(wxBOTH);
@@ -271,20 +282,22 @@ void HistoryWindow::sync_history_data() {
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
-        edit_button->Bind(wxEVT_BUTTON, [this, &result, k_value, name_value](auto& e) {
+        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value, edit_button](auto& e) {
             PACalibResult result_buffer = result;
             result_buffer.k_value = stof(k_value->GetLabel().ToStdString());
-            result_buffer.name = name_value->GetLabel().ToStdString();
+            result_buffer.name = name_value->GetLabel().ToUTF8().data();
             EditCalibrationHistoryDialog dlg(this, result_buffer);
             if (dlg.ShowModal() == wxID_OK) {
                 auto new_result = dlg.get_result();
 
                 wxString new_k_str = wxString::Format("%.3f", new_result.k_value);
                 k_value->SetLabel(new_k_str);
-                name_value->SetLabel(new_result.name);
+                name_value->SetLabel(from_u8(new_result.name));
 
                 new_result.tray_id = -1;
                 CalibUtils::set_PA_calib_result({ new_result });
+
+                enbale_action_buttons(false);
             }
             });
 
@@ -336,14 +349,14 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     flex_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
     Label* name_title = new Label(top_panel, _L("Name"));
-    TextInput* name_value = new TextInput(top_panel, m_new_result.name, "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    TextInput* name_value = new TextInput(top_panel, from_u8(m_new_result.name), "", "", wxDefaultPosition, EDIT_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
     name_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, name_value](auto& e) {
         if (!name_value->GetTextCtrl()->GetValue().IsEmpty())
-            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToStdString();
+            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToUTF8().data();
         });
     name_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, name_value](auto& e) {
         if (!name_value->GetTextCtrl()->GetValue().IsEmpty())
-            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToStdString();
+            m_new_result.name = name_value->GetTextCtrl()->GetValue().ToUTF8().data();
         e.Skip();
         });
     flex_sizer->Add(name_title);
