@@ -590,7 +590,11 @@ void PAPageHelpPanel::create_pop_window()
     m_pop_win->SetSizer(pop_sizer);
 
     wxStaticBitmap* img = new wxStaticBitmap(m_pop_win, wxID_ANY, wxNullBitmap);
-    img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram", 206).bmp());
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram_CN", 206).bmp());
+    } else {
+        img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram", 206).bmp());
+    }
     pop_sizer->Add(img, 1, wxEXPAND | wxALL, FromDIP(20));
 
     m_pop_win->Layout();

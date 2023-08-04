@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7296,10 +7296,17 @@ msgstr "Un seul mur sur les surfaces supérieures"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"N'utilisez qu'un seul mur sur les surfaces supérieures planes, afin de "
-"donner plus d'espace au motif de remplissage supérieur."
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "Surfaces supérieures"
+
+msgid "Topmost surface"
+msgstr "Surface la plus élevée"
 
 msgid "Only one wall on first layer"
 msgstr "Une seule paroi sur la première couche"
@@ -8184,12 +8191,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "Pas de repassage"
-
-msgid "Top surfaces"
-msgstr "Surfaces supérieures"
-
-msgid "Topmost surface"
-msgstr "Surface la plus élevée"
 
 msgid "All solid layer"
 msgstr "Toutes les couches solides"
@@ -10578,6 +10579,13 @@ msgstr ""
 "Améliorer la résistance\n"
 "Saviez-vous que vous pouvez définir un plus grand nombre de périmètre et une "
 "densité de remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "N'utilisez qu'un seul mur sur les surfaces supérieures planes, afin de "
+#~ "donner plus d'espace au motif de remplissage supérieur."
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Dureté HRC buse"

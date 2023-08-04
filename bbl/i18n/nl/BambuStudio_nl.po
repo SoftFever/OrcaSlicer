@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7254,10 +7254,17 @@ msgstr "Slechts één wand op de bovenste oppervlakken"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"Gebruik slechts één wand op het vlakke bovenvlak, om meer ruimte te geven "
-"aan het bovenste invulpatroon"
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "Alle bovenoppervlakken"
+
+msgid "Topmost surface"
+msgstr "Alleen het bovenste oppervlak"
 
 msgid "Only one wall on first layer"
 msgstr "Only one wall on first layer"
@@ -8137,12 +8144,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "Niet strijken"
-
-msgid "Top surfaces"
-msgstr "Alle bovenoppervlakken"
-
-msgid "Topmost surface"
-msgstr "Alleen het bovenste oppervlak"
 
 msgid "All solid layer"
 msgstr "Alle vaste lagen"
@@ -10516,6 +10517,13 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "Gebruik slechts één wand op het vlakke bovenvlak, om meer ruimte te geven "
+#~ "aan het bovenste invulpatroon"
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Nozzle HRC"

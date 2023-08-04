@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7229,10 +7229,17 @@ msgstr "Solo una parete sulle superfici superiori"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"Usa solo una parete su superfici piane, per dare più spazio alla trama "
-"riempimento superiore"
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "Tutte le superfici superiori"
+
+msgid "Topmost surface"
+msgstr "Superficie superiore più alta"
 
 msgid "Only one wall on first layer"
 msgstr "Solo un perimetro sul primo layer"
@@ -8118,12 +8125,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "Non stirare"
-
-msgid "Top surfaces"
-msgstr "Tutte le superfici superiori"
-
-msgid "Topmost surface"
-msgstr "Superficie superiore più alta"
 
 msgid "All solid layer"
 msgstr "Tutti i layers solidi"
@@ -10496,6 +10497,13 @@ msgstr ""
 "Migliorare la resistenza\n"
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "Usa solo una parete su superfici piane, per dare più spazio alla trama "
+#~ "riempimento superiore"
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Nozzle HRC"

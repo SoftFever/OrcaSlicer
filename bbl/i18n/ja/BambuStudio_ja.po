@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6924,8 +6924,17 @@ msgstr "トップ面に1層"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
-msgstr "トップ面に1層だけ造形します、インフィルを多い空間を与えます。"
+"pattern. Could be applyed on topmost surface or all top surface."
+msgstr ""
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "全てのトップ面"
+
+msgid "Topmost surface"
+msgstr "最上部のみ"
 
 msgid "Only one wall on first layer"
 msgstr "Only one wall on first layer"
@@ -7740,12 +7749,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "しない"
-
-msgid "Top surfaces"
-msgstr "全てのトップ面"
-
-msgid "Topmost surface"
-msgstr "最上部のみ"
 
 msgid "All solid layer"
 msgstr "全てのソリッド積層"
@@ -9980,6 +9983,11 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr "トップ面に1層だけ造形します、インフィルを多い空間を与えます。"
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "ノズルHRC"

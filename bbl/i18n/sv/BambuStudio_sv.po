@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7123,10 +7123,17 @@ msgstr "Endast en vägg på topp ytan"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"Använd endast en vägg på topp ytan, för att ge mer utrymme till det övre "
-"ifyllningsmönstret"
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "Top ytor"
+
+msgid "Topmost surface"
+msgstr "Endast högsta ytan"
 
 msgid "Only one wall on first layer"
 msgstr "Endast en vägg på första lagret"
@@ -7987,12 +7994,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "Ingen strykning"
-
-msgid "Top surfaces"
-msgstr "Top ytor"
-
-msgid "Topmost surface"
-msgstr "Endast högsta ytan"
 
 msgid "All solid layer"
 msgstr "Alla solida lager"
@@ -10329,6 +10330,13 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "Använd endast en vägg på topp ytan, för att ge mer utrymme till det övre "
+#~ "ifyllningsmönstret"
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Nozzle HRC"
