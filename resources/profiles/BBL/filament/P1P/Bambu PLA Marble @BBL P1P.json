@@ -5,16 +5,16 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Bambu PLA Marble @base",
-    "hot_plate_temp" : [
+    "hot_plate_temp": [
         "65"
     ],
-    "hot_plate_temp_initial_layer" : [
+    "hot_plate_temp_initial_layer": [
         "65"
     ],
-    "textured_plate_temp" : [
+    "textured_plate_temp": [
         "65"
     ],
-    "textured_plate_temp_initial_layer" : [
+    "textured_plate_temp_initial_layer": [
         "65"
     ],
     "fan_min_speed": [
@@ -27,8 +27,8 @@
         "8"
     ],
     "compatible_printers": [
-      "Bambu Lab P1P 0.4 nozzle",
-      "Bambu Lab P1P 0.6 nozzle",
-      "Bambu Lab P1P 0.8 nozzle"
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle"
     ]
 }

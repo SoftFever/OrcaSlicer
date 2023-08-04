@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-27 22:18+0800\n"
+"POT-Creation-Date: 2023-07-31 21:29+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6781,11 +6781,14 @@ msgstr ""
 "Schakel deze optie in om de snelheid omlaag te brengen voor verschillende "
 "overhangende hoeken"
 
-msgid "mm/s"
-msgstr "mm/s"
+msgid "mm/s or %"
+msgstr ""
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Dit is de snelheid voor bruggen en 100% overhangende wanden."
+
+msgid "mm/s"
+msgstr "mm/s"
 
 msgid "Brim width"
 msgstr "Rand breedte"
@@ -7000,8 +7003,10 @@ msgstr ""
 "Dit is het lijnenpatroon van de vulling (infill) van het bodemoppervlak, "
 "maar niet van de vulling van de brug."
 
-msgid "Line width of outer wall"
-msgstr "Lijn dikte van buitenste wand"
+msgid ""
+"Line width of outer wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
@@ -7018,9 +7023,6 @@ msgid ""
 "small_perimeter_threshold (usually holes). If expressed as percentage (for "
 "example: 80%) it will be calculated on the outer wall speed setting above. "
 "Set to zero for auto."
-msgstr ""
-
-msgid "mm/s or %"
 msgstr ""
 
 msgid "Small perimeters threshold"
@@ -7110,8 +7112,10 @@ msgstr ""
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 
-msgid "Default line width if some line width is set to be zero"
-msgstr "Standaard lijn breedte als een lijn breedte is ingesteld op 0"
+msgid ""
+"Default line width if other line widths are set to 0. If expressed as a %, "
+"it will be computed over the nozzle diameter."
+msgstr ""
 
 msgid "Keep fan always on"
 msgstr "Laat de ventilator aan staan"
@@ -7434,8 +7438,10 @@ msgstr ""
 msgid "Jerk for travel"
 msgstr ""
 
-msgid "Line width of initial layer"
-msgstr "Laag dikte voor eerste laag"
+msgid ""
+"Line width of initial layer. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr ""
 
 msgid "Initial layer height"
 msgstr "Laaghoogte van de eerste laag"
@@ -7701,8 +7707,10 @@ msgid "Filament to print internal sparse infill."
 msgstr ""
 "Dit is het filament voor het printen van interne dunne vulling (infill)"
 
-msgid "Line width of internal sparse infill"
-msgstr "Lijn dikte voor interne dunne vulling (infill)"
+msgid ""
+"Line width of internal sparse infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr ""
 
 msgid "Infill/Wall overlap"
 msgstr "Vulling (infill)/wand overlap"
@@ -7996,6 +8004,32 @@ msgid "User can self-define the project file name when export"
 msgstr ""
 "Gebruikers kunnen zelf de project bestandsnaam kiezen tijdens het exporteren"
 
+msgid "Make overhang printable"
+msgstr ""
+
+msgid "Modify the geometry to print overhangs without support material."
+msgstr ""
+
+msgid "Make overhang printable maximum angle"
+msgstr ""
+
+msgid ""
+"Maximum angle of overhangs to allow after making more steep overhangs "
+"printable.90° will not change the model at all and allow any overhang, while "
+"0 will replace all overhangs with conical material."
+msgstr ""
+
+msgid "Make overhang printable hole area"
+msgstr ""
+
+msgid ""
+"Maximum area of a hole in the base of the model before it's filled by "
+"conical material.A value of 0 will fill all the holes in the model base."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
 msgid "Detect overhang wall"
 msgstr "Overhange wand detecteren"
 
@@ -8008,8 +8042,10 @@ msgstr ""
 "lijnbreedte te detecteren en gebruikt verschillende snelheden om af te "
 "drukken. Voor 100%% overhang wordt de brugsnelheid gebruikt."
 
-msgid "Line width of inner wall"
-msgstr "Lijn dikte voor binnenste wand"
+msgid ""
+"Line width of inner wall. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid "Speed of inner wall"
 msgstr "Dit is de snelheid voor de binnenste wanden"
@@ -8246,7 +8282,7 @@ msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
 "the loop is interrupted and shortened by a specified amount.\n"
 "This amount can be specified in millimeters or as a percentage of the "
-"current extruder diameter. The default value for this parameter is 15%."
+"current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
 
 msgid "Role base wipe speed"
@@ -8320,11 +8356,10 @@ msgstr ""
 "Dunne opvullingen (infill) die kleiner zijn dan deze drempelwaarde worden "
 "vervangen door solide interne vulling (infill)."
 
-msgid "mm²"
-msgstr "mm²"
-
-msgid "Line width of internal solid infill"
-msgstr "Lijn dikte voor interne solide vulling (infill)"
+msgid ""
+"Line width of internal solid infill. If expressed as a %, it will be "
+"computed over the nozzle diameter."
+msgstr ""
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
@@ -8468,8 +8503,10 @@ msgid ""
 "filament for support and current filament is used"
 msgstr ""
 
-msgid "Line width of support"
-msgstr "Lijn dikte van support"
+msgid ""
+"Line width of support. If expressed as a %, it will be computed over the "
+"nozzle diameter."
+msgstr ""
 
 msgid "Interface use loop pattern"
 msgstr "Luspatroon interface"
@@ -8695,8 +8732,10 @@ msgstr ""
 "Deze G-code wordt ingevoegd wanneer filament wordt vervangen, inclusief T-"
 "commando's om gereedschapswissel te activeren."
 
-msgid "Line width for top surfaces"
-msgstr "Lijn dikte voor bovenste lagen"
+msgid ""
+"Line width for top surfaces. If expressed as a %, it will be computed over "
+"the nozzle diameter."
+msgstr ""
 
 msgid "Speed of top surface infill which is solid"
 msgstr ""
@@ -9349,6 +9388,30 @@ msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
+
+#~ msgid "Line width of outer wall"
+#~ msgstr "Lijn dikte van buitenste wand"
+
+#~ msgid "Default line width if some line width is set to be zero"
+#~ msgstr "Standaard lijn breedte als een lijn breedte is ingesteld op 0"
+
+#~ msgid "Line width of initial layer"
+#~ msgstr "Laag dikte voor eerste laag"
+
+#~ msgid "Line width of internal sparse infill"
+#~ msgstr "Lijn dikte voor interne dunne vulling (infill)"
+
+#~ msgid "Line width of inner wall"
+#~ msgstr "Lijn dikte voor binnenste wand"
+
+#~ msgid "Line width of internal solid infill"
+#~ msgstr "Lijn dikte voor interne solide vulling (infill)"
+
+#~ msgid "Line width of support"
+#~ msgstr "Lijn dikte van support"
+
+#~ msgid "Line width for top surfaces"
+#~ msgstr "Lijn dikte voor bovenste lagen"
 
 #~ msgid "Keep upper part"
 #~ msgstr "Bewaar het bovenstee deel"

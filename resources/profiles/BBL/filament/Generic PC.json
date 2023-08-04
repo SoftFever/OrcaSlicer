@@ -1,16 +1,16 @@
 {
-  "type": "filament",
-  "setting_id": "GFSC99",
-  "name": "Generic PC",
-  "from": "system",
-  "instantiation": "true",
-  "inherits": "Generic PC @base",
-  "compatible_printers": [
-    "Bambu Lab X1 Carbon 0.4 nozzle",
-    "Bambu Lab X1 Carbon 0.6 nozzle",
-    "Bambu Lab X1 Carbon 0.8 nozzle",
-    "Bambu Lab X1 0.4 nozzle",
-    "Bambu Lab X1 0.6 nozzle",
-    "Bambu Lab X1 0.8 nozzle"
-  ]
+    "type": "filament",
+    "setting_id": "GFSC99",
+    "name": "Generic PC",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PC @base",
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 Carbon 0.6 nozzle",
+        "Bambu Lab X1 Carbon 0.8 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle"
+    ]
 }

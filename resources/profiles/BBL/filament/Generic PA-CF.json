@@ -7,34 +7,25 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
     "filament_type": [
-      "PA-CF"
-    ],
-    "nozzle_temperature_initial_layer": [
-      "290"
-    ],
-    "nozzle_temperature": [
-      "290"
-    ],
-    "filament_max_volumetric_speed": [
-      "8"
+        "PA-CF"
     ],
     "fan_max_speed": [
-      "30"
+        "30"
     ],
     "fan_min_speed": [
-      "10"
+        "10"
     ],
     "overhang_fan_threshold": [
-      "0%"
+        "0%"
     ],
     "overhang_fan_speed": [
-      "40"
+        "40"
     ],
     "fan_cooling_layer_time": [
-      "5"
+        "5"
     ],
     "full_fan_speed_layer": [
-      "2"
+        "2"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",
@@ -42,6 +33,9 @@
         "Bambu Lab X1 Carbon 0.8 nozzle",
         "Bambu Lab X1 0.4 nozzle",
         "Bambu Lab X1 0.6 nozzle",
-        "Bambu Lab X1 0.8 nozzle"
+        "Bambu Lab X1 0.8 nozzle",
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab P1S 0.6 nozzle",
+        "Bambu Lab P1S 0.8 nozzle"
     ]
 }
