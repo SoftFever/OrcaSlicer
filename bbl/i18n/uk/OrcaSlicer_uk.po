@@ -925,7 +925,7 @@ msgid "Edit in Parameter Table"
 msgstr "Змінити у таблиці параметрів"
 
 msgid "Convert from inch"
-msgstr "Конвертувати з імерської"
+msgstr "Перетворити з імерської"
 
 msgid "Restore to inch"
 msgstr "Відновити до імперської"
@@ -1131,7 +1131,7 @@ msgid "Click the icon to edit color painting of the object"
 msgstr "Клацніть значок, щоб відредагувати колірне забарвлення об'єкта"
 
 msgid "Click the icon to shift this object to the bed"
-msgstr "Клацніть значок, щоб перемістити цей об'єкт на ліжко"
+msgstr "Клацніть значок, щоб перемістити цей об'єкт на столі"
 
 msgid "Loading file"
 msgstr "Завантаження файлу"
@@ -1589,8 +1589,8 @@ msgid ""
 "bed:\n"
 "%s"
 msgstr ""
-"Аранжування ігнорувало такі об'єкти, які не можуть поміститися в один\n"
-"ліжко:\n"
+"Аранжування ігнорувало такі об'єкти, які не можуть поміститися на один\n"
+"стіл:\n"
 "%s"
 
 msgid ""
@@ -1887,10 +1887,10 @@ msgstr ""
 "сопла"
 
 msgid "max"
-msgstr "max"
+msgstr "макс"
 
 msgid "min"
-msgstr "min"
+msgstr "мін"
 
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
@@ -1985,7 +1985,7 @@ msgid ""
 msgstr ""
 "Калібрування завершено. Будь ласка, знайдіть найбільш рівномірну "
 "екструзійнулінію на вашому\n"
-"гаряче ліжко, як на малюнку нижче, і вставте значення зліва в поле\n"
+"гарячий стіл, як на малюнку нижче, і вставте значення зліва в поле\n"
 "поле введення коефіцієнта K."
 
 msgid "Save"
@@ -2408,7 +2408,7 @@ msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
-"Занадто маленька відстань між прасуванням.\n"
+"Занадто маленька відстань між розглажуванням.\n"
 "Скинути на 0,1"
 
 msgid ""
@@ -2519,7 +2519,7 @@ msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
 msgstr ""
-"Під час друку об'єктом екструдер може зіткнутися зі спідницею.\n"
+"Під час друку об'єкта екструдер може зіткнутися зі спідницею.\n"
 "Таким чином, скиньте шар спідниці до 1, щоб уникнути цього."
 
 msgid "Auto bed leveling"
@@ -3127,7 +3127,7 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "буде закрито перед створенням нової моделі. Ви хочете продовжувати?"
 
 msgid "Slice plate"
-msgstr "Слайс пластина"
+msgstr "Нарізати моделі"
 
 msgid "Print plate"
 msgstr "Друкована пластина"
@@ -3394,7 +3394,7 @@ msgid "Flow rate"
 msgstr "Швидкість потоку"
 
 msgid "Pressure advance"
-msgstr "Підвищення тиску"
+msgstr "Випередження тиску PA"
 
 msgid "Retraction test"
 msgstr "Тест на втягування"
@@ -3789,7 +3789,7 @@ msgid "Cham"
 msgstr "Камера"
 
 msgid "Bed"
-msgstr "Ліжко"
+msgstr "Стіл"
 
 msgid "Unload"
 msgstr "Вивантаження"
@@ -6059,7 +6059,7 @@ msgid "Gizmo cut"
 msgstr "Виріз Gizmo"
 
 msgid "Gizmo Place face on bed"
-msgstr "Gizmo Покладіть обличчя на ліжко"
+msgstr "Gizmo Покладіть обличчя на стіл"
 
 msgid "Gizmo SLA support points"
 msgstr "Точки підтримки Gizmo SL"
@@ -6623,7 +6623,7 @@ msgid "Plate %d: %s does not support filament %s"
 msgstr "Плита %d: %s не підтримує філамент %s"
 
 msgid "Generating skirt & brim"
-msgstr "Створення спідниці та облямівки"
+msgstr "Створення спідниці та кайми"
 
 msgid "Exporting G-code"
 msgstr "Експорт G-code"
@@ -6635,7 +6635,7 @@ msgid "Failed processing of the filename_format template."
 msgstr "Не вдалося обробити шаблон filename_format."
 
 msgid "Printable area"
-msgstr "Друкована область"
+msgstr "Область друку"
 
 msgid "Bed exclude area"
 msgstr "Площа виключення столу"
@@ -6958,7 +6958,7 @@ msgstr ""
 "матеріалу для мосту, щоб покращити провисання"
 
 msgid "Top surface flow ratio"
-msgstr "Коефіцієнт обтікання верхньої поверхні"
+msgstr "Коефіцієнт потоку верхньої поверхні"
 
 msgid ""
 "This factor affects the amount of material for top solid infill. You can "
@@ -6969,7 +6969,7 @@ msgstr ""
 "шорсткістьповерхні"
 
 msgid "Bottom surface flow ratio"
-msgstr "Коефіцієнт витрати нижньої поверхні"
+msgstr "Коефіцієнт потоку нижньої поверхні"
 
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr ""
@@ -7029,13 +7029,13 @@ msgid "mm/s"
 msgstr "mm/с"
 
 msgid "Brim width"
-msgstr "Ширина облямівки"
+msgstr "Ширина кайми"
 
 msgid "Distance from model to the outermost brim line"
-msgstr "Відстань від моделі до крайньої лінії облямівки"
+msgstr "Відстань від моделі до крайньої лінії кайми"
 
 msgid "Brim type"
-msgstr "Тип облямівки"
+msgstr "Тип кайми"
 
 msgid ""
 "This controls the generation of the brim at outer and/or inner side of "
@@ -7060,8 +7060,8 @@ msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
 "easily"
 msgstr ""
-"Зазор між внутрішньою лінією облямівки та предметом може сприяти "
-"більшелегкого зняття облямівки"
+"Зазор між внутрішньою лінією кайми та предметом може сприяти "
+"більшелегкого зняття кайми"
 
 msgid "Compatible machine"
 msgstr "Сумісна машина"
@@ -7306,7 +7306,7 @@ msgid "inner-outer-inner/infill"
 msgstr "внутрішній-внутрішній/заповнення"
 
 msgid "Height to rod"
-msgstr "Висота до стрижня"
+msgstr "Висота до сопла"
 
 msgid ""
 "Distance of the nozzle tip to the lower rod. Used for collision avoidance in "
@@ -7342,7 +7342,7 @@ msgid "Extruder offset"
 msgstr "Зміщення екструдера"
 
 msgid "Flow ratio"
-msgstr "Коефіцієнт витрат"
+msgstr "Коефіцієнт потоку"
 
 msgid ""
 "The material may have volumetric change after switching between molten state "
@@ -7358,7 +7358,7 @@ msgstr ""
 "хорошу плоску поверхню, коли є невелике переповнення або недолив"
 
 msgid "Enable pressure advance"
-msgstr "Увімкнути випередження тиску"
+msgstr "Увімкнути випередження тиску PA"
 
 msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
@@ -7514,7 +7514,7 @@ msgid ""
 msgstr "Допоміжний матеріал зазвичай використовується для друку підтримки"
 
 msgid "Temperature of vitrificaiton"
-msgstr "Температура вітрифікайтону"
+msgstr "Температура склування"
 
 msgid ""
 "Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
@@ -7987,7 +7987,7 @@ msgstr ""
 "Для деактивації встановіть значення 0."
 
 msgid "G-code flavor"
-msgstr "Ароматизатор G-коду"
+msgstr "Тип G-коду"
 
 msgid "What kind of gcode the printer is compatible with"
 msgstr "З яким gcode сумісний принтер"
@@ -8076,7 +8076,7 @@ msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
 "flat surface more smooth. This setting controls which layer being ironed"
 msgstr ""
-"При прасуванні використовується невеликий потік для повторного друку на тій "
+"При розглажуванні використовується невеликий потік для повторного друку на тій "
 "самійвисота поверхні, щоб зробити плоску поверхню більш гладкою. Цей "
 "параметр визначає, який шар гладити"
 
@@ -8099,7 +8099,7 @@ msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
 "layer height. Too high value results in overextrusion on the surface"
 msgstr ""
-"Кількість матеріалу, що видавлюється під час прасування. Щодо "
+"Кількість матеріалу, що видавлюється під час розглажування. Щодо "
 "потокунормальної висоти шару. Надто високе значення призводить до "
 "надмірноїекструзії на поверхню"
 
@@ -8107,10 +8107,10 @@ msgid "Ironing line spacing"
 msgstr "Крок лінії розглажування"
 
 msgid "The distance between the lines of ironing"
-msgstr "Відстань між лініями прасування"
+msgstr "Відстань між лініями розглажування"
 
 msgid "Ironing speed"
-msgstr "Швидкість прасування"
+msgstr "Швидкість розглажування"
 
 msgid "Print speed of ironing lines"
 msgstr "Швидкість друку прасувальних ліній"
@@ -8255,7 +8255,7 @@ msgstr ""
 "вентилятораохолодження деталі"
 
 msgid "Max"
-msgstr "Max"
+msgstr "Макс"
 
 msgid ""
 "The largest printable layer height for extruder. Used tp limits the maximum "
@@ -8277,7 +8277,7 @@ msgstr ""
 "шарів, які не визначаються шарами охолодження"
 
 msgid "Min"
-msgstr "Min"
+msgstr "Мін"
 
 msgid ""
 "The lowest printable layer height for extruder. Used tp limits the minimum "
@@ -8505,23 +8505,27 @@ msgid "Spiral"
 msgstr "Спіраль"
 
 msgid "Only lift Z above"
-msgstr ""
+msgstr "Підіймати Z лише вище"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place above the "
 "specified absolute Z."
 msgstr ""
+"Якщо ви встановите додатне значення, підйом Z відбуватиметься лише над "
+"вказаний абсолютний висоті Z."
 
 msgid "Only lift Z below"
-msgstr ""
+msgstr "Підіймати Z лише нижче"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place below the "
 "specified absolute Z."
 msgstr ""
+"Якщо встановити додатне значення, підйом по Z відбуватиметься лише нижче "
+"вказаний абсолютний висоті Z."
 
 msgid "On surfaces"
-msgstr ""
+msgstr "На поверхнях"
 
 msgid ""
 "Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
@@ -8529,16 +8533,16 @@ msgid ""
 msgstr ""
 
 msgid "All Surfaces"
-msgstr ""
+msgstr "Усі поверхні"
 
 msgid "Top Only"
-msgstr ""
+msgstr "Тільки вгорі"
 
 msgid "Bottom Only"
-msgstr ""
+msgstr "Тільки знизу"
 
 msgid "Top and Bottom"
-msgstr ""
+msgstr "Зверху та знизу"
 
 msgid "Extra length on restart"
 msgstr "Додаткова довжина під час перезавантаження"
@@ -8606,7 +8610,7 @@ msgid "Random"
 msgstr "Випадковий"
 
 msgid "Staggered inner seams"
-msgstr ""
+msgstr "Внутрішні шви в шаховому порядку"
 
 msgid ""
 "This option causes the inner seams to be shifted backwards based on their "
@@ -8684,10 +8688,10 @@ msgid "Number of loops for the skirt. Zero means disabling skirt"
 msgstr "Кількість петель для спідниці. Нуль означає відключення спідниці"
 
 msgid "Skirt speed"
-msgstr ""
+msgstr "Швидкість спідниці"
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
-msgstr ""
+msgstr "Швидкість спідниці, у мм/с. Нуль означає використання стандартної швидкості екструзії шару."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -9041,7 +9045,7 @@ msgstr ""
 "виключенням першого, буде розрахована автоматично "
 
 msgid "Auto brim width"
-msgstr "Ширина облямівки опори дерева"
+msgstr "Ширина кайми опори дерева"
 
 msgid ""
 "Enabling this option means the width of the brim for tree support will be "
@@ -9051,10 +9055,10 @@ msgstr ""
 "будерозрахована автоматично"
 
 msgid "Tree support brim width"
-msgstr "Ширина межі облямівки дерева"
+msgstr "Ширина межі кайми дерева"
 
 msgid "Distance from tree branch to the outermost brim line"
-msgstr "Відстань від гілки дерева до зовнішньої лінії межі облямівки"
+msgstr "Відстань від гілки дерева до зовнішньої лінії межі кайми"
 
 msgid "Tree support branch diameter"
 msgstr "Діаметр гілки деревоподібної підтримки"
@@ -9270,7 +9274,7 @@ msgstr ""
 "наступному форматі: «XxY, XxY»,..."
 
 msgid "Use relative E distances"
-msgstr "Використовуйте відносні відстані E"
+msgstr "Використовуйте відносні відстані E екструдера"
 
 msgid ""
 "Relative extrusion is recommended when using \"label_objects\" option.Some "
@@ -9574,7 +9578,7 @@ msgid "floating cantilever"
 msgstr "плаваюча консоль"
 
 msgid "large overhangs"
-msgstr "великі звиси"
+msgstr "великі звіси"
 
 #, c-format, boost-format
 msgid ""
