@@ -349,7 +349,8 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
     return(ret);}
 #endif
 
-void record_exit_reson(std::string outputdir, int code, int plate_id, std::string error_message, std::map<std::string, std::string> key_values = std::map<std::string, std::string>())
+void record_exit_reson(std::string outputdir, int code, int plate_id, std::string error_message,
+    size_t prepare_time = 0, std::vector<size_t> sliced_time = std::vector<size_t>(), size_t export_time = 0, std::map<std::string, std::string> key_values = std::map<std::string, std::string>())
 {
 #if defined(__linux__) || defined(__LINUX__)
     std::string result_file;
@@ -365,6 +366,9 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         j["plate_index"] = plate_id;
         j["return_code"] = code;
         j["error_string"] = error_message;
+        j["prepare_time"] = prepare_time;
+        j["slice_time"] = sliced_time;
+        j["export_time"] = export_time;
         for (auto& iter: key_values)
             j[iter.first] = iter.second;
 
@@ -481,6 +485,9 @@ int CLI::run(int argc, char **argv)
     const std::vector<int>                      &skip_objects             = m_config.option<ConfigOptionInts>("skip_objects", true)->values;
     std::map<int, bool>     skip_maps;
     bool   need_skip      = (skip_objects.size() > 0)?true:false;
+    long long global_begin_time = 0, global_current_time;
+    std::vector<size_t> sliced_time;
+    size_t prepare_time, export_time;
 
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
@@ -545,7 +552,8 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "start_gui="<< start_gui << std::endl;
+    global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
+    BOOST_LOG_TRIVIAL(info) << boost::format("cli mode, begin at %1%")%global_begin_time;
 
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
@@ -2513,7 +2521,7 @@ int CLI::run(int argc, char **argv)
 
                     if (duplicate_single_object)
                     {
-                        if (real_duplicate_count <= 0) {
+                        if (real_duplicate_count <= 1) {
                             BOOST_LOG_TRIVIAL(warning) << "no object can be placed under single object mode, restore to the original model and plates also" << std::endl;
                             //record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED]);
                             //flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
@@ -2522,9 +2530,11 @@ int CLI::run(int argc, char **argv)
                             partplate_list.load_from_3mf_structure(plate_data_src);
 
                             translate_models(partplate_list);
+                            duplicate_count = 0;
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                             continue;
                         }
+                        duplicate_count = real_duplicate_count - 1;
                     }
                     else {
                         //multiple objects case
@@ -2616,6 +2626,12 @@ int CLI::run(int argc, char **argv)
     int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0;
     std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
     std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
+
+    global_current_time = (long long)Slic3r::Utils::get_current_time_utc();
+    prepare_time = (size_t) (global_current_time - global_begin_time);
+    global_begin_time = global_current_time;
+    sliced_time.resize(partplate_list.get_plate_count(), 0);
+
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
             this->print_help();
@@ -3014,8 +3030,9 @@ int CLI::run(int argc, char **argv)
                                         flush_and_exit(ret);
                                     }
                                 }
+                                end_time = (long long)Slic3r::Utils::get_current_time_utc();
+                                sliced_time[index] = end_time - start_time;
                                 if (max_slicing_time_per_plate != 0) {
-                                    end_time = (long long)Slic3r::Utils::get_current_time_utc();
                                     long long time_cost = end_time - start_time;
                                     if (time_cost > max_slicing_time_per_plate) {
                                         BOOST_LOG_TRIVIAL(error) << boost::format("plate %1%'s slice time %2% exceeds the limit %3%, return error.")
@@ -3083,6 +3100,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
         std::vector<ThumbnailData *> thumbnails, top_thumbnails, pick_thumbnails;
@@ -3635,16 +3653,19 @@ int CLI::run(int argc, char **argv)
     }
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
+    global_current_time = (long long)Slic3r::Utils::get_current_time_utc();
+    export_time = (size_t) (global_current_time - global_begin_time);
 
     //record the duplicate here
     if (duplicate_count > 0)
     {
         std::map<std::string, std::string> key_values;
-        key_values["sliced_count"] = std::to_string(real_duplicate_count);
-        record_exit_reson(outfile_dir, 0, plate_to_slice, cli_errors[0], key_values);
+        key_values["sliced_count"] = std::to_string(duplicate_count+1);
+        record_exit_reson(outfile_dir, 0, plate_to_slice, cli_errors[0], prepare_time, sliced_time, export_time, key_values);
     }
-    else
-        record_exit_reson(outfile_dir, 0, plate_to_slice, cli_errors[0]);
+    else {
+        record_exit_reson(outfile_dir, 0, plate_to_slice, cli_errors[0], prepare_time, sliced_time, export_time);
+    }
 
     boost::nowide::cout.flush();
     boost::nowide::cerr.flush();
