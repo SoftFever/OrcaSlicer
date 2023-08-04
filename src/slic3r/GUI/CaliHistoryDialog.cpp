@@ -130,7 +130,7 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
         m_tips->SetLabel(_L("No History Result"));
     }
     else {
-        m_tips->SetLabel("Success to get history result");
+        m_tips->SetLabel(_L("Success to get history result"));
     }
     m_tips->Refresh();
 
@@ -197,7 +197,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
         float nozzle_value = get_nozzle_value();
         if (nozzle_value > 0) {
             CalibUtils::emit_get_PA_calib_infos(nozzle_value);
-            m_tips->SetLabel("Refreshing the historical Flow Dynamics Calibration records");
+            m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request calib history";
         }
     }
