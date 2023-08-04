@@ -70,9 +70,11 @@ std::string PrintJob::truncate_string(const std::string& str, size_t maxLength)
         return str;
     }
 
-    std::string truncatedStr = str.substr(0, maxLength - 3);
+    wxString local_str = wxString::FromUTF8(str);
+    wxString truncatedStr = local_str.Mid(0, maxLength - 3);
     truncatedStr.append("...");
-    return truncatedStr;
+
+    return truncatedStr.utf8_string();
 }
 
 
