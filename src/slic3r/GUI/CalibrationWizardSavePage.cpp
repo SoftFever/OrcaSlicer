@@ -261,7 +261,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
             for (auto& info : m_obj->selected_cali_preset) {
                 if (history.filament_id == info.filament_id) {
                     filtered_results.push_back(history);
-                    selections.push_back(history.name);
+                    selections.push_back(from_u8(history.name));
                 }
             }
         }
@@ -311,7 +311,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
 
             for (auto& name : preset_names) {
                 if (item.tray_id == name.first) {
-                    comboBox_tray_name->SetValue(name.second);
+                    comboBox_tray_name->SetValue(from_u8(name.second));
                 }
             }
 
