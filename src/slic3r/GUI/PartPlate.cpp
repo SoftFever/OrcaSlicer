@@ -1792,25 +1792,35 @@ bool PartPlate::generate_plate_name_texture()
 	return true;
 }
 
+std::string remove_invisible_ascii(const std::string &name)
+{
+	std::string new_name;
+	for (size_t i = 0; i < name.size(); i++) {
+		if (int(name[i]) >= 0 && int(name[i]) < 32) { // 0x00 - 0x1F
+			continue;
+		}
+		new_name += name[i];
+	}
+	return new_name;
+}
+
 void PartPlate::set_plate_name(const std::string &name)
 {
-    // compare if name equal to m_name, case sensitive
+	// compare if name equal to m_name, case sensitive
 	if (boost::equals(m_name, name)) return;
 	if (m_plater)
 		m_plater->take_snapshot("set_plate_name");
-	m_name = name;
-
-    std::regex reg("[\\\\/:*?\"<>|\\0]");
-    m_name= regex_replace(m_name, reg, "");
-    m_name_change = true;
-    if (m_plater) {
-        ObjectList *obj_list = wxGetApp().obj_list();
-        if (obj_list) {
+	m_name = remove_invisible_ascii(name);
+	std::regex reg("[\\\\/:*?\"<>|\\0]");
+	m_name= regex_replace(m_name, reg, "");
+	m_name_change = true;
+	if (m_plater) {
+		ObjectList *obj_list = wxGetApp().obj_list();
+		if (obj_list) {
 			obj_list->GetModel()->SetCurSelectedPlateFullName(m_plate_index, m_name);
 		}
-    }
-
-    if (m_print != nullptr)
+	}
+	if (m_print != nullptr)
 		m_print->set_plate_name(m_name);
 }
 
