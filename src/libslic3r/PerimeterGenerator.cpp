@@ -666,7 +666,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     }
 
                     BoundingBox extrusion_bboxs = get_extents(be_clipped);
-                    extrusion_bboxs.offset(SCALED_EPSILON + it.first);
+                    extrusion_bboxs.offset(SCALED_EPSILON + scale_(it.first));
                     Polygons lower_slcier_chopped=ClipperUtils::clip_clipper_polygons_with_subject_bbox(*perimeter_generator.lower_slices, extrusion_bboxs);
 
                     double start_pos = -it.first * 0.5;
