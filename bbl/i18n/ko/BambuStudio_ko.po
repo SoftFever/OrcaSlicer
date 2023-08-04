@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7019,10 +7019,17 @@ msgstr "상단면 벽 하나"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"평평한 상단 표면에 하나의 벽만 사용하여 상단 채우기 패턴에 더 많은 공간을 확"
-"보합니다."
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "모든 상단면"
+
+msgid "Topmost surface"
+msgstr "최상단 표면만"
 
 msgid "Only one wall on first layer"
 msgstr "첫 레이어에 하나의 벽만"
@@ -7852,12 +7859,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "다림질 안함"
-
-msgid "Top surfaces"
-msgstr "모든 상단면"
-
-msgid "Topmost surface"
-msgstr "최상단 표면만"
 
 msgid "All solid layer"
 msgstr "모든 솔리드 레이어"
@@ -10146,6 +10147,13 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "평평한 상단 표면에 하나의 벽만 사용하여 상단 채우기 패턴에 더 많은 공간을 "
+#~ "확보합니다."
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "노즐 HRC"

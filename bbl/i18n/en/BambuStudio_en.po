@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7104,10 +7104,17 @@ msgstr "Only one wall on top surfaces"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"Use only one wall on flat top surfaces, to give more space to the top infill "
-"pattern"
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "All top surfaces"
+
+msgid "Topmost surface"
+msgstr "Topmost surface only"
 
 msgid "Only one wall on first layer"
 msgstr "Only one wall on first layer"
@@ -7968,12 +7975,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "No ironing"
-
-msgid "Top surfaces"
-msgstr "All top surfaces"
-
-msgid "Topmost surface"
-msgstr "Topmost surface only"
 
 msgid "All solid layer"
 msgstr "All solid layers"
@@ -10305,6 +10306,13 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "Use only one wall on flat top surfaces, to give more space to the top "
+#~ "infill pattern"
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Nozzle HRC"

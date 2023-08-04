@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7192,10 +7192,17 @@ msgstr "Csak egy fal a felső felületeken"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"Csak egy falat használ a sík felső felületeken, hogy több hely maradjon a "
-"felső kitöltési mintának"
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "Felső felületek"
+
+msgid "Topmost surface"
+msgstr "Legfelső felület"
 
 msgid "Only one wall on first layer"
 msgstr "Only one wall on first layer"
@@ -8063,12 +8070,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "Nincs vasalás"
-
-msgid "Top surfaces"
-msgstr "Felső felületek"
-
-msgid "Topmost surface"
-msgstr "Legfelső felület"
 
 msgid "All solid layer"
 msgstr "Összes szilárd réteg"
@@ -10423,6 +10424,13 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "Csak egy falat használ a sík felső felületeken, hogy több hely maradjon a "
+#~ "felső kitöltési mintának"
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Fúvóka HRC értéke"

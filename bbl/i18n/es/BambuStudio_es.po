@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7245,10 +7245,17 @@ msgstr "Sólo una pared en las superficies superiores"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"Sólo una pared en la superficies superiores, para dar más espacio a la placa "
-"de relleno superior"
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "Superficies superiores"
+
+msgid "Topmost surface"
+msgstr "Superficie superior"
 
 msgid "Only one wall on first layer"
 msgstr "Only one wall on first layer"
@@ -8124,12 +8131,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "Sin planchado"
-
-msgid "Top surfaces"
-msgstr "Superficies superiores"
-
-msgid "Topmost surface"
-msgstr "Superficie superior"
 
 msgid "All solid layer"
 msgstr "Toda la capa sólida"
@@ -10494,6 +10495,13 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "Sólo una pared en la superficies superiores, para dar más espacio a la "
+#~ "placa de relleno superior"
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Boquilla HRC"

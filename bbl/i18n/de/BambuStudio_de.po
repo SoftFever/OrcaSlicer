@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:35+0800\n"
+"POT-Creation-Date: 2023-08-04 22:11+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7298,10 +7298,17 @@ msgstr "Nur eine Wand auf den oberen Flächen"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
-"Verwenden Sie nur eine Wand auf der Oberfläche, um mehr Platz für das obere "
-"Füllmuster zu schaffen."
+
+msgid "Not apply"
+msgstr ""
+
+msgid "Top surfaces"
+msgstr "Alle Oberflächen"
+
+msgid "Topmost surface"
+msgstr "Nur oberste Oberfläche"
 
 msgid "Only one wall on first layer"
 msgstr "Nur eine Wand auf der ersten Schicht"
@@ -8180,12 +8187,6 @@ msgstr ""
 
 msgid "No ironing"
 msgstr "Kein Glätten"
-
-msgid "Top surfaces"
-msgstr "Alle Oberflächen"
-
-msgid "Topmost surface"
-msgstr "Nur oberste Oberfläche"
 
 msgid "All solid layer"
 msgstr "Alle soliden Schichten"
@@ -10567,6 +10568,13 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandlinien und "
 "eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "Verwenden Sie nur eine Wand auf der Oberfläche, um mehr Platz für das "
+#~ "obere Füllmuster zu schaffen."
 
 #~ msgid "Nozzle HRC"
 #~ msgstr "Düse HRC"
