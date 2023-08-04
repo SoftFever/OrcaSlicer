@@ -7451,7 +7451,6 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, scroll_col);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(128.0f, 128.0f, 128.0f, 0.0f));
 
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 10.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -7467,7 +7466,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         imgui.begin(_L("Select Plate"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
     ImGui::SetWindowFontScale(1.2f);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * f_scale);
 
     ImVec2 size = ImVec2(button_width, button_height); // Size of the image we want to make visible
     ImVec4 bg_col = ImVec4(128.0f, 128.0f, 128.0f, 0.0f);
@@ -7492,7 +7491,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             }
             else {
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover);
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_hover);
             }
         }
 
@@ -7571,16 +7570,31 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         ImVec2 uv0 = ImVec2(0.0f, 1.0f);    // UV coordinates for lower-left
         ImVec2 uv1 = ImVec2(1.0f, 0.0f);    // UV coordinates in our texture
 
+        auto button_pos = ImGui::GetCursorPos();
+        ImGui::SetCursorPos(button_pos + margin);
+
+        ImGui::Image(item->texture_id, size, uv0, uv1, tint_col);
+
+        ImGui::SetCursorPos(button_pos);
+
+        // invisible button
+        auto button_size = size + margin + margin + ImVec2(2 * frame_padding, 2 * frame_padding);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f * f_scale);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
         if (item->selected) {
-            ImGui::PushStyleColor(ImGuiCol_Button, button_active);
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_active);
+            ImGui::PushStyleColor(ImGuiCol_Border, button_active);
         }
         else {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(128.0f, 128.0f, 128.0f, 0.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
+            if (ImGui::IsMouseHoveringRect(button_pos, button_pos + button_size)) {
+                ImGui::PushStyleColor(ImGuiCol_Border, button_hover);
+            }
+            else {
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(.0f, .0f, .0f, .0f));
+            }
         }
-
-        if (ImGui::ImageButton2(item->texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col, margin)) {
+        if(ImGui::Button("##invisible_button", button_size)){
             if (m_process && !m_process->running()) {
                 all_plates_stats_item->selected = false;
                 item->selected = true;
@@ -7590,8 +7604,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 wxQueueEvent(wxGetApp().plater(), evt);
             }
         }
-
-        ImGui::PopStyleColor(2);
+        ImGui::PopStyleColor(4);
+        ImGui::PopStyleVar();
 
         ImVec2 start_pos = ImVec2(button_start_pos.x + frame_padding + margin.x, button_start_pos.y + frame_padding + margin.y);
         if (item->slice_state == IMToolbarItem::SliceState::UNSLICED) {
@@ -7622,7 +7636,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         ImGui::PopID();
     }
     ImGui::SetWindowFontScale(1.0f);
-    ImGui::PopStyleColor(9);
+    ImGui::PopStyleColor(8);
     ImGui::PopStyleVar(5);
 
     if (ImGui::IsWindowHovered() || is_hovered) {
