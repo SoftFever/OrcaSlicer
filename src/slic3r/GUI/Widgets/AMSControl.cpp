@@ -1299,7 +1299,6 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
                 wxPostEvent(GetParent()->GetParent(), close_event);
 #endif // __WXMSW__
 
-               
             }
         }
     });
@@ -1666,7 +1665,16 @@ void AMSItem::doRender(wxDC &dc)
                 dc.DrawBitmap(m_ts_bitmap_cube->bmp(),left,(size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
             }
             else {
-                dc.DrawRoundedRectangle(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y, 2);
+                wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
+                if(iter->material_state==AMSCanType::AMS_CAN_TYPE_EMPTY){
+                    dc.SetPen(wxPen(wxColor(0, 0, 0)));
+                    dc.DrawRoundedRectangle(rect, 2);
+                    
+                    dc.DrawLine(rect.GetRight()-1, rect.GetTop()+1, rect.GetLeft()+1, rect.GetBottom()-1); 
+                } 
+                else {
+                    dc.DrawRoundedRectangle(rect, 2);
+                }
             }
             
         }
