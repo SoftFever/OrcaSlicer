@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: Poedit 3.3.2\n"
 
 msgid "Supports Painting"
-msgstr "Soportes de pintura"
+msgstr "Pintar Soportes"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + Rueda del ratón"
@@ -150,7 +150,7 @@ msgid "Height range"
 msgstr "Rango de altura"
 
 msgid "Ctrl + Shift + Enter"
-msgstr ""
+msgstr "Ctrl + Shift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "Alternar Malla Alámbrica"
@@ -3274,7 +3274,7 @@ msgid "Save Project as"
 msgstr "Guardar proyecto como"
 
 msgid "Shift+"
-msgstr ""
+msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Guardar el proyecto actual como"
@@ -3777,7 +3777,7 @@ msgid "Stop"
 msgstr "Detener"
 
 msgid "0"
-msgstr ""
+msgstr "0"
 
 msgid "Layer: N/A"
 msgstr "Capa: N/A"
@@ -5650,7 +5650,7 @@ msgid "Layer height limits"
 msgstr "Límites de altura de la capa"
 
 msgid "Lift Z Enforcement"
-msgstr ""
+msgstr "Forzar elevación Z"
 
 msgid "Retraction when switching material"
 msgstr "Retracción al cambiar de material"
@@ -5947,10 +5947,10 @@ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importar datos de geometría de los archivos STL/STEP/3MF/OBJ/AMF"
 
 msgid "⌘+Shift+G"
-msgstr ""
+msgstr "⌘+Shift+G"
 
 msgid "Ctrl+Shift+G"
-msgstr ""
+msgstr "Ctrl+Shift+G"
 
 msgid "Copy to clipboard"
 msgstr "Copiar al portapapeles"
@@ -5980,7 +5980,7 @@ msgid "Zoom View"
 msgstr "Vista de Zoom"
 
 msgid "Shift+A"
-msgstr ""
+msgstr "Shift+A"
 
 msgid "Shift+R"
 msgstr ""
@@ -8604,40 +8604,46 @@ msgid "Spiral"
 msgstr "Espiral"
 
 msgid "Only lift Z above"
-msgstr ""
+msgstr "Solo elevar Z por encima"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place above the "
 "specified absolute Z."
 msgstr ""
+"Si lo ajusta a un valor positivo, la elevación de Z sólo tendrá lugar por "
+"encima de la Z absoluta especificada."
 
 msgid "Only lift Z below"
-msgstr ""
+msgstr "Solo elevar Z por debajo"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place below the "
 "specified absolute Z."
 msgstr ""
+"Si se ajusta a un valor positivo, el levantamiento Z sólo tendrá lugar por "
+"debajo de la Z absoluta especificada."
 
 msgid "On surfaces"
-msgstr ""
+msgstr "En las superficies"
 
 msgid ""
 "Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
+"Forzar el comportamiento de Salto Z. Este ajuste se ve afectado por los "
+"ajustes anteriores (Sólo levantar Z arriba/abajo)."
 
 msgid "All Surfaces"
-msgstr ""
+msgstr "Todas las Superficies"
 
 msgid "Top Only"
-msgstr ""
+msgstr "Solo Superior"
 
 msgid "Bottom Only"
-msgstr ""
+msgstr "Solo Inferior"
 
 msgid "Top and Bottom"
-msgstr ""
+msgstr "Superior e Inferior"
 
 msgid "Extra length on restart"
 msgstr "Longitud extra de reinicio"
@@ -9805,7 +9811,7 @@ msgid "PA Line"
 msgstr "Línea PA"
 
 msgid "PA Pattern"
-msgstr ""
+msgstr "Modelo PA"
 
 msgid "Method"
 msgstr "Método"
