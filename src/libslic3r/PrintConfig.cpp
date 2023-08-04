@@ -730,7 +730,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("top_one_wall_type", coEnum);
-    def->label = L("Only one wall type");
+    def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
     def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern. Could be applyed on topmost surface or all top surface.");
     def->enum_keys_map = &ConfigOptionEnum<TopOneWallType>::get_enum_values();
