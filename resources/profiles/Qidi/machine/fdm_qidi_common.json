@@ -135,5 +135,7 @@
     "layer_change_gcode": "",
     "scan_first_layer": "0",
     "nozzle_type": "undefine",
-    "auxiliary_fan": "0"
+    "auxiliary_fan": "0",
+    "z_hop_types": "Normal Lift"
+
 }

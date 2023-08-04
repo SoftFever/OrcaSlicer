@@ -1,6 +1,6 @@
 {
     "name": "Qidi",
-    "version": "01.06.00.01",
+    "version": "01.07.00.02",
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
@@ -37,6 +37,10 @@
         {
             "name": "fdm_process_qidi_common",
             "sub_path": "process/fdm_process_qidi_common.json"
+        },
+        {
+            "name": "fdm_process_qidi_x3_common",
+            "sub_path": "process/fdm_process_qidi_x3_common.json"
         },
         {
             "name": "0.12mm Fine @Qidi XMPlus",
@@ -253,6 +257,10 @@
         {
             "name": "fdm_qidi_common",
             "sub_path": "machine/fdm_qidi_common.json"
+        },
+        {
+            "name": "fdm_qidi_x3_common",
+            "sub_path": "machine/fdm_qidi_x3_common.json"
         },
         {
             "name": "Qidi X-Plus 0.4 nozzle",

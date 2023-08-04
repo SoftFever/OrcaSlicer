@@ -85,9 +85,6 @@
     "retraction_minimum_travel": [
         "2"
     ],
-    "retract_before_wipe": [
-        "0%"
-    ],
     "retraction_length": [
         "2"
     ],
