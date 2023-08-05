@@ -3069,7 +3069,7 @@ void SelectMachineDialog::set_default()
         filename = m_plater->get_export_gcode_filename("", true);
     }
 
-    fs::path filename_path(filename.ToStdWstring());
+    fs::path filename_path(filename.c_str());
     m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
     m_rename_text->SetLabelText(m_current_project_name);
     m_rename_normal_panel->Layout();

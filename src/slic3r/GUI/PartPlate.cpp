@@ -36,6 +36,7 @@
 #include "GUI_ObjectList.hpp"
 #include "Tab.hpp"
 #include "format.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include <imgui/imgui_internal.h>
 
 using boost::optional;
@@ -1571,7 +1572,7 @@ void PartPlate::generate_plate_name_texture()
 {
 	// generate m_name_texture texture from m_name with generate_from_text_string
 	m_name_texture.reset();
-	auto text = m_name.empty()? _L("Untitled") : m_name;
+	auto text = m_name.empty()? _L("Untitled") : from_u8(m_name);
 	wxCoord w, h;
 
 	auto* font = &Label::Head_32;
