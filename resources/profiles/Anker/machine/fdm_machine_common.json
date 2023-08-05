@@ -98,7 +98,7 @@
     "retract_restart_extra": [
         "0"
     ],
-    "default_print_profile": "0.20mm Normal @Anker",
+    "default_print_profile": "0.20mm Standard @Anker",
     "retract_restart_extra_toolchange": [
         "0"
     ],

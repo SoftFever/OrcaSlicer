@@ -1,12 +1,12 @@
 {
     "type": "machine",
-    "setting_id": "GM_Anker_000",
+    "setting_id": "GM003",
     "name": "Anker M5 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
     "printer_model": "Anker M5",
-    "default_print_profile": "0.20mm Normal @Anker",
+    "default_print_profile": "0.20mm Standard @Anker",
     "nozzle_diameter": [
         "0.4"
     ],

@@ -1,8 +1,8 @@
 {
     "type": "filament",
     "filament_id": "GFG99",
-    "setting_id": "GFSG99_Anker_00",
-    "name": "Generic PETG @Anker",
+    "setting_id": "GFSA04",
+    "name": "Anker Generic PETG",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
