@@ -3654,7 +3654,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             else if(key == PLATER_NAME_ATTR)
             {
-                m_curr_plater->plate_name = value;
+                m_curr_plater->plate_name = value.c_str();
             }
             else if (key == LOCK_ATTR)
             {
