@@ -5,13 +5,12 @@ on:
   pull_request:
     branches:
       - main
-      - feature/deps_build_cicd
     paths:
       - 'deps/**'
+      - .github/workflows/build_deps.yml
   push:
     branches:
       - main
-      - feature/deps_build_cicd
     paths:
       - 'deps/**'
       - .github/workflows/build_deps.yml
@@ -46,7 +45,7 @@ jobs:
             mkdir ${{ github.workspace }}/deps/build
             mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
             .\build_release.bat deps
-            "C:/Program Files/7-Zip/7z.exe" a ${{ github.workspace }}/deps/build/OrcaSlicer_dep_win64_${{ steps.get-date-windows.outputs.date }}.zip ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+            '"C:/Program Files/7-Zip/7z.exe" a ${{ github.workspace }}/deps/build/OrcaSlicer_dep_win64_${{ steps.get-date-windows.outputs.date }}.zip ${{ github.workspace }}/deps/build/OrcaSlicer_dep'
 
       - name: Build on Mac x86_64
         if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
