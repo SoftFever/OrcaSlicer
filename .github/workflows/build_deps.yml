@@ -5,11 +5,13 @@ on:
   pull_request:
     branches:
       - main
+      - feature/deps_build_cicd
     paths:
       - 'deps/**'
   push:
     branches:
       - main
+      - feature/deps_build_cicd
     paths:
       - 'deps/**'
 
