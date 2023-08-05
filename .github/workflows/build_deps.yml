@@ -14,6 +14,7 @@ on:
       - feature/deps_build_cicd
     paths:
       - 'deps/**'
+      - .github/workflows/build_deps.yml
 
 jobs:
   build_deps:
