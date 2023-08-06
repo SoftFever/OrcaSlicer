@@ -7454,7 +7454,7 @@ msgid ""
 "it will be computed over the nozzle diameter."
 msgstr ""
 "Ancho de línea por defecto si otros anchos de línea no están a 0. Si se "
-"expresa cómo %, se calculará sobre el diámetro de la boquilla"
+"expresa cómo %, se calculará sobre el diámetro de la boquilla."
 
 msgid "Keep fan always on"
 msgstr "Mantener el ventilador siempre encendido"
@@ -8448,7 +8448,7 @@ msgid "Modify the geometry to print overhangs without support material."
 msgstr "Modificar la geometría para imprimir voladizos sin soportes."
 
 msgid "Make overhang printable maximum angle"
-msgstr "Máximo ángulo de impresión de voladizos imprimibles sin soporte."
+msgstr "Máximo ángulo de impresión de voladizos imprimibles sin soporte"
 
 msgid ""
 "Maximum angle of overhangs to allow after making more steep overhangs "
@@ -8460,7 +8460,7 @@ msgstr ""
 "reemplazará todos lo voladizos con material cónico."
 
 msgid "Make overhang printable hole area"
-msgstr "Área hueca del voladizo imprimible sin soporte."
+msgstr "Área hueca del voladizo imprimible sin soporte"
 
 msgid ""
 "Maximum area of a hole in the base of the model before it's filled by "
