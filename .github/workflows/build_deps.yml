@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          # - os: ubuntu-22.04
           - os: windows-2019
           - os: macos-12
             arch: x86_64
@@ -37,6 +37,18 @@ jobs:
         if: matrix.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Get the date on Ubuntu and macOS
+        if: matrix.os != 'windows-2019'
+        id: get-date-unix
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
+        shell: bash
+        
+      - name: Get the date on Windows
+        if: matrix.os == 'windows-2019'
+        id: get-date-windows
+        run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
+        shell: pwsh
+
       - name: Build on Windows
         if: matrix.os == 'windows-2019'
         working-directory: ${{ github.workspace }}
@@ -45,7 +57,7 @@ jobs:
             mkdir ${{ github.workspace }}/deps/build
             mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
             .\build_release.bat deps
-            '"C:/Program Files/7-Zip/7z.exe" a ${{ github.workspace }}/deps/build/OrcaSlicer_dep_win64_${{ steps.get-date-windows.outputs.date }}.zip ${{ github.workspace }}/deps/build/OrcaSlicer_dep'
+            '"C:/Program Files/7-Zip/7z.exe" a ${{ github.workspace }}/deps/build/OrcaSlicer_dep_win64_${{ env.date }}.zip ${{ github.workspace }}/deps/build/OrcaSlicer_dep'
 
       - name: Build on Mac x86_64
         if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
@@ -81,43 +93,33 @@ jobs:
             sudo chown $USER -R ./
             ./BuildLinux.sh -dr
 
-      - name: Get the date on Ubuntu and macOS
-        if: matrix.os != 'windows-2019'
-        id: get-date-unix
-        run: echo "::set-output name=date::$(date +'%Y%m%d')"
-        shell: bash
-        
-      - name: Get the date on Windows
-        if: matrix.os == 'windows-2019'
-        id: get-date-windows
-        run: echo "::set-output name=date::$(Get-Date -Format 'yyyyMMdd')"
-        shell: pwsh
+
 
       - name: Upload Mac arm64 artifacts
         if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_dep_mac_arm64_${{ steps.get-date-unix.outputs.date }}
+          name: OrcaSlicer_dep_mac_arm64_${{ env.date }}
           path: ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep*.tar.gz
       
       - name: Upload Mac x86_64 artifacts
         if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_dep_mac_x86_64_${{ steps.get-date-unix.outputs.date }}
+          name: OrcaSlicer_dep_mac_x86_64_${{ env.date }}
           path: ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
         if: matrix.os == 'windows-2019'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_dep_win64_${{ steps.get-date-windows.outputs.date }}
+          name: OrcaSlicer_dep_win64_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_win64*.zip
 
-      # - name: Upload Ubuntu artifacts
-      #   if: matrix.os == 'ubuntu-22.04'
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: OrcaSlicer_dep_ubuntu_${{ steps.get-date-unix.outputs.date }}
-      #     path: ${{ github.workspace }}/deps/build/destdir
+      - name: Upload Ubuntu artifacts
+        if: matrix.os == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v3
+        with:
+          name: OrcaSlicer_dep_ubuntu_${{ env.date }}
+          path: ${{ github.workspace }}/deps/build/destdir
         
