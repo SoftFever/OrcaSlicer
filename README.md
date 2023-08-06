@@ -4,14 +4,10 @@
 [![Build Mac Intel](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml/badge.svg)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_mac_x64.yml)
 [![Build Linux](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml/badge.svg)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_linux.yml)
 
-# Orca Slicer  
-Orca Slicer is a fork of Bambu Studio. It was previously known as BambuStudio-SoftFever.  
-Bambu Studio is based on [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
-Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill
-
-
-Prebuilt binaries are available through the [github releases page](https://github.com/SoftFever/OrcaSlicer/releases/).  
-
+# Orca Slicer     
+Orca Slicer is an open source slicer for FDM printers.   
+You can download Orca Slicer here: [github releases page](https://github.com/SoftFever/OrcaSlicer/releases/).  
+![discord-mark-blue](https://github.com/SoftFever/OrcaSlicer/assets/103989404/b97d5ffc-072d-4d0a-bbda-e67ef373876f) Join community: [OrcaSlicer Official Discord Server](https://discord.gg/WTEkCR6SnV)   
 
 # Main features
 - Auto calibrations for all printers
@@ -20,6 +16,13 @@ Prebuilt binaries are available through the [github releases page](https://githu
 - Klipper support
 - More granular controls
 - More features can be found in [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
+
+### Some background
+OrcaSlicer is fork of Bambu Studio  
+It was previously known as BambuStudio-SoftFever  
+Bambu Studio is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community. 
+Orca Slicer incorporates a lot of features from SuperSlicer by @supermerill
+Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr)  
 
 # How to install
 **Windows**: 
@@ -88,5 +91,5 @@ The GNU Affero General Public License, version 3 ensures that if you use any par
 
 Orca Slicer includes a pressure advance calibration pattern test adapted from Andrew Ellis' generator, which is licensed under GNU General Public License, version 3. Ellis' generator is itself adapted from a generator developed by Sineos for Marlin, which is licensed under GNU General Public License, version 3.
 
-The bambu networking plugin is based on non-free libraries. It is optional to the Orca Slicer and provides extended functionalities for users.
+The bambu networking plugin is based on non-free libraries from Bambulab. It is optional to the Orca Slicer and provides extended functionalities for Bambulab printer users.
 

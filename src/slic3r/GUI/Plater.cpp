@@ -27,6 +27,7 @@
 #include <wx/filedlg.h>
 #include <wx/dnd.h>
 #include <wx/progdlg.h>
+#include <wx/string.h>
 #include <wx/wupdlock.h>
 #include <wx/numdlg.h>
 #include <wx/debug.h>
@@ -6630,24 +6631,24 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
                 auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
                 return from_path(full_filename);
             } else {
-                auto full_filename = m_project_folder / std::string((m_project_name + plate_index_str + extension).mb_str(wxConvUTF8));
+                auto full_filename = m_project_folder / std::string((m_project_name + from_u8(plate_index_str) + extension).mb_str(wxConvUTF8));
                 return from_path(full_filename);
             }
         } else {
             if (export_all)
-                return m_project_name + wxString(plate_index_str) + extension;
+                return m_project_name + from_u8(plate_index_str) + extension;
             else
                 return m_project_name + extension;
         }
     } else {
         if (only_filename) {
             if(m_project_name == _L("Untitled"))
-                return fs::path(model.objects.front()->name).replace_extension().c_str() + wxString(plate_index_str) + extension;
+                return wxString(fs::path(model.objects.front()->name).replace_extension().c_str()) + from_u8(plate_index_str) + extension;
 
             if (export_all)
                 return m_project_name + extension;
             else
-                return m_project_name + wxString(plate_index_str) + extension;
+                return m_project_name + from_u8(plate_index_str) + extension;
         }
         else
             return "";
@@ -11799,7 +11800,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             else
                 dlg.sync_print_seq(0);
 
-            dlg.set_plate_name(curr_plate->get_plate_name());
+            dlg.set_plate_name(from_u8(curr_plate->get_plate_name()));
 
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
@@ -11825,7 +11826,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 update();
                 });
             dlg.ShowModal();
-            curr_plate->set_plate_name(dlg.get_plate_name().ToStdString());
+            curr_plate->set_plate_name(dlg.get_plate_name().ToUTF8().data());
 
             this->schedule_background_process();
         }
