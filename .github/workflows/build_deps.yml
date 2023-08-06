@@ -95,8 +95,6 @@ jobs:
             sudo chown $USER -R ./
             ./BuildLinux.sh -dr
 
-
-
       - name: Upload Mac arm64 artifacts
         if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
         uses: actions/upload-artifact@v3
