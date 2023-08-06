@@ -8253,7 +8253,10 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
         full_config.get_abs_value("layer_height"), 0);
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
     print_config->set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
-    print_config->set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
+    // print_config->set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
+    const auto _wall_generator = print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator");
+    if (_wall_generator->value == PerimeterGeneratorType::Arachne)
+        print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
     model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
 
     changed_objects({ 0 });
