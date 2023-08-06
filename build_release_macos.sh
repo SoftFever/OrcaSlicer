@@ -59,7 +59,7 @@ then
     echo "building deps..."
     echo "cmake ../ -DDESTDIR=$DEPS -DOPENSSL_ARCH=darwin64-${ARCH}-cc -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}"
     cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-${ARCH}-cc" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}
-    cmake --build . --config Release --target all 
+    cmake --build . --config Release --target deps 
     if [ "1." == "$PACK_DEPS". ];
     then
         tar -zcvf OrcaSlicer_dep_mac_${ARCH}_$(date +"%d-%m-%Y").tar.gz OrcaSlicer_dep_$ARCH

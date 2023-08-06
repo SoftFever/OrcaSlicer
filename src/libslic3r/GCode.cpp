@@ -4159,23 +4159,25 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     // perimeter
                     int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
                     : overhang_fan_threshold - 1;
-                    if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role()) && !m_is_overhang_fan_on) ||
+                    if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role())) ||
                         (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
-                        gcode += ";_OVERHANG_FAN_START\n";
-                        m_is_overhang_fan_on = true;
-                    }
-                    else {
+                        if (!m_is_overhang_fan_on) {
+                            gcode += ";_OVERHANG_FAN_START\n";
+                            m_is_overhang_fan_on = true;
+                        }
+                    } else {
                         if (m_is_overhang_fan_on) {
                             m_is_overhang_fan_on = false;
                             gcode += ";_OVERHANG_FAN_END\n";
                         }
                     }
                 }
-                if(supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface && !m_is_supp_interface_fan_on) {
-                    gcode += ";_SUPP_INTERFACE_FAN_START\n";
-                    m_is_supp_interface_fan_on = true;
-                }
-                else {
+                if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
+                    if (!m_is_supp_interface_fan_on) {
+                        gcode += ";_SUPP_INTERFACE_FAN_START\n";
+                        m_is_supp_interface_fan_on = true;
+                    }
+                } else {
                     if (m_is_supp_interface_fan_on) {
                         gcode += ";_SUPP_INTERFACE_FAN_END\n";
                         m_is_supp_interface_fan_on = false;

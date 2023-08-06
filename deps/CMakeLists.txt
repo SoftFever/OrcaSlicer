@@ -34,7 +34,7 @@ endif ()
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")
 
-option(DEP_DEBUG "Build debug variants (only applicable on Windows)" ON)
+option(DEP_DEBUG "Build debug variants (only applicable on Windows)" OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)

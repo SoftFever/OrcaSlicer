@@ -806,15 +806,16 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     else
         offset_top_surface = 0;
     // don't takes into account too thin areas
-    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), 1.0 * (double(perimeter_width)));
+    // skip if the exposed area is smaller than 2x perimeter width
+    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), 2.0 * (double(perimeter_width)));
 
     Polygons grown_upper_slices = offset(*this->upper_slices, min_width_top_surface);
 
-    // BBS: get boungding box of last
+    // get boungding box of last
     BoundingBox last_box = get_extents(orig_polygons);
     last_box.offset(SCALED_EPSILON);
 
-    // BBS: get the Polygons upper the polygon this layer
+    // get the Polygons upper the polygon this layer
     Polygons upper_polygons_series_clipped =
         ClipperUtils::clip_clipper_polygons_with_subject_bbox(grown_upper_slices, last_box);
 
