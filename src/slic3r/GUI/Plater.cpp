@@ -12115,6 +12115,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             else
                 dlg.sync_print_seq(0);
 
+            auto first_layer_print_seq = curr_plate->get_first_layer_print_sequence();
+            if (first_layer_print_seq.empty())
+                dlg.sync_first_layer_print_seq(0);
+            else
+                dlg.sync_first_layer_print_seq(1, curr_plate->get_first_layer_print_sequence());
 
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
@@ -12126,6 +12131,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
                     set_plater_dirty(true);
                 }
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%bt_sel %plate_index;
+
+                if (dlg.get_first_layer_print_seq_choice() != 0)
+                    curr_plate->set_first_layer_print_sequence(dlg.get_first_layer_print_seq());
+                else
+                    curr_plate->set_first_layer_print_sequence({});
 
                 int ps_sel = dlg.get_print_seq_choice();
                 if (ps_sel != 0)
