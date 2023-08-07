@@ -587,7 +587,7 @@ void PressureAdvanceWizard::on_cali_save()
                     return;
                 }
                 if (save_page->is_all_failed()) {
-                    MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxOK);
+                    MessageDialog msg_dlg(nullptr, _L("The failed test result has been dropped."), wxEmptyString, wxOK);
                     msg_dlg.ShowModal();
                     show_step(start_step);
                     return;
@@ -945,7 +945,7 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
             if (save_page->is_all_failed()) {
-                MessageDialog msg_dlg(nullptr, _L("The failed test result has been droped."), wxEmptyString, wxOK);
+                MessageDialog msg_dlg(nullptr, _L("The failed test result has been dropped."), wxEmptyString, wxOK);
                 msg_dlg.ShowModal();
                 show_step(start_step);
                 return;

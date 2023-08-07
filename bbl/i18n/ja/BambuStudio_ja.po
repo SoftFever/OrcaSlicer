@@ -9218,7 +9218,7 @@ msgstr ""
 msgid "Connecting to printer..."
 msgstr ""
 
-msgid "The failed test result has been droped."
+msgid "The failed test result has been dropped."
 msgstr ""
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
@@ -9346,7 +9346,7 @@ msgstr ""
 
 msgid ""
 "Part of the calibration failed! You may clean the plate and retry. The "
-"failed test result would be droped."
+"failed test result would be dropped."
 msgstr ""
 
 msgid ""
