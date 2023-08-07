@@ -9055,7 +9055,7 @@ msgstr ""
 "будерозрахована автоматично"
 
 msgid "Tree support brim width"
-msgstr "Ширина опори кайми дерева"
+msgstr "Ширина кайми деревовидної підтримки"
 
 msgid "Distance from tree branch to the outermost brim line"
 msgstr "Відстань від гілки дерева до зовнішньої крайньої лінії кайми"
