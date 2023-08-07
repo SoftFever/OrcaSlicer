@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-07-31 21:29+0800\n"
-"PO-Revision-Date: 2023-08-06 11:08+0300\n"
+"PO-Revision-Date: 2023-08-07 14:15+0300\n"
 "Last-Translator: Ilya <Lizardjazz1@gmail.com>\n"
 "Language-Team: SPb 3D Printing\n"
 "Language: ru_RU\n"
@@ -794,7 +794,7 @@ msgid "Wipe options"
 msgstr "Параметры очистки"
 
 msgid "Bed adhension"
-msgstr "Прилегание к стола"
+msgstr "Прилегание к столу"
 
 msgid "Advanced"
 msgstr "Дополнительно"
@@ -824,7 +824,7 @@ msgid "Show"
 msgstr "Показать"
 
 msgid "Del"
-msgstr "Удалить"
+msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Удалить выбранный объект"
@@ -1331,7 +1331,7 @@ msgid "multiple cells copy is not supported"
 msgstr "копирование нескольких ячеек не поддерживается"
 
 msgid "Outside"
-msgstr "Внешний"
+msgstr "Вне области"
 
 msgid "Auto"
 msgstr "Авто"
@@ -1343,7 +1343,7 @@ msgid "No-brim"
 msgstr "Без каймы"
 
 msgid " "
-msgstr " "
+msgstr " XUY"
 
 msgid "Layer height"
 msgstr "Высота слоя"
@@ -7280,11 +7280,11 @@ msgstr ""
 "значение по умолчанию - 0 мм"
 
 msgid "Order of inner wall/outer wall/infil"
-msgstr "Порядок внутренние периметры/внешние периметры/заполнение"
+msgstr "Порядок периметров и заполнения"
 
 msgid "Print sequence of inner wall, outer wall and infill. "
 msgstr ""
-"Распечатать последовательность внутреннего периметра, внешнего периметра и "
+"Последовательность печати внутреннего периметра, внешнего периметра и "
 "заполнения "
 
 msgid "inner/outer/infill"
