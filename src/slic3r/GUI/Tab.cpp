@@ -340,10 +340,12 @@ void Tab::create_preset_tab()
 
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
+
+    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 8);
     } else {
         m_top_sizer->AddSpacer(10);
         m_top_sizer->AddStretchSpacer(1);
@@ -354,7 +356,6 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_top_sizer->AddSpacer(8);
 #endif
-    m_top_sizer->Add( m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
     m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
     m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
