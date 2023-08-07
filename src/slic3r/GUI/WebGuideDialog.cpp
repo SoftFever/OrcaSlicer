@@ -737,19 +737,20 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
         BOOST_LOG_TRIVIAL(info) << "No bundles need to be installed from resource directory";
     }
 
-    if (remove_bundles.size() > 0) {
-        //remove unused bundles
-        for (const auto &it : remove_bundles) {
-            auto vendor_file = vendor_dir/(it + ".json");
-            auto sub_dir = vendor_dir/(it);
-            if (fs::exists(vendor_file))
-                fs::remove(vendor_file);
-            if (fs::exists(sub_dir))
-                fs::remove_all(sub_dir);
-        }
-    } else {
-        BOOST_LOG_TRIVIAL(info) << "No bundles need to be removed";
-    }
+    // Not remove, because these bundles may be updated
+    //if (remove_bundles.size() > 0) {
+    //    //remove unused bundles
+    //    for (const auto &it : remove_bundles) {
+    //        auto vendor_file = vendor_dir/(it + ".json");
+    //        auto sub_dir = vendor_dir/(it);
+    //        if (fs::exists(vendor_file))
+    //            fs::remove(vendor_file);
+    //        if (fs::exists(sub_dir))
+    //            fs::remove_all(sub_dir);
+    //    }
+    //} else {
+    //    BOOST_LOG_TRIVIAL(info) << "No bundles need to be removed";
+    //}
 
     std::string preferred_model;
     std::string preferred_variant;
