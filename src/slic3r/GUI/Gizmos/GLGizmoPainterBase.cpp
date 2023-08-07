@@ -15,6 +15,7 @@
 
 #include <memory>
 #include <optional>
+#include <imgui/imgui_internal.h>
 
 namespace Slic3r::GUI {
 
@@ -140,10 +141,18 @@ void GLGizmoPainterBase::render_cursor() const
             }
         }
     }
-    // Raycast and return if there's no hit.
-    update_raycast_cache(m_parent.get_local_mouse_position(), camera, trafo_matrices);
-    if (m_rr.mesh_id == -1)
-        return;
+
+    if (m_is_cursor_in_imgui == false) {
+        // Raycast and return if there's no hit.
+        update_raycast_cache(m_parent.get_local_mouse_position(), camera, trafo_matrices);
+    }
+    else {
+        m_rr.mouse_position = m_parent.get_local_mouse_position();
+    }
+    if (m_rr.mesh_id == -1) { 
+        m_is_cursor_in_imgui = false;
+        return; 
+    }
 
     if (m_tool_type == ToolType::BRUSH) {
         if (m_cursor_type == TriangleSelector::SPHERE)
@@ -238,6 +247,21 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     glsafe(::glPopMatrix());
 }
 
+Vec2i GLGizmoPainterBase::_3d_to_mouse(Vec3d pos_in_3d, const Camera &camera) const
+{
+    Matrix4d modelview  = camera.get_view_matrix().matrix();
+    Matrix4d projection = camera.get_projection_matrix().matrix();
+    Vec4i    viewport(camera.get_viewport().data());
+    auto     screen_width  = viewport(2);
+    auto     screen_height = viewport(3);
+    Vec4d    origin_ndc    = projection * modelview * Vec4d(pos_in_3d[0], pos_in_3d[1], pos_in_3d[2], 1.0);
+    Vec4d    standard_ndc  = origin_ndc / origin_ndc.w();
+    Vec2i    screen;
+    screen[0] = screen_width * (standard_ndc[0] + 1.0) / 2.0;
+    screen[1] = screen_height - screen_height * (standard_ndc[1] + 1.0) / 2.0;
+    return screen;
+}
+
 // BBS
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
@@ -246,8 +270,69 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     float max_z = (float)box.max.z();
     float min_z = (float)box.min.z();
 
-    float cursor_z = std::clamp((float)hit_world.z(), min_z, max_z);
-    std::array<float, 2> zs = { cursor_z, std::clamp(cursor_z + m_cursor_height, min_z, max_z) };
+    if (m_is_cursor_in_imgui == false) {
+        m_cursor_z                = std::clamp((float) hit_world.z(), min_z, max_z);
+        m_height_start_z_in_imgui = m_cursor_z;
+    }
+    ImGuiWrapper &imgui = *wxGetApp().imgui();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark_mode ? ImVec4(38 / 255.0, 46 / 255.0, 48 / 255.0, 0.7) : ImVec4(255 / 255.0, 255 / 255.0, 255 / 255.0, 0.7));
+    ImGui::SetNextWindowFocus();
+    imgui.set_next_window_pos(m_height_start_pos[0], m_height_start_pos[1], ImGuiCond_Always, 0.0f, 0.0f);
+
+    imgui.begin(wxString("cursor_height_range"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration);
+    ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+    ImGui::AlignTextToFramePadding();
+    ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark_mode ? ImVec4(255 / 255.0, 255 / 255.0, 255 / 255.0, 0.7) : ImVec4(38 / 255.0, 46 / 255.0, 48 / 255.0, 0.7));
+    ImGui::TextUnformatted(_L("Bottom:").ToUTF8().data());
+    ImGui::SameLine();
+    ImGui::PushItemWidth(50);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, m_is_dark_mode ? ImVec4(38 / 255.0, 46 / 255.0, 48 / 255.0, 0.7) : ImVec4(255 / 255.0, 255 / 255.0, 255 / 255.0, 0.7));
+    ImGui::BBLInputDouble("##m_height_start_z_in_imgui", &m_height_start_z_in_imgui, 0.0f, 0.0f, "%.2f");
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(1);//for ImGuiCol_FrameBg
+    ImGui::PopStyleColor(1);//for Text
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(38 / 255.0, 46 / 255.0, 48 / 255.0, 0.7) : ImVec4(255 / 255.0, 255 / 255.0, 255 / 255.0, 0.7));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(50 / 255.0f, 58 / 255.0f, 61 / 255.0f, 1.00f) : ImVec4(238 / 255.0, 238 / 255.0, 238 / 255.0, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(107 / 255.0f, 107 / 255.0f, 107 / 255.0f, 1.00f) : ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f));
+    bool   btn_clicked = ImGui::Button(into_u8(m_is_dark_mode ? ImGui::ConfirmDarkIcon : ImGui::ConfirmIcon).c_str());
+    ImGui::PopStyleColor(3);
+
+    auto          imgui_size    = ImGui::GetWindowSize();
+    const Camera &camera        = wxGetApp().plater()->get_camera();
+    auto          screen_height = Vec4i(camera.get_viewport().data())(3);
+    if (m_rr.mouse_position[0] >= m_height_start_pos[0] && m_rr.mouse_position[0] <= m_height_start_pos[0] + imgui_size[0]
+        && m_rr.mouse_position[1] >= m_height_start_pos[1] && m_rr.mouse_position[1] <= m_height_start_pos[1] + imgui_size[1]) {
+        m_is_cursor_in_imgui = true;
+        m_cursor_z = m_height_start_z_in_imgui;
+    } else {
+        m_is_cursor_in_imgui = false;
+        ImGui::SetNextWindowFocus();
+    }
+    if (btn_clicked) {
+        if (m_cursor_z >= min_z && m_cursor_z + m_cursor_height <= max_z) {
+            m_is_set_height_start_z_by_imgui = true;
+            const_cast<GLGizmoPainterBase &>(*this).gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(0, 0), false, false, false);
+            m_is_set_height_start_z_by_imgui = false;
+         }
+         m_rr.mesh_id = -1; // exit
+    }
+    imgui.set_requires_extra_frame();
+    imgui.end();
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(1);
+
+    if (m_cursor_z <= min_z || m_cursor_z + m_cursor_height >= max_z) {
+        return;
+    }
+    std::array<float, 2> zs = {m_cursor_z, std::clamp(m_cursor_z + m_cursor_height, min_z, max_z)};
 
     const Selection& selection = m_parent.get_selection();
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
@@ -264,7 +349,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         }
 
         for (int i = 0; i < zs.size(); i++) {
-            update_contours(vol_mesh, zs[i], max_z, min_z);
+            update_contours(vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui? false:(i == 0 ? true : false));
 
             glsafe(::glPushMatrix());
             glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
@@ -289,7 +374,12 @@ BoundingBoxf3 GLGizmoPainterBase::bounding_box() const
     return ret;
 }
 
-void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const
+struct ScreenPosSort {
+    Vec2i pos_screen;
+    Vec3d pos_3d;
+};
+
+void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const
 {
     const Selection& selection = m_parent.get_selection();
     const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -314,6 +404,36 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
                 slicing_params.trafo = Transform3d::Identity().matrix();
                 const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
                 if (!polys.empty()) {
+                    if (update_height_start_pos) {
+                        const Camera &camera     = wxGetApp().plater()->get_camera();
+                        std::vector<ScreenPosSort> screen_pos_sorts;
+                        for (size_t i = 0; i < polys.size(); i++) {
+                            for (size_t j = 0; j < polys[i].points.size(); j++) {
+                                Vec2d pt       = unscale(polys[i].points[j]).cast<double>();
+                                Vec3d pos_3d(pt[0], pt[1], cursor_z);
+                                Vec2i cur_screen_pos = _3d_to_mouse(pos_3d, camera);
+                                if (cur_screen_pos[0] >= m_rr.mouse_position[0]) {
+                                    ScreenPosSort cur{cur_screen_pos, pos_3d};
+                                    screen_pos_sorts.emplace_back(cur);
+                                }
+                            }
+                        }
+                        std::sort(screen_pos_sorts.begin(), screen_pos_sorts.end(), [=](const ScreenPosSort &s1, const ScreenPosSort &s2) {
+                                  int threshold_x = 20;
+                                  int threshold_y = 20;
+                                  if (abs(s1.pos_screen.x() - s2.pos_screen.x()) < threshold_x && abs(s1.pos_screen.y() - s2.pos_screen.y()) > threshold_y) {
+                                    return abs(s1.pos_screen.y() - m_rr.mouse_position[1]) < abs(s2.pos_screen.y() - m_rr.mouse_position[1]);
+                                  } else {
+                                      return s1.pos_screen.x() > s2.pos_screen.x();
+                                  }
+                        });
+                        if(screen_pos_sorts.size() >= 1){
+                            m_height_start_pos = screen_pos_sorts[0].pos_screen;
+                            // make mouse to cover in a part of imgui
+                            m_height_start_pos[0] -= 10;
+                            m_height_start_pos[1] -= 10;
+                        }
+                    }
                     m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
                     m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
                 }
@@ -466,18 +586,19 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
     const std::vector<Transform3d>& trafo_matrices) const
 {
     std::vector<GLGizmoPainterBase::ProjectedHeightRange> hit_triangles_by_mesh;
-
-    const Camera& camera = wxGetApp().plater()->get_camera();
-
-    // In mesh_hit_points only the last item could have mesh_id == -1, any other items mustn't.
-    update_raycast_cache(mouse_position, camera, trafo_matrices);
-    if (m_rr.mesh_id == -1)
-        return hit_triangles_by_mesh;
-
-    ProjectedMousePosition mesh_hit_point = { m_rr.hit, m_rr.mesh_id, m_rr.facet };
-    float z_bot_world= (trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2))).z();
-    float z_top_world = z_bot_world+ m_cursor_height;
-    hit_triangles_by_mesh.push_back({ z_bot_world, m_rr.mesh_id, size_t(m_rr.facet) });
+    float                                                 z_bot_world;
+    if (m_is_set_height_start_z_by_imgui == false) {
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        // In mesh_hit_points only the last item could have mesh_id == -1, any other items mustn't.
+        update_raycast_cache(mouse_position, camera, trafo_matrices);
+        if (m_rr.mesh_id == -1) return hit_triangles_by_mesh;
+        ProjectedMousePosition mesh_hit_point = {m_rr.hit, m_rr.mesh_id, m_rr.facet};
+        z_bot_world                           = (trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2))).z();
+    } else {
+        z_bot_world = m_height_start_z_in_imgui;
+    }
+    float z_top_world = z_bot_world + m_cursor_height;
+    hit_triangles_by_mesh.push_back({z_bot_world, m_rr.mesh_id, size_t(m_rr.facet)});
 
     const Selection& selection = m_parent.get_selection();
     const ModelObject* mo = m_c->selection_info()->model_object();

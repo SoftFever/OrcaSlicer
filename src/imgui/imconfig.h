@@ -171,6 +171,7 @@ namespace ImGui
     const wchar_t UnfoldButtonIcon         = 0x0815;
     const wchar_t SphereButtonIcon         = 0x0816;
     const wchar_t GapFillIcon              = 0x0817;
+    const wchar_t ConfirmIcon              = 0x0818;
 
     const wchar_t MinimalizeDarkButton           = 0x081C;
     const wchar_t MinimalizeHoverDarkButton      = 0x081D;
@@ -185,6 +186,7 @@ namespace ImGui
     const wchar_t HeightRangeDarkIcon      = 0x0825;
     const wchar_t SphereButtonDarkIcon     = 0x0826;
     const wchar_t GapFillDarkIcon          = 0x0827;
+    const wchar_t ConfirmDarkIcon          = 0x0828;
 
     const wchar_t TextSearchIcon           = 0x0828;
     const wchar_t TextSearchCloseIcon      = 0x0829;
