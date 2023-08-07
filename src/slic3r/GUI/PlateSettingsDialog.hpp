@@ -6,6 +6,7 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "DragCanvas.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -31,6 +32,7 @@ public:
     ~PlateSettingsDialog();
     void sync_bed_type(BedType type);
     void sync_print_seq(int print_seq = 0);
+    void sync_first_layer_print_seq(int selection, const std::vector<int>& seq = std::vector<int>());
     wxString to_bed_type_name(BedType bed_type);
     wxString to_print_sequence_name(PrintSequence print_seq);
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -49,7 +51,18 @@ public:
         return choice;
     };
 
+    int get_first_layer_print_seq_choice() {
+        int choice = 0;
+        if (m_first_layer_print_seq_choice != nullptr)
+            choice = m_first_layer_print_seq_choice->GetSelection();
+        return choice;
+    };
+
+    std::vector<int> get_first_layer_print_seq();
+
 protected:
+    DragCanvas* m_drag_canvas;
+    ComboBox* m_first_layer_print_seq_choice { nullptr };
     ComboBox* m_print_seq_choice { nullptr };
     ComboBox* m_bed_type_choice { nullptr };
     Button* m_button_ok;

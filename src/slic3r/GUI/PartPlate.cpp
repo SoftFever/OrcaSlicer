@@ -931,13 +931,13 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
 
 			if (m_partplate_list->render_plate_settings) {
                 if (hover_id == 5) {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
+                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
                     else
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture,
                                             m_plate_settings_vbo_id);
                 } else {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
+                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
                     else
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);

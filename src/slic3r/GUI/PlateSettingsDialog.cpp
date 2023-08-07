@@ -43,6 +43,37 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     top_sizer->Add(m_print_seq_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT |wxALL, FromDIP(5));
     top_sizer->Add(m_print_seq_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT |wxALL, FromDIP(5));
 
+    m_first_layer_print_seq_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0, NULL, wxCB_READONLY);
+    m_first_layer_print_seq_choice->Append(_L("Auto"));
+    m_first_layer_print_seq_choice->Append(_L("Customize"));
+    m_first_layer_print_seq_choice->SetSelection(0);
+    m_first_layer_print_seq_choice->Bind(wxEVT_COMBOBOX, [this](auto& e) {
+        if (e.GetSelection() == 0) {
+            m_drag_canvas->Hide();
+        }
+        else if (e.GetSelection() == 1) {
+            m_drag_canvas->Show();
+        }
+        Layout();
+        Fit();
+        });
+    wxStaticText* first_layer_txt = new wxStaticText(this, wxID_ANY, _L("First Layer print sequence"));
+    first_layer_txt->SetFont(Label::Body_14);
+    top_sizer->Add(first_layer_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_first_layer_print_seq_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<int> order;
+    if (order.empty()) {
+        for (int i = 1; i <= extruder_colours.size(); i++) {
+            order.push_back(i);
+        }
+    }
+    m_drag_canvas = new DragCanvas(this, extruder_colours, order);
+    m_drag_canvas->Hide();
+    top_sizer->Add(0, 0, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_drag_canvas, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
@@ -119,6 +150,22 @@ void PlateSettingsDialog::sync_print_seq(int print_seq)
     }
 }
 
+void PlateSettingsDialog::sync_first_layer_print_seq(int selection, const std::vector<int>& seq)
+{
+    if (m_first_layer_print_seq_choice != nullptr) {
+        if (selection == 1) {
+            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+            m_drag_canvas->set_shape_list(extruder_colours, seq);
+        }
+        m_first_layer_print_seq_choice->SetSelection(selection);
+
+        wxCommandEvent event(wxEVT_COMBOBOX);
+        event.SetInt(selection);
+        event.SetEventObject(m_first_layer_print_seq_choice);
+        wxPostEvent(m_first_layer_print_seq_choice, event);
+    }
+}
+
 wxString PlateSettingsDialog::to_bed_type_name(BedType bed_type) {
     switch (bed_type) {
     case btDefault:
@@ -147,6 +194,11 @@ void PlateSettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     m_button_ok->Rescale();
     m_button_cancel->Rescale();
+}
+
+std::vector<int> PlateSettingsDialog::get_first_layer_print_seq()
+{
+    return m_drag_canvas->get_shape_list_order();
 }
 
 
