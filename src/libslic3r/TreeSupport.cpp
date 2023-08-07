@@ -1134,17 +1134,11 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
             Polygons  lower_layer_polygons = (layer_nr == 0) ? Polygons() : to_polygons(lower_layer->lslices);
             Polygons& enforcer = enforcers[layer_nr];
             if (!enforcer.empty()) {
-                Polygons enforcer_polygons = diff(intersection(layer->lslices, enforcer),
+                ExPolygons enforcer_polygons = diff_ex(intersection_ex(layer->lslices, enforcer),
                     // Inflate just a tiny bit to avoid intersection of the overhang areas with the object.
                     expand(lower_layer_polygons, 0.05f * no_interface_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-                // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
-                // is not good. For example: tails of animals needs extra support except the lowest tip.
-                //enforcer = std::move(offset2_ex(enforcer, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-                enforcer_polygons = offset(enforcer_polygons, 0.1 * extrusion_width_scaled);
-                for (const Polygon& poly : enforcer_polygons) {
-                    ts_layer->overhang_areas.emplace_back(poly);
-                    ts_layer->overhang_types.emplace(&ts_layer->overhang_areas.back(), SupportLayer::Enforced);
-                }
+                append(ts_layer->overhang_areas, enforcer_polygons);
+                ts_layer->overhang_types.emplace(&ts_layer->overhang_areas.back(), SupportLayer::Enforced);
             }
         }
 
@@ -1163,11 +1157,19 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
             svg.draw(layer->overhang_areas, "orange");
             if (blockers.size() > layer->id())
                 svg.draw(blockers[layer->id()], "red");
-            for (auto& overhang : layer->overhang_areas) {
-                double aarea = overhang.area()/ area_thresh_well_supported;
-                auto pt = get_extents(overhang).center();
-                char x[20]; sprintf(x, "%.2f", aarea);
-                svg.draw_text(pt, x, "red");
+        }
+        if (enforcers.size() > layer->id()) {
+            SVG svg(format("SVG/enforcer_%s.svg", layer->print_z), m_object->bounding_box());
+            if (svg.is_opened()) {
+                svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
+                svg.draw(enforcers[layer->id()], "red");
+            }
+        }
+        if (blockers.size() > layer->id()) {
+            SVG svg(format("SVG/blocker_%s.svg", layer->print_z), m_object->bounding_box());
+            if (svg.is_opened()) {
+                svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
+                svg.draw(blockers[layer->id()], "red");
             }
         }
     }
