@@ -685,9 +685,9 @@ bool Preset::is_custom_defined()
     return false;
 }
 
-bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
+bool Preset::has_lidar(PresetBundle *preset_bundle)
 {
-    bool is_bbl_vendor_preset = false;
+    bool has_lidar = false;
     if (preset_bundle) {
         auto config = &preset_bundle->printers.get_edited_preset().config;
         std::string vendor_name;
@@ -700,9 +700,9 @@ bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
                 }
         }
         if (!vendor_name.empty())
-            is_bbl_vendor_preset = vendor_name.compare("BBL") == 0 ? true : false;
+            has_lidar = vendor_name.compare("BBL") == 0 ? true : false;
     }
-    return is_bbl_vendor_preset;
+    return has_lidar;
 }
 
 static std::vector<std::string> s_Preset_print_options {

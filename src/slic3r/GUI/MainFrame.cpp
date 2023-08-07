@@ -549,7 +549,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             m_print_btn->Enable(m_print_enable);
             if (m_print_enable) {
                 PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-                if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+                if (preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle))
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
                 else
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
@@ -907,7 +907,7 @@ void MainFrame::init_tabpanel() {
       int old_sel = e.GetOldSelection();
       int new_sel = e.GetSelection();
       if (wxGetApp().preset_bundle &&
-          wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
+          wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle) &&
           new_sel == tpMonitor) {
         if (!wxGetApp().getAgent()) {
           e.Veto();
@@ -1505,7 +1505,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
+                && !wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle)) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -3410,7 +3410,7 @@ void MainFrame::load_printer_url(wxString url)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+    if (preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle))
         return;
     
     auto cfg = preset_bundle.printers.get_edited_preset().config;

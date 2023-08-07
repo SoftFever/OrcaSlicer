@@ -302,7 +302,7 @@ public:
     std::string get_current_printer_type(PresetBundle *preset_bundle); // get current preset type
     bool is_custom_defined();
 
-    bool is_bbl_vendor_preset(PresetBundle *preset_bundle);
+    bool has_lidar(PresetBundle *preset_bundle);
 
 
 

@@ -1644,9 +1644,9 @@ void Tab::on_presets_changed()
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
-    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    bool has_lidar = wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle);
     auto& printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    if (is_bbl_vendor_preset)
+    if (has_lidar)
         wxGetApp().plater()->get_partplate_list().set_render_option(
             !printer_cfg.option<ConfigOptionBool>("bbl_calib_mark_logo")->value, true);
     else
@@ -2873,7 +2873,7 @@ void TabFilament::toggle_options()
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
       is_BBL_printer =
-          m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(
+          m_preset_bundle->printers.get_edited_preset().has_lidar(
               m_preset_bundle);
     }
 
@@ -3669,7 +3669,7 @@ void TabPrinter::toggle_options()
     //BBS: whether the preset is Bambu Lab printer
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
-       is_BBL_printer = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
+       is_BBL_printer = m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle);
     }
 
     bool have_multiple_extruders = true;

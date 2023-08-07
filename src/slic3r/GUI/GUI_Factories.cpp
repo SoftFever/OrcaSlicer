@@ -656,6 +656,13 @@ wxMenuItem* MenuFactory::append_menu_item_instance_to_object(wxMenu* menu)
     return menu_item;
 }
 
+void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
+{
+    append_menu_item(
+        menu, wxID_ANY, _L("Fill bed with copies"), _L("Fill the remaining area of bed with copies of the selected object"),
+        [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
+}
+
 wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
 {
     // BBS: to be checked
@@ -1040,8 +1047,9 @@ void MenuFactory::create_object_menu()
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 }
 
-void MenuFactory::create_bbl_object_menu()
+void MenuFactory::create_extra_object_menu()
 {
+    append_menu_item_fill_bed(&m_object_menu);
     // Object Clone
     append_menu_item_clone(&m_object_menu);
     // Object Repair
@@ -1262,7 +1270,7 @@ void MenuFactory::init(wxWindow* parent)
     create_sla_object_menu();
     //create_part_menu();
 
-    create_bbl_object_menu();
+    create_extra_object_menu();
     create_bbl_part_menu();
     create_bbl_assemble_object_menu();
     create_bbl_assemble_part_menu();

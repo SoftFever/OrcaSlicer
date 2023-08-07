@@ -1024,7 +1024,7 @@ void Sidebar::update_all_preset_comboboxes()
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
-    bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+    bool is_bbl_preset = preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle);
 
     auto p_mainframe = wxGetApp().mainframe;
 
@@ -8183,7 +8183,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    const bool is_bbl_machine = preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle);
+    const bool is_bbl_machine = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
     const Vec3d plate_origin = get_partplate_list().get_current_plate_origin();
     CalibPressureAdvancePattern pa_pattern(
         params,
@@ -10403,7 +10403,7 @@ void Plater::reslice()
 
         model().calib_pa_pattern->generate_custom_gcodes(
             wxGetApp().preset_bundle->full_config(),
-            preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
+            preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle),
             model(),
             get_partplate_list().get_current_plate_origin()
         );
