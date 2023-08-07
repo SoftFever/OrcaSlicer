@@ -174,7 +174,7 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
     m_ti_plate_name = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, wxSize(FromDIP(240), -1), wxTE_PROCESS_ENTER);
     top_sizer->Add(plate_name_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_ti_plate_name, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
-    m_ti_plate_name->GetTextCtrl()->SetMaxLength(40);
+    m_ti_plate_name->GetTextCtrl()->SetMaxLength(250);
 
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
 
