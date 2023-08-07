@@ -9045,7 +9045,7 @@ msgstr ""
 "виключенням першого, буде розрахована автоматично "
 
 msgid "Auto brim width"
-msgstr "Автоматичка ширина кайми"
+msgstr "Автоматична ширина кайми"
 
 msgid ""
 "Enabling this option means the width of the brim for tree support will be "
