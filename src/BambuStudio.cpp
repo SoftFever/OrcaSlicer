@@ -2160,6 +2160,28 @@ int CLI::run(int argc, char **argv)
     {
         ArrangePolygons selected, unselected, unprintable, locked_aps;
 
+        for (int index = 0; index < partplate_list.get_plate_count(); index ++)
+        {
+            if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
+                continue;
+            }
+
+            if (plate_data_src.size() > index) {
+                if (!plate_data_src[index]->thumbnail_file.empty()) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.")%(index+1)%plate_data_src[index]->thumbnail_file;
+                    plate_data_src[index]->thumbnail_file.clear();
+                }
+                if (!plate_data_src[index]->top_file.empty()) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.")%(index+1)%plate_data_src[index]->top_file;
+                    plate_data_src[index]->top_file.clear();
+                }
+                if (!plate_data_src[index]->pick_file.empty()) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded pick_thumbnail %2%.")%(index+1)%plate_data_src[index]->pick_file;
+                    plate_data_src[index]->pick_file.clear();
+                }
+            }
+        }
+
         //for (Model &model : m_models)
         if (m_models.size() > 0)
         {
@@ -2460,6 +2482,7 @@ int CLI::run(int argc, char **argv)
                     //BBS: adjust the bed_index, create new plates, get the max bed_index
                     bool failed_this_time = false;
                     for (ArrangePolygon& ap : selected) {
+                        partplate_list.postprocess_bed_index_for_current_plate(ap);
                         if (ap.bed_idx != (plate_to_slice-1))
                         {
                             //
@@ -2498,7 +2521,6 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":arrange success: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
                             real_duplicate_count ++;
                         }
-                        partplate_list.postprocess_bed_index_for_current_plate(ap);
 
                         bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
                         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
@@ -2808,7 +2830,7 @@ int CLI::run(int argc, char **argv)
                                     if (skip_maps.find(i->loaded_id) != skip_maps.end()) {
                                         skip_maps[i->loaded_id] = true;
                                         i->printable = false;
-                                        if (i->print_volume_state == ModelInstancePVS_Inside || need_arrange) {
+                                        if (i->print_volume_state == ModelInstancePVS_Inside) {
                                             skipped_count++;
                                             plate_has_skips[index] = true;
                                             plate_skipped_objects[index].emplace_back(i->loaded_id);
