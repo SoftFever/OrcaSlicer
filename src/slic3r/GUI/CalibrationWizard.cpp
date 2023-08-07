@@ -961,7 +961,7 @@ void FlowRateWizard::on_cali_save()
                 std::map<std::string, ConfigOption*> key_value_map;
                 key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_results[i].second }));
                 std::string message;
-                if (!save_preset(old_preset_name, new_results[i].first.ToStdString(), key_value_map, message)) {
+                if (!save_preset(old_preset_name, into_u8(new_results[i].first), key_value_map, message)) {
                     MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                     error_msg_dlg.ShowModal();
                     return;
