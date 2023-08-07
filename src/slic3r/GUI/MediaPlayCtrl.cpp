@@ -187,7 +187,7 @@ void MediaPlayCtrl::Play()
 
     m_disable_lan = false;
     if (m_lan_ip.empty())
-        m_failed_code = 1;
+        m_failed_code = -1;
 
     if (m_lan_mode) {
         Stop(m_lan_proto < 0
