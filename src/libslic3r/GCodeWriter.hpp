@@ -73,7 +73,7 @@ public:
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
-    std::string lift(LiftType lift_type = LiftType::NormalLift);
+    std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
     void       set_position(Vec3d& in) { m_pos = in; }
@@ -88,6 +88,14 @@ public:
     std::string set_fan(unsigned int speed) const;
     //BBS: set additional fan speed for BBS machine only
     static std::string set_additional_fan(unsigned int speed);
+    //BBS
+    void set_object_start_str(std::string start_string) { m_gcode_label_objects_start = start_string; }
+    bool empty_object_start_str() { return m_gcode_label_objects_start.empty(); }
+    void set_object_end_str(std::string end_string) { m_gcode_label_objects_end = end_string; }
+    bool empty_object_end_str() { return m_gcode_label_objects_end.empty(); }
+    void add_object_start_labels(std::string& gcode);
+    void add_object_end_labels(std::string& gcode);
+    void add_object_change_labels(std::string& gcode);
 
     //BBS:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
@@ -136,12 +144,15 @@ private:
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
+    
+    std::string m_gcode_label_objects_start;
+    std::string m_gcode_label_objects_end;
 
     //SoftFever
     bool            m_is_bbl_printers = false;
     double          m_current_speed;
     bool            m_is_first_layer = true;
-    
+
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);

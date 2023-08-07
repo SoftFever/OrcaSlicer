@@ -2677,9 +2677,8 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
         optgroup->split_multi_line = true;
         optgroup->option_label_at_right = true;
-        line = { L("Chamber temperature"), L("Chamber temperature") };
-        line.append_option(optgroup->get_option("chamber_temperature"));
-        optgroup->append_line(line);
+        optgroup->append_single_option_line("chamber_temperatures");
+
 
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
@@ -2897,7 +2896,7 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
-        toggle_option("chamber_temperature", !is_BBL_printer);
+        toggle_option("chamber_temperatures", !is_BBL_printer);
     }
     if (m_active_page->title() == "Setting Overrides")
         update_filament_overrides_page();
@@ -3690,7 +3689,7 @@ void TabPrinter::toggle_options()
 
         // SoftFever: hide BBL specific settings
         for (auto el :
-             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "nozzle_type", "bbl_calib_mark_logo"})
+             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "bbl_calib_mark_logo"})
           toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
