@@ -204,7 +204,7 @@ bool OpenGLVersionCheck::message_pump_exit = false;
 
 extern "C" {
     typedef int (__stdcall *Slic3rMainFunc)(int argc, wchar_t **argv);
-    Slic3rMainFunc bambustu_main = nullptr;
+    Slic3rMainFunc orcaslicer_main = nullptr;
 }
 
 extern "C" {
@@ -292,19 +292,19 @@ int wmain(int argc, wchar_t **argv)
     }
 
     // resolve function address here
-    bambustu_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r,
+    orcaslicer_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r,
 #ifdef _WIN64
         // there is just a single calling conversion, therefore no mangling of the function name.
-        "bambustu_main"
+        "orcaslicer_main"
 #else	// stdcall calling convention declaration
         "_bambustu_main@8"
 #endif
         );
-    if (bambustu_main == nullptr) {
-        printf("could not locate the function bambustu_main in OrcaSlicer.dll\n");
+    if (orcaslicer_main == nullptr) {
+        printf("could not locate the function orcaslicer_main in OrcaSlicer.dll\n");
         return -1;
     }
     // argc minus the trailing nullptr of the argv
-    return bambustu_main((int)argv_extended.size() - 1, argv_extended.data());
+    return orcaslicer_main((int)argv_extended.size() - 1, argv_extended.data());
 }
 }

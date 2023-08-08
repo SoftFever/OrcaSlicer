@@ -186,7 +186,7 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         shader->set_uniform("volume_world_matrix", trafo_matrix);
         shader->set_uniform("volume_mirrored", is_left_handed);
         shader->set_uniform("slope.actived", m_parent.is_using_slope());
-        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
+        shader->set_uniform("slope.volume_world_normal_matrix", normal_matrix);
         shader->set_uniform("slope.normal_z", normal_z);
         m_triangle_selectors[mesh_id]->render(m_imgui);
 
@@ -290,7 +290,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }

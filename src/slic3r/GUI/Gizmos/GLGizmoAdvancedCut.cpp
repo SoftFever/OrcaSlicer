@@ -1297,7 +1297,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     bool         imperial_units    = wxGetApp().app_config->get("use_inches") == "1";
     unsigned int current_active_id = ImGui::GetActiveID();
 
-    Vec3d rotation = {Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2))};
+    Vec3d rotation = {Geometry::rad2deg(m_buffered_rotation(0)), Geometry::rad2deg(m_buffered_rotation(1)), Geometry::rad2deg(m_buffered_rotation(2))};
     char  buf[3][64];
     float buf_size[3];
     float vec_max = 0, unit_size = 0;
@@ -1450,6 +1450,10 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
 
     m_imgui->disabled_begin(has_connectors);
     m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
+    if (m_cut_to_parts) {
+        m_keep_upper = true;
+        m_keep_lower = true;
+    }
     m_imgui->disabled_end();
 
 #if 0
@@ -1585,7 +1589,9 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     if (render_combo(_u8L("Style"), connector_styles, m_connector_style))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
     m_imgui->disabled_end();
+    ImGuiWrapper::pop_combo_style();
 
+    ImGuiWrapper::push_combo_style(m_parent.get_scale());
     if (render_combo(_u8L("Shape"), connector_shapes, m_connector_shape_id))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     ImGuiWrapper::pop_combo_style();
@@ -1728,11 +1734,13 @@ bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vecto
 
 bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in)
 {
+    // -------- [ ] -------- [ ]
+    // slider_with + item_in_gap + first_input_width + item_out_gap + slider_with + item_in_gap + second_input_width
     double slider_with          = 0.24 * m_editing_window_width; // m_control_width * 0.35;
     double item_in_gap          = 0.01 * m_editing_window_width;
-    double item_out_gap         = 0.02 * m_editing_window_width;
-    double first_input_width    = 0.33 * m_editing_window_width;
-    double second_input_width   = 0.15 * m_editing_window_width;
+    double item_out_gap         = 0.01 * m_editing_window_width;
+    double first_input_width    = 0.29  * m_editing_window_width;
+    double second_input_width   = 0.29  * m_editing_window_width;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
@@ -1770,18 +1778,21 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(slider_with);
 
-    float       old_tolerance, tolerance = old_tolerance = tolerance_in * 100.f;
-    std::string format_t      = tolerance_in < 0.f ? " " : "%.f %%";
+    float tolerance = tolerance_in;
+    if (m_imperial_units)
+        tolerance *= float(units_mm_to_in);
+    float old_tolerance = tolerance;
+    //std::string format_t      = tolerance_in < 0.f ? " " : "%.f %%";
     float       min_tolerance = tolerance_in < 0.f ? UndefMinVal : 0.f;
 
-    m_imgui->bbl_slider_float_style(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, 20.f, format_t.c_str(), 1.f, true, _L("Tolerance"));
+    m_imgui->bbl_slider_float_style(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, 2.f, format.c_str(), 1.f, true, _L("Tolerance"));
     
     left_width += (slider_with + item_in_gap);
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(second_input_width);
-    ImGui::BBLDragFloat(("##tolerance_input_" + label).c_str(), &tolerance, 0.05f, min_tolerance, 20.f, format_t.c_str());
+    ImGui::BBLDragFloat(("##tolerance_input_" + label).c_str(), &tolerance, 0.05f, min_tolerance, 2.f, format.c_str());
     
-    tolerance_in = tolerance * 0.01f;
+    tolerance_in = tolerance * float(m_imperial_units ? units_in_to_mm : 1.0);
 
     return !is_approx(old_val, value) || !is_approx(old_tolerance, tolerance);
 }
