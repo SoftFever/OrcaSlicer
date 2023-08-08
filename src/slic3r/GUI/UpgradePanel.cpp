@@ -147,7 +147,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     wxBoxSizer* extra_ams_content_sizer = new wxBoxSizer(wxVERTICAL);
     extra_ams_content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
     m_extra_ams_panel = new ExtraAmsPanel(this);
-    m_extra_ams_panel->m_staticText_ams->SetLabel("F1");
+    m_extra_ams_panel->m_staticText_ams->SetLabel("AMS Lite");
     extra_ams_content_sizer->Add(m_extra_ams_panel, 0, wxEXPAND, 0);
 
     m_extra_ams_sizer->Add(extra_ams_content_sizer, 1, wxEXPAND, 0);
@@ -553,7 +553,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
     //ams
     if (obj->ams_exist_bits != 0) {
-        std::string extra_ams_str = (boost::format("ams_extra_ams/%1%") % 0).str();
+        std::string extra_ams_str = (boost::format("ams_f1/%1%") % 0).str();
         auto extra_ams_it = obj->module_vers.find(extra_ams_str);
         if (extra_ams_it != obj->module_vers.end()) {
             wxString sn_text = extra_ams_it->second.sn;
