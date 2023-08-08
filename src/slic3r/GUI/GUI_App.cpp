@@ -3966,6 +3966,8 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 
 void GUI_App::check_track_enable()
 {
+    // Orca: alaways disable track event
+    return;
     if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
         //enable track event
         json header_json;
