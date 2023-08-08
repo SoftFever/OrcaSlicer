@@ -740,7 +740,7 @@ bool MachineObject::is_U0_firmware()
 
 bool MachineObject::is_support_ams_mapping()
 {
-    if (get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (get_printer_series() == PrinterSeries::SERIES_X1 && printer_type != "C13") {
         AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
         if (config) {
             if (config->get("check_ams_version") == "0")
