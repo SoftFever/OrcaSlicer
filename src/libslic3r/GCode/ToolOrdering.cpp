@@ -267,6 +267,22 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         tool_order.insert(iter, ape.first);
     }
 
+    const ConfigOptionInts* first_layer_print_sequence_op = print.full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
+    if (first_layer_print_sequence_op) {
+        const std::vector<int>& print_sequence_1st = first_layer_print_sequence_op->values;
+        if (print_sequence_1st.size() >= tool_order.size()) {
+            std::sort(tool_order.begin(), tool_order.end(), [&print_sequence_1st](int lh, int rh) {
+                auto lh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), lh);
+                auto rh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), rh);
+
+                if (lh_it == print_sequence_1st.end() || rh_it == print_sequence_1st.end())
+                    return false;
+
+                return lh_it < rh_it;
+            });
+        }
+    }
+
     return tool_order;
 }
 
@@ -304,6 +320,22 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         }
 
         tool_order.insert(iter, ape.first);
+    }
+
+    const ConfigOptionInts* first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
+    if (first_layer_print_sequence_op) {
+        const std::vector<int>& print_sequence_1st = first_layer_print_sequence_op->values;
+        if (print_sequence_1st.size() >= tool_order.size()) {
+            std::sort(tool_order.begin(), tool_order.end(), [&print_sequence_1st](int lh, int rh) {
+                auto lh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), lh);
+                auto rh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), rh);
+
+                if (lh_it == print_sequence_1st.end() || rh_it == print_sequence_1st.end())
+                    return false;
+
+                return lh_it < rh_it;
+            });
+        }
     }
 
     return tool_order;
