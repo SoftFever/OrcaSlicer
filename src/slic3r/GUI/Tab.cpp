@@ -1906,6 +1906,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
+        optgroup->append_single_option_line("internal_solid_infill_pattern");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
@@ -2677,7 +2678,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
         optgroup->split_multi_line = true;
         optgroup->option_label_at_right = true;
-        optgroup->append_single_option_line("chamber_temperatures");
+        optgroup->append_single_option_line("chamber_temperature");
 
 
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
@@ -2896,7 +2897,7 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
-        toggle_option("chamber_temperatures", !is_BBL_printer);
+        toggle_option("chamber_temperature", !is_BBL_printer);
     }
     if (m_active_page->title() == "Setting Overrides")
         update_filament_overrides_page();

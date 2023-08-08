@@ -303,6 +303,8 @@ public:
     bool is_custom_defined();
 
     bool has_lidar(PresetBundle *preset_bundle);
+    BedType get_default_bed_type(PresetBundle *preset_bundle);
+    bool has_cali_lines(PresetBundle* preset_bundle);
 
 
 
@@ -474,7 +476,7 @@ public:
     // a new preset is stored into the list of presets.
     // All presets are marked as not modified and the new preset is activated.
     //BBS: add project embedded preset logic
-    void            save_current_preset(const std::string &new_name, bool detach = false, bool save_to_project = false);
+    void            save_current_preset(const std::string &new_name, bool detach = false, bool save_to_project = false, Preset* _curr_preset = nullptr);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.

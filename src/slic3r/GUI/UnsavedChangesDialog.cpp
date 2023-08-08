@@ -1338,12 +1338,14 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         return get_string_from_enum(opt_key, config,
             opt_key == "top_surface_pattern" ||
             opt_key == "bottom_surface_pattern" ||
+            opt_key == "internal_solid_infill_pattern" ||
             opt_key == "sparse_infill_pattern");
     }
     case coEnums: {
         return get_string_from_enum(opt_key, config,
             opt_key == "top_surface_pattern" ||
             opt_key == "bottom_surface_pattern" ||
+            opt_key == "internal_solid_infill_pattern" ||
             opt_key == "sparse_infill_pattern",
             opt_idx);
     }

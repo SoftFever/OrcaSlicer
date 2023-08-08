@@ -24,7 +24,9 @@ struct ThumbnailData;
 #define EMBEDDED_FILAMENT_FILE_FORMAT      "Metadata/filament_settings_%1%.config"
 #define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/machine_settings_%1%.config"
 
+#define BBL_DESIGNER_MODEL_TITLE_TAG     "Title"
 #define BBL_DESIGNER_PROFILE_ID_TAG      "DesignProfileId"
+#define BBL_DESIGNER_PROFILE_TITLE_TAG   "ProfileTitle"
 #define BBL_DESIGNER_MODEL_ID_TAG        "DesignModelId"
 
 
@@ -76,10 +78,12 @@ struct PlateData
     std::string     gcode_weight;
     std::string     plate_name;
     std::vector<FilamentInfo> slice_filaments_info;
+    std::vector<size_t> skipped_objects;
     DynamicPrintConfig config;
     bool            is_support_used {false};
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
+    bool            is_label_object_enabled {false};
 
     std::vector<GCodeProcessorResult::SliceWarning> warnings;
 
@@ -108,6 +112,7 @@ enum class SaveStrategy
     WithSliceInfo       = 1 << 8,
     SkipAuxiliary       = 1 << 9,
     UseLoadedId         = 1 << 10,
+    ShareMesh           = 1 << 11,
 
     SplitModel = 0x1000 | ProductionExt,
     Encrypted  = SecureContentExt | SplitModel,
@@ -220,6 +225,10 @@ extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSub
         bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn = nullptr, LoadStrategy strategy = LoadStrategy::Default, BBLProject *project = nullptr, int plate_id = 0);
 
 extern std::string bbs_3mf_get_thumbnail(const char * path);
+
+extern bool load_gcode_3mf_from_stream(std::istream & data, DynamicPrintConfig* config, Model* model, PlateDataPtrs* plate_data_list, 
+       Semver* file_version);
+
 
 //BBS: add plate data list related logic
 // add backup logic
