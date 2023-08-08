@@ -263,6 +263,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
+    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING, &ObjectList::OnStartEditing, this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &ObjectList::OnEditingStarted,  this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,    &ObjectList::OnEditingDone,     this);
 
@@ -366,7 +367,8 @@ void ObjectList::create_objects_ctrl()
     // And Icon can be consisting of several bitmaps
     BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
     bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
-        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
+        auto type = m_objects_model->GetItemType(GetSelection());
+        return type & (itVolume | itObject | itPlate);
     });
 
     // BBS
@@ -897,6 +899,20 @@ void ObjectList::update_filament_in_config(const wxDataViewItem& item)
 
 void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 {
+    if (m_objects_model->GetItemType(item) & itPlate) {
+        std::string name = m_objects_model->GetName(item).ToUTF8().data();
+        int plate_idx = -1;
+        const ItemType type0 = m_objects_model->GetItemType(item, plate_idx);
+        if (plate_idx >= 0) {
+            auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+            if (plate->get_plate_name() != name) {
+                plate->set_plate_name(name);
+                m_objects_model->SetCurSelectedPlateFullName(plate_idx, name);
+            }
+        }
+        return;
+    }
+
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     if (obj_idx < 0) return;
     const int volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -5479,6 +5495,22 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
         if (m_objects_model->GetItemType(item) == itObject)
             m_objects_model->UpdateVolumesExtruderBitmap(item, true);
         update_filament_in_config(item);
+    }
+}
+
+void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
+{
+    auto col  = event.GetColumn();
+    auto item = event.GetItem();
+    if (col == colName) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->GetType() & itPlate) {
+            int plate_idx = node->GetPlateIdx();
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetName(plate->get_plate_name(), GetSelection());
+            }
+        }
     }
 }
 

@@ -472,6 +472,7 @@ private:
 
     void ItemValueChanged(wxDataViewEvent &event);
     // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+    void OnStartEditing(wxDataViewEvent &event);
 	void OnEditingStarted(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
 
