@@ -266,6 +266,7 @@ static constexpr const char* SUBTYPE_ATTR = "subtype";
 static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
 static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
+static constexpr const char* FIRST_LAYER_PRINT_SEQUENCE_ATTR = "first_layer_print_sequence";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* TOP_FILE_ATTR = "top_file";
@@ -3852,6 +3853,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 ConfigOptionEnum<PrintSequence>::from_string(value, print_sequence);
                 m_curr_plater->config.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(print_sequence));
             }
+            else if (key == FIRST_LAYER_PRINT_SEQUENCE_ATTR) {
+                auto get_vector_from_string = [](const std::string &str) -> std::vector<int> {
+                    std::stringstream stream(str);
+                    int value;
+                    std::vector<int>  results;
+                    while (stream >> value) {
+                        results.push_back(value);
+                    }
+                    return results;
+                };
+                m_curr_plater->config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
+            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -7021,6 +7034,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 t_config_enum_names print_sequence_names = ConfigOptionEnum<PrintSequence>::get_enum_names();
                 if (print_sequence_opt != nullptr && print_sequence_names.size() > print_sequence_opt->getInt())
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PRINT_SEQUENCE_ATTR << "\" " << VALUE_ATTR << "=\"" << print_sequence_names[print_sequence_opt->getInt()] << "\"/>\n";
+
+                ConfigOptionInts *first_layer_print_sequence_opt = plate_data->config.option<ConfigOptionInts>("first_layer_print_sequence");
+                if (first_layer_print_sequence_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FIRST_LAYER_PRINT_SEQUENCE_ATTR << "\" " << VALUE_ATTR << "=\"";
+                    const std::vector<int>& values = first_layer_print_sequence_opt->values;
+                    for (int i = 0; i < values.size(); ++i) {
+                        stream << values[i];
+                        if (i != (values.size() - 1))
+                            stream << " ";
+                    }
+                    stream << "\"/>\n";
+                }
 
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";

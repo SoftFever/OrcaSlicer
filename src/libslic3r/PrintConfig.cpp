@@ -623,6 +623,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
+    // BBS
+    def             = this->add("first_layer_print_sequence", coInts);
+    def->label      = L("First layer print sequence");
+    def->min        = 0;
+    def->max        = 16;
+    def->set_default_value(new ConfigOptionInts{0});
+
     def = this->add("before_layer_change_gcode", coString);
     def->label = L("Before layer change G-code");
     def->tooltip = L("This G-code is inserted at every layer change before lifting z");

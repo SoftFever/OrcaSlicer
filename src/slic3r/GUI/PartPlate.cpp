@@ -2836,6 +2836,56 @@ int PartPlate::load_pattern_box_data(std::string filename)
     }
 }
 
+std::vector<int> PartPlate::get_first_layer_print_sequence() const
+{
+    const ConfigOptionInts *op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
+    if (op_print_sequence_1st)
+        return op_print_sequence_1st->values;
+    else
+        return std::vector<int>();
+}
+
+void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_filaments)
+{
+    if (sorted_filaments.size() > 0) {
+		if (sorted_filaments.size() == 1 && sorted_filaments[0] == 0) {
+            m_config.erase("first_layer_print_sequence");
+        }
+		else {
+            ConfigOptionInts *op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
+            if (op_print_sequence_1st)
+                op_print_sequence_1st->values = sorted_filaments;
+            else
+                m_config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(sorted_filaments));
+        }
+    }
+	else {
+        m_config.erase("first_layer_print_sequence");
+	}
+}
+
+void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
+{
+    ConfigOptionInts * op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
+    if (!op_print_sequence_1st) {
+		return;
+	}
+
+    std::vector<int> &print_sequence_1st = op_print_sequence_1st->values;
+    if (print_sequence_1st.size() == 0 || print_sequence_1st[0] == 0)
+		return;
+
+	if (print_sequence_1st.size() > filament_nums) {
+        print_sequence_1st.erase(std::remove_if(print_sequence_1st.begin(), print_sequence_1st.end(), [filament_nums](int n) { return n > filament_nums; }),
+                                 print_sequence_1st.end());
+    }
+	else if (print_sequence_1st.size() < filament_nums) {
+        for (size_t extruder_id = print_sequence_1st.size(); extruder_id < filament_nums; ++extruder_id) {
+            print_sequence_1st.push_back(extruder_id + 1);
+		}
+    }
+}
+
 void PartPlate::print() const
 {
 	unsigned int count=0;
