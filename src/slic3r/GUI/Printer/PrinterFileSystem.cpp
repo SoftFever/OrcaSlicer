@@ -20,13 +20,13 @@
 #endif
 
 std::string last_system_error() {
-    return std::error_code(
+    return Slic3r::decode_path(std::error_code(
 #ifdef _WIN32
         GetLastError(), 
 #else
         errno, 
 #endif
-        std::system_category()).message();
+        std::system_category()).message().c_str());
 }
 
 wxDEFINE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
@@ -41,6 +41,9 @@ wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
+    {PrinterFileSystem::ERROR_PIPE, L("Connection lost. Please retry.")},
+    {PrinterFileSystem::FILE_NO_EXIST, L("File not exists.")},
+    {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
     {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Storage unavailable, insert SD card.")}
 };
@@ -229,6 +232,7 @@ struct PrinterFileSystem::Download : Progress
     std::string                 name;
     std::string                 path;
     std::string                 local_path;
+    std::string                 error;
     boost::filesystem::ofstream ofs;
     boost::uuids::detail::md5   boost_md5;
 };
@@ -261,6 +265,7 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
         download->local_path = (boost::filesystem::path(path) / file.name).string();
         file.download        = download;
     }
+    boost::filesystem::create_directories(path);
     if ((m_task_flags & FF_DOWNLOAD) == 0)
         DownloadNextFile();
 }
@@ -638,8 +643,11 @@ void PrinterFileSystem::DownloadNextFile()
             prog.total  = resp["total"];
             if (prog.size == 0) {
                 download->ofs.open(download->local_path, std::ios::binary);
-                wxLogWarning("PrinterFileSystem::DownloadNextFile open error: %s\n", wxString::FromUTF8(last_system_error()));
-                if (!download->ofs) return FILE_OPEN_ERR;
+                if (!download->ofs) {
+                    download->error = last_system_error();
+                    wxLogWarning("PrinterFileSystem::DownloadNextFile open error: %s\n", wxString::FromUTF8(download->error));
+                    return FILE_OPEN_ERR;
+                }
             }
             if (download->total && (download->size != prog.size || download->total != prog.total)) {
                 wxLogWarning("PrinterFileSystem::DownloadNextFile data error: %d != %d\n", download->size, prog.size);
@@ -647,7 +655,8 @@ void PrinterFileSystem::DownloadNextFile()
             // receive data
             download->ofs.write((char const *) data, size);
             if (!download->ofs) {
-                wxLogWarning("PrinterFileSystem::DownloadNextFile write error: %s\n", wxString::FromUTF8(last_system_error()));
+                download->error = last_system_error();
+                wxLogWarning("PrinterFileSystem::DownloadNextFile write error: %s\n", wxString::FromUTF8(download->error));
                 return FILE_READ_WRITE_ERR;
             }
             download->boost_md5.process_bytes(data, size);
@@ -702,7 +711,7 @@ void PrinterFileSystem::DownloadNextFile()
                     else // FAILED
                         file.download.reset();
                     if (&file_index.first == &m_file_list)
-                        SendChangedEvent(EVT_DOWNLOAD, download->index, file.local_path, result);
+                        SendChangedEvent(EVT_DOWNLOAD, download->index, result ? download->error : file.local_path, result);
                 }
             }
             if (result != CONTINUE) DownloadNextFile();
@@ -1009,6 +1018,8 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
         event.SetString(wxString::FromUTF8(str.c_str()));
     else if (auto iter = error_messages.find(extra); iter != error_messages.end())     
         event.SetString(_L(iter->second.c_str()));
+    else if (extra > CONTINUE && extra != ERROR_CANCEL)
+        event.SetString(wxString::Format(_L("Error code: %d"), int(extra)));
     event.SetExtraLong(extra);
     if (wxThread::IsMain())
         ProcessEventLocally(event);
@@ -1179,22 +1190,26 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
         n(result, resp, json_end);
         l.lock();
     } else {
-        seq -= m_sequence;
-        if (size_t(seq) >= m_callbacks.size()) return;
-        auto c = m_callbacks[seq];
+        int seq2 = seq - m_sequence;
+        if (size_t(seq2) >= m_callbacks.size()) return;
+        auto c = m_callbacks[seq2];
         if (c == nullptr) return;
-        seq += m_sequence;
         l.unlock();
-        result = c(result, resp, json_end);
+        int result2 = c(result, resp, json_end);
         l.lock();
-        if (result != CONTINUE) {
-            seq -= m_sequence;
-            m_callbacks[seq] = callback_t2();
-            if (seq == 0) {
+        if (result2 != CONTINUE) {
+            int seq2 = seq - m_sequence;
+            m_callbacks[seq2] = callback_t2();
+            if (seq2 == 0) {
                 while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
                     m_callbacks.pop_front();
                     ++m_sequence;
                 }
+            }
+            if (result == CONTINUE) {
+                l.unlock();
+                CancelRequest(seq);
+                l.lock();
             }
         }
     }

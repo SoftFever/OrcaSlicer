@@ -313,6 +313,9 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 return;
 
             int result = e.GetExtraLong();
+            if (result > 1 && !e.GetString().IsEmpty())
+                MessageDialog(this, e.GetString(), _L("Download failed"), wxOK | wxICON_ERROR).ShowModal();
+                
             NetworkAgent* agent = wxGetApp().getAgent();
             if (result > 1 || result == 0) {
                 json j;
