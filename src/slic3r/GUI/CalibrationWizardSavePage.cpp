@@ -841,6 +841,8 @@ void CalibrationPASavePage::set_cali_method(CalibrationMethod method)
 void CalibrationPASavePage::on_device_connected(MachineObject* obj)
 {
     curr_obj = obj;
+    m_auto_panel->set_machine_obj(curr_obj);
+    m_manual_panel->set_machine_obj(curr_obj);
     if (curr_obj)
         show_panels(m_cali_method, curr_obj->get_printer_series());
 }
