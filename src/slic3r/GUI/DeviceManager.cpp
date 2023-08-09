@@ -814,6 +814,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.color = tray->second->color;
                 info.type = tray->second->get_filament_type();
                 info.id = tray_index;
+                info.filament_id=tray->second->setting_id;
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
         }
@@ -936,7 +937,12 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 if (distance_map[i][j].is_same_color
                     && distance_map[i][j].is_type_match) {
                     if (min_val > distance_map[i][j].distance) {
+
                         min_val = distance_map[i][j].distance;
+                        picked_src_idx = i;
+                        picked_tar_idx = j;
+                    } 
+                    else if (min_val == distance_map[i][j].distance && filaments[i].filament_id == tray_filaments[j].filament_id) {
                         picked_src_idx = i;
                         picked_tar_idx = j;
                     }
@@ -950,6 +956,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 result[picked_src_idx].color    = tray->second.color;
                 result[picked_src_idx].type     = tray->second.type;
                 result[picked_src_idx].distance = tray->second.distance;
+                result[picked_src_idx].filament_id = tray->second.filament_id;
             }
             else {
                 FilamentInfo info;

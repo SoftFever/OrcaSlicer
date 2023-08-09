@@ -3549,16 +3549,19 @@ void SelectMachineDialog::set_default_normal()
     std::vector<std::string> materials;
     std::vector<std::string> brands;
     std::vector<std::string> display_materials;
+    std::vector<std::string> m_filaments_id;
 
+    
     auto preset_bundle = wxGetApp().preset_bundle;
     for (auto filament_name : preset_bundle->filament_presets) {
         for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
             if (filament_name.compare(iter->name) == 0) {
                 std::string display_filament_type;
                 std::string filament_type = iter->config.get_filament_type(display_filament_type);
+                std::string m_filament_id=iter->filament_id;
                 display_materials.push_back(display_filament_type);
                 materials.push_back(filament_type);
-
+                m_filaments_id.push_back(m_filament_id);
                 if (iter->vendor && !iter->vendor->name.empty())
                     brands.push_back(iter->vendor->name);
                 else
@@ -3650,6 +3653,7 @@ void SelectMachineDialog::set_default_normal()
             info.id = extruder;
             info.type = materials[extruder];
             info.brand = brands[extruder];
+            info.filament_id=m_filaments_id[extruder];
             info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
             m_filaments.push_back(info);
         }
