@@ -7,7 +7,7 @@ if "%1"=="studio" (
     GOTO :studio
 )
 echo "building deps.."
-cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="%CD%/OrcaSlicer_dep" -DCMAKE_BUILD_TYPE=Release
+cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="%CD%/OrcaSlicer_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=ON
 cmake --build . --config Release --target ALL_BUILD -- -m
 
 if "%1"=="deps" exit /b 0
