@@ -90,11 +90,11 @@ public:
     static std::string set_additional_fan(unsigned int speed);
     //BBS
     void set_object_start_str(std::string start_string) { m_gcode_label_objects_start = start_string; }
-    bool empty_object_start_str() { return m_gcode_label_objects_start.empty(); }
+    bool is_object_start_str_empty() { return m_gcode_label_objects_start.empty(); }
     void set_object_end_str(std::string end_string) { m_gcode_label_objects_end = end_string; }
-    bool empty_object_end_str() { return m_gcode_label_objects_end.empty(); }
-    void add_object_start_labels(std::string& gcode);
-    void add_object_end_labels(std::string& gcode);
+    bool is_object_end_str_empty() { return m_gcode_label_objects_end.empty(); }
+    void add_object_start_labels(std::string &gcode);
+    void add_object_end_labels(std::string &gcode);
     void add_object_change_labels(std::string& gcode);
 
     //BBS:
@@ -109,7 +109,7 @@ public:
     const bool is_bbl_printers() const {return m_is_bbl_printers;}
     void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
 
-private:
+  private:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_extruders;
     bool            m_single_extruder_multi_material;

@@ -445,8 +445,7 @@ private:
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
     bool                                m_enable_cooling_markers;
     
-    // for bbl printer
-    bool m_enable_label_object;
+    bool m_enable_exclude_object;
     std::vector<size_t> m_label_objects_ids;
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
     // Orca

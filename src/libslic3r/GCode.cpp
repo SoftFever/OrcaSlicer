@@ -79,7 +79,7 @@ namespace Slic3r {
 static const float g_min_purge_volume = 100.f;
 static const float g_purge_volume_one_time = 135.f;
 static const int g_max_flush_count = 4;
-static const size_t g_max_label_object = 64;
+// static const size_t g_max_label_object = 64;
 
 Vec2d travel_point_1;
 Vec2d travel_point_2;
@@ -1170,8 +1170,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
     print->set_done(psGCodeExport);
-    // Used by BBL only
-    result->label_object_enabled = m_enable_label_object;
+    
+    if(is_BBL_Printer())
+        result->label_object_enabled = m_enable_exclude_object;
 
     // Write the profiler measurements to file
     PROFILE_UPDATE();
@@ -1548,27 +1549,29 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
     //BBS: total layer number
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
-    //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
-    if (print.extruders(true).size() == 1 &&                  //Don't support multi-color
-        print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
-        print.calib_params().mode == CalibMode::Calib_None) { //Don't support skipping in cali mode
-        m_enable_label_object = true;
-        m_label_objects_ids.clear();
-        m_label_objects_ids.reserve(print.num_object_instances());
-        for (const PrintObject* print_object : print.objects())
-            for (const PrintInstance& print_instance : print_object->instances())
-                m_label_objects_ids.push_back(print_instance.model_instance->get_labeled_id());
+    m_enable_exclude_object = config().exclude_object;
+    //Orca: extra check for bbl printer
+    if (is_bbl_printers) {
+        if (print.extruders(true).size() == 1 &&                  // Don't support multi-color
+            print.calib_params().mode == CalibMode::Calib_None) { // Don't support skipping in cali mode
+            // list all label_object_id with sorted order here
+            m_enable_exclude_object = true;
+            m_label_objects_ids.clear();
+            m_label_objects_ids.reserve(print.num_object_instances());
+            for (const PrintObject *print_object : print.objects())
+                for (const PrintInstance &print_instance : print_object->instances())
+                    m_label_objects_ids.push_back(print_instance.model_instance->get_labeled_id());
 
-        std::sort(m_label_objects_ids.begin(), m_label_objects_ids.end());
+            std::sort(m_label_objects_ids.begin(), m_label_objects_ids.end());
 
-        std::string objects_id_list = "; model label id: ";
-        for (auto it = m_label_objects_ids.begin(); it != m_label_objects_ids.end(); it++)
-            objects_id_list += (std::to_string(*it) + (it != m_label_objects_ids.end() - 1 ? "," : "\n"));
-        file.writeln(objects_id_list);
-    }
-    else {
-        m_enable_label_object = false;
-        m_label_objects_ids.clear();
+            std::string objects_id_list = "; model label id: ";
+            for (auto it = m_label_objects_ids.begin(); it != m_label_objects_ids.end(); it++)
+                objects_id_list += (std::to_string(*it) + (it != m_label_objects_ids.end() - 1 ? "," : "\n"));
+            file.writeln(objects_id_list);
+        } else {
+            m_enable_exclude_object = false;
+            m_label_objects_ids.clear();
+        }
     }
 
     file.write_format("; HEADER_BLOCK_END\n\n");
@@ -3325,29 +3328,25 @@ GCode::LayerResult GCode::process_layer(
                 if (m_config.reduce_crossing_wall)
                     m_avoid_crossing_perimeters.init_layer(*m_layer);
 
-                // Skip objects
-                if (m_enable_label_object) {
-                    std::string start_str = std::string("; start printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
-                    if (print.is_BBL_printer()) {
-                        start_str += ("M624 " + _encode_label_ids_to_base64({ instance_to_print.label_object_id }));
-                        start_str += "\n";
-                    }
-                    m_writer.set_object_start_str(start_str);
-                }
-                bool reset_e = false;
                 if (this->config().gcode_label_objects) {
-                    gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " + std::to_string(inst.id) + "\n";
-                    reset_e = true;
+                    gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name +
+                             " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " +
+                             std::to_string(inst.id) + "\n";
                 }
-                if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper) {
-                    gcode += std::string("EXCLUDE_OBJECT_START NAME=") +
-                             get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
-                    reset_e = true;
+                // exclude objects
+                if (m_enable_exclude_object) {
+                    if (is_BBL_Printer()) {
+                        m_writer.set_object_start_str(
+                            std::string("; start printing object, unique label id: ") +
+                            std::to_string(instance_to_print.label_object_id) + "\n" + "M624 " +
+                            _encode_label_ids_to_base64({instance_to_print.label_object_id}) + "\n");
+                    } else if (print.config().gcode_flavor.value == gcfKlipper) {
+                        m_writer.set_object_start_str(std::string("EXCLUDE_OBJECT_START NAME=") +
+                                                      get_instance_name(&instance_to_print.print_object, inst.id) +
+                                                      "\n");
+                    }
                 }
-                // ref to: https://github.com/SoftFever/OrcaSlicer/pull/205/commits/7f1fe0bd544077626080aa1a9a0576aa735da1a4#r1083470162
-                if (reset_e && !m_config.use_relative_e_distances)
-                    gcode += m_writer.reset_e(true);
-                
+
                 if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic)
                     m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
 
@@ -3436,26 +3435,27 @@ GCode::LayerResult GCode::process_layer(
                     // ironing
                     gcode += this->extrude_infill(print,by_region_specific, true);
                 }
-				// Don't set m_gcode_label_objects_end if you don't had to write the m_gcode_label_objects_start.
-                if (!m_writer.empty_object_start_str()) {
-                    m_writer.set_object_start_str("");
-                } else if (m_enable_label_object) {
-                    std::string end_str = std::string("; stop printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
-                    if (print.is_BBL_printer())
-                        end_str += "M625\n";
-                    m_writer.set_object_end_str(end_str);
-                }
+
                 if (this->config().gcode_label_objects) {
-                    gcode += std::string("; stop printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " + std::to_string(inst.id) + "\n";
-                    reset_e = true;
+                    gcode += std::string("; stop printing object ") +
+                             instance_to_print.print_object.model_object()->name +
+                             " id:" + std::to_string(instance_to_print.print_object.get_id()) + " copy " +
+                             std::to_string(inst.id) + "\n";
                 }
-                if (this->config().exclude_object && print.config().gcode_flavor.value == gcfKlipper) {
-                    gcode += std::string("EXCLUDE_OBJECT_END NAME=") +
-                             get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
-                    reset_e = true;
+                // exclude objects
+                // Don't set m_gcode_label_objects_end if you don't had to write the m_gcode_label_objects_start.
+                if (!m_writer.is_object_start_str_empty()) {
+                    m_writer.set_object_start_str("");
+                } else if (m_enable_exclude_object) {
+                    if (is_BBL_Printer()) {
+                        m_writer.set_object_end_str(std::string("; stop printing object, unique label id: ") +
+                                                    std::to_string(instance_to_print.label_object_id) + "\n" +
+                                                    "M625\n");
+                    } else if (print.config().gcode_flavor.value == gcfKlipper) {
+                        m_writer.set_object_end_str(std::string("EXCLUDE_OBJECT_END NAME=") +
+                                                    get_instance_name(&instance_to_print.print_object, inst.id) + "\n");
+                    }
                 }
-                if (reset_e && !m_config.use_relative_e_distances)
-                    gcode += m_writer.reset_e(true);
             }
         }
     }
