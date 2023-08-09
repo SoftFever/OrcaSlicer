@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-08 10:00+0800\n"
+"POT-Creation-Date: 2023-08-10 09:44+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2619,6 +2619,18 @@ msgstr "Pausad på grund av fel i nozzle temperaturen"
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "Pausad på grund av fel i byggplattans temperatur"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -4328,26 +4340,29 @@ msgstr ""
 "geometri data."
 
 #, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+msgid "This slicer file version %s is newer than %s's version:"
 msgstr ""
-"3mf:s version %s är nyare än %s version %s, Följande nycklar har hittats som "
-"inte känns igen:"
 
-msgid "You'd better upgrade your software.\n"
-msgstr "Uppdatera mjukvaran.\n"
+msgid ""
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?\n"
+msgstr ""
 
 msgid "Newer 3mf version"
 msgstr "Nyare 3mf version"
 
+msgid ""
+"you can always update Bambu Studio at your convenience. The slicer file will "
+"now be loaded without full functionality."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"This slicer file version %s is newer than %s's version.\n"
+"\n"
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?"
 msgstr ""
-"3mf:s version %s är nyare än %s version %s, Föreslår att du uppdaterar din "
-"programvara."
 
 msgid "Invalid values found in the 3mf:"
 msgstr "Ogiltiga värden hittades i 3mf:"
@@ -6067,6 +6082,12 @@ msgstr "Från"
 msgid "To"
 msgstr "Till"
 
+msgid "Bambu Network plug-in not detected."
+msgstr ""
+
+msgid "Click here to download it."
+msgstr ""
+
 msgid "Login"
 msgstr "Logga in"
 
@@ -7013,6 +7034,9 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "Byggplattans typ stöds av skrivaren"
+
+msgid "First layer print sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Denna G-kod används för varje lager innan Z axis lyfts"
@@ -8393,6 +8417,9 @@ msgstr ""
 msgid "Bowden"
 msgstr ""
 
+msgid "Extra length on restart"
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "Retraktions hastighet"
 
@@ -9514,8 +9541,8 @@ msgstr ""
 msgid "The name cannot be empty."
 msgstr ""
 
-#, boost-format
-msgid "The selected preset: %1% is not found."
+#, c-format, boost-format
+msgid "The selected preset: %s is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -10330,6 +10357,25 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+#~ msgstr ""
+#~ "3mf:s version %s är nyare än %s version %s, Följande nycklar har hittats "
+#~ "som inte känns igen:"
+
+#~ msgid "You'd better upgrade your software.\n"
+#~ msgstr "Uppdatera mjukvaran.\n"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+#~ msgstr ""
+#~ "3mf:s version %s är nyare än %s version %s, Föreslår att du uppdaterar "
+#~ "din programvara."
 
 #~ msgid ""
 #~ "Use only one wall on flat top surface, to give more space to the top "

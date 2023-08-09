@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-08 10:00+0800\n"
+"POT-Creation-Date: 2023-08-10 09:44+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1419,7 +1419,7 @@ msgid "Enter Custom G-code used on current layer:"
 msgstr "Voer de aangepaste G-code in die op de huidige laag wordt gebruikt:"
 
 msgid "OK"
-msgstr "Offline"
+msgstr "OK"
 
 msgid "Jump to Layer"
 msgstr "Spring naar laag"
@@ -2649,6 +2649,18 @@ msgstr "Onderbroken vanwege storing in de nozzle temperatuur"
 
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "Onderbroken vanwege storing in de temperatuur van het printbed"
+
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
 
 msgid "MC"
 msgstr "MC"
@@ -4375,26 +4387,29 @@ msgstr ""
 "geometriegegevens werden geladen."
 
 #, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+msgid "This slicer file version %s is newer than %s's version:"
 msgstr ""
-"Versie %s van de 3mf is nieuwer dan versie %s van %s. De volgende sleutels "
-"worden niet herkend:"
 
-msgid "You'd better upgrade your software.\n"
-msgstr "U dient de software te upgraden.\n"
+msgid ""
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?\n"
+msgstr ""
 
 msgid "Newer 3mf version"
 msgstr "Nieuwere versie 3mf"
 
+msgid ""
+"you can always update Bambu Studio at your convenience. The slicer file will "
+"now be loaded without full functionality."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"This slicer file version %s is newer than %s's version.\n"
+"\n"
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?"
 msgstr ""
-"Versie %s van de 3mf is nieuwer dan versie %s van %s. Wij stellen voor om uw "
-"software te upgraden."
 
 msgid "Invalid values found in the 3mf:"
 msgstr "Invalid values found in the 3mf:"
@@ -6156,6 +6171,12 @@ msgstr "Van"
 msgid "To"
 msgstr "Naar"
 
+msgid "Bambu Network plug-in not detected."
+msgstr ""
+
+msgid "Click here to download it."
+msgstr ""
+
 msgid "Login"
 msgstr "Inloggen"
 
@@ -7141,6 +7162,9 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "Printbedden ondersteund door de printer"
+
+msgid "First layer print sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
@@ -8555,6 +8579,9 @@ msgstr ""
 msgid "Bowden"
 msgstr ""
 
+msgid "Extra length on restart"
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "Terugtrek (retraction) snelheid"
 
@@ -9700,8 +9727,8 @@ msgstr ""
 msgid "The name cannot be empty."
 msgstr ""
 
-#, boost-format
-msgid "The selected preset: %1% is not found."
+#, c-format, boost-format
+msgid "The selected preset: %s is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -10517,6 +10544,25 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+#~ msgstr ""
+#~ "Versie %s van de 3mf is nieuwer dan versie %s van %s. De volgende "
+#~ "sleutels worden niet herkend:"
+
+#~ msgid "You'd better upgrade your software.\n"
+#~ msgstr "U dient de software te upgraden.\n"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+#~ msgstr ""
+#~ "Versie %s van de 3mf is nieuwer dan versie %s van %s. Wij stellen voor om "
+#~ "uw software te upgraden."
 
 #~ msgid ""
 #~ "Use only one wall on flat top surface, to give more space to the top "

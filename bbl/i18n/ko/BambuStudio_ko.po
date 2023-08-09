@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-08 10:00+0800\n"
+"POT-Creation-Date: 2023-08-10 09:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2574,6 +2574,18 @@ msgstr "노즐 온도 오작동으로 인해 일시정지됨"
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "베드 온도 오작동으로 인해 일시정지됨"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -4274,26 +4286,29 @@ msgstr ""
 "3mf는 이전 버전의 Bambu Studio에서 생성되었습니다. 형상 데이터만 불러옵니다."
 
 #, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+msgid "This slicer file version %s is newer than %s's version:"
 msgstr ""
-"3mf의 버전 %s이(가) %s의 버전 %s보다 최신 버전입니다. 다음 키를 인식할 수 없"
-"습니다:"
 
-msgid "You'd better upgrade your software.\n"
-msgstr "소프트웨어를 업데이트해야 합니다.\n"
+msgid ""
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?\n"
+msgstr ""
 
 msgid "Newer 3mf version"
 msgstr "최신 3mf 버전"
 
+msgid ""
+"you can always update Bambu Studio at your convenience. The slicer file will "
+"now be loaded without full functionality."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"This slicer file version %s is newer than %s's version.\n"
+"\n"
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?"
 msgstr ""
-"3mf의 버전 %s이(가) %s의 버전 %s보다 최신 버전이므로 소프트웨어를 업그레이드"
-"할 것을 제안합니다."
 
 msgid "Invalid values found in the 3mf:"
 msgstr "3mf에서 잘못된 값이 발견됨:"
@@ -5970,6 +5985,12 @@ msgstr "에서"
 msgid "To"
 msgstr "까지"
 
+msgid "Bambu Network plug-in not detected."
+msgstr ""
+
+msgid "Click here to download it."
+msgstr ""
+
 msgid "Login"
 msgstr "로그인"
 
@@ -6912,6 +6933,9 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "프린터에서 지원되는 플레이트 유형"
+
+msgid "First layer print sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "이 G 코드는 z를 들어 올리기 전에 모든 레이어 변경시 삽입됩니다."
@@ -8247,6 +8271,9 @@ msgstr ""
 msgid "Bowden"
 msgstr ""
 
+msgid "Extra length on restart"
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "리트랙션 속도"
 
@@ -9334,8 +9361,8 @@ msgstr ""
 msgid "The name cannot be empty."
 msgstr ""
 
-#, boost-format
-msgid "The selected preset: %1% is not found."
+#, c-format, boost-format
+msgid "The selected preset: %s is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -10147,6 +10174,25 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+#~ msgstr ""
+#~ "3mf의 버전 %s이(가) %s의 버전 %s보다 최신 버전입니다. 다음 키를 인식할 수 "
+#~ "없습니다:"
+
+#~ msgid "You'd better upgrade your software.\n"
+#~ msgstr "소프트웨어를 업데이트해야 합니다.\n"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+#~ msgstr ""
+#~ "3mf의 버전 %s이(가) %s의 버전 %s보다 최신 버전이므로 소프트웨어를 업그레이"
+#~ "드할 것을 제안합니다."
 
 #~ msgid ""
 #~ "Use only one wall on flat top surface, to give more space to the top "

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-08 10:00+0800\n"
+"POT-Creation-Date: 2023-08-10 09:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2636,6 +2636,18 @@ msgstr "Szüneteltetve a fúvóka hőmérsékletének rendellenessége miatt"
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "Szüneteltetve a tárgyasztal hőmérsékletének rendellenessége miatt"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -4351,26 +4363,29 @@ msgstr ""
 "geometriai adatok kerülnek betöltésre."
 
 #, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+msgid "This slicer file version %s is newer than %s's version:"
 msgstr ""
-"A 3mf fájl %s verziója újabb, mint a(z) %s verziója %s, a következő "
-"ismeretlen kulcsokat találtuk:"
 
-msgid "You'd better upgrade your software.\n"
-msgstr "Jobb lenne, ha frissítenéd a szoftvert.\n"
+msgid ""
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?\n"
+msgstr ""
 
 msgid "Newer 3mf version"
 msgstr "Újabb 3mf verzió"
 
+msgid ""
+"you can always update Bambu Studio at your convenience. The slicer file will "
+"now be loaded without full functionality."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"This slicer file version %s is newer than %s's version.\n"
+"\n"
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?"
 msgstr ""
-"A 3mf fájl %s verziója újabb, mint a(z) %s verziója %s, javasolt a szoftver "
-"frissítése."
 
 msgid "Invalid values found in the 3mf:"
 msgstr "Invalid values found in the 3mf:"
@@ -6096,6 +6111,12 @@ msgstr "Ettől:"
 msgid "To"
 msgstr "Eddig:"
 
+msgid "Bambu Network plug-in not detected."
+msgstr ""
+
+msgid "Click here to download it."
+msgstr ""
+
 msgid "Login"
 msgstr "Bejelentkezés"
 
@@ -7079,6 +7100,9 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "Nyomtató által támogatott asztaltípusok"
+
+msgid "First layer print sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Ez a G-kód minden rétegváltáshoz bekerül a Z tengely emelése előtt."
@@ -8475,6 +8499,9 @@ msgstr ""
 msgid "Bowden"
 msgstr ""
 
+msgid "Extra length on restart"
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr "Visszahúzás sebessége"
 
@@ -9607,8 +9634,8 @@ msgstr ""
 msgid "The name cannot be empty."
 msgstr ""
 
-#, boost-format
-msgid "The selected preset: %1% is not found."
+#, c-format, boost-format
+msgid "The selected preset: %s is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -10424,6 +10451,25 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+#~ msgstr ""
+#~ "A 3mf fájl %s verziója újabb, mint a(z) %s verziója %s, a következő "
+#~ "ismeretlen kulcsokat találtuk:"
+
+#~ msgid "You'd better upgrade your software.\n"
+#~ msgstr "Jobb lenne, ha frissítenéd a szoftvert.\n"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+#~ msgstr ""
+#~ "A 3mf fájl %s verziója újabb, mint a(z) %s verziója %s, javasolt a "
+#~ "szoftver frissítése."
 
 #~ msgid ""
 #~ "Use only one wall on flat top surface, to give more space to the top "

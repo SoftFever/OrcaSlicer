@@ -60,7 +60,7 @@ public:
     
     CalibMode get_calibration_mode() { return m_mode; }
 
-    bool save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, std::string& message);
+    bool save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, wxString& message);
 
     virtual void cache_preset_info(MachineObject* obj, float nozzle_dia);
     virtual void recover_preset_info(MachineObject *obj);

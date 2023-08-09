@@ -151,17 +151,17 @@ void CalibrationWizard::set_cali_method(CalibrationMethod method)
     }
 }
 
-bool CalibrationWizard::save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, std::string& message)
+bool CalibrationWizard::save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, wxString& message)
 {
     if (new_preset_name.empty()) {
-        message = L("The name cannot be empty.");
+        message = _L("The name cannot be empty.");
         return false;
     }
 
     PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
     Preset* preset = filament_presets->find_preset(old_preset_name);
     if (!preset) {
-        message = (boost::format(L("The selected preset: %1% is not found.")) % old_preset_name).str();
+        message = wxString::Format(_L("The selected preset: %s is not found."), old_preset_name);
         return false;
     }
 
@@ -173,12 +173,12 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     Preset *new_preset = filament_presets->find_preset(new_name);
     if (new_preset) {
         if (new_preset->is_system) {
-            message = L("The name cannot be the same as the system preset name.");
+            message = _L("The name cannot be the same as the system preset name.");
             return false;
         }
 
         if (new_preset != preset) {
-            message = L("The name is the same as another existing preset name");
+            message = _L("The name is the same as another existing preset name");
             return false;
         }
         if (new_preset != &filament_presets->get_edited_preset()) new_preset = &temp_preset;
@@ -199,7 +199,7 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     // Preset* preset = &m_presets.preset(it - m_presets.begin(), true);
     if (!new_preset) {
         BOOST_LOG_TRIVIAL(info) << "create new preset failed";
-        message = L("create new preset failed.");
+        message = _L("create new preset failed.");
         return false;
     }
 
@@ -960,7 +960,7 @@ void FlowRateWizard::on_cali_save()
             for (int i = 0; i < new_results.size(); i++) {
                 std::map<std::string, ConfigOption*> key_value_map;
                 key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_results[i].second }));
-                std::string message;
+                wxString message;
                 if (!save_preset(old_preset_name, into_u8(new_results[i].first), key_value_map, message)) {
                     MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                     error_msg_dlg.ShowModal();
@@ -1007,7 +1007,7 @@ void FlowRateWizard::on_cali_save()
             std::map<std::string, ConfigOption*> key_value_map;
             key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_flow_ratio }));
 
-            std::string message;
+            wxString message;
             if (!save_preset(old_preset_name, into_u8(new_preset_name), key_value_map, message)) {
                 MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                 error_msg_dlg.ShowModal();
@@ -1286,7 +1286,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     std::map<std::string, ConfigOption *> key_value_map;
     key_value_map.insert(std::make_pair("filament_max_volumetric_speed", new ConfigOptionFloats{ value }));
 
-    std::string message;
+    wxString message;
     if (!save_preset(old_preset_name, new_preset_name, key_value_map, message)) {
         MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
         error_msg_dlg.ShowModal();
