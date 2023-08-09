@@ -905,6 +905,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               overhang_fan_speed))
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
     ((ConfigOptionEnum<PrintSequence>,print_sequence))
+    ((ConfigOptionInts,               first_layer_print_sequence))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
     ((ConfigOptionFloat,              default_acceleration))
     ((ConfigOptionFloat,              inner_wall_acceleration))
