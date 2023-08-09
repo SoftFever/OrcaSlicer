@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-09 11:49+0800\n"
+"POT-Creation-Date: 2023-08-09 14:06+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -600,7 +600,7 @@ msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
 "Please delete the file and try again."
 msgstr ""
-"OrcaSlicer 配置文件可能已损坏而无法解析。请删除此文件并重新启动BambuStudio。"
+"OrcaSlicer 配置文件可能已损坏而无法解析。请删除此文件并重新启动OrcaSlicer。"
 
 #, c-format, boost-format
 msgid ""
@@ -663,7 +663,7 @@ msgid "Open Project"
 msgstr "打开项目"
 
 msgid ""
-"The version of Bambu studio is too low and needs to be updated to the latest "
+"The version of Orca Slicer is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr "逆戟鲸版本过低，需要更新到最新版本方可正常使用"
 
@@ -1433,6 +1433,9 @@ msgstr "空"
 msgid "AMS"
 msgstr "AMS"
 
+msgid "Ams filament backup"
+msgstr "AMS耗材丝备份"
+
 msgid "AMS not connected"
 msgstr "AMS 未连接"
 
@@ -1489,6 +1492,9 @@ msgstr "冲刷旧耗材丝"
 
 msgid "Feed new filament from external spool"
 msgstr "将新的耗材丝推入挤出机"
+
+msgid "Confirm whether the filament has been extruded"
+msgstr "确认耗材丝是否已被挤出"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1657,6 +1663,9 @@ msgstr "无法发送打印任务，请重试。"
 
 msgid "Send to Printer failed. Please try again."
 msgstr "发送到打印机失败。请重试。"
+
+msgid "No space left on Printer SD card"
+msgstr "打印机SD卡上没有剩余空间"
 
 msgid "Sending gcode file over LAN"
 msgstr "通过局域网发送gcode文件"
@@ -2861,6 +2870,14 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
+#, c-format, boost-format
+msgid ""
+"Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
+"separate the conflicted objects farther (%s <-> %s)."
+msgstr ""
+"发现gcode路径在层%d，高为%.2lf mm处的冲突。请将有冲突的对象分离得更远(%s <-> "
+"%s)。"
+
 msgid "An object is layed over the boundary of plate."
 msgstr "检测到有对象放在盘的边界上。"
 
@@ -3242,13 +3259,13 @@ msgid "Pass 1"
 msgstr "粗调"
 
 msgid "Flow rate test - Pass 1"
-msgstr "流量测试 - 粗调"
+msgstr "流量测试 - 通过 1"
 
 msgid "Pass 2"
 msgstr "细调"
 
 msgid "Flow rate test - Pass 2"
-msgstr "流量测试 - 细调"
+msgstr "流量测试 - 通过 2"
 
 msgid "Flow rate"
 msgstr "流量"
@@ -3443,12 +3460,9 @@ msgstr "正在下载“虚拟摄像头工具包”"
 
 msgid ""
 "Another virtual camera is running.\n"
-"Bambulab printer supports only a single virtual camera.\n"
+"Orca Slicer supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
-"另一个虚拟摄像头正在工作。\n"
-"拓竹机器只能支持一个虚拟摄像头。\n"
-"是否停止前一个虚拟摄像头？"
 
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
@@ -3533,6 +3547,10 @@ msgstr "在局域网模式中不可访问！"
 
 msgid "Missing LAN ip of printer!"
 msgstr "未找到打印机的局域网地址！"
+
+#, c-format, boost-format
+msgid "You are going to delete %u files. Are you sure to continue?"
+msgstr "你正在删除%u个文件，你确定吗？"
 
 msgid "Delete files"
 msgstr "删除文件"
@@ -9631,1102 +9649,1116 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
-msgid "The Orca Slicer needs an upgrade"
-msgstr "Orca Slicer需要进行升级"
-
-msgid "Orca Slicer GUI initialization failed"
-msgstr "Orca Slicer图形界面初始化失败"
-
-msgid "Bambu Cube"
-msgstr "Bambu方块"
-
-msgid "Bambu Cube V2"
-msgstr "Bambu方块 V2"
-
-msgid "ksr FDMTest"
-msgstr "欧特克FDM测试"
-
-msgid "Mesh boolean"
-msgstr "网格布尔操作"
-
-msgid "Mesh boolean operations including union and subtraction"
-msgstr "包括并集和差集的网格布尔运算"
-
-msgid "Edit Plate Name"
-msgstr "编辑盘名"
-
-msgid "Failed to get the model data in the current file."
-msgstr "无法获取当前文件中的模型数据。"
-
-msgid "Check cloud service status"
-msgstr "检查云服务状态"
-
-msgid "code"
-msgstr ""
-
-msgid "Failed to connect to cloud service"
-msgstr "无法连接到云服务"
-
-msgid "Please click on the hyperlink above to view the cloud service status"
-msgstr "请点击上方的超链接以查看云服务状态"
-
-msgid "Connection to printer failed"
-msgstr "连接打印机失败"
-
-msgid "Please check the network connection of the printer and Studio."
-msgstr "请检查打印机和工作室的网络连接"
-
-msgid "Auto Refill"
-msgstr "自动补给"
-
-msgid "Push new filament into the extruder"
-msgstr "将新的耗材丝推入挤出机"
-
-msgid "Grab new filament"
-msgstr "咬入耗材丝"
-
-msgid "Abnormal print file data. Please slice again."
-msgstr "打印文件数据异常，请重新切片"
-
-msgid "Task canceled."
-msgstr "任务已取消。"
-
-msgid "Upload task timed out. Please check the network status and try again."
-msgstr "上传任务超时，请排查网络状态后重试。"
-
-msgid "Print file not found. please slice again."
-msgstr "未找到打印文件，请重新切片。"
-
-msgid ""
-"The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again."
-msgstr "打印文件超过最大允许大小（1GB），请简化模型后重新切片。"
-
-msgid "Failed to upload file to ftp. Please try again."
-msgstr "上传文件至FTP失败，请重试。"
-
-msgid ""
-"Check the current status of the bambu server by clicking on the link above."
-msgstr "点击上方的链接检查Bambu服务器的当前状态。"
-
-msgid ""
-"The size of the print file is too large. Please adjust the file size and try "
-"again."
-msgstr "打印文件的大小过大，请调整文件大小后重试。"
-
-msgid "Print file not found, Please slice it again and send it for printing."
-msgstr "未找到打印文件，请重新切片后再发送打印。"
-
-msgid ""
-"Failed to upload print file to FTP. Please check the network status and try "
-"again."
-msgstr "无法将打印文件上传至FTP。请检查网络状态并重试。"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "已成功发送。将自动跳转到%ss中的下一页。"
-
-msgid "Orca Slicer is licensed under "
-msgstr "Orca Slicer是在"
-
-msgid ""
-"Orca Slicer is based on PrusaSlicer by Prusa Research, which is from Slic3r "
-"by Alessandro Ranellucci and the RepRap community"
-msgstr ""
-"Orca Slicer是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来自"
-"Alessandro Ranellucci和RepRap社区的Slic3r开发的"
-
-msgid ""
-"Orca Slicer is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
-"Merill(supermerill)."
-msgstr ""
-"Orca Slicer是以PrusaResearch的PrusaSlicer和Merill(supermerill)的SuperSlicer"
-"为基础的。"
-
-msgid "Orca Slicer also referenced some ideas from Cura by Ultimaker."
-msgstr "Orca Slicer还参考了Ultimaker的Cura中的一些想法。"
-
-msgid "Factors of Flow Dynamics Calibration"
-msgstr "动态流量校准系数"
-
-msgid "PA Profile"
-msgstr "PA 配置文件"
-
-msgid ""
-"When the current material run out, the printer will continue to print in the "
-"following order."
-msgstr "当前材料耗尽时，打印机将按照以下顺序继续打印。"
-
-msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
-"(Currently supporting automatic supply of consumables with the same brand, "
-"material type, and color)"
-msgstr ""
-"当前无相同的备用耗材，暂时无法自动补给。\n"
-"（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
-
-msgid "Invalid nozzle diameter"
-msgstr "非法喷嘴口径"
-
-msgid "Calibration error"
-msgstr "校准错误"
-
-msgid "TPU is not supported by AMS."
-msgstr "AMS不支持TPU。"
-
-msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
-msgstr "AMS不支持Bambu PET-CF/PA6-CF。"
-
-msgid ""
-"Damp PVA will become flexible and get stuck inside AMS,please take care to "
-"dry it before use."
-msgstr "潮湿的PVA会变得柔软并粘在AMS内，请在使用前注意干燥。"
-
-msgid ""
-"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
-"AMS, please use with caution."
-msgstr "CF/GF耗材丝丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
-
-msgid "Layer Time (s)"
-msgstr "层时间（s）"
-
-#, c-format, boost-format
-msgid ""
-"Conflicts of gcode paths have been found at layer %d. Please separate the "
-"conflicted objects farther (%s <-> %s)."
-msgstr "发现gcode路径在层%d处的冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
-
-msgid "Report issue"
-msgstr "报告问题"
-
-msgid "Show &Overhang"
-msgstr "显示悬空高亮"
-
-msgid "Show object overhang highlight in 3D scene"
-msgstr "在3D场景中显示悬空高亮"
-
-msgid "Initialize failed (Device connection not ready)!"
-msgstr "初始化失败（设备未连接）"
-
-msgid "Initialize failed (Not supported on the current printer version)!"
-msgstr "初始化失败（当前打印机的版本不支持）！"
-
-msgid "Switch to 3mf model files."
-msgstr "切换到3MF模型文件。"
-
-#, c-format, boost-format
-msgid "No files [%d]"
-msgstr "文件列表为空[%d]"
-
-#, c-format, boost-format
-msgid "Load failed [%d]"
-msgstr "加载失败 [%d]"
-
-#, c-format, boost-format
-msgid "You are going to delete %u file from printer. Are you sure to continue?"
-msgid_plural ""
-"You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] "您将从打印机中删除%u个文件。确定要继续吗？"
-
-#, c-format, boost-format
-msgid "Do you want to delete the file '%s' from printer?"
-msgstr "你确定要从打印机中删除文件'%s'吗？"
-
-msgid "Delete file"
-msgstr "删除文件"
-
-msgid "Fetching model infomations ..."
-msgstr "正在获取模型信息..."
-
-msgid "Failed to fetching model infomations from printer."
-msgstr "无法从打印机获取模型信息。"
-
-msgid "Failed to parse model infomations."
-msgstr "解析模型信息失败。"
-
-msgid ""
-"The .gcode.3mf file contains no G-code data.Please slice it whthOrca Slicer "
-"and export a new .gcode.3mf file."
-msgstr ""
-".gcode.3mf文件中不包含G-code数据。请使用Orca Slicer进行切片并导出新的."
-"gcode.3mf文件。"
-
-msgid "Not supported on the current printer version."
-msgstr "当前打印机的版本不支持。"
-
-msgid "Storage unavailable, insert SD card."
-msgstr "存储不可用，请插入SD卡。"
-
-msgid "Immediately score"
-msgstr "立即打分"
-
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "请为您喜欢的 Bambu 商城模型打分。"
-
-msgid "Score"
-msgstr "打分"
-
-#, boost-format
-msgid " plate %1%: "
-msgstr " 盘 %1%: "
-
-msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset. "
-"Please update Orca Slicer or restart Orca Slicer to check if there is an "
-"update to system presets."
-msgstr ""
-"有一些未知或不兼容的填料映射到通用预设中。请更新Orca Slicer或重新启动Bambu "
-"Studio，以检查是否有系统预设的更新。"
-
-msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
-msgstr "该3mf文件来自旧版本的Orca Slicer，将只加载几何数据。"
-
-msgid ""
-"\"Fix Model\" feature is currently only on Windows. Please repair the model "
-"on Orca Slicer(windows) or CAD softwares."
-msgstr ""
-"\"修复模型\"功能目前仅适用于Windows。请在Orca Slicer(windows)或CAD软件上修复"
-"模型。"
-
-msgid "Associate files to BambuStudio"
-msgstr "Orca Slicer文件关联"
-
-msgid "Associate .3mf files to BambuStudio"
-msgstr "使用Orca Slicer打开.3mf文件"
-
-msgid "If enabled, sets BambuStudio as default application to open .3mf files"
-msgstr "开启后，将缺省使用Orca Slicer打开.3mf文件"
-
-msgid "Associate .stl files to BambuStudio"
-msgstr "使用Orca Slicer打开.stl文件"
-
-msgid "If enabled, sets BambuStudio as default application to open .stl files"
-msgstr "开启后，将缺省使用Orca Slicer打开.stl文件"
-
-msgid "Associate .step/.stp files to BambuStudio"
-msgstr "使用Orca Slicer打开.step/.stp文件"
-
-msgid "If enabled, sets BambuStudio as default application to open .step files"
-msgstr "开启后，将缺省使用Orca Slicer打开.step文件"
-
-msgid "Online Models"
-msgstr "在线模型"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "在主页上显示工作人员挑选的在线模型"
-
-msgid "Skip AMS blacklist check"
-msgstr "跳过AMS黑名单检查"
-
-msgid "Enable SSL(MQTT)"
-msgstr "启用SSL（MQTT）"
-
-msgid "Enable SSL(FTP)"
-msgstr "启用SSL（FTP）"
-
-msgid "Internal developer mode"
-msgstr "内部开发者模式"
-
-msgid "Incompatible"
-msgstr "不兼容的预设"
-
-msgid "The selected preset is null!"
-msgstr "选择的预设为空！"
-
-msgid "Same as Global Plate Type"
-msgstr "跟随全局打印板类型"
-
-msgid "PLA Plate"
-msgstr "PLA打印板"
-
-msgid "Flow Dynamics Calibration"
-msgstr "动态流量校准"
-
-msgid "Error code"
-msgstr "错误代码"
-
-msgid "Check the status of current system services"
-msgstr "请检查当前系统服务状态"
-
-msgid "Printer local connection failed, please try again."
-msgstr "打印机局域网连接失败，请重试。"
-
-msgid "The selected printer is incompatible with the chosen printer presets."
-msgstr "所选打印机与选择的打印机预设不兼容。"
-
-msgid ""
-"Connecting to the printer. Unable to cancel during the connection process."
-msgstr "正在连接打印机。连接过程中无法取消。"
-
-msgid "The name length exceeds the limit."
-msgstr "名称长度超过限制。"
-
-msgid ""
-"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
-"scattered surface."
-msgstr "小心使用！纹理PEI板上的流量校准可能会因表面散射而失败。"
-
-msgid "Automatic flow calibration using Micro Lidar"
-msgstr "使用微型激光雷达进行自动流量校准"
-
-msgid "The printer is required to be in the same LAN as Orca Slicer."
-msgstr "打印机需要与Orca Slicer在同一个局域网内。"
-
-msgid "Failed to create socket"
-msgstr ""
-
-msgid "Failed to connect socket"
-msgstr ""
-
-msgid "Failed to publish login request"
-msgstr ""
-
-msgid "Get ticket from device timeout"
-msgstr ""
-
-msgid "Get ticket from server timeout"
-msgstr ""
-
-msgid "Failed to post ticket to server"
-msgstr ""
-
-msgid "Failed to parse login report reason"
-msgstr ""
-
-msgid "Receive login report timeout"
-msgstr ""
-
-msgid "Check the reason"
-msgstr "查看原因"
-
-msgid "Read and accept"
-msgstr "我已阅读并接受"
-
-msgid "Terms and Conditions"
-msgstr "用户使用协议"
-
-msgid ""
-"Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
-"device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
-"Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
-msgstr ""
-"感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
-"的Bambu Lab设备即表示您同意遵守隐私政策以及使用条款（统称为“条款”）。如果您不"
-"符合或不同意Bambu Lab隐私政策，请不要使用Bambu Lab设备和服务。"
-
-msgid "and"
-msgstr "和"
-
-msgid "Privacy Policy"
-msgstr "隐私协议"
-
-msgid "We ask for your help to improve everyone's printer"
-msgstr "我们请求您的帮助来改善大家的打印机"
-
-msgid "Statement about User Experience Improvement Program"
-msgstr "关于用户体验改善计划的声明"
-
-#, c-format, boost-format
-msgid ""
-"In the 3D Printing community, we learn from each other's successes and "
-"failures to adjust our own slicing parameters and settings. %s follows the "
-"same principle and uses machine learning to improve its performance from the "
-"successes and failures of the vast number of prints by our users. We are "
-"training %s to be smarter by feeding them the real-world data. If you are "
-"willing, this service will access information from your error logs and usage "
-"logs, which may include information described in  Privacy Policy. We will "
-"not collect any Personal Data by which an individual can be identified "
-"directly or indirectly, including without limitation names, addresses, "
-"payment information, or phone numbers. By enabling this service, you agree "
-"to these terms and the statement about Privacy Policy."
-msgstr ""
-"在3D打印社区，我们从彼此的成功和失败中学习调整自己的切片参数和设置。%s遵循同"
-"样的原则，通过机器学习的方式从大量用户打印的成功和失败中获取经验，从而改善打"
-"印性能。我们正在通过向%s提供真实世界的数据来训练他们变得更聪明。如果您愿意，"
-"此服务将访问您的错误日志和使用日志中的信息，其中可能包括隐私政策中描述的信"
-"息。我们不会收集任何可以直接或间接识别个人的个人数据，包括但不限于姓名、地"
-"址、支付信息或电话号码。启用此服务即表示您同意这些条款和有关隐私政策的声明。"
-
-msgid "Statement on User Experience Improvement Plan"
-msgstr "关于用户体验改善计划的声明"
-
-msgid "Post-processing scripts"
-msgstr "后处理脚本"
-
-msgid "Cool Plate / PLA Plate"
-msgstr "低温打印板 / PLA打印板"
-
-msgid ""
-"Click OK to update the Network plug-in when Orca Slicer launches next time."
-msgstr "点击\"确定\"，将在Orca Slicer下次启动之后自动升级网络插件"
-
-msgid "New version of Orca Slicer"
-msgstr "新版本的Orca Slicer"
-
-msgid ""
-"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-msgstr "第1步，请确认Orca Slicer和您的打印机在同一个LAN上。"
-
-msgid ""
-"The following object(s) have empty initial layer and can't be printed. "
-"Please Cut the bottom or enable supports."
-msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
-
-msgid "Initial layer flow ratio"
-msgstr "首层流量比"
-
-msgid "This factor affects the amount of material for the initial layer"
-msgstr "该因素影响首层的材料用量"
-
-msgid ""
-"Use only one wall on flat top surface, to give more space to the top infill "
-"pattern. Could be applyed on topmost surface or all top surface."
-msgstr ""
-"顶面只使用单层墙，从而更多的空间能够使用顶部填充图案。可以应用于最顶部表面或"
-"所有顶部表面。"
-
-msgid "Not apply"
-msgstr "不使用"
-
-msgid "Use only one wall on the first layer of model"
-msgstr "在模型的首层仅生成单层墙"
-
-msgid ""
-"If enabled, Studio will generate support loops under the contours of "
-"internal bridges.These support loops could prevent internal bridges from "
-"extruding over the air and improve the top surface quality, especially when "
-"the sparse infill density is low.This value determines the thickness of the "
-"support loops. 0 means disable this feature"
-msgstr ""
-"如果开启，Studio会沿着内部桥接的边沿在其下方生成支撑轮廓。这些支撑轮廓可以防"
-"止悬空地打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这个设置用"
-"于调整支撑轮廓的厚度，0表示关闭此特性。"
-
-msgid "Line width of outer wall"
-msgstr "外墙的线宽"
-
-msgid "Object flow ratio"
-msgstr "对象流量比率"
-
-msgid "The flow ratio set by object, the meaning is the same as flow ratio."
-msgstr "由对象设置的流量比率，其含义与流量比率相同。"
-
-msgid ""
-"Enable pressure advance, auto calibration result will be overwriten once "
-"enabled. Useless for Bambu Printer"
-msgstr "启用压力提前补偿，启用后自动校准结果将被覆盖。对于Bambu打印机无效。"
-
-msgid ""
-"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
-"Bambu Printer"
-msgstr ""
-"压力提前补偿（Klipper）也称为线性提前补偿因子（Marlin）。对于Bambu打印机无"
-"效。"
-
-msgid "Default line width if some line width is set to be zero"
-msgstr "当线宽设置为0时走线的默认线宽"
-
-msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
-msgstr "内部壁的加速度。0表示使用正常的打印加速度。"
-
-msgid "Default jerk"
-msgstr "默认抖动"
-
-msgid "Jerk of infill"
-msgstr "填充抖动"
-
-msgid "Jerk of top surface"
-msgstr "顶层表面抖动"
-
-msgid "Jerk of first layer"
-msgstr "首层抖动"
-
-msgid "Jerk of travel"
-msgstr "行程抖动"
-
-msgid "Line width of initial layer"
-msgstr "首层的线宽"
-
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affact top/bottom layers"
-msgstr "过滤掉小于指定阈值的间隙。此设置不会影响顶部/底部图层。"
-
-msgid ""
-"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
-"firmware printer"
-msgstr "启用此选项以在Klipper固件打印机的G代码中添加“EXCLUDE OBJECT”命令。"
-
-msgid "Length of sparse infill anchor"
-msgstr "稀疏填充铆线长度"
-
-msgid ""
-"Connect a sparse infill line to an internal perimeter with a short segment "
-"of an additional perimeter. If expressed as percentage (example: 15%) it is "
-"calculated over sparse infill line width. Slicer tries to connect two close "
-"infill lines to a short perimeter segment. If no such perimeter segment "
-"shorter than infill_anchor_max is found, the infill line is connected to a "
-"perimeter segment at just one side and the length of the perimeter segment "
-"taken is limited to this parameter, but no longer than anchor_length_max. "
-"Set this parameter to zero to disable anchoring perimeters connected to a "
-"single infill line."
-msgstr ""
-"使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比(例如:15%)，"
-"则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线连接到一个短的"
-"轮廓线段上。如果找不到短于“填充锚点最大值”的轮廓线段，则填充线只在一侧连接到"
-"轮廓线段，并且所选取的轮廓线段的长度仅限于此参数，但不超过“锚点长度最大值”。"
-"将此参数设置为零以禁用连接到单个填充线的锚点轮廓。"
-
-msgid "Maximum length of sparse infill anchor"
-msgstr "稀疏填充铆线最大长度"
-
-msgid ""
-"Connect a sparse infill line to an internal perimeter with a short segment "
-"of an additional perimeter. If expressed as percentage (example: 15%) it is "
-"calculated over sparse infill line width. Slicer tries to connect two close "
-"infill lines to a short perimeter segment. If no such perimeter segment "
-"shorter than this parameter is found, the infill line is connected to a "
-"perimeter segment at just one side and the length of the perimeter segment "
-"taken is limited to infill_anchor, but no longer than this parameter. Set "
-"this parameter to zero to disable anchoring."
-msgstr ""
-"使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比(例如:15%)，"
-"则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线连接到一个短的"
-"轮廓线段上。如果找不到短于该参数的轮廓线段，则填充线只在一侧连接到轮廓线段，"
-"并且所选取的轮廓线段的长度仅限于“填充锚点”，但不超过此参数。将此参数设置为零"
-"以禁用锚点。"
-
-msgid "Line width of internal sparse infill"
-msgstr "内部稀疏填充的线宽"
-
-msgid ""
-"Detect the overhang percentage relative to line width and use different "
-"speed to print. For 100 percent overhang, bridge speed is used."
-msgstr ""
-"检测悬空相对于线宽的百分比，并应用不同的速度打印。100%的悬空将使用桥接速度。"
-
-msgid "Line width of inner wall"
-msgstr "内墙的线宽"
-
-msgid ""
-"If you want to process the output G-code through custom scripts, just list "
-"their absolute paths here. Separate multiple scripts with a semicolon. "
-"Scripts will be passed the absolute path to the G-code file as the first "
-"argument, and variables of settings also can be read"
-msgstr ""
-"如果你想通过自定义脚本来处理输出的G代码，只需在这里列出它们的绝对路径。用分号"
-"来分隔多个脚本。脚本将被传递给G代码文件的绝对路径作为第一个参数，设置的变量也"
-"可以被读取。"
-
-msgid "Z Hop Type"
-msgstr "Z抬升方式"
-
-msgid "Direct drive"
-msgstr "直接驱动"
-
-msgid ""
-"In order to reduce the visibility of the seam in a closed loop extrusion, "
-"the loop is interrupted and shortened by a specified amount.\n"
-"This amount as a percentage of the current extruder diameter. The default "
-"value for this parameter is 15"
-msgstr ""
-"为了减少闭环挤出中接缝的可见性，循环会被中断并缩短指定的长度。\n"
-"这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
-
-msgid "Line width of internal solid infill"
-msgstr "内部实心填充的线宽"
-
-msgid "Line width of support"
-msgstr "支撑的线宽"
-
-msgid "The brim width around tree support. 0 means auto."
-msgstr "围绕树状支撑的裙边宽度。0表示自动。"
-
-msgid "Line width for top surfaces"
-msgstr "顶面的线宽"
-
-msgid ""
-"If your firmware requires relative E values, check this, otherwise leave it "
-"unchecked. Must use relative e distance for Bambu printer"
-msgstr ""
-"如果您的固件要求使用相对E值，请勾选此项；否则，请不要勾选。对于Bambu打印机，"
-"必须使用相对E距离。"
-
-msgid "Flow Rate Calibration"
-msgstr "流量比例校准"
-
-msgid "Max Volumetric Speed Calibration"
-msgstr "最大体积速度校准"
-
-msgid "Manage Result"
-msgstr "管理结果"
-
-msgid "Manual Calibration"
-msgstr "手动校准"
-
-msgid "Result can be read by human eyes."
-msgstr "结果可由人眼读取。"
-
-msgid "Auto-Calibration"
-msgstr "自动校准"
-
-msgid "We would use Lidar to read the calibration result"
-msgstr "我们将使用激光雷达来读取校准结果。"
-
-msgid "Prev"
-msgstr "上一个"
-
-msgid "Recalibration"
-msgstr "重新校准"
-
-msgid "Calibrate"
-msgstr "校准"
-
-msgid "Wiki"
-msgstr "Wiki"
-
-msgid "How to use calibration result?"
-msgstr "如何使用校准结果？"
-
-msgid ""
-"You could change the Flow Dynamics Calibration Factor in material editing"
-msgstr "您可以在材料编辑中更改流量动态校准因子。"
-
-msgid ""
-"The current firmware version of the printer does not support calibration.\n"
-"Please upgrade the printer firmware."
-msgstr ""
-"打印机当前的固件版本不支持校准。\n"
-"请升级打印机固件。"
-
-msgid "Calibration not supported"
-msgstr "不支持校准"
-
-msgid "Flow Dynamics"
-msgstr "动态流量"
-
-msgid "Flow Rate"
-msgstr "流量比例"
-
-msgid "Max Volumetric Speed"
-msgstr "最大容积速度"
-
-msgid "Please enter the name you want to save to printer."
-msgstr "请输入要保存到打印机的名称。"
-
-msgid "The name cannot exceed 40 characters."
-msgstr "名称不能超过40个字符。"
-
-#, boost-format
-msgid "The selected preset: %1% is not found."
-msgstr "未找到选定的预设：%1%。"
-
-msgid "The name cannot be the same as the system preset name."
-msgstr "名称不能与系统预设名称相同。"
-
-msgid "The name is the same as another existing preset name"
-msgstr "该名称与另一个现有预设名称相同。"
-
-msgid "create new preset failed."
-msgstr "创建新预设失败"
-
-msgid ""
-"Are you sure to cancel the current calibration and return to the home page?"
-msgstr "您确定要取消当前的校准并返回主页吗？"
-
-msgid "No Printer Connected!"
-msgstr "没有连接打印机！"
-
-msgid "Printer is not connected yet."
-msgstr "打印机尚未连接。"
-
-msgid "Please select filament to calibrate."
-msgstr "请选择要校准的耗材丝。"
-
-msgid "Connecting to printer..."
-msgstr "正在连接打印机..."
-
-msgid "The failed test result has been droped."
-msgstr "测试失败的结果已被删除。"
-
-msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr "动态流量校准的结果已保存至打印机。"
-
-msgid "Internal Error"
-msgstr "内部错误"
-
-msgid "Please select at least one filament for calibration"
-msgstr "请至少选择一种材料进行校准。"
-
-msgid "Flow rate calibration result has been saved to preset"
-msgstr "流量比例校准结果已保存到预设"
-
-msgid "The input value size must be 3."
-msgstr "输入值大小必须为3。"
-
-msgid "Max volumetric speed calibration result has been saved to preset"
-msgstr "最大体积速度校准结果已保存到预设值"
-
-msgid "When do you need Flow Dynamics Calibration"
-msgstr "在什么情况下需要进行动态流量校准"
-
-msgid ""
-"We now have added the auto-calibration for different filaments, which is "
-"fully automated and the result will be saved into the printer for future "
-"use. You only need to do the calibration in the following limited cases:\n"
-"1. If you introduce a new filament of different brands/models or the "
-"filament is damp;\n"
-"2. if the nozzle is worn out or replaced with a new one;\n"
-"3. If the max volumetric speed or print temperature is changed in the "
-"filament setting."
-msgstr ""
-"我们现在已经为不同的打印材料添加了自动校准功能，该功能是完全自动化的，并且结"
-"果将保存在打印机中以供将来使用。您只需要在以下有限情况下进行校准：\n"
-"1. 如果您引入了不同品牌/型号的新打印材料，或者打印材料受潮；\n"
-"2. 如果喷嘴磨损或更换了新的喷嘴；\n"
-"3. 如果您在打印材料设置中更改了最大体积速度或打印温度。"
-
-msgid "About this calibration"
-msgstr "关于此校准"
-
-msgid ""
-"Please find the details of Flow Dynamics Calibration from our wiki.\n"
-"\n"
-"Usually the calibration is unnecessary. When you start a single color/"
-"material print, with the \"flow dynamics calibration\" option checked in the "
-"print start menu, the printer will follow the old way, calibrate the "
-"filament before the print; When you start a multi color/material print, the "
-"printer will use the default compensation parameter for the filament during "
-"every filament switch which will have a good result in most cases.\n"
-"\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
-"\n"
-"The calibration results have about 10 percent jitter in our test, which may "
-"cause the result not exactly the same in each calibration. We are still "
-"investigating the root cause to do improvements with new updates."
-msgstr ""
-"请从我们的wiki中找到流量动态校准的详细信息。\n"
-"\n"
-"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选"
-"了“流量动态校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
-"多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
-"生良好的效果。\n"
-"\n"
-"请注意，有几种情况会导致校准结果不可靠：使用纹理板进行校准；建模平台粘附效果"
-"不好（请清洗建模平台或涂抹胶棒）... 您可以在我们的wiki中找到更多信息。\n"
-"\n"
-"在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。我们"
-"仍在调查根本原因，并通过新的更新进行改进。"
-
-msgid "When to use Flow Rate Calibration"
-msgstr "何时使用流量率校准"
-
-msgid ""
-"After using Flow Dynamics Calibration, there might still be some extrusion "
-"issues, such as:\n"
-"1. Over-Extrusion: Excess material on your printed object, forming blobs or "
-"zits, or the layers seem thicker than expected and not uniform.\n"
-"2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the "
-"top layer of the model, even when printing slowly.\n"
-"3. Poor Surface Quality: The surface of your prints seems rough or uneven.\n"
-"4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
-"they should be."
-msgstr ""
-"使用流量动态校准后，仍可能出现一些挤出问题，例如：\n"
-"1. 过度挤出：打印物体上有过多的材料，形成凸起或小球，或者层次看起来比预期的厚"
-"而且不均匀。\n"
-"2. 不足挤出：层次非常薄，填充强度不足，或者在缓慢打印时模型顶层有缺陷。\n"
-"3. 表面质量差：打印的表面看起来粗糙或不均匀。\n"
-"4. 结构稳固性差：打印件容易断裂，或者没有应有的稳固性。"
-
-msgid ""
-"In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
-"PLA used in RC planes. These materials expand greatly when heated, and "
-"calibration provides a useful reference flow rate."
-msgstr ""
-"此外，对于像用于遥控飞机的轻质发泡PLA（LW-PLA）这样的发泡材料，流量率校准非常"
-"重要。这些材料在加热时会大幅膨胀，而校准提供了有用的流量率参考。"
-
-msgid ""
-"Flow Rate Calibration measures the ratio of expected to actual extrusion "
-"volumes. The default setting works well in Bambu Lab printers and official "
-"filaments as they were pre-calibrated and fine-tuned. For a regular "
-"filament, you usually won't need to perform a Flow Rate Calibration unless "
-"you still see the listed defects after you have done other calibrations. For "
-"more details, please check out the wiki article."
-msgstr ""
-"流量率校准测量预期挤出体积与实际挤出体积之间的比率。默认设置在Bambu Lab打印机"
-"和官方材料上表现良好，因为它们已经进行了预先校准和微调。对于普通的材料，通常"
-"情况下，您不需要执行流量率校准，除非在完成其他校准后仍然看到上述列出的缺陷。"
-"如需更多详细信息，请查阅wiki文章。"
-
-msgid ""
-"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
-"directly measuring the calibration patterns. However, please be advised that "
-"the efficacy and accuracy of this method may be compromised with specific "
-"types of materials. Particularly, filaments that are transparent or semi-"
-"transparent, sparkling-particled, or have a high-reflective finish may not "
-"be suitable for this calibration and can produce less-than-desirable "
-"results.\n"
-"\n"
-"The calibration results may vary between each calibration or filament. We "
-"are still improving the accuracy and compatibility of this calibration "
-"through firmware updates over time.\n"
-"\n"
-"Caution: Flow Rate Calibration is an advanced process, to be attempted only "
-"by those who fully understand its purpose and implications. Incorrect usage "
-"can lead to sub-par prints or printer damage. Please make sure to carefully "
-"read and understand the process before doing it."
-msgstr ""
-"自动流量率校准采用Bambu Lab的微型激光雷达技术，直接测量校准图案。然而，请注"
-"意，这种方法的功效和准确性可能会因特定类型的材料而受影响。特别是透明或半透"
-"明、带有闪光颗粒或具有高反射表面的材料可能不适合这种校准，并可能产生不理想的"
-"结果。\n"
-"\n"
-"校准结果可能因每次校准或材料的不同而有所不同。我们仍在通过固件更新不断提高这"
-"种校准的准确性和兼容性。\n"
-"\n"
-"注意：流量率校准是一项高级的过程，只有完全理解其目的和影响的人才应尝试。错误"
-"的使用可能导致打印质量不佳或损坏打印机。请确保在执行之前仔细阅读和理解此过"
-"程。"
-
-msgid "When you need Max Volumetric Speed Calibration"
-msgstr "当您需要最大体积速度校准时"
-
-msgid "Over-extrusion or under extrusion"
-msgstr "过度挤压或挤压不足"
-
-msgid "Max Volumetric Speed calibration is recommended when you print with:"
-msgstr "使用以下选项打印时，建议进行最大体积速度校准："
-
-msgid "material with significant thermal shrinkage/expansion, such as..."
-msgstr "具有显著热收缩/膨胀的材料，例如..."
-
-msgid "materials with inaccurate filament diameter"
-msgstr "耗材直径不准确的材料"
-
-msgid "We found the best Flow Dynamics Calibration Factor"
-msgstr "我们找到了最佳的流量动态校准因子。"
-
-msgid ""
-"Part of the calibration failed! You may clean the plate and retry. The "
-"failed test result would be droped."
-msgstr "部分校准失败！您可以清洁打印平台并重试。未通过的测试结果将被丢弃。"
-
-msgid ""
-"*We recommend you to add brand, materia, type, and even humidity level in "
-"the Name"
-msgstr "*我们建议您在名称中添加品牌、材料、类型，甚至湿度水平。"
-
-msgid ""
-"Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
-msgstr "相同名称的结果只会保存一个。您确定要覆盖其他结果吗？"
-
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
-msgstr ""
-"已经存在一个具有相同名称的历史校准结果：%s。相同名称的结果只会保存一个。您确"
-"定要覆盖历史结果吗？"
-
-msgid "Please find the best line on your plate"
-msgstr "请在您的打印板上找到最佳线条"
-
-msgid "Input Value"
-msgstr "输入值"
-
-msgid "Save to Filament Preset"
-msgstr "保存到材料预设"
-
-msgid "Preset"
-msgstr "预设"
-
-msgid "Record Factor"
-msgstr "记录系数"
-
-msgid "We found the best flow ratio for you"
-msgstr "我们为您找到了最佳流量比"
-
-msgid "Flow Ratio"
-msgstr "流量比"
-
-msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
-msgstr "请输入一个有效值（0.0<流量比<2.0）"
-
-msgid "Please enter the name of the preset you want to save."
-msgstr "请输入要保存的预设的名称。"
-
-msgid "Calibration1"
-msgstr "校准1"
-
-msgid "Calibration2"
-msgstr "校准2"
-
-msgid "Please find the best object on your plate"
-msgstr "请在你的盘里找到最好的对象"
-
-msgid "Fill in the value above the block with smoothest top surface"
-msgstr "用最光滑的顶面填充块上方的值"
-
-msgid "Skip Calibration2"
-msgstr "跳过校准2"
-
-#, c-format, boost-format
-msgid "flow ratio : %s "
-msgstr "流量比：%s "
-
-msgid "Please choose a block with smoothest top surface"
-msgstr "请选择顶部表面最光滑的块"
-
-msgid "Please choose a block with smoothest top surface."
-msgstr "请选择顶部表面最光滑的块。"
-
-msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
-msgstr "请输入一个有效值（0<=最大容积速度<=60）"
-
-msgid "Calibration Type"
-msgstr "校准类型"
-
-msgid "Complete Calibration"
-msgstr "完整校准"
-
-msgid "Fine Calibration based on flow ratio"
-msgstr "基于流量比的精细校准"
-
-msgid "Title"
-msgstr "标题"
-
-msgid ""
-"A test model will be printed. Please clear the build plate and place it back "
-"to the hot bed before calibration."
-msgstr "将打印一份测试模型。在校准之前，请清理打印平台并将其放回热床上。"
-
-msgid "Printing Parameters"
-msgstr "打印参数"
-
-msgid "- ℃"
-msgstr ""
-
-msgid " ℃"
-msgstr ""
-
-msgid "Plate Type"
-msgstr "热床类型"
-
-msgid "filament position"
-msgstr "耗材丝位置"
-
-msgid "External Spool"
-msgstr "外部线轴"
-
-msgid "Filament For Calibration"
-msgstr "校准用耗材"
-
-msgid ""
-"Tips for calibration material: \n"
-"- Materials that can share same hot bed temperature\n"
-"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
-msgstr ""
-"校准材料提示：\n"
-"-可以共享相同热床温度的材料\n"
-"-不同的耗材品牌和系列（Brand = Bambu, Family = Basic, Matte）"
-
-msgid "Error desc"
-msgstr "错误描述"
-
-msgid "Extra info"
-msgstr "额外信息"
-
-#, c-format, boost-format
-msgid "%s is not compatible with %s"
-msgstr "%s 与 %s 不兼容"
-
-msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
-msgstr "不支持TPU进行流量动态自动校准。"
-
-msgid "Connecting to printer"
-msgstr "正在连接打印机"
-
-msgid "The nozzle diameter has been synchronized from the printer Settings"
-msgstr "喷嘴直径已从打印机设置同步"
-
-msgid "From Volumetric Speed"
-msgstr "从体积速度"
-
-msgid "To Volumetric Speed"
-msgstr "至体积速度"
-
-msgid "Flow Dynamics Calibration Result"
-msgstr "动态流量校准结果"
-
-msgid "No History Result"
-msgstr "无历史结果"
-
-msgid "Success to get history result"
-msgstr "成功获取历史结果"
-
-msgid "Refreshing the historical Flow Dynamics Calibration records"
-msgstr "刷新历史流量动态校准记录"
-
-msgid "Action"
-msgstr "操作"
-
-msgid "Edit Flow Dynamics Calibration"
-msgstr "编辑动态流量校准"
-
-msgid "End temp: "
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid ""
-"Subtract a Part\n"
-"Did you know that you can subtract one mesh from another using the Negative "
-"part modifier? That way you can, for example, create easily resizable holes "
-"directly in Orca Slicer. Read more in the documentation."
-msgstr ""
-"减去部分几何体\n"
-"您知道吗，您可以使用负零件从另一个几何体中减去另一个几何体。例如，可以直接在"
-"Orca Slicer中创建可轻松调整大小的孔。"
-
-#: resources/data/hints.ini: [hint:STEP]
-msgid ""
-"STEP\n"
-"Did you know that you can improve your print quality by slicing a STEP file "
-"instead of an STL?\n"
-"Orca Slicer supports slicing STEP files, providing smoother results than a "
-"lower resolution STL. Give it a try!"
-msgstr ""
-"STEP文件\n"
-"您知道吗，通过切片STEP文件而不是STL文件可以提高打印质量。\n"
-"Orca Slicer支持切片STEP文件，提供比低分辨率STL更平滑的结果。试试看！"
-
-#~ msgid "Ams filament backup"
-#~ msgstr "AMS耗材丝备份"
-
-#~ msgid "Confirm whether the filament has been extruded"
-#~ msgstr "确认耗材丝是否已被挤出"
-
-#~ msgid "No space left on Printer SD card"
-#~ msgstr "打印机SD卡上没有剩余空间"
+#~ msgid ""
+#~ "The configuration may be generated by a newer version of BambuStudio."
+#~ msgstr "此配置可能由新版本的Bambu Studio生成。"
 
 #~ msgid ""
-#~ "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. "
-#~ "Please separate the conflicted objects farther (%s <-> %s)."
+#~ "BambuStudio will terminate because of running out of memory.It may be a "
+#~ "bug. It will be appreciated if you report the issue to our team."
 #~ msgstr ""
-#~ "发现gcode路径在层%d，高为%.2lf mm处的冲突。请将有冲突的对象分离得更远(%s "
-#~ "<-> %s)。"
+#~ "系统内存耗尽，Bambu Studio即将终止运行。这可能是个缺陷，希望您可以报告此问"
+#~ "题，我们将非常感激。"
 
-#~ msgid "You are going to delete %u files. Are you sure to continue?"
-#~ msgstr "你正在删除%u个文件，你确定吗？"
+#~ msgid ""
+#~ "BambuStudio will terminate because of a localization error. It will be "
+#~ "appreciated if you report the specific scenario this issue happened."
+#~ msgstr ""
+#~ "遇到本地化错误，Bambu Studio即将终止运行。希望您可以报告发生此问题的具体场"
+#~ "景，我们将非常感激。"
+
+#, boost-format
+#~ msgid "BambuStudio got an unhandled exception: %1%"
+#~ msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
+
+#~ msgid ""
+#~ "BambuStudio configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Bambu Studio配置文件可能已损坏而无法解析。请删除此文件并重新启动"
+#~ "BambuStudio。"
+
+#~ msgid "The Bambu Studio needs an upgrade"
+#~ msgstr "Bambu Studio需要进行升级"
+
+#~ msgid ""
+#~ "The version of Bambu studio is too low and needs to be updated to the "
+#~ "latest version before it can be used normally"
+#~ msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用"
+
+#~ msgid "Bambu Studio GUI initialization failed"
+#~ msgstr "Bambu Studio图形界面初始化失败"
+
+#~ msgid "Bambu Cube"
+#~ msgstr "Bambu方块"
+
+#~ msgid "Bambu Cube V2"
+#~ msgstr "Bambu方块 V2"
+
+#~ msgid "ksr FDMTest"
+#~ msgstr "欧特克FDM测试"
+
+#~ msgid "Mesh boolean"
+#~ msgstr "网格布尔操作"
+
+#~ msgid "Mesh boolean operations including union and subtraction"
+#~ msgstr "包括并集和差集的网格布尔运算"
+
+#~ msgid "Edit Plate Name"
+#~ msgstr "编辑盘名"
+
+#~ msgid "Failed to get the model data in the current file."
+#~ msgstr "无法获取当前文件中的模型数据。"
+
+#~ msgid "Check cloud service status"
+#~ msgstr "检查云服务状态"
+
+#~ msgid "Failed to connect to cloud service"
+#~ msgstr "无法连接到云服务"
+
+#~ msgid "Please click on the hyperlink above to view the cloud service status"
+#~ msgstr "请点击上方的超链接以查看云服务状态"
+
+#~ msgid "Connection to printer failed"
+#~ msgstr "连接打印机失败"
+
+#~ msgid "Please check the network connection of the printer and Studio."
+#~ msgstr "请检查打印机和工作室的网络连接"
+
+#~ msgid "Auto Refill"
+#~ msgstr "自动补给"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "将新的耗材丝推入挤出机"
+
+#~ msgid "Grab new filament"
+#~ msgstr "咬入耗材丝"
+
+#~ msgid "Abnormal print file data. Please slice again."
+#~ msgstr "打印文件数据异常，请重新切片"
+
+#~ msgid "Task canceled."
+#~ msgstr "任务已取消。"
+
+#~ msgid ""
+#~ "Upload task timed out. Please check the network status and try again."
+#~ msgstr "上传任务超时，请排查网络状态后重试。"
+
+#~ msgid "Print file not found. please slice again."
+#~ msgstr "未找到打印文件，请重新切片。"
+
+#~ msgid ""
+#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
+#~ "the model and slice again."
+#~ msgstr "打印文件超过最大允许大小（1GB），请简化模型后重新切片。"
+
+#~ msgid "Failed to upload file to ftp. Please try again."
+#~ msgstr "上传文件至FTP失败，请重试。"
+
+#~ msgid ""
+#~ "Check the current status of the bambu server by clicking on the link "
+#~ "above."
+#~ msgstr "点击上方的链接检查Bambu服务器的当前状态。"
+
+#~ msgid ""
+#~ "The size of the print file is too large. Please adjust the file size and "
+#~ "try again."
+#~ msgstr "打印文件的大小过大，请调整文件大小后重试。"
+
+#~ msgid ""
+#~ "Print file not found, Please slice it again and send it for printing."
+#~ msgstr "未找到打印文件，请重新切片后再发送打印。"
+
+#~ msgid ""
+#~ "Failed to upload print file to FTP. Please check the network status and "
+#~ "try again."
+#~ msgstr "无法将打印文件上传至FTP。请检查网络状态并重试。"
+
+#, c-format, boost-format
+#~ msgid "Successfully sent. Will automatically jump to the next page in %ss"
+#~ msgstr "已成功发送。将自动跳转到%ss中的下一页。"
+
+#~ msgid "Bambu Studio is licensed under "
+#~ msgstr "Bambu Studio是在"
+
+#~ msgid ""
+#~ "Bambu Studio is based on PrusaSlicer by Prusa Research, which is from "
+#~ "Slic3r by Alessandro Ranellucci and the RepRap community"
+#~ msgstr ""
+#~ "Bambu Studio是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来"
+#~ "自Alessandro Ranellucci和RepRap社区的Slic3r开发的"
+
+#~ msgid ""
+#~ "Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
+#~ "Merill(supermerill)."
+#~ msgstr ""
+#~ "Bambu Studio是以PrusaResearch的PrusaSlicer和Merill(supermerill)的"
+#~ "SuperSlicer为基础的。"
+
+#~ msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
+#~ msgstr "Bambu Studio还参考了Ultimaker的Cura中的一些想法。"
+
+#~ msgid ""
+#~ "There many parts of the software that come from community contributions, "
+#~ "so we're unable to list them one-by-one, and instead, they'll be "
+#~ "attributed in the corresponding code comments."
+#~ msgstr ""
+#~ "软件中有很多部分来自于社区贡献，因此我们不便逐一列出他们，作为替代，他们将"
+#~ "在相应的代码注释中被介绍。"
+
+#~ msgid "Factors of Flow Dynamics Calibration"
+#~ msgstr "动态流量校准系数"
+
+#~ msgid "PA Profile"
+#~ msgstr "PA 配置文件"
+
+#~ msgid ""
+#~ "When the current material run out, the printer will continue to print in "
+#~ "the following order."
+#~ msgstr "当前材料耗尽时，打印机将按照以下顺序继续打印。"
+
+#~ msgid ""
+#~ "There are currently no identical spare consumables available, and "
+#~ "automatic replenishment is currently not possible. \n"
+#~ "(Currently supporting automatic supply of consumables with the same "
+#~ "brand, material type, and color)"
+#~ msgstr ""
+#~ "当前无相同的备用耗材，暂时无法自动补给。\n"
+#~ "（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
+
+#~ msgid "Invalid nozzle diameter"
+#~ msgstr "非法喷嘴口径"
+
+#~ msgid "Calibration error"
+#~ msgstr "校准错误"
+
+#~ msgid "TPU is not supported by AMS."
+#~ msgstr "AMS不支持TPU。"
+
+#~ msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+#~ msgstr "AMS不支持Bambu PET-CF/PA6-CF。"
+
+#~ msgid ""
+#~ "Damp PVA will become flexible and get stuck inside AMS,please take care "
+#~ "to dry it before use."
+#~ msgstr "潮湿的PVA会变得柔软并粘在AMS内，请在使用前注意干燥。"
+
+#~ msgid ""
+#~ "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+#~ "AMS, please use with caution."
+#~ msgstr "CF/GF耗材丝丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
+
+#~ msgid "Layer Time (s)"
+#~ msgstr "层时间（s）"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Conflicts of gcode paths have been found at layer %d. Please separate the "
+#~ "conflicted objects farther (%s <-> %s)."
+#~ msgstr ""
+#~ "发现gcode路径在层%d处的冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
+
+#~ msgid "Report issue"
+#~ msgstr "报告问题"
+
+#~ msgid "Show &Overhang"
+#~ msgstr "显示悬空高亮"
+
+#~ msgid "Show object overhang highlight in 3D scene"
+#~ msgstr "在3D场景中显示悬空高亮"
+
+#~ msgid "Initialize failed (Device connection not ready)!"
+#~ msgstr "初始化失败（设备未连接）"
+
+#~ msgid "Initialize failed (Not supported on the current printer version)!"
+#~ msgstr "初始化失败（当前打印机的版本不支持）！"
+
+#~ msgid ""
+#~ "Another virtual camera is running.\n"
+#~ "Bambu Studio supports only a single virtual camera.\n"
+#~ "Do you want to stop this virtual camera?"
+#~ msgstr ""
+#~ "另一个虚拟摄像头正在工作。\n"
+#~ "Bambu Studio 同时只能支持一个虚拟摄像头。\n"
+#~ "是否停止前一个虚拟摄像头？"
+
+#~ msgid "Switch to 3mf model files."
+#~ msgstr "切换到3MF模型文件。"
+
+#, c-format, boost-format
+#~ msgid "No files [%d]"
+#~ msgstr "文件列表为空[%d]"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]"
+#~ msgstr "加载失败 [%d]"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "You are going to delete %u file from printer. Are you sure to continue?"
+#~ msgid_plural ""
+#~ "You are going to delete %u files from printer. Are you sure to continue?"
+#~ msgstr[0] "您将从打印机中删除%u个文件。确定要继续吗？"
+
+#, c-format, boost-format
+#~ msgid "Do you want to delete the file '%s' from printer?"
+#~ msgstr "你确定要从打印机中删除文件'%s'吗？"
+
+#~ msgid "Delete file"
+#~ msgstr "删除文件"
+
+#~ msgid "Fetching model infomations ..."
+#~ msgstr "正在获取模型信息..."
+
+#~ msgid "Failed to fetching model infomations from printer."
+#~ msgstr "无法从打印机获取模型信息。"
+
+#~ msgid "Failed to parse model infomations."
+#~ msgstr "解析模型信息失败。"
+
+#~ msgid ""
+#~ "The .gcode.3mf file contains no G-code data.Please slice it whthBambu "
+#~ "Studio and export a new .gcode.3mf file."
+#~ msgstr ""
+#~ ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的."
+#~ "gcode.3mf文件。"
+
+#~ msgid "Not supported on the current printer version."
+#~ msgstr "当前打印机的版本不支持。"
+
+#~ msgid "Storage unavailable, insert SD card."
+#~ msgstr "存储不可用，请插入SD卡。"
+
+#~ msgid "Immediately score"
+#~ msgstr "立即打分"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "请为您喜欢的 Bambu 商城模型打分。"
+
+#~ msgid "Score"
+#~ msgstr "打分"
+
+#, boost-format
+#~ msgid " plate %1%: "
+#~ msgstr " 盘 %1%: "
+
+#~ msgid ""
+#~ "There are some unknown or uncompatible filaments mapped to generic "
+#~ "preset. Please update Bambu Studio or restart Bambu Studio to check if "
+#~ "there is an update to system presets."
+#~ msgstr ""
+#~ "有一些未知或不兼容的填料映射到通用预设中。请更新Bambu Studio或重新启动"
+#~ "Bambu Studio，以检查是否有系统预设的更新。"
+
+#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+#~ msgstr "该3mf文件来自旧版本的Bambu Studio，将只加载几何数据。"
+
+#~ msgid ""
+#~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
+#~ "model on Bambu Studio(windows) or CAD softwares."
+#~ msgstr ""
+#~ "\"修复模型\"功能目前仅适用于Windows。请在Bambu Studio(windows)或CAD软件上"
+#~ "修复模型。"
+
+#~ msgid "Associate files to BambuStudio"
+#~ msgstr "Bambu Studio文件关联"
+
+#~ msgid "Associate .3mf files to BambuStudio"
+#~ msgstr "使用Bambu Studio打开.3mf文件"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .3mf files"
+#~ msgstr "开启后，将缺省使用Bambu Studio打开.3mf文件"
+
+#~ msgid "Associate .stl files to BambuStudio"
+#~ msgstr "使用Bambu Studio打开.stl文件"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .stl files"
+#~ msgstr "开启后，将缺省使用Bambu Studio打开.stl文件"
+
+#~ msgid "Associate .step/.stp files to BambuStudio"
+#~ msgstr "使用Bambu Studio打开.step/.stp文件"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .step files"
+#~ msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
+
+#~ msgid "Online Models"
+#~ msgstr "在线模型"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "在主页上显示工作人员挑选的在线模型"
+
+#~ msgid "Skip AMS blacklist check"
+#~ msgstr "跳过AMS黑名单检查"
+
+#~ msgid "Enable SSL(MQTT)"
+#~ msgstr "启用SSL（MQTT）"
+
+#~ msgid "Enable SSL(FTP)"
+#~ msgstr "启用SSL（FTP）"
+
+#~ msgid "Internal developer mode"
+#~ msgstr "内部开发者模式"
+
+#~ msgid "Incompatible"
+#~ msgstr "不兼容的预设"
+
+#~ msgid "The selected preset is null!"
+#~ msgstr "选择的预设为空！"
+
+#~ msgid "Same as Global Plate Type"
+#~ msgstr "跟随全局打印板类型"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA打印板"
+
+#~ msgid "Flow Dynamics Calibration"
+#~ msgstr "动态流量校准"
+
+#~ msgid "Error code"
+#~ msgstr "错误代码"
+
+#~ msgid "Check the status of current system services"
+#~ msgstr "请检查当前系统服务状态"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "打印机局域网连接失败，请重试。"
+
+#~ msgid ""
+#~ "The selected printer is incompatible with the chosen printer presets."
+#~ msgstr "所选打印机与选择的打印机预设不兼容。"
+
+#~ msgid ""
+#~ "Connecting to the printer. Unable to cancel during the connection process."
+#~ msgstr "正在连接打印机。连接过程中无法取消。"
+
+#~ msgid "The name length exceeds the limit."
+#~ msgstr "名称长度超过限制。"
+
+#~ msgid ""
+#~ "Caution to use! Flow calibration on Textured PEI Plate may fail due to "
+#~ "the scattered surface."
+#~ msgstr "小心使用！纹理PEI板上的流量校准可能会因表面散射而失败。"
+
+#~ msgid "Automatic flow calibration using Micro Lidar"
+#~ msgstr "使用微型激光雷达进行自动流量校准"
+
+#~ msgid "The printer is required to be in the same LAN as Bambu Studio."
+#~ msgstr "打印机需要与Bambu Studio在同一个局域网内。"
+
+#~ msgid "Check the reason"
+#~ msgstr "查看原因"
+
+#~ msgid "Read and accept"
+#~ msgstr "我已阅读并接受"
+
+#~ msgid "Terms and Conditions"
+#~ msgstr "用户使用协议"
+
+#~ msgid ""
+#~ "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
+#~ "device, please read the termsand conditions.By clicking to agree to use "
+#~ "your Bambu Lab device, you agree to abide by the Privacy Policyand Terms "
+#~ "of Use(collectively, the \"Terms\"). If you do not comply with or agree "
+#~ "to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment "
+#~ "and services."
+#~ msgstr ""
+#~ "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用"
+#~ "您的Bambu Lab设备即表示您同意遵守隐私政策以及使用条款（统称为“条款”）。如"
+#~ "果您不符合或不同意Bambu Lab隐私政策，请不要使用Bambu Lab设备和服务。"
+
+#~ msgid "and"
+#~ msgstr "和"
+
+#~ msgid "Privacy Policy"
+#~ msgstr "隐私协议"
+
+#~ msgid "We ask for your help to improve everyone's printer"
+#~ msgstr "我们请求您的帮助来改善大家的打印机"
+
+#~ msgid "Statement about User Experience Improvement Program"
+#~ msgstr "关于用户体验改善计划的声明"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "In the 3D Printing community, we learn from each other's successes and "
+#~ "failures to adjust our own slicing parameters and settings. %s follows "
+#~ "the same principle and uses machine learning to improve its performance "
+#~ "from the successes and failures of the vast number of prints by our "
+#~ "users. We are training %s to be smarter by feeding them the real-world "
+#~ "data. If you are willing, this service will access information from your "
+#~ "error logs and usage logs, which may include information described in  "
+#~ "Privacy Policy. We will not collect any Personal Data by which an "
+#~ "individual can be identified directly or indirectly, including without "
+#~ "limitation names, addresses, payment information, or phone numbers. By "
+#~ "enabling this service, you agree to these terms and the statement about "
+#~ "Privacy Policy."
+#~ msgstr ""
+#~ "在3D打印社区，我们从彼此的成功和失败中学习调整自己的切片参数和设置。%s遵循"
+#~ "同样的原则，通过机器学习的方式从大量用户打印的成功和失败中获取经验，从而改"
+#~ "善打印性能。我们正在通过向%s提供真实世界的数据来训练他们变得更聪明。如果您"
+#~ "愿意，此服务将访问您的错误日志和使用日志中的信息，其中可能包括隐私政策中描"
+#~ "述的信息。我们不会收集任何可以直接或间接识别个人的个人数据，包括但不限于姓"
+#~ "名、地址、支付信息或电话号码。启用此服务即表示您同意这些条款和有关隐私政策"
+#~ "的声明。"
+
+#~ msgid "Statement on User Experience Improvement Plan"
+#~ msgstr "关于用户体验改善计划的声明"
+
+#~ msgid "Post-processing scripts"
+#~ msgstr "后处理脚本"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "低温打印板 / PLA打印板"
+
+#~ msgid ""
+#~ "Click OK to update the Network plug-in when Bambu Studio launches next "
+#~ "time."
+#~ msgstr "点击\"确定\"，将在Bambu Studio下次启动之后自动升级网络插件"
+
+#~ msgid "New version of Bambu Studio"
+#~ msgstr "新版本的Bambu Studio"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr "第1步，请确认Bambu Studio和您的打印机在同一个LAN上。"
+
+#~ msgid ""
+#~ "The following object(s) have empty initial layer and can't be printed. "
+#~ "Please Cut the bottom or enable supports."
+#~ msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
+
+#~ msgid "Initial layer flow ratio"
+#~ msgstr "首层流量比"
+
+#~ msgid "This factor affects the amount of material for the initial layer"
+#~ msgstr "该因素影响首层的材料用量"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern. Could be applyed on topmost surface or all top surface."
+#~ msgstr ""
+#~ "顶面只使用单层墙，从而更多的空间能够使用顶部填充图案。可以应用于最顶部表面"
+#~ "或所有顶部表面。"
+
+#~ msgid "Not apply"
+#~ msgstr "不使用"
+
+#~ msgid "Use only one wall on the first layer of model"
+#~ msgstr "在模型的首层仅生成单层墙"
+
+#~ msgid ""
+#~ "If enabled, Studio will generate support loops under the contours of "
+#~ "internal bridges.These support loops could prevent internal bridges from "
+#~ "extruding over the air and improve the top surface quality, especially "
+#~ "when the sparse infill density is low.This value determines the thickness "
+#~ "of the support loops. 0 means disable this feature"
+#~ msgstr ""
+#~ "如果开启，Studio会沿着内部桥接的边沿在其下方生成支撑轮廓。这些支撑轮廓可以"
+#~ "防止悬空地打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这个设"
+#~ "置用于调整支撑轮廓的厚度，0表示关闭此特性。"
+
+#~ msgid "Line width of outer wall"
+#~ msgstr "外墙的线宽"
+
+#~ msgid "Object flow ratio"
+#~ msgstr "对象流量比率"
+
+#~ msgid "The flow ratio set by object, the meaning is the same as flow ratio."
+#~ msgstr "由对象设置的流量比率，其含义与流量比率相同。"
+
+#~ msgid ""
+#~ "Enable pressure advance, auto calibration result will be overwriten once "
+#~ "enabled. Useless for Bambu Printer"
+#~ msgstr "启用压力提前补偿，启用后自动校准结果将被覆盖。对于Bambu打印机无效。"
+
+#~ msgid ""
+#~ "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
+#~ "Bambu Printer"
+#~ msgstr ""
+#~ "压力提前补偿（Klipper）也称为线性提前补偿因子（Marlin）。对于Bambu打印机无"
+#~ "效。"
+
+#~ msgid "Default line width if some line width is set to be zero"
+#~ msgstr "当线宽设置为0时走线的默认线宽"
+
+#~ msgid ""
+#~ "Acceleration of inner walls. 0 means using normal printing acceleration"
+#~ msgstr "内部壁的加速度。0表示使用正常的打印加速度。"
+
+#~ msgid "Default jerk"
+#~ msgstr "默认抖动"
+
+#~ msgid "Jerk of infill"
+#~ msgstr "填充抖动"
+
+#~ msgid "Jerk of top surface"
+#~ msgstr "顶层表面抖动"
+
+#~ msgid "Jerk of first layer"
+#~ msgstr "首层抖动"
+
+#~ msgid "Jerk of travel"
+#~ msgstr "行程抖动"
+
+#~ msgid "Line width of initial layer"
+#~ msgstr "首层的线宽"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affact top/bottom layers"
+#~ msgstr "过滤掉小于指定阈值的间隙。此设置不会影响顶部/底部图层。"
+
+#~ msgid ""
+#~ "Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
+#~ "firmware printer"
+#~ msgstr "启用此选项以在Klipper固件打印机的G代码中添加“EXCLUDE OBJECT”命令。"
+
+#~ msgid "Length of sparse infill anchor"
+#~ msgstr "稀疏填充铆线长度"
+
+#~ msgid ""
+#~ "Connect a sparse infill line to an internal perimeter with a short "
+#~ "segment of an additional perimeter. If expressed as percentage (example: "
+#~ "15%) it is calculated over sparse infill line width. Slicer tries to "
+#~ "connect two close infill lines to a short perimeter segment. If no such "
+#~ "perimeter segment shorter than infill_anchor_max is found, the infill "
+#~ "line is connected to a perimeter segment at just one side and the length "
+#~ "of the perimeter segment taken is limited to this parameter, but no "
+#~ "longer than anchor_length_max. Set this parameter to zero to disable "
+#~ "anchoring perimeters connected to a single infill line."
+#~ msgstr ""
+#~ "使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比(例"
+#~ "如:15%)，则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线连"
+#~ "接到一个短的轮廓线段上。如果找不到短于“填充锚点最大值”的轮廓线段，则填充线"
+#~ "只在一侧连接到轮廓线段，并且所选取的轮廓线段的长度仅限于此参数，但不超"
+#~ "过“锚点长度最大值”。将此参数设置为零以禁用连接到单个填充线的锚点轮廓。"
+
+#~ msgid "Maximum length of sparse infill anchor"
+#~ msgstr "稀疏填充铆线最大长度"
+
+#~ msgid ""
+#~ "Connect a sparse infill line to an internal perimeter with a short "
+#~ "segment of an additional perimeter. If expressed as percentage (example: "
+#~ "15%) it is calculated over sparse infill line width. Slicer tries to "
+#~ "connect two close infill lines to a short perimeter segment. If no such "
+#~ "perimeter segment shorter than this parameter is found, the infill line "
+#~ "is connected to a perimeter segment at just one side and the length of "
+#~ "the perimeter segment taken is limited to infill_anchor, but no longer "
+#~ "than this parameter. Set this parameter to zero to disable anchoring."
+#~ msgstr ""
+#~ "使用一小段额外的走线将稀疏填充和内墙连接在一起。如果表示为百分比(例"
+#~ "如:15%)，则数值表示相对于稀疏填充的线宽。切片软件尝试将两条紧密的填充线连"
+#~ "接到一个短的轮廓线段上。如果找不到短于该参数的轮廓线段，则填充线只在一侧连"
+#~ "接到轮廓线段，并且所选取的轮廓线段的长度仅限于“填充锚点”，但不超过此参数。"
+#~ "将此参数设置为零以禁用锚点。"
+
+#~ msgid "Line width of internal sparse infill"
+#~ msgstr "内部稀疏填充的线宽"
+
+#~ msgid ""
+#~ "Detect the overhang percentage relative to line width and use different "
+#~ "speed to print. For 100 percent overhang, bridge speed is used."
+#~ msgstr ""
+#~ "检测悬空相对于线宽的百分比，并应用不同的速度打印。100%的悬空将使用桥接速"
+#~ "度。"
+
+#~ msgid "Line width of inner wall"
+#~ msgstr "内墙的线宽"
+
+#~ msgid ""
+#~ "If you want to process the output G-code through custom scripts, just "
+#~ "list their absolute paths here. Separate multiple scripts with a "
+#~ "semicolon. Scripts will be passed the absolute path to the G-code file as "
+#~ "the first argument, and variables of settings also can be read"
+#~ msgstr ""
+#~ "如果你想通过自定义脚本来处理输出的G代码，只需在这里列出它们的绝对路径。用"
+#~ "分号来分隔多个脚本。脚本将被传递给G代码文件的绝对路径作为第一个参数，设置"
+#~ "的变量也可以被读取。"
+
+#~ msgid "Z Hop Type"
+#~ msgstr "Z抬升方式"
+
+#~ msgid "Direct drive"
+#~ msgstr "直接驱动"
+
+#~ msgid ""
+#~ "In order to reduce the visibility of the seam in a closed loop extrusion, "
+#~ "the loop is interrupted and shortened by a specified amount.\n"
+#~ "This amount as a percentage of the current extruder diameter. The default "
+#~ "value for this parameter is 15"
+#~ msgstr ""
+#~ "为了减少闭环挤出中接缝的可见性，循环会被中断并缩短指定的长度。\n"
+#~ "这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
+
+#~ msgid "Line width of internal solid infill"
+#~ msgstr "内部实心填充的线宽"
+
+#~ msgid "Line width of support"
+#~ msgstr "支撑的线宽"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "围绕树状支撑的裙边宽度。0表示自动。"
+
+#~ msgid "Line width for top surfaces"
+#~ msgstr "顶面的线宽"
+
+#~ msgid ""
+#~ "If your firmware requires relative E values, check this, otherwise leave "
+#~ "it unchecked. Must use relative e distance for Bambu printer"
+#~ msgstr ""
+#~ "如果您的固件要求使用相对E值，请勾选此项；否则，请不要勾选。对于Bambu打印"
+#~ "机，必须使用相对E距离。"
+
+#~ msgid "Flow Rate Calibration"
+#~ msgstr "流量比例校准"
+
+#~ msgid "Max Volumetric Speed Calibration"
+#~ msgstr "最大体积速度校准"
+
+#~ msgid "Manage Result"
+#~ msgstr "管理结果"
+
+#~ msgid "Manual Calibration"
+#~ msgstr "手动校准"
+
+#~ msgid "Result can be read by human eyes."
+#~ msgstr "结果可由人眼读取。"
+
+#~ msgid "Auto-Calibration"
+#~ msgstr "自动校准"
+
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "我们将使用激光雷达来读取校准结果。"
+
+#~ msgid "Prev"
+#~ msgstr "上一个"
+
+#~ msgid "Recalibration"
+#~ msgstr "重新校准"
+
+#~ msgid "Calibrate"
+#~ msgstr "校准"
+
+#~ msgid "Wiki"
+#~ msgstr "Wiki"
+
+#~ msgid "How to use calibration result?"
+#~ msgstr "如何使用校准结果？"
+
+#~ msgid ""
+#~ "You could change the Flow Dynamics Calibration Factor in material editing"
+#~ msgstr "您可以在材料编辑中更改流量动态校准因子。"
+
+#~ msgid ""
+#~ "The current firmware version of the printer does not support "
+#~ "calibration.\n"
+#~ "Please upgrade the printer firmware."
+#~ msgstr ""
+#~ "打印机当前的固件版本不支持校准。\n"
+#~ "请升级打印机固件。"
+
+#~ msgid "Calibration not supported"
+#~ msgstr "不支持校准"
+
+#~ msgid "Flow Dynamics"
+#~ msgstr "动态流量"
+
+#~ msgid "Flow Rate"
+#~ msgstr "流量比例"
+
+#~ msgid "Max Volumetric Speed"
+#~ msgstr "最大容积速度"
+
+#~ msgid "Please enter the name you want to save to printer."
+#~ msgstr "请输入要保存到打印机的名称。"
+
+#~ msgid "The name cannot exceed 40 characters."
+#~ msgstr "名称不能超过40个字符。"
+
+#, boost-format
+#~ msgid "The selected preset: %1% is not found."
+#~ msgstr "未找到选定的预设：%1%。"
+
+#~ msgid "The name cannot be the same as the system preset name."
+#~ msgstr "名称不能与系统预设名称相同。"
+
+#~ msgid "The name is the same as another existing preset name"
+#~ msgstr "该名称与另一个现有预设名称相同。"
+
+#~ msgid "create new preset failed."
+#~ msgstr "创建新预设失败"
+
+#~ msgid ""
+#~ "Are you sure to cancel the current calibration and return to the home "
+#~ "page?"
+#~ msgstr "您确定要取消当前的校准并返回主页吗？"
+
+#~ msgid "No Printer Connected!"
+#~ msgstr "没有连接打印机！"
+
+#~ msgid "Printer is not connected yet."
+#~ msgstr "打印机尚未连接。"
+
+#~ msgid "Please select filament to calibrate."
+#~ msgstr "请选择要校准的耗材丝。"
+
+#~ msgid "Connecting to printer..."
+#~ msgstr "正在连接打印机..."
+
+#~ msgid "The failed test result has been droped."
+#~ msgstr "测试失败的结果已被删除。"
+
+#~ msgid "Flow Dynamics Calibration result has been saved to the printer"
+#~ msgstr "动态流量校准的结果已保存至打印机。"
+
+#~ msgid "Internal Error"
+#~ msgstr "内部错误"
+
+#~ msgid "Please select at least one filament for calibration"
+#~ msgstr "请至少选择一种材料进行校准。"
+
+#~ msgid "Flow rate calibration result has been saved to preset"
+#~ msgstr "流量比例校准结果已保存到预设"
+
+#~ msgid "The input value size must be 3."
+#~ msgstr "输入值大小必须为3。"
+
+#~ msgid "Max volumetric speed calibration result has been saved to preset"
+#~ msgstr "最大体积速度校准结果已保存到预设值"
+
+#~ msgid "When do you need Flow Dynamics Calibration"
+#~ msgstr "在什么情况下需要进行动态流量校准"
+
+#~ msgid ""
+#~ "We now have added the auto-calibration for different filaments, which is "
+#~ "fully automated and the result will be saved into the printer for future "
+#~ "use. You only need to do the calibration in the following limited cases:\n"
+#~ "1. If you introduce a new filament of different brands/models or the "
+#~ "filament is damp;\n"
+#~ "2. if the nozzle is worn out or replaced with a new one;\n"
+#~ "3. If the max volumetric speed or print temperature is changed in the "
+#~ "filament setting."
+#~ msgstr ""
+#~ "我们现在已经为不同的打印材料添加了自动校准功能，该功能是完全自动化的，并且"
+#~ "结果将保存在打印机中以供将来使用。您只需要在以下有限情况下进行校准：\n"
+#~ "1. 如果您引入了不同品牌/型号的新打印材料，或者打印材料受潮；\n"
+#~ "2. 如果喷嘴磨损或更换了新的喷嘴；\n"
+#~ "3. 如果您在打印材料设置中更改了最大体积速度或打印温度。"
+
+#~ msgid "About this calibration"
+#~ msgstr "关于此校准"
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "请从我们的wiki中找到流量动态校准的详细信息。\n"
+#~ "\n"
+#~ "通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾"
+#~ "选了“流量动态校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始"
+#~ "多色/多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情"
+#~ "况下会产生良好的效果。\n"
+#~ "\n"
+#~ "请注意，有几种情况会导致校准结果不可靠：使用纹理板进行校准；建模平台粘附效"
+#~ "果不好（请清洗建模平台或涂抹胶棒）... 您可以在我们的wiki中找到更多信息。\n"
+#~ "\n"
+#~ "在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。"
+#~ "我们仍在调查根本原因，并通过新的更新进行改进。"
+
+#~ msgid "When to use Flow Rate Calibration"
+#~ msgstr "何时使用流量率校准"
+
+#~ msgid ""
+#~ "After using Flow Dynamics Calibration, there might still be some "
+#~ "extrusion issues, such as:\n"
+#~ "1. Over-Extrusion: Excess material on your printed object, forming blobs "
+#~ "or zits, or the layers seem thicker than expected and not uniform.\n"
+#~ "2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in "
+#~ "the top layer of the model, even when printing slowly.\n"
+#~ "3. Poor Surface Quality: The surface of your prints seems rough or "
+#~ "uneven.\n"
+#~ "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy "
+#~ "as they should be."
+#~ msgstr ""
+#~ "使用流量动态校准后，仍可能出现一些挤出问题，例如：\n"
+#~ "1. 过度挤出：打印物体上有过多的材料，形成凸起或小球，或者层次看起来比预期"
+#~ "的厚而且不均匀。\n"
+#~ "2. 不足挤出：层次非常薄，填充强度不足，或者在缓慢打印时模型顶层有缺陷。\n"
+#~ "3. 表面质量差：打印的表面看起来粗糙或不均匀。\n"
+#~ "4. 结构稳固性差：打印件容易断裂，或者没有应有的稳固性。"
+
+#~ msgid ""
+#~ "In addition, Flow Rate Calibration is crucial for foaming materials like "
+#~ "LW-PLA used in RC planes. These materials expand greatly when heated, and "
+#~ "calibration provides a useful reference flow rate."
+#~ msgstr ""
+#~ "此外，对于像用于遥控飞机的轻质发泡PLA（LW-PLA）这样的发泡材料，流量率校准"
+#~ "非常重要。这些材料在加热时会大幅膨胀，而校准提供了有用的流量率参考。"
+
+#~ msgid ""
+#~ "Flow Rate Calibration measures the ratio of expected to actual extrusion "
+#~ "volumes. The default setting works well in Bambu Lab printers and "
+#~ "official filaments as they were pre-calibrated and fine-tuned. For a "
+#~ "regular filament, you usually won't need to perform a Flow Rate "
+#~ "Calibration unless you still see the listed defects after you have done "
+#~ "other calibrations. For more details, please check out the wiki article."
+#~ msgstr ""
+#~ "流量率校准测量预期挤出体积与实际挤出体积之间的比率。默认设置在Bambu Lab打"
+#~ "印机和官方材料上表现良好，因为它们已经进行了预先校准和微调。对于普通的材"
+#~ "料，通常情况下，您不需要执行流量率校准，除非在完成其他校准后仍然看到上述列"
+#~ "出的缺陷。如需更多详细信息，请查阅wiki文章。"
+
+#~ msgid ""
+#~ "Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
+#~ "directly measuring the calibration patterns. However, please be advised "
+#~ "that the efficacy and accuracy of this method may be compromised with "
+#~ "specific types of materials. Particularly, filaments that are transparent "
+#~ "or semi-transparent, sparkling-particled, or have a high-reflective "
+#~ "finish may not be suitable for this calibration and can produce less-than-"
+#~ "desirable results.\n"
+#~ "\n"
+#~ "The calibration results may vary between each calibration or filament. We "
+#~ "are still improving the accuracy and compatibility of this calibration "
+#~ "through firmware updates over time.\n"
+#~ "\n"
+#~ "Caution: Flow Rate Calibration is an advanced process, to be attempted "
+#~ "only by those who fully understand its purpose and implications. "
+#~ "Incorrect usage can lead to sub-par prints or printer damage. Please make "
+#~ "sure to carefully read and understand the process before doing it."
+#~ msgstr ""
+#~ "自动流量率校准采用Bambu Lab的微型激光雷达技术，直接测量校准图案。然而，请"
+#~ "注意，这种方法的功效和准确性可能会因特定类型的材料而受影响。特别是透明或半"
+#~ "透明、带有闪光颗粒或具有高反射表面的材料可能不适合这种校准，并可能产生不理"
+#~ "想的结果。\n"
+#~ "\n"
+#~ "校准结果可能因每次校准或材料的不同而有所不同。我们仍在通过固件更新不断提高"
+#~ "这种校准的准确性和兼容性。\n"
+#~ "\n"
+#~ "注意：流量率校准是一项高级的过程，只有完全理解其目的和影响的人才应尝试。错"
+#~ "误的使用可能导致打印质量不佳或损坏打印机。请确保在执行之前仔细阅读和理解此"
+#~ "过程。"
+
+#~ msgid "When you need Max Volumetric Speed Calibration"
+#~ msgstr "当您需要最大体积速度校准时"
+
+#~ msgid "Over-extrusion or under extrusion"
+#~ msgstr "过度挤压或挤压不足"
+
+#~ msgid "Max Volumetric Speed calibration is recommended when you print with:"
+#~ msgstr "使用以下选项打印时，建议进行最大体积速度校准："
+
+#~ msgid "material with significant thermal shrinkage/expansion, such as..."
+#~ msgstr "具有显著热收缩/膨胀的材料，例如..."
+
+#~ msgid "materials with inaccurate filament diameter"
+#~ msgstr "耗材直径不准确的材料"
+
+#~ msgid "We found the best Flow Dynamics Calibration Factor"
+#~ msgstr "我们找到了最佳的流量动态校准因子。"
+
+#~ msgid ""
+#~ "Part of the calibration failed! You may clean the plate and retry. The "
+#~ "failed test result would be droped."
+#~ msgstr "部分校准失败！您可以清洁打印平台并重试。未通过的测试结果将被丢弃。"
+
+#~ msgid ""
+#~ "*We recommend you to add brand, materia, type, and even humidity level in "
+#~ "the Name"
+#~ msgstr "*我们建议您在名称中添加品牌、材料、类型，甚至湿度水平。"
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to overrides the other results?"
+#~ msgstr "相同名称的结果只会保存一个。您确定要覆盖其他结果吗？"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "There is already a historical calibration result with the same name: %s. "
+#~ "Only one of the results with the same name is saved. Are you sure you "
+#~ "want to overrides the historical result?"
+#~ msgstr ""
+#~ "已经存在一个具有相同名称的历史校准结果：%s。相同名称的结果只会保存一个。您"
+#~ "确定要覆盖历史结果吗？"
+
+#~ msgid "Please find the best line on your plate"
+#~ msgstr "请在您的打印板上找到最佳线条"
+
+#~ msgid "Input Value"
+#~ msgstr "输入值"
+
+#~ msgid "Save to Filament Preset"
+#~ msgstr "保存到材料预设"
+
+#~ msgid "Preset"
+#~ msgstr "预设"
+
+#~ msgid "Record Factor"
+#~ msgstr "记录系数"
+
+#~ msgid "We found the best flow ratio for you"
+#~ msgstr "我们为您找到了最佳流量比"
+
+#~ msgid "Flow Ratio"
+#~ msgstr "流量比"
+
+#~ msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
+#~ msgstr "请输入一个有效值（0.0<流量比<2.0）"
+
+#~ msgid "Please enter the name of the preset you want to save."
+#~ msgstr "请输入要保存的预设的名称。"
+
+#~ msgid "Calibration1"
+#~ msgstr "校准1"
+
+#~ msgid "Calibration2"
+#~ msgstr "校准2"
+
+#~ msgid "Please find the best object on your plate"
+#~ msgstr "请在你的盘里找到最好的对象"
+
+#~ msgid "Fill in the value above the block with smoothest top surface"
+#~ msgstr "用最光滑的顶面填充块上方的值"
+
+#~ msgid "Skip Calibration2"
+#~ msgstr "跳过校准2"
+
+#, c-format, boost-format
+#~ msgid "flow ratio : %s "
+#~ msgstr "流量比：%s "
+
+#~ msgid "Please choose a block with smoothest top surface"
+#~ msgstr "请选择顶部表面最光滑的块"
+
+#~ msgid "Please choose a block with smoothest top surface."
+#~ msgstr "请选择顶部表面最光滑的块。"
+
+#~ msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
+#~ msgstr "请输入一个有效值（0<=最大容积速度<=60）"
+
+#~ msgid "Calibration Type"
+#~ msgstr "校准类型"
+
+#~ msgid "Complete Calibration"
+#~ msgstr "完整校准"
+
+#~ msgid "Fine Calibration based on flow ratio"
+#~ msgstr "基于流量比的精细校准"
+
+#~ msgid "Title"
+#~ msgstr "标题"
+
+#~ msgid ""
+#~ "A test model will be printed. Please clear the build plate and place it "
+#~ "back to the hot bed before calibration."
+#~ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并将其放回热床上。"
+
+#~ msgid "Printing Parameters"
+#~ msgstr "打印参数"
+
+#~ msgid "Plate Type"
+#~ msgstr "热床类型"
+
+#~ msgid "filament position"
+#~ msgstr "耗材丝位置"
+
+#~ msgid "External Spool"
+#~ msgstr "外部线轴"
+
+#~ msgid "Filament For Calibration"
+#~ msgstr "校准用耗材"
+
+#~ msgid ""
+#~ "Tips for calibration material: \n"
+#~ "- Materials that can share same hot bed temperature\n"
+#~ "- Different filament brand and family(Brand = Bambu, Family = Basic, "
+#~ "Matte)"
+#~ msgstr ""
+#~ "校准材料提示：\n"
+#~ "-可以共享相同热床温度的材料\n"
+#~ "-不同的耗材品牌和系列（Brand = Bambu, Family = Basic, Matte）"
+
+#~ msgid "Error desc"
+#~ msgstr "错误描述"
+
+#~ msgid "Extra info"
+#~ msgstr "额外信息"
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s"
+#~ msgstr "%s 与 %s 不兼容"
+
+#~ msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
+#~ msgstr "不支持TPU进行流量动态自动校准。"
+
+#~ msgid "Connecting to printer"
+#~ msgstr "正在连接打印机"
+
+#~ msgid "The nozzle diameter has been synchronized from the printer Settings"
+#~ msgstr "喷嘴直径已从打印机设置同步"
+
+#~ msgid "From Volumetric Speed"
+#~ msgstr "从体积速度"
+
+#~ msgid "To Volumetric Speed"
+#~ msgstr "至体积速度"
+
+#~ msgid "Flow Dynamics Calibration Result"
+#~ msgstr "动态流量校准结果"
+
+#~ msgid "No History Result"
+#~ msgstr "无历史结果"
+
+#~ msgid "Success to get history result"
+#~ msgstr "成功获取历史结果"
+
+#~ msgid "Refreshing the historical Flow Dynamics Calibration records"
+#~ msgstr "刷新历史流量动态校准记录"
+
+#~ msgid "Action"
+#~ msgstr "操作"
+
+#~ msgid "Edit Flow Dynamics Calibration"
+#~ msgstr "编辑动态流量校准"
+
+#~ msgid ""
+#~ "Subtract a Part\n"
+#~ "Did you know that you can subtract one mesh from another using the "
+#~ "Negative part modifier? That way you can, for example, create easily "
+#~ "resizable holes directly in Bambu Studio. Read more in the documentation."
+#~ msgstr ""
+#~ "减去部分几何体\n"
+#~ "您知道吗，您可以使用负零件从另一个几何体中减去另一个几何体。例如，可以直接"
+#~ "在Bambu Studio中创建可轻松调整大小的孔。"
+
+#~ msgid ""
+#~ "STEP\n"
+#~ "Did you know that you can improve your print quality by slicing a STEP "
+#~ "file instead of an STL?\n"
+#~ "Bambu Studio supports slicing STEP files, providing smoother results than "
+#~ "a lower resolution STL. Give it a try!"
+#~ msgstr ""
+#~ "STEP文件\n"
+#~ "您知道吗，通过切片STEP文件而不是STL文件可以提高打印质量。\n"
+#~ "Bambu Studio支持切片STEP文件，提供比低分辨率STL更平滑的结果。试试看！"
 
 #~ msgid "ERROR:"
 #~ msgstr "错误："
@@ -10843,84 +10875,8 @@ msgstr ""
 #~ msgstr "螺旋抬Z"
 
 #~ msgid ""
-#~ "The configuration may be generated by a newer version of BambuStudio."
-#~ msgstr "此配置可能由新版本的逆戟鲸生成。"
-
-#~ msgid ""
-#~ "OrcaSlicer will terminate because of running out of memory.It may be a "
-#~ "bug. It will be appreciated if you report the issue to our team."
-#~ msgstr ""
-#~ "系统内存耗尽，逆戟鲸即将终止运行。这可能是个缺陷，希望您可以报告此问题，我"
-#~ "们将非常感激。"
-
-#~ msgid ""
-#~ "OrcaSlicer will terminate because of a localization error. It will be "
-#~ "appreciated if you report the specific scenario this issue happened."
-#~ msgstr ""
-#~ "遇到本地化错误，逆戟鲸即将终止运行。希望您可以报告发生此问题的具体场景，我"
-#~ "们将非常感激。"
-
-#, boost-format
-#~ msgid "BambuStudio got an unhandled exception: %1%"
-#~ msgstr "逆戟鲸捕捉到一个未处理的异常：%1%"
-
-#~ msgid ""
-#~ "BambuStudio configuration file may be corrupted and is not abled to be "
-#~ "parsed.Please delete the file and try again."
-#~ msgstr "逆戟鲸配置文件可能已损坏而无法解析。请删除此文件并重新启动逆戟鲸。"
-
-#~ msgid "Loading user presets..."
-#~ msgstr "正在加载用户预设..."
-
-#~ msgid ""
-#~ "Orca Slicer is based on PrusaSlicer by Prusa Research, which is from "
-#~ "Slic3r by Alessandro Ranellucci and the RepRap community"
-#~ msgstr ""
-#~ "逆戟鲸是基于拓竹的BambuStudio和Prusa Research的PrusaSlicer开发的，而"
-#~ "PrusaSlicer是基于来自Alessandro Ranellucci和RepRap社区的Slic3r开发的"
-
-#~ msgid ""
-#~ "Orca Slicer is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
-#~ "Merill(supermerill)."
-#~ msgstr ""
-#~ "逆戟鲸是以PrusaResearch的PrusaSlicer和Merill(supermerill)的SuperSlicer为基"
-#~ "础的。"
-
-#~ msgid "Orca Slicer also referenced some ideas from Cura by Ultimaker."
-#~ msgstr "逆戟鲸还参考了Ultimaker的Cura中的一些想法。"
-
-#~ msgid ""
-#~ "There many parts of the software that come from community contributions, "
-#~ "so we're unable to list them one-by-one, and instead, they'll be "
-#~ "attributed in the corresponding code comments."
-#~ msgstr ""
-#~ "软件中有很多部分来自于社区贡献，因此我们不便逐一列出他们，作为替代，他们将"
-#~ "在相应的代码注释中被介绍。"
-
-#~ msgid ""
-#~ "Green means that AMS humidity is normal, orange represent humidity is "
-#~ "high, red represent humidity is too high.(Hygrometer: lower the better, "
-#~ "The bars: higher the better)"
-#~ msgstr "绿色表示 AMS 湿度正常，橙色和红色表示湿度过高（湿度条越低越好）"
-
-#~ msgid ""
-#~ "A desiccant status lower than two bars indicates that desiccant may be "
-#~ "inactive. Please change the desiccant. (Higher is better)"
-#~ msgstr ""
-#~ "干燥剂状态低于两格表示干燥剂可能不活跃。请更换干燥剂。(格数越高越好)"
-
-#~ msgid ""
 #~ " will be closed before creating a new model. Do you want to continue?"
 #~ msgstr "将会被关闭以创建新模型。是否继续？"
-
-#~ msgid ""
-#~ "Another virtual camera is running.\n"
-#~ "Orca Slicer supports only a single virtual camera.\n"
-#~ "Do you want to stop this virtual camera?"
-#~ msgstr ""
-#~ "另一个虚拟摄像头正在工作。\n"
-#~ "Orca Slicer 同时只能支持一个虚拟摄像头。\n"
-#~ "是否停止前一个虚拟摄像头？"
 
 #~ msgid "Clean"
 #~ msgstr "清除"
@@ -12923,7 +12879,7 @@ msgstr ""
 #~ msgid "click download new version in default browser: %s"
 #~ msgstr "在浏览器中下载最新版本: %s"
 
-#~ msgid "New Version of BambuStudio"
+#~ msgid "New Version of OrcaSlicer"
 #~ msgstr "新版本的逆戟鲸"
 
 #~ msgid "Switching Presets: Unsaved Changes"
@@ -13638,10 +13594,10 @@ msgstr ""
 #~ msgid "Report Bug(TODO)"
 #~ msgstr "Bug报告"
 
-#~ msgid "Report a bug of BambuStudio"
+#~ msgid "Report a bug of OrcaSlicer"
 #~ msgstr "报告逆戟鲸的Bug"
 
-#~ msgid "Open BambuStudio"
+#~ msgid "Open OrcaSlicer"
 #~ msgstr "打开逆戟鲸"
 
 #~ msgid "Export AMF file:"
@@ -13694,7 +13650,7 @@ msgstr ""
 #~ msgid "Open G-code Viewer"
 #~ msgstr "打开G-code Viewer"
 
-#~ msgid "Open a new BambuStudio"
+#~ msgid "Open a new OrcaSlicer"
 #~ msgstr "打开逆戟鲸"
 
 #~ msgid "Open new G-code Viewer"
@@ -15185,10 +15141,10 @@ msgstr ""
 
 #~ msgid ""
 #~ "There are some unknown filaments mapped to generic preset. Please update "
-#~ "Orca Slicer or restart Orca Slicer to check if there is an update to "
+#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
 #~ "system presets."
 #~ msgstr ""
-#~ "有一些未知型号的材料，映射到通用预设。请更新或者重启 Orca Slicer，以检查"
+#~ "有一些未知型号的材料，映射到通用预设。请更新或者重启 Bambu Studio，以检查"
 #~ "系统预设有没有更新。"
 
 #~ msgid ""
@@ -15254,6 +15210,9 @@ msgstr ""
 #~ msgid "Layer Time (log) (s)"
 #~ msgstr "层时间（log）（s）"
 
+#~ msgid "Loading user presets..."
+#~ msgstr "正在加载用户预设..."
+
 #~ msgid ""
 #~ "If enabled, Studio will generate support loops under the contours of "
 #~ "internal bridges.These support loops could prevent internal bridges from "
@@ -15269,13 +15228,25 @@ msgstr ""
 #~ msgstr "擦料塔"
 
 #~ msgid "Associate .step files to BambuStudio"
-#~ msgstr "使用Orca Slicer打开.step文件"
+#~ msgstr "使用Bambu Studio打开.step文件"
 
-#~ msgid "Orca Slicer initialization failed"
-#~ msgstr "Orca Slicer初始化失败"
+#~ msgid "Bambu Studio initialization failed"
+#~ msgstr "Bambu Studio初始化失败"
+
+#~ msgid "New Version of BambuStudio"
+#~ msgstr "新版本的BambuStudio"
 
 #~ msgid "Blacklisted libraries loaded into BambuStudio process:"
 #~ msgstr "已加载黑名单库到BambuStudio进程中:"
+
+#~ msgid "Report a bug of BambuStudio"
+#~ msgstr "报告BambuStudio的Bug"
+
+#~ msgid "Open BambuStudio"
+#~ msgstr "打开BambuStudio"
+
+#~ msgid "Open a new BambuStudio"
+#~ msgstr "打开BambuStudio"
 
 #~ msgid ""
 #~ "Most likely the configuration was produced by a newer version of "
