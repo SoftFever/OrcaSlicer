@@ -1452,7 +1452,12 @@ wxMenu* MenuFactory::assemble_part_menu()
 
 void MenuFactory::append_menu_item_clone(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Clone") , "",
+#ifdef __APPLE__
+    static const wxString ctrl = ("Ctrl+");
+#else
+    static const wxString ctrl = _L("Ctrl+");
+#endif
+    append_menu_item(menu, wxID_ANY, _L("Clone") + "\t" + ctrl + "Q", "",
         [this](wxCommandEvent&) {
             plater()->clone_selection();
         }, "", nullptr,
