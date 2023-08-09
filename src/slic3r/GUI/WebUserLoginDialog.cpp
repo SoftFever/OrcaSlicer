@@ -57,67 +57,94 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     // Url
     AppConfig * config   = wxGetApp().app_config;
     NetworkAgent* agent = wxGetApp().getAgent();
-    if (!agent) return;
-    std::string host_url = agent->get_bambulab_host();
-    TargetUrl = host_url + "/sign-in";
-    m_networkOk = false;
+    if (!agent) {
+        std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+        SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-    std::string strlang = config->get("language");
-    if (strlang != "") {
-        replace_str(strlang, "_", "-");
-        TargetUrl = host_url + "/" + strlang + "/sign-in";
+        SetBackgroundColour(*wxWHITE);
+
+        wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
+        auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+        m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+        m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+
+        auto* m_message = new wxStaticText(this, wxID_ANY, _L("Bambu Network plug-in not detected."), wxDefaultPosition, wxDefaultSize, 0);
+        m_message->SetForegroundColour(*wxBLACK);
+        m_message->Wrap(FromDIP(360));
+
+        auto m_download_hyperlink = new wxHyperlinkCtrl(this, wxID_ANY, _L("Click here to download it."), wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+        m_download_hyperlink->Bind(wxEVT_HYPERLINK, [this](wxCommandEvent& event) {
+            this->Close();
+            wxGetApp().ShowDownNetPluginDlg();
+            });
+        m_sizer_main->Add(m_message, 0, wxALIGN_CENTER | wxALL, FromDIP(15));
+        m_sizer_main->Add(m_download_hyperlink, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
+        m_sizer_main->Add(0, 0, 1, wxBOTTOM, 10);
+
+        SetSizer(m_sizer_main);
+        m_sizer_main->SetSizeHints(this);
+        Layout();
+        Fit();
+        CentreOnParent();
     }
+    else {
+        std::string host_url = agent->get_bambulab_host();
+        TargetUrl = host_url + "/sign-in";
+        m_networkOk = false;
 
-    BOOST_LOG_TRIVIAL(info) << "login url = " << TargetUrl.ToStdString();
+        std::string strlang = config->get("language");
+        if (strlang != "") {
+            replace_str(strlang, "_", "-");
+            TargetUrl = host_url + "/" + strlang + "/sign-in";
+        }
 
-    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
+        BOOST_LOG_TRIVIAL(info) << "login url = " << TargetUrl.ToStdString();
 
-    // set the frame icon
+        m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
-    // Create the webview
-    m_browser = WebView::CreateWebView(this, TargetUrl);
-    if (m_browser == nullptr) {
-        wxLogError("Could not init m_browser");
-        return;
+        // set the frame icon
+
+        // Create the webview
+        m_browser = WebView::CreateWebView(this, TargetUrl);
+        if (m_browser == nullptr) {
+            wxLogError("Could not init m_browser");
+            return;
+        }
+        m_browser->Hide();
+        m_browser->SetSize(0, 0);
+
+        // Log backend information
+        // wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
+        // wxLogMessage("Backend: %s Version: %s",
+        // m_browser->GetClassInfo()->GetClassName(),wxWebView::GetBackendVersionInfo().ToString());
+        // wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
+
+        // Connect the webview events
+        Bind(wxEVT_WEBVIEW_NAVIGATING, &ZUserLogin::OnNavigationRequest, this, m_browser->GetId());
+        Bind(wxEVT_WEBVIEW_NAVIGATED, &ZUserLogin::OnNavigationComplete, this, m_browser->GetId());
+        Bind(wxEVT_WEBVIEW_LOADED, &ZUserLogin::OnDocumentLoaded, this, m_browser->GetId());
+        Bind(wxEVT_WEBVIEW_ERROR, &ZUserLogin::OnError, this, m_browser->GetId());
+        Bind(wxEVT_WEBVIEW_NEWWINDOW, &ZUserLogin::OnNewWindow, this, m_browser->GetId());
+        Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &ZUserLogin::OnTitleChanged, this, m_browser->GetId());
+        Bind(wxEVT_WEBVIEW_FULLSCREEN_CHANGED, &ZUserLogin::OnFullScreenChanged, this, m_browser->GetId());
+        Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &ZUserLogin::OnScriptMessage, this, m_browser->GetId());
+
+        // Connect the idle events
+        // Bind(wxEVT_IDLE, &ZUserLogin::OnIdle, this);
+        // Bind(wxEVT_CLOSE_WINDOW, &ZUserLogin::OnClose, this);
+
+        // UI
+        SetTitle(_L("Login"));
+        // Set a more sensible size for web browsing
+        wxSize pSize = FromDIP(wxSize(650, 840));
+        SetSize(pSize);
+
+        int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
+        int screenwidth = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
+        int MaxY = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
+        wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
+        Move(tmpPT);
     }
-    m_browser->Hide();
-    m_browser->SetSize(0, 0);
-
-    // Log backend information
-    // wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
-    // wxLogMessage("Backend: %s Version: %s",
-    // m_browser->GetClassInfo()->GetClassName(),wxWebView::GetBackendVersionInfo().ToString());
-    // wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
-
-    // Connect the webview events
-    Bind(wxEVT_WEBVIEW_NAVIGATING, &ZUserLogin::OnNavigationRequest, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_NAVIGATED, &ZUserLogin::OnNavigationComplete, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_LOADED, &ZUserLogin::OnDocumentLoaded, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_ERROR, &ZUserLogin::OnError, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_NEWWINDOW, &ZUserLogin::OnNewWindow, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &ZUserLogin::OnTitleChanged, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_FULLSCREEN_CHANGED, &ZUserLogin::OnFullScreenChanged, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &ZUserLogin::OnScriptMessage, this, m_browser->GetId());
-
-    // Connect the idle events
-    // Bind(wxEVT_IDLE, &ZUserLogin::OnIdle, this);
-    // Bind(wxEVT_CLOSE_WINDOW, &ZUserLogin::OnClose, this);
-
-    // UI
-    SetTitle( _L("Login"));
-    // Set a more sensible size for web browsing
-    wxSize pSize = FromDIP(wxSize(650, 840));
-    SetSize(pSize);
-
-    int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
-    int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
-    int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
-    wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
-    Move(tmpPT);
-
-    //Param
-    m_AutotestToken = "";
-
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
