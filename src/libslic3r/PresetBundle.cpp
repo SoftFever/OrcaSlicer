@@ -916,7 +916,7 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     bool need_reset_print_preset = false;
     // remove preset if user_id is not current user
     for (auto it = prints.begin(); it != prints.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
+        if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":prints erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_print_name)
                 need_reset_print_preset = true;
@@ -936,7 +936,7 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     std::string selected_filament_name = filaments.get_selected_preset().name;
     bool need_reset_filament_preset = false;
     for (auto it = filaments.begin(); it != filaments.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
+        if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":filaments erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_filament_name)
                 need_reset_filament_preset = true;
