@@ -2309,7 +2309,7 @@ int CLI::run(int argc, char **argv)
                                 //skip this object due to be not in current plate, treated as locked
                                 ap.itemid = locked_aps.size();
                                 locked_aps.emplace_back(std::move(ap));
-                                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
+                                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("arrange: skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
                             }
                         }
                     }
@@ -2331,12 +2331,12 @@ int CLI::run(int argc, char **argv)
                             // slice filaments info invalid
                             std::vector<int> extruders = cur_plate->get_extruders_under_cli(true, m_print_config);
                             filaments_cnt = extruders.size();
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange: slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
                         }
 
                         if (filaments_cnt <= 1)
                         {
-                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": not a multi-color object anymore, drop the wipe tower before arrange.");
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("arrange: not a multi-color object anymore, drop the wipe tower before arrange.");
                         }
                         else
                         {
@@ -2347,7 +2347,7 @@ int CLI::run(int argc, char **argv)
 
                             float depth = v * (filaments_cnt - 1) / (layer_height * w);
 
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%")
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%")
                                 %x %y %w %depth %a %v %filaments_cnt %layer_height;
 
                             Vec3d plate_origin = cur_plate->get_origin();
@@ -2389,39 +2389,20 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.cleareance_radius                   = cleareance_radius;
                 arrange_cfg.printable_height                    = print_height;
 
-                arrange_cfg.bed_shrink_x = 0;
-                arrange_cfg.bed_shrink_y = 0;
-                double skirt_distance = m_print_config.opt_float("skirt_distance");
-                double brim_width = m_print_config.opt_float("brim_width");
-                arrange_cfg.brim_skirt_distance = skirt_distance + brim_width;
-                BOOST_LOG_TRIVIAL(info) << boost::format("Arrange Params: brim_skirt_distance=%1%, min_obj_distance=%2%, is_seq_print=%3%\n") %  arrange_cfg.brim_skirt_distance % arrange_cfg.min_obj_distance % arrange_cfg.is_seq_print;
-
-                // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
-                // So we can't do max but do adding instead.
-                arrange_cfg.bed_shrink_x += arrange_cfg.brim_skirt_distance;
-                arrange_cfg.bed_shrink_y += arrange_cfg.brim_skirt_distance;
-
-                if (arrange_cfg.is_seq_print)
-                {
-                    arrange_cfg.min_obj_distance = std::max(arrange_cfg.min_obj_distance, scaled(arrange_cfg.cleareance_radius + 0.001));
-                    float shift_dist = arrange_cfg.cleareance_radius / 2 - 5;
-                    arrange_cfg.bed_shrink_x -= shift_dist;
-                    arrange_cfg.bed_shrink_y -= shift_dist;
-                }
-                // shrink bed
-                beds[0] += Point(scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
-                beds[1] += Point(-scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
-                beds[2] += Point(-scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
-                beds[3] += Point(scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
-
-                // do not inflate brim_width. Objects are allowed to have overlapped brim.
-                std::for_each(selected.begin(), selected.end(), [&](auto& ap) {ap.inflation = arrange_cfg.min_obj_distance / 2; });
+                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
+                arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
+                beds=get_shrink_bedpts(&m_print_config, arrange_cfg);
 
                 {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("items selected before arranging: %1%")%selected.size();
-                    for (auto selected : selected)
-                        BOOST_LOG_TRIVIAL(trace) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
-                                                << ", trans: " << selected.translation.transpose();
+                    BOOST_LOG_TRIVIAL(debug)<< "Arrange full params: "<< arrange_cfg.to_json();
+                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%")%selected.size();
+                    for (auto item : selected)
+                        BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx
+                                                << ", trans: " << item.translation.transpose();
+                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
+                    for (auto item : unselected)
+                        BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
                 }
                 arrange_cfg.progressind= [](unsigned st, std::string str = "") {
                     //boost::nowide::cout << "st=" << st << ", " << str << std::endl;

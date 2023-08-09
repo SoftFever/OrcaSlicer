@@ -5295,6 +5295,17 @@ Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg)
     if (!tmp.empty()) bed_poly = tmp[0];
     return bed_poly;
 }
+bool has_skirt(const DynamicPrintConfig& cfg)
+{
+    auto opt_skirt_height = cfg.option("skirt_height");
+    auto opt_skirt_loops = cfg.option("skirt_loops");
+    auto opt_draft_shield = cfg.option("draft_shield");
+    return (opt_skirt_height && opt_skirt_height->getInt() > 0 && opt_skirt_loops && opt_skirt_loops->getInt() > 0)
+        || (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled);
+}
+float get_real_skirt_dist(const DynamicPrintConfig& cfg) {
+    return has_skirt(cfg) ? cfg.opt_float("skirt_distance") : 0;
+}
 } // namespace Slic3r
 
 #include <cereal/types/polymorphic.hpp>

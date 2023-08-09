@@ -2,7 +2,7 @@
 #define ARRANGE_HPP
 
 #include "ExPolygon.hpp"
-
+#include "PrintConfig.hpp"
 namespace Slic3r {
 
 class BoundingBox;
@@ -144,7 +144,36 @@ struct ArrangeParams {
     
     ArrangeParams() = default;
     explicit ArrangeParams(coord_t md) : min_obj_distance(md) {}
+    // to json format
+    std::string to_json() const{
+        std::string ret = "{";
+        ret += "\"min_obj_distance\":" + std::to_string(min_obj_distance) + ",";
+        ret += "\"accuracy\":" + std::to_string(accuracy) + ",";
+        ret += "\"parallel\":" + std::to_string(parallel) + ",";
+        ret += "\"allow_rotations\":" + std::to_string(allow_rotations) + ",";
+        ret += "\"do_final_align\":" + std::to_string(do_final_align) + ",";
+        ret += "\"allow_multi_materials_on_same_plate\":" + std::to_string(allow_multi_materials_on_same_plate) + ",";
+        ret += "\"avoid_extrusion_cali_region\":" + std::to_string(avoid_extrusion_cali_region) + ",";
+        ret += "\"is_seq_print\":" + std::to_string(is_seq_print) + ",";
+        ret += "\"bed_shrink_x\":" + std::to_string(bed_shrink_x) + ",";
+        ret += "\"bed_shrink_y\":" + std::to_string(bed_shrink_y) + ",";
+        ret += "\"brim_skirt_distance\":" + std::to_string(brim_skirt_distance) + ",";
+        ret += "\"clearance_height_to_rod\":" + std::to_string(clearance_height_to_rod) + ",";
+        ret += "\"clearance_height_to_lid\":" + std::to_string(clearance_height_to_lid) + ",";
+        ret += "\"cleareance_radius\":" + std::to_string(cleareance_radius) + ",";
+        ret += "\"printable_height\":" + std::to_string(printable_height) + ",";
+        return ret;
+    }
+
 };
+
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& print_cfg, const ArrangePolygons& selected);
+
+void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
+
+void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
+
+Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
 
 /**
  * \brief Arranges the input polygons.
