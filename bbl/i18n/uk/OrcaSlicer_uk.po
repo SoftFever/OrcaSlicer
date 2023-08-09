@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-31 21:29+0800\n"
+"POT-Creation-Date: 2023-08-09 11:49+0800\n"
 "PO-Revision-Date: 2023-07-27 23:15+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -866,6 +866,12 @@ msgstr "Встановити як окремий об'єкт"
 msgid "Set as individual objects"
 msgstr "Встановити як окремі об'єкти"
 
+msgid "Fill bed with copies"
+msgstr ""
+
+msgid "Fill the remaining area of bed with copies of the selected object"
+msgstr ""
+
 msgid "Printable"
 msgstr "Доступно для друку"
 
@@ -1612,6 +1618,15 @@ msgstr "Орієнтування..."
 
 msgid "Orienting"
 msgstr "Орієнтація"
+
+msgid "Filling bed "
+msgstr ""
+
+msgid "Bed filling canceled."
+msgstr ""
+
+msgid "Bed filling done."
+msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Помилка! Неможливо створити тему!"
@@ -2999,6 +3014,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "Об'єкт накладений на межу столу."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Шлях G-коду виходить за межі зони друку."
 
@@ -3013,12 +3031,6 @@ msgstr ""
 "Об'єкт знаходиться за кордоном пластини або перевищує обмеження по висоті.\n"
 "Будь ласка, вирішіть проблему, перемістивши її повністю на тарілку або з неї,"
 "і підтвердження того, що висота знаходиться в межах обсягу збирання."
-
-msgid "Jump to"
-msgstr "Перейти до"
-
-msgid "ERROR:"
-msgstr "ПОМИЛКА:"
 
 msgid "Calibration step selection"
 msgstr "Вибір кроку калібрування"
@@ -4012,6 +4024,9 @@ msgstr "Скасувати завантаження"
 msgid "Slice ok."
 msgstr "Нарізка прибл."
 
+msgid "Jump to"
+msgstr "Перейти до"
+
 msgid "Error:"
 msgstr "Помилка:"
 
@@ -4020,6 +4035,9 @@ msgstr "Попередження:"
 
 msgid "Export successfully."
 msgstr "Експорт успішно."
+
+msgid "Serious warning:"
+msgstr ""
 
 msgid " (Repair)"
 msgstr " (Ремонт)"
@@ -4542,6 +4560,11 @@ msgstr ""
 "Файл %s надіслано до пам'яті принтера та доступний для перегляду на принтері."
 
 msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -4564,6 +4587,14 @@ msgstr "Неправильний номер"
 
 msgid "Plate Settings"
 msgstr "Параметри планшета"
+
+#, boost-format
+msgid "Number of currently selected parts: %1%\n"
+msgstr ""
+
+#, boost-format
+msgid "Number of currently selected objects: %1%\n"
+msgstr ""
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5455,9 +5486,6 @@ msgstr "Рекомендований діапазон температур"
 
 msgid "Print temperature"
 msgstr "Температура друку"
-
-msgid "Chamber temperature"
-msgstr "Температура в камері"
 
 msgid "Nozzle"
 msgstr "Сопло"
@@ -6539,9 +6567,6 @@ msgstr ""
 msgid "No extrusions under current settings."
 msgstr "Немає екструзій під час поточних налаштувань."
 
-msgid "Bed temperatures for the used filaments differ significantly."
-msgstr "Температури шару для використаного філаменту значно відрізняються."
-
 msgid ""
 "Smooth mode of timelapse is not supported when \"by object\" sequence is "
 "enabled."
@@ -7060,8 +7085,8 @@ msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
 "easily"
 msgstr ""
-"Зазор між внутрішньою лінією кайми та предметом може сприяти "
-"більшелегкого зняття кайми"
+"Зазор між внутрішньою лінією кайми та предметом може сприяти більшелегкого "
+"зняття кайми"
 
 msgid "Compatible machine"
 msgstr "Сумісна машина"
@@ -7244,6 +7269,14 @@ msgstr "Малюнок нижньої поверхні"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Малюнок заповнення нижньої поверхні, а не заповнення мосту"
+
+msgid "Internal solid infill pattern"
+msgstr ""
+
+msgid ""
+"Line pattern of internal solid infill. if the detect nattow internal solid "
+"infill be enabled, the concentric pattern will be used for the small area."
+msgstr ""
 
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
@@ -7531,6 +7564,12 @@ msgstr "Ціна філаменту. Тільки для статистики"
 
 msgid "money/kg"
 msgstr "р/кг"
+
+msgid "Vendor"
+msgstr ""
+
+msgid "Vendor of filament. For show only"
+msgstr ""
 
 msgid "(Undefined)"
 msgstr "(Невизначений)"
@@ -8076,8 +8115,8 @@ msgid ""
 "Ironing is using small flow to print on same height of surface again to make "
 "flat surface more smooth. This setting controls which layer being ironed"
 msgstr ""
-"При розглажуванні використовується невеликий потік для повторного друку на тій "
-"самійвисота поверхні, щоб зробити плоску поверхню більш гладкою. Цей "
+"При розглажуванні використовується невеликий потік для повторного друку на "
+"тій самійвисота поверхні, щоб зробити плоску поверхню більш гладкою. Цей "
 "параметр визначає, який шар гладити"
 
 msgid "No ironing"
@@ -8091,6 +8130,9 @@ msgstr "Найвища поверхня"
 
 msgid "All solid layer"
 msgstr "Весь суцільний шар"
+
+msgid "Ironing Pattern"
+msgstr ""
 
 msgid "Ironing flow"
 msgstr "Плавний потік"
@@ -8691,7 +8733,9 @@ msgid "Skirt speed"
 msgstr "Швидкість спідниці"
 
 msgid "Speed of skirt, in mm/s. Zero means use default layer extrusion speed."
-msgstr "Швидкість спідниці, у мм/с. Нуль означає використання стандартної швидкості екструзії шару."
+msgstr ""
+"Швидкість спідниці, у мм/с. Нуль означає використання стандартної швидкості "
+"екструзії шару."
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated "
@@ -8852,6 +8896,12 @@ msgid ""
 msgstr ""
 "Створювати підтримку тільки для критичних областей, включаючи гострий хвіст,"
 "консоль і т.д."
+
+msgid "Remove small overhangs"
+msgstr ""
+
+msgid "Remove small overhangs that possibly need no supports."
+msgstr ""
 
 msgid "Top Z distance"
 msgstr "Верхня відстань Z"
@@ -9081,6 +9131,9 @@ msgid ""
 msgstr ""
 "Цей параметр визначає, чи слід додавати заповнення всередині "
 "великихПорожнини підтримки дерева"
+
+msgid "Chamber temperature"
+msgstr "Температура в камері"
 
 msgid "Target chamber temperature"
 msgstr "Температура цільової камери"
@@ -9429,6 +9482,12 @@ msgstr "Завантажити дані про нарізку"
 msgid "Load cached slicing data from directory"
 msgstr "Завантажити кешовані дані нарізки з каталогу"
 
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as multiple STL."
+msgstr ""
+
 msgid "Slice"
 msgstr "Нарізка"
 
@@ -9443,6 +9502,12 @@ msgstr "До цього часу"
 
 msgid "Update the configs values of 3mf to latest."
 msgstr "Оновіть значення конфігурації 3mf до останніх."
+
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -9493,6 +9558,12 @@ msgstr "Упорядкувати параметри"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Параметри упорядкування: 0-disable, 1-enable, інші-auto"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Перетворити одиницю виміру"
 
@@ -9522,6 +9593,14 @@ msgstr "Пропустити об'єкти"
 
 msgid "Skip some objects in this print"
 msgstr "Пропустити деякі об'єкти в цьому принті"
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
 
 msgid "Data directory"
 msgstr "Каталог даних"
@@ -9646,6 +9725,159 @@ msgstr "Підтримка: фіксація отворів на шарі %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Підтримка: розповсюдження гілок на шарі %d"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+
+msgid "Loading of a model file failed."
+msgstr ""
+
+msgid "The supplied file couldn't be read because it's empty"
+msgstr ""
+
+msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
+msgstr ""
+
+msgid "Canceled"
+msgstr ""
+
+msgid "load_obj: failed to parse"
+msgstr ""
+
+msgid "The file contains polygons with more than 4 vertices."
+msgstr ""
+
+msgid "The file contains polygons with less than 2 vertices."
+msgstr ""
+
+msgid "The file contains invalid vertex index."
+msgstr ""
+
+msgid "This OBJ file couldn't be read because it's empty."
+msgstr ""
+
+msgid "Network lookup"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Service name"
+msgstr ""
+
+msgid "OctoPrint version"
+msgstr ""
+
+msgid "Searching for devices"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Unable to perform boolean operation on selected parts"
+msgstr ""
+
+msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Union"
+msgstr ""
+
+msgid "Difference"
+msgstr ""
+
+msgid "Intersection"
+msgstr ""
+
+msgid "Source Volume"
+msgstr ""
+
+msgid "Tool Volume"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "Part 1"
+msgstr ""
+
+msgid "Subtract from"
+msgstr ""
+
+msgid "Part 2"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
+msgid "Delete input"
+msgstr ""
+
+msgid "Send to print"
+msgstr ""
+
+msgid "Upload to Printer Host with the following filename:"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+msgstr ""
+
+msgid "Upload"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr ""
+
+msgid "Simulate"
+msgstr ""
+
+msgid "Print host upload queue"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgctxt "OfFile"
+msgid "Size"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Error Message"
+msgstr ""
+
+msgid "Cancel selected"
+msgstr ""
+
+msgid "Show error message"
+msgstr ""
+
+msgid "Enqueued"
+msgstr ""
+
+msgid "Uploading"
+msgstr ""
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Error uploading to print host:"
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "РА Калібрування"
@@ -9835,6 +10067,276 @@ msgstr ""
 msgid "Connection to printers connected via the print host failed."
 msgstr "Не вдалося підключитися до принтерів, підключених через вузол друку."
 
+#: resources/data/hints.ini: [hint:3D Scene Operations]
+msgid ""
+"3D Scene Operations\n"
+"Did you know how to control view and object/part selection with mouse and "
+"touchpanel in the 3D scene?"
+msgstr ""
+"Операції з 3D сценами\n"
+"Чи знаєте ви, як керувати видом та вибором об'єкта/деталі за допомогою миші "
+"та Сенсорна панель у 3D сцені?"
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+"Інструмент вирізування\n"
+"Чи знаєте ви, що можна вирізати модель під будь-яким кутом і в будь-якому "
+"положенніза допомогою різального інструмента?"
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems?"
+msgstr ""
+"Виправити модель\n"
+"Чи знаєте ви, що ви можете виправити пошкоджену 3D-модель, щоб "
+"уникнутивеликої кількості проблем із нарізкою?"
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+"Таймлапс\n"
+"Чи знаєте ви, що ви можете генерувати відео під час кожного друку?"
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+"Авторозбудова\n"
+"Чи знаєте ви, що можна автоматично впорядкувати всі об'єкти в проекті?"
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+"Автоорієнтація\n"
+"Чи знаєте ви, що можна повертати об'єкти в оптимальну орієнтацію для друку "
+"простим клацанням?"
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+"Покласти на обличчя\n"
+"Чи знаєте ви, що ви можете швидко зорієнтувати модель так, щоб одна з її "
+"граней лежала на столі? Виберіть функцію «Розмістити на межі» або натисніть "
+"клавішу < b > F </b >."
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+"Список об'єктів\n"
+"Чи знаєте ви, що можна переглядати всі об'єкти/деталі у списку та змінювати "
+"Параметри для кожного об'єкта/деталі?"
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model. Read "
+"more in the documentation."
+msgstr ""
+"Спрощення моделі\n"
+"Чи знаєте ви, що можна зменшити кількість трикутників у мережі за допомогою "
+"Елемент Спростити мережу (Simplify mesh)? Клацніть модель правою кнопкою "
+"миші і виберіть «Спростити модель». Додаткову інформацію наведено в "
+"документації."
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+"Таблиця параметрів зрізу\n"
+"Чи знаєте ви, що можна переглядати всі об'єкти/деталі в таблиці та змінювати "
+"налаштування для кожного об'єкта/деталі?"
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+"Розділити на об'єкти/деталі\n"
+"Чи знаєте ви, що ви можете розділити великий об'єкт на маленькі для "
+"легкоїзабарвлення чи друку?"
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Orca Slicer. Read more in the documentation."
+msgstr ""
+"Відняти деталь\n"
+"Чи знаєте ви, що можна віднімати одну мережу з іншої за допомогою "
+"модифікаторанегативної деталі? Таким чином можна, наприклад, створити "
+"легкоотвори, що змінюються безпосередньо в Orca Slicer. Додаткова інформацію "
+"наведено в документації."
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Orca Slicer supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+"STEP\n"
+"Чи знаєте ви, що ви можете покращити якість друку, нарізавши файл "
+"STEPзамість STL?\n"
+"Orca Slicer підтримує нарізання файлів STEP, забезпечуючи більш "
+"плавнірезультати порівняно з нижчою роздільною здатністю STL. Спробуй!"
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+"Тонке налаштування витрати\n"
+"Чи знаєте ви, що швидкість потоку може бути точно налаштована для навіть "
+"більшекрасивих відбитків? Залежно від матеріалу можна покращити загальне "
+"оздобленнядрукарської моделі, виконавши деяке тонке налаштування."
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+"Розбийте відбитки на пластини\n"
+"Чи знаєте ви, що можна розділити модель з великою кількістю деталей на "
+"окремі столи, готові до друку? Це спростить процес відстеження всіхдеталей."
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+"Прискорення друку за допомогою функції «Адаптивна висота шару»\n"
+"Чи знаєте ви, що можна друкувати модель ще швидше за допомогою параметра "
+"«Адаптивна висота шару»? Подивися!"
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+"Опорне забарвлення\n"
+"Ти знав, що можеш намалювати розташування своїх опор? Ця функція "
+"спрощуєрозміщення матеріалу опори тільки на тих перерізах моделі, які в "
+"цьомупотребують."
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+"Різні типи опор\n"
+"Чи знаєте ви, що можна вибрати один із кількох типів опор? Підтримка Tree "
+"відмінно працює для органічних моделей, зберігаючи при цьому ниткинапруження "
+"і підвищуючи швидкість друку. Перевірте їх!"
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+"Друк шовковим філаментом\n"
+"Чи знаєте ви, що шовковий іламент потребує особливої уваги, щоб її Успішно "
+"надрукувати? Для досягнення найкращих результатів завждирекомендується більш "
+"висока температура та нижча швидкість."
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+"Кайма для кращої адгезії\n"
+"Чи знаєте ви, що коли моделі друку мають невеликий контактний інтерфейс з "
+"Поверхня друку, рекомендується використовувати Кайму?"
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
+"Встановлення параметрів для кількох об'єктів\n"
+"Чи знаєте ви, що можна встановити параметри нарізки для всіх "
+"вибранихоб'єктів одночасно?"
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Stack objects\n"
+"Did you know that you can stack objects as a whole one?"
+msgstr ""
+"Об'єкти стека\n"
+"Ви знали, що можете складати об'єкти?"
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+"Урівень з опорою/об'єктами/заповненням\n"
+"Чи знаєте ви, що ви можете зберегти втрачені нитки, промиваючи їх в опору/"
+"об'єкти/заповнення під час зміни нитки?"
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
+msgstr ""
+"Підвищення міцності\n"
+"Чи знаєте ви, що для підвищення міцності моделі можна використовувати "
+"більшепериметрів та вищу щільність заповнення?"
+
+#~ msgid "ERROR:"
+#~ msgstr "ПОМИЛКА:"
+
+#~ msgid "Bed temperatures for the used filaments differ significantly."
+#~ msgstr "Температури шару для використаного філаменту значно відрізняються."
+
 #~ msgid "Line width of outer wall"
 #~ msgstr "Ширина лінії зовнішнього периметра"
 
@@ -9959,131 +10461,6 @@ msgstr "Не вдалося підключитися до принтерів, п
 #~ "ширинипериметра. Він виражається у відсотках від діаметра сопла"
 
 #~ msgid ""
-#~ "3D Scene Operations\n"
-#~ "Did you know how to control view and object/part selection with mouse and "
-#~ "touchpanel in the 3D scene?"
-#~ msgstr ""
-#~ "Операції з 3D сценами\n"
-#~ "Чи знаєте ви, як керувати видом та вибором об'єкта/деталі за допомогою "
-#~ "миші та Сенсорна панель у 3D сцені?"
-
-#~ msgid ""
-#~ "Cut Tool\n"
-#~ "Did you know that you can cut a model at any angle and position with the "
-#~ "cutting tool?"
-#~ msgstr ""
-#~ "Інструмент вирізування\n"
-#~ "Чи знаєте ви, що можна вирізати модель під будь-яким кутом і в будь-якому "
-#~ "положенніза допомогою різального інструмента?"
-
-#~ msgid ""
-#~ "Fix Model\n"
-#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
-#~ "slicing problems?"
-#~ msgstr ""
-#~ "Виправити модель\n"
-#~ "Чи знаєте ви, що ви можете виправити пошкоджену 3D-модель, щоб "
-#~ "уникнутивеликої кількості проблем із нарізкою?"
-
-#~ msgid ""
-#~ "Timelapse\n"
-#~ "Did you know that you can generate a timelapse video during each print?"
-#~ msgstr ""
-#~ "Таймлапс\n"
-#~ "Чи знаєте ви, що ви можете генерувати відео під час кожного друку?"
-
-#~ msgid ""
-#~ "Auto-Arrange\n"
-#~ "Did you know that you can auto-arrange all objects in your project?"
-#~ msgstr ""
-#~ "Авторозбудова\n"
-#~ "Чи знаєте ви, що можна автоматично впорядкувати всі об'єкти в проекті?"
-
-#~ msgid ""
-#~ "Auto-Orient\n"
-#~ "Did you know that you can rotate objects to an optimal orientation for "
-#~ "printing by a simple click?"
-#~ msgstr ""
-#~ "Автоорієнтація\n"
-#~ "Чи знаєте ви, що можна повертати об'єкти в оптимальну орієнтацію для "
-#~ "друку простим клацанням?"
-
-#~ msgid ""
-#~ "Lay on Face\n"
-#~ "Did you know that you can quickly orient a model so that one of its faces "
-#~ "sits on the print bed? Select the \"Place on face\" function or press the "
-#~ "<b>F</b> key."
-#~ msgstr ""
-#~ "Покласти на обличчя\n"
-#~ "Чи знаєте ви, що ви можете швидко зорієнтувати модель так, щоб одна з її "
-#~ "граней лежала на столі? Виберіть функцію «Розмістити на межі» або "
-#~ "натисніть клавішу < b > F </b >."
-
-#~ msgid ""
-#~ "Object List\n"
-#~ "Did you know that you can view all objects/parts in a list and change "
-#~ "settings for each object/part?"
-#~ msgstr ""
-#~ "Список об'єктів\n"
-#~ "Чи знаєте ви, що можна переглядати всі об'єкти/деталі у списку та "
-#~ "змінювати Параметри для кожного об'єкта/деталі?"
-
-#~ msgid ""
-#~ "Simplify Model\n"
-#~ "Did you know that you can reduce the number of triangles in a mesh using "
-#~ "the Simplify mesh feature? Right-click the model and select Simplify "
-#~ "model. Read more in the documentation."
-#~ msgstr ""
-#~ "Спрощення моделі\n"
-#~ "Чи знаєте ви, що можна зменшити кількість трикутників у мережі за "
-#~ "допомогою Елемент Спростити мережу (Simplify mesh)? Клацніть модель "
-#~ "правою кнопкою миші і виберіть «Спростити модель». Додаткову інформацію "
-#~ "наведено в документації."
-
-#~ msgid ""
-#~ "Slicing Parameter Table\n"
-#~ "Did you know that you can view all objects/parts on a table and change "
-#~ "settings for each object/part?"
-#~ msgstr ""
-#~ "Таблиця параметрів зрізу\n"
-#~ "Чи знаєте ви, що можна переглядати всі об'єкти/деталі в таблиці та "
-#~ "змінювати налаштування для кожного об'єкта/деталі?"
-
-#~ msgid ""
-#~ "Split to Objects/Parts\n"
-#~ "Did you know that you can split a big object into small ones for easy "
-#~ "colorizing or printing?"
-#~ msgstr ""
-#~ "Розділити на об'єкти/деталі\n"
-#~ "Чи знаєте ви, що ви можете розділити великий об'єкт на маленькі для "
-#~ "легкоїзабарвлення чи друку?"
-
-#~ msgid ""
-#~ "Subtract a Part\n"
-#~ "Did you know that you can subtract one mesh from another using the "
-#~ "Negative part modifier? That way you can, for example, create easily "
-#~ "resizable holes directly in Orca Slicer. Read more in the documentation."
-#~ msgstr ""
-#~ "Відняти деталь\n"
-#~ "Чи знаєте ви, що можна віднімати одну мережу з іншої за допомогою "
-#~ "модифікаторанегативної деталі? Таким чином можна, наприклад, створити "
-#~ "легкоотвори, що змінюються безпосередньо в Orca Slicer. Додаткова "
-#~ "інформацію наведено в документації."
-
-#~ msgid ""
-#~ "STEP\n"
-#~ "Did you know that you can improve your print quality by slicing a STEP "
-#~ "file instead of an STL?\n"
-#~ "Orca Slicer supports slicing STEP files, providing smoother results than "
-#~ "a lower resolution STL. Give it a try!"
-#~ msgstr ""
-#~ "STEP\n"
-#~ "Чи знаєте ви, що ви можете покращити якість друку, нарізавши файл "
-#~ "STEPзамість STL?\n"
-#~ "Orca Slicer підтримує нарізання файлів STEP, забезпечуючи більш "
-#~ "плавнірезультати порівняно з нижчою роздільною здатністю STL. Спробуй!"
-
-#~ msgid ""
 #~ "Z seam location\n"
 #~ "Did you know that you can customize the location of the Z seam, and even "
 #~ "paint it on your print, to have it in a less visible location? This "
@@ -10093,113 +10470,6 @@ msgstr "Не вдалося підключитися до принтерів, п
 #~ "Чи знаєте ви, що ви можете налаштувати розташування Z-шва і навіть "
 #~ "намалюватийого на відбитку, щоб він був у менш видимому місці? Це "
 #~ "покращує загальний виглядмоделі. Подивися!"
-
-#~ msgid ""
-#~ "Fine-tuning for flow rate\n"
-#~ "Did you know that flow rate can be fine-tuned for even better-looking "
-#~ "prints? Depending on the material, you can improve the overall finish of "
-#~ "the printed model by doing some fine-tuning."
-#~ msgstr ""
-#~ "Тонке налаштування витрати\n"
-#~ "Чи знаєте ви, що швидкість потоку може бути точно налаштована для навіть "
-#~ "більшекрасивих відбитків? Залежно від матеріалу можна покращити загальне "
-#~ "оздобленнядрукарської моделі, виконавши деяке тонке налаштування."
-
-#~ msgid ""
-#~ "Split your prints into plates\n"
-#~ "Did you know that you can split a model that has a lot of parts into "
-#~ "individual plates ready to print? This will simplify the process of "
-#~ "keeping track of all the parts."
-#~ msgstr ""
-#~ "Розбийте відбитки на пластини\n"
-#~ "Чи знаєте ви, що можна розділити модель з великою кількістю деталей на "
-#~ "окремі столи, готові до друку? Це спростить процес відстеження "
-#~ "всіхдеталей."
-
-#~ msgid ""
-#~ "Speed up your print with Adaptive Layer Height\n"
-#~ "Did you know that you can print a model even faster, by using the "
-#~ "Adaptive Layer Height option? Check it out!"
-#~ msgstr ""
-#~ "Прискорення друку за допомогою функції «Адаптивна висота шару»\n"
-#~ "Чи знаєте ви, що можна друкувати модель ще швидше за допомогою параметра "
-#~ "«Адаптивна висота шару»? Подивися!"
-
-#~ msgid ""
-#~ "Support painting\n"
-#~ "Did you know that you can paint the location of your supports? This "
-#~ "feature makes it easy to place the support material only on the sections "
-#~ "of the model that actually need it."
-#~ msgstr ""
-#~ "Опорне забарвлення\n"
-#~ "Ти знав, що можеш намалювати розташування своїх опор? Ця функція "
-#~ "спрощуєрозміщення матеріалу опори тільки на тих перерізах моделі, які в "
-#~ "цьомупотребують."
-
-#~ msgid ""
-#~ "Different types of supports\n"
-#~ "Did you know that you can choose from multiple types of supports? Tree "
-#~ "supports work great for organic models, while saving filament and "
-#~ "improving print speed. Check them out!"
-#~ msgstr ""
-#~ "Різні типи опор\n"
-#~ "Чи знаєте ви, що можна вибрати один із кількох типів опор? Підтримка Tree "
-#~ "відмінно працює для органічних моделей, зберігаючи при цьому "
-#~ "ниткинапруження і підвищуючи швидкість друку. Перевірте їх!"
-
-#~ msgid ""
-#~ "Printing Silk Filament\n"
-#~ "Did you know that Silk filament needs special consideration to print it "
-#~ "successfully? Higher temperature and lower speed are always recommended "
-#~ "for the best results."
-#~ msgstr ""
-#~ "Друк шовковим філаментом\n"
-#~ "Чи знаєте ви, що шовковий іламент потребує особливої уваги, щоб її "
-#~ "Успішно надрукувати? Для досягнення найкращих результатів "
-#~ "завждирекомендується більш висока температура та нижча швидкість."
-
-#~ msgid ""
-#~ "Brim for better adhesion\n"
-#~ "Did you know that when printing models have a small contact interface "
-#~ "with the printing surface, it's recommended to use a brim?"
-#~ msgstr ""
-#~ "Кайма для кращої адгезії\n"
-#~ "Чи знаєте ви, що коли моделі друку мають невеликий контактний інтерфейс з "
-#~ "Поверхня друку, рекомендується використовувати Кайму?"
-
-#~ msgid ""
-#~ "Set parameters for multiple objects\n"
-#~ "Did you know that you can set slicing parameters for all selected objects "
-#~ "at one time?"
-#~ msgstr ""
-#~ "Встановлення параметрів для кількох об'єктів\n"
-#~ "Чи знаєте ви, що можна встановити параметри нарізки для всіх "
-#~ "вибранихоб'єктів одночасно?"
-
-#~ msgid ""
-#~ "Stack objects\n"
-#~ "Did you know that you can stack objects as a whole one?"
-#~ msgstr ""
-#~ "Об'єкти стека\n"
-#~ "Ви знали, що можете складати об'єкти?"
-
-#~ msgid ""
-#~ "Flush into support/objects/infill\n"
-#~ "Did you know that you can save the wasted filament by flushing them into "
-#~ "support/objects/infill during filament change?"
-#~ msgstr ""
-#~ "Урівень з опорою/об'єктами/заповненням\n"
-#~ "Чи знаєте ви, що ви можете зберегти втрачені нитки, промиваючи їх в опору/"
-#~ "об'єкти/заповнення під час зміни нитки?"
-
-#~ msgid ""
-#~ "Improve strength\n"
-#~ "Did you know that you can use more wall loops and higher sparse infill "
-#~ "density to improve the strength of the model?"
-#~ msgstr ""
-#~ "Підвищення міцності\n"
-#~ "Чи знаєте ви, що для підвищення міцності моделі можна використовувати "
-#~ "більшепериметрів та вищу щільність заповнення?"
 
 #~ msgid ""
 #~ "If enabled, support loops will be generated under the contours of "

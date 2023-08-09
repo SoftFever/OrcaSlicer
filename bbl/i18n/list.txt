@@ -130,5 +130,10 @@ src/libslic3r/PrintObject.cpp
 src/libslic3r/PrintObjectSlice.cpp
 src/libslic3r/PlaceholderParser.cpp
 src/libslic3r/TreeSupport.cpp
+src/libslic3r/Model.cpp
+src/libslic3r/Format/OBJ.cpp
+src/slic3r/GUI/BonjourDialog.cpp
+src/slic3r/GUI/Gizmos/GLGizmoMeshBoolean.cpp
+src/slic3r/GUI/PrintHostDialogs.cpp
 src/slic3r/GUI/calib_dlg.cpp
 src/slic3r/GUI/PhysicalPrinterDialog.cpp

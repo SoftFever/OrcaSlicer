@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-05 22:52+0800\n"
+"POT-Creation-Date: 2023-08-09 11:49+0800\n"
 "PO-Revision-Date: 2023-07-17 21:51+0200\n"
 "Last-Translator: Momo <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -873,6 +873,12 @@ msgstr "Nastavit jako samostatný objekt"
 msgid "Set as individual objects"
 msgstr "Nastavit jako jednotlivé objekty"
 
+msgid "Fill bed with copies"
+msgstr ""
+
+msgid "Fill the remaining area of bed with copies of the selected object"
+msgstr ""
+
 msgid "Printable"
 msgstr "Tisknout objekt"
 
@@ -1611,6 +1617,15 @@ msgstr "Orientování..."
 
 msgid "Orienting"
 msgstr "Orientování"
+
+msgid "Filling bed "
+msgstr ""
+
+msgid "Bed filling canceled."
+msgstr ""
+
+msgid "Bed filling done."
+msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Chyba! Nelze vytvořit vlákno!"
@@ -2974,6 +2989,9 @@ msgstr ""
 msgid "An object is layed over the boundary of plate."
 msgstr "Objekt je položen přes hranici podložky."
 
+msgid "A G-code path goes beyond the max print height."
+msgstr ""
+
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Cesta G-kódu přesahuje hranici podložky."
 
@@ -2988,12 +3006,6 @@ msgstr ""
 "Objekt je položen přes hranici podložky nebo překračuje limit výšky.\n"
 "Prosím, vyřešte problém tím, že jej úplně přesunete na podložku nebo mimo ní "
 "a potvrďte, že výška je v rámci objemu stavby."
-
-msgid "Jump to"
-msgstr "Přejít na"
-
-msgid "ERROR:"
-msgstr "CHYBA:"
 
 msgid "Calibration step selection"
 msgstr "Výběr kroku kalibrace"
@@ -3973,6 +3985,9 @@ msgstr "Zrušit nahrávání"
 msgid "Slice ok."
 msgstr "Slicování Dokončeno."
 
+msgid "Jump to"
+msgstr "Přejít na"
+
 msgid "Error:"
 msgstr "Chyba:"
 
@@ -3981,6 +3996,9 @@ msgstr "Varování:"
 
 msgid "Export successfully."
 msgstr "Export úspěšně."
+
+msgid "Serious warning:"
+msgstr ""
 
 msgid " (Repair)"
 msgstr " (Oprava)"
@@ -4501,6 +4519,11 @@ msgstr ""
 "tiskárně."
 
 msgid ""
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be exported."
+msgstr ""
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -4514,9 +4537,6 @@ msgstr "Odeslat G-kód"
 msgid "Send to printer"
 msgstr "Odeslat do tiskárny"
 
-msgid "Send to print"
-msgstr "Odeslat do tiskárny"
-
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "Vlastní podpěry a barevné malby byly před opravou odstraněny."
 
@@ -4525,6 +4545,14 @@ msgstr "Neplatné číslo"
 
 msgid "Plate Settings"
 msgstr "Nastavení Podložky"
+
+#, boost-format
+msgid "Number of currently selected parts: %1%\n"
+msgstr ""
+
+#, boost-format
+msgid "Number of currently selected objects: %1%\n"
+msgstr ""
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5404,9 +5432,6 @@ msgstr "Doporučený teplotní rozsah"
 
 msgid "Print temperature"
 msgstr "Teplota tisku"
-
-msgid "Chamber temperature"
-msgstr "Teplota v komoře"
 
 msgid "Nozzle"
 msgstr "Tryska"
@@ -6476,9 +6501,6 @@ msgstr ""
 msgid "No extrusions under current settings."
 msgstr "Žádné extruze pod aktuálním nastavením."
 
-msgid "Bed temperatures for the used filaments differ significantly."
-msgstr "Teploty podložky pro použité filamenty se výrazně liší."
-
 msgid ""
 "Smooth mode of timelapse is not supported when \"by object\" sequence is "
 "enabled."
@@ -6851,7 +6873,7 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Hranice chlazení převisů"
 
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
@@ -7174,6 +7196,14 @@ msgstr "Vzor spodního povrchu"
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Čárový vzor výplně spodní plochy, nikoli výplně mostů"
 
+msgid "Internal solid infill pattern"
+msgstr ""
+
+msgid ""
+"Line pattern of internal solid infill. if the detect nattow internal solid "
+"infill be enabled, the concentric pattern will be used for the small area."
+msgstr ""
+
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
@@ -7401,7 +7431,7 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Smrštění"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling "
 "(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
@@ -7462,6 +7492,12 @@ msgstr "Cena Filamentu. Pouze pro statistiku"
 msgid "money/kg"
 msgstr "Kč/kg"
 
+msgid "Vendor"
+msgstr ""
+
+msgid "Vendor of filament. For show only"
+msgstr ""
+
 msgid "(Undefined)"
 msgstr "(Nedefinováno)"
 
@@ -7477,7 +7513,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Hustota vnitřní výplně"
 
-#, c-format
+#, fuzzy, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Hustota vnitřní výplně, 100% znamená celistvou v celém rozsahu"
 
@@ -7634,7 +7670,7 @@ msgstr "Klipper max_accel_to_decel bude upraven automaticky"
 msgid "accel_to_decel"
 msgstr "accel_to_decel"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr "Klipper max_accel_to_decel bude upraven na toto % zrychlení"
 
@@ -7959,8 +7995,8 @@ msgid ""
 "Line width of internal sparse infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
 msgstr ""
-"Šířka Extruze pro vnitřní výplně. Pokud je vyjádřena jako %, vypočítá "
-"se vzhledem k průměru trysky."
+"Šířka Extruze pro vnitřní výplně. Pokud je vyjádřena jako %, vypočítá se "
+"vzhledem k průměru trysky."
 
 msgid "Infill/Wall overlap"
 msgstr "Výplň/Přesah stěny"
@@ -8008,6 +8044,9 @@ msgstr "Nejvyšší plochy"
 
 msgid "All solid layer"
 msgstr "Všechny pevné vrstvy"
+
+msgid "Ironing Pattern"
+msgstr ""
 
 msgid "Ironing flow"
 msgstr "Průtok žehlení"
@@ -8552,8 +8591,8 @@ msgid ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current extruder diameter. The default value for this parameter is 10%."
 msgstr ""
-"Aby se snížila viditelnost spoje při uzavřené extruzi, je smyčka přerušena "
-"a zkrácena o stanovenou hodnotu.\n"
+"Aby se snížila viditelnost spoje při uzavřené extruzi, je smyčka přerušena a "
+"zkrácena o stanovenou hodnotu.\n"
 "Tato hodnota může být zadána v milimetrech nebo jako procento aktuálního "
 "průměru trysky. Výchozí hodnota pro tento parametr je 10%."
 
@@ -8640,8 +8679,8 @@ msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
 msgstr ""
-"Šířka extruze pro vnitřní výplň. Pokud je vyjádřena jako %, bude "
-"vypočtena vzhledem k průměru trysky."
+"Šířka extruze pro vnitřní výplň. Pokud je vyjádřena jako %, bude vypočtena "
+"vzhledem k průměru trysky."
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Rychlost vnitřní plné výplně, nikoli horní a spodní plochy"
@@ -8776,6 +8815,12 @@ msgid ""
 msgstr ""
 "Vytvářejte podpěry pouze pro kritické oblasti včetně ostrého ocasu, konzoly "
 "atd."
+
+msgid "Remove small overhangs"
+msgstr ""
+
+msgid "Remove small overhangs that possibly need no supports."
+msgstr ""
 
 msgid "Top Z distance"
 msgstr "Vzdálenost horní Z"
@@ -9006,6 +9051,9 @@ msgid ""
 "support"
 msgstr ""
 "Toto nastavení určuje, zda se má přidat výplň do velkých dutin podpěr stromů"
+
+msgid "Chamber temperature"
+msgstr "Teplota v komoře"
 
 msgid "Target chamber temperature"
 msgstr "Cílová teplota v komoře"
@@ -9364,6 +9412,12 @@ msgstr "Načíst data Slicování"
 msgid "Load cached slicing data from directory"
 msgstr "Načíst data dělení z mezipaměti z adresáře"
 
+msgid "Export STL"
+msgstr ""
+
+msgid "Export the objects as multiple STL."
+msgstr ""
+
 msgid "Slice"
 msgstr "Slicovat"
 
@@ -9378,6 +9432,12 @@ msgstr "Aktualizováno"
 
 msgid "Update the configs values of 3mf to latest."
 msgstr "Aktualizujte konfigurační hodnoty 3mf na nejnovější."
+
+msgid "Load default filaments"
+msgstr ""
+
+msgid "Load first filament as default for those not loaded"
+msgstr ""
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -9428,6 +9488,12 @@ msgstr "Volby uspořádání"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Volby uspořádání: 0-zakázat, 1-povolit, ostatní-automaticky"
 
+msgid "Repetions count"
+msgstr ""
+
+msgid "Repetions count of the whole model"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Převést jednotku"
 
@@ -9457,6 +9523,14 @@ msgstr "Přeskočit objekty"
 
 msgid "Skip some objects in this print"
 msgstr "Přeskočit některé objekty při tisku"
+
+msgid "load uptodate process/machine settings when using uptodate"
+msgstr ""
+
+msgid ""
+"load uptodate process/machine settings from the specified file when using "
+"uptodate"
+msgstr ""
 
 msgid "Data directory"
 msgstr "Složka Data"
@@ -9582,6 +9656,159 @@ msgstr "Podpěry: oprava děr ve vrstvě %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Podpěry: šíření větví na vrstvě %d"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+
+msgid "Loading of a model file failed."
+msgstr ""
+
+msgid "The supplied file couldn't be read because it's empty"
+msgstr ""
+
+msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
+msgstr ""
+
+msgid "Canceled"
+msgstr ""
+
+msgid "load_obj: failed to parse"
+msgstr ""
+
+msgid "The file contains polygons with more than 4 vertices."
+msgstr ""
+
+msgid "The file contains polygons with less than 2 vertices."
+msgstr ""
+
+msgid "The file contains invalid vertex index."
+msgstr ""
+
+msgid "This OBJ file couldn't be read because it's empty."
+msgstr ""
+
+msgid "Network lookup"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Service name"
+msgstr ""
+
+msgid "OctoPrint version"
+msgstr ""
+
+msgid "Searching for devices"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Unable to perform boolean operation on selected parts"
+msgstr ""
+
+msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Union"
+msgstr ""
+
+msgid "Difference"
+msgstr ""
+
+msgid "Intersection"
+msgstr ""
+
+msgid "Source Volume"
+msgstr ""
+
+msgid "Tool Volume"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "Part 1"
+msgstr ""
+
+msgid "Subtract from"
+msgstr ""
+
+msgid "Part 2"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
+msgid "Delete input"
+msgstr ""
+
+msgid "Send to print"
+msgstr "Odeslat do tiskárny"
+
+msgid "Upload to Printer Host with the following filename:"
+msgstr ""
+
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko (/)."
+
+#, c-format, boost-format
+msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+msgstr ""
+
+msgid "Upload"
+msgstr "Nahrát"
+
+msgid "Upload and Print"
+msgstr "Nahrát a Tisknout"
+
+msgid "Simulate"
+msgstr ""
+
+msgid "Print host upload queue"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgctxt "OfFile"
+msgid "Size"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Error Message"
+msgstr ""
+
+msgid "Cancel selected"
+msgstr ""
+
+msgid "Show error message"
+msgstr ""
+
+msgid "Enqueued"
+msgstr ""
+
+msgid "Uploading"
+msgstr ""
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Error uploading to print host:"
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA Kalibrace"
@@ -9773,20 +10000,286 @@ msgstr ""
 "Připojení k tiskárnám připojených prostřednictvím tiskového serveru se "
 "nezdařilo."
 
+#: resources/data/hints.ini: [hint:3D Scene Operations]
+msgid ""
+"3D Scene Operations\n"
+"Did you know how to control view and object/part selection with mouse and "
+"touchpanel in the 3D scene?"
+msgstr ""
+"Operace v 3D scéně\n"
+"Věděli jste, že můžete ovládat zobrazení a výběr objektů nebo částí pomocí "
+"myši a dotykového panelu v 3D scéně?"
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+"Nástroj pro řezání\n"
+"Věděli jste, že můžete pomocí řezacího nástroje provádět řezy modelu pod "
+"různými úhly a pozicemi?"
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems?"
+msgstr ""
+"Opravit model\n"
+"Věděli jste, že můžete opravit poškozený 3D model a vyhnout se tak mnoha "
+"problémům při slicování?"
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+"Časosběr\n"
+"Věděli jste, že můžete během každého tisku vytvářet časosběrné video?"
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+"Automatické uspořádání\n"
+"Věděli jste, že můžete automaticky uspořádat všechny objekty ve vašem "
+"projektu?"
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+"Automatická Orientace\n"
+"Věděli jste, že můžete pomocí jednoho kliknutí otočit objekty do optimálního "
+"natočení pro tisk?"
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+"Plochou na podložku\n"
+"Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
+"\" nebo stiskněte klávesu <b>F</b>."
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+"Seznam objektů\n"
+"Věděli jste, že si můžete zobrazit všechny objekty/části v seznamu a upravit "
+"nastavení pro každý objekt/část zvlášť?"
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model. Read "
+"more in the documentation."
+msgstr ""
+"Zjednodušit model\n"
+"Věděli jste, že můžete snížit počet trojúhelníků v síti pomocí funkce "
+"Zjednodušit síť? Klikněte pravým tlačítkem na model a vyberte možnost "
+"Zjednodušit model. Více informací najdete v dokumentaci."
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+"Tabulka parametrů pro Slicování\n"
+"Věděli jste, že můžete zobrazit všechny objekty/části v tabulce a změnit "
+"nastavení pro každý objekt/část?"
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+"Rozdělit na objekty/části\n"
+"Věděli jste, že můžete rozdělit velký objekt na menší části pro snadné "
+"barevné zpracování nebo tisk?"
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Orca Slicer. Read more in the documentation."
+msgstr ""
+"Odečíst část\n"
+"Věděli jste, že můžete odečíst jednu síťovinu od druhé pomocí negativního "
+"modifikátoru části? Tímto způsobem můžete například vytvářet snadno "
+"nastavitelné otvory přímo v programu Orca Slicer. Přečtěte si více v "
+"dokumentaci."
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Orca Slicer supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+"STEP\n"
+"Věděli jste, že můžete zlepšit kvalitu svého tisku tím, že rozdělíte soubor "
+"STEP namísto STL?\n"
+"Orca Slicer podporuje rozdělování souborů STEP, což poskytuje hladší "
+"výsledky než s nižším rozlišením STL. Vyzkoušejte to!"
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+"Z poloha švu\n"
+"Věděli jste, že můžete přizpůsobit umístění Z spoje a dokonce ho na svém "
+"tisku namalovat, aby byl ve méně viditelné poloze? Tím se zlepší celkový "
+"vzhled vašeho modelu. Podívejte se na to!"
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+"Jemné doladění pro rychlost průtoku\n"
+"Věděli jste, že průtokovou rychlost lze jemně doladit pro ještě lepší vzhled "
+"tisku? V závislosti na materiálu můžete zlepšit celkový povrch tištěného "
+"modelu pomocí drobného doladění."
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+"Rozdělte své tisky na podložky\n"
+"Věděli jste, že můžete rozdělit model s mnoha díly na jednotlivé podložky "
+"připravené k tisku? Tímto zjednodušíte proces sledování všech dílů."
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+"Zrychlete svůj 3D tisk pomocí adaptivní výšky vrstvy\n"
+"Věděli jste, že můžete ještě rychleji vytisknout své 3D modely pomocí "
+"možnosti adaptivní výšky vrstvy? Tímto způsobem dosáhnete zkrácení celkového "
+"času tisku!"
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+"Malování podpěr\n"
+"Věděli jste, že můžete malovat umístění podpěr? Tato funkce umožňuje snadné "
+"umístění podpůrného materiálu pouze na části modelu, které ho skutečně "
+"potřebují."
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+"Různé typy podpěr\n"
+"Věděli jste, že můžete vybírat z různých typů podpěr? Stromové podpěry se "
+"skvěle hodí pro organické modely a zároveň šetří filament a zlepšuje "
+"rychlost tisku. Podívejte se na ně!"
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+"Tisk hedvábného filamentu\n"
+"Věděli jste, že tisk hedvábného filamentu vyžaduje zvláštní zvážení pro "
+"úspěšné provedení? Vždy se doporučuje vyšší teplota a nižší rychlost pro "
+"dosažení nejlepších výsledků."
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+"Límec pro lepší přilnavost\n"
+"Věděli jste, že při tisku modelů s malým kontaktním rozhraním s tiskovou "
+"plochou se doporučuje použití Límce (brim)?"
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
+"Nastavte parametry pro více objektů\n"
+"Věděli jste, že můžete najednou nastavit parametry pro všechny vybrané "
+"objekty?"
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Stack objects\n"
+"Did you know that you can stack objects as a whole one?"
+msgstr ""
+"Seskupit objekty\n"
+"Věděli jste, že můžete objekty seskupit do jednoho celku?"
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+"Čištit do podpěr/objektů/výplně\n"
+"Věděli jste, že můžete ušetřit zahozené filamenty tím, že je očistíte do "
+"podpěr/objektů/výplně během výměny filamentu?"
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
+msgstr ""
+"Zvýšení pevnosti\n"
+"Věděli jste, že můžete použít více opakování stěn a vyšší hustotu řídké "
+"výplně pro zvýšení pevnosti modelu?"
+
+#~ msgid "ERROR:"
+#~ msgstr "CHYBA:"
+
+#~ msgid "Bed temperatures for the used filaments differ significantly."
+#~ msgstr "Teploty podložky pro použité filamenty se výrazně liší."
+
 #~ msgid "&Cancel"
 #~ msgstr "&Storno"
 
-msgid "Upload"
-msgstr "Nahrát"
-
-msgid "Upload and Print"
-msgstr "Nahrát a Tisknout"
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko (/)."
-
-msgid "Skirt"
-msgstr "Obrys"
+#~ msgid "Skirt"
+#~ msgstr "Obrys"
 
 #~ msgid "Post-processing scripts"
 #~ msgstr "Post-processing skripty"
@@ -9832,246 +10325,3 @@ msgstr "Obrys"
 
 #~ msgid "Line width for top surfaces"
 #~ msgstr "Šířka extruze pro horní plochy"
-
-msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
-msgstr ""
-"Operace v 3D scéně\n"
-"Věděli jste, že můžete ovládat zobrazení a výběr objektů nebo částí "
-"pomocí myši a dotykového panelu v 3D scéně?"
-
-msgid ""
-"Cut Tool\n"
-"Did you know that you can cut a model at any angle and position with the "
-"cutting tool?"
-msgstr ""
-"Nástroj pro řezání\n"
-"Věděli jste, že můžete pomocí řezacího nástroje provádět řezy modelu pod "
-"různými úhly a pozicemi?"
-
-msgid ""
-"Fix Model\n"
-"Did you know that you can fix a corrupted 3D model to avoid a lot of "
-"slicing problems?"
-msgstr ""
-"Opravit model\n"
-"Věděli jste, že můžete opravit poškozený 3D model a vyhnout se tak mnoha "
-"problémům při slicování?"
-
-msgid ""
-"Timelapse\n"
-"Did you know that you can generate a timelapse video during each print?"
-msgstr ""
-"Časosběr\n"
-"Věděli jste, že můžete během každého tisku vytvářet časosběrné video?"
-
-msgid ""
-"Auto-Arrange\n"
-"Did you know that you can auto-arrange all objects in your project?"
-msgstr ""
-"Automatické uspořádání\n"
-"Věděli jste, že můžete automaticky uspořádat všechny objekty ve vašem "
-"projektu?"
-
-msgid ""
-"Auto-Orient\n"
-"Did you know that you can rotate objects to an optimal orientation for "
-"printing by a simple click?"
-msgstr ""
-"Automatická Orientace\n"
-"Věděli jste, že můžete pomocí jednoho kliknutí otočit objekty do "
-"optimálního natočení pro tisk?"
-
-msgid ""
-"Lay on Face\n"
-"Did you know that you can quickly orient a model so that one of its faces "
-"sits on the print bed? Select the \"Place on face\" function or press the "
-"<b>F</b> key."
-msgstr ""
-"Plochou na podložku\n"
-"Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
-"podložku\" nebo stiskněte klávesu <b>F</b>."
-
-msgid ""
-"Object List\n"
-"Did you know that you can view all objects/parts in a list and change "
-"settings for each object/part?"
-msgstr ""
-"Seznam objektů\n"
-"Věděli jste, že si můžete zobrazit všechny objekty/části v seznamu a "
-"upravit nastavení pro každý objekt/část zvlášť?"
-
-msgid ""
-"Simplify Model\n"
-"Did you know that you can reduce the number of triangles in a mesh using "
-"the Simplify mesh feature? Right-click the model and select Simplify "
-"model. Read more in the documentation."
-msgstr ""
-"Zjednodušit model\n"
-"Věděli jste, že můžete snížit počet trojúhelníků v síti pomocí funkce "
-"Zjednodušit síť? Klikněte pravým tlačítkem na model a vyberte možnost "
-"Zjednodušit model. Více informací najdete v dokumentaci."
-
-msgid ""
-"Slicing Parameter Table\n"
-"Did you know that you can view all objects/parts on a table and change "
-"settings for each object/part?"
-msgstr ""
-"Tabulka parametrů pro Slicování\n"
-"Věděli jste, že můžete zobrazit všechny objekty/části v tabulce a změnit "
-"nastavení pro každý objekt/část?"
-
-msgid ""
-"Split to Objects/Parts\n"
-"Did you know that you can split a big object into small ones for easy "
-"colorizing or printing?"
-msgstr ""
-"Rozdělit na objekty/části\n"
-"Věděli jste, že můžete rozdělit velký objekt na menší části pro snadné "
-"barevné zpracování nebo tisk?"
-
-msgid ""
-"Subtract a Part\n"
-"Did you know that you can subtract one mesh from another using the "
-"Negative part modifier? That way you can, for example, create easily "
-"resizable holes directly in Orca Slicer. Read more in the documentation."
-msgstr ""
-"Odečíst část\n"
-"Věděli jste, že můžete odečíst jednu síťovinu od druhé pomocí negativního "
-"modifikátoru části? Tímto způsobem můžete například vytvářet snadno "
-"nastavitelné otvory přímo v programu Orca Slicer. Přečtěte si více v "
-"dokumentaci."
-
-msgid ""
-"STEP\n"
-"Did you know that you can improve your print quality by slicing a STEP "
-"file instead of an STL?\n"
-"Orca Slicer supports slicing STEP files, providing smoother results than "
-"a lower resolution STL. Give it a try!"
-msgstr ""
-"STEP\n"
-"Věděli jste, že můžete zlepšit kvalitu svého tisku tím, že rozdělíte "
-"soubor STEP namísto STL?\n"
-"Orca Slicer podporuje rozdělování souborů STEP, což poskytuje hladší "
-"výsledky než s nižším rozlišením STL. Vyzkoušejte to!"
-
-msgid ""
-"Z seam location\n"
-"Did you know that you can customize the location of the Z seam, and even "
-"paint it on your print, to have it in a less visible location? This "
-"improves the overall look of your model. Check it out!"
-msgstr ""
-"Z poloha švu\n"
-"Věděli jste, že můžete přizpůsobit umístění Z spoje a dokonce ho na svém "
-"tisku namalovat, aby byl ve méně viditelné poloze? Tím se zlepší celkový "
-"vzhled vašeho modelu. Podívejte se na to!"
-
-msgid ""
-"Fine-tuning for flow rate\n"
-"Did you know that flow rate can be fine-tuned for even better-looking "
-"prints? Depending on the material, you can improve the overall finish of "
-"the printed model by doing some fine-tuning."
-msgstr ""
-"Jemné doladění pro rychlost průtoku\n"
-"Věděli jste, že průtokovou rychlost lze jemně doladit pro ještě lepší "
-"vzhled tisku? V závislosti na materiálu můžete zlepšit celkový povrch "
-"tištěného modelu pomocí drobného doladění."
-
-msgid ""
-"Split your prints into plates\n"
-"Did you know that you can split a model that has a lot of parts into "
-"individual plates ready to print? This will simplify the process of "
-"keeping track of all the parts."
-msgstr ""
-"Rozdělte své tisky na podložky\n"
-"Věděli jste, že můžete rozdělit model s mnoha díly na jednotlivé podložky "
-"připravené k tisku? Tímto zjednodušíte proces sledování všech dílů."
-
-msgid ""
-"Speed up your print with Adaptive Layer Height\n"
-"Did you know that you can print a model even faster, by using the "
-"Adaptive Layer Height option? Check it out!"
-msgstr ""
-"Zrychlete svůj 3D tisk pomocí adaptivní výšky vrstvy\n"
-"Věděli jste, že můžete ještě rychleji vytisknout své 3D modely pomocí "
-"možnosti adaptivní výšky vrstvy? Tímto způsobem dosáhnete zkrácení "
-"celkového času tisku!"
-
-msgid ""
-"Support painting\n"
-"Did you know that you can paint the location of your supports? This "
-"feature makes it easy to place the support material only on the sections "
-"of the model that actually need it."
-msgstr ""
-"Malování podpěr\n"
-"Věděli jste, že můžete malovat umístění podpěr? Tato funkce umožňuje "
-"snadné umístění podpůrného materiálu pouze na části modelu, které ho "
-"skutečně potřebují."
-
-msgid ""
-"Different types of supports\n"
-"Did you know that you can choose from multiple types of supports? Tree "
-"supports work great for organic models, while saving filament and "
-"improving print speed. Check them out!"
-msgstr ""
-"Různé typy podpěr\n"
-"Věděli jste, že můžete vybírat z různých typů podpěr? Stromové podpěry se "
-"skvěle hodí pro organické modely a zároveň šetří filament a zlepšuje "
-"rychlost tisku. Podívejte se na ně!"
-
-msgid ""
-"Printing Silk Filament\n"
-"Did you know that Silk filament needs special consideration to print it "
-"successfully? Higher temperature and lower speed are always recommended "
-"for the best results."
-msgstr ""
-"Tisk hedvábného filamentu\n"
-"Věděli jste, že tisk hedvábného filamentu vyžaduje zvláštní zvážení pro "
-"úspěšné provedení? Vždy se doporučuje vyšší teplota a nižší rychlost pro "
-"dosažení nejlepších výsledků."
-
-msgid ""
-"Brim for better adhesion\n"
-"Did you know that when printing models have a small contact interface "
-"with the printing surface, it's recommended to use a brim?"
-msgstr ""
-"Límec pro lepší přilnavost\n"
-"Věděli jste, že při tisku modelů s malým kontaktním rozhraním s tiskovou "
-"plochou se doporučuje použití Límce (brim)?"
-
-msgid ""
-"Set parameters for multiple objects\n"
-"Did you know that you can set slicing parameters for all selected objects "
-"at one time?"
-msgstr ""
-"Nastavte parametry pro více objektů\n"
-"Věděli jste, že můžete najednou nastavit parametry pro všechny vybrané "
-"objekty?"
-
-msgid ""
-"Stack objects\n"
-"Did you know that you can stack objects as a whole one?"
-msgstr ""
-"Seskupit objekty\n"
-"Věděli jste, že můžete objekty seskupit do jednoho celku?"
-
-msgid ""
-"Flush into support/objects/infill\n"
-"Did you know that you can save the wasted filament by flushing them into "
-"support/objects/infill during filament change?"
-msgstr ""
-"Čištit do podpěr/objektů/výplně\n"
-"Věděli jste, že můžete ušetřit zahozené filamenty tím, že je očistíte do "
-"podpěr/objektů/výplně během výměny filamentu?"
-
-msgid ""
-"Improve strength\n"
-"Did you know that you can use more wall loops and higher sparse infill "
-"density to improve the strength of the model?"
-msgstr ""
-"Zvýšení pevnosti\n"
-"Věděli jste, že můžete použít více opakování stěn a vyšší hustotu řídké "
-"výplně pro zvýšení pevnosti modelu?"
