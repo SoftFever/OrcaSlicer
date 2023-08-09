@@ -1329,6 +1329,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
 
         //extract model files
+        m_model = &model;
         if (!_extract_from_archive(archive, m_start_part_path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
                     return _extract_model_from_archive(archive, stat);
             })) {
@@ -1336,7 +1337,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
-        m_model = &model;
         if (!m_designer.empty()) {
             m_model->design_info                 = std::make_shared<ModelDesignInfo>();
             m_model->design_info->DesignerUserId = m_designer_user_id;
