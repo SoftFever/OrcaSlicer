@@ -1335,7 +1335,7 @@ msgid "Manual"
 msgstr "Посібник"
 
 msgid "No-brim"
-msgstr "Без спідниці"
+msgstr "Без кайми"
 
 msgid " "
 msgstr ""
@@ -1350,7 +1350,7 @@ msgid "Infill density(%)"
 msgstr "Щільність заповнення (%)"
 
 msgid "Auto Brim"
-msgstr "Авто спідниця"
+msgstr "Автоматична Кайма"
 
 msgid "Outer wall speed"
 msgstr "Швидкість зовнішнього периметра"
@@ -1359,7 +1359,7 @@ msgid "Plate"
 msgstr "Стіл"
 
 msgid "Brim"
-msgstr "Спідниця"
+msgstr "Кайма"
 
 msgid "Object/Part Setting"
 msgstr "Налаштування об'єкта/деталі"
@@ -7054,7 +7054,7 @@ msgid "Outer and inner brim"
 msgstr "Зовні та всередині"
 
 msgid "Brim-object gap"
-msgstr "Зазор між облямівкою та об'єктом"
+msgstr "Зазор між каймою та об'єктом"
 
 msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
@@ -7856,7 +7856,7 @@ msgstr ""
 "Середня відстань між випадковими точками, введеними на кожному відрізкулінії"
 
 msgid "Filter out tiny gaps"
-msgstr "Заплінення площі, меншої за вказану"
+msgstr "Відфільтрувати крихітні зазори"
 
 msgid "Layers and Perimeters"
 msgstr "Шари та периметри"
@@ -8578,7 +8578,7 @@ msgstr ""
 "ретракті"
 
 msgid "Use firmware retraction"
-msgstr "Використовувати ретракт із прошивки"
+msgstr "Використовувати ретракт прошивки"
 
 msgid ""
 "This experimental setting uses G10 and G11 commands to have the firmware "
@@ -8708,7 +8708,7 @@ msgid ""
 "Sparse infill area which is smaller than threshold value is replaced by "
 "internal solid infill"
 msgstr ""
-"Площа заповнення, яка менша за порогове значення, замінюєтьсявнутрішнім "
+"Площа заповнення, яка менша за порогове значення, замінюється внутрішнім "
 "суцільним заповненням"
 
 msgid ""
@@ -9045,7 +9045,7 @@ msgstr ""
 "виключенням першого, буде розрахована автоматично "
 
 msgid "Auto brim width"
-msgstr "Ширина кайми опори дерева"
+msgstr "Автоматична ширина кайми"
 
 msgid ""
 "Enabling this option means the width of the brim for tree support will be "
@@ -9055,10 +9055,10 @@ msgstr ""
 "будерозрахована автоматично"
 
 msgid "Tree support brim width"
-msgstr "Ширина межі кайми дерева"
+msgstr "Ширина кайми деревовидної підтримки"
 
 msgid "Distance from tree branch to the outermost brim line"
-msgstr "Відстань від гілки дерева до зовнішньої лінії межі кайми"
+msgstr "Відстань від гілки дерева до зовнішньої крайньої лінії кайми"
 
 msgid "Tree support branch diameter"
 msgstr "Діаметр гілки деревоподібної підтримки"
