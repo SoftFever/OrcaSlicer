@@ -1005,8 +1005,8 @@ void GUI_App::post_init()
 
 
         if (this->init_params->input_files.size() == 1 &&
-            boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
-            auto input_str_arr = split_str(this->init_params->input_files.front(), "bambustudio://open/?file=");
+            boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")) {
+            auto input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file=");
 
             std::string download_origin_url;
             for (auto input_str:input_str_arr) {
@@ -1273,7 +1273,7 @@ GUI_App::GUI_App()
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
-	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
+	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
     this->init_app_config();
     this->init_download_path();
 
@@ -1968,7 +1968,7 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     std::string body = buffer.str();
     size_t start = body.find("OrcaSlicer ");
     if (start == std::string::npos) {
-        start = body.find("BambuStudio ");
+        start = body.find("OrcaSlicer ");
         if (start == std::string::npos)
             return boost::none;
     }
@@ -5598,8 +5598,8 @@ void GUI_App::MacOpenURL(const wxString& url)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get mac url " << url;
 
-    if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
-        auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
+    if (!url.empty() && boost::starts_with(url, "orcasliceropen://")) {
+        auto input_str_arr = split_str(url.ToStdString(), "orcasliceropen://");
 
         std::string download_origin_url;
         for (auto input_str : input_str_arr) {

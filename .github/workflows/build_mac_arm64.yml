@@ -8,7 +8,7 @@ on:
        - 'src/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
-       - 'bbl/**'
+       - 'localization/**'
        - 'resources/**'
 
     pull_request:
@@ -18,7 +18,7 @@ on:
        - 'src/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
-       - 'bbl/**'
+       - 'localization/**'
        - 'resources/**'
     
 jobs:
