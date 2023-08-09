@@ -743,6 +743,7 @@ public:
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
 
+    std::string parse_version();
     void parse_version_func();
     bool is_studio_cmd(int seq);
     /* command commands */

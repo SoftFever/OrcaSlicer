@@ -1389,6 +1389,21 @@ bool MachineObject::is_recording()
     return camera_recording;
 }
 
+std::string MachineObject::parse_version()
+{
+    auto ota_version = module_vers.find("ota");
+    if (ota_version != module_vers.end()) return ota_version->second.sw_ver;
+    auto series = get_printer_series();
+    if (series == PrinterSeries::SERIES_X1) {
+        auto rv1126_version = module_vers.find("rv1126");
+        if (rv1126_version != module_vers.end()) return rv1126_version->second.sw_ver;
+    } else if (series == PrinterSeries::SERIES_P1P) {
+        auto esp32_version = module_vers.find("esp32");
+        if (esp32_version != module_vers.end()) return esp32_version->second.sw_ver;
+    }
+    return "";
+}
+
 void MachineObject::parse_version_func()
 {
     auto ota_version = module_vers.find("ota");
@@ -2744,6 +2759,10 @@ int MachineObject::parse_json(std::string payload)
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
                             BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << dev_id;
                             m_push_count++;
+                            if (j_pre["print"].contains("printer_type")) {
+                                printer_type = parse_printer_type(j_pre["print"]["printer_type"].get<std::string>());
+                            }
+                            print_json.load_compatible_settings(printer_type, "");
                             print_json.diff2all_base_reset(j_pre);
                         } else if (j_pre["print"]["msg"].get<int>() == 1) {    //diff message
                             if (print_json.diff2all(j_pre, j) == 0) {
@@ -2773,6 +2792,55 @@ int MachineObject::parse_json(std::string payload)
         }
 
         BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", playload=" << j.dump(4);
+
+        // Parse version info first, as if version arrive or change, 'print' need parse again with new compatible settings
+        try {
+            if (j.contains("info")) {
+                if (j["info"].contains("command") && j["info"]["command"].get<std::string>() == "get_version") {
+                    json j_module = j["info"]["module"];
+                    module_vers.clear();
+                    for (auto it = j_module.begin(); it != j_module.end(); it++) {
+                        ModuleVersionInfo ver_info;
+                        ver_info.name = (*it)["name"].get<std::string>();
+                        if ((*it).contains("sw_ver"))
+                            ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
+                        if ((*it).contains("sn"))
+                            ver_info.sn = (*it)["sn"].get<std::string>();
+                        if ((*it).contains("hw_ver"))
+                            ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
+                        module_vers.emplace(ver_info.name, ver_info);
+                        if (ver_info.name == "ota") {
+                            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+                            if (agent) agent->track_update_property("dev_ota_version", ver_info.sw_ver);
+                        }
+                    }
+
+                    parse_version_func();
+
+                    bool get_version_result = true;
+                    if (j["info"].contains("result"))
+                        if (j["info"]["result"].get<std::string>() == "fail")
+                            get_version_result = false;
+                    if ((!check_version_valid() && get_version_retry-- >= 0)
+                        && get_version_result) {
+                            BOOST_LOG_TRIVIAL(info) << "get_version_retry = " << get_version_retry;
+                            boost::thread retry = boost::thread([this] {
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(RETRY_INTERNAL));
+                                GUI::wxGetApp().CallAfter([this] {
+                                    this->command_get_version(false);
+                            });
+                        });
+                    }
+                }
+                std::string version = parse_version();
+                if (!version.empty() && print_json.load_compatible_settings("", version)) {
+                    // reload because compatible settings changed
+                    j.clear();
+                    print_json.diff2all(json{}, j);
+                }
+
+            }
+        } catch (...) {}
 
         if (j.contains("print")) {
             json jj = j["print"];
@@ -4195,46 +4263,6 @@ int MachineObject::parse_json(std::string payload)
                 }
             }
         }
-
-        try {
-            if (j.contains("info")) {
-                if (j["info"].contains("command") && j["info"]["command"].get<std::string>() == "get_version") {
-                    json j_module = j["info"]["module"];
-                    module_vers.clear();
-                    for (auto it = j_module.begin(); it != j_module.end(); it++) {
-                        ModuleVersionInfo ver_info;
-                        ver_info.name = (*it)["name"].get<std::string>();
-                        if ((*it).contains("sw_ver"))
-                            ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
-                        if ((*it).contains("sn"))
-                            ver_info.sn = (*it)["sn"].get<std::string>();
-                        if ((*it).contains("hw_ver"))
-                            ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
-                        module_vers.emplace(ver_info.name, ver_info);
-                        if (ver_info.name == "ota") {
-                            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-                            if (agent) agent->track_update_property("dev_ota_version", ver_info.sw_ver);
-                        }
-                    }
-                    parse_version_func();
-
-                    bool get_version_result = true;
-                    if (j["info"].contains("result"))
-                        if (j["info"]["result"].get<std::string>() == "fail")
-                            get_version_result = false;
-                    if ((!check_version_valid() && get_version_retry-- >= 0)
-                        && get_version_result) {
-                            BOOST_LOG_TRIVIAL(info) << "get_version_retry = " << get_version_retry;
-                            boost::thread retry = boost::thread([this] {
-                                boost::this_thread::sleep_for(boost::chrono::milliseconds(RETRY_INTERNAL));
-                                GUI::wxGetApp().CallAfter([this] {
-                                    this->command_get_version(false);
-                            });
-                        });
-                    }
-                }
-            }
-        } catch (...) {}
 
         try {
             if (j.contains("camera")) {
