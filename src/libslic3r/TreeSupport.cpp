@@ -3062,21 +3062,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
         }
     }
-    #if 1
-    // delete nodes with no children (means either it's a single layer nodes, or the branch has been deleted but not completely)
-    for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--){
-        auto layer_contact_nodes = contact_nodes[layer_nr];
-        for (Node *p_node : layer_contact_nodes) {
-            if (p_node->child==nullptr) {
-                std::vector<Node *>::iterator to_erase = std::find(contact_nodes[layer_nr].begin(), contact_nodes[layer_nr].end(), p_node);
-                if (to_erase != contact_nodes[layer_nr].end()) {
-                    to_free_node_set.insert(*to_erase);
-                    contact_nodes[layer_nr].erase(to_erase);
-                }
-            }
-        }
-    }
-    #endif
+
     BOOST_LOG_TRIVIAL(debug) << "after m_avoidance_cache.size()=" << m_ts_data->m_avoidance_cache.size();
 
     for (Node *node : to_free_node_set)
