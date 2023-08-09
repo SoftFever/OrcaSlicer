@@ -528,6 +528,12 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage/index.html")) {
+            auto file = wxURL::Unescape(wxURL(url).GetPath());
+#ifdef _WIN32
+            if (file.StartsWith('/'))
+                file = file.Mid(1);
+#endif
+            wxGetApp().plater()->load_files(wxArrayString{1, &file});
             evt.Veto();
             return;
         }
