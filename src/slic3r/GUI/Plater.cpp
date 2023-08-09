@@ -12168,12 +12168,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             wxString curr_plate_name = from_u8(curr_plate->get_plate_name());
             dlg.set_plate_name(curr_plate_name);
 
-            dlg.ShowModal();
-
-            wxString dlg_plate_name = dlg.get_plate_name();
-            curr_plate->set_plate_name(dlg_plate_name.ToUTF8().data());
-
-            this->schedule_background_process();
+            int result=dlg.ShowModal();
+            if (result == wxID_YES) {
+                wxString dlg_plate_name = dlg.get_plate_name();
+                curr_plate->set_plate_name(dlg_plate_name.ToUTF8().data());
+            }
         } else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
             ret = -1;

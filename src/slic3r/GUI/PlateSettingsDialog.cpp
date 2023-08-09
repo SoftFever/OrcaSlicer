@@ -246,9 +246,6 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        wxCommandEvent evt(EVT_SET_BED_TYPE_CONFIRM, GetId());
-        e.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(evt);
         if (this->IsModal())
             EndModal(wxID_YES);
         else
