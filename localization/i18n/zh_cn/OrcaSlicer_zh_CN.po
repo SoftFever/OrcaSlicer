@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-09 14:06+0800\n"
+"POT-Creation-Date: 2023-08-10 20:42+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5165,6 +5165,12 @@ msgstr ""
 "不同悬垂程度的打印速度。悬垂程度使用相对于线宽的百分表示。速度为0代表这个悬垂"
 "程度范围内不降速，直接使用墙的速度"
 
+msgid "Bridge"
+msgstr "桥接"
+
+msgid "Set speed for external and internal bridges"
+msgstr ""
+
 msgid "Travel speed"
 msgstr "空驶速度"
 
@@ -6104,9 +6110,6 @@ msgstr "顶面"
 msgid "Bottom surface"
 msgstr "底面"
 
-msgid "Bridge"
-msgstr "桥接"
-
 msgid "Gap infill"
 msgstr "填缝"
 
@@ -6639,6 +6642,21 @@ msgid ""
 "pattern"
 msgstr "顶面只使用单层墙，从而更多的空间能够使用顶部填充图案"
 
+msgid "One wall threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"If a top surface has to be printed and it's partially covered by another "
+"layer, it won't be considered at a top layer where its width is below this "
+"value. This can be useful to not let the 'one perimeter on top' trigger on "
+"surface that should be covered only by perimeters. This value can be a mm or "
+"a % of the perimeter extrusion width.\n"
+"Warning: If enabled, artifacts can be created is you have some thin features "
+"on the next layer, like letters. Set this setting to 0 to remove these "
+"artifacts."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "首层仅单层墙"
 
@@ -6662,11 +6680,22 @@ msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
 msgid "mm/s or %"
 msgstr "mm/s 或 %"
 
+msgid "External"
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "桥接和完全悬空的外墙的打印速度"
 
 msgid "mm/s"
 msgstr "mm/s"
+
+msgid "Internal"
+msgstr ""
+
+msgid ""
+"Speed of internal bridge. If the value is expressed as a percentage, it will "
+"be calculated based on the bridge_speed. Default value is 150%."
+msgstr ""
 
 msgid "Brim width"
 msgstr "Brim宽度"

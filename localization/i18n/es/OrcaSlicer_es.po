@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-09 14:06+0800\n"
+"POT-Creation-Date: 2023-08-10 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5457,6 +5457,12 @@ msgstr ""
 "significa que no hay ralentización para el rango de grados de voladizo y se "
 "utiliza la velocidad de la pared"
 
+msgid "Bridge"
+msgstr "Puente"
+
+msgid "Set speed for external and internal bridges"
+msgstr ""
+
 msgid "Travel speed"
 msgstr "Velocidad de desplazamiento"
 
@@ -6464,9 +6470,6 @@ msgstr "Superficie superior"
 msgid "Bottom surface"
 msgstr "Superficie inferior"
 
-msgid "Bridge"
-msgstr "Puente"
-
 msgid "Gap infill"
 msgstr "Relleno de huecos"
 
@@ -7092,6 +7095,21 @@ msgstr ""
 "Sólo una pared en la superficies superiores, para dar más espacio al "
 "patrónde relleno superior"
 
+msgid "One wall threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"If a top surface has to be printed and it's partially covered by another "
+"layer, it won't be considered at a top layer where its width is below this "
+"value. This can be useful to not let the 'one perimeter on top' trigger on "
+"surface that should be covered only by perimeters. This value can be a mm or "
+"a % of the perimeter extrusion width.\n"
+"Warning: If enabled, artifacts can be created is you have some thin features "
+"on the next layer, like letters. Set this setting to 0 to remove these "
+"artifacts."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "Solo un pared en la primera capa"
 
@@ -7119,11 +7137,22 @@ msgstr ""
 msgid "mm/s or %"
 msgstr "mm/s o %"
 
+msgid "External"
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Velocidad del puente y pared completo en voladizo"
 
 msgid "mm/s"
 msgstr "mm/s"
+
+msgid "Internal"
+msgstr ""
+
+msgid ""
+"Speed of internal bridge. If the value is expressed as a percentage, it will "
+"be calculated based on the bridge_speed. Default value is 150%."
+msgstr ""
 
 msgid "Brim width"
 msgstr "Ancho de del borde de adherencia"

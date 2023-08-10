@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-09 14:06+0800\n"
+"POT-Creation-Date: 2023-08-10 20:42+0800\n"
 "PO-Revision-Date: 2023-08-03 10:45+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
@@ -5287,6 +5287,12 @@ msgstr ""
 "로 표시됩니다. 0 속도는 돌출부 정도에 대한 감속이 없음을 의미하며 벽 속도가 "
 "사용됩니다"
 
+msgid "Bridge"
+msgstr "다리"
+
+msgid "Set speed for external and internal bridges"
+msgstr ""
+
 msgid "Travel speed"
 msgstr "이동 속도(트레블)"
 
@@ -6261,9 +6267,6 @@ msgstr "상단 표면"
 msgid "Bottom surface"
 msgstr "하단 표면"
 
-msgid "Bridge"
-msgstr "다리"
-
 msgid "Gap infill"
 msgstr "틈(갭) 채우기"
 
@@ -6849,6 +6852,21 @@ msgstr ""
 "평평한 상단 표면에 하나의 벽만 사용하여 상단 표면 패턴에 더 많은 공간을 제공"
 "합니다"
 
+msgid "One wall threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"If a top surface has to be printed and it's partially covered by another "
+"layer, it won't be considered at a top layer where its width is below this "
+"value. This can be useful to not let the 'one perimeter on top' trigger on "
+"surface that should be covered only by perimeters. This value can be a mm or "
+"a % of the perimeter extrusion width.\n"
+"Warning: If enabled, artifacts can be created is you have some thin features "
+"on the next layer, like letters. Set this setting to 0 to remove these "
+"artifacts."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "첫 레이어에서 벽 하나만 그리기"
 
@@ -6873,11 +6891,22 @@ msgstr "돌출부 정도에 따라 출력 속도를 낮추려면 이 옵션을 �
 msgid "mm/s or %"
 msgstr "mm/s or %"
 
+msgid "External"
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "다리와 완전히 돌출된 돌출부 벽의 속도"
 
 msgid "mm/s"
 msgstr "mm/s"
+
+msgid "Internal"
+msgstr ""
+
+msgid ""
+"Speed of internal bridge. If the value is expressed as a percentage, it will "
+"be calculated based on the bridge_speed. Default value is 150%."
+msgstr ""
 
 msgid "Brim width"
 msgstr "챙(브림) 너비"
