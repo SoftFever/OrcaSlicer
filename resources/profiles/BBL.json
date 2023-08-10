@@ -20,6 +20,10 @@
         {
             "name": "Bambu Lab P1S",
             "sub_path": "machine/Bambu Lab P1S.json"
+        },
+        {
+            "name": "Bambu Lab N1",
+            "sub_path": "machine/Bambu Lab N1.json"
         }
     ],
     "process_list": [
@@ -254,6 +258,22 @@
         {
             "name": "0.30mm Strength @BBL X1C 0.6 nozzle",
             "sub_path": "process/0.30mm Strength @BBL X1C 0.6 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @BBL N1 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @BBL N1 0.2 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @BBL N1 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @BBL N1 0.8 nozzle.json"
+        },
+        {
+            "name": "0.30mm Standard @BBL N1 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @BBL N1 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @BBL N1",
+            "sub_path": "process/0.20mm Standard @BBL N1.json"
         }
     ],
     "filament_list": [
@@ -1226,6 +1246,22 @@
         {
             "name": "Bambu Lab P1S 0.8 nozzle",
             "sub_path": "machine/Bambu Lab P1S 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab N1 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab N1 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab N1 0.2 nozzle",
+            "sub_path": "machine/Bambu Lab N1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab N1 0.6 nozzle",
+            "sub_path": "machine/Bambu Lab N1 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab N1 0.8 nozzle",
+            "sub_path": "machine/Bambu Lab N1 0.8 nozzle.json"
         }
     ]
 }

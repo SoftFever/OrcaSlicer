@@ -1,12 +1,12 @@
 {
     "type": "process",
-    "setting_id": "GP019",
-    "name": "0.12mm Fine @BBL P1P",
+    "setting_id": "GP000",
+    "name": "0.20mm Standard @BBL N1",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_process_bbl_0.12",
+    "inherits": "0.20mm Standard @BBL P1P",
+    "travel_speed": "700",
     "compatible_printers": [
-        "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab N1 0.4 nozzle"
     ]
 }

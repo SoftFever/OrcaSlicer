@@ -33,6 +33,7 @@
         "230"
     ],
     "compatible_printers": [
-        "Bambu Lab P1P 0.4 nozzle"
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab N1 0.4 nozzle"
     ]
 }

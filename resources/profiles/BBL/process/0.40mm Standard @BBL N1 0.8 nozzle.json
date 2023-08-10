@@ -1,0 +1,12 @@
+{
+    "type": "process",
+    "setting_id": "GP037",
+    "name": "0.40mm Standard @BBL N1 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "0.40mm Standard @BBL P1P 0.8 nozzle",
+    "travel_speed": "700",
+    "compatible_printers": [
+        "Bambu Lab N1 0.8 nozzle"
+    ]
+}
