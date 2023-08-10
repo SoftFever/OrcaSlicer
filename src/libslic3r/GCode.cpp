@@ -4044,7 +4044,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
-        } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
+        } 
+        else if(path.role() == erBridgeInfill) {
+            speed = m_config.get_abs_value("internal_bridge_speed");
+        } else if (path.role() == erOverhangPerimeter || path.role() == erSupportTransition) {
             speed = m_config.get_abs_value("bridge_speed");
         } else if (path.role() == erInternalInfill) {
             speed = m_config.get_abs_value("sparse_infill_speed");

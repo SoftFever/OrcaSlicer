@@ -69,6 +69,8 @@ public:
     wxWindow*	extra_widget_win {nullptr};
     //BBS: add api to get the first option's key
     std::string& get_first_option_key() {
+		if(m_options.empty())
+			return std::string();
         return m_options[0].opt_id;
     }
 
