@@ -209,7 +209,7 @@ bool DesktopIntegrationDialog::is_integrated()
     if (path.empty())
         return false;
 
-    // confirmation that BambuStudio.desktop exists
+    // confirmation that OrcaSlicer.desktop exists
     struct stat buffer;   
     return (stat (path.c_str(), &buffer) == 0);
 }
@@ -290,11 +290,11 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     // slicer icon
     // iterate thru target_candidates to find icons folder
     for (size_t i = 0; i < target_candidates.size(); ++i) {
-        // Copy icon BambuStudio.png from resources_dir()/icons to target_dir_icons/icons/
+        // Copy icon OrcaSlicer.png from resources_dir()/icons to target_dir_icons/icons/
         if (contains_path_dir(target_candidates[i], "images")) {
             target_dir_icons = target_candidates[i];
-            std::string icon_path = GUI::format("%1%/images/BambuStudio.png",resources_dir());
-            std::string dest_path = GUI::format("%1%/images/%2%BambuStudio%3%.png", target_dir_icons, icon_theme_path, version_suffix);
+            std::string icon_path = GUI::format("%1%/images/OrcaSlicer.png",resources_dir());
+            std::string dest_path = GUI::format("%1%/images/%2%OrcaSlicer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
             if (copy_icon(icon_path, dest_path))
                 break; // success
             else
@@ -305,8 +305,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 create_path(boost::nowide::narrow(wxFileName::GetHomeDir()), ".local/share/icons" + icon_theme_dirs);
                 // copy icon
                 target_dir_icons = GUI::format("%1%/.local/share",wxFileName::GetHomeDir());
-                std::string icon_path = GUI::format("%1%/images/BambuStudio.png",resources_dir());
-                std::string dest_path = GUI::format("%1%/images/%2%BambuStudio%3%.png", target_dir_icons, icon_theme_path, version_suffix);
+                std::string icon_path = GUI::format("%1%/images/OrcaSlicer.png",resources_dir());
+                std::string dest_path = GUI::format("%1%/images/%2%OrcaSlicer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
                 if (!contains_path_dir(target_dir_icons, "images") 
                     || !copy_icon(icon_path, dest_path)) {
                 	// every attempt failed - icon wont be present
@@ -319,7 +319,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         BOOST_LOG_TRIVIAL(error) << "Copying OrcaSlicer icon to icons directory failed.";
     } else 
     	// save path to icon
-        app_config->set("desktop_integration_icon_slicer_path", GUI::format("%1%/images/%2%BambuStudio%3%.png", target_dir_icons, icon_theme_path, version_suffix));
+        app_config->set("desktop_integration_icon_slicer_path", GUI::format("%1%/images/%2%OrcaSlicer%3%.png", target_dir_icons, icon_theme_path, version_suffix));
 
     // desktop file
     // iterate thru target_candidates to find applications folder
@@ -332,7 +332,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 "[Desktop Entry]\n"
                 "Name=OrcaSlicer%1%\n"
                 "GenericName=3D Printing Software\n"
-                "Icon=BambuStudio%2%\n"
+                "Icon=OrcaSlicer%2%\n"
                 "Exec=\"%3%\" %%F\n"
                 "Terminal=false\n"
                 "Type=Application\n"
@@ -387,8 +387,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         // Icon
         if (!target_dir_icons.empty())
         {
-            std::string icon_path = GUI::format("%1%/images/BambuStudio-gcodeviewer_192px.png",resources_dir());
-            std::string dest_path = GUI::format("%1%/images/%2%BambuStudio-gcodeviewer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
+            std::string icon_path = GUI::format("%1%/images/OrcaSlicer-gcodeviewer_192px.png",resources_dir());
+            std::string dest_path = GUI::format("%1%/images/%2%OrcaSlicer-gcodeviewer%3%.png", target_dir_icons, icon_theme_path, version_suffix);
             if (copy_icon(icon_path, dest_path))
                 // save path to icon
                 app_config->set("desktop_integration_icon_viewer_path", dest_path);
@@ -401,7 +401,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
             "[Desktop Entry]\n"
             "Name=Bambu Gcode Viewer%1%\n"
             "GenericName=3D Printing Software\n"
-            "Icon=BambuStudio-gcodeviewer%2%\n"
+            "Icon=OrcaSlicer-gcodeviewer%2%\n"
             "Exec=\"%3%\" --gcodeviewer %%F\n"
             "Terminal=false\n"
             "Type=Application\n"

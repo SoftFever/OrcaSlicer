@@ -8,7 +8,7 @@ on:
        - 'src/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
-       - 'bbl/**'
+       - 'localization/**'
        - 'resources/**'
        - '.github/workflows/build_win.yml'
 
@@ -19,7 +19,7 @@ on:
        - 'src/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
-       - 'bbl/**'
+       - 'localization/**'
        - 'resources/**'
        - '.github/workflows/build_win.yml'
 

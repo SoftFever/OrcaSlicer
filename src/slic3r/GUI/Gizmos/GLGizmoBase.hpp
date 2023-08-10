@@ -191,6 +191,9 @@ public:
 
     virtual std::string get_tooltip() const { return ""; }
 
+    int get_count() { return ++count; }
+    std::string get_gizmo_name() { return on_get_name(); }
+
 protected:
     float last_input_window_width = 0;
     virtual bool on_init() = 0;
@@ -229,6 +232,7 @@ private:
     // Flag for dirty visible state of Gizmo
     // When True then need new rendering
     bool m_dirty;
+    int count = 0;
 };
 
 

@@ -187,6 +187,26 @@ std::optional<std::string> get_current_thread_name()
 
 #endif // _WIN32
 
+// To be called at the start of the application to save the current thread ID as the main (UI) thread ID.
+static boost::thread::id g_main_thread_id;
+
+void save_main_thread_id()
+{
+	g_main_thread_id = boost::this_thread::get_id();
+}
+
+// Retrieve the cached main (UI) thread ID.
+boost::thread::id get_main_thread_id()
+{
+	return g_main_thread_id;
+}
+
+// Checks whether the main (UI) thread is active.
+bool is_main_thread_active()
+{
+	return get_main_thread_id() == boost::this_thread::get_id();
+}
+
 // Spawn (n - 1) worker threads on Intel TBB thread pool and name them by an index and a system thread ID.
 // Also it sets locale of the worker threads to "C" for the G-code generator to produce "." as a decimal separator.
 void name_tbb_thread_pool_threads_set_locale()

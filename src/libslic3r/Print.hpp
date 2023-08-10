@@ -89,6 +89,7 @@ enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
     posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath,
     // BBS
+    posSimplifyInfill,
     posDetectOverhangsForLift,
     posCount,
 };
@@ -200,6 +201,9 @@ struct PrintInstance
     // 
     // instance id
     size_t               id;
+
+    //BBS: instance_shift is too large because of multi-plate, apply without plate offset.
+    Point shift_without_plate_offset() const;
 };
 
 typedef std::vector<PrintInstance> PrintInstances;
@@ -419,11 +423,13 @@ public:
 
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
-
+    void         get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects);
+    std::vector<Point> get_instances_shift_without_plate_offset();
     PrintObject* get_shared_object() const { return m_shared_object; }
     void         set_shared_object(PrintObject *object);
     void         clear_shared_object();
     void         copy_layers_from_shared_object();
+    void         copy_layers_overhang_from_shared_object();
 
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
@@ -755,7 +761,7 @@ public:
     // For Perl bindings.
     PrintObjectPtrs&            objects_mutable() { return m_objects; }
     PrintRegionPtrs&            print_regions_mutable() { return m_print_regions; }
-
+    std::vector<size_t>         layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points>& objects_instances_shift);
     const ExtrusionEntityCollection& skirt() const { return m_skirt; }
     // Convex hull of the 1st layer extrusions, for bed leveling and placing the initial purge line.
     // It encompasses the object extrusions, support extrusions, skirt, brim, wipe tower.
@@ -818,6 +824,9 @@ public:
     Vec2d translate_to_print_space(const Vec2d &point) const;
     // scaled point
     Vec2d translate_to_print_space(const Point &point) const;
+
+    static bool check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
+
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);

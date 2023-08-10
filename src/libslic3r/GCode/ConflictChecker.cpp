@@ -89,14 +89,10 @@ inline Grids line_rasterization(const Line &line, int64_t xdist = RasteXDistance
 }
 } // namespace RasterizationImpl
 
-void LinesBucketQueue::emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, const void *objPtr, Point offset)
+void LinesBucketQueue::emplace_back_bucket(ExtrusionLayers &&els, const void *objPtr, Point offset)
 {
     auto oldSize = _buckets.capacity();
-    if (_objsPtrToId.find(objPtr) == _objsPtrToId.end()) {
-        _objsPtrToId.insert({objPtr, _objsPtrToId.size()});
-        _idToObjsPtr.insert({_objsPtrToId.size() - 1, objPtr});
-    }
-    _buckets.emplace_back(std::move(paths), _objsPtrToId[objPtr], offset);
+    _buckets.emplace_back(std::move(els), objPtr, offset);
     _pq.push(&_buckets.back());
     auto newSize = _buckets.capacity();
     if (oldSize != newSize) { // pointers change
@@ -106,15 +102,16 @@ void LinesBucketQueue::emplace_back_bucket(std::vector<ExtrusionPaths> &&paths, 
     }
 }
 
-double LinesBucketQueue::removeLowests()
+// remove lowest and get the current bottom z
+float LinesBucketQueue::getCurrBottomZ()
 {
     auto lowest = _pq.top();
     _pq.pop();
-    double                     curHeight = lowest->curHeight();
+    float                      layerBottomZ = lowest->curBottomZ();
     std::vector<LinesBucket *> lowests;
     lowests.push_back(lowest);
 
-    while (_pq.empty() == false && std::abs(_pq.top()->curHeight() - lowest->curHeight()) < EPSILON) {
+    while (_pq.empty() == false && std::abs(_pq.top()->curBottomZ() - lowest->curBottomZ()) < EPSILON) {
         lowests.push_back(_pq.top());
         _pq.pop();
     }
@@ -123,7 +120,7 @@ double LinesBucketQueue::removeLowests()
         bp->raise();
         if (bp->valid()) { _pq.push(bp); }
     }
-    return curHeight;
+    return layerBottomZ;
 }
 
 LineWithIDs LinesBucketQueue::getCurLines() const
@@ -156,32 +153,44 @@ void getExtrusionPathsFromEntity(const ExtrusionEntityCollection *entity, Extrus
     getExtrusionPathImpl(entity, paths);
 }
 
-ExtrusionPaths getExtrusionPathsFromLayer(LayerRegionPtrs layerRegionPtrs)
+ExtrusionLayers getExtrusionPathsFromLayer(const LayerRegionPtrs layerRegionPtrs)
 {
-    ExtrusionPaths paths;
-    for (auto regionPtr : layerRegionPtrs) {
-        getExtrusionPathsFromEntity(&regionPtr->perimeters, paths);
-        if (regionPtr->perimeters.empty() == false) { getExtrusionPathsFromEntity(&regionPtr->fills, paths); }
+    ExtrusionLayers perimeters; // periments and infills
+    perimeters.resize(layerRegionPtrs.size());
+    int i = 0;
+    for (LayerRegion *regionPtr : layerRegionPtrs) {
+        perimeters[i].layer    = regionPtr->layer();
+        perimeters[i].bottom_z = regionPtr->layer()->bottom_z();
+        perimeters[i].height   = regionPtr->layer()->height;
+        getExtrusionPathsFromEntity(&regionPtr->perimeters, perimeters[i].paths);
+        getExtrusionPathsFromEntity(&regionPtr->fills, perimeters[i].paths);
+        ++i;
     }
-    return paths;
+    return perimeters;
 }
 
-ExtrusionPaths getExtrusionPathsFromSupportLayer(SupportLayer *supportLayer)
+ExtrusionLayer getExtrusionPathsFromSupportLayer(SupportLayer *supportLayer)
 {
-    ExtrusionPaths paths;
-    getExtrusionPathsFromEntity(&supportLayer->support_fills, paths);
-    return paths;
+    ExtrusionLayer el;
+    getExtrusionPathsFromEntity(&supportLayer->support_fills, el.paths);
+    el.layer    = supportLayer;
+    el.bottom_z = supportLayer->bottom_z();
+    el.height   = supportLayer->height;
+    return el;
 }
 
-std::pair<std::vector<ExtrusionPaths>, std::vector<ExtrusionPaths>> getAllLayersExtrusionPathsFromObject(PrintObject *obj)
+ObjectExtrusions getAllLayersExtrusionPathsFromObject(PrintObject *obj)
 {
-    std::vector<ExtrusionPaths> objPaths, supportPaths;
+    ObjectExtrusions oe;
 
-    for (auto layerPtr : obj->layers()) { objPaths.push_back(getExtrusionPathsFromLayer(layerPtr->regions())); }
+    for (auto layerPtr : obj->layers()) {
+        auto perimeters = getExtrusionPathsFromLayer(layerPtr->regions());
+        oe.perimeters.insert(oe.perimeters.end(), perimeters.begin(), perimeters.end());
+    }
 
-    for (auto supportLayerPtr : obj->support_layers()) { supportPaths.push_back(getExtrusionPathsFromSupportLayer(supportLayerPtr)); }
+    for (auto supportLayerPtr : obj->support_layers()) { oe.support.push_back(getExtrusionPathsFromSupportLayer(supportLayerPtr)); }
 
-    return {std::move(objPaths), std::move(supportPaths)};
+    return oe;
 }
 
 ConflictComputeOpt ConflictChecker::find_inter_of_lines(const LineWithIDs &lines)
@@ -205,72 +214,90 @@ ConflictComputeOpt ConflictChecker::find_inter_of_lines(const LineWithIDs &lines
 }
 
 ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectPtrs                      objs,
-                                                                  std::optional<const FakeWipeTower *> wtdptr) // find the first intersection point of lines in different objects
+                                                                    std::optional<const FakeWipeTower *> wtdptr) // find the first intersection point of lines in different objects
 {
-    if (objs.size() <= 1) { return {}; }
+    if (objs.size() <= 1 && !wtdptr) { return {}; }
     LinesBucketQueue conflictQueue;
     if (wtdptr.has_value()) { // wipe tower at 0 by default
-        auto wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
-        conflictQueue.emplace_back_bucket(std::move(wtpaths), wtdptr.value(), {wtdptr.value()->plate_origin.x(),wtdptr.value()->plate_origin.y()});
+        auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
+        ExtrusionLayers wtels;
+        wtels.type = ExtrusionLayersType::WIPE_TOWER;
+        for (int i = 0; i < wtpaths.size(); ++i) { // assume that wipe tower always has same height
+            ExtrusionLayer el;
+            el.paths    = wtpaths[i];
+            el.bottom_z = wtpaths[i].front().height * (float) i;
+            el.layer    = nullptr;
+            wtels.push_back(el);
+        }
+        conflictQueue.emplace_back_bucket(std::move(wtels), wtdptr.value(), {wtdptr.value()->plate_origin.x(), wtdptr.value()->plate_origin.y()});
     }
     for (PrintObject *obj : objs) {
         auto layers = getAllLayersExtrusionPathsFromObject(obj);
-        conflictQueue.emplace_back_bucket(std::move(layers.first), obj, obj->instances().front().shift);
-        conflictQueue.emplace_back_bucket(std::move(layers.second), obj, obj->instances().front().shift);
+        conflictQueue.emplace_back_bucket(std::move(layers.perimeters), obj, obj->instances().front().shift);
+        conflictQueue.emplace_back_bucket(std::move(layers.support), obj, obj->instances().front().shift);
     }
 
     std::vector<LineWithIDs> layersLines;
-    std::vector<double>      heights;
+    std::vector<float>       bottomZs;
     while (conflictQueue.valid()) {
-        LineWithIDs lines     = conflictQueue.getCurLines();
-        double      curHeight = conflictQueue.removeLowests();
-        heights.push_back(curHeight);
+        LineWithIDs lines = conflictQueue.getCurLines();
+        float curBottomZ = conflictQueue.getCurrBottomZ();
+        bottomZs.push_back(curBottomZ);
         layersLines.push_back(std::move(lines));
     }
 
-    bool                                   find = false;
-    tbb::concurrent_vector<std::pair<ConflictComputeResult,double>> conflict;
-
+    bool                                                          find = false;
+    tbb::concurrent_vector<std::pair<ConflictComputeResult, float>> conflict;
     tbb::parallel_for(tbb::blocked_range<size_t>(0, layersLines.size()), [&](tbb::blocked_range<size_t> range) {
         for (size_t i = range.begin(); i < range.end(); i++) {
             auto interRes = find_inter_of_lines(layersLines[i]);
             if (interRes.has_value()) {
                 find = true;
-                conflict.emplace_back(interRes.value(),heights[i]);
+                conflict.emplace_back(interRes.value(), bottomZs[i]);
                 break;
             }
         }
     });
 
     if (find) {
-        const void *ptr1           = conflictQueue.idToObjsPtr(conflict[0].first._obj1);
-        const void *ptr2           = conflictQueue.idToObjsPtr(conflict[0].first._obj2);
-        double      conflictHeight = conflict[0].second;
+        const void *ptr1           = conflict[0].first._obj1;
+        const void *ptr2           = conflict[0].first._obj2;
+        float       conflictPrintZ = conflict[0].second;
         if (wtdptr.has_value()) {
             const FakeWipeTower *wtdp = wtdptr.value();
             if (ptr1 == wtdp || ptr2 == wtdp) {
                 if (ptr2 == wtdp) { std::swap(ptr1, ptr2); }
                 const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
-                return std::make_optional<ConflictResult>("WipeTower", obj2->model_object()->name, conflictHeight, nullptr, ptr2);
+                return std::make_optional<ConflictResult>("WipeTower", obj2->model_object()->name, conflictPrintZ, nullptr, ptr2);
             }
         }
         const PrintObject *obj1 = reinterpret_cast<const PrintObject *>(ptr1);
         const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
-        return std::make_optional<ConflictResult>(obj1->model_object()->name, obj2->model_object()->name, conflictHeight, ptr1, ptr2);
+        return std::make_optional<ConflictResult>(obj1->model_object()->name, obj2->model_object()->name, conflictPrintZ, ptr1, ptr2);
     } else
         return {};
 }
 
 ConflictComputeOpt ConflictChecker::line_intersect(const LineWithID &l1, const LineWithID &l2)
 {
+    constexpr double SUPPORT_THRESHOLD = 100;  // this large almost disables conflict check of supports
+    constexpr double OTHER_THRESHOLD   = 0.01;
     if (l1._id == l2._id) { return {}; } // return true if lines are from same object
     Point inter;
     bool  intersect = l1._line.intersection(l2._line, &inter);
+
     if (intersect) {
-        auto dist1 = std::min(unscale(Point(l1._line.a - inter)).norm(), unscale(Point(l1._line.b - inter)).norm());
-        auto dist2 = std::min(unscale(Point(l2._line.a - inter)).norm(), unscale(Point(l2._line.b - inter)).norm());
-        auto dist  = std::min(dist1, dist2);
-        if (dist > 0.01) { return std::make_optional<ConflictComputeResult>(l1._id, l2._id); } // the two lines intersects if dist>0.01mm
+        double dist1 = std::min(unscale(Point(l1._line.a - inter)).norm(), unscale(Point(l1._line.b - inter)).norm());
+        double dist2 = std::min(unscale(Point(l2._line.a - inter)).norm(), unscale(Point(l2._line.b - inter)).norm());
+        double dist  = std::min(dist1, dist2);
+        ExtrusionRole r1        = l1._role;
+        ExtrusionRole r2        = l2._role;
+        bool          both_support = r1 == ExtrusionRole::erSupportMaterial || r1 == ExtrusionRole::erSupportMaterialInterface || r1 == ExtrusionRole::erSupportTransition;
+        both_support = both_support && ( r2 == ExtrusionRole::erSupportMaterial || r2 == ExtrusionRole::erSupportMaterialInterface || r2 == ExtrusionRole::erSupportTransition);
+        if (dist > (both_support ? SUPPORT_THRESHOLD:OTHER_THRESHOLD)) {
+            // the two lines intersects if dist>0.01mm for regular lines, and if dist>1mm for both supports
+            return std::make_optional<ConflictComputeResult>(l1._id, l2._id);
+        }
     }
     return {};
 }

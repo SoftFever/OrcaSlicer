@@ -368,7 +368,7 @@ private:
     mutable CutContours m_cut_contours;
 
     BoundingBoxf3 bounding_box() const;
-    void update_contours(float cursor_z, float max_z) const;
+    void update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const;
 
 protected:
     void on_set_state() override;

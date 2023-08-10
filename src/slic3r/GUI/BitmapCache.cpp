@@ -375,7 +375,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
     // BBS: support resize by fill border
-    if (scale_in_center > 0) {
+    if (scale_in_center > 0 && scale_in_center < svg_scale) {
         int w = (int)(image->width * scale_in_center);
         int h = (int)(image->height * scale_in_center);
         ::nsvgRasterize(rast, image, 0, 0, scale_in_center, data.data() + int(height - h) / 2 * width * 4 + int(width - w) / 2 * 4, w, h, width * 4);
@@ -433,6 +433,14 @@ wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsi
 
 bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
 {
+    if (scolor.size() == 9) {
+        unsigned char rgba[4];
+        parse_color4(scolor, rgba);
+        rgb_out[0] = rgba[0];
+        rgb_out[1] = rgba[1];
+        rgb_out[2] = rgba[2];
+        return true;
+    }
     rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
     if (scolor.size() != 7 || scolor.front() != '#')
         return false;
@@ -443,6 +451,23 @@ bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
         if (digit1 == -1 || digit2 == -1)
             return false;
         rgb_out[i] = (unsigned char)(digit1 * 16 + digit2);
+    }
+
+    return true;
+}
+
+bool BitmapCache::parse_color4(const std::string& scolor, unsigned char* rgba_out)
+{
+    rgba_out[0] = rgba_out[1] = rgba_out[2] = 0; rgba_out[3] = 255;
+    if ((scolor.size() != 7 && scolor.size() != 9) || scolor.front() != '#')
+        return false;
+    const char* c = scolor.data() + 1;
+    for (size_t i = 0; i < scolor.size() / 2; ++i) {
+        int digit1 = hex_digit_to_int(*c++);
+        int digit2 = hex_digit_to_int(*c++);
+        if (digit1 == -1 || digit2 == -1)
+            return false;
+        rgba_out[i] = (unsigned char)(digit1 * 16 + digit2);
     }
     return true;
 }

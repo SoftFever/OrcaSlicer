@@ -6,58 +6,58 @@
 		"files": [
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/en/OrcaSlicer_en.po",
+				"pattern": "localization/i18n/en/OrcaSlicer_en.po",
 				"lang": "en"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/fr/OrcaSlicer_fr.po",
+				"pattern": "localization/i18n/fr/OrcaSlicer_fr.po",
 				"lang": "fr"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/de/OrcaSlicer_de.po",
+				"pattern": "localization/i18n/de/OrcaSlicer_de.po",
 				"lang": "de"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/sv/OrcaSlicer_sv.po",
+				"pattern": "localization/i18n/sv/OrcaSlicer_sv.po",
 				"lang": "sv"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/es/OrcaSlicer_es.po",
+				"pattern": "localization/i18n/es/OrcaSlicer_es.po",
 				"lang": "es"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/nl/OrcaSlicer_nl.po",
+				"pattern": "localization/i18n/nl/OrcaSlicer_nl.po",
 				"lang": "nl"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/hu/OrcaSlicer_hu.po",
+				"pattern": "localization/i18n/hu/OrcaSlicer_hu.po",
 				"lang": "hu"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/ja/OrcaSlicer_ja.po",
+				"pattern": "localization/i18n/ja/OrcaSlicer_ja.po",
 				"lang": "ja"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/ko/OrcaSlicer_ko.po",
+				"pattern": "localization/i18n/ko/OrcaSlicer_ko.po",
 				"lang": "ko"
 			},
 			{
 				"type": "po",
-				"pattern": "bbl/i18n/ru/OrcaSlicer_ru.po",
+				"pattern": "localization/i18n/ru/OrcaSlicer_ru.po",
 				"lang": "ru"
 			}
 		]
 	},
 	"download": {
-		"folder": "bbl/i18n",
+		"folder": "localization/i18n",
 		"includeSourceLang" : "true",
 		"files": {
 			"output": "${lang}/OrcaSlicer_${lang}.po"

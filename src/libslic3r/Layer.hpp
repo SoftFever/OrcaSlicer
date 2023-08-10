@@ -95,7 +95,8 @@ public:
     // Is there any valid extrusion assigned to this LayerRegion?
     bool    has_extrusions() const { return ! this->perimeters.entities.empty() || ! this->fills.entities.empty(); }
     //BBS
-    void    simplify_extrusion_entity();
+    void    simplify_infill_extrusion_entity() { simplify_entity_collection(&fills); }
+    void    simplify_wall_extrusion_entity() { simplify_entity_collection(&perimeters); }
 private:
     void    simplify_entity_collection(ExtrusionEntityCollection* entity_collection);
     void    simplify_path(ExtrusionPath* path);
@@ -149,7 +150,7 @@ public:
 
     // BBS
     ExPolygons              loverhangs;
-
+    BoundingBox             loverhangs_bbox;
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions[idx]; }
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }
@@ -190,9 +191,44 @@ public:
     virtual bool            has_extrusions() const { for (auto layerm : m_regions) if (layerm->has_extrusions()) return true; return false; }
 
     //BBS
-    void simplify_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_extrusion_entity();}
+    void simplify_wall_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_wall_extrusion_entity();}
+    void simplify_infill_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_infill_extrusion_entity(); }
     //BBS: this function calculate the maximum void grid area of sparse infill of this layer. Just estimated value
     coordf_t get_sparse_infill_max_void_area();
+
+    // FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
+    // Find the first item with Z value >= of an internal threshold of fn_higher_equal.
+    // If no vec item with Z value >= of an internal threshold of fn_higher_equal is found, return vec.size()
+    // If the initial idx is size_t(-1), then use binary search.
+    // Otherwise search linearly upwards.
+    template<typename IteratorType, typename IndexType, typename FN_HIGHER_EQUAL>
+    static IndexType idx_higher_or_equal(IteratorType begin, IteratorType end, IndexType idx, FN_HIGHER_EQUAL fn_higher_equal)
+    {
+        auto size = int(end - begin);
+        if (size == 0) {
+            idx = 0;
+            }
+        else if (idx == IndexType(-1)) {
+            // First of the batch of layers per thread pool invocation. Use binary search.
+            int idx_low = 0;
+            int idx_high = std::max(0, size - 1);
+            while (idx_low + 1 < idx_high) {
+                int idx_mid = (idx_low + idx_high) / 2;
+                if (fn_higher_equal(begin[idx_mid]))
+                    idx_high = idx_mid;
+                else
+                    idx_low = idx_mid;
+                }
+            idx = fn_higher_equal(begin[idx_low]) ? idx_low :
+                (fn_higher_equal(begin[idx_high]) ? idx_high : size);
+            }
+        else {
+            // For the other layers of this batch of layers, search incrementally, which is cheaper than the binary search.
+            while (int(idx) < size && !fn_higher_equal(begin[idx]))
+                ++idx;
+            }
+        return idx;
+    }
 
 protected:
     friend class PrintObject;

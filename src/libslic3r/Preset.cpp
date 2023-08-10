@@ -685,9 +685,9 @@ bool Preset::is_custom_defined()
     return false;
 }
 
-bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
+bool Preset::has_lidar(PresetBundle *preset_bundle)
 {
-    bool is_bbl_vendor_preset = false;
+    bool has_lidar = false;
     if (preset_bundle) {
         auto config = &preset_bundle->printers.get_edited_preset().config;
         std::string vendor_name;
@@ -700,9 +700,39 @@ bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
                 }
         }
         if (!vendor_name.empty())
-            is_bbl_vendor_preset = vendor_name.compare("BBL") == 0 ? true : false;
+            has_lidar = vendor_name.compare("BBL") == 0 ? true : false;
     }
-    return is_bbl_vendor_preset;
+    return has_lidar;
+}
+
+BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
+{
+    if (config.has("default_bed_type") && !config.opt_string("default_bed_type").empty()) {
+        try {
+            std::string str_bed_type = config.opt_string("default_bed_type");
+            int bed_type_value = atoi(str_bed_type.c_str());
+            return BedType(bed_type_value);
+        } catch(...) {
+            ;
+        }
+    }
+
+    std::string model_id = this->get_printer_type(preset_bundle);
+    if (model_id == "BL-P001" || model_id == "BL-P002") {
+        return BedType::btPC;
+    } else if (model_id == "C11") {
+        return BedType::btPEI;
+    }
+    return BedType::btPEI;
+}
+
+bool Preset::has_cali_lines(PresetBundle* preset_bundle)
+{
+    std::string model_id = this->get_printer_type(preset_bundle);
+    if (model_id == "BL-P001" || model_id == "BL-P002") {
+        return true;
+    }
+    return false;
 }
 
 static std::vector<std::string> s_Preset_print_options {
@@ -711,8 +741,8 @@ static std::vector<std::string> s_Preset_print_options {
     "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
     "seam_position", "staggered_inner_seams", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction",
-    "minimum_sparse_infill_area", "reduce_infill_retraction",
-    "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
+    "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern",
+    "ironing_type", "ironing_pattern", "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_travel_detour_distance",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -729,7 +759,7 @@ static std::vector<std::string> s_Preset_print_options {
     "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
-    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence",
+    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence", "support_remove_small_overhang",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
@@ -1960,8 +1990,9 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 }
 
 //BBS: add project embedded preset logic
-void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project)
+void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project, Preset* _curr_preset)
 {
+    Preset curr_preset = _curr_preset ? *_curr_preset : m_edited_preset;
     //BBS: add lock logic for sync preset in background
     std::string final_inherits;
     lock();
@@ -1980,7 +2011,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             return;
         }
         // Overwriting an existing preset.
-        preset.config = std::move(m_edited_preset.config);
+        preset.config = std::move(curr_preset.config);
         // The newly saved preset will be activated -> make it visible.
         preset.is_visible = true;
         //TODO: remove the detach logic
@@ -1997,7 +2028,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         unlock();
     } else {
         // Creating a new preset.
-        Preset       &preset   = *m_presets.insert(it, m_edited_preset);
+        Preset       &preset   = *m_presets.insert(it, curr_preset);
         std::string  &inherits = preset.inherits();
         std::string   old_name = preset.name;
         preset.name = new_name;

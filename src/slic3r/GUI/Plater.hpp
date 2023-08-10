@@ -288,6 +288,9 @@ public:
     bool are_view3D_labels_shown() const;
     void show_view3D_labels(bool show);
 
+    bool is_view3D_overhang_shown() const;
+    void show_view3D_overhang(bool show);
+    
     bool is_sidebar_collapsed() const;
     void collapse_sidebar(bool show);
 
@@ -332,6 +335,7 @@ public:
     void export_gcode_3mf(bool export_all = false);
     void send_gcode_finish(wxString name);
     void export_core_3mf();
+    static TriangleMesh combine_mesh_fff(const ModelObject& mo, int instance_id, std::function<void(const std::string&)> notify_func = {});
     void export_stl(bool extended = false, bool selection_only = false);
     //BBS: remove amf
     //void export_amf();
@@ -686,7 +690,8 @@ public:
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
-
+    int     GetPlateIndexByRightMenuInLeftUI();
+    void    SetPlateIndexByRightMenuInLeftUI(int);
     static bool has_illegal_filename_characters(const wxString& name);
     static bool has_illegal_filename_characters(const std::string& name);
     static void show_illegal_characters_warning(wxWindow* parent);

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=OrcaSlicer
 GenericName=3D Printing Software
-Icon=BambuStudio
+Icon=OrcaSlicer
 Exec=orca-slicer %F
 Terminal=false
 Type=Application
