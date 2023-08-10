@@ -2805,7 +2805,10 @@ GCode::LayerResult GCode::process_layer(
     //BBS: set layer time fan speed after layer change gcode
     gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
 
-    if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
+    if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
+        gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
+    } 
+    else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
         auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
         gcode += writer().set_temperature(print.calib_params().end - offset);
     }
