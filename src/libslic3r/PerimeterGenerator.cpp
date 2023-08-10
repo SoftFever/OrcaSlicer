@@ -322,31 +322,12 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
             if (remain_polines.size() != 0) {
-                if (!((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0)
-                    && perimeter_generator.object_config->support_top_z_distance.value == 0)) {
-                    extrusion_paths_append(
-                        paths,
-                        std::move(remain_polines),
-                        overhang_sampling_number - 1,
-                        int(0),
-                        erOverhangPerimeter,
-                        perimeter_generator.mm3_per_mm_overhang(),
-                        perimeter_generator.overhang_flow.width(),
-                        perimeter_generator.overhang_flow.height());
-                } else {
-                    extrusion_paths_append(
-                    paths,
-                    std::move(remain_polines),
-                    overhang_sampling_number - 1,
-                    int(0),
-                    role,
-                    extrusion_mm3_per_mm,
-                    extrusion_width,
-                    (float)perimeter_generator.layer_height);
-                }
-
+                extrusion_paths_append(paths, std::move(remain_polines), overhang_sampling_number - 1, int(0),
+                                       erOverhangPerimeter, perimeter_generator.mm3_per_mm_overhang(),
+                                       perimeter_generator.overhang_flow.width(),
+                                       perimeter_generator.overhang_flow.height());
             }
-            
+
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
             chain_and_reorder_extrusion_paths(paths, &paths.front().first_point());
@@ -595,9 +576,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
-        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers
-            && !((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) &&
-                perimeter_generator.object_config->support_top_z_distance.value == 0)) {
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
             ClipperLib_Z::Path extrusion_path;
             extrusion_path.reserve(extrusion->size());
             BoundingBox extrusion_path_bbox;
