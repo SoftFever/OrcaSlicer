@@ -2211,7 +2211,6 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
 void MainFrame::init_menubar_as_editor()
 {
 #ifdef __APPLE__
-    wxMenuBar::SetAutoWindowMenu(false);
     m_menubar = new wxMenuBar();
 #endif
 
@@ -2610,6 +2609,14 @@ void MainFrame::init_menubar_as_editor()
     wxWindowID bambu_studio_id_base = wxWindow::NewControlId(int(2));
     wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
     //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
+        
+        std::string app_items[] = {
+            L("Services"),
+            L("Hide BambuStudio"),
+            L("Hide Others"),
+            L("Show All"),
+            L("Quit BambuStudio")
+        };
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
     auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
@@ -2951,6 +2958,17 @@ void MainFrame::init_menubar_as_editor()
             ;
         },
         this);
+        
+    m_menubar->Append(new wxMenu(), L("Window"));
+    std::string window_items[] = {
+        L("Minimize"),
+        L("Zoom"),
+        L("Tile Window to Left of Screen"),
+        L("Tile Window to Right of Screen"),
+        L("Replace Tiled Window"),
+        L("Remove Window from Set"),
+        L("Bring All to Front")
+    };
 
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
