@@ -41,7 +41,8 @@ enum TestJob {
 	TEST_OSS_DOWNLOAD_JOB = 5,
 	TEST_OSS_UPLOAD_JOB = 6,
 	TEST_PING_JOB = 7,
-	TEST_JOB_MAX = 8
+	TEST_PLUGIN_JOB = 8,
+	TEST_JOB_MAX = 9
 };
 
 class NetworkTestDialog : public DPIDialog
@@ -78,6 +79,9 @@ protected:
 	wxButton*     btn_oss_upload;
 	wxStaticText* text_oss_upload_title;
 	wxStaticText* text_oss_upload_value;
+	wxButton*     btn_network_plugin;
+	wxStaticText* text_network_plugin_title;
+	wxStaticText* text_network_plugin_value;
 	wxStaticText* text_ping_title;
 	wxStaticText* text_ping_value;
 	wxStaticText* text_result;
@@ -118,6 +122,7 @@ public:
 	void start_test_oss_download_thread();
 	void start_test_oss_upload_thread();
 	void start_test_ping_thread();
+	void start_test_plugin_download_thread();
 
 	void start_test_bing();
 	void start_test_bambulab();
@@ -126,6 +131,7 @@ public:
 	void start_test_oss_upgrade();
 	void start_test_oss_download();
 	void start_test_oss_upload();
+	void start_test_plugin_download();
 
 	void on_close(wxCloseEvent& event);
 
