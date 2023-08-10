@@ -21,6 +21,8 @@
 //BBS: add stl
 #include "Format/STL.hpp"
 
+#include "Calib.hpp"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -1623,6 +1625,8 @@ public:
     bool          is_seam_painted() const;
     // Checks if any of objects is painted using the multi-material painting gizmo.
     bool          is_mm_painted() const;
+
+    std::unique_ptr<CalibPressureAdvancePattern> calib_pa_pattern;
 
 private:
     explicit Model(int) : ObjectBase(-1)

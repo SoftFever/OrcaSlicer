@@ -677,6 +677,25 @@ std::string Preset::get_current_printer_type(PresetBundle *preset_bundle)
     return "";
 }
 
+bool Preset::has_lidar(PresetBundle *preset_bundle)
+{
+    bool has_lidar = false;
+    if (preset_bundle) {
+        auto config = &preset_bundle->printers.get_edited_preset().config;
+        std::string vendor_name;
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == config->opt_string("printer_model")) {
+                    vendor_name = vendor_profile.first;
+                    break;
+                }
+        }
+        if (!vendor_name.empty())
+            has_lidar = vendor_name.compare("BBL") == 0 ? true : false;
+    }
+    return has_lidar;
+}
+
 bool Preset::is_custom_defined()
 {
     if (custom_defined == "1")
