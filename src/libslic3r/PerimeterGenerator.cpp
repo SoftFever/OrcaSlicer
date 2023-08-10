@@ -806,8 +806,8 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     else
         offset_top_surface = 0;
     // don't takes into account too thin areas
-    // skip if the exposed area is smaller than 2x perimeter width
-    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), 2.5 * (double(perimeter_width)));
+    // skip if the exposed area is smaller than "min_width_top_surface"
+    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), config->min_width_top_surface.get_abs_value(perimeter_width));
 
     Polygons grown_upper_slices = offset(*this->upper_slices, min_width_top_surface);
 
