@@ -1508,6 +1508,12 @@ void MachineObject::parse_version_func()
                 is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
             }
         }
+    }  else if (printer_type == "N1") {
+        is_support_remote_tunnel = true;
+        local_camera_proto       = 1;
+        is_support_tunnel_mqtt   = true;
+        is_support_ams_humidity  = false;
+        is_support_1080dpi       = true;
     }
 }
 
