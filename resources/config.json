@@ -67,6 +67,7 @@
             "FUNC_CHAMBER_FAN": false,
             "FUNC_SEND_TO_SDCARD": false
         },
+        "printer_arch" : "i3",
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
         "model_id": "N1",

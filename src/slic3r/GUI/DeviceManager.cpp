@@ -139,6 +139,18 @@ void split_string(std::string s, std::vector<std::string>& v) {
     v.push_back(t);
 }
 
+PrinterArch get_printer_arch_by_str(std::string arch_str)
+{
+    if (arch_str == "i3") {
+        return PrinterArch::ARCH_I3;
+    }
+    else if (arch_str == "core_xy") {
+        return PrinterArch::ARCH_CORE_XY;
+    }
+
+    return PrinterArch::ARCH_CORE_XY;
+}
+
 void AmsTray::update_color_from_str(std::string color)
 {
     if (color.empty()) return;
@@ -426,6 +438,11 @@ PrinterSeries MachineObject::get_printer_series() const
         return PrinterSeries::SERIES_P1P;
     else
         return PrinterSeries::SERIES_P1P;
+}
+
+PrinterArch MachineObject::get_printer_arch() const
+{
+    return DeviceManager::get_printer_arch(printer_type);
 }
 
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
@@ -2426,9 +2443,9 @@ bool MachineObject::is_printing_finished()
 
 bool MachineObject::is_core_xy()
 {
-    if (printer_type == "N1")
-        return false;
-    return true;
+    if (get_printer_arch() == PrinterArch::ARCH_CORE_XY)
+        return true;
+    return false;
 }
 
 void MachineObject::reset_update_time()
@@ -5092,6 +5109,21 @@ std::string DeviceManager::get_ftp_folder(std::string type_str)
         }
     }
     return "";
+}
+
+PrinterArch DeviceManager::get_printer_arch(std::string type_str)
+{
+    PrinterArch arch = PrinterArch::ARCH_CORE_XY;
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("printer_arch")) {
+                    return get_printer_arch_by_str(printer["printer_arch"].get<std::string>());
+                }
+            }
+        }
+    }
+    return arch;
 }
 
 std::string DeviceManager::get_printer_thumbnail_img(std::string type_str)
