@@ -60,7 +60,7 @@ jobs:
           rm OrcaSlicer_dep_mac_x86_64_06-08-2023.tar.gz
 
 
-      - name: Build studio
+      - name: Build slicer
         working-directory: ${{ github.workspace }}
         run: ./build_release_macos.sh -s -n -a x86_64
 

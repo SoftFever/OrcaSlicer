@@ -40,7 +40,7 @@ while getopts ":dsiuhgbr" opt; do
         BUILD_DEPS="1"
         ;;
     s )
-        BUILD_BAMBU_STUDIO="1"
+        BUILD_ORCA="1"
         ;;
     b )
         BUILD_DEBUG="1"
@@ -212,7 +212,7 @@ then
     echo "done"
 fi
 
-if [[ -n "$BUILD_BAMBU_STUDIO" ]]
+if [[ -n "$BUILD_ORCA" ]]
 then
     echo "[7/9] Configuring Slic3r..."
     BUILD_ARGS=""
