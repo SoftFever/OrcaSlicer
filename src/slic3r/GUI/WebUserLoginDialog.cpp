@@ -37,25 +37,12 @@ BEGIN_EVENT_TABLE(ZUserLogin, wxDialog)
 EVT_TIMER(NETWORK_OFFLINE_TIMER_ID, ZUserLogin::OnTimer)
 END_EVENT_TABLE()
 
-string &replace_str(string &str, const string &to_replaced, const string &newchars)
-{
-    for (string::size_type pos(0); pos != string::npos; pos += newchars.length()) {
-        pos = str.find(to_replaced, pos);
-        if (pos != string::npos)
-            str.replace(pos, to_replaced.length(), newchars);
-        else
-            break;
-    }
-    return str;
-}
-
 int ZUserLogin::web_sequence_id = 20000;
 
 ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
 {
     SetBackgroundColour(*wxWHITE);
     // Url
-    AppConfig * config   = wxGetApp().app_config;
     NetworkAgent* agent = wxGetApp().getAgent();
     if (!agent) {
         std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -92,9 +79,9 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         TargetUrl = host_url + "/sign-in";
         m_networkOk = false;
 
-        std::string strlang = config->get("language");
+        wxString strlang = wxGetApp().current_language_code_safe();
         if (strlang != "") {
-            replace_str(strlang, "_", "-");
+            strlang.Replace("_", "-");
             TargetUrl = host_url + "/" + strlang + "/sign-in";
         }
 

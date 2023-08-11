@@ -171,8 +171,8 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     }
 
-    std::string strlang = wxGetApp().app_config->get("language");
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(", strlang=%1%")%strlang;
+    wxString strlang = wxGetApp().current_language_code_safe();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(", strlang=%1%") % into_u8(strlang);
     if (strlang != "")
         TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
 

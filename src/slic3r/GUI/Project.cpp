@@ -43,7 +43,7 @@ const std::vector<std::string> license_list = {
 ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style) : wxPanel(parent, id, pos, size, style)
 {
     m_project_home_url = wxString::Format("file://%s/web/model/index.html", from_u8(resources_dir()));
-    std::string strlang = wxGetApp().app_config->get("language");
+    wxString strlang = wxGetApp().current_language_code_safe();
     if (strlang != "")
         m_project_home_url = wxString::Format("file://%s/web/model/index.html?lang=%s", from_u8(resources_dir()), strlang);
 
