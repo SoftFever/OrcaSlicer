@@ -17,6 +17,9 @@
         "18x28",
         "0x28"
     ],
+    "z_hop": [
+        "0.2"
+    ],
     "default_filament_profile": [
         "Bambu PLA Basic @BBL X1"
     ],

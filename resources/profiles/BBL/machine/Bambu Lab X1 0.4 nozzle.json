@@ -8,6 +8,9 @@
     "nozzle_diameter": [
         "0.4"
     ],
+    "z_hop": [
+        "0.2"
+    ],
     "printer_model": "Bambu Lab X1",
     "printer_variant": "0.4",
     "auxiliary_fan": "0",

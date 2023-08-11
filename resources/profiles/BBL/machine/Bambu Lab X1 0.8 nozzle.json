@@ -8,6 +8,9 @@
     "nozzle_diameter": [
         "0.8"
     ],
+    "z_hop": [
+        "0.4"
+    ],
     "printer_model": "Bambu Lab X1",
     "printer_variant": "0.8",
     "default_print_profile": "0.40mm Standard @BBL X1 0.8 nozzle",

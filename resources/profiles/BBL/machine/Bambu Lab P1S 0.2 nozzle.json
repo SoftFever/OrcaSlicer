@@ -8,6 +8,9 @@
     "nozzle_diameter": [
         "0.2"
     ],
+    "z_hop": [
+        "0.2"
+    ],
     "printer_model": "Bambu Lab P1S",
     "printer_variant": "0.2",
     "default_filament_profile": [

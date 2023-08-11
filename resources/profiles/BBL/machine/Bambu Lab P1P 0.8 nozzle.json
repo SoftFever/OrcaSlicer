@@ -25,6 +25,9 @@
     "retract_length_toolchange": [
         "3"
     ],
+    "z_hop": [
+        "0.4"
+    ],
     "retraction_length": [
         "3"
     ],
