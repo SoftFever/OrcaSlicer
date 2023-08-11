@@ -3006,6 +3006,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("printable_height");
         optgroup->append_single_option_line("bbl_calib_mark_logo");
         optgroup->append_single_option_line("nozzle_volume");
+        optgroup->append_single_option_line("preferred_orientation");
         // BBS
 #if 0
         //optgroup->append_single_option_line("z_offset");
