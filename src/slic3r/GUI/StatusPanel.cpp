@@ -2288,14 +2288,14 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
 
         
-        if (obj->printer_type == "N1" || obj->printer_type == "N2") { ams_mode = AMSModel::EXTRA_AMS; }
+        if (obj->printer_type == "N1") { ams_mode = AMSModel::EXTRA_AMS; }
         m_ams_control->SetAmsModel(AMSModel::NO_AMS, ams_mode);
 
         show_ams_group(false);
         m_ams_control->show_auto_refill(false);
     }
     else {
-        if (obj->printer_type == "N1" || obj->printer_type == "N2") { ams_mode = AMSModel::EXTRA_AMS; }
+        if (obj->printer_type == "N1") { ams_mode = AMSModel::EXTRA_AMS; }
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
 
         show_ams_group(true);
