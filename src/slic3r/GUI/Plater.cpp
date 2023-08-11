@@ -5169,7 +5169,7 @@ void Plater::priv::reload_from_disk()
             std::vector<Preset*> project_presets;
 
             // BBS: backup
-            new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances, &plate_data, &project_presets);
+            new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel, &plate_data, &project_presets);
             for (ModelObject* model_object : new_model.objects)
             {
                 model_object->center_around_origin();
@@ -5178,7 +5178,7 @@ void Plater::priv::reload_from_disk()
 
             if (plate_data.size() > 0)
             {
-                partplate_list.load_from_3mf_structure(plate_data);
+                //partplate_list.load_from_3mf_structure(plate_data);
                 partplate_list.update_slice_context_to_current_plate(background_process);
                 this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                 release_PlateData_list(plate_data);
