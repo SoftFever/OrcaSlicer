@@ -372,6 +372,8 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         result["platform"] = "linux";
 #elif defined __APPLE__
         result["platform"] = "apple";
+#elif defined __FreeBSD__
+        result["platform"] = "freebsd";
 #elif defined __unix__
         result["platform"] = "unix";
 #else

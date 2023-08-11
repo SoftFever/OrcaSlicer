@@ -141,7 +141,7 @@ namespace {
 
 	TagCheckResult tag_check_system(const std::string& tag)
 	{
-		std::vector<std::string> allowed_tags = { "Windows", "Linux", "OSX" };
+		std::vector<std::string> allowed_tags = { "Windows", "Linux", "OSX", "FreeBSD" };
 		if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end()) {
 			if (tag == "Windows")
 #ifdef WIN32
@@ -156,6 +156,13 @@ namespace {
 #else 
 				return TagCheckNegative;
 #endif // __linux__
+
+			if (tag == "FreeBSD")
+#ifdef __FreeBSD__
+				return TagCheckAffirmative;
+#else 
+				return TagCheckNegative;
+#endif // __FreeBSD__
 
 			if (tag == "OSX")
 #ifdef __APPLE__

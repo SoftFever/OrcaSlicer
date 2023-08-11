@@ -36,6 +36,10 @@ int GUI_Run(GUI_InitParams &params)
     signal(SIGCHLD, SIG_DFL);
 #endif // __APPLE__
 
+#ifdef __FreeBSD__
+    wxDISABLE_DEBUG_SUPPORT();
+#endif
+
     //BBS: remove the try-catch and let exception goto above
     try {
         //GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);

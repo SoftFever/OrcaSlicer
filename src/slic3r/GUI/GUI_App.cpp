@@ -2161,6 +2161,8 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "macos"));
 #elif defined(__LINUX__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "linux"));
+#elif defined(__FreeBSD__)
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "freebsd"));
 #endif
     int major = 0, minor = 0, micro = 0;
     wxGetOsVersion(&major, &minor, &micro);
@@ -4174,6 +4176,9 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
 #ifdef __LINUX__
     platform = "linux";
 #endif
+#ifdef  __FreeBSD__
+    platform = "freebsd";
+#endif
     std::string query_params = (boost::format("?name=slicer&version=%1%&guide_version=%2%")
         % VersionInfo::convert_full_version(SLIC3R_VERSION)
         % VersionInfo::convert_full_version("0.0.0.1")
@@ -4758,7 +4763,7 @@ bool GUI_App::switch_language()
     }
 }
 
-#ifdef __linux__
+#if (defined __linux__) || (defined __FreeBSD__)
 static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguageInfo* language,
                                                                 const wxLanguageInfo* system_language)
 {
@@ -4963,7 +4968,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                                                         m_language_info_best->CanonicalName.ToUTF8().data();
                         app_config->set("language", m_language_info_best->CanonicalName.ToUTF8().data());
                     }
-#ifdef __linux__
+#if (defined __linux__) || (defined __FreeBSD__)
                     wxString lc_all;
                     if (wxGetEnv("LC_ALL", &lc_all) && !lc_all.IsEmpty()) {
                         // Best language returned by wxWidgets on Linux apparently does not respect LC_ALL.
@@ -5018,7 +5023,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 		BOOST_LOG_TRIVIAL(info) << "Using Czech dictionaries for Slovak language";
     }
 
-#ifdef __linux__
+#if (defined __linux__) || (defined __FreeBSD__)
     // If we can't find this locale , try to use different one for the language
     // instead of just reporting that it is impossible to switch.
     if (! wxLocale::IsAvailable(language_info->Language) && m_language_info_system) {

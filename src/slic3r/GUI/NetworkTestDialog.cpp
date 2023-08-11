@@ -391,6 +391,9 @@ void NetworkTestDialog::start_test_bambulab()
 #ifdef __LINUX__
 	platform = "linux";
 #endif
+#ifdef __FreeBSD__
+	platform = "freebsd";
+#endif
 	std::string query_params = (boost::format("?name=slicer&version=%1%&guide_version=%2%")
 		% VersionInfo::convert_full_version(SLIC3R_VERSION)
 		% VersionInfo::convert_full_version("0.0.0.1")

@@ -804,7 +804,9 @@ void ProgressDialog::DoSetSize(int x, int y, int width, int height, int sizeFlag
     //    m_block_right->SetPosition(wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0));
     //}
 #endif
+#ifndef __FreeBSD__
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+#endif
 }
 
 void ProgressDialog::DisableOtherWindows()

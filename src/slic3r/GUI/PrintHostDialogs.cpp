@@ -152,7 +152,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
     add_button(wxID_CANCEL);
     finalize();
 
-#ifdef __linux__
+#if (defined __linux__) || (defined __FreeBSD__)
     // On Linux with GTK2 when text control lose the focus then selection (colored background) disappears but text color stay white
     // and as a result the text is invisible with light mode
     // see https://github.com/prusa3d/PrusaSlicer/issues/4532

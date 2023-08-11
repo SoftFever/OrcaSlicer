@@ -132,7 +132,7 @@ void on_window_geometry(wxTopLevelWindow *tlw, std::function<void()> callback)
     // cf. https://groups.google.com/forum/#!topic/wx-users/c7ntMt6piRI
     // OTOH the geometry is available very soon, so we can call the callback right away
     callback();
-#elif defined __linux__
+#elif (defined __linux__) || (defined __FreeBSD__)
     tlw->Bind(wxEVT_SHOW, [=](wxShowEvent &evt) {
         // On Linux, the geometry is only available after wxEVT_SHOW + CallAfter
         // cf. https://groups.google.com/forum/?pli=1#!topic/wx-users/fERSXdpVwAI

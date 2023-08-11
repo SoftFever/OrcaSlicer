@@ -237,10 +237,12 @@ bool OpenGLManager::init_gl(bool popup_error)
 {
     if (!m_gl_initialized) {
         GLenum result = glewInit();
+#ifndef __FreeBSD__
         if (result != GLEW_OK) {
             BOOST_LOG_TRIVIAL(error) << "Unable to init glew library";
             return false;
         }
+#endif
 	//BOOST_LOG_TRIVIAL(info) << "glewInit Success."<< std::endl;
         m_gl_initialized = true;
         if (GLEW_EXT_texture_compression_s3tc)

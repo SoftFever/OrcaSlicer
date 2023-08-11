@@ -6592,7 +6592,7 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
     }
 
     if (q != nullptr && menu) {
-#ifdef __linux__
+#if (defined __linux__) || (defined __FreeBSD__)
         // For some reason on Linux the menu isn't displayed if position is specified
         // (even though the position is sane).
         q->PopupMenu(menu);
@@ -6611,7 +6611,7 @@ void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
 {
     wxMenu* menu = menus.plate_menu();
 
-#ifdef __linux__
+#if (defined __linux__) || (defined __FreeBSD__)
     q->PopupMenu(menu);
 #else
     //BBS: GUI refactor: move sidebar to the left

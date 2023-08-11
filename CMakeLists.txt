@@ -205,7 +205,7 @@ if (APPLE)
     endif ()
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     find_package(PkgConfig REQUIRED)
 
     if (CMAKE_VERSION VERSION_LESS "3.1")
@@ -397,6 +397,9 @@ if(TARGET Boost::system)
         boost_headeronly # includes the custom compile definitions as well
         ${_boost_targets}
         )
+    if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_LOG_DYN_LINK")
+    endif()
     slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
 else()
     target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
@@ -451,7 +454,7 @@ if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL)
         # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
         target_compile_definitions(libcurl INTERFACE CURL_STATICLIB)
     endif()
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
         # As of now, our build system produces a statically linked libcurl,
         # which links the OpenSSL library dynamically.
         find_package(OpenSSL REQUIRED)
@@ -507,9 +510,11 @@ find_package(glfw3 REQUIRED)
 
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
-set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
-if (NOT TARGET cereal::cereal)
-    add_library(cereal::cereal ALIAS cereal)
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    set_target_properties(cereal PROPERTIES IMPORTED_GLOBAL TRUE)
+    if (NOT TARGET cereal::cereal)
+        add_library(cereal::cereal ALIAS cereal)
+    endif ()
 endif ()
 
 # l10n

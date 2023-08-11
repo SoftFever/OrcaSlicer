@@ -55,7 +55,7 @@ wxFont Label::Body_9;
 
 void Label::initSysFont()
 {
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) || defined(_WIN32) || defined(__FreeBSD__)
     const std::string &resource_path = Slic3r::resources_dir();
     wxString font_path = wxString::FromUTF8(resource_path + "/fonts/HarmonyOS_Sans_SC_Bold.ttf");
     bool result = wxFont::AddPrivateFont(font_path);

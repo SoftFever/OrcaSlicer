@@ -10,7 +10,7 @@
 #include <shellapi.h>
 #endif
 
-#ifdef __LINUX__
+#if (defined __LINUX__) || (defined __FreeBSD__)
 #include "Printer/gstbambusrc.h"
 #include <gst/gst.h> // main gstreamer header
 class WXDLLIMPEXP_MEDIA
@@ -38,7 +38,7 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
     }
 #endif
     wxMediaCtrl::Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
-#ifdef __LINUX__
+#if (defined __LINUX__) || (defined __FreeBSD__)
     /* Register only after we have created the wxMediaCtrl, since only then are we guaranteed to have fired up Gstreamer's plugin registry. */
     auto playbin = reinterpret_cast<wxGStreamerMediaBackend *>(m_imp)->m_playbin;
     g_object_set (G_OBJECT (playbin),
@@ -197,13 +197,13 @@ void wxMediaCtrl2::Stop()
     wxMediaCtrl::Stop();
 }
 
-#ifdef __LINUX__
+#if (defined __LINUX__) || (defined __FreeBSD__)
 extern "C" int gst_bambu_last_error;
 #endif
 
 int wxMediaCtrl2::GetLastError() const
 {
-#ifdef __LINUX__
+#if (defined __LINUX__) || (defined __FreeBSD__)
     return gst_bambu_last_error;
 #else
     return m_error;
@@ -212,7 +212,7 @@ int wxMediaCtrl2::GetLastError() const
 
 wxSize wxMediaCtrl2::GetVideoSize() const
 {
-#ifdef __LINUX__
+#if (defined __LINUX__) || (defined __FreeBSD__)
     // Gstreamer doesn't give us a VideoSize until we're playing, which
     // confuses the MediaPlayCtrl into claiming that it is stuck
     // "Loading...".  Fake it out for now.

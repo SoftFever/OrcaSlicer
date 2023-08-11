@@ -16,7 +16,7 @@
 
 #ifdef __WIN32__
 #include <WebView2.h>
-#elif defined __linux__
+#elif (defined __linux__) || (defined __FreeBSD__)
 #include <gtk/gtk.h>
 #define WEBKIT_API
 struct WebKitWebView;

@@ -540,6 +540,9 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     )
 elseif (APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
+elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    # Needed to resolve webkit_web_view_run_javascript webkit_web_view_run_javascript_finish webkit_javascript_result_unref
+    target_link_libraries(libslic3r_gui webkit2gtk-4.0)
 endif()
 
 if (SLIC3R_STATIC)

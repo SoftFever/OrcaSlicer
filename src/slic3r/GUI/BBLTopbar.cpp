@@ -93,9 +93,15 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
     int bmpX = 0, bmpY = 0;
     int textX = 0, textY = 0;
 
+#if (wxMAJOR_VERSION == 3) && (wxMINOR_VERSION >= 2)
+    const wxBitmap& bmp = item.GetState() & wxAUI_BUTTON_STATE_DISABLED
+        ? item.GetDisabledBitmapFor(wnd)
+        : item.GetBitmapFor(wnd);
+#else
     const wxBitmap& bmp = item.GetState() & wxAUI_BUTTON_STATE_DISABLED
         ? item.GetDisabledBitmap()
         : item.GetBitmap();
+#endif
 
     const wxSize bmpSize = bmp.IsOk() ? bmp.GetScaledSize() : wxSize(0, 0);
 
