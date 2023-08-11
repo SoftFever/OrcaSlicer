@@ -17,7 +17,9 @@
 #include <bitset>
 
 //unofficial linux lib
-//#include <spnav.h>
+#ifdef HAVE_SPNAV
+#include <spnav.h>
+#endif
 
 // WARN: If updating these lists, please also update resources/udev/90-3dconnexion.rules
 
@@ -773,6 +775,31 @@ void Mouse3DController::shutdown()
 // Main routine of the worker thread.
 void Mouse3DController::run()
 {
+#ifdef HAVE_SPNAV
+    if (spnav_open() == -1) {
+        // Give up.
+        BOOST_LOG_TRIVIAL(error) << "Unable to open connection to spacenavd";
+        return;
+    }
+    m_connected = true;
+
+    for (;;) {
+        {
+            std::scoped_lock lock(m_params_ui_mutex);
+            if (m_stop)
+                break;
+            if (m_params_ui_changed) {
+                m_params = m_params_ui;
+                m_params_ui_changed = false;
+            }
+        }
+        this->collect_input();
+    }
+
+    m_connected = false;
+    // Finalize the spnav library
+    spnav_close();
+#else
     // Initialize the hidapi library
     int res = hid_init();
     if (res != 0) {
@@ -817,6 +844,7 @@ void Mouse3DController::run()
 
     // Finalize the hidapi library
     hid_exit();
+#endif
 }
 
 bool Mouse3DController::connect_device()
@@ -1106,8 +1134,51 @@ void Mouse3DController::disconnect_device()
     }
 }
 
+#ifdef HAVE_SPNAV
+// Convert a signed 16bit word from a 3DConnexion mouse HID packet into a double coordinate, apply a dead zone.
+static double convert_spnav_input(int value)
+{
+    return (double)value/100;
+}
+#endif
+
 void Mouse3DController::collect_input()
 {
+#ifdef HAVE_SPNAV
+    // Read packet, block maximum 100 ms. That means when closing the application, closing the application will be delayed by 100 ms.
+    int fd = spnav_fd();
+
+    if (fd != -1) {
+        fd_set fds;
+        struct timeval tv = {.tv_sec = 0, .tv_usec = 100000};
+
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        if (select(fd + 1, &fds, NULL, NULL, &tv) == 1) {
+            spnav_event ev = {};
+            switch (spnav_poll_event(&ev)) {
+                case SPNAV_EVENT_MOTION: {
+                    Vec3d translation(-convert_spnav_input(ev.motion.x), convert_spnav_input(ev.motion.y), -convert_spnav_input(ev.motion.z));
+                    if (!translation.isApprox(Vec3d::Zero())) {
+                        m_state.append_translation(translation, m_params.input_queue_max_size);
+                    }
+                    Vec3f rotation(convert_spnav_input(ev.motion.rx), convert_spnav_input(ev.motion.ry), -convert_spnav_input(ev.motion.rz));
+                    if (!rotation.isApprox(Vec3f::Zero())) {
+                        m_state.append_rotation(rotation, m_params.input_queue_max_size);
+                    }
+                    break;
+                }
+                case SPNAV_EVENT_BUTTON:
+                    if (ev.button.press)
+                        m_state.append_button((unsigned int)ev.button.bnum, m_params.input_queue_max_size);
+                    break;
+            }
+            wxGetApp().plater()->set_current_canvas_as_dirty();
+            // ask for an idle event to update 3D scene
+            wxWakeUpIdle();
+        }
+    }
+#else
     DataPacketRaw packet = { 0 };
     // Read packet, block maximum 100 ms. That means when closing the application, closing the application will be delayed by 100 ms.
     int res = hid_read_timeout(m_device, packet.data(), packet.size(), 100);
@@ -1116,6 +1187,7 @@ void Mouse3DController::collect_input()
         this->disconnect_device();
     } else
 		this->handle_input(packet, res, m_params, m_state);
+#endif
 }
 
 #ifdef _WIN32
