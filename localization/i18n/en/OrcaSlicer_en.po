@@ -212,6 +212,9 @@ msgstr "in"
 msgid "mm"
 msgstr "mm"
 
+msgid "°"
+msgstr "°"
+
 msgid "Position"
 msgstr "Position"
 
@@ -7499,6 +7502,12 @@ msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr ""
 "This is the maximum printable height which is limited by the height of the "
 "build area."
+
+msgid "Preferred orientation"
+msgstr "Preferred orientation"
+
+msgid "Automatically orient stls on the Z-axis upon initial import"
+msgstr "Automatically orient stls on the Z-axis upon initial import"
 
 msgid "Printer preset names"
 msgstr "Printer preset names"
