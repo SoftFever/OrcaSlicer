@@ -351,8 +351,6 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     wxString tooltip;
     std::string markdowntip;
 
-    wxString language = wxGetApp().app_config->get("language");
-
     // BBS: markdown tip
     CtrlLine* focusedLine = nullptr;
     // BBS

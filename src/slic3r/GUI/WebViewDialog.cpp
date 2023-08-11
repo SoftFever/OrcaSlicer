@@ -33,7 +33,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
     wxString url = wxString::Format("file://%s/web/homepage/index.html", from_u8(resources_dir()));
-    std::string strlang = wxGetApp().app_config->get("language");
+    wxString strlang = wxGetApp().current_language_code_safe();
     if (strlang != "")
         url = wxString::Format("file://%s/web/homepage/index.html?lang=%s", from_u8(resources_dir()), strlang);
 
@@ -505,7 +505,7 @@ int WebViewPanel::get_model_mall_detail_url(std::string *url, std::string id)
 {
     // https://makerhub-qa.bambu-lab.com/en/models/2077
     std::string h = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    auto l = wxGetApp().app_config->get("language");
+    auto l = wxGetApp().current_language_code_safe();
     if (auto n = l.find('_'); n != std::string::npos)
         l = l.substr(0, n);
     *url = (boost::format("%1%%2%/models/%3%") % h % l % id).str();
