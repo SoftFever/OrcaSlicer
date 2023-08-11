@@ -839,7 +839,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 {
     SetBackgroundColour(*wxWHITE);
     // icon
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
@@ -1338,12 +1338,14 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         return get_string_from_enum(opt_key, config,
             opt_key == "top_surface_pattern" ||
             opt_key == "bottom_surface_pattern" ||
+            opt_key == "internal_solid_infill_pattern" ||
             opt_key == "sparse_infill_pattern");
     }
     case coEnums: {
         return get_string_from_enum(opt_key, config,
             opt_key == "top_surface_pattern" ||
             opt_key == "bottom_surface_pattern" ||
+            opt_key == "internal_solid_infill_pattern" ||
             opt_key == "sparse_infill_pattern",
             opt_idx);
     }

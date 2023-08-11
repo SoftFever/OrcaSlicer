@@ -8,8 +8,8 @@ class Model;
 class ModelObject;
 
 // Load an OBJ file into a provided model.
-extern bool load_obj(const char *path, TriangleMesh *mesh);
-extern bool load_obj(const char *path, Model *model, const char *object_name = nullptr);
+extern bool load_obj(const char *path, TriangleMesh *mesh, std::string &message);
+extern bool load_obj(const char *path, Model *model, std::string &message, const char *object_name = nullptr);
 
 extern bool store_obj(const char *path, TriangleMesh *mesh);
 extern bool store_obj(const char *path, ModelObject *model);

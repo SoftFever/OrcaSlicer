@@ -193,6 +193,10 @@ namespace ImGui
     const wchar_t CollapseBtn     = 0x0831;
     const wchar_t RevertBtn       = 0x0832;
 
+    const wchar_t CloseBlockNotifButton      = 0x0833;
+    const wchar_t CloseBlockNotifHoverButton = 0x0834;
+    const wchar_t BlockNotifErrorIcon        = 0x0835;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

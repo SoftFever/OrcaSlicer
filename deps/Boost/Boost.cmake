@@ -90,7 +90,7 @@ if (_cfg_rel GREATER -1 OR _cfg_relwdeb GREATER -1 OR _cfg_minsizerel GREATER -1
     list(APPEND _boost_variants release)
 endif()
 
-if (_cfg_deb GREATER -1 OR (MSVC AND ${DEP_DEBUG}) )
+if (MSVC AND ${DEP_DEBUG} )
     list(APPEND _boost_variants debug)
 endif()
 

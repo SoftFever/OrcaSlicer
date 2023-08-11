@@ -511,6 +511,10 @@ public:
     ModelObjectPtrs segment(size_t instance, unsigned int max_extruders, double smoothing_alpha = 0.5, int segment_number = 5);
     void split(ModelObjectPtrs* new_objects);
     void merge();
+
+    // BBS: Boolean opts - Musang King
+    bool make_boolean(ModelObject *cut_object, const std::string &boolean_opts);
+
     ModelObjectPtrs merge_volumes(std::vector<int>& vol_indeces);//BBS
     // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
     // then the scaling in world coordinate system is not representable by the Geometry::Transformation structure.
@@ -698,7 +702,8 @@ enum class EnforcerBlockerType : int8_t {
     Extruder13,
     Extruder14,
     Extruder15,
-    ExtruderMax
+    Extruder16,
+    ExtruderMax = Extruder16
 };
 
 enum class ConversionType : int {
@@ -839,12 +844,15 @@ public:
         bool             is_connector{false};
         bool             is_processed{true};
         CutConnectorType connector_type{CutConnectorType::Plug};
+        float            radius{0.f};
+        float            height{0.f};
         float            radius_tolerance{0.f}; // [0.f : 1.f]
         float            height_tolerance{0.f}; // [0.f : 1.f]
 
         CutInfo() = default;
-        CutInfo(CutConnectorType type, float rad_tolerance, float h_tolerance, bool processed = false)
-            : is_connector(true), is_processed(processed), connector_type(type), radius_tolerance(rad_tolerance), height_tolerance(h_tolerance)
+        CutInfo(CutConnectorType type, float radius_, float height_, float rad_tolerance, float h_tolerance, bool processed = false)
+            : is_connector(true), is_processed(processed), connector_type(type)
+            , radius(radius_), height(height_), radius_tolerance(rad_tolerance), height_tolerance(h_tolerance)
         {}
 
         void set_processed() { is_processed = true; }
@@ -1220,8 +1228,17 @@ public:
     ModelInstanceEPrintVolumeState print_volume_state;
     // Whether or not this instance is printable
     bool printable;
+    bool use_loaded_id_for_label {false};
     int arrange_order = 0; // BBS
     size_t loaded_id = 0; // BBS
+
+    size_t get_labeled_id() const
+    {
+        if (use_loaded_id_for_label && (loaded_id > 0))
+            return loaded_id;
+        else
+            return id().id;
+    }
 
     ModelObject* get_object() const { return this->object; }
 

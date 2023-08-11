@@ -75,7 +75,7 @@ void OG_CustomCtrl::init_ctrl_lines()
     for (const Line& line : og_lines)
     {
         if (line.is_separator()) {
-            ctrl_lines.emplace_back(CtrlLine(0, this, line));
+            ctrl_lines.emplace_back(CtrlLine(3, this, line));
             continue;
         }
 
@@ -728,9 +728,9 @@ void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord v_pos)
     wxPoint begin(ctrl->m_h_gap, v_pos);
     wxPoint end(ctrl->GetSize().GetWidth() - ctrl->m_h_gap, v_pos);
 
-    wxPen pen, old_pen = pen = dc.GetPen();
-    pen.SetColour(*wxLIGHT_GREY);
-    dc.SetPen(pen);
+    wxPen old_pen = dc.GetPen();
+    // pen.SetColour(*wxLIGHT_GREY);
+    dc.SetPen(*wxTRANSPARENT_PEN);
     dc.DrawLine(begin, end);
     dc.SetPen(old_pen);
 }

@@ -3,17 +3,17 @@ cd deps
 mkdir build
 cd build
 set DEPS=%CD%/OrcaSlicer_dep
-if "%1"=="studio" (
-    GOTO :studio
+if "%1"=="slicer" (
+    GOTO :slicer
 )
 echo "building deps.."
 cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%CD%/OrcaSlicer_dep" -DCMAKE_BUILD_TYPE=Release
-cmake --build . --config Release --target ALL_BUILD -- -m
+cmake --build . --config Release --target deps -- -m
 
 if "%1"=="deps" exit /b 0
 
-:studio
-echo "building studio..."
+:slicer
+echo "building Orca Slicer..."
 cd %WP%
 mkdir build 
 cd build

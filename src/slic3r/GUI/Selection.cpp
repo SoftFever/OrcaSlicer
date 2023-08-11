@@ -1961,7 +1961,9 @@ void Selection::update_type()
                 unsigned int sels_cntr = 0;
                 for (ObjectIdxsToInstanceIdxsMap::iterator it = m_cache.content.begin(); it != m_cache.content.end(); ++it)
                 {
-                    const ModelObject* model_object = m_model->objects[it->first];
+                    bool               is_wipe_tower   = it->first >= 1000;
+                    int                actual_obj_id   = is_wipe_tower ? it->first - 1000 : it->first;
+                    const ModelObject *model_object    = m_model->objects[actual_obj_id];
                     unsigned int volumes_count = (unsigned int)model_object->volumes.size();
                     unsigned int instances_count = (unsigned int)model_object->instances.size();
                     sels_cntr += volumes_count * instances_count;
@@ -2710,8 +2712,13 @@ void Selection::paste_objects_from_clipboard()
             displacement      = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_offset(2)};
         }
 
-        for (ModelInstance* inst : dst_object->instances)
+        for (ModelInstance* inst : dst_object->instances) {
             inst->set_offset(displacement);
+
+            //BBS init asssmble transformation
+            Geometry::Transformation t = inst->get_transformation();
+            inst->set_assemble_transformation(t);
+        }
 
         object_idxs.push_back(m_model->objects.size() - 1);
 #ifdef _DEBUG
