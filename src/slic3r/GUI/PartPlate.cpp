@@ -681,9 +681,6 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 	int bed_type_idx = (int)curr_bed_type;
 	// render bed textures
 	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
-		auto curr = wxGetApp().preset_bundle->printers.get_selected_preset();
-		if (curr.name.find("Bambu Lab N1")==0)
-			break;
 		if (part.texture) {
 			if (part.buffer && part.buffer->get_vertices_count() > 0
 				//&& part.vbo_id != 0
@@ -1777,7 +1774,7 @@ Vec3d PartPlate::get_center_origin()
 bool PartPlate::generate_plate_name_texture()
 {
 	auto     bed_ext        = get_extents(m_shape);
-	int      bed_width      = bed_ext.size()(1);
+	int      bed_width      = bed_ext.size()(0);
 	wxString cur_plate_name = from_u8(m_name);
 	wxGCDC   dc;
 	wxString limitTextWidth = wxControl::Ellipsize(cur_plate_name, dc, wxELLIPSIZE_END, bed_width);
@@ -4614,7 +4611,7 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 		pos = compute_shape_position(i, m_plate_cols);
 		plate->set_shape(shape, exclude_areas, pos, height_to_lid, height_to_rod);
 	}
-
+	is_load_bedtype_textures = false;//reload textures
 	calc_bounding_boxes();
 
 	auto check_texture = [](const std::string& texture) {
@@ -5155,7 +5152,9 @@ void PartPlateList::init_bed_type_info()
 	BedTextureInfo::TexturePart pei_part2(72, -11, 150,  12, "bbl_bed_pei_bottom.svg");
 	BedTextureInfo::TexturePart pte_part1( 6,  40,  12, 200, "bbl_bed_pte_left.svg");
 	BedTextureInfo::TexturePart pte_part2(72, -11, 150,  12, "bbl_bed_pte_bottom.svg");
-
+	for (size_t i = 0; i < btCount; i++) { 
+		bed_texture_info[i].parts.clear();
+	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
@@ -5165,8 +5164,19 @@ void PartPlateList::init_bed_type_info()
 	bed_texture_info[btPTE].parts.push_back(pte_part1);
 	bed_texture_info[btPTE].parts.push_back(pte_part2);
 
+	auto  bed_ext     = get_extents(m_shape);
+	int   bed_width   = bed_ext.size()(0);
+	int   bed_height  = bed_ext.size()(1);
+	float base_width  = 256;
+	float base_height = 256;
+	float x_rate      = bed_width / base_width;
+	float y_rate      = bed_height / base_height;
 	for (int i = 0; i < btCount; i++) {
-		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
+		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) { 
+			bed_texture_info[i].parts[j].x *= x_rate;
+			bed_texture_info[i].parts[j].y *= y_rate;
+			bed_texture_info[i].parts[j].w *= x_rate;
+			bed_texture_info[i].parts[j].h *= y_rate;
 			bed_texture_info[i].parts[j].update_buffer();
 		}
 	}
