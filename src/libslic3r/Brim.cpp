@@ -839,6 +839,9 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             const float        scaled_additional_brim_width = scale_(floor(5 / flowWidth / 2) * flowWidth * 2);
             const float        scaled_half_min_adh_length = scale_(1.1);
             bool               has_brim_auto = object->config().brim_type == btAutoBrim;
+            bool               use_brim_ears = object->config().brim_ears;
+            coord_t            ear_detection_length = scale_(object->config().brim_ears_detection_length.value);
+            coordf_t           brim_ears_max_angle = object->config().brim_ears_max_angle.value;
 
             ExPolygons         brim_area_object;
             ExPolygons         no_brim_area_object;
@@ -898,49 +901,49 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
                             // BBS: inner and outer boundary are offset from the same polygon incase of round off error.
                             auto innerExpoly = offset_ex(ex_poly.contour, brim_offset, jtRound, SCALED_RESOLUTION);
-                            // Generate ears
-                            coord_t ear_detection_length = scale_(1);
-                            coordf_t brim_ears_max_angle = 125;
-                            // Detect places to put ears
-                            Points pt_ears;
-                            for (ExPolygon &poly : innerExpoly) {
-                                Polygon decimated_polygon = poly.contour;
-                                if (ear_detection_length > 0) {
-                                    //decimate polygon
-                                    Points points = poly.contour.points;
-                                    points.push_back(points.front());
-                                    points = MultiPoint::_douglas_peucker(points, ear_detection_length);
-                                    if (points.size() > 4) { //don't decimate if it's going to be below 4 points, as it's surely enough to fill everything anyway
-                                        points.erase(points.end() - 1);
-                                        decimated_polygon.points = points;
+
+                            if (use_brim_ears) {
+                                // Generate ears
+                                // Detect places to put ears
+                                Points pt_ears;
+                                for (ExPolygon &poly : innerExpoly) {
+                                    Polygon decimated_polygon = poly.contour;
+                                    if (ear_detection_length > 0) {
+                                        // decimate polygon
+                                        Points points = poly.contour.points;
+                                        points.push_back(points.front());
+                                        points = MultiPoint::_douglas_peucker(points, ear_detection_length);
+                                        if (points.size() > 4) { // don't decimate if it's going to be below 4 points, as it's surely enough to fill everything anyway
+                                            points.erase(points.end() - 1);
+                                            decimated_polygon.points = points;
+                                        }
+                                    }
+                                    for (const Point &p : decimated_polygon.convex_points(brim_ears_max_angle * PI / 180.0)) {
+                                        pt_ears.push_back(p);
                                     }
                                 }
-                                for (const Point& p : decimated_polygon.convex_points(brim_ears_max_angle * PI / 180.0)) {
-                                    pt_ears.push_back(p);
-                                }
-                            }
-                            // Then add ears
-                            {
-                                // InfillPattern::ipRectilinear
-                                //create ear pattern
-                                coord_t size_ear = (brim_width_mod - brim_offset - flow.scaled_spacing());
-                                Polygon point_round;
-                                for (size_t i = 0; i < POLY_SIDES; i++) {
-                                    double angle = (2.0 * PI * i) / POLY_SIDES;
-                                    point_round.points.emplace_back(size_ear * cos(angle), size_ear * sin(angle));
-                                }
+                                // Then add ears
+                                {
+                                    // create ear pattern
+                                    coord_t size_ear = (brim_width_mod - brim_offset - flow.scaled_spacing());
+                                    Polygon point_round;
+                                    for (size_t i = 0; i < POLY_SIDES; i++) {
+                                        double angle = (2.0 * PI * i) / POLY_SIDES;
+                                        point_round.points.emplace_back(size_ear * cos(angle), size_ear * sin(angle));
+                                    }
 
-                                // create ears
-                                ExPolygons mouse_ears_ex;
-                                for (Point& pt : pt_ears) {
-                                    mouse_ears_ex.emplace_back();
-                                    mouse_ears_ex.back().contour = point_round;
-                                    mouse_ears_ex.back().contour.translate(pt);
+                                    // create ears
+                                    ExPolygons mouse_ears_ex;
+                                    for (Point &pt : pt_ears) {
+                                        mouse_ears_ex.emplace_back();
+                                        mouse_ears_ex.back().contour = point_round;
+                                        mouse_ears_ex.back().contour.translate(pt);
+                                    }
+                                    append(brim_area_object, diff_ex(mouse_ears_ex, innerExpoly));
                                 }
-                                append(brim_area_object, diff_ex(mouse_ears_ex, innerExpoly));
+                            } else {
+                                append(brim_area_object, diff_ex(offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION), innerExpoly));
                             }
-
-                            // append(brim_area_object, diff_ex(offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION), innerExpoly));
                         }
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner) {
                             append(brim_area_object, diff_ex(offset_ex(ex_poly_holes_reversed, -brim_offset), offset_ex(ex_poly_holes_reversed, -brim_width - brim_offset)));
