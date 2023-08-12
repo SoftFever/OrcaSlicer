@@ -69,7 +69,7 @@ jobs:
           rm OrcaSlicer_dep_ubuntu_02-08-2023.tar.gz
       
 
-      - name: Build Studio
+      - name: Build slicer
         shell: bash
         run: |
           ./BuildLinux.sh -isr

@@ -4904,6 +4904,9 @@ bool GUI_App::load_language(wxString language, bool initial)
     // instead of just reporting that it is impossible to switch.
     if (! wxLocale::IsAvailable(language_info->Language)) {
         std::string original_lang = into_u8(language_info->CanonicalName);
+        if (nullptr == m_language_info_system) {
+            m_language_info_system = wxLocale::GetLanguageInfo(wxLANGUAGE_DEFAULT);
+        }
         language_info = linux_get_existing_locale_language(language_info, m_language_info_system);
         BOOST_LOG_TRIVIAL(trace) << boost::format("Can't switch language to %1% (missing locales). Using %2% instead.")
                                     % original_lang % language_info->CanonicalName.ToUTF8().data();
