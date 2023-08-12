@@ -504,13 +504,27 @@ bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<gro
     std::vector<int> groupIndex(objSliceByVolume.size(), -1);
     double offsetValue = 0.05 / SCALING_FACTOR;
 
+    std::vector<std::vector<int>> osvIndex;
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         for (int j = 0; j != objSliceByVolume[i].slices.size(); ++j) {
-            objSliceByVolume[i].slices[j] = offset_ex(objSliceByVolume[i].slices[j], offsetValue);
-            for (ExPolygon& poly_ex : objSliceByVolume[i].slices[j])
-                poly_ex.douglas_peucker(resolution);
+            osvIndex.push_back({ i,j });
         }
     }
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
+        [&osvIndex, &objSliceByVolume, &offsetValue, &resolution](const tbb::blocked_range<int>& range) {
+            for (auto k = range.begin(); k != range.end(); ++k) {
+                for (ExPolygon& poly_ex : objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]])
+                    poly_ex.douglas_peucker(resolution);
+            }
+        });
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
+        [&osvIndex, &objSliceByVolume,&offsetValue, &resolution](const tbb::blocked_range<int>& range) {
+            for (auto k = range.begin(); k != range.end(); ++k) {
+                objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]] = offset_ex(objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]], offsetValue);
+            }
+        });
 
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         if (groupIndex[i] < 0) {
@@ -596,26 +610,42 @@ void applyNegtiveVolumes(ModelVolumePtrs model_volumes, const std::vector<Volume
     }
 }
 
-void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons eps)
+void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons &eps, double resolution)
 {
     std::vector<int> epsIndex;
     epsIndex.resize(eps.size(), -1);
-    for (int ie = 0; ie != eps.size(); ie++) {
-        if (eps[ie].area() <= 0)
-            continue;
-        double minArea = eps[ie].area();
-        for (int iv = 0; iv != gvss.size(); iv++) {
-            auto clipedExPolys = diff_ex(eps[ie], gvss[iv].slices);
-            double area = 0;
-            for (const auto& ce : clipedExPolys) {
-                area += ce.area();
-            }
-            if (area < minArea) {
-                minArea = area;
-                epsIndex[ie] = iv;
-            }
-        }
+
+    auto gvssc = gvss;
+    auto epsc = eps;
+
+    for (ExPolygon& poly_ex : epsc)
+        poly_ex.douglas_peucker(resolution);
+
+    for (int i = 0; i != gvssc.size(); ++i) {
+        for (ExPolygon& poly_ex : gvssc[i].slices)
+            poly_ex.douglas_peucker(resolution);
     }
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, epsc.size()),
+        [&epsc, &gvssc, &epsIndex](const tbb::blocked_range<int>& range) {
+            for (auto ie = range.begin(); ie != range.end(); ++ie) {
+                if (epsc[ie].area() <= 0)
+                    continue;
+
+                double minArea = epsc[ie].area();
+                for (int iv = 0; iv != gvssc.size(); iv++) {
+                    auto clipedExPolys = diff_ex(epsc[ie], gvssc[iv].slices);
+                    double area = 0;
+                    for (const auto& ce : clipedExPolys) {
+                        area += ce.area();
+                    }
+                    if (area < minArea) {
+                        minArea = area;
+                        epsIndex[ie] = iv;
+                    }
+                }
+            }
+        });
 
     for (int iv = 0; iv != gvss.size(); iv++)
         gvss[iv].slices.clear();
@@ -663,9 +693,10 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
+    std::atomic<bool> is_replaced = false;
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, buggy_layers.size()),
-        [&layers, &throw_if_canceled, &buggy_layers, &error_msg](const tbb::blocked_range<size_t>& range) {
+        [&layers, &throw_if_canceled, &buggy_layers, &is_replaced](const tbb::blocked_range<size_t>& range) {
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
                 throw_if_canceled();
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
@@ -712,7 +743,7 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
                         }
                     if (!expolys.empty()) {
                         //BBS
-                        error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
+                        is_replaced = true;
                         layerm->slices.set(union_ex(expolys), stInternal);
                     }
                 }
@@ -722,6 +753,9 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
         });
     throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
+
+    if(is_replaced)
+        error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
 
     // remove empty layers from bottom
     while (! layers.empty() && (layers.front()->lslices.empty() || layers.front()->empty())) {
@@ -752,7 +786,7 @@ void groupingVolumesForBrim(PrintObject* object, LayerPtrs& layers, int firstLay
     applyNegtiveVolumes(object->model_object()->volumes, object->firstLayerObjSliceMod(), object->firstLayerObjGroupsMod(), scaled_resolution);
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
-    reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices);
+    reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices, scaled_resolution);
 }
 
 // Called by make_perimeters()
@@ -777,7 +811,6 @@ void PrintObject::slice()
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
     this->slice_volumes();
     m_print->throw_if_canceled();
-
     int firstLayerReplacedBy = 0;
 
 #if 1
@@ -1137,8 +1170,12 @@ void PrintObject::slice_volumes()
                                                                  std::min(0.f, xy_hole_scaled),
                                                                  trimming);
                             //BBS: trim surfaces
-                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id)
-                                layer->regions()[region_id]->trim_surfaces(to_polygons(trimming));
+                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
+                                // BBS: split trimming result by region
+                                ExPolygons contour_exp = to_expolygons(std::move(layer->regions()[region_id]->slices.surfaces));
+
+                                layer->regions()[region_id]->slices.set(intersection_ex(contour_exp, to_polygons(trimming)), stInternal);
+                            }
                         }
 	                }
 	                // Merge all regions' slices to get islands, chain them by a shortest path.

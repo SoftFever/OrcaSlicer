@@ -57,7 +57,7 @@ struct ArrangePolygon {
     //BBS: add row/col for sudoku-style layout
     int       row{0};
     int       col{0};
-    std::vector<int>  extrude_ids{1};        ///extruder_id for least extruder switch
+    std::vector<int> extrude_ids{};      /// extruder_id for least extruder switch
     int       bed_temp{0};         ///bed temperature for different material judge
     int       print_temp{0};      ///print temperature for different material judge
     int       first_bed_temp{ 0 };      ///first layer bed temperature for different material judge
@@ -113,6 +113,8 @@ struct ArrangeParams {
     bool parallel = true;
 
     bool allow_rotations = false;
+
+    bool do_final_align = true;
 
     //BBS: add specific arrange params
     bool  allow_multi_materials_on_same_plate = true;

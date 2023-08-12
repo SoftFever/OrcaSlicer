@@ -3545,9 +3545,21 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     }
 }
 
+void ObjectList::add_objects_to_list(std::vector<size_t> obj_idxs, bool call_selection_changed, bool notify_partplate, bool do_info_update)
+{
+#ifdef __WXOSX__
+    AssociateModel(nullptr);
+#endif
+    for (const size_t idx : obj_idxs) {
+        add_object_to_list(idx, call_selection_changed, notify_partplate, do_info_update);
+    }
+#ifdef __WXOSX__
+    AssociateModel(m_objects_model);
+#endif
+}
 
 
-void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed, bool notify_partplate)
+void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed, bool notify_partplate, bool do_info_update)
 {
     auto model_object = (*m_objects)[obj_idx];
     //BBS start add obj_idx for debug
@@ -3563,6 +3575,9 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed,
     std::string warning_bitmap = get_warning_icon_name(model_object->mesh().stats());
     const auto item = m_objects_model->AddObject(model_object, warning_bitmap, model_object->is_cut());
     Expand(m_objects_model->GetParent(item));
+
+    if (!do_info_update)
+        return;
 
     update_info_items(obj_idx, nullptr, call_selection_changed);
 

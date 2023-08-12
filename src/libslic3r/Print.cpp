@@ -260,7 +260,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
-            osteps.emplace_back(posSimplifyPath);
+			osteps.emplace_back(posSimplifyPath);
+            osteps.emplace_back(posSimplifyInfill);
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
         }
@@ -330,6 +331,18 @@ std::vector<unsigned int> Print::object_extruders() const
             for (int extruder : volume_extruders) {
                 assert(extruder > 0);
                 extruders.push_back(extruder - 1);
+            }
+        }
+
+        // layer range
+        for (auto layer_range : mo->layer_config_ranges) {
+            if (layer_range.second.has("extruder")) {
+                //BBS: actually when user doesn't change filament by height range(value is default 0), height range should not save key "extruder".
+                //Don't know why height range always save key "extruder" because of no change(should only save difference)...
+                //Add protection here to avoid overflow
+                auto value = layer_range.second.option("extruder")->getInt();
+                if (value > 0)
+                    extruders.push_back(value - 1);
             }
         }
     }
@@ -436,6 +449,25 @@ bool Print::has_brim() const
 }
 
 //BBS
+std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points> &objects_instances_shift)
+{
+    std::vector<size_t> idx_of_object_sorted;
+    size_t              idx = 0;
+    for (const auto &object : m_objects) {
+        idx_of_object_sorted.push_back(idx++);
+        object->get_certain_layers(start, end, layers_of_objects, boundingBox_for_objects);
+    }
+    std::sort(idx_of_object_sorted.begin(), idx_of_object_sorted.end(),
+              [boundingBox_for_objects](auto left, auto right) { return boundingBox_for_objects[left].area() > boundingBox_for_objects[right].area(); });
+
+    objects_instances_shift.clear();
+    objects_instances_shift.reserve(m_objects.size());
+    for (const auto& object : m_objects)
+        objects_instances_shift.emplace_back(object->get_instances_shift_without_plate_offset());
+
+    return idx_of_object_sorted;
+};
+
 StringObjectException Print::sequential_print_clearance_valid(const Print &print, Polygons *polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
 {
     StringObjectException single_object_exception;
@@ -534,19 +566,24 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
                 for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
                     if (! intersection(convex_hulls_other[i], convex_hull).empty()) {
+                        bool has_exception = false;
                         if (single_object_exception.string.empty()) {
                             single_object_exception.string = (boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = instance.model_instance->get_object();
+                            has_exception                  = true;
                         }
                         else {
                             single_object_exception.string += "\n"+(boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = nullptr;
+                            has_exception                  = true;
                         }
 
                         if (polygons) {
                             intersecting_idxs.emplace_back(i);
                             intersecting_idxs.emplace_back(convex_hulls_other.size());
                         }
+
+                        if (has_exception) break;
                     }
                 }
                 struct print_instance_info print_info {&instance, convex_hull.bounding_box(), convex_hull};
@@ -865,40 +902,51 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     return {};
 }
 
-//BBS
-static std::map<std::string, bool> filament_is_high_temp {
-        {"PLA",     false},
-        {"PLA-CF",  false},
-        //{"PETG",    true},
-        {"ABS",     true},
-        {"TPU",     false},
-        {"PA",      true},
-        {"PA-CF",   true},
-        {"PET-CF",  true},
-        {"PC",      true},
-        {"ASA",     true}
-};
-
-//BBS: this function is used to check whether multi filament can be printed
-StringObjectException Print::check_multi_filament_valid(const Print& print)
+bool Print::check_multi_filaments_compatibility(const std::vector<std::string>& filament_types)
 {
+    static std::map<std::string, bool> filament_is_high_temp{
+            {"PLA",     false},
+            {"PLA-CF",  false},
+            //{"PETG",    true},
+            {"ABS",     true},
+            {"TPU",     false},
+            {"PA",      true},
+            {"PA-CF",   true},
+            {"PET-CF",  true},
+            {"PC",      true},
+            {"ASA",     true},
+            {"HIPS",    true}
+    };
+
     bool has_high_temperature_filament = false;
     bool has_low_temperature_filament = false;
 
-    auto print_config = print.config();
-    std::vector<unsigned int> extruders = print.extruders();
-
-    for (const auto& extruder_idx : extruders) {
-        std::string filament_type = print_config.filament_type.get_at(extruder_idx);
-        if (filament_is_high_temp.find(filament_type) != filament_is_high_temp.end()) {
-            if (filament_is_high_temp[filament_type])
+    for (const auto& type : filament_types)
+        if (filament_is_high_temp.find(type) != filament_is_high_temp.end()) {
+            if (filament_is_high_temp[type])
                 has_high_temperature_filament = true;
             else
                 has_low_temperature_filament = true;
         }
-    }
 
     if (has_high_temperature_filament && has_low_temperature_filament)
+        return false;
+
+    return true;
+}
+
+//BBS: this function is used to check whether multi filament can be printed
+StringObjectException Print::check_multi_filament_valid(const Print& print)
+{
+    auto print_config = print.config();
+    std::vector<unsigned int> extruders = print.extruders();
+    std::vector<std::string> filament_types;
+    filament_types.reserve(extruders.size());
+
+    for (const auto& extruder_idx : extruders)
+        filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
+
+    if (!check_multi_filaments_compatibility(filament_types))
         return { L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
 
     return {std::string()};
@@ -917,28 +965,11 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         return { L("No extrusions under current settings.") };
 
     if (extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
-        if (m_config.single_extruder_multi_material) {
-            auto ret = check_multi_filament_valid(*this);
-            if (!ret.string.empty())
-                return ret;
-        }
-
-        if (warning) {
-            for (unsigned int extruder_a: extruders) {
-                const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
-                const ConfigOptionInts* bed_temp_1st_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key(m_config.curr_bed_type));
-                int bed_temp_a = bed_temp_opt->get_at(extruder_a);
-                int bed_temp_1st_a = bed_temp_1st_opt->get_at(extruder_a);
-                for (unsigned int extruder_b: extruders) {
-                    int bed_temp_b = bed_temp_opt->get_at(extruder_b);
-                    int bed_temp_1st_b = bed_temp_1st_opt->get_at(extruder_b);
-                    if (std::abs(bed_temp_a - bed_temp_b) > 15 || std::abs(bed_temp_1st_a - bed_temp_1st_b) > 15) {
-                        warning->string = L("Bed temperatures for the used filaments differ significantly.");
-                        goto DONE;
-                    }
-                }
-            }
-        DONE:;
+        auto ret = check_multi_filament_valid(*this);
+        if (!ret.string.empty())
+        {
+            ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
+            return ret;
         }
     }
 
@@ -948,13 +979,16 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
         //BBS: refine seq-print validation logic
         auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
-    	if (!ret.string.empty())
+        if (!ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT;
             return ret;
+        }
     }
     else {
         //BBS
         auto ret = layered_print_cleareance_valid(*this, warning);
         if (!ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
             return ret;
         }
     }
@@ -984,10 +1018,9 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 // BBS: remove L()
                 return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
-        
+
         if (! m_config.use_relative_e_distances)
             return { ("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
-        
         if (m_config.ooze_prevention)
             return { ("Ooze prevention is currently not supported with the prime tower enabled.") };
 
@@ -1107,7 +1140,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         	} else if (extrusion_width_min <= layer_height) {
                 err_msg = L("Too small line width");
 				return false;
-			} else if (extrusion_width_max >= max_nozzle_diameter * 2.5) {
+			} else if (extrusion_width_max > max_nozzle_diameter * 5) {
                 err_msg = L("Too large line width");
 				return false;
 			}
@@ -1393,6 +1426,20 @@ void  PrintObject::copy_layers_from_shared_object()
     }
 }
 
+void  PrintObject::copy_layers_overhang_from_shared_object()
+{
+    if (m_shared_object) {
+        for (size_t index = 0; index <  m_layers.size() && index <  m_shared_object->m_layers.size(); index++)
+        {
+            Layer* layer_src = m_layers[index];
+            layer_src->loverhangs = m_shared_object->m_layers[index]->loverhangs;
+            layer_src->loverhangs_bbox = m_shared_object->m_layers[index]->loverhangs_bbox;
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layer overhang from object %2%")%this%m_shared_object;
+    }
+}
+
+
 // BBS
 BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std::string& name)
 {
@@ -1403,7 +1450,7 @@ BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std
         auto layer = get_layer(0);
         layer_height = layer->height;
         // only work for object with single instance
-        auto shift = instances()[0].shift;
+        auto shift = instances()[0].shift_without_plate_offset();
         for (auto bb : layer->lslices_bboxes)
         {
             bb.translate(shift.x(), shift.y());
@@ -1494,6 +1541,7 @@ void Print::process(bool use_cache)
     };
     int object_count = m_objects.size();
     std::set<PrintObject*> need_slicing_objects;
+    std::set<PrintObject*> re_slicing_objects;
     if (!use_cache) {
         for (int index = 0; index < object_count; index++)
         {
@@ -1530,8 +1578,12 @@ void Print::process(bool use_cache)
                     }
                 }
                 if (!found_shared) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("Also can not find the shared object, identify_id %1%")%obj->model_object()->instances[0]->loaded_id;
-                    throw Slic3r::SlicingError("Can not find the cached data.");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("Also can not find the shared object, identify_id %1%, maybe shared object is skipped")%obj->model_object()->instances[0]->loaded_id;
+                    //throw Slic3r::SlicingError("Can not find the cached data.");
+                    //don't report errot, set use_cache to false, and reslice these objects
+                    need_slicing_objects.insert(obj);
+                    re_slicing_objects.insert(obj);
+                    //use_cache = false;
                 }
             }
         }
@@ -1589,18 +1641,26 @@ void Print::process(bool use_cache)
     }
     else {
         for (PrintObject *obj : m_objects) {
-            if (obj->set_started(posSlice))
-                obj->set_done(posSlice);
-            if (obj->set_started(posPerimeters))
-                obj->set_done(posPerimeters);
-            if (obj->set_started(posPrepareInfill))
-                obj->set_done(posPrepareInfill);
-            if (obj->set_started(posInfill))
-                obj->set_done(posInfill);
-            if (obj->set_started(posIroning))
-                obj->set_done(posIroning);
-            if (obj->set_started(posSupportMaterial))
-                obj->set_done(posSupportMaterial);
+            if (re_slicing_objects.count(obj) == 0) {
+                if (obj->set_started(posSlice))
+                    obj->set_done(posSlice);
+                if (obj->set_started(posPerimeters))
+                    obj->set_done(posPerimeters);
+                if (obj->set_started(posPrepareInfill))
+                    obj->set_done(posPrepareInfill);
+                if (obj->set_started(posInfill))
+                    obj->set_done(posInfill);
+                if (obj->set_started(posIroning))
+                    obj->set_done(posIroning);
+                if (obj->set_started(posSupportMaterial))
+                    obj->set_done(posSupportMaterial);
+            }
+            else {
+                obj->make_perimeters();
+                obj->infill();
+                obj->ironing();
+                obj->generate_support_material();
+            }
         }
     }
 
@@ -1713,12 +1773,15 @@ void Print::process(bool use_cache)
     }
     //BBS
     for (PrintObject *obj : m_objects) {
-        if ((!use_cache)&&(need_slicing_objects.count(obj) != 0)) {
+        if (((!use_cache)&&(need_slicing_objects.count(obj) != 0))
+            || (use_cache &&(re_slicing_objects.count(obj) != 0))){
             obj->simplify_extrusion_path();
         }
         else {
             if (obj->set_started(posSimplifyPath))
                 obj->set_done(posSimplifyPath);
+            if (obj->set_started(posSimplifyInfill))
+                obj->set_done(posSimplifyInfill);
             if (obj->set_started(posSimplifySupportPath))
                 obj->set_done(posSimplifySupportPath);
         }
@@ -1730,6 +1793,7 @@ void Print::process(bool use_cache)
             obj->detect_overhangs_for_lift();
         }
         else {
+            obj->copy_layers_overhang_from_shared_object();
             if (obj->set_started(posDetectOverhangsForLift))
                 obj->set_done(posDetectOverhangsForLift);
         }
@@ -3094,7 +3158,14 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     if (fs::exists(directory_path)) {
         fs::remove_all(directory_path);
     }
-    if (!fs::create_directory(directory_path)) {
+    try {
+        if (!fs::create_directory(directory_path)) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
+            return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
+        }
+    }
+    catch (...)
+    {
         BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
         return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
     }
@@ -3526,6 +3597,14 @@ Polygon PrintInstance::get_convex_hull_2d() {
     Polygon poly = print_object->model_object()->convex_hull_2d(model_instance->get_matrix());
     poly.douglas_peucker(0.1);
     return poly;
+}
+
+//BBS: instance_shift is too large because of multi-plate, apply without plate offset.
+Point PrintInstance::shift_without_plate_offset() const
+{
+    const Print* print = print_object->print();
+    const Vec3d plate_offset = print->get_plate_origin();
+    return shift - Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
 }
 
 } // namespace Slic3r

@@ -3,13 +3,13 @@
 #  OrcaSlicer gettext
 #  Created by SoftFever on 27/5/23.
 #
-xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost -f ./bbl/i18n/list.txt -o ./bbl/i18n/OrcaSlicer.pot
-./build_arm64/src/hints/Release/hintsToPot.app/Contents/MacOS/hintsToPot ./resources ./bbl/i18n
+xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost -f ./localization/i18n/list.txt -o ./localization/i18n/OrcaSlicer.pot
+./build_arm64/src/hints/Release/hintsToPot.app/Contents/MacOS/hintsToPot ./resources ./localization/i18n
 
 
 echo $PWD
-pot_file="./bbl/i18n/OrcaSlicer.pot"
-for dir in ./bbl/i18n/*/
+pot_file="./localization/i18n/OrcaSlicer.pot"
+for dir in ./localization/i18n/*/
 do
     dir=${dir%*/}      # remove the trailing "/"
     lang=${dir##*/}    # extract the language identifier

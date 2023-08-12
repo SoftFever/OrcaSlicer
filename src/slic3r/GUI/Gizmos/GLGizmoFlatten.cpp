@@ -141,6 +141,7 @@ void GLGizmoFlatten::update_planes()
     // Following constants are used for discarding too small polygons.
     const float minimal_area = 5.f; // in square mm (world coordinates)
     const float minimal_side = 1.f; // mm
+    const float minimal_angle = 1.f; // degree, initial value was 10, but cause bugs
 
     // Now we'll go through all the facets and append Points of facets sharing the same normal.
     // This part is still performed in mesh coordinate system.
@@ -151,9 +152,9 @@ void GLGizmoFlatten::update_planes()
     std::vector<bool>        facet_visited(num_of_facets, false);
     int                      facet_queue_cnt = 0;
     const stl_normal*        normal_ptr      = nullptr;
+    int                      facet_idx       = 0;
     while (1) {
         // Find next unvisited triangle:
-        int facet_idx = 0;
         for (; facet_idx < num_of_facets; ++ facet_idx)
             if (!facet_visited[facet_idx]) {
                 facet_queue[facet_queue_cnt ++] = facet_idx;
@@ -235,7 +236,7 @@ void GLGizmoFlatten::update_planes()
             discard = true;
         else {
             // We also check the inner angles and discard polygons with angles smaller than the following threshold
-            const double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
+            const double angle_threshold = ::cos(minimal_angle * (double)PI / 180.0);
 
             for (unsigned int i = 0; i < polygon.size(); ++i) {
                 const Vec3d& prec = polygon[(i == 0) ? polygon.size() - 1 : i - 1];
@@ -250,7 +251,8 @@ void GLGizmoFlatten::update_planes()
         }
 
         if (discard) {
-            m_planes.erase(m_planes.begin() + (polygon_id--));
+            m_planes[polygon_id--] = std::move(m_planes.back());
+            m_planes.pop_back();
             continue;
         }
 

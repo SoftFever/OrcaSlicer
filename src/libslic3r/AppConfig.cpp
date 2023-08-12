@@ -207,11 +207,17 @@ void AppConfig::set_defaults()
     if (get("developer_mode").empty())
         set_bool("developer_mode", false);
 
+    if (get("enable_ssl_for_mqtt").empty())
+        set_bool("enable_ssl_for_mqtt", true);
+
+    if (get("enable_ssl_for_ftp").empty())
+        set_bool("enable_ssl_for_ftp", true);
+
     if (get("severity_level").empty())
         set("severity_level", "info");
 
-    if (get("dump_video").empty())
-        set_bool("dump_video", false);
+    if (get("internal_developer_mode").empty())
+        set_bool("internal_developer_mode", false);
 
     // BBS
     if (get("preset_folder").empty())
@@ -571,14 +577,8 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
-    {
-        // Returns "undefined" if the thread naming functionality is not supported by the operating system.
-        std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustu_main" && *current_thread_name != "main") {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<<", current_thread_name is " << *current_thread_name;
-            throw CriticalException("Calling AppConfig::save() from a worker thread, thread name: " + *current_thread_name);
-        }
-    }
+    if (! is_main_thread_active())
+        throw CriticalException("Calling AppConfig::save() from a worker thread!");
 
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
@@ -838,12 +838,8 @@ std::string AppConfig::load()
 
 void AppConfig::save()
 {
-    {
-        // Returns "undefined" if the thread naming functionality is not supported by the operating system.
-        std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustu_main")
-            throw CriticalException("Calling AppConfig::save() from a worker thread!");
-    }
+    if (! is_main_thread_active())
+        throw CriticalException("Calling AppConfig::save() from a worker thread!");
 
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r

@@ -71,30 +71,34 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 // BBS
 std::vector<std::array<float, 4>> get_extruders_colors()
 {
-    unsigned char                     rgb_color[3] = {};
-    std::vector<std::string>          colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    unsigned char                     rgba_color[4] = {};
+    std::vector<std::string>          colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
     std::vector<std::array<float, 4>> colors_out(colors.size());
-    for (const std::string& color : colors) {
-        Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-        size_t color_idx = &color - &colors.front();
-        colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+    for (const std::string &color : colors) {
+        Slic3r::GUI::BitmapCache::parse_color4(color, rgba_color);
+        size_t color_idx      = &color - &colors.front();
+        colors_out[color_idx] = {
+            float(rgba_color[0]) / 255.f,
+            float(rgba_color[1]) / 255.f,
+            float(rgba_color[2]) / 255.f,
+            float(rgba_color[3]) / 255.f,
+        };
     }
 
     return colors_out;
 }
-
-std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4>& colors)
+float FullyTransparentMaterialThreshold  = 0.1f;
+float FullTransparentModdifiedToFixAlpha = 0.3f;
+std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colors)
 {
-    if ((colors[0] < 0.1) && (colors[1] < 0.1) && (colors[2] < 0.1))
-    {
-        std::array<float, 4> new_color;
-        new_color[0] = 0.1;
-        new_color[1] = 0.1;
-        new_color[2] = 0.1;
-        new_color[3] = colors[3];
-        return new_color;
-    }
-
+   if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
+                std::array<float, 4> new_color;
+                new_color[0] = 1;
+                new_color[1] = 1;
+                new_color[2] = 1;
+                new_color[3] = FullTransparentModdifiedToFixAlpha;
+                return new_color;
+    } 
     return colors;
 }
 
@@ -514,8 +518,13 @@ void GLVolume::set_render_color()
         }
     }
 
-    if (force_transparent)
-        render_color[3] = color[3];
+    if (force_transparent) {
+        if (color[3] < FullyTransparentMaterialThreshold) {
+            render_color[3] = FullTransparentModdifiedToFixAlpha;
+        } else {
+            render_color[3] = color[3];
+        }
+    }
 
     //BBS set unprintable color
     if (!printable) {
@@ -1017,10 +1026,19 @@ void GLWipeTowerVolume::render(bool with_outline) const
         }
         this->iva_per_colors[i].render();
     }
-
+    
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
+}
+
+bool GLWipeTowerVolume::IsTransparent() { 
+    for (size_t i = 0; i < m_colors.size(); i++) {
+        if (m_colors[i][3] < 1.0f) { 
+            return true;
+        }
+    }
+    return false; 
 }
 
 std::vector<int> GLVolumeCollection::load_object(
@@ -1211,8 +1229,12 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     for (unsigned int i = 0; i < (unsigned int)volumes.size(); ++i) {
         GLVolume* volume = volumes[i];
         bool is_transparent = (volume->render_color[3] < 1.0f);
-        if (((type == GLVolumeCollection::ERenderType::Opaque && !is_transparent) ||
-             (type == GLVolumeCollection::ERenderType::Transparent && is_transparent) ||
+        auto tempGlwipeTowerVolume = dynamic_cast<GLWipeTowerVolume *>(volume);
+        if (tempGlwipeTowerVolume) { 
+            is_transparent = tempGlwipeTowerVolume->IsTransparent();
+        }
+        if (((type == GLVolumeCollection::ERenderType::Opaque && !is_transparent) || 
+            (type == GLVolumeCollection::ERenderType::Transparent && is_transparent) ||
              type == GLVolumeCollection::ERenderType::All) &&
             (! filter_func || filter_func(*volume)))
             list.emplace_back(std::make_pair(volume, std::make_pair(i, 0.0)));
@@ -1236,8 +1258,17 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     return list;
 }
 
+int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_support) const
+{
+    const DynamicPrintConfig& glb_cfg        = GUI::wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    enable_support =  glb_cfg.opt_bool("enable_support");
+    int support_threshold_angle =  glb_cfg.opt_int("support_threshold_angle");
+    return  support_threshold_angle ;
+}
+
 //BBS: add outline drawing logic
-void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func, bool with_outline) const
+void GLVolumeCollection::render(
+    GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d &view_matrix, std::function<bool(const GLVolume &)> filter_func, bool with_outline) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -1305,10 +1336,16 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
             //use -1 ad a invalid type
             shader->set_uniform("print_volume.type", -1);
         }
+        
+        bool  enable_support;
+        int   support_threshold_angle = get_selection_support_threshold_angle(enable_support);
+    
+        float normal_z  = -::cos(Geometry::deg2rad((float) support_threshold_angle));
+  
         shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
-        shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+        shader->set_uniform("slope.actived", m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
-        shader->set_uniform("slope.normal_z", m_slope.normal_z);
+        shader->set_uniform("slope.normal_z", normal_z);
 
 #if ENABLE_ENVIRONMENT_MAP
         unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
@@ -1496,34 +1533,35 @@ void GLVolumeCollection::reset_outside_state()
     }
 }
 
-void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* config)
+void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha)
 {
     static const float inv_255 = 1.0f / 255.0f;
 
     struct Color
     {
         std::string text;
-        unsigned char rgb[3];
+        unsigned char rgba[4];
 
         Color()
             : text("")
         {
-            rgb[0] = 255;
-            rgb[1] = 255;
-            rgb[2] = 255;
+            rgba[0] = 255;
+            rgba[1] = 255;
+            rgba[2] = 255;
+            rgba[3] = 255;
         }
 
-        void set(const std::string& text, unsigned char* rgb)
+        void set(const std::string& text, unsigned char* rgba)
         {
             this->text = text;
-            ::memcpy((void*)this->rgb, (const void*)rgb, 3 * sizeof(unsigned char));
+            ::memcpy((void*)this->rgba, (const void*)rgba, 4 * sizeof(unsigned char));
         }
     };
 
     if (config == nullptr)
         return;
 
-    unsigned char rgb[3];
+    unsigned char rgba[4];
     std::vector<Color> colors;
 
     if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA)
@@ -1531,9 +1569,9 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
         const std::string& txt_color = config->opt_string("material_colour").empty() ?
                                        print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value :
                                        config->opt_string("material_colour");
-        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb)) {
+        if (Slic3r::GUI::BitmapCache::parse_color4(txt_color, rgba)) {
             colors.resize(1);
-            colors[0].set(txt_color, rgb);
+            colors[0].set(txt_color, rgba);
         }
     }
     else
@@ -1549,8 +1587,8 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
         for (unsigned int i = 0; i < colors_count; ++i) {
             const std::string& txt_color = config->opt_string("filament_colour", i);
-            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
-                colors[i].set(txt_color, rgb);
+            if (Slic3r::GUI::BitmapCache::parse_color4(txt_color, rgba))
+                colors[i].set(txt_color, rgba);
         }
     }
 
@@ -1564,8 +1602,14 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
         const Color& color = colors[extruder_id];
         if (!color.text.empty()) {
-            for (int i = 0; i < 3; ++i) {
-                volume->color[i] = (float)color.rgb[i] * inv_255;
+            for (int i = 0; i < 4; ++i) {
+                if (is_update_alpha == false) { 
+                    if (i < 3) { 
+                        volume->color[i] = (float) color.rgba[i] * inv_255;
+                    }
+                    continue;
+                }
+                volume->color[i] = (float) color.rgba[i] * inv_255;
             }
         }
     }

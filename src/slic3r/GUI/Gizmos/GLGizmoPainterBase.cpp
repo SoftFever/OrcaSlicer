@@ -85,10 +85,15 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
             continue;
 
         ++mesh_id;
-
-        const Transform3d trafo_matrix =
-            mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() *
-            mv->get_matrix();
+        
+        Transform3d trafo_matrix;
+        if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
+            trafo_matrix.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mo->instances[selection.get_instance_idx()]->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
+        }
+        else {
+            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix()* mv->get_matrix();
+        }
 
         bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
         if (is_left_handed)
@@ -124,7 +129,16 @@ void GLGizmoPainterBase::render_cursor() const
     std::vector<Transform3d> trafo_matrices;
     for (const ModelVolume* mv : mo->volumes) {
         if (mv->is_model_part())
-            trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
+        {
+            if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+                Transform3d temp = mi->get_assemble_transformation().get_matrix() * mv->get_matrix();
+                temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
+                trafo_matrices.emplace_back(temp);
+            }
+            else {
+                trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
+            }
+        }
     }
     // Raycast and return if there's no hit.
     update_raycast_cache(m_parent.get_local_mouse_position(), camera, trafo_matrices);
@@ -230,17 +244,35 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     const BoundingBoxf3 box = bounding_box();
     Vec3d hit_world = trafo * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
     float max_z = (float)box.max.z();
+    float min_z = (float)box.min.z();
 
-    float cursor_z = std::clamp((float)hit_world.z(), 0.f, max_z);
-    std::array<float, 2> zs = { cursor_z, std::clamp(cursor_z + m_cursor_height, 0.f, max_z) };
-    for (int i = 0; i < zs.size(); i++) {
-        update_contours(zs[i], max_z);
+    float cursor_z = std::clamp((float)hit_world.z(), min_z, max_z);
+    std::array<float, 2> zs = { cursor_z, std::clamp(cursor_z + m_cursor_height, min_z, max_z) };
 
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
-        glsafe(::glLineWidth(2.0f));
-        m_cut_contours.contours.render();
-        glsafe(::glPopMatrix());
+    const Selection& selection = m_parent.get_selection();
+    const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
+    const ModelInstance* mi = model_object->instances[selection.get_instance_idx()];
+    for (const ModelVolume* mv : model_object->volumes) {
+        TriangleMesh vol_mesh = mv->mesh();
+        if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+            Transform3d temp = mi->get_assemble_transformation().get_matrix() * mv->get_matrix();
+            temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
+            vol_mesh.transform(temp);
+        }
+        else {
+            vol_mesh.transform(mi->get_transformation().get_matrix() * mv->get_matrix());
+        }
+
+        for (int i = 0; i < zs.size(); i++) {
+            update_contours(vol_mesh, zs[i], max_z, min_z);
+
+            glsafe(::glPushMatrix());
+            glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
+            glsafe(::glLineWidth(2.0f));
+            m_cut_contours.contours.render();
+            glsafe(::glPopMatrix());
+        }
+
     }
 }
 
@@ -257,7 +289,7 @@ BoundingBoxf3 GLGizmoPainterBase::bounding_box() const
     return ret;
 }
 
-void GLGizmoPainterBase::update_contours(float cursor_z, float max_z) const
+void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const
 {
     const Selection& selection = m_parent.get_selection();
     const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -266,33 +298,32 @@ void GLGizmoPainterBase::update_contours(float cursor_z, float max_z) const
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
     const int instance_idx = selection.get_instance_idx();
 
-    if (0.0 < cursor_z && cursor_z < max_z) {
-        if (m_cut_contours.cut_z != cursor_z || m_cut_contours.object_id != model_object->id() || m_cut_contours.instance_idx != instance_idx) {
-            m_cut_contours.cut_z = cursor_z;
+        if (min_z < cursor_z && cursor_z < max_z) {
+            if (m_cut_contours.cut_z != cursor_z || m_cut_contours.object_id != model_object->id() || m_cut_contours.instance_idx != instance_idx) {
+                m_cut_contours.cut_z = cursor_z;
 
-            if (m_cut_contours.object_id != model_object->id())
-                m_cut_contours.mesh = model_object->raw_mesh();
+                m_cut_contours.mesh = vol_mesh;
 
-            m_cut_contours.position = box.center();
-            m_cut_contours.shift = Vec3d::Zero();
-            m_cut_contours.object_id = model_object->id();
-            m_cut_contours.instance_idx = instance_idx;
-            m_cut_contours.contours.reset();
+                m_cut_contours.position = box.center();
+                m_cut_contours.shift = Vec3d::Zero();
+                m_cut_contours.object_id = model_object->id();
+                m_cut_contours.instance_idx = instance_idx;
+                m_cut_contours.contours.reset();
 
-            MeshSlicingParams slicing_params;
-            slicing_params.trafo = first_glvolume->get_instance_transformation().get_matrix();
-            const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
-            if (!polys.empty()) {
-                m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
-                m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+                MeshSlicingParams slicing_params;
+                slicing_params.trafo = Transform3d::Identity().matrix();
+                const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
+                if (!polys.empty()) {
+                    m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
+                    m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+                }
+            }
+            else if (box.center() != m_cut_contours.position) {
+                m_cut_contours.shift = box.center() - m_cut_contours.position;
             }
         }
-        else if (box.center() != m_cut_contours.position) {
-            m_cut_contours.shift = box.center() - m_cut_contours.position;
-        }
-    }
-    else
-        m_cut_contours.contours.reset();
+        else
+            m_cut_contours.contours.reset();
 }
 
 bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const
@@ -451,8 +482,12 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
     const Selection& selection = m_parent.get_selection();
     const ModelObject* mo = m_c->selection_info()->model_object();
     const ModelInstance* mi = mo->instances[selection.get_instance_idx()];
-    const Transform3d   instance_trafo = mi->get_transformation().get_matrix();
-    const Transform3d   instance_trafo_not_translate = mi->get_transformation().get_matrix(true);
+    const Transform3d   instance_trafo = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+        mi->get_assemble_transformation().get_matrix() :
+        mi->get_transformation().get_matrix();
+    const Transform3d   instance_trafo_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+        mi->get_assemble_transformation().get_matrix(true) :
+        mi->get_transformation().get_matrix(true);
 
     for (int mesh_idx = 0; mesh_idx < part_volumes.size(); mesh_idx++) {
         if (mesh_idx == m_rr.mesh_id)
@@ -518,8 +553,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     const Selection     &selection                 = m_parent.get_selection();
                     const ModelObject   *mo                        = m_c->selection_info()->model_object();
                     const ModelInstance *mi                        = mo->instances[selection.get_instance_idx()];
-                    const Transform3d   trafo_matrix_not_translate = mi->get_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true);
-                    const Transform3d   trafo_matrix = mi->get_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_matrix();
+                    const Transform3d   trafo_matrix_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+                        mi->get_assemble_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true) :
+                        mi->get_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true);
+                    const Transform3d   trafo_matrix = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+                        mi->get_assemble_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_matrix() :
+                        mi->get_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_matrix();
                     m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), trafo_matrix_not_translate, this->get_clipping_plane_in_volume_coordinates(trafo_matrix), m_smart_fill_angle,
                                                                                    m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f, true);
                     m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
@@ -581,8 +620,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const Selection     &selection                   = m_parent.get_selection();
         const ModelObject   *mo                          = m_c->selection_info()->model_object();
         const ModelInstance *mi                          = mo->instances[selection.get_instance_idx()];
-        const Transform3d   instance_trafo               = mi->get_transformation().get_matrix();
-        const Transform3d   instance_trafo_not_translate = mi->get_transformation().get_matrix(true);
+        Transform3d   instance_trafo = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+            mi->get_assemble_transformation().get_matrix() :
+            mi->get_transformation().get_matrix();
+        Transform3d   instance_trafo_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+            mi->get_assemble_transformation().get_matrix(true) :
+            mi->get_transformation().get_matrix(true);
         std::vector<const ModelVolume*> part_volumes;
 
         // Precalculate transformations of individual meshes.
@@ -590,7 +633,14 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         std::vector<Transform3d> trafo_matrices_not_translate;
         for (const ModelVolume *mv : mo->volumes)
             if (mv->is_model_part()) {
-                trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
+                if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+                    Transform3d temp = instance_trafo * mv->get_matrix();
+                    temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
+                    trafo_matrices.emplace_back(temp);
+                }
+                else {
+                    trafo_matrices.emplace_back(instance_trafo* mv->get_matrix());
+                }
                 trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
                 part_volumes.push_back(mv);
             }
@@ -713,15 +763,26 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const Selection     &selection                    = m_parent.get_selection();
         const ModelObject   *mo                           = m_c->selection_info()->model_object();
         const ModelInstance *mi                           = mo->instances[selection.get_instance_idx()];
-        const Transform3d    instance_trafo               = mi->get_transformation().get_matrix();
-        const Transform3d    instance_trafo_not_translate = mi->get_transformation().get_matrix(true);
+        const Transform3d    instance_trafo = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+            mi->get_assemble_transformation().get_matrix() :
+            mi->get_transformation().get_matrix();
+        const Transform3d    instance_trafo_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
+            mi->get_assemble_transformation().get_matrix(true) :
+            mi->get_transformation().get_matrix(true);
 
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
         std::vector<Transform3d> trafo_matrices_not_translate;
         for (const ModelVolume *mv : mo->volumes)
             if (mv->is_model_part()) {
-                trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
+                if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+                    Transform3d temp = instance_trafo * mv->get_matrix();
+                    temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
+                    trafo_matrices.emplace_back(temp);
+                }
+                else {
+                    trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
+                }
                 trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
             }
 
@@ -811,7 +872,8 @@ void GLGizmoPainterBase::update_raycast_cache(const Vec2d& mouse_position,
                    hit,
                    normal,
                    m_c->object_clipper()->get_clipping_plane(),
-                   &facet))
+                   &facet,
+                   m_parent.get_canvas_type() != GLCanvas3D::CanvasAssembleView))
         {
             // In case this hit is clipped, skip it.
             if (is_mesh_point_clipped(hit.cast<double>(), trafo_matrices[mesh_id]))

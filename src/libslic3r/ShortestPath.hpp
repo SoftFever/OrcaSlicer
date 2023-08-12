@@ -13,6 +13,7 @@ namespace ClipperLib { class PolyNode; }
 namespace Slic3r {
 
 std::vector<size_t> 				 chain_points(const Points &points, Point *start_near = nullptr);
+std::vector<size_t> 				 chain_expolygons(const ExPolygons &input_exploy);
 
 std::vector<std::pair<size_t, bool>> chain_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const Point *start_near = nullptr);
 void                                 reorder_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const std::vector<std::pair<size_t, bool>> &chain);

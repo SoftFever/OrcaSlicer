@@ -203,6 +203,7 @@ public:
     std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z);
+    bool is_BBL_Printer();
 
     // SoftFever
     std::string set_object_info(Print* print);
@@ -382,8 +383,8 @@ private:
 
 	struct InstanceToPrint
 	{
-		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id) :
-			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id) {}
+		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id, size_t label_object_id) :
+			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id), label_object_id(label_object_id) {}
 
 		// Repository
 		ObjectByExtruder		&object_by_extruder;
@@ -392,6 +393,8 @@ private:
 		const PrintObject 		&print_object;
 		// Instance idx of the copy of a print object.
 		const size_t			 instance_id;
+        //BBS: Unique id to label object to support skiping during printing
+        const size_t             label_object_id;
 	};
 
 	std::vector<InstanceToPrint> sort_print_object_instances(
@@ -441,7 +444,10 @@ private:
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
     bool                                m_enable_cooling_markers;
-
+    
+    bool m_enable_exclude_object;
+    std::vector<size_t> m_label_objects_ids;
+    std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
     // Orca
     bool m_is_overhang_fan_on;
     bool m_is_supp_interface_fan_on;
