@@ -20,7 +20,6 @@
     "default_acceleration": "6000",
     "outer_wall_acceleration": "3000",
     "bridge_acceleration": "1500",
-    "bridge_speed": "110",
     "wall_infill_order": "outer wall/inner wall/infill",
     "sparse_infill_density": "10%",
     "sparse_infill_pattern": "supportcubic",
