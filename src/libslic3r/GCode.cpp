@@ -4125,7 +4125,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
-        ConfigOptionPercents overhang_overlap_levels({75, 50, 25, 5});
+        ConfigOptionPercents overhang_overlap_levels({75, 50, 25, 13,12.99,0});
         ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
             {(m_config.get_abs_value("overhang_1_4_speed") < 0.5)
                  ? FloatOrPercent{100, true}
@@ -4138,7 +4138,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                  : FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed"), false},
              (m_config.get_abs_value("overhang_4_4_speed") < 0.5)
                  ? FloatOrPercent{100, true}
-                 : FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed"), false}});
+                 : FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed"), false},
+             FloatOrPercent{m_config.get_abs_value("bridge_speed"), false},
+             FloatOrPercent{m_config.get_abs_value("bridge_speed"), false}});
 
         new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(
             path, overhang_overlap_levels, dynamic_overhang_speeds, m_config.get_abs_value("outer_wall_speed"), speed);
@@ -4220,18 +4222,20 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         return overlap <= 0.25f;
         break;
       case (int)Overhang_threshold_bridge:
-        return overlap <= 0.05f;
+        return overlap <= 0.1f;
         break;
       case (int)Overhang_threshold_none:
-      default:
         return true;
+        break;
+      default:
+        return false;
       }
     };
 
     std::string comment;
     if (m_enable_cooling_markers) {
         comment = ";_EXTRUDE_SET_SPEED";
-        if (path.role() == erExternalPerimeter)
+        if (is_external_perimeter(path.role()))
             comment += ";_EXTERNAL_PERIMETER";
     }
 
@@ -4270,7 +4274,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         m_is_supp_interface_fan_on = false;
                     }
                 }
-            } 
+            }
             // BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
             // Attention: G2 and G3 is not supported in spiral_mode mode
             if (!m_config.enable_arc_fitting || path.polyline.fitting_result.empty() || m_config.spiral_mode) {
@@ -4328,37 +4332,46 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
         gcode += m_writer.set_speed(last_set_speed, "", comment);
         Vec2d prev = this->point_to_gcode_quantized(new_points[0].p);
+        bool pre_fan_enabled = false;
+        bool cur_fan_enabled = false;
+        if( m_enable_cooling_markers && enable_overhang_bridge_fan)
+            pre_fan_enabled = check_overhang_fan(new_points[0].overlap);
+
         for (size_t i = 1; i < new_points.size(); i++) {
             const ProcessedPoint &processed_point = new_points[i];
             Vec2d p = this->point_to_gcode_quantized(processed_point.p);
-            const double line_length = (p - prev).norm();
             if (m_enable_cooling_markers) {
-                if(enable_overhang_bridge_fan) {
-                    if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap) ) {
-                        if(!m_is_overhang_fan_on)
+                if (enable_overhang_bridge_fan) {
+                    cur_fan_enabled = check_overhang_fan(processed_point.overlap);
+                    if (is_bridge(path.role()) ||
+                        (is_perimeter(path.role()) &&
+                         pre_fan_enabled && pre_fan_enabled)) {
+                        if (!m_is_overhang_fan_on) {
                             gcode += ";_OVERHANG_FAN_START\n";
-                        m_is_overhang_fan_on = true;
-                    }else {
-                        if (m_is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_END\n";
-                            m_is_overhang_fan_on = false;
+                            m_is_overhang_fan_on = true;
                         }
-                    }
-                }
-                if(supp_interface_fan_speed >= 0){
-                    if(path.role() == erSupportMaterialInterface) {
-                        if(!m_is_supp_interface_fan_on)
-                            gcode += ";_SUPP_INTERFACE_FAN_START\n";
-                        m_is_supp_interface_fan_on = true;
                     } else {
-                        if(m_is_supp_interface_fan_on) {
-                            gcode += ";_SUPP_INTERFACE_FAN_END\n";
-                            m_is_supp_interface_fan_on = false;
+                        if (m_is_overhang_fan_on) {
+                            m_is_overhang_fan_on = false;
+                            gcode += ";_OVERHANG_FAN_END\n";
                         }
                     }
-                    
+                    pre_fan_enabled = cur_fan_enabled;
+                }
+                if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
+                    if (!m_is_supp_interface_fan_on) {
+                        gcode += ";_SUPP_INTERFACE_FAN_START\n";
+                        m_is_supp_interface_fan_on = true;
+                    }
+                } else {
+                    if (m_is_supp_interface_fan_on) {
+                        gcode += ";_SUPP_INTERFACE_FAN_END\n";
+                        m_is_supp_interface_fan_on = false;
+                    }
                 }
             }
+
+            const double line_length = (p - prev).norm();
             double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), processed_point.speed) * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
@@ -4372,7 +4385,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
     if (m_enable_cooling_markers) {
-        gcode += ";_EXTRUDE_END\n";
+            gcode += ";_EXTRUDE_END\n";
     }
 
     if (path.role() != ExtrusionRole::erGapFill) {
