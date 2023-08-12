@@ -1,7 +1,7 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.20mm Standard @Troodon",
+    "name": "0.20mm Standard @Troodon2",
     "from": "system",
     "inherits": "fdm_process_rrf_common",
     "instantiation": "true",

@@ -185,4 +185,11 @@ namespace Slic3r {
         project_path.clear();
     }
 
+    BBLModelTask::BBLModelTask()
+    {
+        job_id      = -1;
+        design_id   = -1;
+        profile_id  = -1;
+    }
+
 } // namespace Slic3r

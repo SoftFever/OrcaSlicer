@@ -190,32 +190,47 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
     // 2) Convert the trimmed ranges to a height profile, fill in the undefined intervals between z=0 and z=slicing_params.object_print_z_max()
     // with slicing_params.layer_height
     std::vector<coordf_t> layer_height_profile;
-    for (std::vector<std::pair<t_layer_height_range,coordf_t>>::const_iterator it_range = ranges_non_overlapping.begin(); it_range != ranges_non_overlapping.end(); ++ it_range) {
-        coordf_t lo = it_range->first.first;
-        coordf_t hi = it_range->first.second;
-        coordf_t height = it_range->second;
-        coordf_t last_z      = layer_height_profile.empty() ? 0. : layer_height_profile[layer_height_profile.size() - 2];
-        if (lo > last_z + EPSILON) {
+    auto last_z = [&layer_height_profile]() {
+        return layer_height_profile.empty() ? 0. : *(layer_height_profile.end() - 2);
+    };
+    auto lh_append = [&layer_height_profile](coordf_t z, coordf_t layer_height) {
+        if (!layer_height_profile.empty()) {
+            bool last_z_matches = is_approx(*(layer_height_profile.end() - 2), z);
+            bool last_h_matches = is_approx(layer_height_profile.back(), layer_height);
+            if (last_h_matches) {
+                if (last_z_matches) {
+                    // Drop a duplicate.
+                    return;
+                }
+                if (layer_height_profile.size() >= 4 && is_approx(*(layer_height_profile.end() - 3), layer_height)) {
+                    // Third repetition of the same layer_height. Update z of the last entry.
+                    *(layer_height_profile.end() - 2) = z;
+                    return;
+                }
+            }
+        }
+        layer_height_profile.push_back(z);
+        layer_height_profile.push_back(layer_height);
+    };
+
+    for (const std::pair<t_layer_height_range, coordf_t>& non_overlapping_range : ranges_non_overlapping) {
+        coordf_t lo = non_overlapping_range.first.first;
+        coordf_t hi = non_overlapping_range.first.second;
+        coordf_t height = non_overlapping_range.second;
+        if (coordf_t z = last_z(); lo > z + EPSILON) {
             // Insert a step of normal layer height.
-            layer_height_profile.push_back(last_z);
-            layer_height_profile.push_back(slicing_params.layer_height);
-            layer_height_profile.push_back(lo);
-            layer_height_profile.push_back(slicing_params.layer_height);
+            lh_append(z, slicing_params.layer_height);
+            lh_append(lo, slicing_params.layer_height);
         }
         // Insert a step of the overriden layer height.
-        layer_height_profile.push_back(lo);
-        layer_height_profile.push_back(height);
-        layer_height_profile.push_back(hi);
-        layer_height_profile.push_back(height);
+        lh_append(lo, height);
+        lh_append(hi, height);
     }
 
-    coordf_t last_z      = layer_height_profile.empty() ? 0. : layer_height_profile[layer_height_profile.size() - 2];
-    if (last_z < slicing_params.object_print_z_height()) {
+    if (coordf_t z = last_z(); z < slicing_params.object_print_z_height()) {
         // Insert a step of normal layer height up to the object top.
-        layer_height_profile.push_back(last_z);
-        layer_height_profile.push_back(slicing_params.layer_height);
-        layer_height_profile.push_back(slicing_params.object_print_z_height());
-        layer_height_profile.push_back(slicing_params.layer_height);
+        lh_append(z, slicing_params.layer_height);
+        lh_append(slicing_params.object_print_z_height(), slicing_params.layer_height);
     }
 
    	return layer_height_profile;

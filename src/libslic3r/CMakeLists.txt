@@ -24,6 +24,9 @@ set(lisbslic3r_sources
     pchheader.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
+    AABBMesh.hpp
+    AABBMesh.cpp
+    AnyPtr.hpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
@@ -96,6 +99,8 @@ set(lisbslic3r_sources
     Fill/FillRectilinear.hpp
     Flow.cpp
     Flow.hpp
+    FlushVolCalc.cpp
+    FlushVolCalc.hpp
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
@@ -430,7 +435,7 @@ if (_opts)
     target_compile_options(libslic3r_cgal PRIVATE "${_opts_bad}")
 endif()
 
-target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl)
+target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
@@ -497,6 +502,7 @@ target_link_libraries(libslic3r
     ZLIB::ZLIB
     ${OCCT_LIBS}
     Clipper2
+    mcut
     )
 
 if(NOT WIN32)

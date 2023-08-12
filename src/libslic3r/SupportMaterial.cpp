@@ -1,4 +1,5 @@
 #include "ClipperUtils.hpp"
+#include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "Layer.hpp"
 #include "Print.hpp"
@@ -1325,7 +1326,7 @@ namespace SupportMaterialInternal {
             for (const ExtrusionEntity *ee2 : static_cast<const ExtrusionEntityCollection*>(ee)->entities) {
                 assert(! ee2->is_collection());
                 assert(! ee2->is_loop());
-                if (ee2->role() == erBridgeInfill)
+                if (ee2->role() == erBridgeInfill || ee2->role() == erInternalBridgeInfill)
                     return true;
             }
         }
@@ -1634,25 +1635,28 @@ static inline ExPolygons detect_overhangs(
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
 
                 // BBS
-                for (ExPolygon& expoly : layerm->raw_slices) {
-                    bool is_sharp_tail = false;
-                    float accum_height = layer.height;
+                if (g_config_support_sharp_tails) {
+                    for (ExPolygon& expoly : layerm->raw_slices) {
+                        if (offset_ex(expoly, -0.5 * fw).empty()) continue;
+                        bool is_sharp_tail = false;
+                        float accum_height = layer.height;
 
-                    // 1. nothing below
-                    // Check whether this is a sharp tail region.
-                    // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
-                    if (g_config_support_sharp_tails && !overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
-                        is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.1*fw).empty();
-                    }
+                        // 1. nothing below
+                        // Check whether this is a sharp tail region.
+                        // Should use lower_layer_expolys without any offset. Otherwise, it may missing sharp tails near the main body.
+                        if (!overlaps(offset_ex(expoly, 0.5 * fw), lower_layer_expolys)) {
+                            is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly, -0.1 * fw).empty();
+                        }
 
-                    if (is_sharp_tail) {
-                        ExPolygons overhang = diff_ex({ expoly }, lower_layer_polygons);
-                        layer.sharp_tails.push_back(expoly);
-                        layer.sharp_tails_height.insert({ &expoly, accum_height });
-                        overhang = offset_ex(overhang, 0.05 * fw);
-                        polygons_append(diff_polygons, to_polygons(overhang));
+                        if (is_sharp_tail) {
+                            ExPolygons overhang = diff_ex({ expoly }, lower_layer_expolys);
+                            layer.sharp_tails.push_back(expoly);
+                            layer.sharp_tails_height.insert({ &expoly, accum_height });
+                            overhang = offset_ex(overhang, 0.05 * fw);
+                            polygons_append(diff_polygons, to_polygons(overhang));
+                        }
                     }
-                }               
+                }
             }
 
             if (diff_polygons.empty())
@@ -1790,13 +1794,21 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                 // For the same reason, the non-bridging support area may be smaller than the bridging support area!
                 slices_margin_update(std::min(lower_layer_offset, float(scale_(gap_xy))), no_interface_offset);
                 // Offset the contact polygons outside.
-
-                // BBS: already trim the support in trim_support_layers_by_object()
 #if 0
+                for (size_t i = 0; i < NUM_MARGIN_STEPS; ++ i) {
+                    diff_polygons = diff(
+                        offset(
+                            diff_polygons,
+                            scaled<float>(SUPPORT_MATERIAL_MARGIN / NUM_MARGIN_STEPS),
+                            ClipperLib::jtRound,
+                            // round mitter limit
+                            scale_(0.05)),
+                        slices_margin.polygons);
+                }
+#else
                 diff_polygons = diff(diff_polygons, slices_margin.polygons);
 #endif
             }
-
             polygons_append(contact_polygons, diff_polygons);
         } // for each layer.region
 
@@ -2255,21 +2267,18 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     const coordf_t extrusion_width = m_object_config->line_width.get_abs_value(object.print()->config().nozzle_diameter.get_at(object.config().support_interface_filament-1));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
-        for (size_t layer_nr = 0; layer_nr < object.layer_count(); layer_nr++) {
+        for (size_t layer_nr = layer_id_start; layer_nr < num_layers; layer_nr++) {
             if (object.print()->canceled())
                 break;
 
             const Layer* layer = object.get_layer(layer_nr);
             const Layer* lower_layer = layer->lower_layer;
-            // skip if:
-            // 1) if the current layer is already detected as sharp tails
-            // 2) lower layer has no sharp tails
-            if (!lower_layer || layer->sharp_tails.empty() == false || lower_layer->sharp_tails.empty() == true)
+            if (!lower_layer)
                 continue;
 
             // BBS detect sharp tail
             const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
-            auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
+            const auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
             for (const ExPolygon& expoly : layer->lslices) {
                 bool  is_sharp_tail = false;
                 float accum_height = layer->height;
@@ -2300,13 +2309,13 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     }
 
                     // 2.3 check whether sharp tail exceed the max height
-                    for (auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
+                    for (const auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
                         if (lower_sharp_tail_height.first->overlaps(expoly)) {
                             accum_height += lower_sharp_tail_height.second;
                             break;
                         }
                     }
-                    if (accum_height >= sharp_tail_max_support_height) {
+                    if (accum_height > sharp_tail_max_support_height) {
                         is_sharp_tail = false;
                         break;
                     }
@@ -2343,7 +2352,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
         return MyLayersPtr();
 
     // BBS group overhang clusters
-    if (g_config_remove_small_overhangs) {
+    const bool config_remove_small_overhangs = m_object_config->support_remove_small_overhang.value;
+    if (config_remove_small_overhangs) {
         std::vector<OverhangCluster> clusters;
       double fw_scaled = scale_(extrusion_width);
         std::set<ExPolygon*> removed_overhang;
@@ -2371,8 +2381,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
             if (!cluster.is_sharp_tail && !cluster.is_cantilever) {
                 // 2. check overhang cluster size is small
                 cluster.is_small_overhang = false;
-                auto erode1 = offset_ex(cluster.merged_overhangs_dilated, -2.5 * fw_scaled);
-                if (area(erode1) < SQ(scale_(0.1))) {
+                auto erode1 = offset_ex(cluster.merged_overhangs_dilated, -1.0 * fw_scaled);
+                Point bbox_sz = get_extents(erode1).size();
+                if (bbox_sz.x() < 2 * fw_scaled || bbox_sz.y() < 2 * fw_scaled) {
                     cluster.is_small_overhang = true;
                 }
             }
@@ -2824,41 +2835,10 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
     return bottom_contacts;
 }
 
-// FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
-// Find the first item with Z value >= of an internal threshold of fn_higher_equal.
-// If no vec item with Z value >= of an internal threshold of fn_higher_equal is found, return vec.size()
-// If the initial idx is size_t(-1), then use binary search.
-// Otherwise search linearly upwards.
-template<typename IteratorType, typename IndexType, typename FN_HIGHER_EQUAL>
-IndexType idx_higher_or_equal(IteratorType begin, IteratorType end, IndexType idx, FN_HIGHER_EQUAL fn_higher_equal)
-{
-    auto size = int(end - begin);
-    if (size == 0) {
-        idx = 0;
-    } else if (idx == IndexType(-1)) {
-        // First of the batch of layers per thread pool invocation. Use binary search.
-        int idx_low  = 0;
-        int idx_high = std::max(0, size - 1);
-        while (idx_low + 1 < idx_high) {
-            int idx_mid  = (idx_low + idx_high) / 2;
-            if (fn_higher_equal(begin[idx_mid]))
-                idx_high = idx_mid;
-            else
-                idx_low  = idx_mid;
-        }
-        idx =  fn_higher_equal(begin[idx_low])  ? idx_low  :
-              (fn_higher_equal(begin[idx_high]) ? idx_high : size);
-    } else {
-        // For the other layers of this batch of layers, search incrementally, which is cheaper than the binary search.
-        while (int(idx) < size && ! fn_higher_equal(begin[idx]))
-            ++ idx;
-    }
-    return idx;
-}
 template<typename T, typename IndexType, typename FN_HIGHER_EQUAL>
 IndexType idx_higher_or_equal(const std::vector<T>& vec, IndexType idx, FN_HIGHER_EQUAL fn_higher_equal)
 {
-    return idx_higher_or_equal(vec.begin(), vec.end(), idx, fn_higher_equal);
+    return Layer::idx_higher_or_equal(vec.begin(), vec.end(), idx, fn_higher_equal);
 }
 
 // FN_LOWER_EQUAL: the provided object pointer has a Z value <= of an internal threshold.
@@ -3343,7 +3323,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 assert(! support_layer.polygons.empty() && support_layer.print_z >= m_slicing_params.raft_contact_top_z + EPSILON);
                 // Find the overlapping object layers including the extra above / below gap.
                 coordf_t z_threshold = support_layer.bottom_print_z() - gap_extra_below + EPSILON;
-                idx_object_layer_overlapping = idx_higher_or_equal(
+                idx_object_layer_overlapping = Layer::idx_higher_or_equal(
                     object.layers().begin(), object.layers().end(), idx_object_layer_overlapping,
                     [z_threshold](const Layer *layer){ return layer->print_z >= z_threshold; });
                 // Collect all the object layers intersecting with this layer.
@@ -4633,6 +4613,40 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             }
 #endif
 
+            // Calculate top interface angle
+            float angle_of_biggest_bridge = -1.f;
+            do
+            {
+                // Currently only works when thick_bridges is off
+                if (m_object->config().thick_bridges)
+                    break;
+
+                coordf_t object_layer_bottom_z = support_layer.print_z + m_slicing_params.gap_support_object;
+                const Layer* object_layer = m_object->get_layer_at_bottomz(object_layer_bottom_z, 10.0 * EPSILON);
+                if (object_layer == nullptr)
+                    break;
+
+                if (object_layer != nullptr) {
+                    float biggest_bridge_area = 0.f;
+                    const Polygons& top_contact_polys = top_contact_layer.polygons_to_extrude();
+                    for (auto layerm : object_layer->regions()) {
+                        for (auto bridge_surface : layerm->fill_surfaces.filter_by_type(stBottomBridge)) {
+                            float bs_area = bridge_surface->area();
+                            if (bs_area <= biggest_bridge_area || bridge_surface->bridge_angle < 0.f)
+                                continue;
+
+                            angle_of_biggest_bridge = bridge_surface->bridge_angle;
+                            biggest_bridge_area = bs_area;
+                        }
+                    }
+                }
+            } while (0);
+
+            auto calc_included_angle_degree = [](int degree_a, int degree_b) {
+                int iad = std::abs(degree_b - degree_a);
+                return std::min(iad, 180 - iad);
+            };
+
             // Top and bottom contacts, interface layers.
             for (size_t i = 0; i < 3; ++ i) {
                 MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
@@ -4655,6 +4669,22 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         // Use interface angle for the interface layers.
                         m_support_params.interface_angle + interface_angle_delta;
 
+                // BBS
+                bool can_adjust_top_interface_angle = (m_object_config->support_interface_top_layers.value > 1 && &layer_ex == &top_contact_layer);
+                if (can_adjust_top_interface_angle && angle_of_biggest_bridge >= 0.f) {
+                    int bridge_degree = (int)Geometry::rad2deg(angle_of_biggest_bridge);
+                    int support_intf_degree = (int)Geometry::rad2deg(filler_interface->angle);
+                    int max_included_degree = 0;
+                    int step = 90;
+                    for (int add_on_degree = 0; add_on_degree < 180; add_on_degree += step) {
+                        int degree_to_try = support_intf_degree + add_on_degree;
+                        int included_degree = calc_included_angle_degree(bridge_degree, degree_to_try);
+                        if (included_degree > max_included_degree) {
+                            max_included_degree = included_degree;
+                            filler_interface->angle = Geometry::deg2rad((float)degree_to_try);
+                        }
+                    }
+                }
                 double density = interface_as_base ? m_support_params.support_density : m_support_params.interface_density;
                 filler_interface->spacing = interface_as_base ? m_support_params.support_material_flow.spacing() : m_support_params.support_material_interface_flow.spacing();
                 filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / density));

@@ -238,7 +238,8 @@ endif()
 set(OpenVDB_LIB_COMPONENTS "")
 set(OpenVDB_DEBUG_SUFFIX "d" CACHE STRING "Suffix for the debug libraries")
 
-get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+# get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+set(_is_multi FALSE)
 
 foreach(COMPONENT ${OpenVDB_FIND_COMPONENTS})
   set(LIB_NAME ${COMPONENT})

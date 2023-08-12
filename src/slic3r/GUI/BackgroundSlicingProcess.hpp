@@ -60,7 +60,7 @@ public:
 	void 		rethrow_exception() const { assert(this->error()); assert(m_exception); std::rethrow_exception(m_exception); }
 	// Produce a human readable message to be displayed by a notification or a message box.
 	// 2nd parameter defines whether the output should be displayed with a monospace font.
-    std::pair<std::string, size_t> format_error_message() const;
+    std::pair<std::string, std::vector<size_t>> format_error_message() const;
 
 private:
 	StatusType 			m_status;
@@ -185,6 +185,7 @@ public:
     //BBS: improve the finished logic, also judge the m_gcode_result
     //bool    finished() const { return m_print->finished(); }
     bool    finished() const { return m_print->finished() && !m_gcode_result->moves.empty(); }
+    bool    is_internal_cancelled() { return m_internal_cancelled; }
 
     //BBS: add Plater to friend class
     //need to call stop_internal in ui thread
@@ -275,6 +276,7 @@ private:
 	//BBS: partplate related
 	GUI::PartPlate* m_current_plate;
 	PrinterTechnology m_printer_tech = ptUnknown;
+	bool m_internal_cancelled = false;
 
     PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
 	bool                set_step_started(BackgroundSlicingProcessStep step);

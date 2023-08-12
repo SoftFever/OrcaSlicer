@@ -26,26 +26,36 @@ namespace cgal {
 
 struct CGALMesh;
 struct CGALMeshDeleter { void operator()(CGALMesh *ptr); };
+using CGALMeshPtr = std::unique_ptr<CGALMesh, CGALMeshDeleter>;
 
-std::unique_ptr<CGALMesh, CGALMeshDeleter>
-triangle_mesh_to_cgal(const std::vector<stl_vertex> &V,
-                      const std::vector<stl_triangle_vertex_indices> &F);
+CGALMeshPtr clone(const CGALMesh &m);
 
-inline std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const indexed_triangle_set &M)
+void save_CGALMesh(const std::string& fname, const CGALMesh& cgal_mesh);
+
+CGALMeshPtr triangle_mesh_to_cgal(
+    const std::vector<stl_vertex> &V,
+    const std::vector<stl_triangle_vertex_indices> &F);
+
+inline CGALMeshPtr triangle_mesh_to_cgal(const indexed_triangle_set &M)
 {
     return triangle_mesh_to_cgal(M.vertices, M.indices);
 }
-inline std::unique_ptr<CGALMesh, CGALMeshDeleter> triangle_mesh_to_cgal(const TriangleMesh &M)
+inline CGALMeshPtr triangle_mesh_to_cgal(const TriangleMesh &M)
 {
     return triangle_mesh_to_cgal(M.its);
 }
 
 TriangleMesh cgal_to_triangle_mesh(const CGALMesh &cgalmesh);
-    
+indexed_triangle_set cgal_to_indexed_triangle_set(const CGALMesh &cgalmesh);
+
 // Do boolean mesh difference with CGAL bypassing igl.
 void minus(TriangleMesh &A, const TriangleMesh &B);
 void plus(TriangleMesh &A, const TriangleMesh &B);
 void intersect(TriangleMesh &A, const TriangleMesh &B);
+
+void minus(indexed_triangle_set &A, const indexed_triangle_set &B);
+void plus(indexed_triangle_set &A, const indexed_triangle_set &B);
+void intersect(indexed_triangle_set &A, const indexed_triangle_set &B);
 
 void minus(CGALMesh &A, CGALMesh &B);
 void plus(CGALMesh &A, CGALMesh &B);
@@ -61,6 +71,27 @@ TriangleMesh merge(std::vector<TriangleMesh> meshes);
 bool does_bound_a_volume(const CGALMesh &mesh);
 bool empty(const CGALMesh &mesh);
 }
+
+namespace mcut {
+struct McutMesh;
+struct McutMeshDeleter
+{
+    void operator()(McutMesh *ptr);
+};
+using McutMeshPtr = std::unique_ptr<McutMesh, McutMeshDeleter>;
+bool empty(const McutMesh &mesh);
+
+McutMeshPtr  triangle_mesh_to_mcut(const indexed_triangle_set &M);
+TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh);
+
+// do boolean and save result to srcMesh
+void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
+
+std::vector<TriangleMesh> make_boolean(const McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
+
+// do boolean and convert result to TriangleMesh
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts);
+} // namespace mcut
 
 } // namespace MeshBoolean
 } // namespace Slic3r

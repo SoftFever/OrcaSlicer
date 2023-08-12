@@ -46,9 +46,10 @@ bool SlicingProcessCompletedEvent::critical_error() const
 	} catch (const Slic3r::SlicingError &) {
 		// Exception derived from SlicingError is non-critical.
 		return false;
-	} catch (...) {
-	}
-	return true;
+    } catch (const Slic3r::SlicingErrors &) {
+        return false;
+    } catch (...) {}
+    return true;
 }
 
 bool SlicingProcessCompletedEvent::invalidate_plater() const
@@ -69,7 +70,7 @@ bool SlicingProcessCompletedEvent::invalidate_plater() const
 	return false;
 }
 
-std::pair<std::string, size_t> SlicingProcessCompletedEvent::format_error_message() const
+std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format_error_message() const
 {
 	std::string error;
     size_t      monospace = 0;
@@ -88,12 +89,20 @@ std::pair<std::string, size_t> SlicingProcessCompletedEvent::format_error_messag
     } catch (SlicingError &ex) {
 		error = ex.what();
 		monospace = ex.objectId();
+    } catch (SlicingErrors &exs) {
+        std::vector<size_t> ids;
+        for (auto &ex : exs.errors_) {
+            error     = ex.what();
+            monospace = ex.objectId();
+            ids.push_back(monospace);
+        }
+        return std::make_pair(std::move(error), ids);
     } catch (std::exception &ex) {
-		error = ex.what();
-	} catch (...) {
-		error = "Unknown C++ exception.";
-	}
-	return std::make_pair(std::move(error), monospace);
+        error = ex.what();
+    } catch (...) {
+        error = "Unknown C++ exception.";
+    }
+    return std::make_pair(std::move(error), std::vector<size_t>{monospace});
 }
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()
@@ -187,7 +196,7 @@ void BackgroundSlicingProcess::process_fff()
 {
     assert(m_print == m_fff_print);
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    m_fff_print->is_BBL_printer() = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+    m_fff_print->is_BBL_printer() = preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle);
 	//BBS: add the logic to process from an existed gcode file
 	if (m_print->finished()) {
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
@@ -308,6 +317,8 @@ void BackgroundSlicingProcess::thread_proc()
 			break;
 		// Process the background slicing task.
 		m_state = STATE_RUNNING;
+		//BBS: internal cancel
+		m_internal_cancelled = false;
 		lck.unlock();
 		std::exception_ptr exception;
 #ifdef _WIN32
@@ -327,6 +338,10 @@ void BackgroundSlicingProcess::thread_proc()
 				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception);
 			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": send SlicingProcessCompletedEvent to main, status %1%")%evt.status();
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+		}
+		else {
+			//BBS: internal cancel
+			m_internal_cancelled = true;
 		}
 		m_print->restart();
 		lck.unlock();

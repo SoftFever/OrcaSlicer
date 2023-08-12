@@ -353,7 +353,7 @@ void ArrangeJob::prepare_partplate() {
         ModelObject* mo = model.objects[oidx];
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
-            bool in_plate = plate->contain_instance(oidx, inst_idx);
+            bool             in_plate = plate->contain_instance(oidx, inst_idx) || plate->intersect_instance(oidx, inst_idx);
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[inst_idx]);
 
             ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
@@ -392,20 +392,7 @@ void ArrangeJob::prepare()
         NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging..."));
     m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
 
-    {
-        const GLCanvas3D::ArrangeSettings &settings = static_cast<const GLCanvas3D *>(m_plater->canvas3D())->get_arrange_settings();
-        auto &                             print    = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-
-        params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
-        params.clearance_height_to_lid             = print.config().extruder_clearance_height_to_lid.value;
-        params.cleareance_radius                   = print.config().extruder_clearance_radius.value;
-        params.printable_height                    = print.config().printable_height.value;
-        params.allow_rotations                     = settings.enable_rotation;
-        params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
-        params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
-        params.is_seq_print                        = settings.is_seq_print;
-        params.min_obj_distance                    = scaled(settings.distance);
-    }
+    params = init_arrange_params(m_plater);
 
     //BBS update extruder params and speed table before arranging
     Plater::setExtruderParams(Model::extruderParamsMap);
@@ -510,85 +497,27 @@ void ArrangeJob::process()
     auto & partplate_list = m_plater->get_partplate_list();
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
-    if (params.is_seq_print)
-        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
-
-    if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer"))
+    const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    const bool has_lidar = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
+    if (has_lidar && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
         
-    double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
-    double brim_max = 0;
-    std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.brim_width); });
+    update_arrange_params(params, *m_plater, m_selected);
+    update_selected_items_inflation(m_selected, *m_plater, params);
+    update_unselected_items_inflation(m_unselected, *m_plater, params);
 
-    // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
-    // So we can't do max but do adding instead.
-    params.brim_skirt_distance = skirt_distance + brim_max;
-    params.bed_shrink_x = settings.bed_shrink_x + params.brim_skirt_distance;
-    params.bed_shrink_y = settings.bed_shrink_y + params.brim_skirt_distance;
-    // for sequential print, we need to inflate the bed because cleareance_radius is so large
-    if (params.is_seq_print) {
-        float shift_dist = params.cleareance_radius / 2 - 5;
-        params.bed_shrink_x -= shift_dist;
-        params.bed_shrink_y -= shift_dist;
-        // dont forget to move the excluded region
-        for (auto& region : m_unselected) {
-            if (region.is_virt_object)
-                region.poly.translate(-scaled(shift_dist), -scaled(shift_dist));
-        }
-    }
-
-    if (print.full_print_config().opt_bool("enable_support")) {
-        params.bed_shrink_x = std::max(5.f, params.bed_shrink_x);
-        params.bed_shrink_y = std::max(5.f, params.bed_shrink_y);
-        params.min_obj_distance = std::max(scaled(10.0), params.min_obj_distance);
-    }
-
-    // do not inflate brim_width. Objects are allowed to have overlapped brim.
-    Points      bedpts = get_bed_shape(*m_plater->config());
-    BoundingBox bedbb  = Polygon(bedpts).bounding_box();
-    std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon &ap) {
-        ap.inflation      = params.min_obj_distance / 2;
-        BoundingBox apbb  = ap.poly.contour.bounding_box();
-        auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
-        auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
-        if (diffx > 0 && diffy > 0) {
-            auto min_diff = std::min(diffx, diffy);
-            ap.inflation  = std::min(min_diff / 2, ap.inflation);
-        }
-    });
-    // For occulusion regions, inflation should be larger to prevent genrating brim on them.
-    // However, extrusion cali regions are exceptional, since we can allow brim overlaps them.
-    // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
-    // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
-    // 其他物体的膨胀轮廓是可以跟它们重叠的。
+    Points      bedpts = get_shrink_bedpts(*m_plater,params);
     double scaled_exclusion_gap = scale_(1);
-    std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto &ap) {
-        ap.inflation = !ap.is_virt_object ?
-                           params.min_obj_distance / 2 :
-                           (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap);
-    });
-
-
     partplate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
 
-    // shrink bed by moving to center by dist
-    auto shrinkFun = [](Points& bedpts, double dist, int direction) {
-#define SGN(x) ((x)>=0?1:-1)
-        Point center = Polygon(bedpts).bounding_box().center();
-        for (auto& pt : bedpts)
-            pt[direction] += dist * SGN(center[direction] - pt[direction]);
-    };
-    shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
-    shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
-
     BOOST_LOG_TRIVIAL(debug) << "arrange bed_shrink_x=" << params.bed_shrink_x
-        << ", brim_max= "<<brim_max<<", "
         << "; bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
 
     params.stopcondition = [this]() { return was_canceled(); };
 
-    params.progressind = [this](unsigned num_finished, std::string str="") {
-        update_status(num_finished, _L("Arranging") + " " + str);
+    params.progressind = [this](unsigned num_finished, std::string str = "") {
+        update_status(num_finished, _L("Arranging") + " "+ wxString::FromUTF8(str));
     };
 
     {
@@ -765,8 +694,8 @@ void ArrangeJob::finalize() {
 std::optional<arrangement::ArrangePolygon>
 get_wipe_tower_arrangepoly(const Plater &plater)
 {
-    // BBS FIXME: use actual plate_idx
-    if (auto wti = get_wipe_tower(plater, 0))
+    int id = plater.canvas3D()->fff_print()->get_plate_index();
+    if (auto wti = get_wipe_tower(plater, id))
         return get_wipetower_arrange_poly(&wti);
 
     return {};
@@ -775,12 +704,12 @@ get_wipe_tower_arrangepoly(const Plater &plater)
 //BBS: add sudoku-style stride
 double bed_stride_x(const Plater* plater) {
     double bedwidth = plater->build_volume().bounding_box().size().x();
-    return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
+    return (1. + LOGICAL_BED_GAP) * bedwidth;
 }
 
 double bed_stride_y(const Plater* plater) {
     double beddepth = plater->build_volume().bounding_box().size().y();
-    return scaled<double>((1. + LOGICAL_BED_GAP) * beddepth);
+    return (1. + LOGICAL_BED_GAP) * beddepth;
 }
 
 
@@ -798,6 +727,109 @@ arrangement::ArrangeParams get_arrange_params(Plater *p)
     params.bed_shrink_y = settings.bed_shrink_y;
 
     return params;
+}
+
+// call before get selected and unselected
+arrangement::ArrangeParams init_arrange_params(Plater *p)
+{
+    arrangement::ArrangeParams         params;
+    const GLCanvas3D::ArrangeSettings &settings = static_cast<const GLCanvas3D *>(p->canvas3D())->get_arrange_settings();
+    auto &                             print    = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+
+    params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
+    params.clearance_height_to_lid             = print.config().extruder_clearance_height_to_lid.value;
+    params.cleareance_radius                   = print.config().extruder_clearance_radius.value;
+    params.printable_height                    = print.config().printable_height.value;
+    params.allow_rotations                     = settings.enable_rotation;
+    params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
+    params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
+    params.is_seq_print                        = settings.is_seq_print;
+    params.min_obj_distance                    = scaled(settings.distance);
+    params.bed_shrink_x                        = settings.bed_shrink_x;
+    params.bed_shrink_y                        = settings.bed_shrink_y;
+
+    int state = p->get_prepare_state();
+    if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
+        PartPlateList &plate_list = p->get_partplate_list();
+        PartPlate *    plate      = plate_list.get_curr_plate();
+        params.is_seq_print       = plate->get_real_print_seq() == PrintSequence::ByObject;
+    }
+
+    if (params.is_seq_print)
+        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
+    return params;
+}
+
+//after get selected.call this to update bed_shrink
+void update_arrange_params(arrangement::ArrangeParams &params, const Plater &p, const arrangement::ArrangePolygons &selected)
+{
+    const GLCanvas3D::ArrangeSettings &settings       = static_cast<const GLCanvas3D *>(p.canvas3D())->get_arrange_settings();
+    auto &                             print          = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    double                             skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
+    double                             brim_max       = 0;
+    std::for_each(selected.begin(), selected.end(), [&](const ArrangePolygon &ap) { brim_max = std::max(brim_max, ap.brim_width); });
+    // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
+    // So we can't do max but do adding instead.
+    params.brim_skirt_distance = skirt_distance + brim_max;
+    params.bed_shrink_x        = settings.bed_shrink_x + params.brim_skirt_distance;
+    params.bed_shrink_y        = settings.bed_shrink_y + params.brim_skirt_distance;
+    // for sequential print, we need to inflate the bed because cleareance_radius is so large
+    if (params.is_seq_print) {
+        float shift_dist = params.cleareance_radius / 2 - 5;
+        params.bed_shrink_x -= shift_dist;
+        params.bed_shrink_y -= shift_dist;
+    }
+}
+
+//it will bed accurate after call update_params
+Points get_shrink_bedpts(const Plater &plater, const arrangement::ArrangeParams &params)
+{
+    Points bedpts = get_bed_shape(*plater.config());
+    // shrink bed by moving to center by dist
+    auto shrinkFun = [](Points &bedpts, double dist, int direction) {
+#define SGN(x) ((x) >= 0 ? 1 : -1)
+        Point center = Polygon(bedpts).bounding_box().center();
+        for (auto &pt : bedpts) pt[direction] += dist * SGN(center[direction] - pt[direction]);
+    };
+    shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
+    shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
+    return bedpts;
+}
+
+void update_selected_items_inflation(arrangement::ArrangePolygons &selected, const Plater &p, const arrangement::ArrangeParams &params) {
+    // do not inflate brim_width. Objects are allowed to have overlapped brim.
+    Points      bedpts = get_shrink_bedpts(p, params);
+    BoundingBox bedbb  = Polygon(bedpts).bounding_box();
+    std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon &ap) {
+        ap.inflation      = std::max(scaled(ap.brim_width), params.min_obj_distance / 2);
+        BoundingBox apbb  = ap.poly.contour.bounding_box();
+        auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
+        auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
+        if (diffx > 0 && diffy > 0) {
+            auto min_diff = std::min(diffx, diffy);
+            ap.inflation  = std::min(min_diff / 2, ap.inflation);
+        }
+    });
+}
+
+void update_unselected_items_inflation(arrangement::ArrangePolygons &unselected, const Plater &p, const arrangement::ArrangeParams &params)
+{
+    if (params.is_seq_print) {
+        float shift_dist = params.cleareance_radius / 2 - 5;
+        // dont forget to move the excluded region
+        for (auto &region : unselected) {
+            if (region.is_virt_object) region.poly.translate(-scaled(shift_dist), -scaled(shift_dist));
+        }
+    }
+    // For occulusion regions, inflation should be larger to prevent genrating brim on them.
+    // However, extrusion cali regions are exceptional, since we can allow brim overlaps them.
+    // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
+    // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
+    // 其他物体的膨胀轮廓是可以跟它们重叠的。
+    double scaled_exclusion_gap = scale_(1);
+    std::for_each(unselected.begin(), unselected.end(),
+                  [&](auto &ap) { ap.inflation = !ap.is_virt_object ? std::max(scaled(ap.brim_width), params.min_obj_distance / 2)
+                                                : (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap); });
 }
 
 }} // namespace Slic3r::GUI
