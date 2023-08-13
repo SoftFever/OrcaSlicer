@@ -90,18 +90,23 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ./OrcaSlicer.app
-      
-      - name: Pack app
-        working-directory: ${{ github.workspace }}
-        run: |
           mkdir DMG-CONTENT
           ditto -v ./OrcaSlicer.app ./DMG-CONTENT
           ln -s /Applications ./DMG-CONTENT/Applications
-          ls -al ./DMG-CONTENT
           hdiutil create -volname "OrcaSlicer" -srcfolder ./DMG-CONTENT -ov -format UDZO OrcaSlicer.dmg
-          ls -al
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer.dmg
-          ls -al
+      
+      # - name: Pack app
+      #   working-directory: ${{ github.workspace }}
+      #   run: |
+      #     mkdir DMG-CONTENT
+      #     ditto -v ./OrcaSlicer.app ./DMG-CONTENT
+      #     ln -s /Applications ./DMG-CONTENT/Applications
+      #     ls -al ./DMG-CONTENT
+      #     hdiutil create -volname "OrcaSlicer" -srcfolder ./DMG-CONTENT -ov -format UDZO OrcaSlicer.dmg
+      #     ls -al
+      #     codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer.dmg
+      #     ls -al
 
       # (wip: staple failed, error 65)
       - name: Notarize the app 
