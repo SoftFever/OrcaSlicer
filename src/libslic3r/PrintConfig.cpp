@@ -240,7 +240,8 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"outer_only",      btOuterOnly},
     {"inner_only",      btInnerOnly},
     {"outer_and_inner", btOuterAndInner},
-    {"auto_brim", btAutoBrim}  // BBS
+    {"auto_brim", btAutoBrim},  // BBS
+    {"brim_ears", btEar},     // Orca
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
@@ -866,11 +867,13 @@ void PrintConfigDef::init_fff_params()
                      "Auto means the brim width is analysed and calculated automatically.");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
+    def->enum_values.emplace_back("brim_ears");
     def->enum_values.emplace_back("outer_only");
     def->enum_values.emplace_back("inner_only");
     def->enum_values.emplace_back("outer_and_inner");
     def->enum_values.emplace_back("no_brim");
     def->enum_labels.emplace_back(L("Auto"));
+    def->enum_labels.emplace_back(L("Mouse ear"));
     def->enum_labels.emplace_back(L("outer_only"));
     def->enum_labels.emplace_back(L("Inner brim only"));
     def->enum_labels.emplace_back(L("Outer and inner brim"));
@@ -887,6 +890,35 @@ void PrintConfigDef::init_fff_params()
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("brim_ears", coBool);
+    def->label = L("Brim ears");
+    def->category = L("Support");
+    def->tooltip = L("Only draw brim over the sharp edges of the model.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("brim_ears_max_angle", coFloat);
+    def->label = L("Brim ear max angle");
+    def->category = L("Support");
+    def->tooltip = L("Maximum angle to let a brim ear appear. \nIf set to 0, no brim will be created. \nIf set to "
+                     "~180, brim will be created on everything but straight sections.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 180;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(125));
+
+    def = this->add("brim_ears_detection_length", coFloat);
+    def->label = L("Brim ear detection radius");
+    def->category = L("Support");
+    def->tooltip = L("The geometry will be decimated before dectecting sharp angles. This parameter indicates the "
+                     "minimum length of the deviation for the decimation."
+                     "\n0 to deactivate");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible machine");

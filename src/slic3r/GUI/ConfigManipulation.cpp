@@ -598,6 +598,15 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // wall_filament uses the same logic as in Print::extruders()
     toggle_field("wall_filament", have_perimeters || have_brim);
 
+    bool have_brim_ear = (config->opt_enum<BrimType>("brim_type") == btEar);
+    const auto brim_width = config->opt_float("brim_width");
+    // disable brim_ears_max_angle and brim_ears_detection_length if brim_width is 0
+    toggle_field("brim_ears_max_angle", brim_width > 0.0f);
+    toggle_field("brim_ears_detection_length", brim_width > 0.0f);
+    // hide brim_ears_max_angle and brim_ears_detection_length if brim_ear is not selected
+    toggle_line("brim_ears_max_angle", have_brim_ear);
+    toggle_line("brim_ears_detection_length", have_brim_ear);
+
     bool have_raft = config->opt_int("raft_layers") > 0;
     bool have_support_material = config->opt_bool("enable_support") || have_raft;
     // BBS
