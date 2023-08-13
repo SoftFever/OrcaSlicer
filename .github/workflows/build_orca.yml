@@ -24,7 +24,7 @@ on:
        - ".github/workflows/build_orca.yml"
     
 jobs:
-  build_mac:
+  build_orca-slicer:
     strategy:
       fail-fast: false
       matrix:
@@ -145,29 +145,27 @@ jobs:
 
 # Windows
       - name: setup MSVC
-        if: matrix.os == 'Windows'
+        if: matrix.os == 'windows-2019'
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install perl
-        if: matrix.os == 'Windows'
+        if: matrix.os == 'windows-2019'
         run: |
           choco install strawberryperl
-          mkdir ${{ github.workspace }}/deps/build
-          mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
 
       - name: download deps
-        if: matrix.os == 'Windows'
+        if: matrix.os == 'windows-2019'
         shell: powershell
         run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/4/OrcaSlicer_dep_18Jul2023.zip", "$env:temp\OrcaSlicer_dep_18Jul2023.zip")'
 
       - name: extract deps
-        if: matrix.os == 'Windows'
+        if: matrix.os == 'windows-2019'
         working-directory: ${{ github.workspace }}/deps/build
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\OrcaSlicer_dep_18Jul2023.zip'
       
       # - name: build deps
-        # if: matrix.os == 'Windows'
+        # if: matrix.os == 'windows-2019'
         #   id: cache_deps
       #   uses: actions/cache@v3
       #   env:
@@ -185,18 +183,18 @@ jobs:
       # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude OrcaSlicer_dep | Remove-Item -Recurse -Force
 
       - name: Build slicer Win
-        if: matrix.os == 'Windows'
+        if: matrix.os == 'windows-2019'
         working-directory: ${{ github.workspace }}
         run: .\build_release.bat slicer
 
       # - name: pack app
-        # if: matrix.os == 'Windows'
+        # if: matrix.os == 'windows-2019'
         #   working-directory: ${{ github.workspace }}/build
       #   shell: cmd
       #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_dev_build.zip ${{ github.workspace }}/build/OrcaSlicer'
 
       - name: Upload artifacts Win
-        if: matrix.os == 'Windows'
+        if: matrix.os == 'windows-2019'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_V${{ env.date }}_Win64
