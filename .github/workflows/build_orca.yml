@@ -124,8 +124,8 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/OrcaSlicer.app
           ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_V${{ env.ver }}_Mac_${{matrix.arch}}.dmg
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_V${{ env.ver }}_Mac_${{matrix.arch}}.dmg
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
       
       # Thanks to RaySajuuk, it's working now
       - name: Notarize the app 
@@ -133,15 +133,15 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
-          xcrun notarytool submit "OrcaSlicer_V${{ env.ver }}_Mac_${{matrix.arch}}.dmg" --keychain-profile "notarytool-profile" --wait
-          xcrun stapler staple OrcaSlicer_V${{ env.ver }}_Mac_${{matrix.arch}}.dmg
+          xcrun notarytool submit "OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
 
       - name: Upload artifacts mac
         if: matrix.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_V${{ env.ver }}_Mac_AppleSilicon
-          path: ${{ github.workspace }}/OrcaSlicer_V${{ env.ver }}_Mac_${{matrix.arch}}.dmg
+          name: OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}
+          path: ${{ github.workspace }}/OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
 
 # Windows
       - name: setup MSVC
@@ -204,7 +204,7 @@ jobs:
         if: matrix.os == 'windows-2019'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_V${{ env.date }}_Win64
+          name: OrcaSlicer_Windows_V${{ env.ver }}
           path: ${{ github.workspace }}/build/OrcaSlicer
 
 # Ubuntu
@@ -263,9 +263,9 @@ jobs:
           ./BuildLinux.sh -isr
           chmod +x ./build/OrcaSlicer_ubu64.AppImage
         
-      - name: Upload artifacts Win
+      - name: Upload artifacts Ubuntu
         if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_V${{ env.ver }}_Linux
+          name: OrcaSlicer_Linux_V${{ env.ver }}
           path: './build/OrcaSlicer_ubu64.AppImage'
