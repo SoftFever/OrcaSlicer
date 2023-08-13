@@ -83,16 +83,13 @@ jobs:
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
-          echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?><\!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>com.apple.security.cs.disable-library-validation</key><yes/></dict></plist>" > ./OrcaSlicer.entitlements
-          ls -al
-          cat ./OrcaSlicer.entitlements
           security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements \"OrcaSlicer.entitlements\" --sign "$CERTIFICATE_ID" ./OrcaSlicer.app
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ./OrcaSlicer.app
       
       - name: Pack app
         working-directory: ${{ github.workspace }}
@@ -101,7 +98,7 @@ jobs:
           ditto -v ./OrcaSlicer.app ./DMG-CONTENT
           ln -s /Applications ./DMG-CONTENT/Applications
           hdiutil create -volname "OrcaSlicer" -srcfolder ./DMG-CONTENT -ov -format UDZO OrcaSlicer.dmg
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements \"OrcaSlicer.entitlements\" --sign "$CERTIFICATE_ID" OrcaSlicer.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer.dmg
           ls -al
 
       # (wip: staple failed, error 65)
