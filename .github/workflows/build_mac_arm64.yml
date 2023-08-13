@@ -91,7 +91,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ./OrcaSlicer.app
           mkdir DMG-CONTENT
-          ditto -v ./OrcaSlicer.app ./DMG-CONTENT
+          ditto -v ./OrcaSlicer.app ./DMG-CONTENT/OrcaSlicer.app
           ln -s /Applications ./DMG-CONTENT/Applications
           hdiutil create -volname "OrcaSlicer" -srcfolder ./DMG-CONTENT -ov -format UDZO OrcaSlicer.dmg
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer.dmg
