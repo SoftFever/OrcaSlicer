@@ -39,10 +39,8 @@
     "filament_max_volumetric_speed": [
         "10"
     ],
-    "filament_start_gcode": [
-        "; filament start gcode\n"
-    ],
     "compatible_printers": [
-      "Anker M5 0.4 nozzle"
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
     ]
 }
