@@ -158,6 +158,13 @@ jobs:
         shell: powershell
         run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/4/OrcaSlicer_dep_18Jul2023.zip", "$env:temp\OrcaSlicer_dep_18Jul2023.zip")'
 
+      - name: maker dir
+        if: matrix.os == 'windows-2019'
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir ${{ github.workspace }}/deps/build
+          mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+
       - name: extract deps
         if: matrix.os == 'windows-2019'
         working-directory: ${{ github.workspace }}/deps/build
