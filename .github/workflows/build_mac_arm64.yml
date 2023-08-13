@@ -83,14 +83,7 @@ jobs:
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
-          echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-          <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-          <plist version=\"1.0\">
-          <dict>
-              <key>com.apple.security.cs.disable-library-validation</key>
-              <yes/>
-          </dict>
-          </plist>" > "OrcaSlicer.entitlements"
+          echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?><\!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>com.apple.security.cs.disable-library-validation</key><yes/></dict></plist>" > OrcaSlicer.entitlements
           security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
