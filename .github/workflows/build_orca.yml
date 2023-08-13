@@ -24,7 +24,7 @@ on:
        - ".github/workflows/build_orca.yml"
     
 jobs:
-  build_orca-slicer:
+  build_orca:
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +61,7 @@ jobs:
               $ver = $matches[1]
           }
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
-          echo "date: ${{ env.date }} version: ${{ env.ver }}"
+          echo "date: ${{ env.date }} version: $ver"
         shell: pwsh
 
 #   Mac
@@ -69,8 +69,8 @@ jobs:
         if: matrix.os == 'macos-12'
         run: |
           brew install cmake git gettext zstd
-      - run: mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}
-      - run: mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
+          mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}
+          mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
 
       # - name: build deps
         # if: matrix.os == 'macos-12'
