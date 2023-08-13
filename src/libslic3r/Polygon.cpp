@@ -249,7 +249,7 @@ template<typename ConvexConcaveFilterFn>
 Points filter_convex_concave_points_by_angle_threshold(const Points &poly, double angle_threshold, ConvexConcaveFilterFn convex_concave_filter)
 {
     assert(angle_threshold >= 0.);
-    if (angle_threshold < EPSILON) {
+    if (angle_threshold > EPSILON) {
         double cos_angle  = cos(angle_threshold);
         return filter_points_by_vectors(poly, [convex_concave_filter, cos_angle](const Vec2d &v1, const Vec2d &v2){
             return convex_concave_filter(v1, v2) && v1.normalized().dot(v2.normalized()) < cos_angle;

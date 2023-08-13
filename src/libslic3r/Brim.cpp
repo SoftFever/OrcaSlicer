@@ -920,7 +920,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                                                 decimated_polygon.points = points;
                                             }
                                         }
-                                        for (const Point &p : decimated_polygon.convex_points(brim_ears_max_angle * PI / 180.0)) {
+                                        for (const Point &p : decimated_polygon.convex_points((180 - brim_ears_max_angle) * PI / 180.0)) {
                                             pt_ears.push_back(p);
                                         }
                                     }
