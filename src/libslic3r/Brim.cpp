@@ -903,45 +903,48 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                             auto innerExpoly = offset_ex(ex_poly.contour, brim_offset, jtRound, SCALED_RESOLUTION);
 
                             if (use_brim_ears) {
-                                // Generate ears
-                                // Detect places to put ears
-                                Points pt_ears;
-                                for (ExPolygon &poly : innerExpoly) {
-                                    Polygon decimated_polygon = poly.contour;
-                                    if (ear_detection_length > 0) {
-                                        // decimate polygon
-                                        Points points = poly.contour.points;
-                                        points.push_back(points.front());
-                                        points = MultiPoint::_douglas_peucker(points, ear_detection_length);
-                                        if (points.size() > 4) { // don't decimate if it's going to be below 4 points, as it's surely enough to fill everything anyway
-                                            points.erase(points.end() - 1);
-                                            decimated_polygon.points = points;
+                                // Generate ears. Ported from SuperSlicer: https://github.com/supermerill/SuperSlicer/blob/45d0532845b63cd5cefe7de7dc4ef0e0ed7e030a/src/libslic3r/Brim.cpp#L1116
+                                coord_t size_ear = (brim_width_mod - brim_offset - flow.scaled_spacing());
+                                if (size_ear > 0) {
+                                    // Detect places to put ears
+                                    Points pt_ears;
+                                    for (ExPolygon &poly : innerExpoly) {
+                                        Polygon decimated_polygon = poly.contour;
+                                        if (ear_detection_length > 0) {
+                                            // decimate polygon
+                                            Points points = poly.contour.points;
+                                            points.push_back(points.front());
+                                            points = MultiPoint::_douglas_peucker(points, ear_detection_length);
+                                            if (points.size() > 4) { // don't decimate if it's going to be below 4 points, as it's surely enough to fill everything anyway
+                                                points.erase(points.end() - 1);
+                                                decimated_polygon.points = points;
+                                            }
+                                        }
+                                        for (const Point &p : decimated_polygon.convex_points(brim_ears_max_angle * PI / 180.0)) {
+                                            pt_ears.push_back(p);
                                         }
                                     }
-                                    for (const Point &p : decimated_polygon.convex_points(brim_ears_max_angle * PI / 180.0)) {
-                                        pt_ears.push_back(p);
-                                    }
-                                }
-                                // Then add ears
-                                {
-                                    // create ear pattern
-                                    coord_t size_ear = (brim_width_mod - brim_offset - flow.scaled_spacing());
-                                    Polygon point_round;
-                                    for (size_t i = 0; i < POLY_SIDES; i++) {
-                                        double angle = (2.0 * PI * i) / POLY_SIDES;
-                                        point_round.points.emplace_back(size_ear * cos(angle), size_ear * sin(angle));
-                                    }
+                                    // Then add ears
+                                    {
+                                        // create ear pattern
+                                        Polygon point_round;
+                                        for (size_t i = 0; i < POLY_SIDES; i++) {
+                                            double angle = (2.0 * PI * i) / POLY_SIDES;
+                                            point_round.points.emplace_back(size_ear * cos(angle), size_ear * sin(angle));
+                                        }
 
-                                    // create ears
-                                    ExPolygons mouse_ears_ex;
-                                    for (Point &pt : pt_ears) {
-                                        mouse_ears_ex.emplace_back();
-                                        mouse_ears_ex.back().contour = point_round;
-                                        mouse_ears_ex.back().contour.translate(pt);
+                                        // create ears
+                                        ExPolygons mouse_ears_ex;
+                                        for (Point &pt : pt_ears) {
+                                            mouse_ears_ex.emplace_back();
+                                            mouse_ears_ex.back().contour = point_round;
+                                            mouse_ears_ex.back().contour.translate(pt);
+                                        }
+                                        append(brim_area_object, diff_ex(mouse_ears_ex, innerExpoly));
                                     }
-                                    append(brim_area_object, diff_ex(mouse_ears_ex, innerExpoly));
                                 }
                             } else {
+                                // Normal brims
                                 append(brim_area_object, diff_ex(offset_ex(innerExpoly, brim_width_mod, jtRound, SCALED_RESOLUTION), innerExpoly));
                             }
                         }
