@@ -97,7 +97,9 @@ jobs:
           mkdir DMG-CONTENT
           ditto -v ./OrcaSlicer.app ./DMG-CONTENT
           ln -s /Applications ./DMG-CONTENT/Applications
+          ls -al ./DMG-CONTENT
           hdiutil create -volname "OrcaSlicer" -srcfolder ./DMG-CONTENT -ov -format UDZO OrcaSlicer.dmg
+          ls -al
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer.dmg
           ls -al
 
