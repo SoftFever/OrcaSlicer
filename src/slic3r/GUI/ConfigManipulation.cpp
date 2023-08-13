@@ -598,8 +598,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // wall_filament uses the same logic as in Print::extruders()
     toggle_field("wall_filament", have_perimeters || have_brim);
 
-    toggle_field("brim_ears", have_brim);
-    bool have_brim_ear = have_brim && config->opt_bool("brim_ears");
+    bool have_brim_ear = (config->opt_enum<BrimType>("brim_type") == btEar);
     toggle_field("brim_ears_max_angle", have_brim_ear);
     toggle_field("brim_ears_detection_length", have_brim_ear);
 

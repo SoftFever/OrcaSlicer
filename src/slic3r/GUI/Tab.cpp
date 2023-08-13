@@ -2049,7 +2049,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
         optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
-        optgroup->append_single_option_line("brim_ears");
         optgroup->append_single_option_line("brim_ears_max_angle");
         optgroup->append_single_option_line("brim_ears_detection_length");
 
