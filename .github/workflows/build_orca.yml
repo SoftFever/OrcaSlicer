@@ -1,4 +1,4 @@
-name: Build Mac AppleSilicon
+name: Build OrcaSlicer
 
 on: 
     push:
@@ -47,7 +47,7 @@ jobs:
         run: |
           ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
           echo "ver=$ver" >> $GITHUB_ENV
-          echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
+          echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
 
       - name: Get the version and date on Windows
@@ -61,7 +61,7 @@ jobs:
               $ver = $matches[1]
           }
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
-          echo "date: ${{ env.date }} version: ${{ env.ver }}
+          echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
 
 #   Mac
