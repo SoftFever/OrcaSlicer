@@ -58,5 +58,11 @@
         "0x180"
     ],
     "printable_height": "180",
-    "scan_first_layer": "0"
+    "scan_first_layer": "0",
+    "upward_compatible_machine": [
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 Carbon 0.4 nozzle"
+    ]
 }
