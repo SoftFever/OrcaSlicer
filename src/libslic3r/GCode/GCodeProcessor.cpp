@@ -364,10 +364,6 @@ void GCodeProcessor::TimeProcessor::reset()
     filament_load_times = 0.0f;
     filament_unload_times = 0.0f;
 
-    exhaust_fan_info.activate = false;
-    exhaust_fan_info.print_end_exhaust_fan_speed = 0;
-    exhaust_fan_info.print_end_exhaust_fan_time = 0;
-    insert_fan_control_flag = false;
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         machines[i].reset();
@@ -551,13 +547,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     std::pair<int, int> to_export_main = { int(100.0f * it->elapsed_time / machine.time),
                                                             time_in_minutes(machine.time - it->elapsed_time) };
 
-                    if (self.exhaust_fan_info.activate && !self.insert_fan_control_flag && machine.time - it->elapsed_time < self.exhaust_fan_info.print_end_exhaust_fan_time ) {
-                        //insert fan 
-                        self.insert_fan_control_flag = true;
-                        export_line += format_line_exhaust_fan_control("M106 P%s S%s ;open exhaust fan before print end \n", 3, self.exhaust_fan_info.print_end_exhaust_fan_speed);
-                        ++exported_lines_count;
-                    }
-
                     if (last_exported_main[i] != to_export_main) {
                         export_line += format_line_M73_main(machine.line_m73_main_mask.c_str(),
                             to_export_main.first, to_export_main.second);
@@ -652,9 +641,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 gcode_line.insert(gcode_line.end(), it, it_end);
                 if (eol) {
                     ++line_id;
-                    // disable origin exhaust_fan_speed during print
-                    if (insert_fan_control_flag&&gcode_line.find(reserved_tag(ETags::During_Print_Exhaust_Fan)) != std::string::npos)
-                        gcode_line.clear();
 
                     gcode_line += "\n";
                     // replace placeholder lines
@@ -990,16 +976,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_spiral_vase_active = spiral_vase->value;
 
 
-    for (size_t i = 0; i < config.activate_air_filtration.values.size(); ++i) {
-        if (config.activate_air_filtration.get_at(i)) {
-            m_exhaust_fan_info.print_end_exhaust_fan_speed = std::max(m_exhaust_fan_info.print_end_exhaust_fan_speed, config.end_print_exhaust_fan_speed.get_at(i));
-            m_exhaust_fan_info.print_end_exhaust_fan_time = std::max(m_exhaust_fan_info.print_end_exhaust_fan_time, config.end_print_exhaust_fan_time.get_at(i));
-        }
-    }
-
-    const ConfigOptionBools* activate_air_filtration = config.option<ConfigOptionBools>("activate_air_filtration");
-    if (activate_air_filtration != nullptr)
-        m_exhaust_fan_info.activate = *std::max_element(activate_air_filtration->values.begin(), activate_air_filtration->values.end())&&config.support_air_filtration.getBool();
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -1498,8 +1474,6 @@ void GCodeProcessor::finalize(bool post_process)
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     if (post_process){
-        //control chamber fan
-        m_time_processor.exhaust_fan_info = m_exhaust_fan_info;
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS

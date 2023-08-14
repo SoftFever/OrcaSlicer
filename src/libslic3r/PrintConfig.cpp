@@ -968,23 +968,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{60});
 
-    def = this->add("end_print_exhaust_fan_speed", coInts);
-    def->label = L("Fan speed");
-    def->tooltip=L("Speed of exhuast fan before printing completes");
-    def->sidetext = L("%");
-    def->min=0;
-    def->max=100;
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInts{60});
-
-
-    def = this->add("end_print_exhaust_fan_time", coInts);
-    def->label = L("Time");
-    def->tooltip=L("open exhuast fan x seconds before printing completes");
-    def->sidetext = L("s");
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInts{300});
-
     def = this->add("complete_print_exhaust_fan_speed", coInts);
     def->label = L("Fan speed");
     def->sidetext = L("%");
@@ -1745,9 +1728,9 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def =this->add("chamber_temp_control",coBool);
+    def =this->add("support_chamber_temp_control",coBool);
     def->label=L("Support control chamber temperature");
-    def->tooltip=L("Enable this option if machine support controlling chamber temperature");
+    def->tooltip=L("This option is enabled if machine support controlling chamber temperature");
     def->mode=comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
     def->readonly=false;
@@ -3144,11 +3127,12 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("chamber_temperatures", coInts);
     def->label = L("Chamber temperature");
-    def->tooltip = L("Target chamber temperature");
+    def->tooltip = L("By opening chamber_temperature compensation, the heating components will operate to elevate the chamber temperature."
+                    "This can help suppress or reduce warping for high-temperature materials and potentially lead to higher interlayer bonding strength");
     def->sidetext = L("°C");
-    def->full_label = L("Chamber temperature");
+    def->full_label = L("Chamber temperature during print.0 means do not open compensation.Don't open it for low-temperature filaments like PLA, PETG, TPU");
     def->min = 0;
-    def->max = 60;
+    def->max = 70;
     def->set_default_value(new ConfigOptionInts{0});
 
     def = this->add("nozzle_temperature", coInts);

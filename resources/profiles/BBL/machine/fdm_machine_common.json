@@ -3,6 +3,7 @@
     "name": "fdm_machine_common",
     "from": "system",
     "instantiation": "false",
+    "support_chamber_temp_control": "0",
     "printer_technology": "FFF",
     "deretraction_speed": [
         "40"

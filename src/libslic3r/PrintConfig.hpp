@@ -876,7 +876,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionBool,                auxiliary_fan))
-    ((ConfigOptionBool,                chamber_temp_control))
+    ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
@@ -916,8 +916,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatOrPercent,     sparse_infill_acceleration))
     ((ConfigOptionBools,              activate_air_filtration))
     ((ConfigOptionInts,               during_print_exhaust_fan_speed))
-    ((ConfigOptionInts,               end_print_exhaust_fan_speed))
-    ((ConfigOptionInts,               end_print_exhaust_fan_time))
     ((ConfigOptionInts,               complete_print_exhaust_fan_speed))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
