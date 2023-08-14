@@ -373,7 +373,8 @@ class GLCanvas3D
         SlaSupportsOutside,
         SomethingNotShown,
         ObjectClashed,
-        GCodeConflict
+        GCodeConflict,
+        ToolHeightOutside
     };
 
     class RenderStats
@@ -439,6 +440,8 @@ class GLCanvas3D
         bool is_enabled() const { return m_enabled; }
         void use(bool use) { m_volumes.set_slope_active(m_enabled ? use : false); }
         bool is_used() const { return m_volumes.is_slope_active(); }
+        void globalUse(bool use) { m_volumes.set_slope_GlobalActive(m_enabled ? use : false); }
+        bool is_GlobalUsed() const { return m_volumes.is_slope_GlobalActive(); }
         void set_normal_angle(float angle_in_deg) const {
             m_volumes.set_slope_normal_z(-::cos(Geometry::deg2rad(90.0f - angle_in_deg)));
         }
@@ -515,6 +518,7 @@ private:
     mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
+    mutable float m_paint_toolbar_width;
 
     //BBS: add canvas type for assemble view usage
     ECanvasType m_canvas_type;
@@ -619,6 +623,15 @@ private:
 
     ArrangeSettings &get_arrange_settings() { return get_arrange_settings(this); }
 
+
+    //BBS:record key botton frequency
+    int auto_orient_count = 0;
+    int auto_arrange_count = 0;
+    int split_to_objects_count = 0;
+    int split_to_part_count = 0;
+    int custom_height_count = 0;
+    int custom_painting_count = 0;
+
 public:
     OrientSettings& get_orient_settings()
     {
@@ -707,6 +720,7 @@ public:
     bool init();
     void post_event(wxEvent &&event);
 
+    void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
     void set_as_dirty();
@@ -716,6 +730,7 @@ public:
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
+    bool is_all_plates_selected() { return m_sel_plate_toolbar.m_all_plates_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item->selected; }
     const float get_scale() const;
 
     //BBS
@@ -813,6 +828,7 @@ public:
     float get_main_toolbar_width() { return m_main_toolbar.get_width();}
     float get_assemble_view_toolbar_width() { return m_assemble_view_toolbar.get_width(); }
     float get_assemble_view_toolbar_height() { return m_assemble_view_toolbar.get_height(); }
+    float get_assembly_paint_toolbar_width() { return m_paint_toolbar_width; }
     float get_separator_toolbar_width() { return m_separator_toolbar.get_width(); }
     float get_separator_toolbar_height() { return m_separator_toolbar.get_height(); }
     float get_collapse_toolbar_width();
@@ -992,6 +1008,9 @@ public:
     bool are_labels_shown() const { return m_labels.is_shown(); }
     void show_labels(bool show) { m_labels.show(show); }
 
+    bool is_overhang_shown() const { return m_slope.is_GlobalUsed(); }
+    void show_overhang(bool show) { m_slope.globalUse(show); }
+    
     bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
@@ -1093,7 +1112,7 @@ private:
     void _render_bed(bool bottom, bool show_axes);
     void _render_bed_for_picking(bool bottom);
     //BBS: add part plate related logic
-    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1) const;
+    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false) const;
     void _render_plates_for_picking() const;
     //BBS: add outline drawing logic
     void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);

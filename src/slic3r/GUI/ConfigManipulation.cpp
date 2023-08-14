@@ -559,11 +559,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_filament"})
+    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "internal_solid_infill_pattern", "solid_infill_filament"})
         toggle_field(el, has_solid_infill);
 
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-                    "sparse_infill_speed", "bridge_speed", "bridge_angle" })
+                    "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle" })
         toggle_field(el, have_infill || has_solid_infill);
 
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
@@ -597,6 +597,15 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("brim_width", have_brim_width);
     // wall_filament uses the same logic as in Print::extruders()
     toggle_field("wall_filament", have_perimeters || have_brim);
+
+    bool have_brim_ear = (config->opt_enum<BrimType>("brim_type") == btEar);
+    const auto brim_width = config->opt_float("brim_width");
+    // disable brim_ears_max_angle and brim_ears_detection_length if brim_width is 0
+    toggle_field("brim_ears_max_angle", brim_width > 0.0f);
+    toggle_field("brim_ears_detection_length", brim_width > 0.0f);
+    // hide brim_ears_max_angle and brim_ears_detection_length if brim_ear is not selected
+    toggle_line("brim_ears_max_angle", have_brim_ear);
+    toggle_line("brim_ears_detection_length", have_brim_ear);
 
     bool have_raft = config->opt_int("raft_layers") > 0;
     bool have_support_material = config->opt_bool("enable_support") || have_raft;
@@ -692,22 +701,22 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_line(el, have_arachne);
     toggle_field("detect_thin_wall", !have_arachne);
     
-    // SoftFever
+    // Orca
     auto is_role_based_wipe_speed = config->opt_bool("role_based_wipe_speed");
     toggle_field("wipe_speed",!is_role_based_wipe_speed);
     
-    // SoftFever
     for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})
         toggle_line(el, gcflavor == gcfKlipper);
     if(gcflavor == gcfKlipper)
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
 
-    // SoftFever
     bool have_make_overhang_printable = config->opt_bool("make_overhang_printable");
     toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
     toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
 
     toggle_line("exclude_object", gcflavor == gcfKlipper);
+
+    toggle_line("min_width_top_surface",config->opt_bool("only_one_wall_top"));
 
 }
 

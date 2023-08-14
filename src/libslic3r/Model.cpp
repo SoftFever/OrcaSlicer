@@ -190,7 +190,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
-        result = load_obj(input_file.c_str(), &model);
+        result = load_obj(input_file.c_str(), &model, message);
     else if (boost::algorithm::iends_with(input_file, ".svg"))
         result = load_svg(input_file.c_str(), &model, message);
     //BBS: remove the old .amf.xml files
@@ -1063,6 +1063,28 @@ void ModelObject::assign_new_unique_ids_recursive()
 // BBS: production extension
 int ModelObject::get_backup_id() const { return m_model ? get_model()->get_object_backup_id(*this) : -1; }
 
+// BBS: Boolean Operations impl. - MusangKing
+bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boolean_opts)
+{
+    // merge meshes into single volume instead of multi-parts object
+    if (this->volumes.size() != 1) {
+        // we can't merge meshes if there's not just one volume
+        return false;
+    }
+    std::vector<TriangleMesh> new_meshes;
+
+    const TriangleMesh &cut_mesh = cut_object->mesh();
+    MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
+
+    this->clear_volumes();
+    int i = 1;
+    for (TriangleMesh &mesh : new_meshes) {
+        ModelVolume *vol = this->add_volume(mesh);
+        vol->name        = this->name + "_" + std::to_string(i++);
+    }
+    return true;
+}
+
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {
     ModelVolume* v = new ModelVolume(this, mesh);
@@ -1707,7 +1729,7 @@ void ModelObject::apply_cut_connectors(const std::string &name)
         // Transform the new modifier to be aligned inside the instance
         new_volume->set_transformation(translate_transform * connector.rotation_m * scale_transform);
 
-        new_volume->cut_info = {connector.attribs.type, connector.radius_tolerance, connector.height_tolerance};
+        new_volume->cut_info = {connector.attribs.type, connector.radius, connector.height, connector.radius_tolerance, connector.height_tolerance};
         new_volume->name     = name + "-" + std::to_string(++connector_id);
     }
     cut_id.increase_connectors_cnt(cut_connectors.size());
@@ -1982,6 +2004,16 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
 
     for (size_t i = 0; i < object->instances.size(); ++i) {
         auto& obj_instance = object->instances[i];
+
+        Geometry::Transformation instance_transformation_copy = obj_instance->get_transformation();
+        instance_transformation_copy.set_offset(Vec3d(0, 0, 0));
+        if (object->volumes.size() == 1) {
+            instance_transformation_copy.set_offset(-object->volumes[0]->get_offset());
+        }
+
+        if (i == src_instance_idx && object->volumes.size() == 1)
+            invalidate_translations(object, obj_instance);
+
         const Vec3d offset = obj_instance->get_offset();
         const double rot_z = obj_instance->get_rotation().z();
 
@@ -2011,6 +2043,13 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
         }
 
         obj_instance->set_rotation(rotation);
+
+        // update the assemble matrix
+        const Transform3d &assemble_matrix = obj_instance->get_assemble_transformation().get_matrix();
+        const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+        Transform3d new_instance_inverse_matrix = instance_inverse_matrix * obj_instance->get_transformation().get_matrix(true).inverse();
+        Transform3d new_assemble_transform = assemble_matrix * new_instance_inverse_matrix;
+        obj_instance->set_assemble_from_transform(new_assemble_transform);
     }
 }
 
@@ -2090,16 +2129,12 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     }
     else {
         if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper->volumes.size() > 0) {
-            invalidate_translations(upper, instances[instance]);
-
             reset_instance_transformation(upper, instance, cut_matrix, attributes.has(ModelObjectCutAttribute::PlaceOnCutUpper),
                                           attributes.has(ModelObjectCutAttribute::FlipUpper), local_displace);
 
             res.push_back(upper);
         }
         if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower->volumes.size() > 0) {
-            invalidate_translations(lower, instances[instance]);
-
             reset_instance_transformation(lower, instance, cut_matrix, attributes.has(ModelObjectCutAttribute::PlaceOnCutLower),
                                           attributes.has(ModelObjectCutAttribute::PlaceOnCutLower) ? true : attributes.has(ModelObjectCutAttribute::FlipLower));
 
@@ -2108,8 +2143,6 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
 
         if (attributes.has(ModelObjectCutAttribute::CreateDowels) && !dowels.empty()) {
             for (auto dowel : dowels) {
-                invalidate_translations(dowel, instances[instance]);
-
                 reset_instance_transformation(dowel, instance, Transform3d::Identity(), false, false, local_dowels_displace);
 
                 local_dowels_displace += dowel->full_raw_mesh_bounding_box().size().cwiseProduct(Vec3d(-1.5, -1.5, 0.0));
@@ -2323,9 +2356,15 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
             {
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
+                
                 //BBS: add assemble_view related logic
-                model_instance->set_assemble_transformation(model_instance->get_transformation());
-                model_instance->set_offset_to_assembly(new_vol->get_offset());
+                Geometry::Transformation instance_transformation_copy = model_instance->get_transformation();
+                instance_transformation_copy.set_offset(-new_vol->get_offset());
+                const Transform3d &assemble_matrix = model_instance->get_assemble_transformation().get_matrix();
+                const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+                Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix(true).inverse();
+                Transform3d new_assemble_transform      = assemble_matrix * new_instance_inverse_matrix;
+                model_instance->set_assemble_from_transform(new_assemble_transform);
             }
 
             new_vol->set_offset(Vec3d::Zero());
@@ -2749,11 +2788,23 @@ void ModelVolume::apply_tolerance()
 
     Vec3d sf = get_scaling_factor();
     // make a "hole" wider
-    sf[X] *= 1. + double(cut_info.radius_tolerance);
-    sf[Y] *= 1. + double(cut_info.radius_tolerance);
+    double size_scale = 1.f;
+    if (abs(cut_info.radius - 0) < EPSILON) // For compatibility with old files
+        size_scale = 1.f + double(cut_info.radius_tolerance);
+    else
+        size_scale = (double(cut_info.radius) + double(cut_info.radius_tolerance)) / double(cut_info.radius);
+
+    sf[X] *= size_scale;
+    sf[Y] *= size_scale;
 
     // make a "hole" dipper
-    sf[Z] *= 1. + double(cut_info.height_tolerance);
+    double height_scale = 1.f;
+    if (abs(cut_info.height - 0) < EPSILON)  // For compatibility with old files
+        height_scale = 1.f + double(cut_info.height_tolerance);
+    else
+        height_scale = (double(cut_info.height) + double(cut_info.height_tolerance)) / double(cut_info.height);
+
+    sf[Z] *= height_scale;
 
     set_scaling_factor(sf);
 }
@@ -3368,19 +3419,18 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     //BBS: add materials related information
     ModelVolume *volume = NULL;
-    for (size_t i = 0; i < object->volumes.size(); ++ i) {
-        if (object->volumes[i]->is_model_part())
-        {
+    for (size_t i = 0; i < object->volumes.size(); ++i) {
+        if (object->volumes[i]->is_model_part()) {
             volume = object->volumes[i];
-            break;
+            if (!volume) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
+                return;
+            }
+            auto ve = object->volumes[i]->get_extruders();
+            ret.extrude_ids.insert(ret.extrude_ids.end(), ve.begin(), ve.end());
         }
     }
-    if (!volume)
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
-        return;
-    }
-    ret.extrude_ids = volume->get_extruders();
+
     // get per-object support extruders
     auto op = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
     bool is_support_enabled = op && op->getBool();

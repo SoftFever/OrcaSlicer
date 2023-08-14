@@ -212,10 +212,12 @@ void OptionsGroup::append_line(const Line& line)
 //BBS: get line for opt_key
 Line* OptionsGroup::get_line(const std::string& opt_key)
 {
-    for (int index = 0; index < m_lines.size(); index++)
+    for (auto& l : m_lines)
     {
-        if (m_lines[index].get_first_option_key() == opt_key)
-            return &(m_lines[index]);
+        if(l.is_separator())
+            continue;
+        if (l.get_first_option_key() == opt_key)
+            return &l;
     }
 
     return nullptr;

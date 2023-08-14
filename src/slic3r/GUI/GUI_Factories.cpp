@@ -96,12 +96,12 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
-                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1},
+                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
                     {"enable_overhang_speed", "",6}, {"overhang_speed_classic", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
-                    {"bridge_speed", "",11}, {"gap_infill_speed", "",12}
+                    {"bridge_speed", "",11}, {"gap_infill_speed", "",12}, {"internal_bridge_speed", "", 13}
                     }}
 };
 
@@ -656,6 +656,13 @@ wxMenuItem* MenuFactory::append_menu_item_instance_to_object(wxMenu* menu)
     return menu_item;
 }
 
+void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
+{
+    append_menu_item(
+        menu, wxID_ANY, _L("Fill bed with copies"), _L("Fill the remaining area of bed with copies of the selected object"),
+        [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
+}
+
 wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
 {
     // BBS: to be checked
@@ -1040,8 +1047,9 @@ void MenuFactory::create_object_menu()
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 }
 
-void MenuFactory::create_bbl_object_menu()
+void MenuFactory::create_extra_object_menu()
 {
+    append_menu_item_fill_bed(&m_object_menu);
     // Object Clone
     append_menu_item_clone(&m_object_menu);
     // Object Repair
@@ -1262,7 +1270,7 @@ void MenuFactory::init(wxWindow* parent)
     create_sla_object_menu();
     //create_part_menu();
 
-    create_bbl_object_menu();
+    create_extra_object_menu();
     create_bbl_part_menu();
     create_bbl_assemble_object_menu();
     create_bbl_assemble_part_menu();

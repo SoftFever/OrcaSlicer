@@ -88,6 +88,7 @@ public:
 
     // Orca: update selected filament and print
     void           update_selections(AppConfig &config);
+    void set_calibrate_printer(std::string name);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;
@@ -102,6 +103,9 @@ public:
     std::vector<std::string>    filament_presets;
     // BBS: ams
     std::vector<DynamicPrintConfig> filament_ams_list;
+    // Calibrate
+    Preset const * calibrate_printer = nullptr;
+    std::set<Preset const *> calibrate_filaments;
 
     // The project configuration values are kept separated from the print/filament/printer preset,
     // they are being serialized / deserialized from / to the .amf, .3mf, .config, .gcode,

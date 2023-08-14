@@ -85,7 +85,7 @@ if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
     message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
 endif ()
 
-function(bambustudio_add_cmake_project projectname)
+function(orcaslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
 
     set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
@@ -145,7 +145,7 @@ else()
 
 endif()
 
-endfunction(bambustudio_add_cmake_project)
+endfunction(orcaslicer_add_cmake_project)
 
 
 if (MSVC)

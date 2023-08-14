@@ -48,6 +48,7 @@ public:
 	wxBitmap 		mkclear(size_t width, size_t height) { return mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT); }
 
 	static bool     parse_color(const std::string& scolor, unsigned char* rgb_out);
+	static bool     parse_color4(const std::string& scolor, unsigned char* rgba_out);
 
 private:
     std::map<std::string, wxBitmap*>	m_map;

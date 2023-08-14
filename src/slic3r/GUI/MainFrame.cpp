@@ -93,10 +93,10 @@ enum class ERescaleTarget
 };
 
 #ifdef __APPLE__
-class BambuStudioTaskBarIcon : public wxTaskBarIcon
+class OrcaSlicerTaskBarIcon : public wxTaskBarIcon
 {
 public:
-    BambuStudioTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
+    OrcaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         //if (wxGetApp().app_config->get("single_instance") == "false") {
@@ -147,7 +147,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
     }
     return wxIcon(path, wxBITMAP_TYPE_ICO);
 #else // _WIN32
-    return wxIcon(Slic3r::var("BambuStudio_128px.png"), wxBITMAP_TYPE_PNG);
+    return wxIcon(Slic3r::var("OrcaSlicer_128px.png"), wxBITMAP_TYPE_PNG);
 #endif // _WIN32
 }
 
@@ -244,8 +244,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     switch (wxGetApp().get_app_mode()) {
     default:
     case GUI_App::EAppMode::Editor:
-        m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_ICO), "BambuStudio");
+        m_taskbar_icon = std::make_unique<OrcaSlicerTaskBarIcon>(wxTBI_DOCK);
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("OrcaSlicer-mac_256px.ico"), wxBITMAP_TYPE_ICO), "OrcaSlicer");
         break;
     case GUI_App::EAppMode::GCodeViewer:
         break;
@@ -381,23 +381,31 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     update_layout();
     sizer->SetSizeHints(this);
 
-    // BBS: fix taskbar overlay on windows
 #ifdef WIN32
     auto setMaxSize = [this]() {
         wxDisplay display(this);
         auto size = display.GetClientArea().GetSize();
-        // 8 pixels shadow
-        SetMaxSize(size + wxSize{16, 16});
+        HWND      hWnd = GetHandle();
+        RECT      borderThickness;
+        SetRectEmpty(&borderThickness);
+        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        SetMaxSize(size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom});
     };
     this->Bind(wxEVT_DPI_CHANGED, [setMaxSize](auto & e) {
         setMaxSize();
         e.Skip();
         });
     setMaxSize();
+    // SetMaximize already position window at left/top corner, even if Windows Task Bar is at left side.
+    // Not known why, but fix it here
     this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
         wxDisplay display(this);
         auto pos = display.GetClientArea().GetPosition();
-        Move(pos - wxPoint{8, 8});
+        HWND      hWnd = GetHandle();
+        RECT      borderThickness;
+        SetRectEmpty(&borderThickness);
+        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+        Move(pos + wxPoint{borderThickness.left, borderThickness.top});
         e.Skip();
     });
 #endif // WIN32
@@ -549,7 +557,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             m_print_btn->Enable(m_print_enable);
             if (m_print_enable) {
                 PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-                if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+                if (preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle))
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
                 else
                     wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
@@ -907,7 +915,7 @@ void MainFrame::init_tabpanel() {
       int old_sel = e.GetOldSelection();
       int new_sel = e.GetSelection();
       if (wxGetApp().preset_bundle &&
-          wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
+          wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle) &&
           new_sel == tpMonitor) {
         if (!wxGetApp().getAgent()) {
           e.Veto();
@@ -1505,7 +1513,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
+                && !wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle)) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -1968,7 +1976,7 @@ static wxMenu* generate_help_menu()
         });
 
     // Report a bug
-    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of BambuStudio"),
+    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of OrcaSlicer"),
     //    [](wxCommandEvent&) {
     //        //TODO
     //    });
@@ -2451,7 +2459,7 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __APPLE__
     wxWindowID bambu_studio_id_base = wxWindow::NewControlId(int(2));
     wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
-    //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
+    //auto preference_item = new wxMenuItem(parent_menu, OrcaSlicerMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
     auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
@@ -2526,13 +2534,13 @@ void MainFrame::init_menubar_as_editor()
 
 #ifdef __APPLE__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
-    //auto about_item = new wxMenuItem(parent_menu, BambuStudioMenuAbout + bambu_studio_id_base, about_title, "");
+    //auto about_item = new wxMenuItem(parent_menu, OrcaSlicerMenuAbout + bambu_studio_id_base, about_title, "");
         //parent_menu->Bind(wxEVT_MENU, [this, bambu_studio_id_base](wxEvent& event) {
         //    switch (event.GetId() - bambu_studio_id_base) {
-        //        case BambuStudioMenuAbout:
+        //        case OrcaSlicerMenuAbout:
         //            Slic3r::GUI::about();
         //            break;
-        //        case BambuStudioMenuPreferences:
+        //        case OrcaSlicerMenuPreferences:
         //            CallAfter([this] {
         //                PreferencesDialog dlg(this);
         //                dlg.ShowModal();
@@ -3410,7 +3418,7 @@ void MainFrame::load_printer_url(wxString url)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+    if (preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle))
         return;
     
     auto cfg = preset_bundle.printers.get_edited_preset().config;
@@ -3558,7 +3566,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
     }
 #else
-    SetIcon(wxIcon(var("BambuStudio_128px.png"), wxBITMAP_TYPE_PNG));
+    SetIcon(wxIcon(var("OrcaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
     //just hide the Frame on closing

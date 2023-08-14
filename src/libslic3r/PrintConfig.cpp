@@ -240,7 +240,8 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"outer_only",      btOuterOnly},
     {"inner_only",      btInnerOnly},
     {"outer_and_inner", btOuterAndInner},
-    {"auto_brim", btAutoBrim}  // BBS
+    {"auto_brim", btAutoBrim},  // BBS
+    {"brim_ears", btEar},     // Orca
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
@@ -267,7 +268,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
     { "0%",         Overhang_threshold_none },
-    { "5%",         Overhang_threshold_1_4  },
+    { "10%",         Overhang_threshold_1_4  },
     { "25%",        Overhang_threshold_2_4  },
     { "50%",        Overhang_threshold_3_4  },
     { "75%",        Overhang_threshold_4_4  },
@@ -673,13 +674,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
     def->mode = comAdvanced;
     def->enum_values.emplace_back("0%");
-    def->enum_values.emplace_back("5%");
+    def->enum_values.emplace_back("10%");
     def->enum_values.emplace_back("25%");
     def->enum_values.emplace_back("50%");
     def->enum_values.emplace_back("75%");
     def->enum_values.emplace_back("95%");
     def->enum_labels.emplace_back("0%");
-    def->enum_labels.emplace_back("5%");
+    def->enum_labels.emplace_back("10%");
     def->enum_labels.emplace_back("25%");
     def->enum_labels.emplace_back("50%");
     def->enum_labels.emplace_back("75%");
@@ -749,6 +750,21 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern");
     def->set_default_value(new ConfigOptionBool(false));
 
+    // the tooltip is copied from SuperStudio
+    def = this->add("min_width_top_surface", coFloatOrPercent);
+    def->label = L("One wall threshold");
+    def->category = L("Quality");
+    def->tooltip = L("If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value."
+        " This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters."
+        " This value can be a mm or a % of the perimeter extrusion width."
+        "\nWarning: If enabled, artifacts can be created is you have some thin features on the next layer, like letters. Set this setting to 0 to remove these artifacts.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "inner_wall_line_width";
+    def->min = 0;
+    def->max_literal = 15;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(300, true));
+
     def = this->add("only_one_wall_first_layer", coBool);
     def->label = L("Only one wall on first layer");
     def->category = L("Quality");
@@ -759,7 +775,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Classic mode");
     def->category = L("Speed");
     def->tooltip = L("Enable this option to use classic mode");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool{ true });
 
     def = this->add("enable_overhang_speed", coBool);
@@ -816,13 +832,23 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
     def = this->add("bridge_speed", coFloat);
-    def->label = L("Bridge");
+    def->label = L("External");
     def->category = L("Speed");
     def->tooltip = L("Speed of bridge and completely overhang wall");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(25));
+
+    def = this->add("internal_bridge_speed", coFloatOrPercent);
+    def->label = L("Internal");
+    def->category = L("Speed");
+    def->tooltip = L("Speed of internal bridge. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%.");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "bridge_speed";
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(150, true));
 
     def = this->add("brim_width", coFloat);
     def->label = L("Brim width");
@@ -841,11 +867,13 @@ void PrintConfigDef::init_fff_params()
                      "Auto means the brim width is analysed and calculated automatically.");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
+    def->enum_values.emplace_back("brim_ears");
     def->enum_values.emplace_back("outer_only");
     def->enum_values.emplace_back("inner_only");
     def->enum_values.emplace_back("outer_and_inner");
     def->enum_values.emplace_back("no_brim");
     def->enum_labels.emplace_back(L("Auto"));
+    def->enum_labels.emplace_back(L("Mouse ear"));
     def->enum_labels.emplace_back(L("outer_only"));
     def->enum_labels.emplace_back(L("Inner brim only"));
     def->enum_labels.emplace_back(L("Outer and inner brim"));
@@ -862,6 +890,35 @@ void PrintConfigDef::init_fff_params()
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("brim_ears", coBool);
+    def->label = L("Brim ears");
+    def->category = L("Support");
+    def->tooltip = L("Only draw brim over the sharp edges of the model.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("brim_ears_max_angle", coFloat);
+    def->label = L("Brim ear max angle");
+    def->category = L("Support");
+    def->tooltip = L("Maximum angle to let a brim ear appear. \nIf set to 0, no brim will be created. \nIf set to "
+                     "~180, brim will be created on everything but straight sections.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 180;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(125));
+
+    def = this->add("brim_ears_detection_length", coFloat);
+    def->label = L("Brim ear detection radius");
+    def->category = L("Support");
+    def->tooltip = L("The geometry will be decimated before dectecting sharp angles. This parameter indicates the "
+                     "minimum length of the deviation for the decimation."
+                     "\n0 to deactivate");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible machine");
@@ -1061,6 +1118,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
+	def                = this->add("internal_solid_infill_pattern", coEnum);
+    def->label         = L("Internal solid infill pattern");
+    def->category      = L("Strength");
+    def->tooltip       = L("Line pattern of internal solid infill. if the detect nattow internal solid infill be enabled, the concentric pattern will be used for the small area.");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values   = def_top_fill_pattern->enum_values;
+    def->enum_labels   = def_top_fill_pattern->enum_labels;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    
     def = this->add("outer_wall_line_width", coFloatOrPercent);
     def->label = L("Outer wall");
     def->category = L("Quality");
@@ -1348,6 +1414,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PETG-CF");
     def->enum_values.push_back("PVA");
+    def->enum_values.push_back("HIPS");
+    def->enum_values.push_back("PLA-AERO");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -1388,6 +1456,9 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_vendor", coStrings);
+    def->label = L("Vendor");
+    def->tooltip = L("Vendor of filament. For show only");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
     def->cli = ConfigOptionDef::nocli;
 
@@ -2028,6 +2099,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
 
+    def                = this->add("ironing_pattern", coEnum);
+    def->label         = L("Ironing Pattern");
+    def->category      = L("Quality");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values.push_back("concentric");
+    def->enum_values.push_back("zig-zag");
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    
     def = this->add("ironing_flow", coPercent);
     def->label = L("Ironing flow");
     def->category = L("Quality");
@@ -2994,6 +3076,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("support_remove_small_overhang", coBool);
+    def->label = L("Remove small overhangs");
+    def->category = L("Support");
+    def->tooltip = L("Remove small overhangs that possibly need no supports.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     // BBS: change type to common float.
     // It may be rounded to mulitple layer height when independent_support_layer_height is false.
     def = this->add("support_top_z_distance", coFloat);
@@ -3311,14 +3400,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("chamber_temperature", coInt);
+    def = this->add("chamber_temperature", coInts);
     def->label = L("Chamber temperature");
     def->tooltip = L("Target chamber temperature");
     def->sidetext = L("°C");
     def->full_label = L("Chamber temperature");
     def->min = 0;
     def->max = max_temp;
-    def->set_default_value(new ConfigOptionInt(0));
+    def->set_default_value(new ConfigOptionInts{0});
 
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");
@@ -4491,7 +4580,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 ReplaceString(value, split_key, copy_key);
             }
         }
-    }
+    } else if (opt_key == "overhang_fan_threshold" && value == "5%") {
+        value = "10%";
+    } 
 
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
@@ -4502,14 +4593,14 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
 #endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
-        , "support_sharp_tails","remove_small_overhangs", "support_with_sheath",
+        , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type", "z_lift_type", "overhang_speed_classic"
+        "z_hop_type", "z_lift_type"/*, "overhang_speed_classic"*/
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -4970,6 +5061,11 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
         error_message.emplace("bottom_surface_pattern", L("invalid value ") + cfg.bottom_surface_pattern.serialize());
     }
 
+    // --soild-fill-pattern
+    if (!print_config_def.get("internal_solid_infill_pattern")->has_enum_value(cfg.internal_solid_infill_pattern.serialize())) {
+        error_message.emplace("internal_solid_infill_pattern", L("invalid value ") + cfg.internal_solid_infill_pattern.serialize());
+    }
+
     // --fill-density
     if (fabs(cfg.sparse_infill_density.value - 100.) < EPSILON &&
         ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize())) {
@@ -5168,14 +5264,14 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     /*def = this->add("export_amf", coBool);
     def->label = L("Export AMF");
     def->tooltip = L("Export the model(s) as AMF.");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("export_stl", coBool);
     def->label = L("Export STL");
-    def->tooltip = L("Export the model(s) as STL.");
+    def->tooltip = L("Export the objects as multiple STL.");
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("export_gcode", coBool);
+    /*def = this->add("export_gcode", coBool);
     def->label = L("Export G-code");
     def->tooltip = L("Slice the model and export toolpaths as G-code.");
     def->cli = "export-gcode|gcode|g";
@@ -5205,6 +5301,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->label = L("UpToDate");
     def->tooltip = L("Update the configs values of 3mf to latest.");
     def->cli = "uptodate";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("load_defaultfila", coBool);
+    def->label = L("Load default filaments");
+    def->tooltip = L("Load first filament as default for those not loaded");
+    def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("mtcpp", coInt);
@@ -5306,6 +5408,12 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->cli_params = "option";
     //def->cli = "arrange|a";
     def->set_default_value(new ConfigOptionInt(0));
+
+    def = this->add("repetitions", coInt);
+    def->label = L("Repetions count");
+    def->tooltip = L("Repetions count of the whole model");
+    def->cli_params = "count";
+    def->set_default_value(new ConfigOptionInt(1));
 
     /*def = this->add("ensure_on_bed", coBool);
     def->label = L("Ensure on bed");
@@ -5412,11 +5520,17 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
-    def = this->add("skip_objects", coStrings);
+    def = this->add("skip_objects", coInts);
     def->label = L("Skip Objects");
     def->tooltip = L("Skip some objects in this print");
-    def->cli_params = "\"3;5;10;77\"";
+    def->cli_params = "\"3,5,10,77\"";
     def->set_default_value(new ConfigOptionInts());
+
+    def = this->add("uptodate_settings", coStrings);
+    def->label = L("load uptodate process/machine settings when using uptodate");
+    def->tooltip = L("load uptodate process/machine settings from the specified file when using uptodate");
+    def->cli_params = "\"setting1.json;setting2.json\"";
+    def->set_default_value(new ConfigOptionStrings());
 
     /*def = this->add("output", coString);
     def->label = L("Output File");
@@ -5425,7 +5539,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("single_instance", coBool);
     def->label = L("Single instance mode");
-    def->tooltip = L("If enabled, the command line arguments are sent to an existing instance of GUI BambuStudio, "
+    def->tooltip = L("If enabled, the command line arguments are sent to an existing instance of GUI OrcaSlicer, "
                      "or an existing OrcaSlicer window is activated. "
                      "Overrides the \"single_instance\" configuration value from application preferences.");*/
 

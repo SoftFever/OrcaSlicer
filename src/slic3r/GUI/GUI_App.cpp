@@ -1005,8 +1005,8 @@ void GUI_App::post_init()
 
 
         if (this->init_params->input_files.size() == 1 &&
-            boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
-            auto input_str_arr = split_str(this->init_params->input_files.front(), "bambustudio://open/?file=");
+            boost::starts_with(this->init_params->input_files.front(), "orcaslicer://open")) {
+            auto input_str_arr = split_str(this->init_params->input_files.front(), "orcaslicer://open/?file=");
 
             std::string download_origin_url;
             for (auto input_str:input_str_arr) {
@@ -1273,7 +1273,7 @@ GUI_App::GUI_App()
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
-	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
+	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
     this->init_app_config();
     this->init_download_path();
 
@@ -1968,7 +1968,7 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     std::string body = buffer.str();
     size_t start = body.find("OrcaSlicer ");
     if (start == std::string::npos) {
-        start = body.find("BambuStudio ");
+        start = body.find("OrcaSlicer ");
         if (start == std::string::npos)
             return boost::none;
     }
@@ -3880,7 +3880,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
 
     // Version limit
     if (code == HttpErrorVersionLimited) {
-        MessageDialog msg_dlg(nullptr, _L("The version of Bambu studio is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("The version of Orca Slicer is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
         if (msg_dlg.ShowModal() == wxOK) {
             return;
         }
@@ -3966,6 +3966,8 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 
 void GUI_App::check_track_enable()
 {
+    // Orca: alaways disable track event
+    return;
     if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
         //enable track event
         json header_json;
@@ -4902,6 +4904,9 @@ bool GUI_App::load_language(wxString language, bool initial)
     // instead of just reporting that it is impossible to switch.
     if (! wxLocale::IsAvailable(language_info->Language)) {
         std::string original_lang = into_u8(language_info->CanonicalName);
+        if (nullptr == m_language_info_system) {
+            m_language_info_system = wxLocale::GetLanguageInfo(wxLANGUAGE_DEFAULT);
+        }
         language_info = linux_get_existing_locale_language(language_info, m_language_info_system);
         BOOST_LOG_TRIVIAL(trace) << boost::format("Can't switch language to %1% (missing locales). Using %2% instead.")
                                     % original_lang % language_info->CanonicalName.ToUTF8().data();
@@ -5596,8 +5601,8 @@ void GUI_App::MacOpenURL(const wxString& url)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get mac url " << url;
 
-    if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
-        auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
+    if (!url.empty() && boost::starts_with(url, "orcasliceropen://")) {
+        auto input_str_arr = split_str(url.ToStdString(), "orcasliceropen://");
 
         std::string download_origin_url;
         for (auto input_str : input_str_arr) {

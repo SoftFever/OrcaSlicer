@@ -1644,9 +1644,9 @@ void Tab::on_presets_changed()
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
-    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    bool has_lidar = wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle);
     auto& printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    if (is_bbl_vendor_preset)
+    if (has_lidar)
         wxGetApp().plater()->get_partplate_list().set_render_option(
             !printer_cfg.option<ConfigOptionBool>("bbl_calib_mark_logo")->value, true);
     else
@@ -1886,6 +1886,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
         optgroup->append_single_option_line("bottom_solid_infill_flow_ratio");
         optgroup->append_single_option_line("only_one_wall_top");
+        optgroup->append_single_option_line("min_width_top_surface");
         optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("make_overhang_printable");
@@ -1906,6 +1907,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
+        optgroup->append_single_option_line("internal_solid_infill_pattern");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
@@ -1952,7 +1954,11 @@ void TabPrint::build()
         line.append_option(optgroup->get_option("overhang_3_4_speed"));
         line.append_option(optgroup->get_option("overhang_4_4_speed"));
         optgroup->append_line(line);
-        optgroup->append_single_option_line("bridge_speed");
+        optgroup->append_separator();
+        line = { L("Bridge"), L("Set speed for external and internal bridges") };
+        line.append_option(optgroup->get_option("bridge_speed"));
+        line.append_option(optgroup->get_option("internal_bridge_speed"));
+        optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Travel speed"), L"param_travel_speed", 15);
         optgroup->append_single_option_line("travel_speed");
@@ -2043,6 +2049,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
         optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
+        optgroup->append_single_option_line("brim_ears_max_angle");
+        optgroup->append_single_option_line("brim_ears_detection_length");
 
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower");
@@ -2675,11 +2683,9 @@ void TabFilament::build()
         optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
-        optgroup->split_multi_line = true;
-        optgroup->option_label_at_right = true;
-        line = { L("Chamber temperature"), L("Chamber temperature") };
-        line.append_option(optgroup->get_option("chamber_temperature"));
-        optgroup->append_line(line);
+        optgroup->append_single_option_line("chamber_temperature");
+        optgroup->append_separator();
+
 
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
@@ -2873,7 +2879,7 @@ void TabFilament::toggle_options()
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
       is_BBL_printer =
-          m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(
+          m_preset_bundle->printers.get_edited_preset().has_lidar(
               m_preset_bundle);
     }
 
@@ -3669,7 +3675,7 @@ void TabPrinter::toggle_options()
     //BBS: whether the preset is Bambu Lab printer
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
-       is_BBL_printer = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
+       is_BBL_printer = m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle);
     }
 
     bool have_multiple_extruders = true;
@@ -3690,7 +3696,7 @@ void TabPrinter::toggle_options()
 
         // SoftFever: hide BBL specific settings
         for (auto el :
-             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "nozzle_type", "bbl_calib_mark_logo"})
+             {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "bbl_calib_mark_logo"})
           toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings

@@ -12,24 +12,24 @@ Full manual for GNUgettext can be seen here: http://www.gnu.org/software/gettext
 
 
 ### Scenario 1. How do I add a translation or fix an existing translation
-1. Get PO-file 'BambuStudio_xx.pot' from corresponding sub-folder here:
-https://github.com/bambulab/BambuStudio/tree/master/bbl/i18n
+1. Get PO-file 'OrcaSlicer_xx.pot' from corresponding sub-folder here:
+https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n
 2. Open this file in PoEdit as "Edit a translation"
 3. Apply your corrections to the translation
-4. Push changed BambuStudio_xx.po into the original folder
-5. copy BambuStudio_xx.mo into resources/i18n/xx and rename it to BambuStudio.mo, then push the changed file.
+4. Push changed OrcaSlicer_xx.po into the original folder
+5. copy OrcaSlicer_xx.mo into resources/i18n/xx and rename it to OrcaSlicer.mo, then push the changed file.
 
 ### Scenario 2. How do I add a new language support
-1. Get file BambuStudio.pot here :
-https://github.com/bambulab/BambuStudio/tree/master/bbl/i18n
+1. Get file OrcaSlicer.pot here :
+https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n
 2. Open it in PoEdit for "Create new translation"
 3. Select Translation Language (for example French).
 4. As a result you will have fr.po - the file containing translation to French.
 Notice. When the translation is complete you need to:
-    - Rename the file to BambuStudio_fr.po
-    - Click "Save file" button. BambuStudio_fr.mo will be created immediately
-    - Bambu_Studio_fr.po needs to be copied into the sub-folder fr of https://github.com/bambulab/BambuStudio/tree/master/bbl/i18n, and be pushed
-	- copy BambuStudio_xx.mo into resources/i18n/xx and rename it to BambuStudio.mo, then push the changed file.
+    - Rename the file to OrcaSlicer_fr.po
+    - Click "Save file" button. OrcaSlicer_fr.mo will be created immediately
+    - Bambu_Studio_fr.po needs to be copied into the sub-folder fr of https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n, and be pushed
+	- copy OrcaSlicer_xx.mo into resources/i18n/xx and rename it to OrcaSlicer.mo, then push the changed file.
 ( name of folder "fr" means "French" - the translation language). 
 
 ### Scenario 3. How do I add a new text resource when implementing a feature to Orca Slicer
@@ -43,11 +43,11 @@ If you add new file resource, add it to the list of files containing macro `L()`
 ### Scenario 4. How do I use GNUgettext to localize my own application taking Orca Slicer as an example
 
 1.  For convenience create a list of files with this macro `L(s)`. We have 
-https://github.com/bambulab/BambuStudio/blob/master/bbl/i18n/list.txt.
+https://github.com/softfever/OrcaSlicer/blob/master/localization/i18n/list.txt.
 
 2.  Create template file(*.POT) with GNUgettext command:
     ```
-        xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o BambuStudio.pot -f list.txt
+        xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o OrcaSlicer.pot -f list.txt
     ```
 
     Use flag `--from-code=UTF-8` to specify that the source strings are in UTF-8 encoding

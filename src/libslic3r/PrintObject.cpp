@@ -444,6 +444,7 @@ void PrintObject::detect_overhangs_for_lift()
 
                     ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
                     layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(line_width), 0.1f * scale_(line_width)));
+                    layer.loverhangs_bbox = get_extents(layer.loverhangs);
                 }
             });
 
@@ -507,13 +508,31 @@ void PrintObject::simplify_extrusion_path()
             [this](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->simplify_extrusion_path();
+                    m_layers[layer_idx]->simplify_wall_extrusion_path();
                 }
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify wall extrusion path of object in parallel - end";
         this->set_done(posSimplifyPath);
+    }
+
+    if (this->set_started(posSimplifyInfill)) {
+        m_print->set_status(75, L("Optimizing toolpath"));
+        BOOST_LOG_TRIVIAL(debug) << "Simplify infill extrusion path of object in parallel - start";
+        //BBS: infills
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, m_layers.size()),
+            [this](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+                    m_print->throw_if_canceled();
+                    m_layers[layer_idx]->simplify_infill_extrusion_path();
+                }
+            }
+        );
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Simplify infill extrusion path of object in parallel - end";
+        this->set_done(posSimplifyInfill);
     }
 
     if (this->set_started(posSimplifySupportPath)) {
@@ -675,6 +694,8 @@ bool PrintObject::invalidate_state_by_config_options(
         if (   opt_key == "brim_width"
             || opt_key == "brim_object_gap"
             || opt_key == "brim_type"
+            || opt_key == "brim_ears_max_angle"
+            || opt_key == "brim_ears_detection_length"
             // BBS: brim generation depends on printing speed
             || opt_key == "outer_wall_speed"
             || opt_key == "small_perimeter_speed"
@@ -764,6 +785,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_angle"
             || opt_key == "support_on_build_plate_only"
             || opt_key == "support_critical_regions_only"
+            || opt_key == "support_remove_small_overhang"
             || opt_key == "enforce_support_layers"
             || opt_key == "support_filament"
             || opt_key == "support_line_width"
@@ -835,6 +857,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "top_surface_pattern"
             || opt_key == "bottom_surface_pattern"
+            || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_pattern"
             || opt_key == "infill_anchor"
@@ -906,6 +929,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_3_4_speed"
             || opt_key == "overhang_4_4_speed"
             || opt_key == "bridge_speed"
+            || opt_key == "internal_bridge_speed"
             || opt_key == "outer_wall_speed"
             || opt_key == "small_perimeter_speed"
             || opt_key == "small_perimeter_threshold"
@@ -939,15 +963,15 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
 
     // propagate to dependent steps
     if (step == posPerimeters) {
-		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning, posSimplifyPath });
+		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning, posSimplifyPath, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posPrepareInfill) {
-        invalidated |= this->invalidate_steps({ posInfill, posIroning, posSimplifyPath });
+        invalidated |= this->invalidate_steps({ posInfill, posIroning, posSimplifyPath, posSimplifyInfill });
     } else if (step == posInfill) {
-        invalidated |= this->invalidate_steps({ posIroning, posSimplifyPath });
+        invalidated |= this->invalidate_steps({ posIroning, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posSlice) {
-		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial, posSimplifyPath });
+		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
@@ -2035,6 +2059,31 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
     }
 
     return updated;
+}
+//BBS:
+void PrintObject::get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects)
+{
+    BoundingBox temp;
+    LayerPtrs   out_temp;
+    for (const auto &layer : layers()) {
+        if (layer->print_z < start) continue;
+
+        if (layer->print_z > end + EPSILON) break;
+        temp.merge(layer->loverhangs_bbox);
+        out_temp.emplace_back(layer);
+    }
+    boundingbox_objects.emplace_back(std::move(temp));
+    out.emplace_back(std::move(out_temp));
+};
+
+std::vector<Point> PrintObject::get_instances_shift_without_plate_offset()
+{
+    std::vector<Point> out;
+    out.reserve(m_instances.size());
+    for (const auto& instance : m_instances)
+        out.push_back(instance.shift_without_plate_offset());
+
+    return out;
 }
 
 // Only active if config->infill_only_where_needed. This step trims the sparse infill,

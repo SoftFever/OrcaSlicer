@@ -157,7 +157,9 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
-                    if (surface.is_external() && ! is_bridge) {
+					if (surface.is_solid_infill())
+                        params.pattern = region_config.internal_solid_infill_pattern.value;
+                    else if (surface.is_external() && ! is_bridge) {
                         if(surface.is_top())
                             params.pattern = region_config.top_surface_pattern.value;
                         else
@@ -172,12 +174,19 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        } else if (params.density <= 0)
 		            continue;
 
-		        params.extrusion_role =
-		            is_bridge ?
-		                erBridgeInfill :
-		                (surface.is_solid() ?
-		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : erSolidInfill)) :
-		                    erInternalInfill);
+				params.extrusion_role = erInternalInfill;
+                if (is_bridge) {
+                    if(surface.is_internal_bridge())
+                        params.extrusion_role = erInternalBridgeInfill;
+                    else
+                        params.extrusion_role = erBridgeInfill;
+                } else if (surface.is_solid()) {
+                    if (surface.is_top()) {
+                        params.extrusion_role = erTopSolidInfill;
+                    } else {
+                        params.extrusion_role = erSolidInfill;
+                    }
+                }
 		        params.bridge_angle = float(surface.bridge_angle);
 		        params.angle 		= float(Geometry::deg2rad(region_config.infill_direction.value));
 		        
@@ -199,7 +208,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					// so that internall infill will be aligned over all layers of the current region.
 		            params.spacing = layerm.region().flow(*layer.object(), frInfill, layer.object()->config().layer_height, false).spacing();
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
-					// Anchor a sparse infill to inner perimeters with the following anchor length:
 			        params.anchor_length = float(region_config.infill_anchor);
 					if (region_config.infill_anchor.percent)
 						params.anchor_length = float(params.anchor_length * 0.01 * params.spacing);
@@ -492,8 +500,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
 		params.with_loop = surface_fill.params.with_loop;
-
 		params.config = &layerm->region().config();
+		if (surface_fill.params.pattern == ipGrid)
+			params.can_reverse = false;
 		for (ExPolygon& expoly : surface_fill.expolygons) {
             f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
@@ -538,6 +547,7 @@ void Layer::make_ironing()
 
 	// First classify regions based on the extruder used.
 	struct IroningParams {
+		InfillPattern pattern;
 		int 		extruder 	= -1;
 		bool 		just_infill = false;
 		// Spacing of the ironing lines, also to calculate the extrusion flow from.
@@ -577,8 +587,7 @@ void Layer::make_ironing()
 
 		bool operator==(const IroningParams &rhs) const {
 			return this->extruder == rhs.extruder && this->just_infill == rhs.just_infill &&
-				   this->line_spacing == rhs.line_spacing && this->height == rhs.height && this->speed == rhs.speed &&
-				   this->angle == rhs.angle;
+				   this->line_spacing == rhs.line_spacing && this->height == rhs.height && this->speed == rhs.speed && this->angle == rhs.angle && this->pattern == rhs.pattern;
 		}
 
 		LayerRegion *layerm		= nullptr;
@@ -625,24 +634,36 @@ void Layer::make_ironing()
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;
 				ironing_params.angle 		= config.infill_direction * M_PI / 180.;
+				ironing_params.pattern      = config.ironing_pattern;
 				ironing_params.layerm 		= layerm;
 				by_extruder.emplace_back(ironing_params);
 			}
 		}
 	std::sort(by_extruder.begin(), by_extruder.end());
 
-    FillRectilinear 	fill;
     FillParams 			fill_params;
-	fill.set_bounding_box(this->object()->bounding_box());
-	fill.layer_id 			 = this->id();
-    fill.z 					 = this->print_z;
-    fill.overlap 			 = 0;
     fill_params.density 	 = 1.;
     fill_params.monotonic    = true;
-
+    InfillPattern         f_pattern = ipRectilinear;
+    std::unique_ptr<Fill> f         = std::unique_ptr<Fill>(Fill::new_from_type(f_pattern));
+    f->set_bounding_box(this->object()->bounding_box());
+    f->layer_id = this->id();
+    f->z        = this->print_z;
+    f->overlap  = 0;
 	for (size_t i = 0; i < by_extruder.size();) {
 		// Find span of regions equivalent to the ironing operation.
 		IroningParams &ironing_params = by_extruder[i];
+		// Create the filler object.
+		if( f_pattern != ironing_params.pattern )
+		{
+            f_pattern               = ironing_params.pattern;
+            f = std::unique_ptr<Fill>(Fill::new_from_type(f_pattern));
+            f->set_bounding_box(this->object()->bounding_box());
+            f->layer_id = this->id();
+            f->z        = this->print_z;
+            f->overlap  = 0;
+		}
+
 		size_t j = i;
 		for (++ j; j < by_extruder.size() && ironing_params == by_extruder[j]; ++ j) ;
 
@@ -704,10 +725,10 @@ void Layer::make_ironing()
 		}
 
         // Create the filler object.
-        fill.spacing = ironing_params.line_spacing;
-        fill.angle = float(ironing_params.angle + 0.25 * M_PI);
-        fill.link_max_length = (coord_t)scale_(3. * fill.spacing);
-		double extrusion_height = ironing_params.height * fill.spacing / nozzle_dmr;
+        f->spacing = ironing_params.line_spacing;
+        f->angle = float(ironing_params.angle + 0.25 * M_PI);
+        f->link_max_length = (coord_t) scale_(3. * f->spacing);
+		double  extrusion_height = ironing_params.height * f->spacing / nozzle_dmr;
 		float  extrusion_width  = Flow::rounded_rectangle_extrusion_width_from_spacing(float(nozzle_dmr), float(extrusion_height));
 		double flow_mm3_per_mm = nozzle_dmr * extrusion_height;
         Surface surface_fill(stTop, ExPolygon());
@@ -715,7 +736,7 @@ void Layer::make_ironing()
 			surface_fill.expolygon = std::move(expoly);
 			Polylines polylines;
 			try {
-				polylines = fill.fill_surface(&surface_fill, fill_params);
+				polylines = f->fill_surface(&surface_fill, fill_params);
 			} catch (InfillFailedException &) {
 			}
 	        if (! polylines.empty()) {
