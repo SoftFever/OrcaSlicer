@@ -1446,24 +1446,18 @@ void MachineObject::parse_version_func()
                     is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.05.06.05") >= 0;
                 }
 
-                is_support_remote_tunnel = true;
                 is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.05.06.06") >= 0
                     || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.21.20") >= 0));
             }
-            local_camera_proto       = local_rtsp_url.empty() ? -1 : local_rtsp_url == "disable" ? 0 
-                                        : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
-            file_proto = 2;
         }
     } else if (printer_type == "C11") {
         is_cloud_print_only = true;
         if (ota_version != module_vers.end()) {
             is_support_send_to_sdcard = ota_version->second.sw_ver.compare("01.02.00.00") >= 0;
             is_support_ai_monitoring = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
-            is_support_remote_tunnel  = ota_version->second.sw_ver.compare("01.02.99.00") >= 0;
             is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.03.50.01") >= 0 ||
                                       (esp32_version != module_vers.end() && esp32_version->second.sw_ver.compare("01.05.15.00") >= 0));
         }
-        local_camera_proto = 1;
 
         if (esp32_version != module_vers.end()) {
             ams_support_auto_switch_filament_flag = esp32_version->second.sw_ver.compare("00.03.11.50") >= 0;
@@ -1483,12 +1477,10 @@ void MachineObject::parse_version_func()
     } else if (printer_type == "C12") {
         is_support_ai_monitoring = true;
         is_cloud_print_only      = true;
-        local_camera_proto       = 1;
 
         if (ota_version != module_vers.end()) {
             is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.03.50.01") >= 0 ||
                                       (esp32_version != module_vers.end() && esp32_version->second.sw_ver.compare("01.05.15.00") >= 0));
-            is_support_remote_tunnel = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
             if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
                 is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.03.50.01") >= 0;
             }
@@ -2580,21 +2572,6 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_CHAMBER_TEMP:
         func_name = "FUNC_CHAMBER_TEMP";
         break;
-    case FUNC_CAMERA_VIDEO:
-        func_name = "FUNC_CAMERA_VIDEO";
-        break;
-    case FUNC_MEDIA_FILE:
-        func_name = "FUNC_MEDIA_FILE";
-        break;
-    case FUNC_REMOTE_TUNNEL:
-        parse_version_func();
-        if (!is_support_remote_tunnel)
-            return false;
-        break;
-    case FUNC_LOCAL_TUNNEL:
-        parse_version_func();
-        if (!local_camera_proto) return false;
-        break;
     case FUNC_PRINT_WITHOUT_SD:
         func_name = "FUNC_PRINT_WITHOUT_SD";
         break;
@@ -2615,9 +2592,6 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         if (!ams_support_auto_switch_filament_flag)
             return false;
         func_name = "FUNC_AUTO_SWITCH_FILAMENT";
-        break;
-    case FUNC_VIRTUAL_CAMERA:
-        func_name = "FUNC_VIRTUAL_CAMERA";
         break;
     case FUNC_CHAMBER_FAN:
         func_name = "FUNC_CHAMBER_FAN";
@@ -2646,7 +2620,7 @@ bool MachineObject::is_function_supported(PrinterFunction func)
 
 std::vector<std::string> MachineObject::get_resolution_supported()
 {
-    return DeviceManager::get_resolution_supported(printer_type);
+    return camera_resolution_supported;
 }
 
 bool MachineObject::is_support_print_with_timelapse()
@@ -2660,24 +2634,6 @@ bool MachineObject::is_camera_busy_off()
     if (printer_type == "C11" || printer_type == "C12")
         return is_in_prepare() || is_in_upgrading();
     return false;
-}
-
-int MachineObject::get_local_camera_proto()
-{
-    if (!is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL)) return 0;
-    return local_camera_proto;
-}
-
-bool MachineObject::has_local_file_proto()
-{
-    parse_version_func();
-    return file_proto & 1;
-}
-
-bool MachineObject::has_remote_file_proto()
-{
-    parse_version_func();
-    return file_proto & 2;
 }
 
 int MachineObject::publish_json(std::string json_str, int qos)
@@ -2730,6 +2686,14 @@ std::string MachineObject::setting_id_to_type(std::string setting_id, std::strin
     }
 
     return type;
+}
+
+template <class ENUM>
+static ENUM enum_index_of(char const *key, char const **enum_names, int enum_count, ENUM defl = static_cast<ENUM>(0))
+{
+    for (int i = 0; i < enum_count; ++i)
+        if (strcmp(enum_names[i], key) == 0) return static_cast<ENUM>(i);
+    return defl;
 }
 
 int MachineObject::parse_json(std::string payload)
@@ -3329,11 +3293,12 @@ int MachineObject::parse_json(std::string payload)
                     // parse camera info
                     try {
                         if (jj.contains("ipcam")) {
-                            if (jj["ipcam"].contains("ipcam_record")) {
+                            json const & ipcam = jj["ipcam"];
+                            if (ipcam.contains("ipcam_record")) {
                                 if (camera_recording_hold_count > 0)
                                     camera_recording_hold_count--;
                                 else {
-                                    if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
+                                    if (ipcam["ipcam_record"].get<std::string>() == "enable") {
                                         camera_recording_when_printing = true;
                                     }
                                     else {
@@ -3341,11 +3306,11 @@ int MachineObject::parse_json(std::string payload)
                                     }
                                 }
                             }
-                            if (jj["ipcam"].contains("timelapse")) {
+                            if (ipcam.contains("timelapse")) {
                                 if (camera_timelapse_hold_count > 0)
                                     camera_timelapse_hold_count--;
                                 else {
-                                    if (jj["ipcam"]["timelapse"].get<std::string>() == "enable") {
+                                    if (ipcam["timelapse"].get<std::string>() == "enable") {
                                         camera_timelapse = true;
                                     }
                                     else {
@@ -3353,25 +3318,43 @@ int MachineObject::parse_json(std::string payload)
                                     }
                                 }
                             }
-                            if (jj["ipcam"].contains("ipcam_dev")) {
-                                if (jj["ipcam"]["ipcam_dev"].get<std::string>() == "1") {
+                            if (ipcam.contains("ipcam_dev")) {
+                                if (ipcam["ipcam_dev"].get<std::string>() == "1") {
                                     has_ipcam = true;
                                 } else {
                                     has_ipcam = false;
                                 }
                             }
-                            if (jj["ipcam"].contains("resolution")) {
+                            if (ipcam.contains("resolution")) {
                                 if (camera_resolution_hold_count > 0)
                                     camera_resolution_hold_count--;
                                 else {
-                                    camera_resolution = jj["ipcam"]["resolution"].get<std::string>();
+                                    camera_resolution = ipcam["resolution"].get<std::string>();
                                 }
                             }
-                            if (jj["ipcam"].contains("rtsp_url")) {
-                                local_rtsp_url = jj["ipcam"]["rtsp_url"].get<std::string>();
+                            if (ipcam.contains("resolution_supported")) {
+                                std::vector<std::string> resolution_supported;
+                                for (auto res : ipcam["resolution_supported"])
+                                    resolution_supported.emplace_back(res.get<std::string>());
+                                camera_resolution_supported.swap(resolution_supported);
                             }
-                            if (jj["ipcam"].contains("tutk_server")) {
-                                tutk_state = jj["ipcam"]["tutk_server"].get<std::string>();
+                            if (ipcam.contains("liveview")) {
+                                char const *local_protos[] = { "none", "local", "rtsps", "rtsp" };
+                                liveview_local = enum_index_of(ipcam["liveview"].value<std::string>("local", "none").c_str(), local_protos, 4, LiveviewLocal::LVL_None);
+                                liveview_remote = ipcam["liveview"].value<std::string>("remote", "disabled") == "enabled";
+                            }
+                            if (ipcam.contains("file")) {
+                                file_local     = ipcam["file"].value<std::string>("local", "disabled") == "enabled";
+                                file_remote    = ipcam["file"].value<std::string>("remote", "disabled") == "enabled";
+                            }
+                            virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
+                            if (ipcam.contains("rtsp_url")) {
+                                local_rtsp_url = ipcam["rtsp_url"].get<std::string>();
+                                liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable" 
+                                        ? LVL_None : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? LVL_Rtsps : LVL_Rtsp;
+                            }
+                            if (ipcam.contains("tutk_server")) {
+                                tutk_state = ipcam["tutk_server"].get<std::string>();
                             }
                         }
                     }

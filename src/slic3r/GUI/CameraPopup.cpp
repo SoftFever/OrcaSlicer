@@ -268,7 +268,7 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
         m_switch_recording->Hide();
     }
 
-    if (m_obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA) && m_obj->has_ipcam) {
+    if (m_obj->virtual_camera && m_obj->has_ipcam) {
         m_text_vcamera->Show();
         m_switch_vcamera->Show();
         if (is_vcamera_show) {

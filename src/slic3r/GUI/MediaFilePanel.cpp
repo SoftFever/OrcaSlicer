@@ -201,14 +201,14 @@ MediaFilePanel::~MediaFilePanel()
 void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
-    if (obj && obj->is_function_supported(PrinterFunction::FUNC_MEDIA_FILE)) {
+    if (obj) {
         m_supported = true;
         m_lan_mode     = obj->is_lan_mode_printer();
         m_lan_ip       = obj->dev_ip;
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
-        m_local_support  = obj->has_local_file_proto();
-        m_remote_support = obj->has_remote_file_proto();
+        m_local_support  = obj->file_local;
+        m_remote_support = obj->file_remote;
     } else {
         m_supported = false;
         m_lan_mode  = false;

@@ -70,12 +70,7 @@ enum PrinterFunction {
     FUNC_FLOW_CALIBRATION,
     FUNC_AUTO_LEVELING,
     FUNC_CHAMBER_TEMP,
-    FUNC_CAMERA_VIDEO,
-    FUNC_MEDIA_FILE,
-    FUNC_REMOTE_TUNNEL,
-    FUNC_LOCAL_TUNNEL,
     FUNC_PRINT_WITHOUT_SD,
-    FUNC_VIRTUAL_CAMERA,
     FUNC_USE_AMS,
     FUNC_ALTER_RESOLUTION,
     FUNC_SEND_TO_SDCARD,
@@ -676,14 +671,22 @@ public:
     int  camera_recording_hold_count = 0;
     int  camera_timelapse_hold_count = 0;
     int  camera_resolution_hold_count = 0;
-    std::string camera_resolution = "";
+    std::string camera_resolution            = "";
+    std::vector<std::string> camera_resolution_supported;
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
-    int local_camera_proto = -1;
-    int file_proto = 0;
     std::string local_rtsp_url;
     std::string tutk_state;
-    bool is_support_remote_tunnel{false};
+    enum LiveviewLocal {
+        LVL_None,
+        LVL_Local, 
+        LVL_Rtsps,
+        LVL_Rtsp
+    } liveview_local{ LVL_None };
+    bool        liveview_remote{false};
+    bool        file_local{false};
+    bool        file_remote{false};
+    bool        virtual_camera{false};
 
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;
@@ -851,9 +854,6 @@ public:
     std::vector<std::string> get_resolution_supported();
     bool is_support_print_with_timelapse();
     bool is_camera_busy_off();
-    int get_local_camera_proto();
-    bool has_local_file_proto();
-    bool has_remote_file_proto();
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;

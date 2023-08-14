@@ -77,20 +77,20 @@ MediaPlayCtrl::~MediaPlayCtrl()
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
-    if (obj && obj->is_function_supported(PrinterFunction::FUNC_CAMERA_VIDEO)) {
+    if (obj) {
         m_camera_exists  = obj->has_ipcam;
+        m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
-        m_lan_proto      = obj->get_local_camera_proto();
+        m_lan_proto      = obj->liveview_local;
+        m_remote_support = obj->liveview_remote;
         m_lan_ip         = obj->dev_ip;
         m_lan_passwd     = obj->get_access_code();
-        m_dev_ver        = obj->get_ota_version();
-        m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
         m_device_busy    = obj->is_camera_busy_off();
         m_tutk_state     = obj->tutk_state;
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
-        m_lan_proto = -1;
+        m_lan_proto = MachineObject::LVL_None;
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_dev_ver.clear();
@@ -155,13 +155,13 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (m_lan_proto > 0 && (m_lan_mode ||!m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
+    if (m_lan_proto > MachineObject::LVL_None && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
         m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
-        if (m_lan_proto == 1)
+        if (m_lan_proto == MachineObject::LVL_Local)
             m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
-        else if (m_lan_proto == 2)
+        else if (m_lan_proto == MachineObject::LVL_Rtsps)
             m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
-        else if (m_lan_proto == 3)
+        else if (m_lan_proto == MachineObject::LVL_Rtsp)
             m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
         m_url += "&device=" + m_machine;
         m_url += "&version=" + agent_version;
