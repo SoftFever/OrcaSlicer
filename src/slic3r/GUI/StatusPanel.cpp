@@ -106,7 +106,7 @@ static std::vector<std::string> message_containing_done{
 #define TASK_BUTTON_SIZE2 (wxSize(-1, FromDIP(24)))
 #define Z_BUTTON_SIZE (wxSize(FromDIP(52), FromDIP(52)))
 #define MISC_BUTTON_PANEL_SIZE (wxSize(FromDIP(136), FromDIP(55)))
-#define MISC_BUTTON_SIZE (wxSize(FromDIP(66), FromDIP(51)))
+#define MISC_BUTTON_2FAN_SIZE (wxSize(FromDIP(66), FromDIP(51)))
 #define MISC_BUTTON_3FAN_SIZE (wxSize(FromDIP(44), FromDIP(51)))
 #define TEMP_CTRL_MIN_SIZE (wxSize(FromDIP(122), FromDIP(52)))
 #define AXIS_MIN_SIZE (wxSize(FromDIP(220), FromDIP(220)))
@@ -1066,8 +1066,8 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     /* create speed control */
     m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed);
     m_switch_speed->SetLabels(_L("100%"), _L("100%"));
-    m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
-    m_switch_speed->SetMaxSize(MISC_BUTTON_SIZE);
+    m_switch_speed->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+    m_switch_speed->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->SetPadding(FromDIP(3));
     m_switch_speed->SetBorderWidth(FromDIP(2));
     m_switch_speed->SetFont(Label::Head_13);
@@ -1083,8 +1083,8 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     /* create lamp control */
     m_switch_lamp = new ImageSwitchButton(parent, m_bitmap_lamp_on, m_bitmap_lamp_off);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
-    m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
-    m_switch_lamp->SetMaxSize(MISC_BUTTON_SIZE);
+    m_switch_lamp->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+    m_switch_lamp->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_lamp->SetPadding(FromDIP(3));
     m_switch_lamp->SetBorderWidth(FromDIP(2));
     m_switch_lamp->SetFont(Label::Head_13);
@@ -1163,10 +1163,14 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
         m_fan_panel->SetBackgroundColor(parent->GetBackgroundColour());
     });
 
+    m_switch_block_fan = new wxPanel(m_fan_panel);
+    m_switch_block_fan->SetBackgroundColour(parent->GetBackgroundColour());
+
     fan_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(2));
     fan_line_sizer->Add(m_switch_nozzle_fan, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM , FromDIP(2));
     fan_line_sizer->Add(m_switch_printing_fan, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
     fan_line_sizer->Add(m_switch_cham_fan, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM , FromDIP(2));
+    fan_line_sizer->Add(m_switch_block_fan, 1, wxEXPAND | wxTOP | wxBOTTOM , FromDIP(2));
     fan_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(2));
 
     m_fan_panel->SetSizer(fan_line_sizer);
@@ -2132,7 +2136,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     // update extruder icon
     update_extruder_status(obj);
 
+    bool is_suppt_aux_fun = obj->is_function_supported(PrinterFunction::FUNC_AUX_FAN);
     bool is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
+
     //update cham fan
     if (m_current_support_cham_fan != is_suppt_cham_fun) {
         if (is_suppt_cham_fun) {
@@ -2144,14 +2150,34 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         }
         else {
             m_switch_cham_fan->Hide();
-            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
-            m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_SIZE);
-            m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
-            m_switch_printing_fan->SetMaxSize(MISC_BUTTON_SIZE);
+            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+            m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
+            m_switch_printing_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+            m_switch_printing_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
         }
 
         m_misc_ctrl_sizer->Layout();
     }
+
+    if (m_current_support_aux_fan != is_suppt_aux_fun) {
+        if (is_suppt_aux_fun) {
+            m_switch_printing_fan->Show();
+            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
+            m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
+            m_switch_cham_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
+            m_switch_cham_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
+        }
+        else {
+            m_switch_printing_fan->Hide();
+            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+            m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
+            m_switch_cham_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+            m_switch_cham_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
+        }
+
+        m_misc_ctrl_sizer->Layout();
+    }
+
 
     // nozzle fan
     if (m_switch_nozzle_fan_timeout > 0) {
@@ -2208,7 +2234,8 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
             m_switch_speed->SetLabels(text_speed, text_speed);
     }
 
-    m_current_support_cham_fan = is_suppt_cham_fun?true:false;
+    m_current_support_aux_fan = is_suppt_aux_fun;
+    m_current_support_cham_fan = is_suppt_cham_fun;
 }
 
 void StatusPanel::update_extruder_status(MachineObject* obj)
@@ -3542,8 +3569,8 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     m_fan_control_popup = new FanControlPopup(this);
 
     if (obj) {
-        bool is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
-        m_fan_control_popup->update_show_mode(is_suppt_cham_fun);
+        m_fan_control_popup->show_cham_fan(obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN));
+        m_fan_control_popup->show_aux_fan(obj->is_function_supported(PrinterFunction::FUNC_AUX_FAN));
     }
 
     auto pos = m_switch_nozzle_fan->GetScreenPosition();
@@ -3856,10 +3883,10 @@ void StatusPanel::msw_rescale()
     m_bitmap_speed_active.msw_rescale();
 
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
-    m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_speed->SetMinSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->Rescale();
     m_switch_lamp->SetImages(m_bitmap_lamp_on, m_bitmap_lamp_off);
-    m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_lamp->SetMinSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_lamp->Rescale();
     m_switch_nozzle_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_nozzle_fan->Rescale();

@@ -154,9 +154,11 @@ private:
     wxWindow* m_line_top;
     wxWindow* m_line_bottom;
     bool      m_is_suppt_cham_fun{true};
+    bool      m_is_suppt_aux_fun{true};
 
 public:
-    void         update_show_mode(bool support_cham_fun);
+    void         show_cham_fan(bool support_cham_fun);
+    void         show_aux_fan(bool support_aux_fun);
     void         update_fan_data(MachineObject::FanType type, MachineObject* obj);
     void         on_left_down(wxMouseEvent& evt);
     void         paintEvent(wxPaintEvent& evt);
