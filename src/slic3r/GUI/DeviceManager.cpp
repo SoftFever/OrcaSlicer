@@ -2665,6 +2665,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_CHAMBER_FAN:
         func_name = "FUNC_CHAMBER_FAN";
         break;
+    case FUNC_AUX_FAN:
+        func_name = "FUNC_AUX_FAN";
+        break;
     case FUNC_EXTRUSION_CALI:
         if (!ams_support_virtual_tray)
             return false;

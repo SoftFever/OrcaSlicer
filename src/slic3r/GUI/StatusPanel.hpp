@@ -313,12 +313,14 @@ protected:
     TempInput *     m_tempCtrl_chamber;
     int             m_temp_chamber_timeout {0};
     bool             m_current_support_cham_fan{true};
+    bool             m_current_support_aux_fan{true};
     FanSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
     FanSwitchButton *m_switch_printing_fan;
     int             m_switch_printing_fan_timeout{0};
     FanSwitchButton *m_switch_cham_fan;
     int             m_switch_cham_fan_timeout{0};
+    wxPanel*        m_switch_block_fan;
 
     float           m_fixed_aspect_ratio{1.8};
 
