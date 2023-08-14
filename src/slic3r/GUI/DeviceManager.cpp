@@ -2034,6 +2034,8 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
 
 int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, int mode)
 {
+    CNumericLocalesSetter locales_setter;
+
     pa_calib_results.clear();
     if (get_printer_series() == PrinterSeries::SERIES_X1) {
         json j;
@@ -2078,7 +2080,7 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
             j["print"]["filaments"][i]["name"]        = pa_calib_values[i].name;
             j["print"]["filaments"][i]["k_value"]     = std::to_string(pa_calib_values[i].k_value);
             if (is_auto_cali)
-                j["print"]["filaments"][i]["n_coef"]  = std::to_string(pa_calib_values[i].n_coef);
+                j["print"]["filaments"][i]["n_coef"] = std::to_string(pa_calib_values[i].n_coef);
             else
                 j["print"]["filaments"][i]["n_coef"]  = "0.0";
         }
@@ -2156,6 +2158,8 @@ int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_cali
 
 int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data)
 {
+    CNumericLocalesSetter locales_setter;
+
     if (get_printer_series() == PrinterSeries::SERIES_X1 && calib_data.calib_datas.size() > 0) {
         json j;
         j["print"]["command"]     = "flowrate_cali";
