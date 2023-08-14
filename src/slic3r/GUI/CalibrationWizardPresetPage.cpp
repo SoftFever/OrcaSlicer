@@ -5,13 +5,6 @@
 #include "libslic3r/Print.hpp"
 
 namespace Slic3r { namespace GUI {
-std::string float_to_string(float value, int precision = 2)
-{
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(precision) << value;
-    return stream.str();
-}
-
 CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
     wxWindow* parent,
     wxWindowID id,

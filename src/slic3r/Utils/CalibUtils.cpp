@@ -984,6 +984,18 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
+    {  // record the print job
+        json j;
+        j["print"]["cali_type"]       = calib_info.params.mode;
+        j["print"]["flow_ratio_mode"] = flow_ratio_mode;
+        j["print"]["tray_id"]         = calib_info.select_ams;
+        j["print"]["dev_id"]          = calib_info.dev_id;
+        j["print"]["start"]           = calib_info.params.start;
+        j["print"]["end"]             = calib_info.params.end;
+        j["print"]["step"]            = calib_info.params.step;
+        BOOST_LOG_TRIVIAL(trace) << "send_cali_job: " << j.dump();
+    }
+
     print_job->start();
 }
 
