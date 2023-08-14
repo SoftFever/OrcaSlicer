@@ -1935,34 +1935,13 @@ wxColour AmsCans::GetTagColr(wxString canid)
 
 void AmsCans::SetAmsStepExtra(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
-    wxString type_str = "";
-    wxString step_str = "";
-
-
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_NONE) {
-        type_str = "AMS_ROAD_TYPE_NONE";
-    }
-    else if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD) {
-        type_str = "AMS_ROAD_TYPE_LOAD";
-    }
-    else if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) {
-        type_str = "AMS_ROAD_TYPE_UNLOAD";
-    }
-
-
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
-        step_str = "AMS_ROAD_STEP_COMBO_LOAD_STEP1";
         SetAmsStep(canid.ToStdString());
-    }
-    else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
-        step_str = "AMS_ROAD_STEP_COMBO_LOAD_STEP2";
+    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
         SetAmsStep(canid.ToStdString());
-    }
-    else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
-        step_str = "AMS_ROAD_STEP_COMBO_LOAD_STEP3";
+    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
         SetAmsStep(canid.ToStdString());
     }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-        step_str = "AMS_ROAD_STEP_NONE";
         SetAmsStep("");
     }
 }
@@ -2104,13 +2083,14 @@ void AmsCans::doRender(wxDC& dc)
 
         for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
             CanLibs* lib = m_can_lib_list[i];
-            if (lib->canLib->m_info.can_id == m_road_canid) {
-                m_road_colour = lib->canLib->m_info.material_colour;
-                if (!m_road_canid.empty()) {
+
+            if (m_road_canid.empty()) {
+                lib->canLib->on_pass_road(false);
+            }
+            else {
+                if (lib->canLib->m_info.can_id == m_road_canid) {
+                    m_road_colour = lib->canLib->m_info.material_colour;
                     lib->canLib->on_pass_road(true);
-                }
-                else {
-                    lib->canLib->on_pass_road(false);
                 }
             }
         }
@@ -3476,41 +3456,37 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxC
         }
 
         if (is_vams && on_off) {
-            m_extruder->OnAmsLoading(false, col);
+            m_extruder->OnAmsLoading(false);
             m_vams_extra_road->OnVamsLoading(true, col);
             m_extruder->OnVamsLoading(true, col);
             m_vams_road->OnVamsLoading(true, col);
         }
         else {
-            m_vams_extra_road->OnVamsLoading(false, col);
-            m_extruder->OnVamsLoading(false, col);
-            m_vams_road->OnVamsLoading(false, col);
+            m_vams_extra_road->OnVamsLoading(false);
+            m_extruder->OnVamsLoading(false);
+            m_vams_road->OnVamsLoading(false);
         }
     }
     else if (m_ams_model == AMSModel::EXTRA_AMS || m_ext_model == AMSModel::EXTRA_AMS) {
         if (!is_vams && !on_off) {
             m_extruder->TurnOff();
             m_extruder->OnVamsLoading(false);
-            m_extruder->OnAmsLoading(false);
-
             m_vams_extra_road->OnVamsLoading(false);
             m_vams_road->OnVamsLoading(false);
         }
         else {
             m_extruder->TurnOn(col);
-            m_extruder->OnAmsLoading(true, col);
         }
 
         if (is_vams && on_off) {
-            m_extruder->OnAmsLoading(false, col);
             m_vams_extra_road->OnVamsLoading(true, col);
             m_extruder->OnVamsLoading(true, col);
             m_vams_road->OnVamsLoading(true, col);
         }
         else {
-            m_vams_extra_road->OnVamsLoading(false, col);
-            m_extruder->OnVamsLoading(false, col);
-            m_vams_road->OnVamsLoading(false, col);
+            m_vams_extra_road->OnVamsLoading(false);
+            m_extruder->OnVamsLoading(false);
+            m_vams_road->OnVamsLoading(false);
         }
     }
 }
@@ -3572,6 +3548,12 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     }
     else if (m_ams_model == AMSModel::EXTRA_AMS) {
         cans->amsCans->SetAmsStepExtra(canid, type, step);
+        if (step != AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+            m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
+        }
+        else {
+            m_extruder->OnAmsLoading(false);
+        }
     }
 
     for (auto i = 0; i < m_ams_info.size(); i++) {
