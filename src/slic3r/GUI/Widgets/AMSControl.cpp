@@ -1189,8 +1189,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
 void AMSLib::on_pass_road(bool pass)
 {
-    m_pass_road = pass;
-    Refresh();
+    if (m_pass_road != pass) {
+        m_pass_road = pass;
+        Refresh();
+    }
 }
 
 void AMSLib::Update(Caninfo info, bool refresh)
