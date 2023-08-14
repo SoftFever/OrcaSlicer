@@ -253,10 +253,7 @@ bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
 {
     bool result = true;
     unsigned int model_id_int = (attr >> 24) & 0xFF;
-    if (model_id_int < (unsigned) MODULE_MAX)
-        this->module_id = (ModuleID)model_id_int;
-    else
-        this->module_id = MODULE_UKNOWN;
+    this->module_id = (ModuleID)model_id_int;
     this->module_num = (attr >> 16) & 0xFF;
     this->part_id    = (attr >> 8) & 0xFF;
     this->reserved   = (attr >> 0) & 0xFF;
