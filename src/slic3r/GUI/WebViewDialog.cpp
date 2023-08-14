@@ -10,6 +10,7 @@
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
+#include <wx/url.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
 
