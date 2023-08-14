@@ -19,6 +19,9 @@
         "18x28",
         "0x28"
     ],
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL X1C"
+    ],
     "default_print_profile": "0.20mm Standard @BBL X1C",
     "extruder_offset": [
         "0x2"
