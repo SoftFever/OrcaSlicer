@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 20:42+0800\n"
+"POT-Creation-Date: 2023-08-14 19:56+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6415,6 +6415,9 @@ msgstr "Верхній шар"
 msgid "Bottom surface"
 msgstr "Нижня поверхня"
 
+msgid "Internal Bridge"
+msgstr ""
+
 msgid "Gap infill"
 msgstr "Заповнення пропусків"
 
@@ -7098,6 +7101,9 @@ msgstr ""
 "Це керує формуванням поля на зовнішній та/або внутрішній сторонімоделей. "
 "Auto означає, що ширина поля аналізується та обчислюється автоматично."
 
+msgid "Mouse ear"
+msgstr ""
+
 msgid "outer_only"
 msgstr "кайма зовні"
 
@@ -7116,6 +7122,30 @@ msgid ""
 msgstr ""
 "Зазор між внутрішньою лінією кайми та предметом може сприяти легшому зняттю "
 "кайми"
+
+msgid "Brim ears"
+msgstr ""
+
+msgid "Only draw brim over the sharp edges of the model."
+msgstr ""
+
+msgid "Brim ear max angle"
+msgstr ""
+
+msgid ""
+"Maximum angle to let a brim ear appear. \n"
+"If set to 0, no brim will be created. \n"
+"If set to ~180, brim will be created on everything but straight sections."
+msgstr ""
+
+msgid "Brim ear detection radius"
+msgstr ""
+
+msgid ""
+"The geometry will be decimated before dectecting sharp angles. This "
+"parameter indicates the minimum length of the deviation for the decimation.\n"
+"0 to deactivate"
+msgstr ""
 
 msgid "Compatible machine"
 msgstr "Сумісна машина"

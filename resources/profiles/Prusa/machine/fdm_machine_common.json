@@ -129,6 +129,7 @@
     "silent_mode": "0",
     "single_extruder_multi_material": "1",
     "change_filament_gcode": "",
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
     "layer_change_gcode": "",
     "machine_pause_gcode": "M400 U1\n",
     "wipe": [
