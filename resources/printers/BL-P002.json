@@ -1,0 +1,20 @@
+{
+    "00.00.00.00": {
+        "display_name": "Bambu Lab X1",
+        "print": {
+            "ipcam": {
+                "resolution_supported": [ "720p", "1080p" ],
+                "virtual_camera": "enabled",
+                "liveview": {
+                    "remote": "enabled"
+                },
+                "file": {
+                    "remote": "enabled"
+                }
+            }
+        }
+    }, 
+    "01.05.06.06": {
+        "rv2166": "00.00.21.20"
+    }
+}

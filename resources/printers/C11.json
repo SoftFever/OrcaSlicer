@@ -1,0 +1,22 @@
+{
+    "00.00.00.00": {
+        "display_name": "Bambu Lab P1P",
+        "print": {
+            "ipcam": {
+                "resolution_supported":  [ "720p" ],
+                "liveview": {
+                    "local": "local"
+                }
+            }
+        }
+    }, 
+    "01.02.99.00": {
+        "print": {
+            "ipcam": {
+                "liveview": {
+                    "remote": "enabled"
+                }
+            }
+        }
+    }
+}

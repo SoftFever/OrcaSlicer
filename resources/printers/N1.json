@@ -1,0 +1,12 @@
+{
+    "00.00.00.00": {
+        "print": {
+            "ipcam": {
+                "liveview": {
+                    "local": "local",
+                    "remote": "enabled"
+                }
+            }
+        }
+    }
+}
