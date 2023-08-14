@@ -571,15 +571,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             check_add_eol(start_filament_gcode_str);
         }
 
-        // deal exhaust fan speed
-        {
-            const bool activate_air_filtration = gcodegen.config().activate_air_filtration.get_at(new_extruder_id);
-            if (activate_air_filtration&&gcodegen.config().support_air_filtration.getBool()) {
-                start_filament_gcode_str += GCodeWriter::set_exhaust_fan(gcodegen.config().during_print_exhaust_fan_speed.get_at(new_extruder_id),false);
-                ((start_filament_gcode_str +=';')+=GCodeProcessor::reserved_tag(GCodeProcessor::ETags::During_Print_Exhaust_Fan)) += '\n';
-            }
-        }
-
         // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
         DynamicConfig config;
         config.set_key_value("filament_end_gcode", new ConfigOptionString(end_filament_gcode_str));
@@ -1808,12 +1799,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("first_layer_center_no_wipe_tower", new ConfigOptionFloats(center.x(),center.y()));
     }
 
-    auto chamber_temp_vec = m_config.option<ConfigOptionInts>("chamber_temperatures")->values;
-    int max_chamber_temp = *std::max_element(chamber_temp_vec.begin(), chamber_temp_vec.end());
+    int max_chamber_temp = 0;
     {
         int curr_bed_type = m_config.curr_bed_type.getInt();
 
-        int max_chamber_temp = *std::max_element(m_config.chamber_temperatures.values.begin(), m_config.chamber_temperatures.values.end());
+        for (const auto& extruder : m_writer.extruders())
+            max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperatures.get_at(extruder.id()));
 
         std::string first_layer_bed_temp_str;
         const ConfigOptionInts* first_bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)curr_bed_type));
@@ -1824,6 +1815,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
         m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
         m_placeholder_parser.set("chamber_temperature", new ConfigOptionInts({max_chamber_temp}));
+        m_placeholder_parser.set("chamber_temperatures", new ConfigOptionInts({ max_chamber_temp }));
 
          //support variables `first_layer_temperature` and `first_layer_bed_temperature`
         m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
@@ -1831,6 +1823,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("max_print_height", new ConfigOptionInt(m_config.printable_height));
         m_placeholder_parser.set("z_offset", new ConfigOptionFloat(0.0f));
         m_placeholder_parser.set("plate_name", new ConfigOptionString(print.get_plate_name()));
+
+        //add during_print_exhaust_fan_speed
+        std::vector<int> during_print_exhaust_fan_speed_num;
+        during_print_exhaust_fan_speed_num.reserve(m_config.during_print_exhaust_fan_speed.size());
+        for (const auto& item : m_config.during_print_exhaust_fan_speed.values)
+            during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
+        m_placeholder_parser.set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
@@ -1852,9 +1851,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.config().gcode_flavor != gcfKlipper) {
         // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
         this->_print_first_layer_bed_temperature(file, print, machine_start_gcode, initial_extruder_id, true);
-        if (m_config.option<ConfigOptionBool>("chamber_temp_control")->getBool()) {
-            this->_print_chamber_temperature(file, print, machine_start_gcode,max_chamber_temp, true);
-        }
         // Set extruder(s) temperature before and after start G-code.
         this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, false);
     }
@@ -1879,9 +1875,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 */
     this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, true);
 
-    bool activate_air_filtration = *std::max_element(m_config.activate_air_filtration.values.begin(), m_config.activate_air_filtration.values.end()) && m_config.support_air_filtration.getBool();
-
-    if (activate_air_filtration && m_config.activate_air_filtration.get_at(initial_extruder_id)) {
+    if (m_config.support_air_filtration.getBool() && m_config.activate_air_filtration.get_at(initial_extruder_id)) {
         file.write(m_writer.set_exhaust_fan(m_config.during_print_exhaust_fan_speed.get_at(initial_extruder_id), true));
     }
 
@@ -2154,13 +2148,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
 
 
-    if (activate_air_filtration) {
-        int complete_print_exhaust_fan_speed = 0;
-        for (size_t i = 0; i < m_config.activate_air_filtration.size(); ++i) 
-            if (m_config.activate_air_filtration.get_at(i))
-                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(i));
-        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed,true));
-    }
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
     file.write_format("; EXECUTABLE_BLOCK_END\n\n");
@@ -2179,6 +2166,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //file.write_format("; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
     //if (print.m_print_statistics.total_toolchanges > 0)
     //	file.write_format("; total filament change = %i\n", print.m_print_statistics.total_toolchanges);
+
+    bool activate_air_filtration = false;
+    for (const auto& extruder : m_writer.extruders())
+        activate_air_filtration |= m_config.activate_air_filtration.get_at(extruder.id());
+    activate_air_filtration &= m_config.support_air_filtration.getBool();
+
+    if (activate_air_filtration) {
+        int complete_print_exhaust_fan_speed = 0;
+        for (const auto& extruder : m_writer.extruders())
+            if (m_config.activate_air_filtration.get_at(extruder.id()))
+                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
+        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
+    }
 
     print.throw_if_canceled();
 }
@@ -2425,15 +2425,6 @@ int GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer,
     return bed_temp_opt->get_at(extruder_id);
 }
 
-void GCode::_print_chamber_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode,int chamber_temperature, bool wait)
-{
-    int  temp_by_gcode     = -1;
-    bool temp_set_by_gcode = custom_gcode_sets_temperature(gcode, 141, 191, false, temp_by_gcode);
-
-    std::string set_chamber_temp_gcode = m_writer.set_chamber_temperature(chamber_temperature, wait);
-    if (!temp_set_by_gcode)
-        file.write(set_chamber_temp_gcode);
-}
 
 // Write 1st layer bed temperatures into the G-code.
 // Only do that if the start G-code does not already contain any M-code controlling an extruder temperature.

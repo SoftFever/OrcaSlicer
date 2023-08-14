@@ -354,11 +354,6 @@ namespace Slic3r {
             float time() const;
         };
 
-        struct ExhaustFanInfo {
-            bool activate{ false };
-            int print_end_exhaust_fan_speed{0};
-            int print_end_exhaust_fan_time{0};
-        };
 
     private:
         struct TimeMachine
@@ -455,10 +450,6 @@ namespace Slic3r {
             // Additional load / unload times for a filament exchange sequence.
             float filament_load_times;
             float filament_unload_times;
-
-            // start fan x second before print complete
-            ExhaustFanInfo exhaust_fan_info;
-            mutable bool insert_fan_control_flag{false};
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
 
@@ -625,7 +616,6 @@ namespace Slic3r {
 
     private:
         GCodeReader m_parser;
-        ExhaustFanInfo m_exhaust_fan_info;
         EUnits m_units;
         EPositioningType m_global_positioning_type;
         EPositioningType m_e_local_positioning_type;

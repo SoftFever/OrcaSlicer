@@ -507,7 +507,6 @@ private:
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void print_machine_envelope(GCodeOutputStream &file, Print &print);
-    void _print_chamber_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode,int chamber_temperature, bool wait);
     void _print_first_layer_bed_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // On the first printing layer. This flag triggers first layer speeds.
