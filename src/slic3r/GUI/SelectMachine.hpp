@@ -272,7 +272,8 @@ enum PrintDialogStatus {
     PrintStatusNotSupportedSendToSDCard,
     PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate,
-    PrintStatusUnsupportedPrinter
+    PrintStatusUnsupportedPrinter,
+    PrintStatusUnsupportedSelectedTimelapse,
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -442,7 +443,9 @@ public:
     void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state);
+    bool is_enable_timelapse();
     bool is_show_timelapse();
+    void set_timelapse_enable_status();
     bool is_same_printer_model();
     bool is_blocking_printing();
     bool has_tips(MachineObject* obj);

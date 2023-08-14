@@ -1673,6 +1673,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         && obj->is_support_print_with_timelapse()
         && is_show_timelapse()) {
         select_timelapse->Show();
+        set_timelapse_enable_status();
     } else {
         select_timelapse->Hide();
     }
@@ -2160,6 +2161,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         wxString msg_text = _L("This printer does not support printing all plates");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusUnsupportedSelectedTimelapse) {
+        wxString msg_text = _L("This printer does not support selected timelapse mode, you can change the timelapse mode");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     }
 }
@@ -3164,6 +3170,10 @@ void SelectMachineDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusNoSdcard);
         return;
     }
+    else if (!is_enable_timelapse()) {
+        show_status(PrintDialogStatus::PrintStatusUnsupportedSelectedTimelapse);
+        return;
+    }
 
     // check sdcard when if lan mode printer
     if (obj_->is_lan_mode_printer()) {
@@ -3237,6 +3247,44 @@ void SelectMachineDialog::update_show_status()
             return;
         }
     }
+}
+
+void SelectMachineDialog::set_timelapse_enable_status()
+{
+    AppConfig *config = wxGetApp().app_config;
+    if (is_enable_timelapse()) {
+        if (!config || config->get("print", "timelapse") == "0")
+            m_checkbox_list["timelapse"]->SetValue(false);
+        else
+            m_checkbox_list["timelapse"]->SetValue(true);
+        select_timelapse->Enable(true);
+    } else {
+        m_checkbox_list["timelapse"]->SetValue(false);
+        select_timelapse->Enable(false);
+        if (config) {
+            config->set_str("print", "timelapse", "0");
+        }
+    }
+}
+
+bool SelectMachineDialog::is_enable_timelapse()
+{
+    if (auto op_timelapse_type = wxGetApp().preset_bundle->prints.get_edited_preset().config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type"))
+    {
+        DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev_manager)
+            return false;
+
+        MachineObject *cur_machine_obj = dev_manager->get_selected_machine();
+        if (!cur_machine_obj)
+            return false;
+
+        TimelapseType cur_timelapse_type = op_timelapse_type->value;
+        if (cur_timelapse_type == TimelapseType::tlTraditional && cur_machine_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool SelectMachineDialog::is_show_timelapse()
