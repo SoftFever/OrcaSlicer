@@ -55,6 +55,12 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
     });
+    m_cb_sup_sound->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->command_xcam_control_allow_prompt_sound(m_cb_sup_sound->GetValue());
+        }
+        evt.Skip();
+    });
 
     wxGetApp().UpdateDlgDarkUI(this);
 }
@@ -131,14 +137,23 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_cb_auto_recovery->Hide();
         line4->Hide();
     }
+    if (obj_->is_function_supported(PrinterFunction::FUNC_PROMPT_SOUND)) {
+        text_sup_sound->Show();
+        m_cb_sup_sound->Show();
+        line5->Show();
+    }
+    else {
+        text_sup_sound->Hide();
+        m_cb_sup_sound->Hide();
+        line5->Hide();
+    }
 
     this->Freeze();
-    auto test1 = obj_->xcam_first_layer_inspector;
-    auto test2 = obj_->xcam_buildplate_marker_detector;
-    auto test3 = obj_->xcam_auto_recovery_step_loss;
+    
     m_cb_first_layer->SetValue(obj_->xcam_first_layer_inspector);
     m_cb_plate_mark->SetValue(obj_->xcam_buildplate_marker_detector);
     m_cb_auto_recovery->SetValue(obj_->xcam_auto_recovery_step_loss);
+    m_cb_sup_sound->SetValue(obj_->xcam_allow_prompt_sound);
 
     m_cb_ai_monitoring->SetValue(obj_->xcam_ai_monitoring);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
@@ -255,6 +270,22 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line4->SetLineColour(wxColour(255,255,255));
     sizer->Add(line4, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(0,0,0,wxTOP, FromDIP(20));
+
+    //Allow prompt sound
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_sup_sound = new CheckBox(parent);
+    text_sup_sound = new wxStaticText(parent, wxID_ANY, _L("Allow Prompt Sound"));
+    text_sup_sound->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_sup_sound, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_sup_sound, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+
+    line5 = new StaticLine(parent, false);
+    line5->SetLineColour(STATIC_BOX_LINE_COL);
+    sizer->Add(line5, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
     ai_monitoring_level_list->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this );
 

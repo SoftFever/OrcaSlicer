@@ -26,6 +26,7 @@ protected:
     CheckBox* m_cb_ai_monitoring;
     CheckBox* m_cb_plate_mark;
     CheckBox* m_cb_auto_recovery;
+    CheckBox* m_cb_sup_sound;
     wxStaticText* text_first_layer;
     wxStaticText* text_ai_monitoring;
     wxStaticText* text_ai_monitoring_caption;
@@ -33,10 +34,12 @@ protected:
     wxStaticText* text_plate_mark;
     wxStaticText* text_plate_mark_caption;
     wxStaticText* text_auto_recovery;
+    wxStaticText* text_sup_sound;
     StaticLine* line1;
     StaticLine* line2;
     StaticLine* line3;
     StaticLine* line4;
+    StaticLine* line5;
     wxBoxSizer* create_settings_group(wxWindow* parent);
 
     bool print_halt = false;

@@ -1347,6 +1347,12 @@ void MachineObject::parse_status(int flag)
         ams_auto_switch_filament_flag = ((flag >> 10) & 0x1) != 0;
     }
 
+    if (xcam_prompt_sound_hold_count > 0)
+        xcam_prompt_sound_hold_count--;
+    else {
+        xcam_allow_prompt_sound = ((flag >> 17) & 0x1) != 0;
+    }
+
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
 }
 
@@ -1996,6 +2002,15 @@ int MachineObject::command_set_printing_option(bool auto_recovery)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_set_prompt_sound(bool prompt_sound){
+    json j;
+    j["print"]["command"] = "print_option";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["sound_enable"] = prompt_sound;
+
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_ams_switch_filament(bool switch_filament)
 {
     json j;
@@ -2368,6 +2383,13 @@ int MachineObject::command_xcam_control_auto_recovery_step_loss(bool on_off)
     return command_set_printing_option(on_off);
 }
 
+int MachineObject::command_xcam_control_allow_prompt_sound(bool on_off)
+{
+    xcam_allow_prompt_sound = on_off;
+    xcam_prompt_sound_hold_count = HOLD_COUNT_MAX;
+    return command_set_prompt_sound(on_off);
+}
+
 void MachineObject::set_bind_status(std::string status)
 {
     bind_user_name = status;
@@ -2624,7 +2646,10 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         func_name = "FUNC_CAMERA_VIDEO";
         break;
     case FUNC_MEDIA_FILE:
-        func_name = "FUNC_MEDIA_FILE";
+        func_name = "FUNC_MEDIA_FILE"; 
+        break;
+    case FUNC_PROMPT_SOUND: 
+        func_name = "FUNC_PROMPT_SOUND"; 
         break;
     case FUNC_REMOTE_TUNNEL:
         parse_version_func();
