@@ -683,7 +683,9 @@ public:
     bool xcam_buildplate_marker_detector{ false };
     int  xcam_buildplate_marker_hold_count = 0;
     bool xcam_auto_recovery_step_loss{ false };
+    bool xcam_allow_prompt_sound{ false };
     int  xcam_auto_recovery_hold_count = 0;
+    int  xcam_prompt_sound_hold_count = 0;
     int  ams_print_option_count = 0;
 
     //supported features
@@ -804,6 +806,9 @@ public:
     // set printing speed
     int command_set_printing_speed(PrintingSpeedLevel lvl);
 
+    //set pormpt sound
+    int command_set_prompt_sound(bool prompt_sound);
+
     // set print option
     int command_set_printing_option(bool auto_recovery);
 
@@ -837,6 +842,7 @@ public:
     int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
     int command_xcam_control_buildplate_marker_detector(bool on_off);
     int command_xcam_control_auto_recovery_step_loss(bool on_off);
+    int command_xcam_control_allow_prompt_sound(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }

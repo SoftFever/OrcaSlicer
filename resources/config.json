@@ -14,9 +14,10 @@
           "FUNC_VIRTUAL_CAMERA": false,
           "FUNC_PRINT_WITHOUT_SD": false,
           "FUNC_ALTER_RESOLUTION": false,
-
           "FUNC_PRINT_ALL": false,
-          "FUNC_EXTRUSION_CALI": true
+          "FUNC_EXTRUSION_CALI": true,
+          "FUNC_VIRTUAL_TYAY": true,
+          "FUNC_PROMPT_SOUND": false
         },
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
@@ -42,7 +43,8 @@
           "FUNC_ALTER_RESOLUTION": false,
           "FUNC_PRINT_ALL": false,
           "FUNC_VIRTUAL_TYAY": true,
-          "FUNC_EXTRUSION_CALI": true
+          "FUNC_EXTRUSION_CALI": true,
+          "FUNC_PROMPT_SOUND": false
         },
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
@@ -58,7 +60,8 @@
           "FUNC_VIRTUAL_TYAY": true,
           "FUNC_EXTRUSION_CALI": false,
           "FUNC_LOCAL_TUNNEL": false,
-          "FUNC_CHAMBER_TEMP": false
+          "FUNC_CHAMBER_TEMP": false,
+          "FUNC_PROMPT_SOUND": false
         },
         "model_id": "BL-P002",
         "compatible_machine": [ "BL-P001", "C11", "C12"],
@@ -72,7 +75,8 @@
           "FUNC_CHAMBER_TEMP": false,
           "FUNC_VIRTUAL_TYAY": true,
           "FUNC_EXTRUSION_CALI": false,
-          "FUNC_LOCAL_TUNNEL": false
+          "FUNC_LOCAL_TUNNEL": false,
+          "FUNC_PROMPT_SOUND": false
         },
         "model_id": "BL-P001",
         "compatible_machine": [ "BL-P002", "C11", "C12"],
