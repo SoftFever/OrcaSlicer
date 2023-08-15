@@ -6,6 +6,12 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
+    "reduce_fan_stop_start_freq": [
+        "1"
+    ],
+    "slow_down_for_layer_cooling": [
+        "1"
+    ],
     "fan_cooling_layer_time": [
         "30"
     ],
@@ -21,6 +27,12 @@
     "fan_min_speed": [
         "40"
     ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
     "filament_flow_ratio": [
         "0.95"
     ],
@@ -28,6 +40,7 @@
         "10"
     ],
     "compatible_printers": [
-        "Anker M5 0.4 nozzle"
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
     ]
 }

@@ -1,11 +1,11 @@
 {
     "type": "machine",
-    "setting_id": "GM_Anker_000",
-    "name": "Anker M5 0.4 nozzle",
+    "setting_id": "GM_Anker_001",
+    "name": "Anker M5C 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_model": "Anker M5",
+    "printer_model": "Anker M5C",
     "default_print_profile": "0.20mm Standard @Anker",
     "default_filament_profile": [
         "Generic PLA @Anker.json"
@@ -18,9 +18,9 @@
     ],
     "printable_area": [
         "0x0",
-        "235x0",
-        "235x235",
-        "0x235"
+        "220x0",
+        "220x220",
+        "0x220"
     ],
     "printable_height": "250",
     "machine_start_gcode": "M4899 T3 ; Enable v3 jerk and S-curve acceleration \nM104 S{first_layer_temperature[0]-30} ; Anti-ooze - Set hotend temp to 30 degrees less than target\nM190 S{first_layer_bed_temperature[0]} ; set and wait for bed temp to stabilize\nM109 S{first_layer_temperature[0]} ; set final nozzle temp to stabilize\nG28 ;Home",

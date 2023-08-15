@@ -12,10 +12,14 @@
     "filament_type": [
         "PLA-CF"
     ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
     "slow_down_layer_time": [
         "7"
     ],
     "compatible_printers": [
-        "Anker M5 0.4 nozzle"
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
     ]
 }
