@@ -9076,7 +9076,7 @@ msgstr "请选择要校准的耗材丝。"
 msgid "Connecting to printer..."
 msgstr "正在连接打印机..."
 
-msgid "The failed test result has been droped."
+msgid "The failed test result has been dropped."
 msgstr "测试失败的结果已被删除。"
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"

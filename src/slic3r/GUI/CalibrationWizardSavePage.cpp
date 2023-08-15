@@ -148,7 +148,7 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
     wxBoxSizer* part_failed_sizer = new wxBoxSizer(wxVERTICAL);
     m_part_failed_panel->SetSizer(part_failed_sizer);
     part_failed_sizer->AddSpacer(FromDIP(10));
-    auto part_failed_text = new Label(m_part_failed_panel, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
+    auto part_failed_text = new Label(m_part_failed_panel, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be dropped."));
     part_failed_text->SetFont(Label::Body_14);
     part_failed_sizer->Add(part_failed_text, 0, wxLEFT | wxRIGHT, FromDIP(20));
     part_failed_sizer->AddSpacer(FromDIP(10));
@@ -910,7 +910,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     wxBoxSizer* part_failed_sizer = new wxBoxSizer(wxVERTICAL);
     m_part_failed_panel->SetSizer(part_failed_sizer);
     part_failed_sizer->AddSpacer(FromDIP(10));
-    auto part_failed_text = new Label(m_part_failed_panel, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be droped."));
+    auto part_failed_text = new Label(m_part_failed_panel, _L("Part of the calibration failed! You may clean the plate and retry. The failed test result would be dropped."));
     part_failed_text->SetFont(Label::Body_14);
     part_failed_sizer->Add(part_failed_text, 0, wxLEFT | wxRIGHT, FromDIP(20));
     part_failed_sizer->AddSpacer(FromDIP(10));
