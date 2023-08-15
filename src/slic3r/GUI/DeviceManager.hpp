@@ -111,6 +111,7 @@ enum PrinterFunction {
     FUNC_VIRTUAL_TYAY,
     FUNC_PRINT_ALL,
     FUNC_FILAMENT_BACKUP,
+    FUNC_MOTOR_NOISE_CALI,
     FUNC_MAX
 };
 
@@ -830,7 +831,7 @@ public:
 
     // calibration printer
     bool is_support_command_calibration();
-    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
+    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise);
 
     // PA calibration
     int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode

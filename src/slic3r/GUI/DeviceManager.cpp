@@ -2107,7 +2107,7 @@ bool MachineObject::is_support_command_calibration()
     return true;
 }
 
-int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali)
+int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise)
 {
     if (!is_support_command_calibration()) {
         // fixed gcode file
@@ -2120,7 +2120,8 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
         json j;
         j["print"]["command"] = "calibration";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["option"] =      (vibration    ? 1 << 2 : 0)
+        j["print"]["option"]=       (motor_noise  ? 1 << 3 : 0)
+                                +   (vibration    ? 1 << 2 : 0)
                                 +   (bed_leveling ? 1 << 1 : 0)
                                 +   (xcam_cali    ? 1 << 0 : 0);
         return this->publish_json(j.dump());
@@ -2737,6 +2738,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         break;
     case FUNC_FILAMENT_BACKUP:
         func_name = "FUNC_FILAMENT_BACKUP";
+        break;
+    case FUNC_MOTOR_NOISE_CALI: 
+        func_name = "FUNC_MOTOR_NOISE_CALI"; 
         break;
     default:
         return true;
