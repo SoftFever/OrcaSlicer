@@ -2660,9 +2660,9 @@ int CLI::run(int argc, char **argv)
             }
             else if (shrink_to_new_bed)
             {
-                BOOST_LOG_TRIVIAL(error) << "should not set load_slicedata when shrink_to_new_bed(switch printer from small to bigger." << std::endl;
-                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS]);
-                flush_and_exit(CLI_INVALID_PARAMS);
+                BOOST_LOG_TRIVIAL(warning) << "use load_slicedata when shrink_to_new_bed(switch printer from small to bigger." << std::endl;
+                //record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS]);
+                //flush_and_exit(CLI_INVALID_PARAMS);
             }
         } else if (opt_key == "export_settings") {
             //FIXME check for mixing the FFF / SLA parameters.
