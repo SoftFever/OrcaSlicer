@@ -1793,6 +1793,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                     case '9':
                         switch (cmd[3]) {
                         case '0': { process_M190(line); break; } // Wait bed temperature
+                        case '1': { process_M191(line); break; } // Wait chamber temperature
                         default: break;
                     }
                     default:
@@ -3716,6 +3717,15 @@ void GCodeProcessor::process_M190(const GCodeReader::GCodeLine& line)
     float new_temp;
     if (line.has_value('S', new_temp))
         m_highest_bed_temp = m_highest_bed_temp < (int)new_temp ? (int)new_temp : m_highest_bed_temp;
+}
+
+void GCodeProcessor::process_M191(const GCodeReader::GCodeLine& line)
+{
+    float chamber_temp = 0;
+    const float wait_chamber_temp_time = 720.0;
+    // BBS: when chamber_temp>40,caculate time required for heating
+    if (line.has_value('S', chamber_temp) && chamber_temp > 40)
+        simulate_st_synchronize(wait_chamber_temp_time);
 }
 
 
