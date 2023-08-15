@@ -27,6 +27,10 @@
         {
             "name": "Anycubic 4Max Pro 2",
             "sub_path": "machine/Anycubic 4Max Pro 2.json"
+        },
+        {
+            "name": "Anycubic Kobra 2",
+            "sub_path": "machine/Anycubic Kobra 2.json"
         }
     ],
     "process_list": [
@@ -55,6 +59,10 @@
             "sub_path": "process/0.15mm Optimal @Anycubic 4MaxPro2.json"
         },
         {
+            "name": "0.15mm Optimal @Anycubic Kobra2",
+            "sub_path": "process/0.15mm Optimal @Anycubic Kobra2.json"
+        },
+        {
             "name": "0.20mm Standard @Anycubic i3MegaS",
             "sub_path": "process/0.20mm Standard @Anycubic i3MegaS.json"
         },
@@ -79,6 +87,10 @@
             "sub_path": "process/0.20mm Standard @Anycubic 4MaxPro2.json"
         },
         {
+            "name": "0.20mm Standard @Anycubic Kobra2",
+            "sub_path": "process/0.20mm Standard @Anycubic Kobra2.json"
+        },
+        {
             "name": "0.30mm Draft @Anycubic i3MegaS",
             "sub_path": "process/0.30mm Draft @Anycubic i3MegaS.json"
         },
@@ -97,6 +109,10 @@
         {
             "name": "0.30mm Draft @Anycubic 4MaxPro2",
             "sub_path": "process/0.30mm Draft @Anycubic 4MaxPro2.json"
+        },
+        {
+            "name": "0.30mm Draft @Anycubic Kobra2",
+            "sub_path": "process/0.30mm Draft @Anycubic Kobra2.json"
         }
     ],
     "filament_list": [
@@ -206,6 +222,10 @@
         {
             "name": "Anycubic 4Max Pro 2 0.4 nozzle",
             "sub_path": "machine/Anycubic 4Max Pro 2 0.4 nozzle.json"
+        },
+        {
+            "name": "Anycubic Kobra 2 0.4 nozzle",
+            "sub_path": "machine/Anycubic Kobra 2 0.4 nozzle.json"
         }
     ]
 }
