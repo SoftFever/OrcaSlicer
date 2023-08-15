@@ -714,6 +714,7 @@ public:
     bool is_support_command_ams_switch{false};
     bool is_support_mqtt_alive {false};
     bool is_support_tunnel_mqtt{false};
+    bool is_support_motor_noise_cali{false};
 
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
@@ -817,7 +818,7 @@ public:
 
     // calibration printer
     bool is_support_command_calibration();
-    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
+    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise);
 
     // PA calibration
     int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode

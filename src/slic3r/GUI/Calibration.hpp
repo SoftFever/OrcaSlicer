@@ -42,6 +42,7 @@ private:
     wxWindow* select_xcam_cali { nullptr };
     wxWindow* select_bed_leveling { nullptr };
     wxWindow* select_vibration { nullptr };
+    wxWindow* select_motor_noise { nullptr };
 
     wxWindow* create_check_option(wxString title, wxWindow *parent, wxString tooltip, std::string param);
 

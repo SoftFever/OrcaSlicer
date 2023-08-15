@@ -12,6 +12,7 @@
                     "remote": "enabled"
                 }
             },
+            "support_motor_noise_cali":false,
             "support_tunnel_mqtt":false,
             "support_mqtt_alive":false,
             "support_command_ams_switch":false,

@@ -16,8 +16,9 @@
           "FUNC_ALTER_RESOLUTION": false,
           "FUNC_PRINT_ALL": false,
           "FUNC_EXTRUSION_CALI": true,
-          "FUNC_VIRTUAL_TYAY": true,
-          "FUNC_PROMPT_SOUND": false
+          "FUNC_MOTOR_NOISE_CALI": false,
+          "FUNC_PROMPT_SOUND": false,
+          "FUNC_VIRTUAL_TYAY": true
         },
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
@@ -42,9 +43,10 @@
           "FUNC_PRINT_WITHOUT_SD": false,
           "FUNC_ALTER_RESOLUTION": false,
           "FUNC_PRINT_ALL": false,
-          "FUNC_VIRTUAL_TYAY": true,
+          "FUNC_MOTOR_NOISE_CALI": false,
+          "FUNC_PROMPT_SOUND": false,
           "FUNC_EXTRUSION_CALI": true,
-          "FUNC_PROMPT_SOUND": false
+          "FUNC_VIRTUAL_TYAY": true
         },
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
@@ -61,6 +63,7 @@
           "FUNC_EXTRUSION_CALI": false,
           "FUNC_LOCAL_TUNNEL": false,
           "FUNC_CHAMBER_TEMP": false,
+          "FUNC_MOTOR_NOISE_CALI": false,
           "FUNC_PROMPT_SOUND": false
         },
         "model_id": "BL-P002",
@@ -76,6 +79,7 @@
           "FUNC_VIRTUAL_TYAY": true,
           "FUNC_EXTRUSION_CALI": false,
           "FUNC_LOCAL_TUNNEL": false,
+          "FUNC_MOTOR_NOISE_CALI": false,
           "FUNC_PROMPT_SOUND": false
         },
         "model_id": "BL-P001",

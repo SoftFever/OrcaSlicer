@@ -1990,7 +1990,7 @@ bool MachineObject::is_support_command_calibration()
     return true;
 }
 
-int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali)
+int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise)
 {
     if (!is_support_command_calibration()) {
         // fixed gcode file
@@ -2003,7 +2003,8 @@ int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, 
         json j;
         j["print"]["command"] = "calibration";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["option"] =      (vibration    ? 1 << 2 : 0)
+        j["print"]["option"]=       (motor_noise  ? 1 << 3 : 0)
+                                +   (vibration    ? 1 << 2 : 0)
                                 +   (bed_leveling ? 1 << 1 : 0)
                                 +   (xcam_cali    ? 1 << 0 : 0);
         return this->publish_json(j.dump());
@@ -2854,6 +2855,12 @@ int MachineObject::parse_json(std::string payload)
             if (jj.contains("support_tunnel_mqtt")) {
                 if (jj["support_tunnel_mqtt"].is_boolean()) {
                     is_support_tunnel_mqtt = jj["support_tunnel_mqtt"].get<bool>();
+                }
+            }
+
+            if (jj.contains("support_motor_noise_cali")) {
+                if (jj["support_motor_noise_cali"].is_boolean()) {
+                    is_support_motor_noise_cali = jj["support_motor_noise_cali"].get<bool>();
                 }
             }
 
