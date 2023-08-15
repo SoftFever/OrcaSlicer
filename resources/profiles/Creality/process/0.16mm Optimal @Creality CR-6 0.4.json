@@ -20,7 +20,7 @@
     "inner_wall_acceleration": "0",
     "internal_solid_infill_line_width": "0",
     "internal_solid_infill_speed": "50",
-    "ironing_type": "top",
+    "ironing_type": "no ironing",
     "line_width": "0.45",
     "minimum_sparse_infill_area": "10",
     "outer_wall_line_width": "0.45",
