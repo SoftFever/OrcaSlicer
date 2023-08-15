@@ -653,14 +653,21 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
 {
     std::map<std::string, std::pair<Semver, std::string>> vendor_list;
     std::map<std::string, std::string> vendor_descriptions;
-	BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: sync_config Syncing configuration cache";
 
-	if (!enabled_config_update) { return; }
+    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_config Syncing configuration enter");
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_config get preferred setting version for app version %1%, http_url: %2%")%SLIC3R_APP_NAME%http_url;
+    if (!enabled_config_update) { return; }
 
+    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_config get preferred setting version for app version %1%, http_url: %2%")%SLIC3R_VERSION%http_url;
+
+    std::string app_version = SLIC3R_VERSION;
+    std::string query_version = app_version.substr(0, 6) + "00.00";
     std::string query_params = "?";
-    bool first = true;
+    std::string vendor_string = PresetBundle::BBL_BUNDLE;
+    boost::to_lower(vendor_string);
+    std::string query_vendor = (boost::format("slicer/settings/%1%=%2%")%vendor_string % query_version ).str();
+    query_params += query_vendor;
+    /*bool first = true;
     for (auto vendor_it :vendors) {
         if (cancel) { return; }
 
@@ -675,7 +682,7 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
         if (!first)
             query_params += "&";
         query_params += query_vendor;
-    }
+    }*/
 
     std::string url = http_url;
     url += query_params;
