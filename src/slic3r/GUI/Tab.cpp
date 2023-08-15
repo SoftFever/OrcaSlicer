@@ -2696,6 +2696,9 @@ void TabFilament::build()
             else if (opt_key == "nozzle_temperature_initial_layer") {
                 m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
             }
+            else if (opt_key == "chamber_temperatures") {
+                m_config_manipulation.check_chamber_temperature(&filament_config);
+            }
 
             on_value_change(opt_key, value);
         };
@@ -2866,7 +2869,7 @@ void TabFilament::toggle_options()
             toggle_option(el, has_enable_overhang_bridge_fan);
 
         bool support_air_filtration = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_air_filtration");
-        toggle_line("activate_air_filtration",support_air_filtration);
+        toggle_line("activate_air_filtration",is_BBL_printer && support_air_filtration);
 
         for (auto elem : { "during_print_exhaust_fan_speed","complete_print_exhaust_fan_speed" })
             toggle_line(elem, m_config->opt_bool("activate_air_filtration",0));
@@ -2884,7 +2887,7 @@ void TabFilament::toggle_options()
         }
 
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
-        toggle_line("chamber_temperatures", support_chamber_temp_control);
+        toggle_line("chamber_temperatures", is_BBL_printer&&support_chamber_temp_control);
 
         for (auto el :
              {"cool_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp", "eng_plate_temp_initial_layer", "textured_plate_temp", "textured_plate_temp_initial_layer"})

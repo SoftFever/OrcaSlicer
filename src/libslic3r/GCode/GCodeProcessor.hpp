@@ -831,6 +831,9 @@ namespace Slic3r {
         //BBS: wait bed temperature
         void process_M190(const GCodeReader::GCodeLine& line);
 
+        //BBS: wait chamber temperature
+        void process_M191(const GCodeReader::GCodeLine& line);
+
         // Set max printing acceleration
         void process_M201(const GCodeReader::GCodeLine& line);
 
