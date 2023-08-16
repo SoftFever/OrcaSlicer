@@ -31,6 +31,17 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
       - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
       - [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
 
+**Windows via ChocolateyPackage Manager**:
+
+Alternatively, OrcaSlicer can be installed with the Windows Software Manager [Chocolatey](https://chocolatey.org). After installing Chocolatey, the [OrcaSlicer Package](https://community.chocolatey.org/packages/orcaslicer) can be easily installed and upgrade via "choco upgrade orcaslicer" using PowerShell.
+
+1. Install Chocolatey, more Details [here](https://docs.chocolatey.org/en-us/choco/setup#install-with-powershell.exe)
+2. Install or Upgrade the Orcaslicer via Chocolatey
+
+```powershell
+choco upgrade orcaslicer
+```
+
 **Mac**:
 1. Download the right binaries for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
 2. Double click to unzip the package, move OrcaSlicer.app to Application folder.  
