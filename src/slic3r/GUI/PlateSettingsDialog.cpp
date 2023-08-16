@@ -57,7 +57,7 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
         Layout();
         Fit();
         });
-    wxStaticText* first_layer_txt = new wxStaticText(this, wxID_ANY, _L("First Layer print sequence"));
+    wxStaticText* first_layer_txt = new wxStaticText(this, wxID_ANY, _L("First layer filament sequence"));
     first_layer_txt->SetFont(Label::Body_14);
     top_sizer->Add(first_layer_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_first_layer_print_seq_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
