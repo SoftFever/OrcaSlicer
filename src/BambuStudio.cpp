@@ -559,7 +559,7 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data_src;
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -587,6 +587,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* load_defaultfila_option = m_config.option<ConfigOptionBool>("load_defaultfila");
     if (load_defaultfila_option)
         use_first_fila_as_default = load_defaultfila_option->value;
+
+    ConfigOptionBool* min_save_option = m_config.option<ConfigOptionBool>("min_save");
+    if (min_save_option)
+        minimum_save = min_save_option->value;
 
     ConfigOptionString* pipe_option = m_config.option<ConfigOptionString>("pipe");
     if (pipe_option) {
@@ -2692,6 +2696,8 @@ int CLI::run(int argc, char **argv)
             }
         } else if (opt_key == "uptodate") {
             //already processed before
+        } else if (opt_key == "min_save") {
+            //already processed before
         } else if (opt_key == "load_defaultfila") {
             //already processed before
         } else if (opt_key == "mtcpp") {
@@ -3631,7 +3637,7 @@ int CLI::run(int argc, char **argv)
 
         BOOST_LOG_TRIVIAL(info) << "will export 3mf to " << export_3mf_file << std::endl;
         if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, top_thumbnails, pick_thumbnails,
-                                calibration_thumbnails, plate_bboxes, &m_print_config))
+                                calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save))
         {
             release_PlateData_list(plate_data_list);
             record_exit_reson(outfile_dir, CLI_EXPORT_3MF_ERROR, 0, cli_errors[CLI_EXPORT_3MF_ERROR]);
@@ -3854,7 +3860,7 @@ bool CLI::export_models(IO::ExportFormat format)
 //BBS: add export_project function
 bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data,
     std::vector<Preset*>& project_presets, std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& top_thumbnails, std::vector<ThumbnailData*>& pick_thumbnails,
-    std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config)
+    std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config, bool minimum_save)
 {
     //const std::string path = this->output_filepath(*model, IO::TMF);
     bool success = false;
@@ -3871,6 +3877,8 @@ bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partpla
     store_params.calibration_thumbnail_data = calibration_thumbnails;
     store_params.id_bboxes = plate_bboxes;
     store_params.strategy = SaveStrategy::Silence|SaveStrategy::WithGcode|SaveStrategy::SplitModel|SaveStrategy::UseLoadedId|SaveStrategy::ShareMesh;
+    if (minimum_save)
+        store_params.strategy = store_params.strategy | SaveStrategy::SkipModel;
 
     success = Slic3r::store_bbs_3mf(store_params);
 

@@ -5014,6 +5014,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("min_save", coBool);
+    def->label = L("Minimum save");
+    def->tooltip = L("export 3mf with minimum size.");
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("mtcpp", coInt);
     def->label = L("mtcpp");
     def->tooltip = L("max triangle count per plate for slicing.");
