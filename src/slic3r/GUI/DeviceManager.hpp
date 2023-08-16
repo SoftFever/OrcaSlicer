@@ -413,6 +413,7 @@ public:
     std::string printer_type;       /* model_id */
     PrinterSeries get_printer_series() const;
     PrinterArch get_printer_arch() const;
+    void reload_printer_settings();
 
     std::string printer_thumbnail_img;
     std::string monitor_upgrade_printer_img;
@@ -911,6 +912,7 @@ public:
     MachineObject* get_my_machine(std::string dev_id);
     void erase_user_machine(std::string dev_id);
     void clean_user_info();
+    void reload_printer_settings();
 
     bool set_selected_machine(std::string dev_id,  bool need_disconnect = false);
     MachineObject* get_selected_machine();

@@ -75,21 +75,24 @@ int json_diff::all2diff_base_reset(json const &base)
 
 bool json_diff::load_compatible_settings(std::string const &type, std::string const &version)
 {
-    std::string type2    = type.empty() ? printer_type : type;
-    std::string version2 = version.empty() ? printer_version : version;
-    if (type2 == printer_type && version2 == printer_version)
-        return false;
-    printer_type    = type2;
-    printer_version = version2;
+    // Reload on empty type and version
+    if (!type.empty() || !version.empty()) {
+        std::string type2    = type.empty() ? printer_type : type;
+        std::string version2 = version.empty() ? printer_version : version;
+        if (type2 == printer_type && version2 == printer_version)
+            return false;
+        printer_type    = type2;
+        printer_version = version2;
+    }
     settings_base.clear();
-    std::string config_file = Slic3r::resources_dir() + "/printers/" + type2 + ".json";
+    std::string config_file = Slic3r::data_dir() + "/printers/" + printer_type + ".json";
     boost::nowide::ifstream json_file(config_file.c_str());
     try {
         json versions;
         if (json_file.is_open()) {
             json_file >> versions;
             for (auto iter = versions.begin(); iter != versions.end(); ++iter) {
-                if (iter.key() > version2)
+                if (iter.key() > printer_version)
                     break;
                 merge_objects(*iter, settings_base);
             }

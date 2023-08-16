@@ -57,6 +57,7 @@ public:
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot = true) const;
 
 	void on_update_notification_confirm();
+    void do_printer_config_update();
 
 	bool version_check_enabled() const;
 

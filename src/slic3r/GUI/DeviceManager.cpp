@@ -470,6 +470,12 @@ PrinterArch MachineObject::get_printer_arch() const
     return DeviceManager::get_printer_arch(printer_type);
 }
 
+void MachineObject::reload_printer_settings()
+{
+    print_json.load_compatible_settings("", "");
+    parse_json("{}");
+}
+
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
     :dev_name(name),
     dev_id(id),
@@ -2592,10 +2598,8 @@ int MachineObject::parse_json(std::string payload)
                         if (j_pre["print"]["msg"].get<int>() == 0) {           //all message
                             BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << dev_id;
                             m_push_count++;
-                            if (j_pre["print"].contains("printer_type")) {
-                                printer_type = parse_printer_type(j_pre["print"]["printer_type"].get<std::string>());
-                            }
-                            print_json.load_compatible_settings(printer_type, "");
+                            if (!printer_type.empty())
+                                print_json.load_compatible_settings(printer_type, "");
                             print_json.diff2all_base_reset(j_pre);
                         } else if (j_pre["print"]["msg"].get<int>() == 1) {    //diff message
                             if (print_json.diff2all(j_pre, j) == 0) {
@@ -4762,6 +4766,12 @@ int DeviceManager::query_bind_status(std::string &msg)
 MachineObject* DeviceManager::get_local_selected_machine()
 {
     return get_local_machine(local_selected_machine);
+}
+
+void DeviceManager::reload_printer_settings()
+{
+    for (auto obj : this->userMachineList)
+        obj.second->reload_printer_settings();
 }
 
 MachineObject* DeviceManager::get_default_machine() {

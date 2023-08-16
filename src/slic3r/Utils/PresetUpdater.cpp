@@ -212,6 +212,8 @@ struct PresetUpdater::priv
 
 	bool has_waiting_updates { false };
 	Updates waiting_updates;
+	bool has_waiting_printer_updates { false };
+    Updates waiting_printer_updates;
 
     struct Resource
     {
@@ -235,11 +237,13 @@ struct PresetUpdater::priv
     void sync_config(std::string http_url, const VendorMap vendors);
     void sync_tooltip(std::string http_url, std::string language);
     void sync_plugins(std::string http_url, std::string plugin_version);
-    bool get_cached_plugins_version(std::string& cached_version);
+    void sync_printer_config(std::string http_url);
+    bool get_cached_plugins_version(std::string &cached_version);
 
 	//BBS: refine preset update logic
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
 	void check_installed_vendor_profiles() const;
+    Updates get_printer_config_updates(bool update = false) const;
 	Updates get_config_updates(const Semver& old_slic3r_version) const;
 	bool perform_updates(Updates &&updates, bool snapshot = true) const;
 	void set_waiting_updates(Updates u);
@@ -257,6 +261,7 @@ PresetUpdater::priv::priv()
 	set_download_prefs(GUI::wxGetApp().app_config);
 	// Install indicies from resources. Only installs those that are either missing or older than in resources.
 	check_installed_vendor_profiles();
+    perform_updates(get_printer_config_updates(), false);
 	// Load indices from the cache directory.
 	//index_db = Index::load_db();
 }
@@ -869,7 +874,7 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
     }
 }
 
-//return true means there are plugins files
+// return true means there are plugins files
 bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version)
 {
     std::string data_dir_str = data_dir();
@@ -1013,6 +1018,68 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     }
 }
 
+void PresetUpdater::priv::sync_printer_config(std::string http_url)
+{
+    std::string curr_version  = SLIC3R_VERSION;
+    std::string using_version = curr_version.substr(0, 6) + "00.00";
+
+    std::string cached_version;
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto                    config_folder = data_dir_path / "printers";
+    auto                    cache_folder = data_dir_path / "ota" / "printers";
+
+    try {
+        boost::filesystem::load_string_file(config_folder / "version.txt", curr_version);
+        boost::algorithm::trim(curr_version);
+    } catch (...) {}
+    try {
+        boost::filesystem::load_string_file(cache_folder / "version.txt", cached_version);
+        boost::algorithm::trim(cached_version);
+    } catch (...) {}
+    if (!cached_version.empty()) {
+        bool   need_delete_cache = false;
+        Semver current_semver    = curr_version;
+        Semver cached_semver     = cached_version;
+
+        if ((cached_semver.maj() != current_semver.maj()) || (cached_semver.min() != current_semver.min())) {
+            need_delete_cache = true;
+            BOOST_LOG_TRIVIAL(info) << boost::format("cached printer config version %1% not match with current %2%") % cached_version % curr_version;
+        } else if (cached_semver.patch() <= current_semver.patch()) {
+            need_delete_cache = true;
+            BOOST_LOG_TRIVIAL(info) << boost::format("cached printer config version %1% not newer than current %2%") % cached_version % curr_version;
+        } else {
+            using_version = cached_version;
+        }
+
+        if (need_delete_cache) {
+            std::string             data_dir_str = data_dir();
+            cached_version           = curr_version;
+        }
+    }
+
+    try {
+        std::map<std::string, Resource> resources{{"slicer/printer/bbl", {using_version, "", "", cache_folder.string()}}};
+        sync_resources(http_url, resources, false, cached_version, "printer.json");
+    } catch (std::exception &e) {
+        BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_printer_config: %1%", e.what());
+    }
+
+    bool result = false;
+    try {
+        boost::filesystem::load_string_file(cache_folder / "version.txt", cached_version);
+        boost::algorithm::trim(cached_version);
+        result = true;
+    } catch (...) {}
+    if (result) {
+        BOOST_LOG_TRIVIAL(info) << format("[BBL Updater] found new printer config: %1%, prompt to update", cached_version);
+        waiting_printer_updates = get_printer_config_updates(true);
+        if (waiting_printer_updates.updates.size() > 0) {
+            has_waiting_printer_updates = true;
+            GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::BBLPrinterConfigUpdateAvailable);
+        }
+    }
+}
 
 bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
@@ -1107,6 +1174,53 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
 
     if (bundles.size() > 0)
         install_bundles_rsrc(bundles, false);
+}
+
+Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
+{
+    std::string             data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    boost::filesystem::path resc_dir_path(resources_dir());
+    auto                    config_folder = data_dir_path / "printers";
+    auto                    resc_folder   = (update ? cache_path : resc_dir_path) / "printers";
+    std::string             curr_version;
+    std::string             resc_version;
+    try {
+        boost::filesystem::load_string_file(resc_folder / "version.txt", resc_version);
+        boost::algorithm::trim(resc_version);
+    } catch (...) {}
+    try {
+        boost::filesystem::load_string_file(config_folder / "version.txt", curr_version);
+        boost::algorithm::trim(curr_version);
+    } catch (...) {}
+
+    if (!curr_version.empty()) {
+        Semver curr_ver = curr_version;
+        Semver resc_ver   = resc_version;
+
+        bool version_match = ((resc_ver.maj() == curr_ver.maj()) && (resc_ver.min() == curr_ver.min()));
+
+        if (!version_match || (curr_ver < resc_ver)) {
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found newer version " << resc_version << " from resource, old version " << curr_version;
+        } else {
+            return {};
+        }
+    }
+    Updates updates;
+    Version version;
+    version.config_version = resc_version;
+    std::string change_log;
+    if (update) {
+        std::string changelog_file = (resc_folder / "printer.json").string();
+        try {
+            boost::nowide::ifstream ifs(changelog_file);
+            json                    j;
+            ifs >> j;
+            version.comment = j["description"];
+        } catch (...) {}
+    }
+    updates.updates.emplace_back(std::move(resc_folder), std::move(config_folder), version, "bbl", change_log, version.comment, false, true);
+    return updates;
 }
 
 // Generates a list of bundle updates that are to be performed.
@@ -1303,7 +1417,8 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
         }
 		if (p->cancel)
 			return;
-		this->p->sync_plugins(http_url, plugin_version);
+        this->p->sync_plugins(http_url, plugin_version);
+        this->p->sync_printer_config(http_url);
 		//if (p->cancel)
 		//	return;
 		//remove the tooltip currently
@@ -1490,6 +1605,30 @@ void PresetUpdater::on_update_notification_confirm()
 	else {
 		BOOST_LOG_TRIVIAL(info) << "User refused the update";
 	}
+}
+
+void PresetUpdater::do_printer_config_update()
+{
+    if (!p->has_waiting_printer_updates)
+        return;
+    BOOST_LOG_TRIVIAL(info) << "Update of printer configs available. Asking for confirmation ...";
+
+    std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
+    for (const auto &update : p->waiting_printer_updates.updates) {
+        std::string changelog = update.change_log;
+        updates_msg.emplace_back(update.vendor, update.version.config_version, update.descriptions, std::move(changelog));
+    }
+
+    GUI::MsgUpdateConfig dlg(updates_msg);
+
+    const auto res = dlg.ShowModal();
+    if (res == wxID_OK) {
+        BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
+        if (p->perform_updates(std::move(p->waiting_printer_updates)))
+            p->has_waiting_printer_updates = false;
+    } else {
+        BOOST_LOG_TRIVIAL(info) << "User refused the update";
+    }
 }
 
 bool PresetUpdater::version_check_enabled() const

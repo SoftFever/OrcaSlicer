@@ -27,6 +27,8 @@ using ExportGcodeNotificationClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
 using PresetUpdateAvailableClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
+using PrinterConfigUpdateAvailableClickedEvent = SimpleEvent;
+wxDECLARE_EVENT(EVT_PRINTER_CONFIG_UPDATE_AVAILABLE_CLICKED, PrinterConfigUpdateAvailableClickedEvent);
 
 using CancelFn = std::function<void()>;
 
@@ -141,6 +143,7 @@ enum class NotificationType
 	BBLPluginInstallHint,
 	BBLPluginUpdateAvailable,
 	BBLPreviewOnlyMode,
+    BBLPrinterConfigUpdateAvailable,
 };
 
 class NotificationManager
@@ -912,6 +915,15 @@ private:
                  wxCommandEvent* evt = new wxCommandEvent(EVT_UPDATE_PLUGINS_WHEN_LAUNCH);
 				 wxQueueEvent(wxGetApp().plater(), evt);
 				 return true;
+             }},
+
+        NotificationData{NotificationType::BBLPrinterConfigUpdateAvailable, NotificationLevel::ImportantNotificationLevel, BBL_NOTICE_MAX_INTERVAL,
+			_u8L("New printer config available."),
+			_u8L("Details"),
+                         [](wxEvtHandler* evnthndlr) {
+				if (evnthndlr != nullptr)
+					wxPostEvent(evnthndlr, PrinterConfigUpdateAvailableClickedEvent(EVT_PRINTER_CONFIG_UPDATE_AVAILABLE_CLICKED));
+				return true;
              }},
 
         NotificationData{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
