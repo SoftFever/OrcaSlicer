@@ -3359,7 +3359,9 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 // perimeter's width. $support contains the full shape of support
                 // material, thus including the width of its foremost extrusion.
                 // We leave a gap equal to a full extrusion width.
-                support_layer.polygons = diff(support_layer.polygons, polygons_trimming);
+                // arthur: do not leave a gap for top interface if the top z distance is 0.
+                if (support_layer.layer_type != sltTopContact || m_slicing_params.gap_support_object != 0)
+                    support_layer.polygons = diff(support_layer.polygons, polygons_trimming);
             }
         });
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::trim_support_layers_by_object() in parallel - end";

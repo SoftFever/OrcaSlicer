@@ -2265,8 +2265,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 roof_1st_layer = std::move(offset2_ex(roof_1st_layer, contact_dist_scaled, -contact_dist_scaled));
 
                 // avoid object
-                //ExPolygons avoid_region_interface = m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr);
-                Polygons avoid_region_interface = get_trim_support_regions(*m_object, ts_layer, m_slicing_params.gap_object_support, m_slicing_params.gap_support_object, m_ts_data->m_xy_distance);
+                // arthur: do not leave a gap for top interface if the top z distance is 0. See STUDIO-3991
+                Polygons avoid_region_interface = get_trim_support_regions(*m_object, ts_layer, m_slicing_params.gap_object_support, m_slicing_params.gap_support_object,
+                    m_slicing_params.gap_support_object == 0 ? 0 : m_ts_data->m_xy_distance);
                 if (has_circle_node) {
                     roof_areas = avoid_object_remove_extra_small_parts(roof_areas, avoid_region_interface);
                     roof_1st_layer = avoid_object_remove_extra_small_parts(roof_1st_layer, avoid_region_interface);
