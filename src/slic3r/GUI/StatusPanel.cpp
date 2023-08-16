@@ -8,6 +8,7 @@
 
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
+#include "MainFrame.hpp"
 
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/Http.hpp"
@@ -1864,6 +1865,7 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             });
 
         m_print_error_dlg->on_show();
+        wxGetApp().mainframe->RequestUserAttention(wxUSER_ATTENTION_ERROR);
     }
 }
 

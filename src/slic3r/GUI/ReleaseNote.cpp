@@ -645,6 +645,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->on_hide();});
+    Bind(wxEVT_ACTIVATE, [this](auto& e) { if (!e.GetActive()) this->RequestUserAttention(wxUSER_ATTENTION_ERROR); });
 
     SetSizer(m_sizer_main);
     Layout();
