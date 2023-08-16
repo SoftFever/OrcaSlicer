@@ -26,3 +26,4 @@ SVG
 src/OrcaSlicer-doc/
 .idea/
 /.cache/
+*.mo
