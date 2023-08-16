@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 09:44+0800\n"
+"POT-Creation-Date: 2023-08-16 20:44+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -823,6 +823,9 @@ msgstr "圆柱体"
 
 msgid "Cone"
 msgstr "锥体"
+
+msgid "Disc"
+msgstr "圆盘"
 
 msgid "Bambu Cube"
 msgstr "Bambu方块"
@@ -3382,9 +3385,6 @@ msgstr "教程"
 msgid "Calibration help"
 msgstr "校准帮助"
 
-msgid "Orca Tolerance Test"
-msgstr ""
-
 msgid "More calibrations"
 msgstr "更多校准"
 
@@ -3686,11 +3686,24 @@ msgstr "下载完成"
 msgid "Downloading %d%%..."
 msgstr "下载中 %d%%..."
 
+msgid "Connection lost. Please retry."
+msgstr "连接丢失。请重试。"
+
+msgid "File not exists."
+msgstr "文件不存在"
+
+msgid "File checksum error. Please retry."
+msgstr "文件校验和错误。请重试。"
+
 msgid "Not supported on the current printer version."
 msgstr "当前打印机的版本不支持。"
 
 msgid "Storage unavailable, insert SD card."
 msgstr "存储不可用，请插入SD卡。"
+
+#, c-format, boost-format
+msgid "Error code: %d"
+msgstr "错误码：%d"
 
 msgid "Speed:"
 msgstr "速度："
@@ -4841,6 +4854,12 @@ msgstr "跟随全局打印顺序"
 
 msgid "Print sequence"
 msgstr "打印顺序"
+
+msgid "Customize"
+msgstr "自定义"
+
+msgid "First layer filament sequence"
+msgstr "首层耗材打印顺序"
 
 msgid "Same as Global Plate Type"
 msgstr "跟随全局打印板类型"
@@ -9279,7 +9298,7 @@ msgstr "我们找到了最佳的动态流量校准因子。"
 
 msgid ""
 "Part of the calibration failed! You may clean the plate and retry. The "
-"failed test result would be droped."
+"failed test result would be dropped."
 msgstr "部分校准失败！您可以清洁打印平台并重试。未通过的测试结果将被丢弃。"
 
 msgid ""
@@ -9456,6 +9475,9 @@ msgid "PA Tower"
 msgstr ""
 
 msgid "PA Line"
+msgstr ""
+
+msgid "PA Pattern"
 msgstr ""
 
 msgid "Method"
@@ -9922,6 +9944,14 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "The failed test result has been droped."
+#~ msgstr "测试失败的结果已被删除。"
+
+#~ msgid ""
+#~ "Part of the calibration failed! You may clean the plate and retry. The "
+#~ "failed test result would be droped."
+#~ msgstr "部分校准失败！您可以清洁打印平台并重试。未通过的测试结果将被丢弃。"
 
 #, c-format, boost-format
 #~ msgid ""

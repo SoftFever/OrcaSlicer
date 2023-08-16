@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 09:44+0800\n"
+"POT-Creation-Date: 2023-08-16 20:44+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -821,6 +821,9 @@ msgstr "シリンダー"
 
 msgid "Cone"
 msgstr "コーン"
+
+msgid "Disc"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr ""
@@ -3407,9 +3410,6 @@ msgstr ""
 msgid "Calibration help"
 msgstr ""
 
-msgid "Orca Tolerance Test"
-msgstr ""
-
 msgid "More calibrations"
 msgstr ""
 
@@ -3707,10 +3707,23 @@ msgstr "ダウンロード完了"
 msgid "Downloading %d%%..."
 msgstr "ダウンロード中 %d%%"
 
+msgid "Connection lost. Please retry."
+msgstr ""
+
+msgid "File not exists."
+msgstr ""
+
+msgid "File checksum error. Please retry."
+msgstr ""
+
 msgid "Not supported on the current printer version."
 msgstr ""
 
 msgid "Storage unavailable, insert SD card."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Error code: %d"
 msgstr ""
 
 msgid "Speed:"
@@ -4886,6 +4899,12 @@ msgstr "Same as Global Print Sequence"
 
 msgid "Print sequence"
 msgstr "造形シーケンス"
+
+msgid "Customize"
+msgstr ""
+
+msgid "First layer filament sequence"
+msgstr ""
 
 msgid "Same as Global Plate Type"
 msgstr "Same as Global Plate Type"
@@ -9551,6 +9570,9 @@ msgid "PA Tower"
 msgstr ""
 
 msgid "PA Line"
+msgstr ""
+
+msgid "PA Pattern"
 msgstr ""
 
 msgid "Method"
