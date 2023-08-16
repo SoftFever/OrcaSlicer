@@ -4481,7 +4481,7 @@ void GUI_App::sync_preset(Preset* preset)
     if (preset->is_custom_defined()) return;
 
     auto setting_id = preset->setting_id;
-    if (setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
+    if (setting_id.empty() && preset->sync_info.empty()) {
         std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
@@ -4507,7 +4507,7 @@ void GUI_App::sync_preset(Preset* preset)
             updated_info = "hold";
         }
     }
-    else if ((preset->sync_info.compare("create") == 0) && !preset->base_id.empty()) {
+    else if (preset->sync_info.compare("create") == 0) {
         std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
@@ -4531,7 +4531,7 @@ void GUI_App::sync_preset(Preset* preset)
             BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: can not generate differed preset";
         }
     }
-    else if ((preset->sync_info.compare("update") == 0) && !preset->base_id.empty()) {
+    else if (preset->sync_info.compare("update") == 0) {
         if (!setting_id.empty()) {
             std::map<std::string, std::string> values_map;
             int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);

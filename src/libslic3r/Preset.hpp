@@ -245,6 +245,7 @@ public:
     //BBS: add logic for only difference save
     //if parent_config is null, save all keys, otherwise, only save difference
     void                save(DynamicPrintConfig* parent_config);
+    void                reload(Preset const & parent);
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
     std::string         label(bool no_alias) const;
@@ -518,6 +519,7 @@ public:
 	// Get parent preset for a child preset, based on the "inherits" field of a child,
 	// where the "inherits" profile name is searched for in both m_presets and m_map_system_profile_renamed.
 	const Preset*	get_preset_parent(const Preset& child) const;
+	const Preset*	get_preset_base(const Preset& child) const;
 	// Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
@@ -652,7 +654,8 @@ public:
     bool            select_preset_by_name(const std::string &name, bool force);
 
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
-    std::string     path_from_name(const std::string &new_name) const;
+    std::string     path_from_name(const std::string &new_name, bool detach = false) const;
+    std::string     path_for_preset(const Preset & preset) const;
 
     size_t num_default_presets() { return m_num_default_presets; }
 

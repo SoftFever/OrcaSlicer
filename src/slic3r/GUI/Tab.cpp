@@ -4702,12 +4702,31 @@ void Tab::delete_preset()
     std::string action =  _utf8(L("Delete"));
     //std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
     // TRN  remove/delete
+    wxString msg;
+
+    if (m_presets->get_preset_base(current_preset) == &current_preset) {
+        int count = 0;
+        wxString presets;
+        for (auto &preset2 : *m_presets)
+            if (preset2.inherits() == current_preset.name) {
+                ++count;
+                presets += "\n - " + preset2.name;
+            }
+        if (count > 0) {
+            msg = _L("Presets inherited by other presets cannot be deleted");
+            msg += "\n";
+            msg += _L_PLURAL("The following presets inherits this preset.",
+                            "The following preset inherits this preset.", count);
+            wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str()); // action + _(L(" Preset"));
+            MessageDialog(parent(), msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
+            return;
+        }
+    }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("delete preset %1%, setting_id %2%, user_id %3%, base_id %4%, sync_info %5%, type %6%")
         %current_preset.name%current_preset.setting_id%current_preset.user_id%current_preset.base_id%current_preset.sync_info
         %Preset::get_type_string(m_type);
     PhysicalPrinterCollection& physical_printers = m_preset_bundle->physical_printers;
-    wxString msg;
 
     if (m_type == Preset::TYPE_PRINTER && !physical_printers.empty())
     {

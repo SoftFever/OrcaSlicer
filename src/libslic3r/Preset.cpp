@@ -509,6 +509,8 @@ void Preset::save(DynamicPrintConfig* parent_config)
     else
         from_str = std::string("Default");
 
+    boost::filesystem::create_directories(fs::path(this->file).parent_path());
+
     //BBS: only save difference if it has parent
     if (parent_config) {
         DynamicPrintConfig temp_config;
@@ -528,6 +530,23 @@ void Preset::save(DynamicPrintConfig* parent_config)
     fs::path idx_file(this->file);
     idx_file.replace_extension(".info");
     this->save_info(idx_file.string());
+}
+
+void Preset::reload(Preset const &parent)
+{
+    DynamicPrintConfig config;
+    // BBS: change to json format
+    // ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
+    std::map<std::string, std::string> key_values;
+    std::string                        reason;
+    ForwardCompatibilitySubstitutionRule substitution_rule    = ForwardCompatibilitySubstitutionRule::Disable;
+    try {
+        ConfigSubstitutions                config_substitutions = config.load_from_json(file, substitution_rule, key_values, reason);
+        this->config = parent.config;
+        this->config.apply(std::move(config));
+    } catch (const std::exception &err) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("Failed loading the user-config file: %1%. Reason: %2%") % file % err.what();
+    }
 }
 
 // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
@@ -1042,6 +1061,11 @@ void PresetCollection::load_presets(
     // see https://github.com/prusa3d/PrusaSlicer/issues/732
     boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / subdir).make_preferred();
 
+    // Load custom roots first
+    if (fs::exists(dir / "base")) {
+        load_presets(dir.string(), "base", substitutions, substitution_rule);
+    }
+
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, load presets from %1%, current type %2%")%dir %Preset::get_type_string(m_type);
     //BBS do not parse folder if not exists
@@ -1110,6 +1134,8 @@ void PresetCollection::load_presets(
 
                     if (key_values.find(BBL_JSON_KEY_IS_CUSTOM) != key_values.end())
                         preset.custom_defined = key_values[BBL_JSON_KEY_IS_CUSTOM];
+                    if (key_values.find("instantiation") != key_values.end())
+                        preset.is_visible = key_values["instantiation"] != "false";
 
                     //BBS: use inherit config as the base
                     Preset* inherit_preset = nullptr;
@@ -1129,12 +1155,12 @@ void PresetCollection::load_presets(
                         preset.filament_id = inherit_preset->filament_id;
                     }
                     else {
-                        if (!preset.is_custom_defined()) {
+                        // We support custom root preset now
+                        auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
+                        if ((inherits_config2 && !inherits_config2->value.empty()) && !preset.is_custom_defined()) {
                             BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset.file;
                             continue;
                         }
-                        //should not happen
-                        //BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset.file;
                         // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
                         preset.config = default_preset.config;
                     }
@@ -1243,16 +1269,19 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
             if (opt_src)
                 key_values[option] = opt_src->serialize();
         }
-        //add other values
-        key_values[BBL_JSON_KEY_VERSION] = preset.version.to_string();
-        key_values[BBL_JSON_KEY_BASE_ID] = preset.base_id;
-        key_values[BBL_JSON_KEY_UPDATE_TIME] = std::to_string(preset.updated_time);
-        key_values[BBL_JSON_KEY_TYPE] = Preset::get_iot_type_string(preset.type);
     }
     else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" Error: can not find the parent! Should not happen, name %1%") %preset.name;
-        return -1;
+        for (auto iter = preset.config.cbegin(); iter != preset.config.cend(); ++iter)
+        {
+            key_values[iter->first] = iter->second->serialize();
+        }
     }
+
+    //add other values
+    key_values[BBL_JSON_KEY_VERSION] = preset.version.to_string();
+    key_values[BBL_JSON_KEY_BASE_ID] = preset.base_id;
+    key_values[BBL_JSON_KEY_UPDATE_TIME] = std::to_string(preset.updated_time);
+    key_values[BBL_JSON_KEY_TYPE] = Preset::get_iot_type_string(preset.type);
     return 0;
 }
 
@@ -1397,6 +1426,13 @@ void PresetCollection::set_sync_info_and_save(std::string name, std::string sett
                 preset->sync_info.clear();
             else
                 preset->sync_info = syncinfo;
+            if (get_preset_base(*preset) == preset) {
+                for (auto preset2 : m_presets)
+                    if (preset2.inherits() == preset->name) {
+                        preset2.base_id = setting_id;
+                        preset2.save_info();
+                    }
+            }
             preset->setting_id = setting_id;
             if (update_time > 0)
                 preset->updated_time = update_time;
@@ -1425,6 +1461,8 @@ int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
     lock();
     for (Preset &preset : m_presets) {
         if (!preset.is_user()) continue;
+        if (get_preset_base(preset) != &preset && preset.base_id.empty()) continue;
+        if (!preset.setting_id.empty() && preset.sync_info.empty()) continue;
 
         result_presets.push_back(preset);
         count++;
@@ -1463,7 +1501,7 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
         if (!preset->is_user()) continue;
         if (preset->sync_info != "save") continue;
         preset->sync_info.clear();
-        preset->file = path_from_name(preset->name);
+        preset->file = path_for_preset(*preset);
 
         if (preset->is_custom_defined()) {
             preset->save(nullptr);
@@ -1471,11 +1509,13 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
             //BBS: only save difference for user preset
             std::string inherits = Preset::inherits(preset->config);
             if (inherits.empty()) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" can not find inherits for %1% , should not happen")%preset->name;
-                // BBS add sync info
-                preset->sync_info = "delete";
-                need_to_delete_list.push_back(preset->setting_id);
-                delete_name_list.push_back(preset->name);
+                // We support custom root preset now
+                //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" can not find inherits for %1% , should not happen")%preset->name;
+                //// BBS add sync info
+                //preset->sync_info = "delete";
+                //need_to_delete_list.push_back(preset->setting_id);
+                //delete_name_list.push_back(preset->name);
+                preset->save(nullptr);
                 continue;
             }
             Preset* parent_preset = this->find_preset(inherits, false, true);
@@ -1606,12 +1646,16 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             new_config = inherit_preset->config;
         }
         else {
+            // We support custom root preset now
+            auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
+            if (inherits_config2 && !inherits_config2->value.empty()) {
+                //we should skip this preset here
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip")%name;
+                unlock();
+                return false;
+            }
             // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-            //new_config = default_preset.config;
-            //we should skip this preset here
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip")%name;
-            unlock();
-            return false;
+            new_config = default_preset.config;
         }
         new_config.apply(std::move(cloud_config));
         Preset::normalize(new_config);
@@ -1981,7 +2025,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     }
     else {
         //external config
-        preset.file = path_from_name(preset.name);
+        preset.file = path_for_preset(preset);
         //BBS: save full config here for external
         //we can not reach here
         preset.save(nullptr);
@@ -2058,13 +2102,18 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         //BBS: add lock logic for sync preset in background
         final_inherits = preset.inherits();
         unlock();
+        // TODO: apply change from custom root to devided presets.
+        if (preset.inherits().empty()) {
+            for (auto &preset2 : m_presets)
+                if (preset2.inherits() == preset.name)
+                    preset2.reload(preset);
+        }
     } else {
         // Creating a new preset.
         Preset       &preset   = *m_presets.insert(it, curr_preset);
         std::string  &inherits = preset.inherits();
         std::string   old_name = preset.name;
         preset.name = new_name;
-        preset.file = this->path_from_name(new_name);
         preset.vendor = nullptr;
 		preset.alias.clear();
         preset.renamed_from.clear();
@@ -2073,16 +2122,13 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         	// Clear the link to the parent profile.
         	inherits.clear();
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
-        } else if (preset.is_system) {
-            // Inheriting from a system preset.
-            inherits = /* preset.vendor->name + "/" + */ old_name;
-        } else if (inherits.empty()) {
-            // Inheriting from a user preset. Link the new preset to the old preset.
-            // inherits = old_name;
         } else {
             // Inherited from a user preset. Just maintain the "inherited" flag,
             // meaning it will inherit from either the system preset, or the inherited user preset.
+            auto base = get_preset_base(curr_preset);
+            inherits  = base ? base->name : "";
         }
+        preset.file        = this->path_for_preset(preset);
         preset.is_default  = false;
         preset.is_system   = false;
         preset.is_external = false;
@@ -2128,6 +2174,13 @@ bool PresetCollection::delete_current_preset()
     Preset &selected = this->get_selected_preset();
     if (selected.is_default)
         return false;
+
+    if (get_preset_base(selected) == &selected) {
+        for (auto &preset2 : m_presets)
+            if (preset2.inherits() == selected.name)
+                return false;
+    }
+
     //BBS: add project embedded preset logic and refine is_external
     //if (! selected.is_external && ! selected.is_system) {
     if (! selected.is_system) {
@@ -2177,7 +2230,7 @@ const Preset* PresetCollection::get_selected_preset_parent() const
         return nullptr;
 
     const Preset 	  &selected_preset = this->get_selected_preset();
-    if (selected_preset.is_system || selected_preset.is_default)
+    if (get_preset_base(selected_preset) == &selected_preset)
         return &selected_preset;
 
     const Preset 	  &edited_preset   = this->get_edited_preset();
@@ -2223,6 +2276,17 @@ const Preset* PresetCollection::get_preset_parent(const Preset& child) const
          preset == &child) ?
             nullptr :
             preset;
+}
+
+const Preset *PresetCollection::get_preset_base(const Preset &child) const
+{
+    if (child.is_system)
+        return &child;
+    // Handle user preset
+    if (child.inherits().empty())
+        return &child; // this is user root
+    auto inherits = find_preset(child.inherits());
+    return inherits ? get_preset_base(*inherits) : nullptr;
 }
 
 // Return vendor of the first parent profile, for which the vendor is defined, or null if such profile does not exist.
@@ -2649,12 +2713,20 @@ std::vector<std::string> PresetCollection::system_preset_names() const
 }
 
 // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
-std::string PresetCollection::path_from_name(const std::string &new_name) const
+std::string PresetCollection::path_from_name(const std::string &new_name, bool detach) const
 {
      //BBS: change to json format
     //std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
     std::string file_name = boost::iends_with(new_name, ".json") ? new_name : (new_name + ".json");
-    return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+    if (detach)
+        return (boost::filesystem::path(m_dir_path) / "base" / file_name).make_preferred().string();
+    else
+        return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+}
+
+std::string PresetCollection::path_for_preset(const Preset &preset) const
+{
+    return path_from_name(preset.name, get_preset_base(preset) == &preset);
 }
 
 const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConfig &config) const

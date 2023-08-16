@@ -577,9 +577,14 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &          
     remove_users_preset(config, &my_presets);
 
     std::map<std::string, std::map<std::string, std::string>>::iterator it;
+    for (int pass = 0; pass < 2; ++pass)
     for (it = my_presets.begin(); it != my_presets.end(); it++) {
         std::string name = it->first;
         std::map<std::string, std::string>& value_map = it->second;
+        // Load user root presets at first pass
+        std::map<std::string, std::string>::iterator inherits_iter = value_map.find(BBL_JSON_KEY_INHERITS);
+        if ((pass == 1) == (inherits_iter == value_map.end() || inherits_iter->second.empty()))
+            continue;
         //get the type first
         std::map<std::string, std::string>::iterator type_iter = value_map.find(BBL_JSON_KEY_TYPE);
         if (type_iter == value_map.end()) {
@@ -694,15 +699,20 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 if (inherit_preset) {
                     new_config = inherit_preset->config;
                 } else {
+                    // We support custom root preset now
+                    auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
+                    if (inherits_config2 && !inherits_config2->value.empty()) {
+                        // we should skip this preset here
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip") % name;
+                        continue;
+                    }
                     // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                    // new_config = default_preset.config;
-                    // we should skip this preset here
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip") % name;
-                    continue;
+                    const Preset &default_preset = collection->default_preset_for(config);
+                    new_config                   = default_preset.config;
                 }
                 new_config.apply(std::move(config));
 
-                Preset &preset     = collection->load_preset(collection->path_from_name(name), name, std::move(new_config), false);
+                Preset &preset     = collection->load_preset(collection->path_from_name(name, inherit_preset == nullptr), name, std::move(new_config), false);
                 preset.is_external = true;
                 preset.version     = *version;
                 inherit_preset     = collection->find_preset(inherits_value, false, true); // pointer maybe wrong after insert, redo find
@@ -1988,7 +1998,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		if (is_external)
 			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config, different_keys, PresetCollection::LoadAndSelect::Always, file_version, filament_id);
 		else
-			presets.load_preset(presets.path_from_name(name), name, config, selected, file_version, is_custom_defined).save(nullptr);
+            presets.load_preset(presets.path_from_name(name, inherits.empty()), name, config, selected, file_version, is_custom_defined).save(nullptr);
 	};
 
     switch (Preset::printer_technology(config)) {
@@ -2057,7 +2067,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, filament_different_keys_set, PresetCollection::LoadAndSelect::Always, file_version, filament_id).first;
             else {
                 // called from Config Wizard.
-				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config, true, file_version, is_custom_defined);
+				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name, inherits.empty()), name, config, true, file_version, is_custom_defined);
 				loaded->save(nullptr);
 			}
             this->filament_presets.clear();
