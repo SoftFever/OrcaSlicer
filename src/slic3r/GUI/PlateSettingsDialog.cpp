@@ -5,8 +5,8 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SET_BED_TYPE_CONFIRM, wxCommandEvent);
 
-PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-:DPIDialog(parent, id, title, pos, size, style)
+PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title, bool only_first_layer_seq, const wxPoint& pos, const wxSize& size, long style)
+:DPIDialog(parent, wxID_ANY, title, pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -79,7 +79,7 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     m_spiral_mode_choice->Append(_L("Enable"));
     m_spiral_mode_choice->Append(_L("Disable"));
     m_spiral_mode_choice->SetSelection(0);
-    wxStaticText* spiral_mode_txt = new wxStaticText(this, wxID_ANY, _L("Spiral Vase"));
+    wxStaticText* spiral_mode_txt = new wxStaticText(this, wxID_ANY, _L("Spiral vase"));
     spiral_mode_txt->SetFont(Label::Body_14);
     top_sizer->Add(spiral_mode_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_spiral_mode_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
@@ -140,6 +140,18 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     CenterOnParent();
 
     wxGetApp().UpdateDlgDarkUI(this);
+
+    if (only_first_layer_seq) {
+        for (auto item : top_sizer->GetChildren()) {
+            if (item->GetWindow())
+                item->GetWindow()->Show(false);
+        }
+        first_layer_txt->Show();
+        m_first_layer_print_seq_choice->Show();
+        m_drag_canvas->Show();
+        Layout();
+        Fit();
+    }
 }
 
 PlateSettingsDialog::~PlateSettingsDialog()

@@ -90,6 +90,7 @@ class ParamsPanel : public wxPanel
         wxStaticLine* m_staticline_print { nullptr };
         //wxBoxSizer* m_print_sizer { nullptr };
         wxPanel* m_tab_print { nullptr };
+        wxPanel* m_tab_print_plate { nullptr };
         wxPanel* m_tab_print_object { nullptr };
         wxStaticLine* m_staticline_print_object { nullptr };
         wxPanel* m_tab_print_part { nullptr };

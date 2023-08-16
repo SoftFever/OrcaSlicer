@@ -171,6 +171,8 @@ public:
         // This type is here to support PresetConfigSubstitutions for physical printers, however it does not belong to the Preset class,
         // PhysicalPrinter class is used instead.
         TYPE_PHYSICAL_PRINTER,
+        // BBS: plate config
+        TYPE_PLATE,
         // BBS: model config
         TYPE_MODEL,
     };

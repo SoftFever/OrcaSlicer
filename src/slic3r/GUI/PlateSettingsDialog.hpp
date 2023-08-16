@@ -22,8 +22,8 @@ public:
     };
     PlateSettingsDialog(
         wxWindow* parent,
-        wxWindowID      id = wxID_ANY,
         const wxString& title = wxEmptyString,
+        bool only_first_layer_seq = false,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long            style = wxCLOSE_BOX | wxCAPTION

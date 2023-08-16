@@ -1260,6 +1260,7 @@ void MainFrame::create_preset_tabs()
     m_param_dialog = new ParamsDialog(m_plater);
 
     add_created_tab(new TabPrint(m_param_panel), "cog");
+    add_created_tab(new TabPrintPlate(m_param_panel), "cog");
     add_created_tab(new TabPrintObject(m_param_panel), "cog");
     add_created_tab(new TabPrintPart(m_param_panel), "cog");
     add_created_tab(new TabPrintLayer(m_param_panel), "cog");
@@ -1279,6 +1280,10 @@ void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*
 {
     panel->create_preset_tab();
 
+    if (panel->type() == Preset::TYPE_PLATE) {
+        wxGetApp().tabs_list.pop_back();
+        wxGetApp().plate_tab = panel;
+    }
     // BBS: model config
     if (panel->type() == Preset::TYPE_MODEL) {
         wxGetApp().tabs_list.pop_back();

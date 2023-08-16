@@ -155,6 +155,7 @@ wxDEFINE_EVENT(EVT_EXPORT_FINISHED,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_IMPORT_MODEL_ID,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD_PROJECT,                wxCommandEvent);
 wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
+wxDEFINE_EVENT(EVT_OPEN_PLATESETTINGSDIALOG,        wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
@@ -2795,6 +2796,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_SEND_CALIBRATION_FINISHED, [q](wxCommandEvent& evt) { q->send_calibration_job_finished(evt); });
         q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent &evt) { q->send_job_finished(evt); });
         q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent &evt) { q->publish_job_finished(evt);});
+        q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent &evt) { q->open_platesettings_dialog(evt);});
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -12262,6 +12264,70 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
     return;
 }
 
+void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
+    int plate_index = evt.GetInt();
+    PlateSettingsDialog dlg(this, _L("Plate Settings"), evt.GetString() == "only_first_layer_sequence");
+    PartPlate* curr_plate = p->partplate_list.get_curr_plate();
+    dlg.sync_bed_type(curr_plate->get_bed_type());
+
+    auto curr_print_seq = curr_plate->get_print_seq();
+    if (curr_print_seq != PrintSequence::ByDefault) {
+        dlg.sync_print_seq(int(curr_print_seq) + 1);
+    }
+    else
+        dlg.sync_print_seq(0);
+
+    auto first_layer_print_seq = curr_plate->get_first_layer_print_sequence();
+    if (first_layer_print_seq.empty())
+        dlg.sync_first_layer_print_seq(0);
+    else
+        dlg.sync_first_layer_print_seq(1, curr_plate->get_first_layer_print_sequence());
+
+    dlg.sync_spiral_mode(curr_plate->get_spiral_vase_mode(), !curr_plate->has_spiral_mode_config());
+
+    dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
+        PartPlate* curr_plate = p->partplate_list.get_curr_plate();
+        BedType old_bed_type = curr_plate->get_bed_type();
+        auto bt_sel = BedType(dlg.get_bed_type_choice());
+        if (old_bed_type != bt_sel) {
+            curr_plate->set_bed_type(bt_sel);
+            update_project_dirty_from_presets();
+            set_plater_dirty(true);
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side") % bt_sel % plate_index;
+
+        if (dlg.get_first_layer_print_seq_choice() != 0)
+            curr_plate->set_first_layer_print_sequence(dlg.get_first_layer_print_seq());
+        else
+            curr_plate->set_first_layer_print_sequence({});
+
+        int ps_sel = dlg.get_print_seq_choice();
+        if (ps_sel != 0)
+            curr_plate->set_print_seq(PrintSequence(ps_sel - 1));
+        else
+            curr_plate->set_print_seq(PrintSequence::ByDefault);
+
+        int spiral_sel = dlg.get_spiral_mode_choice();
+        if (spiral_sel == 1) {
+            curr_plate->set_spiral_vase_mode(true, false);
+        }
+        else if (spiral_sel == 2) {
+            curr_plate->set_spiral_vase_mode(false, false);
+        }
+        else {
+            curr_plate->set_spiral_vase_mode(false, true);
+        }
+
+        update_project_dirty_from_presets();
+        set_plater_dirty(true);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select print sequence %1% for plate %2% at plate side") % ps_sel % plate_index;
+        auto plate_config = *(curr_plate->config());
+        wxGetApp().plater()->config_change_notification(plate_config, std::string("print_sequence"));
+        update();
+        wxGetApp().obj_list()->update_selections();
+        });
+    dlg.ShowModal();
+}
 
 //BBS: select Plate by hover_id
 int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName)
@@ -12403,64 +12469,10 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         //set the plate type
         ret = select_plate(plate_index);
         if (!ret) {
-            PlateSettingsDialog dlg(this, wxID_ANY, _L("Plate Settings"));
-            PartPlate* curr_plate = p->partplate_list.get_curr_plate();
-            dlg.sync_bed_type(curr_plate->get_bed_type());
-
-            auto curr_print_seq = curr_plate->get_print_seq();
-            if (curr_print_seq != PrintSequence::ByDefault) {
-                dlg.sync_print_seq(int(curr_print_seq) + 1);
-            }
-            else
-                dlg.sync_print_seq(0);
-
-            auto first_layer_print_seq = curr_plate->get_first_layer_print_sequence();
-            if (first_layer_print_seq.empty())
-                dlg.sync_first_layer_print_seq(0);
-            else
-                dlg.sync_first_layer_print_seq(1, curr_plate->get_first_layer_print_sequence());
-
-            dlg.sync_spiral_mode(curr_plate->get_spiral_vase_mode(), !curr_plate->has_spiral_mode_config());
-
-            dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
-                PartPlate *curr_plate = p->partplate_list.get_curr_plate();
-                BedType old_bed_type = curr_plate->get_bed_type();
-                auto bt_sel = BedType(dlg.get_bed_type_choice());
-                if (old_bed_type != bt_sel) {
-                    curr_plate->set_bed_type(bt_sel);
-                    update_project_dirty_from_presets();
-                    set_plater_dirty(true);
-                }
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%bt_sel %plate_index;
-
-                if (dlg.get_first_layer_print_seq_choice() != 0)
-                    curr_plate->set_first_layer_print_sequence(dlg.get_first_layer_print_seq());
-                else
-                    curr_plate->set_first_layer_print_sequence({});
-
-                int ps_sel = dlg.get_print_seq_choice();
-                if (ps_sel != 0)
-                    curr_plate->set_print_seq(PrintSequence(ps_sel - 1));
-                else
-                    curr_plate->set_print_seq(PrintSequence::ByDefault);
-
-                int spiral_sel = dlg.get_spiral_mode_choice();
-                if (spiral_sel == 1) {
-                    curr_plate->set_spiral_vase_mode(true, false);
-                }else if (spiral_sel == 2) {
-                    curr_plate->set_spiral_vase_mode(false, false);
-                }else {
-                    curr_plate->set_spiral_vase_mode(false, true);
-                }
-
-                update_project_dirty_from_presets();
-                set_plater_dirty(true);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select print sequence %1% for plate %2% at plate side")%ps_sel %plate_index;
-                auto plate_config = *(curr_plate->config());
-                wxGetApp().plater()->config_change_notification(plate_config, std::string("print_sequence"));
-                update();
-                });
-            dlg.ShowModal();
+            wxCommandEvent evt(EVT_OPEN_PLATESETTINGSDIALOG);
+            evt.SetInt(plate_index);
+            evt.SetEventObject(this);
+            wxPostEvent(this, evt);
 
             this->schedule_background_process();
         }

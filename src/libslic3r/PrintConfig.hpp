@@ -202,6 +202,12 @@ enum BedType {
 };
 
 // BBS
+enum FirstLayerSeq {
+    flsAuto, 
+    flsCutomize
+};
+
+// BBS
 enum NozzleType {
     ntUndefine = 0,
     ntHardenedSteel,

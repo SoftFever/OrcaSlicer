@@ -1027,8 +1027,19 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = config.opt_int(opt_key, idx);
 		break;
 	case coEnum:
+        if (!config.has("first_layer_sequence_choice") && opt_key == "first_layer_sequence_choice") {
+            // reset to Auto value
+            ret = 0;
+            break;
+        }
+        if (!config.has("curr_bed_type") && opt_key == "curr_bed_type") {
+            // reset to global value
+            DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
+            ret = global_cfg.option("curr_bed_type")->getInt();
+            break;
+        }
         ret = config.option(opt_key)->getInt();
-		break;
+        break;
     // BBS
     case coEnums:
         ret = config.opt_int(opt_key, idx);

@@ -292,6 +292,13 @@ static const t_config_enum_values s_keys_map_BedType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
+// BBS
+static const t_config_enum_values s_keys_map_FirstLayerSeq = {
+    { "Auto",              flsAuto },
+    { "Customize",         flsCutomize },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FirstLayerSeq)
+
 static t_config_enum_values s_keys_map_NozzleType {
     { "undefine",       int(NozzleType::ntUndefine) },
     { "hardened_steel", int(NozzleType::ntHardenedSteel) },
@@ -642,6 +649,18 @@ void PrintConfigDef::init_fff_params()
     def->min        = 0;
     def->max        = 16;
     def->set_default_value(new ConfigOptionInts{0});
+
+    def = this->add("first_layer_sequence_choice", coEnum);
+    def->category = L("Quality");
+    def->label = L("First layer filament sequence");
+    def->tooltip = L("test");
+    def->enum_keys_map = &ConfigOptionEnum<FirstLayerSeq>::get_enum_values();
+    def->enum_values.push_back("Auto");
+    def->enum_values.push_back("Customize");
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Customize"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FirstLayerSeq>(flsAuto));
 
     def = this->add("before_layer_change_gcode", coString);
     def->label = L("Before layer change G-code");

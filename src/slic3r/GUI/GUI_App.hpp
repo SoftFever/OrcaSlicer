@@ -471,6 +471,7 @@ public:
     bool            load_language(wxString language, bool initial);
 
     Tab*            get_tab(Preset::Type type);
+    Tab*            get_plate_tab();
     Tab*            get_model_tab(bool part = false);
     Tab*            get_layer_tab();
     ConfigOptionMode get_mode();
@@ -573,6 +574,7 @@ public:
 
     std::vector<Tab *>      tabs_list;
     std::vector<Tab *>      model_tabs_list;
+    Tab*                    plate_tab;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
 	//OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }

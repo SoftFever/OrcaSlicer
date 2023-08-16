@@ -5097,6 +5097,11 @@ Tab* GUI_App::get_tab(Preset::Type type)
     return nullptr;
 }
 
+Tab* GUI_App::get_plate_tab()
+{
+    return plate_tab;
+}
+
 Tab* GUI_App::get_model_tab(bool part)
 {
     return model_tabs_list[part ? 1 : 0];
