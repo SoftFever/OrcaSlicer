@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-08 10:00+0800\n"
+"POT-Creation-Date: 2023-08-16 20:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3497,9 +3497,6 @@ msgstr ""
 msgid "Calibration help"
 msgstr ""
 
-msgid "Orca Tolerance Test"
-msgstr ""
-
 msgid "More calibrations"
 msgstr ""
 
@@ -5010,6 +5007,12 @@ msgstr "Same as Global Print Sequence"
 
 msgid "Print sequence"
 msgstr "Nyomtatás sorrendje"
+
+msgid "Customize"
+msgstr ""
+
+msgid "First layer filament sequence"
+msgstr ""
 
 msgid "Same as Global Plate Type"
 msgstr "Same as Global Plate Type"
@@ -7079,6 +7082,9 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "Nyomtató által támogatott asztaltípusok"
+
+msgid "First layer print sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Ez a G-kód minden rétegváltáshoz bekerül a Z tengely emelése előtt."
@@ -9935,6 +9941,9 @@ msgid "PA Tower"
 msgstr ""
 
 msgid "PA Line"
+msgstr ""
+
+msgid "PA Pattern"
 msgstr ""
 
 msgid "Method"

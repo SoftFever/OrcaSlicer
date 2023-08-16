@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-08 10:00+0800\n"
+"POT-Creation-Date: 2023-08-16 20:22+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3370,9 +3370,6 @@ msgstr "教程"
 msgid "Calibration help"
 msgstr "校准帮助"
 
-msgid "Orca Tolerance Test"
-msgstr ""
-
 msgid "More calibrations"
 msgstr "更多校准"
 
@@ -4817,6 +4814,12 @@ msgstr "跟随全局打印顺序"
 
 msgid "Print sequence"
 msgstr "打印顺序"
+
+msgid "Customize"
+msgstr "自定义"
+
+msgid "First layer filament sequence"
+msgstr "首层耗材打印顺序"
 
 msgid "Same as Global Plate Type"
 msgstr "跟随全局打印板类型"
@@ -6720,6 +6723,9 @@ msgstr "首层热床温度。0值表示这个耗材丝不支持纹理PEI热床"
 
 msgid "Bed types supported by the printer"
 msgstr "打印机所支持的打印板类型"
+
+msgid "First layer print sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
@@ -9420,6 +9426,9 @@ msgid "PA Tower"
 msgstr ""
 
 msgid "PA Line"
+msgstr ""
+
+msgid "PA Pattern"
 msgstr ""
 
 msgid "Method"

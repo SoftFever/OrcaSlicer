@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-08 10:00+0800\n"
+"POT-Creation-Date: 2023-08-16 20:22+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3512,9 +3512,6 @@ msgstr ""
 msgid "Calibration help"
 msgstr ""
 
-msgid "Orca Tolerance Test"
-msgstr ""
-
 msgid "More calibrations"
 msgstr ""
 
@@ -5030,6 +5027,12 @@ msgstr "Uguale a Sequenza stampa globale"
 
 msgid "Print sequence"
 msgstr "Sequenza di stampa"
+
+msgid "Customize"
+msgstr ""
+
+msgid "First layer filament sequence"
+msgstr ""
 
 msgid "Same as Global Plate Type"
 msgstr "Uguale al tipo di piano globale"
@@ -7113,6 +7116,9 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "Tipi di piatti supportati dalla stampante"
+
+msgid "First layer print sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
@@ -10007,6 +10013,9 @@ msgid "PA Tower"
 msgstr ""
 
 msgid "PA Line"
+msgstr ""
+
+msgid "PA Pattern"
 msgstr ""
 
 msgid "Method"
