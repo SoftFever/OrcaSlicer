@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "setting_id": "GFSG00_03",
+    "name": "Bambu PETG Basic @BBL N1 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PETG Basic @BBL X1C",
+    "filament_flow_ratio": [
+        "0.94"
+    ],
+    "filament_max_volumetric_speed": [
+        "9"
+    ],
+    "compatible_printers": [
+        "Bambu Lab N1 0.4 nozzle"
+    ]
+}

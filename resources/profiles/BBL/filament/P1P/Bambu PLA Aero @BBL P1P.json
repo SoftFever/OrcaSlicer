@@ -8,6 +8,15 @@
     "hot_plate_temp_initial_layer": [
         "65"
     ],
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
     "hot_plate_temp": [
         "65"
     ],
@@ -17,18 +26,16 @@
     "textured_plate_temp": [
         "65"
     ],
-    "fan_min_speed": [
-        "50"
-    ],
-    "fan_cooling_layer_time": [
-        "80"
-    ],
+   
     "slow_down_layer_time": [
         "8"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab P1P 0.6 nozzle",
-        "Bambu Lab P1P 0.8 nozzle"
+        "Bambu Lab P1P 0.8 nozzle",
+        "Bambu Lab N1 0.4 nozzle",
+        "Bambu Lab N1 0.6 nozzle",
+        "Bambu Lab N1 0.8 nozzle"
     ]
 }

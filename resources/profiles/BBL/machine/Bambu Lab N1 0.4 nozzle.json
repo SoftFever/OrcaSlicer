@@ -28,12 +28,12 @@
         "15000"
     ],
     "machine_max_acceleration_x": [
-        "10000",
-        "10000"
+        "6000",
+        "6000"
     ],
     "machine_max_acceleration_y": [
-        "10000",
-        "10000"
+        "6000",
+        "6000"
     ],
     "machine_max_acceleration_z": [
         "1500",

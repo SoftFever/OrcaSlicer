@@ -5,20 +5,20 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic ABS @base",
-    "filament_max_volumetric_speed": [
-        "2"
-    ],
     "fan_max_speed": [
         "20"
     ],
-    "reduce_fan_stop_start_freq": [
-        "0"
+    "filament_max_volumetric_speed": [
+        "2"
     ],
     "hot_plate_temp": [
         "100"
     ],
     "hot_plate_temp_initial_layer": [
         "100"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
     ],
     "textured_plate_temp": [
         "100"
@@ -27,7 +27,6 @@
         "100"
     ],
     "compatible_printers": [
-        "Bambu Lab P1P 0.2 nozzle",
-        "Bambu Lab N1 0.2 nozzle"
+        "Bambu Lab P1P 0.2 nozzle"
     ]
 }
