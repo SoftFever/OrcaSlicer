@@ -2700,7 +2700,7 @@ bool MachineObject::is_support_print_with_timelapse()
 
 bool MachineObject::is_camera_busy_off()
 {
-    if (printer_type == "C11" || printer_type == "C12")
+    if (printer_type == "C11" || printer_type == "C12" || printer_type == "N1")
         return is_in_prepare() || is_in_upgrading();
     return false;
 }
