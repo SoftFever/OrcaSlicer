@@ -1877,16 +1877,19 @@ void AmsCans::Update(AMSinfo info)
             lib->canLib->Hide();
         }
     }
-    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-        CanRoads *road = m_can_road_list[i];
-        if (i < m_can_count) {
-            road->canRoad->Update(m_info, info.cans[i], i, m_can_count);
-            road->canRoad->Show();
-        } else {
-            road->canRoad->Hide();
+
+    if (m_ams_model == AMSModel::GENERIC_AMS) {
+        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+            CanRoads* road = m_can_road_list[i];
+            if (i < m_can_count) {
+                road->canRoad->Update(m_info, info.cans[i], i, m_can_count);
+                road->canRoad->Show();
+            }
+            else {
+                road->canRoad->Hide();
+            }
         }
     }
-
     Layout();
 }
 
