@@ -3144,7 +3144,7 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (is_blocking_printing()) {
+    if (m_print_type == PrintFromType::FROM_NORMAL && is_blocking_printing()) {
         show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
         return;
     }
