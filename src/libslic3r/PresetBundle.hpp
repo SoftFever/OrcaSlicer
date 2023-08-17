@@ -159,6 +159,7 @@ public:
         // Load a system config bundle.
         LoadSystem,
         LoadVendorOnly,
+        LoadFilamentOnly,
     };
     using LoadConfigBundleAttributes = enum_bitmask<LoadConfigBundleAttribute>;
     // Load the config bundle based on the flags.
@@ -208,6 +209,10 @@ public:
     // Unselected option would be reverted to the beginning values
     //BBS: add project embedded preset logic
     void                        save_changes_for_preset(const std::string& new_name, Preset::Type type, const std::vector<std::string>& unselected_options, bool save_to_project = false);
+
+    std::pair<PresetsConfigSubstitutions, std::string> load_system_models_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
+    std::pair<PresetsConfigSubstitutions, std::string> load_system_filaments_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
+    VendorProfile                                      get_custom_vendor_models() const;
 
     //BBS: add BBL as default
     static const char *BBL_BUNDLE;

@@ -1100,6 +1100,112 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
     return std::make_pair(std::move(substitutions), errors_cummulative);
 }
 
+std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_models_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule)
+{
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, compatibility_rule %1%") % compatibility_rule;
+    if (compatibility_rule == ForwardCompatibilitySubstitutionRule::EnableSystemSilent)
+        // Loading system presets, don't log substitutions.
+        compatibility_rule = ForwardCompatibilitySubstitutionRule::EnableSilent;
+    else if (compatibility_rule == ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem)
+        // Loading system presets, throw on unknown option value.
+        compatibility_rule = ForwardCompatibilitySubstitutionRule::Disable;
+
+    // Here the vendor specific read only Config Bundles are stored.
+    boost::filesystem::path    dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+    PresetsConfigSubstitutions substitutions;
+    std::string                errors_cummulative;
+    for (auto &dir_entry : boost::filesystem::directory_iterator(dir)) {
+        std::string vendor_file = dir_entry.path().string();
+        if (Slic3r::is_json_file(vendor_file)) {
+            std::string vendor_name = dir_entry.path().filename().string();
+            // Remove the .json suffix.
+            vendor_name.erase(vendor_name.size() - 5);
+            try {
+                // Load the config bundle, flatten it.
+                append(substitutions, load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadVendorOnly, compatibility_rule).first);
+            } catch (const std::runtime_error &err) {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
+            }
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, errors_cummulative %1%") % errors_cummulative;
+    return std::make_pair(std::move(substitutions), errors_cummulative);
+}
+
+std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_filaments_json(ForwardCompatibilitySubstitutionRule compatibility_rule)
+{
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, compatibility_rule %1%") % compatibility_rule;
+    if (compatibility_rule == ForwardCompatibilitySubstitutionRule::EnableSystemSilent)
+        // Loading system presets, don't log substitutions.
+        compatibility_rule = ForwardCompatibilitySubstitutionRule::EnableSilent;
+    else if (compatibility_rule == ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem)
+        // Loading system presets, throw on unknown option value.
+        compatibility_rule = ForwardCompatibilitySubstitutionRule::Disable;
+
+    // Here the vendor specific read only Config Bundles are stored.
+    boost::filesystem::path    dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+    PresetsConfigSubstitutions substitutions;
+    std::string                errors_cummulative;
+    bool                       first = true;
+    for (auto &dir_entry : boost::filesystem::directory_iterator(dir)) {
+        std::string vendor_file = dir_entry.path().string();
+        if (Slic3r::is_json_file(vendor_file)) {
+            std::string vendor_name = dir_entry.path().filename().string();
+            // Remove the .json suffix.
+            vendor_name.erase(vendor_name.size() - 5);
+            try {
+                if (first) {
+                    // Reset this PresetBundle and load the first vendor config.
+                    append(substitutions, this->load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem | PresetBundle::LoadFilamentOnly, compatibility_rule).first);
+                    first = false;
+                } else {
+                    // Load the other vendor configs, merge them with this PresetBundle.
+                    // Report duplicate profiles.
+                    PresetBundle other;
+                    append(substitutions, other.load_vendor_configs_from_json(dir.string(), vendor_name, PresetBundle::LoadSystem | PresetBundle::LoadFilamentOnly, compatibility_rule).first);
+                    std::vector<std::string> duplicates = this->merge_presets(std::move(other));
+                    if (!duplicates.empty()) {
+                        errors_cummulative += "Found duplicated settings in vendor " + vendor_name + "'s json file lists: ";
+                        for (size_t i = 0; i < duplicates.size(); ++i) {
+                            if (i > 0) errors_cummulative += ", ";
+                            errors_cummulative += duplicates[i];
+                        }
+                    }
+                }
+            } catch (const std::runtime_error &err) {
+                errors_cummulative += err.what();
+                errors_cummulative += "\n";
+            }
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, errors_cummulative %1%") % errors_cummulative;
+    return std::make_pair(std::move(substitutions), errors_cummulative);
+}
+
+VendorProfile PresetBundle::get_custom_vendor_models() const
+{
+    VendorProfile vendor;
+    vendor.name = "Custom";
+    vendor.id = "Custom";
+    for (auto &preset : printers.get_presets()) {
+        if (preset.is_system) continue;
+        if (printers.get_preset_base(preset) != &preset) continue;
+        auto model = preset.config.opt_string("printer_model");
+        auto variant = preset.config.opt_string("printer_variant");
+        auto iter_model = std::find_if(vendor.models.begin(), vendor.models.end(), [model](VendorProfile::PrinterModel &m) {
+            return m.name == model;
+        });
+        if (iter_model == vendor.models.end()) {
+            iter_model = vendor.models.emplace(vendor.models.end(), VendorProfile::PrinterModel{});
+            iter_model->name = model;
+        }
+        iter_model->variants.push_back(variant);
+    }
+    return vendor;
+}
 
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
 std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
@@ -2742,7 +2848,6 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     // Enable substitutions for user config bundle, throw an exception when loading a system profile.
     ConfigSubstitutionContext  substitution_context { compatibility_rule };
     PresetsConfigSubstitutions substitutions;
-    std::string vendor_system_path = data_dir() + "/" + PRESET_SYSTEM_DIR;
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, path %1%, compatibility_rule %2%")%path.c_str()%compatibility_rule;
@@ -2796,7 +2901,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 auto config_version = Semver::parse(version_str);
                 if (! config_version) {
                     throw ConfigurationError((boost::format("vendor %1%'s config version: %2% invalid\nSuggest cleaning the directory %3% firstly")
-                        % vendor_name % version_str %vendor_system_path).str());
+                        % vendor_name % version_str % path).str());
                 } else {
                     vendor_profile.config_version = std::move(*config_version);
                 }
@@ -2834,8 +2939,14 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<root_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
         throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
-                %root_file %err.what() %vendor_system_path).str());
+                %root_file %err.what() % path).str());
         //goto __error_process;
+    }
+
+    if (flags.has(LoadConfigBundleAttribute::LoadFilamentOnly)) {
+        machine_model_subfiles.clear();
+        machine_subfiles.clear();
+        process_subfiles.clear();
     }
 
     //2) paste the machine model
@@ -2916,7 +3027,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< subfile <<" got a nlohmann::detail::parse_error, reason = " << err.what();
             throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
-                %subfile %err.what() %vendor_system_path).str());
+                %subfile %err.what() % path).str());
         }
 
         if (! model.id.empty() && ! model.variants.empty())
@@ -3132,7 +3243,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse process setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path %vendor_system_path).str());
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
     }
 
@@ -3147,7 +3258,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse filament setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path %vendor_system_path).str());
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
     }
 
@@ -3162,7 +3273,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse printer setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path %vendor_system_path).str());
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
         }
     }
 

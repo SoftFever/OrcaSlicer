@@ -1427,7 +1427,7 @@ void PresetCollection::set_sync_info_and_save(std::string name, std::string sett
             else
                 preset->sync_info = syncinfo;
             if (get_preset_base(*preset) == preset) {
-                for (auto preset2 : m_presets)
+                for (auto & preset2 : m_presets)
                     if (preset2.inherits() == preset->name) {
                         preset2.base_id = setting_id;
                         preset2.save_info();
@@ -1436,7 +1436,7 @@ void PresetCollection::set_sync_info_and_save(std::string name, std::string sett
             preset->setting_id = setting_id;
             if (update_time > 0)
                 preset->updated_time = update_time;
-            preset->save_info();
+            preset->sync_info == "update" ? preset->save(nullptr) : preset->save_info();
             break;
         }
     }
@@ -2063,6 +2063,84 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
     return preset;
+}
+
+bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &)> modifier)
+{
+    std::vector<Preset> new_presets;
+    for (auto curr_preset : presets) {
+        new_presets.push_back(*curr_preset);
+        auto &preset = new_presets.back();
+        preset.vendor         = nullptr;
+        preset.renamed_from.clear();
+        preset.setting_id.clear();
+        preset.inherits().clear();
+        preset.is_default  = false;
+        preset.is_system   = false;
+        preset.is_external = false;
+        preset.is_visible = true;
+        preset.is_project_embedded = false;
+        modifier(preset);
+        if (find_preset(preset.name)) {
+            failures.push_back(preset.name);
+            continue;
+        }
+        preset.file                = this->path_for_preset(preset);
+        preset.alias.clear();
+        if (m_type == Preset::TYPE_PRINT)
+            preset.config.option<ConfigOptionString>("print_settings_id", true)->value = preset.name;
+        else if (m_type == Preset::TYPE_FILAMENT)
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = preset.name;
+        else if (m_type == Preset::TYPE_PRINTER)
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
+        preset.updated_time = (long long) Slic3r::Utils::get_current_time_utc();
+    }
+    if (!failures.empty())
+        return false;
+    lock();
+    for (auto preset : new_presets) {
+        auto it = this->find_preset_internal(preset.name);
+        assert(it == m_presets.end() || it->name != preset.name);
+        Preset & new_preset = *m_presets.insert(it, preset);
+        new_preset.save(nullptr);
+    }
+    unlock();
+    return true;
+}
+
+bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer)
+{
+    return clone_presets(presets, failures, [printer](Preset &preset) {
+        preset.name = preset.alias + " @ " + printer;
+        auto *compatible_printers     = dynamic_cast<ConfigOptionStrings*>(preset.config.option("compatible_printers"));
+        compatible_printers->values = std::vector<std::string>{ printer };
+    });
+}
+
+bool PresetCollection::create_presets_from_template_for_printer(std::vector<std::string> const &templates, std::vector<std::string> &failures, std::string const &printer)
+{
+    return false;
+}
+
+bool PresetCollection::clone_presets_for_filament(std::vector<Preset const *> const &presets,
+                                                  std::vector<std::string> &         failures,
+                                                  std::string const &                filament_name,
+                                                  std::string const &                filament_id)
+{
+    return clone_presets(presets, failures, [filament_name, filament_id](Preset &preset) {
+        preset.name        = filament_name + " " + preset.name.substr(preset.name.find_last_of('@'));
+        preset.alias       = filament_name;
+        preset.filament_id = filament_id;
+    });
+}
+
+std::map<std::string, std::vector<Preset const *>> PresetCollection::get_filament_presets() const
+{
+    std::map<std::string, std::vector<Preset const *>> filament_presets;
+    for (auto &preset : m_presets) {
+        if (get_preset_base(preset) == &preset) { filament_presets[preset.filament_id].push_back(&preset); }
+    }
+    return filament_presets;
 }
 
 //BBS: add project embedded preset logic

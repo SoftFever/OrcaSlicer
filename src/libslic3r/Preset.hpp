@@ -449,6 +449,13 @@ public:
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
 
+    bool clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &)> modifier);
+    bool clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer);
+    bool create_presets_from_template_for_printer(std::vector<std::string> const &templates, std::vector<std::string> &failures, std::string const &printer);
+    bool clone_presets_for_filament(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &filament_name, std::string const &filament_id);
+
+    std::map<std::string, std::vector<Preset const *>> get_filament_presets() const;
+
     // Returns a loaded preset, returns true if an existing preset was selected AND modified from config.
     // In that case the successive filament loaded for a multi material printer should not be modified, but
     // an external preset should be created instead.
