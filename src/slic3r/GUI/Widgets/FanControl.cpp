@@ -576,7 +576,7 @@ void FanControlPopup::show_aux_fan(bool support_aux_fun)
 
 void FanControlPopup::update_fan_data(MachineObject::FanType type, MachineObject* obj)
 {
-    m_is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
+    m_is_suppt_cham_fun = obj->is_support_chamber_fan;
     show_cham_fan(m_is_suppt_cham_fun);
 
     if (type ==  MachineObject::FanType::COOLING_FAN && obj->cooling_fan_speed >= 0) {

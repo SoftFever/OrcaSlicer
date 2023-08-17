@@ -1657,21 +1657,19 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
 
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
-    if (obj && obj->is_function_supported(PrinterFunction::FUNC_FLOW_CALIBRATION)) {
+    if (obj && obj->is_support_flow_calibration) {
         select_flow->Show();
     } else {
         select_flow->Hide();
     }
 
-    if (obj && obj->is_function_supported(PrinterFunction::FUNC_AUTO_LEVELING)) {
+    if (obj && obj->is_support_auto_leveling) {
         select_bed->Show();
     } else {
         select_bed->Hide();
     }
 
-    if (obj && obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)
-        && obj->is_support_print_with_timelapse()
-        && is_show_timelapse()) {
+    if (obj && obj->is_support_timelapse && is_show_timelapse()) {
         select_timelapse->Show();
     } else {
         select_timelapse->Hide();
@@ -2531,7 +2529,7 @@ void SelectMachineDialog::on_send_print()
     m_print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
 #endif
     m_print_job->connection_type = obj_->connection_type();
-    m_print_job->cloud_print_only = obj_->is_cloud_print_only;
+    m_print_job->cloud_print_only = obj_->is_support_cloud_print_only;
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_normal";
@@ -2942,10 +2940,8 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if (!obj_ 
         || obj_->amsList.empty() 
         || obj_->ams_exist_bits == 0 
-        || !obj_->m_is_support_show_bak 
-        || !obj_->ams_support_auto_switch_filament_flag
+        || !obj_->is_support_filament_backup
         || !obj_->ams_auto_switch_filament_flag 
-        || !obj_->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP)
         || !m_checkbox_list["use_ams"]->GetValue() ) {
         if (m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
@@ -3027,9 +3023,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 void SelectMachineDialog::update_ams_check(MachineObject* obj)
 {
-    if (obj && obj->is_function_supported(FUNC_USE_AMS)
-        && obj->ams_support_use_ams
-        && obj->has_ams()) {
+    if (obj && obj->ams_support_use_ams && obj->has_ams()) {
         select_use_ams->Show();
     } else {
         select_use_ams->Hide();
@@ -3107,7 +3101,7 @@ void SelectMachineDialog::update_show_status()
     reset_timeout();
     update_ams_check(obj_);
 
-    if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_ALL) && m_print_plate_idx == PLATE_ALL_IDX) {
+    if (!obj_->is_support_print_all && m_print_plate_idx == PLATE_ALL_IDX) {
         show_status(PrintDialogStatus::PrintStatusNotSupportedPrintAll);
         return;
     }
@@ -3163,7 +3157,7 @@ void SelectMachineDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusInPrinting);
         return;
     }
-    else if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_WITHOUT_SD) && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
         show_status(PrintDialogStatus::PrintStatusNoSdcard);
         return;
     }

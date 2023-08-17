@@ -729,7 +729,7 @@ void AMSMaterialsSetting::update_widgets()
         else
             m_panel_normal->Hide();
         m_panel_kn->Show();
-    } else if (obj && (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY) || obj->is_high_printer_type())) {
+    } else if (obj && (obj->ams_support_virtual_tray || obj->is_high_printer_type())) {
         m_panel_normal->Show();
         m_panel_kn->Show();
     } else {

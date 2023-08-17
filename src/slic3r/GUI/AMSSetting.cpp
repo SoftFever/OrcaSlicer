@@ -279,12 +279,24 @@ void AMSSetting::update_starting_read_mode(bool selected)
 
 void AMSSetting::update_remain_mode(bool selected)
 {
+    if (obj->is_support_update_remain) {
+        m_checkbox_remain->Show();
+        m_title_remain->Show();
+        m_tip_remain_line1->Show();
+        Layout();
+    }
+    else {
+        m_checkbox_remain->Hide();
+        m_title_remain->Hide();
+        m_tip_remain_line1->Hide();
+        Layout();
+    }
     m_checkbox_remain->SetValue(selected);
 }
 
 void AMSSetting::update_switch_filament(bool selected)
 {
-    if (obj->is_function_supported(PrinterFunction::FUNC_AUTO_SWITCH_FILAMENT)) {
+    if (obj->is_support_filament_backup) {
         m_checkbox_switch_filament->Show();
         m_title_switch_filament->Show();
         m_tip_switch_filament_line1->Show();

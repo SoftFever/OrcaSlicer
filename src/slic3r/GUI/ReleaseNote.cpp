@@ -1300,7 +1300,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
 
     //check support function
     if (!m_obj) return;
-    if (!m_obj->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD)) {
+    if (!m_obj->is_support_send_to_sdcard) {
         wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
         auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
         event.SetString(input_str);

@@ -930,7 +930,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
         error_message = L("The printer is busy on other print job");
         return;
     }
-    else if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_WITHOUT_SD) && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
         error_message = L("An SD card needs to be inserted before printing.");
         return;
     }
@@ -956,7 +956,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
 #endif
 
     print_job->connection_type  = obj_->connection_type();
-    print_job->cloud_print_only = obj_->is_cloud_print_only;
+    print_job->cloud_print_only = obj_->is_support_cloud_print_only;
 
     PrintPrepareData job_data;
     job_data.is_from_plater = false;

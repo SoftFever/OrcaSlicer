@@ -160,7 +160,7 @@ void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
 
-        if (!obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
+        if (!obj->is_support_extrusion_cali) {
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
         }
         else {

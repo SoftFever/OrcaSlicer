@@ -1444,24 +1444,23 @@ void StatusPanel::update_camera_state(MachineObject* obj)
     }
 
     //recording
-    if (obj->is_function_supported(PrinterFunction::FUNC_RECORDING)) {
-        if (m_last_recording != (obj->is_recording() ? 1: 0)) {
-            if (obj->is_recording()) {
-                m_bitmap_recording_img->SetBitmap(m_bitmap_recording_on.bmp());
-            } else {
-                m_bitmap_recording_img->SetBitmap(m_bitmap_recording_off.bmp());
-            }
-            m_last_recording = obj->is_recording() ? 1 : 0;
+    if (m_last_recording != (obj->is_recording() ? 1 : 0)) {
+        if (obj->is_recording()) {
+            m_bitmap_recording_img->SetBitmap(m_bitmap_recording_on.bmp());
         }
-        if (!m_bitmap_recording_img->IsShown())
-            m_bitmap_recording_img->Show();
-    } else {
-        if (m_bitmap_recording_img->IsShown())
-            m_bitmap_recording_img->Hide();
+        else {
+            m_bitmap_recording_img->SetBitmap(m_bitmap_recording_off.bmp());
+        }
+        m_last_recording = obj->is_recording() ? 1 : 0;
     }
+    if (!m_bitmap_recording_img->IsShown())
+        m_bitmap_recording_img->Show();
+
+    /*if (m_bitmap_recording_img->IsShown())
+        m_bitmap_recording_img->Hide();*/
 
     //timelapse
-    if (obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)) {
+    if (obj->is_support_timelapse) {
         if (m_last_timelapse != (obj->is_timelapse() ? 1: 0)) {
             if (obj->is_timelapse()) {
                 m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_on.bmp());
@@ -1815,11 +1814,9 @@ void StatusPanel::update(MachineObject *obj)
 
     if (obj) {
         // update extrusion calibration
-        if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
-            if (m_extrusion_cali_dlg) {
-                m_extrusion_cali_dlg->update_machine_obj(obj);
-                m_extrusion_cali_dlg->update();
-            }
+        if (m_extrusion_cali_dlg) {
+            m_extrusion_cali_dlg->update_machine_obj(obj);
+            m_extrusion_cali_dlg->update();
         }
 
         // update calibration status
@@ -1832,10 +1829,10 @@ void StatusPanel::update(MachineObject *obj)
         calibration_dlg->update_cali(obj);
 
 
-        if (obj->is_function_supported(PrinterFunction::FUNC_FIRSTLAYER_INSPECT)
-            || obj->is_function_supported(PrinterFunction::FUNC_AI_MONITORING)
-            || obj->is_function_supported(PrinterFunction::FUNC_BUILDPLATE_MARKER_DETECT)
-            || obj->is_function_supported(PrinterFunction::FUNC_AUTO_RECOVERY_STEP_LOSS)) {
+        if (obj->is_support_first_layer_inspect
+            || obj->is_support_ai_monitoring
+            || obj->is_support_build_plate_marker_detect
+            || obj->is_support_auto_recovery_step_loss) {
             m_options_btn->Show();
             if (print_options_dlg == nullptr) {
                 print_options_dlg = new PrintOptionsDialog(this);
@@ -1849,7 +1846,7 @@ void StatusPanel::update(MachineObject *obj)
         }
 
         //support edit chamber temp
-        if (obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_TEMP)) {
+        if (obj->is_support_chamber_edit) {
             m_tempCtrl_chamber->SetReadOnly(false);
             m_tempCtrl_chamber->Enable();
         } else {
@@ -2080,9 +2077,8 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     }
 
     m_tempCtrl_nozzle->SetCurrTemp((int) obj->nozzle_temp);
-    int nozzle_max_temp = 0;
-    if (DeviceManager::get_nozzle_max_temperature(obj->printer_type, nozzle_max_temp)) {
-        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_max_temp);
+    if (obj->nozzle_max_temperature > -1) {
+        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(obj->nozzle_max_temperature);
     }
     else {
         if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
@@ -2136,8 +2132,8 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     // update extruder icon
     update_extruder_status(obj);
 
-    bool is_suppt_aux_fun = obj->is_function_supported(PrinterFunction::FUNC_AUX_FAN);
-    bool is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
+    bool is_suppt_aux_fun = obj->is_support_aux_fan;
+    bool is_suppt_cham_fun = obj->is_support_chamber_fan;
 
     //update cham fan
     if (m_current_support_cham_fan != is_suppt_cham_fun) {
@@ -2278,8 +2274,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
     }
 
-    bool is_support_virtual_tray    = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
-    bool is_support_filament_backup = obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP);
+    bool is_support_virtual_tray    = obj->ams_support_virtual_tray;
+    bool is_support_filament_backup = obj->is_support_filament_backup;
     AMSModel ams_mode               = AMSModel::GENERIC_AMS;
 
     if (!obj
@@ -2309,7 +2305,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 
         show_ams_group(true);
 
-        if (!obj->m_is_support_show_bak || !is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
+        if (!is_support_filament_backup) {
             m_ams_control->show_auto_refill(false); 
         }
         else {
@@ -3140,7 +3136,7 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
             try {
                 int ams_id_int = atoi(ams_id.c_str());
                 m_ams_setting_dlg->ams_id = ams_id_int;
-                m_ams_setting_dlg->ams_support_remain = obj->ams_support_remain;
+                m_ams_setting_dlg->ams_support_remain = obj->is_support_update_remain;
                 m_ams_setting_dlg->Show();
             }
             catch (...) {
@@ -3569,8 +3565,8 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     m_fan_control_popup = new FanControlPopup(this);
 
     if (obj) {
-        m_fan_control_popup->show_cham_fan(obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN));
-        m_fan_control_popup->show_aux_fan(obj->is_function_supported(PrinterFunction::FUNC_AUX_FAN));
+        m_fan_control_popup->show_cham_fan(obj->is_support_chamber_fan);
+        m_fan_control_popup->show_aux_fan(obj->is_support_aux_fan);
     }
 
     auto pos = m_switch_nozzle_fan->GetScreenPosition();

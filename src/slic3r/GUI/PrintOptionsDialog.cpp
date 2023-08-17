@@ -82,7 +82,7 @@ void PrintOptionsDialog::update_ai_monitor_status()
 void PrintOptionsDialog::update_options(MachineObject* obj_)
 {
     if (!obj_) return;
-    if (obj_->is_function_supported(PrinterFunction::FUNC_AI_MONITORING)) {
+    if (obj_->is_support_ai_monitoring) {
         text_ai_monitoring->Show();
         m_cb_ai_monitoring->Show();
         text_ai_monitoring_caption->Show();
@@ -97,7 +97,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line1->Hide();
     }
 
-    if (obj_->is_function_supported(PrinterFunction::FUNC_BUILDPLATE_MARKER_DETECT)) {
+    if (obj_->is_support_build_plate_marker_detect) {
         text_plate_mark->Show();
         m_cb_plate_mark->Show();
         text_plate_mark_caption->Show();
@@ -110,7 +110,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line2->Hide();
     }
 
-    if (obj_->is_function_supported(PrinterFunction::FUNC_FIRSTLAYER_INSPECT)) {
+    if (obj_->is_support_first_layer_inspect) {
         text_first_layer->Show();
         m_cb_first_layer->Show();
         line3->Show();
@@ -121,7 +121,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line3->Hide();
     }
 
-    if (obj_->is_function_supported(PrinterFunction::FUNC_AUTO_RECOVERY_STEP_LOSS)) {
+    if (obj_->is_support_auto_recovery_step_loss) {
         text_auto_recovery->Show();
         m_cb_auto_recovery->Show();
         line4->Show();
