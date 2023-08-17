@@ -14,7 +14,6 @@
           "FUNC_VIRTUAL_CAMERA": false,
           "FUNC_PRINT_WITHOUT_SD": false,
           "FUNC_ALTER_RESOLUTION": false,
-
           "FUNC_PRINT_ALL": false,
           "FUNC_EXTRUSION_CALI": true
         },
@@ -51,7 +50,7 @@
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
       {
-          "display_name": "Bambu Lab N1",
+          "display_name": "Bambu Lab A1",
           "func": {
             "FUNC_CHAMBER_TEMP": false,
             "FUNC_FIRSTLAYER_INSPECT": false,
@@ -62,10 +61,11 @@
             "FUNC_MEDIA_FILE": false,
             "FUNC_VIRTUAL_CAMERA": false,
             "FUNC_PRINT_WITHOUT_SD": false,
-            "FUNC_ALTER_RESOLUTION": false,
-            "FUNC_AUTO_SWITCH_FILAMENT": false,
+            "FUNC_ALTER_RESOLUTION": true,
             "FUNC_CHAMBER_FAN": false,
-            "FUNC_SEND_TO_SDCARD": false
+            "FUNC_AUX_FAN": false,
+            "FUNC_UPDATE_REMAIN": false,
+            "FUNC_EXTRUSION_CALI": false
         },
         "printer_arch" : "i3",
         "camera_resolution": [ "720p" ],
