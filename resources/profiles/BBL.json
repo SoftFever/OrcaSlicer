@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.07.00.12",
+    "version": "01.07.00.16",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -370,6 +370,14 @@
             "sub_path": "filament/Bambu PLA Aero @base.json"
         },
         {
+            "name": "Overture PLA @base",
+            "sub_path": "filament/Overture PLA @base.json"
+        },
+        {
+            "name": "Overture Matte PLA @base",
+            "sub_path": "filament/Overture Matte PLA @base.json"
+        },
+        {
             "name": "Bambu TPU 95A @base",
             "sub_path": "filament/Bambu TPU 95A @base.json"
         },
@@ -402,12 +410,20 @@
             "sub_path": "filament/Bambu PETG-CF @base.json"
         },
         {
+            "name": "PolyLite PETG @base",
+            "sub_path": "filament/PolyLite PETG @base.json"
+        },
+        {
             "name": "Bambu ABS @base",
             "sub_path": "filament/Bambu ABS @base.json"
         },
         {
             "name": "Generic ABS @base",
             "sub_path": "filament/Generic ABS @base.json"
+        },
+        {
+            "name": "PolyLite ABS @base",
+            "sub_path": "filament/PolyLite ABS @base.json"
         },
         {
             "name": "Bambu PC @base",
@@ -424,6 +440,10 @@
         {
             "name": "Bambu ASA @base",
             "sub_path": "filament/Bambu ASA @base.json"
+        },
+        {
+            "name": "PolyLite ASA @base",
+            "sub_path": "filament/PolyLite ASA @base.json"
         },
         {
             "name": "Generic PVA @base",
@@ -738,6 +758,30 @@
             "sub_path": "filament/P1P/Bambu PLA Aero @BBL P1P.json"
         },
         {
+            "name": "Overture PLA @BBL X1C",
+            "sub_path": "filament/Overture PLA @BBL X1C.json"
+        },
+        {
+            "name": "Overture PLA @BBL X1",
+            "sub_path": "filament/Overture PLA @BBL X1.json"
+        },
+        {
+            "name": "Overture PLA @BBL P1P",
+            "sub_path": "filament/Overture PLA @BBL P1P.json"
+        },
+        {
+            "name": "Overture Matte PLA @BBL X1C",
+            "sub_path": "filament/Overture Matte PLA @BBL X1C.json"
+        },
+        {
+            "name": "Overture Matte PLA @BBL X1",
+            "sub_path": "filament/Overture Matte PLA @BBL X1.json"
+        },
+        {
+            "name": "Overture Matte PLA @BBL P1P",
+            "sub_path": "filament/Overture Matte PLA @BBL P1P.json"
+        },
+        {
             "name": "Bambu TPU 95A @BBL X1C",
             "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
         },
@@ -810,6 +854,14 @@
             "sub_path": "filament/P1P/Bambu PETG-CF @BBL P1P 0.4 nozzle.json"
         },
         {
+            "name": "PolyLite PETG @BBL X1C",
+            "sub_path": "filament/PolyLite PETG @BBL X1C.json"
+        },
+        {
+            "name": "PolyLite PETG @BBL P1P",
+            "sub_path": "filament/PolyLite PETG @BBL P1P.json"
+        },
+        {
             "name": "Bambu ABS @BBL X1C",
             "sub_path": "filament/Bambu ABS @BBL X1C.json"
         },
@@ -844,6 +896,14 @@
         {
             "name": "Generic ABS @BBL P1P",
             "sub_path": "filament/P1P/Generic ABS @BBL P1P.json"
+        },
+        {
+            "name": "PolyLite ABS @BBL X1C",
+            "sub_path": "filament/PolyLite ABS @BBL X1C.json"
+        },
+        {
+            "name": "PolyLite ABS @BBL P1P",
+            "sub_path": "filament/PolyLite ABS @BBL P1P.json"
         },
         {
             "name": "Bambu PC @BBL X1C",
@@ -922,6 +982,14 @@
             "sub_path": "filament/Bambu ASA @BBL X1C 0.4 nozzle.json"
         },
         {
+            "name": "PolyLite ASA @BBL X1C",
+            "sub_path": "filament/PolyLite ASA @BBL X1C.json"
+        },
+        {
+            "name": "PolyLite ASA @BBL P1P",
+            "sub_path": "filament/PolyLite ASA @BBL P1P.json"
+        },
+        {
             "name": "Generic PVA @0.2 nozzle",
             "sub_path": "filament/Generic PVA @0.2 nozzle.json"
         },
@@ -994,6 +1062,38 @@
             "sub_path": "filament/P1P/PolyLite PLA @BBL P1P 0.2 nozzle.json"
         },
         {
+            "name": "Overture PLA @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Overture PLA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture PLA @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Overture PLA @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture Matte PLA @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Overture Matte PLA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Overture Matte PLA @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Overture Matte PLA @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite PETG @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/PolyLite PETG @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite PETG @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/PolyLite PETG @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/PolyLite ABS @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite ABS @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/PolyLite ABS @BBL P1P 0.2 nozzle.json"
+        },
+        {
             "name": "Bambu PC @BBL P1S",
             "sub_path": "filament/Bambu PC @BBL P1S.json"
         },
@@ -1016,6 +1116,14 @@
         {
             "name": "Generic PC @BBL P1S",
             "sub_path": "filament/Generic PC @BBL P1S.json"
+        },
+        {
+            "name": "PolyLite ASA @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/PolyLite ASA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite ASA @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/PolyLite ASA @BBL P1P 0.2 nozzle.json"
         }
     ],
     "machine_list": [
