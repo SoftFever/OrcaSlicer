@@ -21,7 +21,7 @@
 
 namespace pt = boost::property_tree;
 
-const int PRINTING_STAGE_COUNT = 26;
+const int PRINTING_STAGE_COUNT = 32;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "printing",
     "bed_leveling",
@@ -48,7 +48,13 @@ std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "filament_unloading",
     "skip_step_pause",
     "filament_loading",
-    "motor_noise_calibration"
+    "motor_noise_calibration",
+    "ams_lost_pause",
+    "heat_break_fan_pause",
+    "chamber_temperature_control_error_pause",
+    "chamber_cooling",
+    "user_insert_gcode_pause",
+    "motor_noise_showoff"
     };
 
 
@@ -111,6 +117,16 @@ wxString get_stage_string(int stage)
         return _L("Filament loading");
     case 25:
         return _L("Motor noise calibration");
+    case 26:
+        return _L("Paused due to AMS lost");
+    case 27:
+        return _L("Paused due to low speed of the heat break fan");
+    case 28:
+        return _L("Paused due to chamber temperature control error");
+    case 29:
+        return _L("Cooling chamber");
+    case 30:
+        return _L("Motor noise showoff");
     default:
         ;
     }
