@@ -52,7 +52,7 @@
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
       {
-          "display_name": "Bambu Lab A1",
+          "display_name": "Bambu Lab A1 mini",
           "func": {
             "FUNC_CHAMBER_TEMP": false,
             "FUNC_FIRSTLAYER_INSPECT": false,
