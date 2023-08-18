@@ -82,7 +82,6 @@ arrangement::ArrangeParams init_arrange_params(Plater *p);
 
 void update_arrange_params(arrangement::ArrangeParams &params, const Plater &p, const arrangement::ArrangePolygons &selected);
 
-
 }} // namespace Slic3r::GUI
 
 #endif // ARRANGEJOB_HPP

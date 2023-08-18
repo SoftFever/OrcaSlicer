@@ -509,6 +509,7 @@ void ArrangeJob::process()
     update_arrange_params(params, *m_plater, m_selected);
     update_selected_items_inflation(m_selected, m_plater->config(), params);
     update_unselected_items_inflation(m_unselected, m_plater->config(), params);
+    update_selected_items_axis_align(m_selected, m_plater->config(), params);
 
     Points      bedpts = get_shrink_bedpts(m_plater->config(),params);
     double scaled_exclusion_gap = scale_(1);
@@ -751,6 +752,7 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.min_obj_distance                    = scaled(settings.distance);
     params.bed_shrink_x                        = settings.bed_shrink_x;
     params.bed_shrink_y                        = settings.bed_shrink_y;
+    params.align_to_y_axis                     = settings.align_to_y_axis;
 
     int state = p->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {

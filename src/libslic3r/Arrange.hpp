@@ -120,6 +120,7 @@ struct ArrangeParams {
     bool  allow_multi_materials_on_same_plate = true;
     bool  avoid_extrusion_cali_region         = true;
     bool  is_seq_print                        = false;
+    bool  align_to_y_axis                     = false;
     float bed_shrink_x = 0;
     float bed_shrink_y = 0;
     float brim_skirt_distance = 0;
@@ -172,6 +173,8 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& prin
 void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
+
+void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
 
 Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
 

@@ -2267,7 +2267,7 @@ int CLI::run(int argc, char **argv)
             Model original_model;
             std::set<std::pair<int, int>> backup_set;
             bool finished_arrange = false, first_run = true;
-            Slic3r::GUI::PartPlate* cur_plate;
+            Slic3r::GUI::PartPlate* cur_plate = nullptr;
             int low_duplicate_count = 0, up_duplicate_count = duplicate_count, arrange_count = 0;
 
             arrange_cfg.is_seq_print = false;
@@ -2476,9 +2476,15 @@ int CLI::run(int argc, char **argv)
                 else
                     arrange_cfg.min_obj_distance = scaled(22.0);
 
+                if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
+                    arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
+                }
+
                 arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
                 arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
                 arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
+                arrangement::update_selected_items_axis_align(selected, &m_print_config, arrange_cfg);
+
                 beds=get_shrink_bedpts(&m_print_config, arrange_cfg);
 
                 {
