@@ -1932,7 +1932,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("ironing_direction", coFloat);
     def->label    = L("ironing direction");
     def->category = L("Quality");
-    def->tooltip  = L("Angle for ironing, which controls the angle of the nozzle when ironing");
+    def->tooltip  = L("Angle for ironing, which controls the relative angle between the top surface and ironing");
     def->sidetext = L("°");
     def->min      = 0;
     def->max      = 360;
