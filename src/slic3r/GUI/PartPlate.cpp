@@ -2159,7 +2159,7 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, s
                 ModelObject* newObj = m_model->add_object(*object);
                 newObj->name = object->name +"_"+ std::to_string(index+1);
                 int new_obj_id = m_model->objects.size() - 1;
-                for ( size_t new_instance_id = 0; new_instance_id < object->instances.size(); new_instance_id++ )
+                for ( size_t new_instance_id = 0; new_instance_id < newObj->instances.size(); new_instance_id++ )
                 {
                     obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % newObj->id().id;
@@ -2181,6 +2181,13 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, s
             if (instance->printable)
             {
                 instance->loaded_id = instance->id().id;
+                if (need_skip) {
+                    while (skip_objects.find(instance->loaded_id) != skip_objects.end())
+                    {
+                        instance->loaded_id ++;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicated id %1% with skip, try new one %2%") %instance->id().id  % instance->loaded_id;
+                    }
+                }
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": set obj %1% instance %2%'s loaded_id to its id %3%, name %4%") % obj_id %instance_id %instance->loaded_id  % object->name;
             }
         }
@@ -5191,7 +5198,7 @@ void PartPlateList::init_bed_type_info()
 	BedTextureInfo::TexturePart pei_part2(72, -11, 150,  12, "bbl_bed_pei_bottom.svg");
 	BedTextureInfo::TexturePart pte_part1( 6,  40,  12, 200, "bbl_bed_pte_left.svg");
 	BedTextureInfo::TexturePart pte_part2(72, -11, 150,  12, "bbl_bed_pte_bottom.svg");
-	for (size_t i = 0; i < btCount; i++) { 
+	for (size_t i = 0; i < btCount; i++) {
 		bed_texture_info[i].parts.clear();
 	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
@@ -5211,7 +5218,7 @@ void PartPlateList::init_bed_type_info()
 	float x_rate      = bed_width / base_width;
 	float y_rate      = bed_height / base_height;
 	for (int i = 0; i < btCount; i++) {
-		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) { 
+		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
 			bed_texture_info[i].parts[j].x *= x_rate;
 			bed_texture_info[i].parts[j].y *= y_rate;
 			bed_texture_info[i].parts[j].w *= x_rate;
