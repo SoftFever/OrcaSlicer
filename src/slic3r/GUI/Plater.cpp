@@ -1154,8 +1154,17 @@ void Sidebar::update_presets(Preset::Type preset_type)
             printer_tab->update();
         }
 
-        bool isBBL = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+        Preset& printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+
+        bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
         wxGetApp().mainframe->show_calibration_button(!isBBL);
+
+        if (auto printer_structure_opt = printer_preset.config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
+            wxGetApp().plater()->get_current_canvas3D()->get_arrange_settings().align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
+        }
+        else
+            wxGetApp().plater()->get_current_canvas3D()->get_arrange_settings().align_to_y_axis = false;
+
         break;
     }
 

@@ -5352,6 +5352,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     std::string bed_shrink_x_key = "bed_shrink_x", bed_shrink_y_key = "bed_shrink_y";
     std::string multi_material_key = "allow_multi_materials_on_same_plate";
     std::string avoid_extrusion_key = "avoid_extrusion_cali_region";
+    std::string align_to_y_axis_key = "align_to_y_axis";
     std::string postfix;
     //BBS:
     bool seq_print = false;
@@ -5418,6 +5419,22 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         settings_out.avoid_extrusion_cali_region = false;
     }
 
+    // Align to Y axis. Only enable this option when auto rotation not enabled
+    {
+        if (settings_out.enable_rotation) {  // do not allow align to Y axis if rotation is enabled
+            imgui->disabled_begin(true);
+            settings_out.align_to_y_axis = false;
+        }
+
+        if (imgui->bbl_checkbox(_L("Align to Y axis"), settings.align_to_y_axis)) {
+            settings_out.align_to_y_axis = settings.align_to_y_axis;
+            appcfg->set("arrange", align_to_y_axis_key, settings_out.align_to_y_axis ? "1" : "0");
+            settings_changed = true;
+        }
+
+        if (settings_out.enable_rotation == true) { imgui->disabled_end(); }
+    }
+
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15.0f, 10.0f));
     if (imgui->button(_L("Arrange"))) {
@@ -5432,8 +5449,16 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         settings_out.distance = std::max(dist_min, settings_out.distance);
         //BBS: add specific arrange settings
         if (seq_print) settings_out.is_seq_print = true;
-        appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
-        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
+
+        if (auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
+            settings_out.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
+        }
+        else
+            settings_out.align_to_y_axis = false;
+
+        appcfg->set("arrange", dist_key, float_to_string_decimal_point(settings_out.distance));
+        appcfg->set("arrange", rot_key, settings_out.enable_rotation ? "1" : "0");
+        appcfg->set("arrange", align_to_y_axis_key, settings_out.align_to_y_axis ? "1" : "0");
         settings_changed = true;
     }
     ImGui::PopStyleVar(1);
