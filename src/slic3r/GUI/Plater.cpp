@@ -806,6 +806,7 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+        auto_calc_flushing_volumes(filament_count - 1);
     });
     p->m_bpButton_add_filament = add_btn;
 
@@ -1744,6 +1745,78 @@ std::string& Sidebar::get_search_line()
 {
     return p->searcher.search_string();
 }
+
+void Sidebar::auto_calc_flushing_volumes(const int modify_id) {
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
+    const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
+    ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
+    int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+    ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
+    float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
+    vector<double> matrix = init_matrix;
+    int m_min_flush_volume = extra_flush_volume;
+    int m_max_flush_volume = Slic3r::g_max_flush_volume;
+    unsigned int m_number_of_extruders = (int)(sqrt(init_matrix.size()) + 0.001);
+    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    vector<wxColour> m_colours;
+    for (const std::string& color : extruder_colours) {
+        m_colours.push_back(wxColor(color));
+    }
+    if (modify_id >= 0 && modify_id < m_colours.size()) {
+        for (int i = 0; i < m_colours.size(); ++i) {
+            int from_idx = i;
+            if (from_idx != modify_id) {
+                const wxColour& from = m_colours[from_idx];
+                bool is_from_support = is_support_filament(from_idx);
+                const wxColour& to = m_colours[modify_id];
+                bool is_to_support = is_support_filament(modify_id);
+                int flushing_volume = 0;
+                if (is_to_support) {
+                    flushing_volume = Slic3r::g_flush_volume_to_support;
+                }
+                else {
+                    const wxColour& to = m_colours[modify_id];
+                    Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
+                    flushing_volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
+                    if (is_from_support) {
+                        flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
+                    }
+                }
+                matrix[m_number_of_extruders * from_idx + modify_id] = flushing_volume;
+            }
+            int to_idx = i;
+            if (to_idx != modify_id) {
+                const wxColour& from = m_colours[modify_id];
+                bool is_from_support = is_support_filament(modify_id);
+                const wxColour& to = m_colours[to_idx];
+                bool is_to_support = is_support_filament(to_idx);
+                int flushing_volume = 0;
+                if (is_to_support) {
+                    flushing_volume = Slic3r::g_flush_volume_to_support;
+                }
+                else {
+                    const wxColour& to = m_colours[to_idx];
+                    Slic3r::FlushVolCalculator calculator(m_min_flush_volume, m_max_flush_volume);
+                    flushing_volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
+                    if (is_from_support) {
+                        flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume);
+                    }
+                }
+                matrix[m_number_of_extruders * modify_id + to_idx] = flushing_volume;
+            }
+        }
+    }
+    (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
+
+
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+
+    wxGetApp().plater()->update_project_dirty_from_presets();
+    wxPostEvent(this, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, this));
+}
+
 
 // Plater::DropTarget
 
@@ -5801,6 +5874,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         plate_object.emplace_back(obj_idxs);
     }
 
+    bool flag = is_support_filament(idx);
     //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
     //! but the OSX version derived from wxOwnerDrawnCombo.
     //! So, to get selected string we do
@@ -5816,8 +5890,11 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         wxGetApp().plater()->update_project_dirty_from_presets();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
         dynamic_filament_list.update();
+        bool flag_is_change = is_support_filament(idx);
+        if (flag != flag_is_change) {
+            sidebar->auto_calc_flushing_volumes(idx);
+        }
     }
-
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
@@ -6567,6 +6644,10 @@ void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
 {
     //q->update_all_plate_thumbnails(true);
     //q->get_preview_canvas3D()->update_plate_thumbnails();
+    if (wxGetApp().app_config->get("auto_calculate") == "true") {
+        int modify_id = event.GetInt();
+        sidebar->auto_calc_flushing_volumes(modify_id);
+    }
 }
 
 void Plater::priv::install_network_plugin(wxCommandEvent &event)

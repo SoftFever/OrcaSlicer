@@ -628,7 +628,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox_title->SetFont(::Label::Body_13);
 
     auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(4), -1));
+    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(5), -1));
     checkbox_title->Wrap(-1);
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
@@ -840,6 +840,19 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     SetBackgroundColour(*wxWHITE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
+        try {
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) {
+                json j;
+                std::string value;
+                value = wxGetApp().app_config->get("auto_calculate");
+                j["auto_flushing"] = value;
+                agent->track_event("preferences_changed", j.dump());
+            }
+        } catch(...) {}
+        Destroy();
+        });
 }
 
 void PreferencesDialog::create()
@@ -979,7 +992,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
 
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
-
+    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate everytime the color changed."), page, _L("If enabled, auto-calculate everytime the color changed."), 50, "auto_calculate");
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
     auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
@@ -1036,6 +1049,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));

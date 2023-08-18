@@ -24,6 +24,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintBase.hpp"
 #include "libslic3r/Calib.hpp"
+#include "libslic3r/FlushVolCalc.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -157,7 +158,7 @@ public:
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();
-
+    void                    auto_calc_flushing_volumes(const int modify_id);
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);
 #endif

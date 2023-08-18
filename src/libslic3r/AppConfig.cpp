@@ -241,6 +241,10 @@ void AppConfig::set_defaults()
     if (get("show_daily_tips").empty()) {
         set_bool("show_daily_tips", true);
     }
+    //true is auto calculate
+    if (get("auto_calculate").empty()) {
+        set_bool("auto_calculate", true);
+    }
 
     if (get("show_home_page").empty()) {
         set_bool("show_home_page", true);
