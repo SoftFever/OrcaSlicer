@@ -144,9 +144,12 @@ private:
             m_type = type;
         }
 
+        bool set_cur_plate(int plate);
+
         void clear() {
             m_obj_idx = -1;
             m_vol_idx = -1;
+            m_last_plate = -1;
             m_inst_idxs.clear();
             m_type = itUndef;
         }
@@ -159,8 +162,10 @@ private:
     private:
         int m_obj_idx = -1;
         int m_vol_idx = -1;
+        int m_last_plate = -1;
         std::set<int> m_inst_idxs{};
         ItemType m_type = itUndef;
+        wxDateTime m_last_plate_time;
 
     } m_dragged_data;
 
@@ -453,6 +458,9 @@ public:
     void notify_instance_updated(int obj_idx);
     void object_config_options_changed(const ObjectVolumeID& ov_id);
     void printable_state_changed(const std::vector<ObjectVolumeID>& ov_ids);
+
+    bool is_dragging() const { return m_dragged_data.type() != itUndef; }
+    void cancel_drag();
 
 private:
 #ifdef __WXOSX__
