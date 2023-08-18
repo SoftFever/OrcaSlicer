@@ -1839,6 +1839,7 @@ int CLI::run(int argc, char **argv)
         {
             int plate_count = plate_list.get_plate_count();
             ConfigOptionFloats *wipe_x_option = nullptr, *wipe_y_option = nullptr;
+            Vec3d wipe_offset;
             if (print_config.has("wipe_tower_x")) {
                 wipe_x_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_x"));
                 wipe_y_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_y"));
@@ -1854,10 +1855,12 @@ int CLI::run(int argc, char **argv)
                 Vec3d offset  = new_center - cur_center;
 
                 cur_plate->translate_all_instance(offset);
+                if (index == 0)
+                    wipe_offset = offset;
                 if (wipe_x_option) {
                     BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1%: wipe tower src: {%2%, %3%}")%(index+1) %wipe_x_option->get_at(index) %wipe_y_option->get_at(index);
-                    ConfigOptionFloat wipe_tower_x(wipe_x_option->get_at(index) + offset(0));
-                    ConfigOptionFloat wipe_tower_y(wipe_y_option->get_at(index) + offset(1));
+                    ConfigOptionFloat wipe_tower_x(wipe_x_option->get_at(index) + wipe_offset(0));
+                    ConfigOptionFloat wipe_tower_y(wipe_y_option->get_at(index) + wipe_offset(1));
 
                     wipe_x_option->set_at(&wipe_tower_x, index, 0);
                     wipe_y_option->set_at(&wipe_tower_y, index, 0);
@@ -2534,8 +2537,7 @@ int CLI::run(int argc, char **argv)
                             finished_arrange = true;
                             model = original_model;
                             partplate_list.load_from_3mf_structure(plate_data_src);
-
-                            translate_models(partplate_list, m_print_config);
+                            partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                         }
                         continue;
@@ -2550,8 +2552,7 @@ int CLI::run(int argc, char **argv)
                             finished_arrange = true;
                             model = original_model;
                             partplate_list.load_from_3mf_structure(plate_data_src);
-
-                            translate_models(partplate_list, m_print_config);
+                            partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
                             duplicate_count = 0;
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                             continue;
