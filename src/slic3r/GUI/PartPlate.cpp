@@ -2137,7 +2137,7 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, s
                 ModelObject* newObj = m_model->add_object(*object);
                 newObj->name = object->name +"_"+ std::to_string(index+1);
                 int new_obj_id = m_model->objects.size() - 1;
-                for ( size_t new_instance_id = 0; new_instance_id < object->instances.size(); new_instance_id++ )
+                for ( size_t new_instance_id = 0; new_instance_id < newObj->instances.size(); new_instance_id++ )
                 {
                     obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % newObj->id().id;
@@ -2159,6 +2159,13 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, s
             if (instance->printable)
             {
                 instance->loaded_id = instance->id().id;
+                if (need_skip) {
+                    while (skip_objects.find(instance->loaded_id) != skip_objects.end())
+                    {
+                        instance->loaded_id ++;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicated id %1% with skip, try new one %2%") %instance->id().id  % instance->loaded_id;
+                    }
+                }
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": set obj %1% instance %2%'s loaded_id to its id %3%, name %4%") % obj_id %instance_id %instance->loaded_id  % object->name;
             }
         }

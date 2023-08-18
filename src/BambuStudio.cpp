@@ -1814,7 +1814,7 @@ int CLI::run(int argc, char **argv)
         //plate_stride = partplate_list.plate_stride_x();
     }
 
-    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height] (Slic3r::GUI::PartPlateList& plate_list) {
+    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
         //BBS: translate old 3mf to correct positions
         if (translate_old) {
             //translate the objects
@@ -1834,6 +1834,11 @@ int CLI::run(int argc, char **argv)
         if (shrink_to_new_bed)
         {
             int plate_count = plate_list.get_plate_count();
+            ConfigOptionFloats *wipe_x_option = nullptr, *wipe_y_option = nullptr;
+            if (print_config.has("wipe_tower_x")) {
+                wipe_x_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_x"));
+                wipe_y_option = dynamic_cast<ConfigOptionFloats *>(print_config.option("wipe_tower_y"));
+            }
             for (int index = 0; index < plate_count; index ++) {
                 Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)plate_list.get_plate(index);
 
@@ -1845,6 +1850,16 @@ int CLI::run(int argc, char **argv)
                 Vec3d offset  = new_center - cur_center;
 
                 cur_plate->translate_all_instance(offset);
+                if (wipe_x_option) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1%: wipe tower src: {%2%, %3%}")%(index+1) %wipe_x_option->get_at(index) %wipe_y_option->get_at(index);
+                    ConfigOptionFloat wipe_tower_x(wipe_x_option->get_at(index) + offset(0));
+                    ConfigOptionFloat wipe_tower_y(wipe_y_option->get_at(index) + offset(1));
+
+                    wipe_x_option->set_at(&wipe_tower_x, index, 0);
+                    wipe_y_option->set_at(&wipe_tower_y, index, 0);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1% wipe tower changes to: {%2%, %3%}")%(index+1) %wipe_x_option->get_at(index) %wipe_y_option->get_at(index);
+                }
+
                 BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, plate %1% translate offset: {%2%, %3%, %4%}")%(index+1) %offset[0] %offset[1] %offset[2];
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, shrink all the models to current bed size,{%1%, %2%, %3%}")%current_printable_width %current_printable_depth %current_printable_height;
@@ -1855,7 +1870,7 @@ int CLI::run(int argc, char **argv)
     {
         partplate_list.load_from_3mf_structure(plate_data_src);
 
-        translate_models(partplate_list);
+        translate_models(partplate_list, m_print_config);
     }
 
     /*for (ModelObject *model_object : m_models[0].objects)
@@ -2535,7 +2550,7 @@ int CLI::run(int argc, char **argv)
                             model = original_model;
                             partplate_list.load_from_3mf_structure(plate_data_src);
 
-                            translate_models(partplate_list);
+                            translate_models(partplate_list, m_print_config);
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                         }
                         continue;
@@ -2551,7 +2566,7 @@ int CLI::run(int argc, char **argv)
                             model = original_model;
                             partplate_list.load_from_3mf_structure(plate_data_src);
 
-                            translate_models(partplate_list);
+                            translate_models(partplate_list, m_print_config);
                             duplicate_count = 0;
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit arrange process");
                             continue;
