@@ -388,7 +388,8 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         // One of the support extruders is of "don't care" type.
         auto object_extruders = m_object->object_extruders();
         if (object_extruders.size() == 1 &&
-            *object_extruders.begin() == std::max<unsigned int>(m_object_config->support_filament.value, m_object_config->support_interface_filament.value))
+            // object_extruders are 0-based but object_config.support_filament's are 1-based
+            object_extruders[0]+1 == std::max<unsigned int>(m_object_config->support_filament.value, m_object_config->support_interface_filament.value))
             // Object is printed with the same extruder as the support.
             m_support_params.can_merge_support_regions = true;
     }
@@ -493,7 +494,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     iRun ++;
     for (const MyLayer *layer : top_contacts)
         Slic3r::SVG::export_expolygons(
-            debug_out_path("support-top-contacts-%d-%lf.svg", iRun, layer->print_z), 
+            debug_out_path("top-contacts-%d-%lf.svg", iRun, layer->print_z), 
             union_ex(layer->polygons));
 #endif /* SLIC3R_DEBUG */
 
@@ -533,7 +534,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 #ifdef SLIC3R_DEBUG
     for (const MyLayer *layer : top_contacts)
         Slic3r::SVG::export_expolygons(
-            debug_out_path("support-top-contacts-trimmed-by-object-%d-%lf.svg", iRun, layer->print_z), 
+            debug_out_path("top-contacts-trimmed-by-object-%d-%lf.svg", iRun, layer->print_z), 
             union_ex(layer->polygons));
 #endif
 
@@ -577,11 +578,11 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 #ifdef SLIC3R_DEBUG
     for (const MyLayer *l : interface_layers)
         Slic3r::SVG::export_expolygons(
-            debug_out_path("support-interface-layers-%d-%lf.svg", iRun, l->print_z), 
+            debug_out_path("interface-layers-%d-%lf.svg", iRun, l->print_z), 
             union_ex(l->polygons));
     for (const MyLayer *l : base_interface_layers)
         Slic3r::SVG::export_expolygons(
-            debug_out_path("support-base-interface-layers-%d-%lf.svg", iRun, l->print_z), 
+            debug_out_path("base-interface-layers-%d-%lf.svg", iRun, l->print_z), 
             union_ex(l->polygons));
 #endif // SLIC3R_DEBUG
 
@@ -3554,7 +3555,7 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         (m_object_config->support_filament.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_filament.value - 1));
     bool   snug_supports                 = m_object_config->support_style.value == smsSnug;
     // BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
-    bool differnt_support_interface_filament = m_object_config->support_interface_filament.value != m_object_config->support_filament.value;
+    bool differnt_support_interface_filament = m_object_config->support_filament != 0 && m_object_config->support_interface_filament != 0 && m_object_config->support_interface_filament.value != m_object_config->support_filament.value;
     int num_base_interface_layers_top = differnt_support_interface_filament ? 1 : 0;
     int num_base_interface_layers_bottom = differnt_support_interface_filament ? 1 : 0;
     int num_interface_layers_top = m_object_config->support_interface_top_layers + num_base_interface_layers_top;
