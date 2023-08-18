@@ -2511,7 +2511,6 @@ bool GUI_App::on_init_inner()
 
 
                 dialog.SetExtendedMessage(extmsg);*/
-
                 std::string skip_version_str = this->app_config->get("app", "skip_version");
                 bool skip_this_version = false;
                 if (!skip_version_str.empty()) {
@@ -2530,7 +2529,7 @@ bool GUI_App::on_init_inner()
                     dialog.update_version_info(extmsg, version_info.version_str);
                     //dialog.update_version_info(version_info.description);
                     if (evt.GetInt() != 0) {
-                        dialog.m_remind_choice->Hide();
+                        dialog.m_button_skip_version->Hide();
                     }
                     switch (dialog.ShowModal())
                     {

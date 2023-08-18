@@ -287,7 +287,16 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
     //m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
-
+    m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING,[=](wxWebViewEvent& event){
+        static bool load_url_first = false;
+        if(load_url_first){
+            wxLaunchDefaultBrowser(url_line);
+            event.Veto();
+        }else{
+            load_url_first = true;
+        }
+        
+    });
 
 	fs::path ph(data_dir());
 	ph /= "resources/tooltip/releasenote.html";
@@ -304,9 +313,11 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_simplebook_release_note->AddPage(m_vebview_release_note, wxEmptyString, false);
 
 
-    m_remind_choice = new wxCheckBox( this, wxID_ANY, _L("Don't remind me of this version again"), wxDefaultPosition, wxDefaultSize, 0 );
-    m_remind_choice->SetValue(false);
-    m_remind_choice->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UpdateVersionDialog::alter_choice,this);
+    
+    m_bitmap_open_in_browser = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("open_in_browser", this, 12), wxDefaultPosition, wxDefaultSize, 0 );
+    m_link_open_in_browser   = new wxHyperlinkCtrl(this, wxID_ANY, "Open in browser", "");
+    m_link_open_in_browser->SetFont(Label::Body_12);
+
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -317,18 +328,32 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_button_ok = new Button(this, _L("OK"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_download = new Button(this, _L("Download"));
+    m_button_download->SetBackgroundColor(btn_bg_green);
+    m_button_download->SetBorderColor(*wxWHITE);
+    m_button_download->SetTextColor(wxColour("#FFFFFE"));
+    m_button_download->SetFont(Label::Body_12);
+    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_download->SetCornerRadius(FromDIP(12));
 
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    m_button_download->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_YES);
     });
+
+    m_button_skip_version = new Button(this, _L("Skip this Version"));
+    m_button_skip_version->SetBackgroundColor(btn_bg_white);
+    m_button_skip_version->SetBorderColor(wxColour(38, 46, 48));
+    m_button_skip_version->SetFont(Label::Body_12);
+    m_button_skip_version->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_skip_version->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_skip_version->SetCornerRadius(FromDIP(12));
+
+    m_button_skip_version->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+        wxGetApp().set_skip_version(true);
+        EndModal(wxID_NO);
+    });
+
 
     m_button_cancel = new Button(this, _L("Cancel"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
@@ -343,10 +368,13 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     });
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND | wxBOTTOM, 0);
-
-    sizer_button->Add(m_remind_choice, 0, wxALL | wxEXPAND, FromDIP(5));
+    
+    sizer_button->Add(m_bitmap_open_in_browser, 0, wxALIGN_CENTER | wxLEFT, FromDIP(7));
+    sizer_button->Add(m_link_open_in_browser, 0, wxALIGN_CENTER| wxLEFT, FromDIP(3));
+    //sizer_button->Add(m_remind_choice, 0, wxALL | wxEXPAND, FromDIP(5));
     sizer_button->AddStretchSpacer();
-    sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    sizer_button->Add(m_button_download, 0, wxALL, FromDIP(5));
+    sizer_button->Add(m_button_skip_version, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
 
     m_sizer_right->Add(m_text_up_info, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(15));
@@ -371,10 +399,6 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
 UpdateVersionDialog::~UpdateVersionDialog() {}
 
-void UpdateVersionDialog::alter_choice(wxCommandEvent& event)
-{
-    wxGetApp().set_skip_version(m_remind_choice->GetValue());
-}
 
 wxWebView* UpdateVersionDialog::CreateTipView(wxWindow* parent)
 {
@@ -435,7 +459,8 @@ void UpdateVersionDialog::RunScript(std::string script)
 }
 
 void UpdateVersionDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_ok->Rescale();
+    m_button_download->Rescale();
+    m_button_skip_version->Rescale();
     m_button_cancel->Rescale();
 }
 
@@ -462,7 +487,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
 {
     //bbs check whether the web display is used
     bool use_web_link       = false;
-    std::string url_line    = "";
+    url_line                = "";
     auto split_array        =  splitWithStl(release_note.ToStdString(), "###");
 
     if (split_array.size() >= 3) {
@@ -482,6 +507,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_text_up_info->Hide();
         m_simplebook_release_note->SetSelection(1);
         m_vebview_release_note->LoadURL(from_u8(url_line));
+        m_link_open_in_browser->SetURL(url_line);
     }
     else {
         m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
