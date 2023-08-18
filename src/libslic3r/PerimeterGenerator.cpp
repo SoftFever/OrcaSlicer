@@ -1562,7 +1562,7 @@ void PerimeterGenerator::process_arachne()
                 int position=0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i=0;	//index to run through the walls
                 int outer, first_internal, second_internal; // allocate index values;
-                while (position <= ordered_extrusions.size()){ // run the re-ordering for all wall loops in the same island
+                while (position < ordered_extrusions.size()){ // run the re-ordering for all wall loops in the same island
 					outer = first_internal = second_internal = -1; // initialise all index values to -1
                     // run through the walls to get the index values that need re-ordering until the first one for each
                     // is found. Start at "position" index to enable the for loop to iterate for multiple external
