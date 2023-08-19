@@ -1555,7 +1555,7 @@ void PerimeterGenerator::process_arachne()
             }
         }
 
-
+	//printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
         if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
@@ -1567,25 +1567,28 @@ void PerimeterGenerator::process_arachne()
                     // run through the walls to get the index values that need re-ordering until the first one for each
                     // is found. Start at "position" index to enable the for loop to iterate for multiple external
                     // perimeters in a single island
+		    // printf("Reorcer Loop. Position %d, extrusion list size: %d, Outer index %d, inner index %d, second inner index %d\n", position, ordered_extrusions.size(),outer,first_internal,second_internal);
                     for (arr_i = position; arr_i < ordered_extrusions.size(); ++arr_i) {
+			// printf("Perimeter: extrusion inset index %d, ordered extrusions array position %d\n",ordered_extrusions[arr_i].extrusion->inset_idx, arr_i);
                         switch (ordered_extrusions[arr_i].extrusion->inset_idx) {
                         case 0: // external perimeter
                             if (outer == -1)
                                 outer = arr_i;
                             break;
                         case 1: // first internal wall
-                            if (first_internal == -1 && arr_i > outer)
+                            if (first_internal==-1 && arr_i>outer && outer!=-1)
                                 first_internal = arr_i;
                             break;
                         case 2: // second internal wall
                             if (ordered_extrusions[arr_i].extrusion->inset_idx == 2 && second_internal == -1 &&
-                                arr_i > first_internal)
+                                arr_i > first_internal && outer!=-1)
                                 second_internal = arr_i;
                             break;
                         }
-                        if (second_internal != -1)
+                        if (outer >-1 && first_internal>-1 && second_internal>-1)
                             break; // found all three perimeters to re-order
                     }
+		    //printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d\n",layer_id,outer,first_internal,second_internal);
                     if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
                         const auto temp = ordered_extrusions[second_internal];
                         ordered_extrusions[second_internal] = ordered_extrusions[first_internal];
