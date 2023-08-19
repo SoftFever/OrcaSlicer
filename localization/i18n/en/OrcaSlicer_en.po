@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.1\n"
+"X-Generator: Poedit 3.3.2\n"
 
 msgid "Supports Painting"
 msgstr "Support Painting"
@@ -6983,7 +6983,7 @@ msgid "Mouse ear"
 msgstr ""
 
 msgid "outer_only"
-msgstr ""
+msgstr "Outer brim only"
 
 msgid "Inner brim only"
 msgstr "Inner brim only"

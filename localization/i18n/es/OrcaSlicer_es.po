@@ -1635,7 +1635,7 @@ msgid "Orienting"
 msgstr "Orientación"
 
 msgid "Filling bed "
-msgstr "Filling bed"
+msgstr "Rellenando cama "
 
 msgid "Bed filling canceled."
 msgstr "Bed filling canceled."
@@ -3038,7 +3038,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "Un objeto está sobre el límite de la bandeja."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "Una ruta de G-Code va más allá de la altura máxima de impresión."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Una ruta de G-Code va más allá del límite de la bandeja."
@@ -3810,7 +3810,7 @@ msgid "Lamp"
 msgstr "Luz"
 
 msgid "Aux"
-msgstr "aux"
+msgstr "Aux"
 
 msgid "Cham"
 msgstr "Costura"
@@ -4047,7 +4047,7 @@ msgid "Export successfully."
 msgstr "Exportación exitosa."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "Seria advertencia:"
 
 msgid " (Repair)"
 msgstr " (Reparación)"
@@ -4616,7 +4616,7 @@ msgstr "Number of currently selected parts: %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "Número de objetos seleccionados actualmente: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5460,7 +5460,7 @@ msgid "Bridge"
 msgstr "Puente"
 
 msgid "Set speed for external and internal bridges"
-msgstr ""
+msgstr "Configurar velocidad para puentes externos e internos"
 
 msgid "Travel speed"
 msgstr "Velocidad de desplazamiento"
@@ -6470,7 +6470,7 @@ msgid "Bottom surface"
 msgstr "Superficie inferior"
 
 msgid "Internal Bridge"
-msgstr ""
+msgstr "Puente Interior"
 
 msgid "Gap infill"
 msgstr "Relleno de huecos"
@@ -7098,7 +7098,7 @@ msgstr ""
 "patrónde relleno superior"
 
 msgid "One wall threshold"
-msgstr ""
+msgstr "Umbral de pared"
 
 #, c-format, boost-format
 msgid ""
@@ -7111,6 +7111,15 @@ msgid ""
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
+"Si una superficie superior debe ser impresa y está parcialmente cubierta por "
+"otra capa, no será considerada una capa superior donde su anchura esté por "
+"debajo ese valor. Esto puede ser de utilidad para que no se active el ajuste "
+"'un perímetro en la parte superior' en las superficies que solo deberían ser "
+"cubiertas por perímetros. Este valor puede ser en mm o un % o de el "
+"perímetro de extrusión.\n"
+"Advertencia: Si se activa, se pueden crear artefactos si tiene alguna "
+"característica fina en la siguiente capa, como letras. Ajuste a 0 esta "
+"opción para borrar esos artefactos."
 
 msgid "Only one wall on first layer"
 msgstr "Solo un pared en la primera capa"
@@ -7140,7 +7149,7 @@ msgid "mm/s or %"
 msgstr "mm/s o %"
 
 msgid "External"
-msgstr ""
+msgstr "Externo"
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Velocidad del puente y pared completo en voladizo"
@@ -7149,12 +7158,14 @@ msgid "mm/s"
 msgstr "mm/s"
 
 msgid "Internal"
-msgstr ""
+msgstr "Interno"
 
 msgid ""
 "Speed of internal bridge. If the value is expressed as a percentage, it will "
 "be calculated based on the bridge_speed. Default value is 150%."
 msgstr ""
+"Velocidad del puente interno. Si el valor es expresado como porcentaje, será "
+"calculado en base a bridge_speed. El valor por defecto es 150%."
 
 msgid "Brim width"
 msgstr "Ancho del borde de adherencia"
@@ -7174,7 +7185,7 @@ msgstr ""
 "es analizado y calculado automaticamente."
 
 msgid "Mouse ear"
-msgstr ""
+msgstr "Oreja de ratón"
 
 msgid "outer_only"
 msgstr "Solo borde de adherencia exterior"
@@ -7196,28 +7207,35 @@ msgstr ""
 "puede hacer que el borde de adherencia se retire más fácilmente"
 
 msgid "Brim ears"
-msgstr ""
+msgstr "Orejas de borde"
 
 msgid "Only draw brim over the sharp edges of the model."
-msgstr ""
+msgstr "Solo dibujar bordes sobre los bordes afilados del modelo"
 
 msgid "Brim ear max angle"
-msgstr ""
+msgstr "Máximo ángulo del borde de la oreja"
 
 msgid ""
 "Maximum angle to let a brim ear appear. \n"
 "If set to 0, no brim will be created. \n"
 "If set to ~180, brim will be created on everything but straight sections."
 msgstr ""
+"Máximo ángulo para dejar que el borde de oreja aparezca.\n"
+"Si se ajusta a 0, no se creará ningún borde.\n"
+"Si se ajusta a ~180, se creará el borde en todo menos en las secciones "
+"rectas."
 
 msgid "Brim ear detection radius"
-msgstr ""
+msgstr "Radio de detección de borde de oreja"
 
 msgid ""
 "The geometry will be decimated before dectecting sharp angles. This "
 "parameter indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate"
 msgstr ""
+"La geometría se verá diezmada antes de detectar angulos agudos. Este "
+"parámetro indica la longitud mínima de desviación para el diezmado\n"
+"0 para desactivar"
 
 msgid "Compatible machine"
 msgstr "Máquina compatible"
@@ -7408,12 +7426,15 @@ msgstr ""
 "puente"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "Patrón de relleno sólido interno"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect nattow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
+"Patrón lineal de relleno sólido interno, si se activa la detección de "
+"relleno sólido interno nattow, se utilizará el patrón concéntrico para el "
+"área pequeña."
 
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
@@ -7714,10 +7735,10 @@ msgid "money/kg"
 msgstr "dinero/kg"
 
 msgid "Vendor"
-msgstr ""
+msgstr "Fabricante"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "Fabricante del filamento. Para mostrar solamente"
 
 msgid "(Undefined)"
 msgstr "(No definido)"
@@ -8183,7 +8204,7 @@ msgid "Klipper"
 msgstr ""
 
 msgid "Label objects"
-msgstr "Objetos de etiqueta"
+msgstr "Etiquetar objetos"
 
 msgid ""
 "Enable this to add comments into the G-Code labeling print moves with what "
@@ -8526,10 +8547,10 @@ msgid ""
 "oozing can't been seen. This can reduce times of retraction for complex "
 "model and save printing time, but make slicing and G-code generating slower"
 msgstr ""
-"No retraiga cuando el viaje está totalmente en el área de relleno. Eso "
-"significa que el rezume no se puede ver. Esto puede reducir los tiempos de "
-"retracción para el modelo complejo y ahorrar tiempo de impresión, pero hacer "
-"que el corte y la generación de código G más lento"
+"No retrae cuando el viaje está totalmente en el área de relleno. Eso "
+"significa que el rezume no se pueda ver. Puede reducir los tiempos de "
+"retracción para modelos complejos y ahorrar tiempo de impresión, pero hacer "
+"que el corte y la generación de G-Code sea más lento"
 
 msgid "Enable"
 msgstr "Habilitar"
@@ -9080,10 +9101,10 @@ msgstr ""
 "voladizo, etc."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Eliminar voladizos pequeños"
 
 msgid "Remove small overhangs that possibly need no supports."
-msgstr ""
+msgstr "Elimina los voladizos pequeños que posiblemente no necesiten soportes."
 
 msgid "Top Z distance"
 msgstr "Distancia Z superior"
@@ -9701,10 +9722,10 @@ msgid "Load cached slicing data from directory"
 msgstr "Cargar datos de laminado en caché desde el directorio"
 
 msgid "Export STL"
-msgstr ""
+msgstr "Exportar STL"
 
 msgid "Export the objects as multiple STL."
-msgstr ""
+msgstr "Exportar los objectos como multiples STL."
 
 msgid "Slice"
 msgstr "Laminar"
@@ -9723,10 +9744,10 @@ msgid "Update the configs values of 3mf to latest."
 msgstr "Actualice los valores de configuración de 3mf a la última versión."
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "Cargar los filamentos por defecto"
 
 msgid "Load first filament as default for those not loaded"
-msgstr ""
+msgstr "Carga el primer filamento por defecto para los no cargados"
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -9779,10 +9800,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Opciones de posicionamiento: 0-desactivar, 1-activar, otras-auto"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "Cantidad de repeticiones"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "Cantidad de repeticiones del modelo completo"
 
 msgid "Convert Unit"
 msgstr "Convertir Unidad"
@@ -9817,11 +9838,14 @@ msgstr "Omitir algunos objetos en esta impresión"
 
 msgid "load uptodate process/machine settings when using uptodate"
 msgstr ""
+"carga los ajustes actualizados de proceso/máquina cuando se usa actualizar"
 
 msgid ""
 "load uptodate process/machine settings from the specified file when using "
 "uptodate"
 msgstr ""
+"carga los ajustes actualizados de proceso/máquina desde el archivo "
+"especificado cuando se usa actualizar"
 
 msgid "Data directory"
 msgstr "Directorio de datos"
@@ -9959,7 +9983,7 @@ msgid "Loading of a model file failed."
 msgstr "Loading of model file failed."
 
 msgid "The supplied file couldn't be read because it's empty"
-msgstr "The supplied file couldn't be read because it's empty."
+msgstr "El archivo proporcionado no puede ser leído debido a que está vacío"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
@@ -9983,126 +10007,130 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "This OBJ file couldn't be read because it's empty."
 
 msgid "Network lookup"
-msgstr ""
+msgstr "Búsqueda de red"
 
 msgid "Address"
-msgstr ""
+msgstr "Dirección"
 
 msgid "Hostname"
-msgstr ""
+msgstr "Nombre de host"
 
 msgid "Service name"
-msgstr ""
+msgstr "Nombre del servicio"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "Versión de OctoPrint"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "Buscando dispositivos"
 
 msgid "Finished"
 msgstr "Terminado"
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
+"No es posible realizar la operación booleana en las partes selecionadas"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "Malla Booleana"
 
 msgid "Union"
-msgstr ""
+msgstr "Unión"
 
 msgid "Difference"
-msgstr ""
+msgstr "Diferencia"
 
 msgid "Intersection"
-msgstr ""
+msgstr "Intersección"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "Volumen de origen"
 
 msgid "Tool Volume"
-msgstr ""
+msgstr "Volumen de herramienta"
 
 msgid "selected"
-msgstr ""
+msgstr "seleccionado"
 
 msgid "Part 1"
-msgstr ""
+msgstr "Parte 1"
 
 msgid "Subtract from"
-msgstr ""
+msgstr "Restar de"
 
 msgid "Part 2"
-msgstr ""
+msgstr "Parte 2"
 
 msgid "Subtract with"
-msgstr ""
+msgstr "Restar con"
 
 msgid "Delete input"
-msgstr ""
+msgstr "Borrado de entrada"
 
 msgid "Send to print"
-msgstr ""
+msgstr "Mandar a imprimir"
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "Subido al Host de Impresión con el siguiente nombre de archivo:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
+"Use barras oblicuas como separador de directorio \n"
+"si es necesario."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
+"El nombre de archivo que va a cargar no acaba en \"%s\". ¿Desea continuar?"
 
 msgid "Upload"
-msgstr ""
+msgstr "Cargar"
 
 msgid "Upload and Print"
-msgstr ""
+msgstr "Cargar e imprimir"
 
 msgid "Simulate"
-msgstr ""
+msgstr "Simular"
 
 msgid "Print host upload queue"
-msgstr ""
+msgstr "Imprimir cola de carga del host"
 
 msgid "ID"
 msgstr ""
 
 msgid "Progress"
-msgstr ""
+msgstr "Progreso"
 
 msgid "Host"
 msgstr ""
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "Tamaño"
 
 msgid "Filename"
-msgstr ""
+msgstr "Nombre de archivo"
 
 msgid "Error Message"
-msgstr ""
+msgstr "Mensaje de error"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "Cancelar selección"
 
 msgid "Show error message"
-msgstr ""
+msgstr "Mostrar mensaje de error"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "En cola"
 
 msgid "Uploading"
 msgstr "Subiendo"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "Cancelado"
 
 msgid "Error uploading to print host:"
-msgstr ""
+msgstr "Error cargando al host de impresión:"
 
 msgid "PA Calibration"
 msgstr "Calibración PA"
