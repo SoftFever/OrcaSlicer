@@ -47,6 +47,7 @@ public:
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
     std::string set_jerk_xy(double jerk);
+    std::string set_firmware_retraction(double retract_length) const;
     std::string set_pressure_advance(double pa) const;
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;

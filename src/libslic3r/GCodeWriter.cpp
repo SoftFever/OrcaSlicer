@@ -241,6 +241,19 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
 }
 
 
+std::string GCodeWriter::set_firmware_retraction(double retract_length) const
+{
+    std::ostringstream gcode;
+    if (retract_length < 0)
+        return gcode.str();
+    
+    if (FLAVOR_IS(gcfKlipper))
+        gcode << "SET_RETRACTION RETRACT_LENGTH" << std::setprecision(4) << retract_length << "; Override firmware retract length\n";
+    
+    return gcode.str()
+}
+
+
 
 std::string GCodeWriter::reset_e(bool force)
 {
