@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 19:56+0800\n"
+"POT-Creation-Date: 2023-08-18 09:11+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -1809,8 +1809,8 @@ msgid ""
 "The imported SLA archive did not contain any presets. The current SLA "
 "presets were used as fallback."
 msgstr ""
-"Die importierte SLA-Archivdatei enthält keine Voreinstellungen. Die "
-"aktuellen SLA-Voreinstellungen wurden als Fallback verwendet."
+"Das importierte SLA-Archiv enthält keine Voreinstellungen. Die aktuellen SLA-"
+"Voreinstellungen wurden als Ersatz verwendet."
 
 msgid "You cannot load SLA project with a multi-part object on the bed"
 msgstr ""
@@ -3055,7 +3055,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "Ein Objekt ragt über die Begrenzung der Druckplatte."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "Ein G-Code-Pfad überschreitet die maximale Druckhöhe."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Ein G-Code-Pfad geht über die Begrenzung der Druckplatte hinaus."
@@ -4080,7 +4080,7 @@ msgid "Export successfully."
 msgstr "Export erfolgreich."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "Wichtige Warnung:"
 
 msgid " (Repair)"
 msgstr " (Reparatur)"
@@ -4658,7 +4658,7 @@ msgstr "Anzahl der aktuell ausgewählten Teile: %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "Anzahl der aktuell ausgewählten Objekte: %1%"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5507,7 +5507,7 @@ msgid "Bridge"
 msgstr "Überbrückung"
 
 msgid "Set speed for external and internal bridges"
-msgstr ""
+msgstr "Setze Geschwindigkeit für externe und interne Brücken"
 
 msgid "Travel speed"
 msgstr "Fahrgeschwindigkeit"
@@ -5732,7 +5732,7 @@ msgid "Layer height limits"
 msgstr "Höhenbegrenzungen für Schichten"
 
 msgid "Lift Z Enforcement"
-msgstr ""
+msgstr "Z-Höhe einhalten"
 
 msgid "Retraction when switching material"
 msgstr "Rückzug bei Materialwechsel"
@@ -6527,7 +6527,7 @@ msgid "Bottom surface"
 msgstr "Untere Fläche"
 
 msgid "Internal Bridge"
-msgstr ""
+msgstr "Interne Brücke"
 
 msgid "Gap infill"
 msgstr "Lückenfüllung"
@@ -7157,7 +7157,7 @@ msgstr ""
 "Füllungsmuster zu schaffen"
 
 msgid "One wall threshold"
-msgstr ""
+msgstr "Schwellenwert für eine Wand"
 
 #, c-format, boost-format
 msgid ""
@@ -7170,6 +7170,15 @@ msgid ""
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
+"Wenn eine obere Oberfläche gedruckt werden muss und sie teilweise von einer "
+"anderen Schicht bedeckt ist, wird sie nicht als obere Schicht betrachtet, "
+"wenn ihre Breite unterhalb dieses Werts liegt. Dies kann nützlich sein, um "
+"das Auslösen von 'einem Umfang oben' zu verhindern, wenn Oberflächen nur von "
+"Umfängen bedeckt werden sollen. Dieser Wert kann in Millimetern oder als "
+"Prozentsatz der Extrusionsbreite des Umfangs angegeben werden.\n"
+"Warnung: Wenn aktiviert, können Artefakte entstehen, wenn Sie dünnere "
+"Merkmale auf der nächsten Schicht haben, z. B. Buchstaben. Setzen Sie diesen "
+"Wert auf 0, um diese Artefakte zu entfernen."
 
 msgid "Only one wall on first layer"
 msgstr "Nur eine Wand in der ersten Schicht"
@@ -7199,7 +7208,7 @@ msgid "mm/s or %"
 msgstr "mm/s o. %"
 
 msgid "External"
-msgstr ""
+msgstr "Extern"
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Geschwindigkeit für Brücken und vollständig überhängende Wände."
@@ -7208,12 +7217,15 @@ msgid "mm/s"
 msgstr "mm/s"
 
 msgid "Internal"
-msgstr ""
+msgstr "Intern"
 
 msgid ""
 "Speed of internal bridge. If the value is expressed as a percentage, it will "
 "be calculated based on the bridge_speed. Default value is 150%."
 msgstr ""
+"Geschwindigkeit der internen Brücke. Wenn der Wert als Prozentsatz angegeben "
+"ist, wird er basierend auf der Brückengeschwindigkeit berechnet. "
+"Standardwert ist 150%."
 
 msgid "Brim width"
 msgstr "Randbreite"
@@ -7233,7 +7245,7 @@ msgstr ""
 "analysiert und berechnet wird."
 
 msgid "Mouse ear"
-msgstr ""
+msgstr "Mausohren"
 
 msgid "outer_only"
 msgstr "Nur Außen"
@@ -7255,28 +7267,36 @@ msgstr ""
 "des Randes erleichtern"
 
 msgid "Brim ears"
-msgstr ""
+msgstr "Brim Ohren"
 
 msgid "Only draw brim over the sharp edges of the model."
-msgstr ""
+msgstr "Zeichne den Brim nur über die scharfen Kanten des Modells."
 
 msgid "Brim ear max angle"
-msgstr ""
+msgstr "Maximaler Winkel für Brim-Ohren"
 
 msgid ""
 "Maximum angle to let a brim ear appear. \n"
 "If set to 0, no brim will be created. \n"
 "If set to ~180, brim will be created on everything but straight sections."
 msgstr ""
+"Höchster Winkel, bei dem ein Brim-Ohr erscheinen soll.\n"
+"Wenn auf 0 gesetzt, wird kein Brim erstellt.\n"
+"Wenn auf etwa 180 gesetzt, wird ein Brim auf allem außer geraden Abschnitten "
+"erstellt."
 
 msgid "Brim ear detection radius"
-msgstr ""
+msgstr "Radius für die Erkennung von Brim-Ohren"
 
 msgid ""
 "The geometry will be decimated before dectecting sharp angles. This "
 "parameter indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate"
 msgstr ""
+"Die Geometrie wird vor der Erkennung von scharfen Winkeln reduziert. "
+"DieserParameter gibt die minimale Länge der Abweichung für die Reduzierung "
+"an.\n"
+"0, um die Reduzierung zu deaktivieren."
 
 msgid "Compatible machine"
 msgstr "Kompatible Maschine"
@@ -7463,17 +7483,22 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Linienmuster der Bodenfüllung. Brückenfüllung nicht eingeschlossen"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "Muster für das interne feste Füllmuster"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect nattow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
+"Linienmuster des internen festen Füllmusters. Wenn die Erkennung von "
+"schmalem internen festen Infill aktiviert ist, wird das konzentrische Muster "
+"für den kleinen Bereich verwendet."
 
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
 msgstr ""
+"Linienbreite der Außenwand. Wenn als Prozentsatz angegeben, wird sie in "
+"Bezug auf den Düsendurchmesser berechnet."
 
 msgid ""
 "Speed of outer wall which is outermost and visible. It's used to be slower "
@@ -7598,6 +7623,9 @@ msgid ""
 "Default line width if other line widths are set to 0. If expressed as a %, "
 "it will be computed over the nozzle diameter."
 msgstr ""
+"Standardmäßige Linienbreite, wenn andere Linienbreiten auf 0 gesetzt sind. "
+"Wenn als Prozentsatz angegeben, wird sie in Bezug auf den Düsendurchmesser "
+"berechnet."
 
 msgid "Keep fan always on"
 msgstr "Lüfter ständig laufen lassen"
@@ -7767,10 +7795,10 @@ msgid "money/kg"
 msgstr "€/kg"
 
 msgid "Vendor"
-msgstr ""
+msgstr "Hersteller"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "Hersteller des Filaments. Nur zur Anzeige."
 
 msgid "(Undefined)"
 msgstr "(undefiniert)"
@@ -7982,6 +8010,8 @@ msgid ""
 "Line width of initial layer. If expressed as a %, it will be computed over "
 "the nozzle diameter."
 msgstr ""
+"Linienbreite der ersten Schicht. Wenn als Prozentsatz angegeben, wird sie in "
+"Bezug auf den Düsendurchmesser berechnet."
 
 msgid "Initial layer height"
 msgstr "Höhe der ersten Schicht"
@@ -8294,6 +8324,8 @@ msgid ""
 "Line width of internal sparse infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
 msgstr ""
+"Linienbreite des internen geringen Füllmusters. Wenn als Prozentsatz "
+"angegeben, wird sie in Bezug auf den Düsendurchmesser berechnet."
 
 msgid "Infill/Wall overlap"
 msgstr "Überlappung Füllung/Wand"
@@ -8605,27 +8637,34 @@ msgid "User can self-define the project file name when export"
 msgstr "Der Benutzer kann den Projektdateinamen beim Export selbst bestimmen"
 
 msgid "Make overhang printable"
-msgstr ""
+msgstr "Überhang druckbar machen"
 
 msgid "Modify the geometry to print overhangs without support material."
-msgstr ""
+msgstr "Die Geometrie anpassen, um Überhänge ohne Stützmaterial zu drucken."
 
 msgid "Make overhang printable maximum angle"
-msgstr ""
+msgstr "Maximaler Winkel für druckbare Überhänge"
 
 msgid ""
 "Maximum angle of overhangs to allow after making more steep overhangs "
 "printable.90° will not change the model at all and allow any overhang, while "
 "0 will replace all overhangs with conical material."
 msgstr ""
+"Maximaler Winkel der Überhänge, die erlaubt sind, nachdem steilere Überhänge "
+"druckbar gemacht wurden. 90° wird das Modell überhaupt nicht verändern und "
+"jeden Überhang erlauben, während 0 alle Überhänge durch konisches Material "
+"ersetzt."
 
 msgid "Make overhang printable hole area"
-msgstr ""
+msgstr "Flächenbereich für druckbare Überhänge von Löchern"
 
 msgid ""
 "Maximum area of a hole in the base of the model before it's filled by "
 "conical material.A value of 0 will fill all the holes in the model base."
 msgstr ""
+"Maximaler Flächenbereich eines Lochs in der Basis des Modells, bevor es mit "
+"konischem Material gefüllt wird. Ein Wert von 0 füllt alle Löcher in der "
+"Basis des Modells."
 
 msgid "mm²"
 msgstr "mm²"
@@ -8646,6 +8685,8 @@ msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
 msgstr ""
+"Linienbreite der inneren Wand. Wenn als Prozentsatz angegeben, wird sie in "
+"Bezug auf den Düsendurchmesser berechnet."
 
 msgid "Speed of inner wall"
 msgstr "Druckgeschwindigkeit der Innenwand"
@@ -8773,40 +8814,46 @@ msgid "Spiral"
 msgstr "Spirale"
 
 msgid "Only lift Z above"
-msgstr ""
+msgstr "Nur Z anheben über"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place above the "
 "specified absolute Z."
 msgstr ""
+"Wenn Sie diesen Wert auf einen positiven Wert setzen, wird das Z-Heben nur "
+"oberhalb des angegebenen absoluten Z-Wertes erfolgen."
 
 msgid "Only lift Z below"
-msgstr ""
+msgstr "Nur Z anheben unter"
 
 msgid ""
 "If you set this to a positive value, Z lift will only take place below the "
 "specified absolute Z."
 msgstr ""
+"Wenn Sie diesen Wert auf einen positiven Wert setzen, wird das Z-Heben nur "
+"unterhalb des angegebenen absoluten Z-Wertes erfolgen."
 
 msgid "On surfaces"
-msgstr ""
+msgstr "Auf Oberflächen"
 
 msgid ""
 "Enforce Z Hop behavior. This setting is impacted by the above settings (Only "
 "lift Z above/below)."
 msgstr ""
+"Verhalten des Z-Hops erzwingen. Diese Einstellung wird von den oben "
+"genannten Einstellungen (Nur Z überheben oberhalb/unterhalb) beeinflusst."
 
 msgid "All Surfaces"
-msgstr ""
+msgstr "Alle Oberflächen"
 
 msgid "Top Only"
-msgstr ""
+msgstr "Nur Oben"
 
 msgid "Bottom Only"
-msgstr ""
+msgstr "Nur Unten"
 
 msgid "Top and Bottom"
-msgstr ""
+msgstr "Oben und Unten"
 
 msgid "Extra length on restart"
 msgstr "Zusätzliche Länge beim Neustart"
@@ -8990,6 +9037,8 @@ msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
 msgstr ""
+"Linienbreite des internen massiven Infill. Wenn als Prozentsatz angegeben, "
+"wird sie in Bezug auf den Düsendurchmesser berechnet."
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
@@ -9136,10 +9185,12 @@ msgstr ""
 "Kanten, Ausragungen, usw."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Kleine Überhänge entfernen"
 
 msgid "Remove small overhangs that possibly need no supports."
 msgstr ""
+"Kleine Überhänge entfernen, die möglicherweise keine Stützstrukturen "
+"benötigen."
 
 msgid "Top Z distance"
 msgstr "Oberer Z-Abstand"
@@ -9168,6 +9219,8 @@ msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
 "nozzle diameter."
 msgstr ""
+"Linienbreite der Stützstrukturen. Wenn als Prozentsatz angegeben, wird sie "
+"in Bezug auf den Düsendurchmesser berechnet."
 
 msgid "Interface use loop pattern"
 msgstr "Schleifenmuster-Schnittstelle"
@@ -9422,6 +9475,8 @@ msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
 msgstr ""
+"Linienbreite für obere Oberflächen. Wenn als Prozentsatz angegeben, wird sie "
+"in Bezug auf den Düsendurchmesser berechnet."
 
 msgid "Speed of top surface infill which is solid"
 msgstr "Geschwindigkeit der massiven Füllung der Oberseite."
@@ -9755,7 +9810,7 @@ msgid "Export STL"
 msgstr ""
 
 msgid "Export the objects as multiple STL."
-msgstr ""
+msgstr "Die Objekte als mehrere STL-Dateien exportieren."
 
 msgid "Slice"
 msgstr "Slice"
@@ -9775,10 +9830,10 @@ msgid "Update the configs values of 3mf to latest."
 msgstr "Aktualisierung der 3mf Konfigurationswerte auf die neueste Version."
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "Standard-Filamente laden"
 
 msgid "Load first filament as default for those not loaded"
-msgstr ""
+msgstr "Das erste Filament als Standard für nicht geladene übernehmen"
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -9831,10 +9886,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Anordnungsoptionen: 0-deaktiviert; 1-aktiviert; andere-automatisch"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "Anzahl der Wiederholungen"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "Anzahl der Wiederholungen des gesamten Modells"
 
 msgid "Convert Unit"
 msgstr "Einheit umrechnen"
@@ -9868,11 +9923,14 @@ msgstr "Einige Objekte in diesem Druck überspringen"
 
 msgid "load uptodate process/machine settings when using uptodate"
 msgstr ""
+"Aktuelle Prozess-/Maschineneinstellungen laden, wenn 'Aktuell' verwendet wird"
 
 msgid ""
 "load uptodate process/machine settings from the specified file when using "
 "uptodate"
 msgstr ""
+"Aktuelle Prozess-/Maschineneinstellungen aus der angegebenen Datei laden, "
+"wenn Aktuell verwendet wird"
 
 msgid "Data directory"
 msgstr "Datenverzeichnis"
@@ -10038,71 +10096,73 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Diese OBJ-Datei konnte nicht gelesen werden, da sie leer ist."
 
 msgid "Network lookup"
-msgstr ""
+msgstr "Netzwerk durchsuchen"
 
 msgid "Address"
-msgstr ""
+msgstr "IP Adresse"
 
 msgid "Hostname"
 msgstr ""
 
 msgid "Service name"
-msgstr ""
+msgstr "Service Name"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "OctoPrint Version"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "Suche nach Geräten"
 
 msgid "Finished"
 msgstr "Erledigt"
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
+"Die boolesche Operation kann auf den ausgewählten Teilen nicht durchgeführt "
+"werden"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "Mesh-Boolesche Operation"
 
 msgid "Union"
-msgstr ""
+msgstr "Vereinigen"
 
 msgid "Difference"
-msgstr ""
+msgstr "Differenz"
 
 msgid "Intersection"
-msgstr ""
+msgstr "Schnittmenge"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "Quellvolumen"
 
 msgid "Tool Volume"
-msgstr ""
+msgstr "Werkzeugvolumen"
 
 msgid "selected"
-msgstr ""
+msgstr "Ausgewählt"
 
 msgid "Part 1"
 msgstr ""
 
 msgid "Subtract from"
-msgstr ""
+msgstr "Abziehen von"
 
 msgid "Part 2"
 msgstr ""
 
 msgid "Subtract with"
-msgstr ""
+msgstr "Abziehen mit"
 
 msgid "Delete input"
-msgstr ""
+msgstr "Eingabe löschen"
 
 #, fuzzy
 msgid "Send to print"
 msgstr "Zum Drucker senden"
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "Mit folgendem Dateinamen auf den Drucker-Host hochladen:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
@@ -10111,6 +10171,8 @@ msgstr ""
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
+"Der Dateiname für den Upload endet nicht mit \"%s\". Möchten Sie den Vorgang "
+"fortsetzen?"
 
 #, fuzzy
 msgid "Upload"
@@ -10120,7 +10182,7 @@ msgid "Upload and Print"
 msgstr "Hochladen und Drucken"
 
 msgid "Simulate"
-msgstr ""
+msgstr "Simulation"
 
 msgid "Print host upload queue"
 msgstr ""
@@ -10129,7 +10191,7 @@ msgid "ID"
 msgstr ""
 
 msgid "Progress"
-msgstr ""
+msgstr "Fortschritt"
 
 msgid "Host"
 msgstr ""
@@ -10142,25 +10204,25 @@ msgid "Filename"
 msgstr ""
 
 msgid "Error Message"
-msgstr ""
+msgstr "Fehlermeldung"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "Ausgewählten abbrechen"
 
 msgid "Show error message"
-msgstr ""
+msgstr "Fehlermeldung Anzeigen"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "In Warteschlange"
 
 msgid "Uploading"
 msgstr "Hochladen"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "Wird abgebrochen"
 
 msgid "Error uploading to print host:"
-msgstr ""
+msgstr "Error uploading to print host:"
 
 msgid "PA Calibration"
 msgstr "PA Kalibrierung"
@@ -10181,7 +10243,7 @@ msgid "PA Line"
 msgstr "PA Linie"
 
 msgid "PA Pattern"
-msgstr ""
+msgstr "PA Muster"
 
 msgid "Method"
 msgstr "Methode"
