@@ -271,6 +271,7 @@ public:
 
     // for tree supports
     ExPolygons base_areas;
+    ExPolygons                                overhang_areas;
 
 
     // Is there any valid extrusion assigned to this LayerRegion?
@@ -294,7 +295,6 @@ protected:
     size_t m_interface_id;
 
     // for tree support
-    ExPolygons                                overhang_areas;
     ExPolygons                                roof_areas;
     ExPolygons                                roof_1st_layer; // the layer just below roof. When working with PolySupport, this layer should be printed with regular material
     ExPolygons                                floor_areas;

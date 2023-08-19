@@ -401,6 +401,14 @@ public:
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
+
+    std::function<void()> throw_on_cancel;
+    const PrintConfig* m_print_config;
+    /*!
+     * \brief Polygons representing the limits of the printable area of the
+     * machine
+     */
+    ExPolygon m_machine_border;
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
@@ -410,7 +418,7 @@ private:
      */
     std::shared_ptr<TreeSupportData> m_ts_data;
     PrintObject    *m_object;
-    const PrintObjectConfig *m_object_config;
+    const PrintObjectConfig* m_object_config;
     SlicingParameters        m_slicing_params;
     // Various precomputed support parameters to be shared with external functions.
     SupportParams   m_support_params;
@@ -418,6 +426,7 @@ private:
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
+    float    DO_NOT_MOVER_UNDER_MM = 0.0;
     coordf_t MAX_BRANCH_RADIUS = 10.0;
     coordf_t MIN_BRANCH_RADIUS = 0.5;
     float tree_support_branch_diameter_angle = 5.0;
@@ -426,11 +435,6 @@ private:
     bool  with_infill                        = false;
 
 
-    /*!
-     * \brief Polygons representing the limits of the printable area of the
-     * machine
-     */
-    ExPolygon m_machine_border;
 
     /*!
      * \brief Draws circles around each node of the tree into the final support.
@@ -493,6 +497,7 @@ private:
     void generate_toolpaths();
     Polygons spanning_tree_to_polygon(const std::vector<MinimumSpanningTree>& spanning_trees, Polygons layer_contours, int layer_nr);
     Polygons contact_nodes_to_polygon(const std::vector<Node*>& contact_nodes, Polygons layer_contours, int layer_nr, std::vector<double>& radiis, std::vector<bool>& is_interface);
+    void clear_contact_nodes(std::vector<std::vector<Node*>>& contact_nodes);
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);
     coordf_t calc_branch_radius(coordf_t base_radius, coordf_t mm_to_top, double diameter_angle_scale_factor);
 

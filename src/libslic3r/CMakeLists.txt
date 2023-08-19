@@ -264,6 +264,10 @@ set(lisbslic3r_sources
     SupportMaterial.hpp
     TreeSupport.hpp
     TreeSupport.cpp
+    TreeSupport3D.hpp
+    TreeSupport3D.cpp
+    TreeModelVolumes.hpp
+    TreeModelVolumes.cpp
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
     Surface.cpp

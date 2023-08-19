@@ -114,7 +114,16 @@ inline std::string convert_to_full_version(std::string short_version)
     }
     return result;
 }
-
+template<typename DataType>
+inline DataType round_divide(DataType dividend, DataType divisor) //!< Return dividend divided by divisor rounded to the nearest integer
+{
+    return (dividend + divisor / 2) / divisor;
+}
+template<typename DataType>
+inline DataType round_up_divide(DataType dividend, DataType divisor) //!< Return dividend divided by divisor rounded to the nearest integer
+{
+    return (dividend + divisor - 1) / divisor;
+}
 
 
 // Set a path with GUI localization files.

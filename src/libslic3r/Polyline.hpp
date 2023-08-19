@@ -101,7 +101,10 @@ public:
     }
     void append(const Polyline& src);
     void append(Polyline&& src);
-  
+
+    Point& operator[](Points::size_type idx) { return this->points[idx]; }
+    const Point& operator[](Points::size_type idx) const { return this->points[idx]; }
+
     const Point& last_point() const override { return this->points.back(); }
     const Point& leftmost_point() const;
     Lines lines() const override;

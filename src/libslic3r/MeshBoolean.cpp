@@ -223,6 +223,12 @@ indexed_triangle_set cgal_to_indexed_triangle_set(const _Mesh &cgalmesh)
     return its;
 }
 
+template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
+{
+    indexed_triangle_set its = cgal_to_indexed_triangle_set(cgalmesh);
+    return TriangleMesh(std::move(its));
+}
+
 std::unique_ptr<CGALMesh, CGALMeshDeleter>
 triangle_mesh_to_cgal(const std::vector<stl_vertex> &V,
                       const std::vector<stl_triangle_vertex_indices> &F)

@@ -664,4 +664,23 @@ bool contains(const Polygons &polygons, const Point &p, bool border_result)
     }
     return (poly_count_inside % 2) == 1;
 }
+
+Polygon make_circle(double radius, double error)
+{
+    double angle = 2. * acos(1. - error / radius);
+    size_t num_segments = size_t(ceil(2. * M_PI / angle));
+    return make_circle_num_segments(radius, num_segments);
+}
+
+Polygon make_circle_num_segments(double radius, size_t num_segments)
+{
+    Polygon out;
+    out.points.reserve(num_segments);
+    double angle_inc = 2.0 * M_PI / num_segments;
+    for (size_t i = 0; i < num_segments; ++ i) {
+        const double angle = angle_inc * i;
+        out.points.emplace_back(coord_t(cos(angle) * radius), coord_t(sin(angle) * radius));
+    }
+    return out;
+}
 }

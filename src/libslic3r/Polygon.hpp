@@ -267,6 +267,9 @@ inline Polygons to_polygons(std::vector<Points> &&paths)
 // however their contours may be rotated.
 bool polygons_match(const Polygon &l, const Polygon &r);
 
+Polygon make_circle(double radius, double error);
+Polygon make_circle_num_segments(double radius, size_t num_segments);
+
 bool overlaps(const Polygons& polys1, const Polygons& polys2);
 } // Slic3r
 

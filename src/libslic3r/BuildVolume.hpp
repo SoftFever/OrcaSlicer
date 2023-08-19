@@ -53,6 +53,7 @@ public:
     // Bounding volume of printable_area(), printable_height(), unscaled.
     const BoundingBoxf3&        bounding_volume()   const { return m_bboxf; }
     BoundingBoxf                bounding_volume2d() const { return { to_2d(m_bboxf.min), to_2d(m_bboxf.max) }; }
+    indexed_triangle_set        bounding_mesh(bool scale=true) const;
 
     // Center of the print bed, unscaled.
     Vec2d                       bed_center()        const { return to_2d(m_bboxf.center()); }
