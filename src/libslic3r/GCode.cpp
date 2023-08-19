@@ -1795,11 +1795,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         is_extruder_used[extruder] = true;
     m_placeholder_parser.set("is_extruder_used", new ConfigOptionBools(is_extruder_used));
 
-    Vec2f plate_offset = m_writer.get_xy_offset();
     {
         BoundingBoxf bbox(print.config().printable_area.values);
-        m_placeholder_parser.set("print_bed_min", new ConfigOptionFloats({ bbox.min.x() - plate_offset.x(), bbox.min.y() - plate_offset.y() }));
-        m_placeholder_parser.set("print_bed_max", new ConfigOptionFloats({ bbox.max.x() - plate_offset.x(), bbox.max.y() - plate_offset.y() }));
+        m_placeholder_parser.set("print_bed_min", new ConfigOptionFloats({ bbox.min.x(), bbox.min.y()}));
+        m_placeholder_parser.set("print_bed_max", new ConfigOptionFloats({ bbox.max.x(), bbox.max.y()}));
         m_placeholder_parser.set("print_bed_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
     }
     {
