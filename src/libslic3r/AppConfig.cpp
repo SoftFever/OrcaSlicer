@@ -229,6 +229,10 @@ void AppConfig::set_defaults()
         set("slicer_uuid", to_string(uuid));
     }
 
+    // Orca
+    if (get("stealth_mode").empty()) {
+        set_bool("stealth_mode", false);
+    }
     if (get("show_model_mesh").empty()) {
         set_bool("show_model_mesh", false);
     }
