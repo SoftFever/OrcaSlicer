@@ -740,9 +740,9 @@ configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fh
 
 set (CPACK_PACKAGE_NAME "OrcaSlicer")
 set (CPACK_PACKAGE_VENDOR "SoftFever")
-set (CPACK_PACKAGE_VERSION_MAJOR "${SoftFever_VERSION_MAJOR}")
-set (CPACK_PACKAGE_VERSION_MINOR "${SoftFever_VERSION_MINOR}")
-set (CPACK_PACKAGE_VERSION_PATCH "${SoftFever_VERSION_PATCH}")
+set (CPACK_PACKAGE_VERSION_MAJOR "${ORCA_VERSION_MAJOR}")
+set (CPACK_PACKAGE_VERSION_MINOR "${ORCA_VERSION_MINOR}")
+set (CPACK_PACKAGE_VERSION_PATCH "${ORCA_VERSION_PATCH}")
 set (CPACK_PACKAGE_FILE_NAME "OrcaSlicer_Windows_${SoftFever_VERSION}")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Orca Slicer is an open source slicer for FDM printers")
 set (CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/SoftFever/OrcaSlicer")
