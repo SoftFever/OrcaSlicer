@@ -1,80 +1,83 @@
 {
     "printers": [
-        {
-            "display_name": "Bambu Lab P1P",
-            "func": {
-                "FUNC_CHAMBER_TEMP": false,
-                "FUNC_FIRSTLAYER_INSPECT": false,
-                "FUNC_AI_MONITORING": false,
-                "FUNC_BUILDPLATE_MARKER_DETECT": false,
-                "FUNC_FLOW_CALIBRATION": false,
-                "FUNC_MONITORING": false,
-                "FUNC_MEDIA_FILE": false,
-                "FUNC_REMOTE_TUNNEL": false,
-                "FUNC_LOCAL_TUNNEL": true,
-                "FUNC_VIRTUAL_CAMERA" : false,
-                "FUNC_PRINT_WITHOUT_SD": false,
-                "FUNC_ALTER_RESOLUTION": false,
-                "FUNC_CHAMBER_FAN" : false,
-                "FUNC_EXTRUSION_CALI": true,
-                "FUNC_PRINT_ALL" : false
-            },
-            "camera_resolution":["720p"],
-            "bed_temperature_limit": 100,
-            "model_id": "C11",
-            "printer_type": "C11",
-            "ftp_folder" : "sdcard/",
-            "printer_thumbnail_image": "printer_thumbnail_p1p"
+      {
+        "display_name": "Bambu Lab P1P",
+        "func": {
+          "FUNC_CHAMBER_TEMP": false,
+          "FUNC_FIRSTLAYER_INSPECT": false,
+          "FUNC_AI_MONITORING": true,
+          "FUNC_LIDAR_CALIBRATION": false,
+          "FUNC_BUILDPLATE_MARKER_DETECT": false,
+          "FUNC_FLOW_CALIBRATION": false,
+          "FUNC_MONITORING": false,
+          "FUNC_MEDIA_FILE": false,
+          "FUNC_VIRTUAL_CAMERA": false,
+          "FUNC_PRINT_WITHOUT_SD": false,
+          "FUNC_ALTER_RESOLUTION": false,
+
+          "FUNC_PRINT_ALL": false,
+          "FUNC_EXTRUSION_CALI": true
         },
-	{
-            "display_name": "Bambu Lab P1S",
-            "func": {
-              "FUNC_CHAMBER_TEMP": false,
-              "FUNC_FIRSTLAYER_INSPECT": false,
-              "FUNC_AI_MONITORING": true,
-              "FUNC_LIDAR_CALIBRATION": false,
-              "FUNC_BUILDPLATE_MARKER_DETECT": false,
-              "FUNC_FLOW_CALIBRATION": false,
-              "FUNC_MONITORING": false,
-              "FUNC_MEDIA_FILE": false,
-              "FUNC_VIRTUAL_CAMERA": false,
-              "FUNC_PRINT_WITHOUT_SD": false,
-              "FUNC_ALTER_RESOLUTION": false,
-              "FUNC_PRINT_ALL": false,
-              "FUNC_VIRTUAL_TYAY": true,
-              "FUNC_EXTRUSION_CALI": true
-            },
-            "camera_resolution": [ "720p" ],
-            "bed_temperature_limit": 100,
-            "model_id": "C12",
-            "compatible_machine":["BL-P001", "BL-P002", "C11"],
-            "printer_type": "C12",
-            "ftp_folder" : "sdcard/",
-            "printer_thumbnail_image": "printer_thumbnail_p1p"
+        "camera_resolution": [ "720p" ],
+        "bed_temperature_limit": 100,
+        "model_id": "C11",
+        "printer_type": "C11",
+        "compatible_machine": [ "BL-P001", "BL-P002", "C12"],
+        "ftp_folder": "sdcard/",
+        "printer_thumbnail_image": "printer_thumbnail_p1p"
+      },
+ {
+        "display_name": "Bambu Lab P1S",
+        "func": {
+          "FUNC_CHAMBER_TEMP": false,
+          "FUNC_FIRSTLAYER_INSPECT": false,
+          "FUNC_AI_MONITORING": true,
+          "FUNC_LIDAR_CALIBRATION": false,
+          "FUNC_BUILDPLATE_MARKER_DETECT": false,
+          "FUNC_FLOW_CALIBRATION": false,
+          "FUNC_MONITORING": false,
+          "FUNC_MEDIA_FILE": false,
+          "FUNC_VIRTUAL_CAMERA": false,
+          "FUNC_PRINT_WITHOUT_SD": false,
+          "FUNC_ALTER_RESOLUTION": false,
+          "FUNC_PRINT_ALL": false,
+          "FUNC_VIRTUAL_TYAY": true,
+          "FUNC_EXTRUSION_CALI": true
         },
-	{
-            "display_name": "Bambu Lab X1",
-            "func": {
-                "FUNC_VIRTUAL_TYAY" : true,
-                "FUNC_EXTRUSION_CALI": false,
-                "FUNC_LOCAL_TUNNEL": false
-            },
-            "model_id": "BL-P002",
-            "camera_resolution":["720p","1080p"],
-            "printer_type": "3DPrinter-X1",
-            "printer_thumbnail_image": "printer_thumbnail"
+        "camera_resolution": [ "720p" ],
+        "bed_temperature_limit": 100,
+        "model_id": "C12",
+        "compatible_machine":["BL-P001", "BL-P002", "C11"],
+        "printer_type": "C12",
+        "ftp_folder" : "sdcard/",
+        "printer_thumbnail_image": "printer_thumbnail_p1p"
+      },
+      {
+
+        "display_name": "Bambu Lab X1",
+        "func": {
+          "FUNC_VIRTUAL_TYAY": true,
+          "FUNC_EXTRUSION_CALI": false,
+          "FUNC_LOCAL_TUNNEL": false
         },
-        {
-            "display_name": "Bambu Lab X1 Carbon",
-            "func": {
-                "FUNC_VIRTUAL_TYAY" : true,
-                "FUNC_EXTRUSION_CALI": false,
-                "FUNC_LOCAL_TUNNEL": false
-            },
-            "model_id": "BL-P001",
-            "camera_resolution":["720p","1080p"],
-            "printer_type": "3DPrinter-X1-Carbon",
-            "printer_thumbnail_image": "printer_thumbnail"
-        }
+        "model_id": "BL-P002",
+        "compatible_machine": [ "BL-P001", "C11", "C12"],
+        "camera_resolution": [ "720p", "1080p" ],
+        "printer_type": "3DPrinter-X1",
+        "printer_thumbnail_image": "printer_thumbnail"
+      },
+      {
+        "display_name": "Bambu Lab X1 Carbon",
+        "func": {
+          "FUNC_VIRTUAL_TYAY": true,
+          "FUNC_EXTRUSION_CALI": false,
+          "FUNC_LOCAL_TUNNEL": false
+        },
+        "model_id": "BL-P001",
+        "compatible_machine": [ "BL-P002", "C11", "C12"],
+        "camera_resolution": [ "720p", "1080p" ],
+        "printer_type": "3DPrinter-X1-Carbon",
+        "printer_thumbnail_image": "printer_thumbnail"
+      }
     ]
 }

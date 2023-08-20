@@ -1,6 +1,9 @@
 #include "wxMediaCtrl2.h"
+#include "libslic3r/Time.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include <boost/filesystem/operations.hpp>
+#include <winuser.h>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
@@ -72,14 +75,34 @@ void wxMediaCtrl2::Load(wxURI url)
             std::string             data_dir_str = Slic3r::data_dir();
             boost::filesystem::path data_dir_path(data_dir_str);
             auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
+
             if (boost::filesystem::exists(dll_path)) {
                 CallAfter(
                     [dll_path] {
-                    int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO);
+                    int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it. You will be promoted twice"), _L("Error"), wxYES_NO);
                     if (res == wxYES) {
-                        wstring quoted_dll_path = L"\"" + dll_path.wstring() + "\"";
+                        std::string regContent = R"(Windows Registry Editor Version 5.00
+                                                    [HKEY_CLASSES_ROOT\bambu]
+                                                    "Source Filter"="{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}"
+                                                    )";
+
+                        auto reg_path = (fs::temp_directory_path() / fs::unique_path()).replace_extension(".reg");
+                        std::ofstream temp_reg_file(reg_path.c_str());
+                        if (!temp_reg_file) {
+                            return false;
+                        }
+                        temp_reg_file << regContent;
+                        temp_reg_file.close();
+                        auto sei_params = L"/q /s " + reg_path.wstring();
+                        SHELLEXECUTEINFO sei{sizeof(sei), SEE_MASK_NOCLOSEPROCESS, NULL,   L"open",
+                                             L"regedit",  sei_params.c_str(),SW_HIDE,SW_HIDE};
+                        ::ShellExecuteEx(&sei);
+
+                        wstring quoted_dll_path = L"\"" + dll_path.wstring() + L"\"";
                         SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", quoted_dll_path.c_str(), SW_HIDE };
                         ::ShellExecuteEx(&info);
+                        fs::remove(reg_path);
+     
                     }
                 });
             } else {
