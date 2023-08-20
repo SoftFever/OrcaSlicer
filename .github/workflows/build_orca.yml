@@ -22,7 +22,11 @@ on:
        - 'localization/**'
        - 'resources/**'
        - ".github/workflows/build_orca.yml"
-    
+ 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build_orca:
     strategy:
@@ -146,12 +150,12 @@ jobs:
 # Windows
       - name: setup MSVC
         if: matrix.os == 'windows-2019'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: microsoft/setup-msbuild@v1.1
 
-      - name: Install perl
+      - name: Install nsis
         if: matrix.os == 'windows-2019'
         run: |
-          choco install strawberryperl
+          choco install nsis
 
       - name: download deps
         if: matrix.os == 'windows-2019'
@@ -185,7 +189,7 @@ jobs:
       #   name: build deps
       #   working-directory: ${{ github.workspace }}
       #   continue-on-error: true
-      #   run: .\build_release.bat deps
+      #   run: .\build_release_vs2022.bat deps
     
       # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude OrcaSlicer_dep | Remove-Item -Recurse -Force
 
@@ -194,19 +198,30 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: .\build_release.bat slicer
 
+      - name: Create installer Win
+        if: matrix.os == 'windows-2019'
+        working-directory: ${{ github.workspace }}/build
+        run: cpack -G NSIS
+
       # - name: pack app
         # if: matrix.os == 'windows-2019'
         #   working-directory: ${{ github.workspace }}/build
       #   shell: cmd
       #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_dev_build.zip ${{ github.workspace }}/build/OrcaSlicer'
 
-      - name: Upload artifacts Win
+      - name: Upload artifacts Win zip
+        if: matrix.os == 'windows-2019'
+        uses: actions/upload-artifact@v3
+        with:
+          name: OrcaSlicer_Windows_V${{ env.ver }}_portable
+          path: ${{ github.workspace }}/build/OrcaSlicer
+
+      - name: Upload artifacts Win installer
         if: matrix.os == 'windows-2019'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Windows_V${{ env.ver }}
-          path: ${{ github.workspace }}/build/OrcaSlicer
-
+          path: ${{ github.workspace }}/build/OrcaSlicer*.exe
 # Ubuntu
 
       - name: Install dependencies

@@ -33,13 +33,10 @@
 	"nozzle_temperature_range_high": [
 		"240"
 	],
-	"filament_start_gcode": [
-		"; filament start gcode\n{if  (bed_temperature[current_extruder] >45)||(bed_temperature_initial_layer[current_extruder] >45)}M106 P3 S255\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S180\n{endif}"
-	],
 	"compatible_printers": [
-	"Qidi X-Plus 0.4 nozzle",
-	"Qidi X-Max 0.4 nozzle",
-	"Qidi X-CF Pro 0.4 nozzle",
+        "Qidi X-Plus 0.4 nozzle",
+        "Qidi X-Max 0.4 nozzle",
+        "Qidi X-CF Pro 0.4 nozzle",
 		"Qidi X-Smart 3 0.4 nozzle",
 		"Qidi X-Plus 3 0.4 nozzle",
 		"Qidi X-Max 3 0.4 nozzle"

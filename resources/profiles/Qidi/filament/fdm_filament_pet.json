@@ -11,7 +11,7 @@
         "0"
     ],
     "hot_plate_temp" : [
-        "80"
+        "70"
     ],
     "textured_plate_temp" : [
         "80"
@@ -23,7 +23,7 @@
         "0"
     ],
     "hot_plate_temp_initial_layer" : [
-        "80"
+        "70"
     ],
     "textured_plate_temp_initial_layer" : [
         "80"
@@ -50,7 +50,7 @@
         "30"
     ],
     "nozzle_temperature_initial_layer": [
-        "255"
+        "250"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -65,7 +65,7 @@
         "100"
     ],
     "nozzle_temperature": [
-        "255"
+        "250"
     ],
     "temperature_vitrification": [
         "80"
@@ -75,8 +75,5 @@
     ],
     "nozzle_temperature_range_high": [
         "260"
-    ],
-    "filament_start_gcode": [
-        "; filament start gcode\n"
     ]
 }

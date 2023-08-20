@@ -1141,6 +1141,9 @@ void GUI_App::post_init()
     }
 #endif
 
+    if (app_config->get("stealth_mode") == "false")
+        hms_query = new HMSQuery();
+    
     m_show_gcode_window = app_config->get("show_gcode_window") == "true";
     if (m_networking_need_update) {
         //updating networking
@@ -1165,17 +1168,17 @@ void GUI_App::post_init()
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
 
-            std::string http_url = get_http_url(app_config->get_country_code());
-            std::string language = GUI::into_u8(current_language_code());
-            std::string network_ver = Slic3r::NetworkAgent::get_version();
-            bool        sys_preset  = app_config->get("sync_system_preset") == "true";
-            this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
+            // std::string http_url = get_http_url(app_config->get_country_code());
+            // std::string language = GUI::into_u8(current_language_code());
+            // std::string network_ver = Slic3r::NetworkAgent::get_version();
+            // bool        sys_preset  = app_config->get("sync_system_preset") == "true";
+            // this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
 
             //BBS: check new version
             this->check_new_version_sf();
 			//BBS: check privacy version
-            if (is_user_login())
-                this->check_privacy_version(0);
+            // if (is_user_login())
+                // this->check_privacy_version(0);
         });
     }
 
@@ -1269,7 +1272,6 @@ GUI_App::GUI_App()
     , m_app_mode(EAppMode::Editor)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
-    , hms_query(new HMSQuery())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {

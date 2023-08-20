@@ -619,6 +619,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
+    // BBS
+    def             = this->add("first_layer_print_sequence", coInts);
+    def->label      = L("First layer print sequence");
+    def->min        = 0;
+    def->max        = 16;
+    def->set_default_value(new ConfigOptionInts{0});
+
     def = this->add("before_layer_change_gcode", coString);
     def->label = L("Before layer change G-code");
     def->tooltip = L("This G-code is inserted at every layer change before lifting z");
@@ -1116,7 +1123,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values = def_top_fill_pattern->enum_values;
     def->enum_labels = def_top_fill_pattern->enum_labels;
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
 	def                = this->add("internal_solid_infill_pattern", coEnum);
     def->label         = L("Internal solid infill pattern");
@@ -1125,7 +1132,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
     
     def = this->add("outer_wall_line_width", coFloatOrPercent);
     def->label = L("Outer wall");

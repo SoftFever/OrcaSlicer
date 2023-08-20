@@ -249,14 +249,10 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
         ICoreWebView2 *   webView2 = (ICoreWebView2 *) webView->GetNativeBackend();
         if (webView2 == nullptr)
             return false;
-        int               count   = 0;
-        wxJSScriptWrapper wrapJS(javascript, &count);
-        return webView2->ExecuteScript(wrapJS.GetWrappedCode(), NULL) == 0;
+        return webView2->ExecuteScript(javascript, NULL) == 0;
 #elif defined __WXMAC__
         WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
-        int               count   = 0;
-        wxJSScriptWrapper wrapJS(javascript, &count);
-        Slic3r::GUI::WKWebView_evaluateJavaScript(wkWebView, wrapJS.GetWrappedCode(), nullptr);
+        Slic3r::GUI::WKWebView_evaluateJavaScript(wkWebView, javascript, nullptr);
         return true;
 #else
         WebKitWebView *wkWebView = (WebKitWebView *) webView->GetNativeBackend();

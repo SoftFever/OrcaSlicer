@@ -898,17 +898,15 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 
             if (m_partplate_list->render_plate_settings) {
                 if (hover_id == 5) {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
-                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
-                                          m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
+                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
                     else
                       render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
                                           m_partplate_list->m_plate_settings_changed_hovered_texture,
                                           m_plate_settings_vbo_id);
                 } else {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault)
-                      render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
-                                          m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
+                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
                     else
                       render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
                                           m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);
@@ -2765,6 +2763,56 @@ int PartPlate::load_pattern_box_data(std::string filename)
     catch(std::exception &ex) {
         BOOST_LOG_TRIVIAL(trace) << boost::format("catch an exception %1%")%ex.what();
         return -1;
+    }
+}
+
+std::vector<int> PartPlate::get_first_layer_print_sequence() const
+{
+    const ConfigOptionInts *op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
+    if (op_print_sequence_1st)
+        return op_print_sequence_1st->values;
+    else
+        return std::vector<int>();
+}
+
+void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_filaments)
+{
+    if (sorted_filaments.size() > 0) {
+		if (sorted_filaments.size() == 1 && sorted_filaments[0] == 0) {
+            m_config.erase("first_layer_print_sequence");
+        }
+		else {
+            ConfigOptionInts *op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
+            if (op_print_sequence_1st)
+                op_print_sequence_1st->values = sorted_filaments;
+            else
+                m_config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(sorted_filaments));
+        }
+    }
+	else {
+        m_config.erase("first_layer_print_sequence");
+	}
+}
+
+void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
+{
+    ConfigOptionInts * op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
+    if (!op_print_sequence_1st) {
+		return;
+	}
+
+    std::vector<int> &print_sequence_1st = op_print_sequence_1st->values;
+    if (print_sequence_1st.size() == 0 || print_sequence_1st[0] == 0)
+		return;
+
+	if (print_sequence_1st.size() > filament_nums) {
+        print_sequence_1st.erase(std::remove_if(print_sequence_1st.begin(), print_sequence_1st.end(), [filament_nums](int n) { return n > filament_nums; }),
+                                 print_sequence_1st.end());
+    }
+	else if (print_sequence_1st.size() < filament_nums) {
+        for (size_t extruder_id = print_sequence_1st.size(); extruder_id < filament_nums; ++extruder_id) {
+            print_sequence_1st.push_back(extruder_id + 1);
+		}
     }
 }
 
