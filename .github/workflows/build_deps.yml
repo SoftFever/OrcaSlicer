@@ -15,18 +15,22 @@ on:
       - 'deps/**'
       - .github/workflows/build_deps.yml
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build_deps:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
-          - os: windows-2019
-          - os: macos-12
-            arch: x86_64
-          - os: macos-12
-            arch: arm64
+          # - os: ubuntu-22.04
+          - os: windows-latest
+          # - os: macos-12
+          #   arch: x86_64
+          # - os: macos-12
+          #   arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -35,31 +39,29 @@ jobs:
 
       - name: setup dev on Windows
         if: matrix.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: Get the date on Ubuntu and macOS
-        if: matrix.os != 'windows-2019'
+        if: matrix.os != 'windows-latest'
         id: get-date-unix
         run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
         
       - name: Get the date on Windows
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         id: get-date-windows
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
       - name: Build on Windows
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
             mkdir ${{ github.workspace }}/deps/build
             mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-            .\build_release.bat deps
+            .\build_release_vs2022.bat deps
             cd ${{ github.workspace }}/deps/build
-            '"C:/Program Files/7-Zip/7z.exe" a OrcaSlicer_dep_win64_${{ env.date }}.zip ${{ github.workspace }}/deps/build/OrcaSlicer_dep'
-            ls
 
       - name: Build on Mac x86_64
         if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
@@ -110,11 +112,11 @@ jobs:
           path: ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_win64_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/*.zip
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
 
       - name: Upload Ubuntu artifacts
         if: matrix.os == 'ubuntu-22.04'
