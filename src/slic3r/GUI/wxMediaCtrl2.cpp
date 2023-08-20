@@ -3,8 +3,8 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include <boost/filesystem/operations.hpp>
-#include <winuser.h>
 #ifdef __WIN32__
+#include <winuser.h>
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
 #include <shellapi.h>
