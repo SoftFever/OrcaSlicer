@@ -502,7 +502,7 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
-
+    
     // temporary workaround for compatibility with older Slicer
     {
         def = this->add("preset_name", coString);
@@ -1764,6 +1764,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Delta"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<PrinterStructure>(psUndefine));
+
+    def = this->add("best_object_pos", coPoint);
+    def->label = L("Best object position");
+    def->tooltip = L("Best auto arranging position in range [0,1] w.r.t. bed shape.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPoint(Vec2d(0.5, 0.5)));
 
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");

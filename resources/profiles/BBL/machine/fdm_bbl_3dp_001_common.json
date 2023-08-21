@@ -118,6 +118,8 @@
     "printer_settings_id": "",
     "printer_technology": "FFF",
     "printer_variant": "0.4",
+    "printer_structure": "corexy",
+    "best_object_pos":"0.5x0.5",
     "retraction_minimum_travel": [
         "1"
     ],
