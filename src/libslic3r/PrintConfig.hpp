@@ -862,6 +862,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))
+    ((ConfigOptionFloats,              retract_lift_above))
+    ((ConfigOptionFloats,              retract_lift_below))
     ((ConfigOptionString,              machine_start_gcode))
     ((ConfigOptionStrings,             filament_start_gcode))
     ((ConfigOptionBool,                single_extruder_multi_material))

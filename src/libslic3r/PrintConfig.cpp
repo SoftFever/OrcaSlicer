@@ -2489,6 +2489,21 @@ void PrintConfigDef::init_fff_params()
     def->max = 5;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
+    def             = this->add("retract_lift_above", coFloats);
+    def->label      = L("Z hop lower boundary");
+    def->tooltip    = L("Z hop will only come into effect when Z is above this value and is below the parameter: \"Z hop upper boundary\"");
+    def->sidetext   = L("mm");
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{0.});
+
+    def             = this->add("retract_lift_below", coFloats);
+    def->label      = L("Z hop upper boundary");
+    def->tooltip    = L("If this value is positive, Z hop will only come into effect when Z is above the parameter: \"Z hop lower boundary\" and is below this value");
+    def->sidetext   = L("mm");
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{0.});
+
+
     def = this->add("z_hop_types", coEnums);
     def->label = L("Z Hop Type");
     def->tooltip = L("");
@@ -3494,7 +3509,7 @@ void PrintConfigDef::init_fff_params()
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
         // floats
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
+        "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below","retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
         // BBS: floats
         "wipe_distance",
         // bools
@@ -3541,7 +3556,7 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "extruder_type", "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "retract_lift_above", "retract_lift_below","deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
@@ -3553,6 +3568,8 @@ void PrintConfigDef::init_extruder_option_keys()
         "retract_restart_extra",
         "retract_when_changing_layer",
         "retraction_length",
+        "retract_lift_above",
+        "retract_lift_below",
         "retraction_minimum_travel",
         "retraction_speed",
         "wipe",
