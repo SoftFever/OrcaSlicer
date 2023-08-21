@@ -71,7 +71,7 @@
     "support_interface_bottom_layers": "2",
     "support_interface_spacing": "0.5",
     "support_interface_speed": "80",
-    "support_base_pattern": "rectilinear",
+    "support_base_pattern": "zig-zag",
     "support_base_pattern_spacing": "2.5",
     "support_speed": "125",
     "support_threshold_angle": "40",
