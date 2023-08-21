@@ -790,7 +790,7 @@ msgid "Extruders"
 msgstr "Extrudery"
 
 msgid "Extrusion Width"
-msgstr "Šířka extruze"
+msgstr "Šířka Extruze"
 
 msgid "Wipe options"
 msgstr "Možnosti čištění"
@@ -874,10 +874,10 @@ msgid "Set as individual objects"
 msgstr "Nastavit jako jednotlivé objekty"
 
 msgid "Fill bed with copies"
-msgstr ""
+msgstr "Vyplnit tiskovou plochu kopiemi"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr ""
+msgstr "Vyplní zbývající tiskovou plochu kopiemi vybraného objektu"
 
 msgid "Printable"
 msgstr "Tisknout objekt"
@@ -1484,7 +1484,7 @@ msgid "Cali"
 msgstr "Kalibrace"
 
 msgid "Calibration of extrusion"
-msgstr "Kalibrace Extruze"
+msgstr "Kalibrace extruze"
 
 msgid "Load Filament"
 msgstr "Zavézt Filament"
@@ -1619,13 +1619,13 @@ msgid "Orienting"
 msgstr "Orientování"
 
 msgid "Filling bed "
-msgstr ""
+msgstr "Vyplňování podložky "
 
 msgid "Bed filling canceled."
-msgstr ""
+msgstr "Vyplnění podložky zrušeno."
 
 msgid "Bed filling done."
-msgstr ""
+msgstr "Vyplnění podložky je dokončené."
 
 msgid "Error! Unable to create thread!"
 msgstr "Chyba! Nelze vytvořit vlákno!"
@@ -2952,7 +2952,7 @@ msgid "Assembly Return"
 msgstr "Návrat k sestavení"
 
 msgid "return"
-msgstr "návrat"
+msgstr "Návrat"
 
 msgid "Paint Toolbar"
 msgstr "Panel nástrojů Malování"
@@ -2990,7 +2990,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "Objekt je položen přes hranici podložky."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "Cesta G-kódu přesahuje maximální výšku tisku."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Cesta G-kódu přesahuje hranici podložky."
@@ -3998,7 +3998,7 @@ msgid "Export successfully."
 msgstr "Export úspěšně."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "Vážné varování:"
 
 msgid " (Repair)"
 msgstr " (Oprava)"
@@ -4522,6 +4522,8 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
 msgstr ""
+"Nelze provést logickou operaci nad mashí modelů. Budou exportovány pouze "
+"kladné části."
 
 msgid ""
 "Print By Object: \n"
@@ -4548,11 +4550,11 @@ msgstr "Nastavení Podložky"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
-msgstr ""
+msgstr "Počet aktuálně vybraných částí: %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "Počet aktuálně vybraných objektů: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -4896,10 +4898,10 @@ msgid "Plate name"
 msgstr "Název Podložky"
 
 msgid "Customize"
-msgstr ""
+msgstr "Přizpůsobit"
 
 msgid "First Layer print sequence"
-msgstr ""
+msgstr "Sekvence tisku první vrstvy"
 
 msgid "Same as Global Bed Type"
 msgstr "Stejné jako globální typ Podložky"
@@ -5371,7 +5373,7 @@ msgid "Bridge"
 msgstr "Most"
 
 msgid "Set speed for external and internal bridges"
-msgstr ""
+msgstr "Nastavit rychlost pro vnější a vnitřní mosty"
 
 msgid "Travel speed"
 msgstr "Cestovní rychlost"
@@ -6360,7 +6362,7 @@ msgid "Bottom surface"
 msgstr "Spodní plocha"
 
 msgid "Internal Bridge"
-msgstr ""
+msgstr "Vnitřní most"
 
 msgid "Gap infill"
 msgstr "Výplň mezery"
@@ -6830,7 +6832,7 @@ msgid "Bed types supported by the printer"
 msgstr "Typy podložek podporované tiskárnou"
 
 msgid "First layer print sequence"
-msgstr ""
+msgstr "Sekvence tisku první vrstvy"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Tento G-kód se vkládá při každé změně vrstvy před zvednutím z"
@@ -6966,7 +6968,7 @@ msgstr ""
 "prostoru pro horní vzor výplně"
 
 msgid "One wall threshold"
-msgstr ""
+msgstr "Hranice jedné stěny"
 
 #, c-format, boost-format
 msgid ""
@@ -6979,6 +6981,14 @@ msgid ""
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
+"Pokud má být tisknuta horní plocha a je částečně zakrytá jinou vrstvou, nebude "
+"brána v úvahu jako horní vrstva, pokud je její šířka nižší než tato hodnota. "
+"Toto může být užitečné, aby se zabránilo spuštění funkce 'jeden perimetr nahoře' "
+"na ploše, která by měla být pokryta pouze perimetry. Tato hodnota může být udávána "
+"v mm nebo jako % šířky extruze perimetru.\n"
+"Varování: Pokud je tato funkce povolena, mohou vzniknout artefakty, pokud máte na "
+"následující vrstvě nějaké tenké prvky, například písmena. Tuto volbu nastavte na 0, "
+"abyste se tyto artefakty odstranili."
 
 msgid "Only one wall on first layer"
 msgstr "Pouze jedna stěna v první vrstvě"
@@ -7006,7 +7016,7 @@ msgid "mm/s or %"
 msgstr "mm/s or %"
 
 msgid "External"
-msgstr ""
+msgstr "Vnější"
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Rychlost mostu a zcela převislé stěny"
@@ -7015,12 +7025,14 @@ msgid "mm/s"
 msgstr "mm/s"
 
 msgid "Internal"
-msgstr ""
+msgstr "Vnitřní"
 
 msgid ""
 "Speed of internal bridge. If the value is expressed as a percentage, it will "
 "be calculated based on the bridge_speed. Default value is 150%."
 msgstr ""
+"Rychlost vnitřního mostu. Pokud je hodnota vyjádřena jako procento, bude "
+"vypočítána na základě most_speed. Výchozí hodnota je 150 %."
 
 msgid "Brim width"
 msgstr "Šířka Límce"
@@ -7039,7 +7051,7 @@ msgstr ""
 "Auto znamená, že šířka límce je automaticky analyzována a vypočítána."
 
 msgid "Mouse ear"
-msgstr ""
+msgstr "Uši myši"
 
 msgid "outer_only"
 msgstr "Pouze vnější"
@@ -7060,28 +7072,34 @@ msgstr ""
 "Mezera mezi nejvnitřnějším límcem a předmětem může usnadnit odstranění límce"
 
 msgid "Brim ears"
-msgstr ""
+msgstr "Uši límce"
 
 msgid "Only draw brim over the sharp edges of the model."
-msgstr ""
+msgstr "Pouze kreslit límec (brim) přes ostré hrany modelu."
 
 msgid "Brim ear max angle"
-msgstr ""
+msgstr "Maximální úhel uší límce"
 
 msgid ""
 "Maximum angle to let a brim ear appear. \n"
 "If set to 0, no brim will be created. \n"
 "If set to ~180, brim will be created on everything but straight sections."
 msgstr ""
+"Maximální úhel, při kterém se můžou objevit uši límce.\n"
+"Pokud je nastaveno na 0, nebude vytvořen žádný límec.\n"
+"Pokud je nastaveno na ~180, límec bude vytvořen na všem kromě rovných úseků."
 
 msgid "Brim ear detection radius"
-msgstr ""
+msgstr "Poloměr detekce uší límce"
 
 msgid ""
 "The geometry will be decimated before dectecting sharp angles. This "
 "parameter indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate"
 msgstr ""
+"Geometrie bude zredukována před detekcí ostrých úhlů. Tento parametr "
+"udává minimální délku odchylky pro redukci.\n"
+"0 pro deaktivaci"
 
 msgid "Compatible machine"
 msgstr "Kompatibilní stroj"
@@ -7265,12 +7283,14 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Čárový vzor výplně spodní plochy, nikoli výplně mostů"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "Vzor vnitřní plné výplně"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect nattow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
+"Čárový vzor vnitřní plné výplně. Pokud je povolena detekce úzké vnitřní plné "
+"výplně, bude pro malou plochu použit koncentrický vzor."
 
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
@@ -7399,7 +7419,7 @@ msgid ""
 "Default line width if other line widths are set to 0. If expressed as a %, "
 "it will be computed over the nozzle diameter."
 msgstr ""
-"Výchozí šířka Extruze, pokud jsou ostatní šířky extruze nastaveny na 0. "
+"Výchozí šířka extruze, pokud jsou ostatní šířky extruze nastaveny na 0. "
 "Pokud je vyjádřeno jako %, bude vypočteno na základě průměru trysky."
 
 msgid "Keep fan always on"
@@ -7508,7 +7528,7 @@ msgid ""
 "after the checks."
 msgstr ""
 "Zadejte procento smrštění, které filament získá po ochlazení (94% pokud "
-"naměříte 94 mm místo 100 mm). Část bude pro kompenzaci zmenšena v xy. Bere "
+"naměříte 94mm místo 100mm). Část bude pro kompenzaci zmenšena v xy. Bere "
 "se v úvahu pouze filamentu použit pro obvod.\n"
 "Ujistěte se aby byl mezi objekty dostatek prostoru, protože tato kompenzace "
 "se provádí po kontrolách."
@@ -7561,10 +7581,10 @@ msgid "money/kg"
 msgstr "Kč/kg"
 
 msgid "Vendor"
-msgstr ""
+msgstr "Výrobce"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "Výrobce filamentu. Pouze pro zobrazení."
 
 msgid "(Undefined)"
 msgstr "(Nedefinováno)"
@@ -7764,7 +7784,7 @@ msgid ""
 "Line width of initial layer. If expressed as a %, it will be computed over "
 "the nozzle diameter."
 msgstr ""
-"Šířka Extruze pro první vrstvu. Pokud je vyjádřena jako %, vypočítá se "
+"Šířka extruze pro první vrstvu. Pokud je vyjádřena jako %, vypočítá se "
 "vzhledem k průměru trysky."
 
 msgid "Initial layer height"
@@ -8063,7 +8083,7 @@ msgid ""
 "Line width of internal sparse infill. If expressed as a %, it will be "
 "computed over the nozzle diameter."
 msgstr ""
-"Šířka Extruze pro vnitřní výplně. Pokud je vyjádřena jako %, vypočítá se "
+"Šířka extruze pro vnitřní výplně. Pokud je vyjádřena jako %, vypočítá se "
 "vzhledem k průměru trysky."
 
 msgid "Infill/Wall overlap"
@@ -8114,7 +8134,7 @@ msgid "All solid layer"
 msgstr "Všechny pevné vrstvy"
 
 msgid "Ironing Pattern"
-msgstr ""
+msgstr "Vzor Žehlení"
 
 msgid "Ironing flow"
 msgstr "Průtok žehlení"
@@ -8411,7 +8431,7 @@ msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
 "nozzle diameter."
 msgstr ""
-"Šířka Extruze vnitřní stěny. Pokud je vyjádřena jako %, vypočítá se vzhledem "
+"Šířka extruze vnitřní stěny. Pokud je vyjádřena jako %, vypočítá se vzhledem "
 "k průměru trysky."
 
 msgid "Speed of inner wall"
@@ -8885,10 +8905,10 @@ msgstr ""
 "atd."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Odstranit malé převisy"
 
 msgid "Remove small overhangs that possibly need no supports."
-msgstr ""
+msgstr "Odstranit malé převisy, které pravděpodobně nepotřebují podpěry."
 
 msgid "Top Z distance"
 msgstr "Vzdálenost horní Z"
@@ -9481,10 +9501,10 @@ msgid "Load cached slicing data from directory"
 msgstr "Načíst data dělení z mezipaměti z adresáře"
 
 msgid "Export STL"
-msgstr ""
+msgstr "Exportovat STL"
 
 msgid "Export the objects as multiple STL."
-msgstr ""
+msgstr "Exportovat objekty jako více STL souborů."
 
 msgid "Slice"
 msgstr "Slicovat"
@@ -9502,10 +9522,10 @@ msgid "Update the configs values of 3mf to latest."
 msgstr "Aktualizujte konfigurační hodnoty 3mf na nejnovější."
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "Načíst výchozí filameny"
 
 msgid "Load first filament as default for those not loaded"
-msgstr ""
+msgstr "Načíst první filament jako výchozí pro ty, které nebyly načteny"
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -9557,10 +9577,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Volby uspořádání: 0-zakázat, 1-povolit, ostatní-automaticky"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "Počet opakování"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "Počet opakování celého modelu"
 
 msgid "Convert Unit"
 msgstr "Převést jednotku"
@@ -9593,12 +9613,14 @@ msgid "Skip some objects in this print"
 msgstr "Přeskočit některé objekty při tisku"
 
 msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
+msgstr "Načítat aktuální nastavení procesu/stroje při použití aktuálního"
 
 msgid ""
 "load uptodate process/machine settings from the specified file when using "
 "uptodate"
 msgstr ""
+"Načítat aktuální nastavení procesu/stroje ze zadaného souboru při použití "
+"aktuálního"
 
 msgid "Data directory"
 msgstr "Složka Data"
@@ -9728,99 +9750,100 @@ msgstr "Podpěry: šíření větví na vrstvě %d"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo .amf(.xml)"
 
 msgid "Loading of a model file failed."
-msgstr ""
+msgstr "Nahrávání souboru modelu selhalo."
 
 msgid "The supplied file couldn't be read because it's empty"
-msgstr ""
+msgstr "Nahraný soubor nemohl být načten, protože je prázdný."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
-msgstr ""
+msgstr "Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf nebo .zip.amf."
 
 msgid "Canceled"
-msgstr ""
+msgstr "Zrušeno"
 
 msgid "load_obj: failed to parse"
-msgstr ""
+msgstr "load_obj: nepodařilo se zpracovat"
 
 msgid "The file contains polygons with more than 4 vertices."
-msgstr ""
+msgstr "Soubor obsahuje polygon s více než 4 vrcholy."
 
 msgid "The file contains polygons with less than 2 vertices."
-msgstr ""
+msgstr "Soubor obsahuje polygon s méně než 2 vrcholy."
 
 msgid "The file contains invalid vertex index."
-msgstr ""
+msgstr "Soubor obsahuje neplatný index vrcholu"
 
 msgid "This OBJ file couldn't be read because it's empty."
-msgstr ""
+msgstr "Tento soubor formátu OBJ nemohl být načten, protože je prázdný."
 
 msgid "Network lookup"
-msgstr ""
+msgstr "Vyhledávání v síti"
 
 msgid "Address"
-msgstr ""
+msgstr "Adresa"
 
 msgid "Hostname"
-msgstr ""
+msgstr "Název hostitele"
 
 msgid "Service name"
-msgstr ""
+msgstr "Název služby"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "Service name"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "Vyhledávání zařízení"
 
 msgid "Finished"
-msgstr ""
+msgstr "Dokončeno"
 
 msgid "Unable to perform boolean operation on selected parts"
-msgstr ""
+msgstr "Nelze provést booleovskou operaci na vybraných částech"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "Booleovská síť"
 
 msgid "Union"
-msgstr ""
+msgstr "Sjednocení"
 
 msgid "Difference"
-msgstr ""
+msgstr "Rozdíl"
 
 msgid "Intersection"
-msgstr ""
+msgstr "Průsečík"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "Zdrojový objem"
 
 msgid "Tool Volume"
-msgstr ""
+msgstr "Objem nástroje"
 
 msgid "selected"
-msgstr ""
+msgstr "vybráno"
 
 msgid "Part 1"
-msgstr ""
+msgstr "Část 1"
 
 msgid "Subtract from"
-msgstr ""
+msgstr "Odečíst od"
 
 msgid "Part 2"
-msgstr ""
+msgstr "Část 2"
 
 msgid "Subtract with"
-msgstr ""
+msgstr "Odečíst s"
 
 msgid "Delete input"
-msgstr ""
+msgstr "Smazat vstup"
 
 msgid "Send to print"
 msgstr "Odeslat do tiskárny"
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "Nahrát do tiskového serveru s následujícím názvem souboru:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko (/)."
@@ -9828,6 +9851,7 @@ msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko (/)."
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
+"Název nahrávaného souboru neskončí s \"%s\". Přejete si pokračovat?"
 
 msgid "Upload"
 msgstr "Nahrát"
@@ -9836,47 +9860,47 @@ msgid "Upload and Print"
 msgstr "Nahrát a Tisknout"
 
 msgid "Simulate"
-msgstr ""
+msgstr "Simulovat"
 
 msgid "Print host upload queue"
-msgstr ""
+msgstr "Fronta nahrávání tiskového serveru"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
-msgstr ""
+msgstr "Postup"
 
 msgid "Host"
-msgstr ""
+msgstr "Hostitel"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "Velikost"
 
 msgid "Filename"
-msgstr ""
+msgstr "Název souboru"
 
 msgid "Error Message"
-msgstr ""
+msgstr "Chybové hlášení"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "Zrušit vybrané"
 
 msgid "Show error message"
-msgstr ""
+msgstr "Zobrazit chybové hlášení"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "Ve frontě"
 
 msgid "Uploading"
-msgstr ""
+msgstr "Nahrávání"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "Ruší se"
 
 msgid "Error uploading to print host:"
-msgstr ""
+msgstr "Chyba při nahrávání na tiskový server:"
 
 msgid "PA Calibration"
 msgstr "PA Kalibrace"
