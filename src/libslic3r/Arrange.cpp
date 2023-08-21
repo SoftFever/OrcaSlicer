@@ -153,16 +153,16 @@ Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParam
 // Slic3r.
 template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
-
-    if (params.is_seq_print) {
-        // Start placing the items from the center of the print bed
-        pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
-    }
-    else {
-        // Start placing the items from the center of the print bed
-        pcfg.starting_point = PConf::Alignment::TOP_RIGHT;
-    }
-
+    
+        if (params.is_seq_print) {
+            // Start placing the items from the center of the print bed
+            pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
+        }
+        else {
+            // Start placing the items from the center of the print bed
+            pcfg.starting_point = PConf::Alignment::TOP_RIGHT;
+        }
+    
     if (params.do_final_align) {
         // Align the arranged pile into the center of the bin
         pcfg.alignment = PConf::Alignment::CENTER;
@@ -564,6 +564,14 @@ public:
         m_norm = std::sqrt(m_bin_area);
         fill_config(m_pconf, params);
         this->params = params;
+
+        // if best object center is not bed center, specify starting point here
+        if (std::abs(this->params.align_center.x() - 0.5) > 0.001 || std::abs(this->params.align_center.y() - 0.5) > 0.001) {
+            auto binbb = sl::boundingBox(m_bin);
+            m_pconf.best_object_pos = binbb.minCorner() + Point{ binbb.width() * this->params.align_center.x(), binbb.height() * this->params.align_center.y() };
+            m_pconf.alignment = PConfig::Alignment::USER_DEFINED;
+        }
+
         for (auto& region : m_pconf.m_excluded_regions) {
             Box  bb = region.boundingBox();
             m_excluded_and_extruCali_regions.emplace_back(bb);

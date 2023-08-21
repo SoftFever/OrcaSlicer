@@ -30,7 +30,6 @@
     "z_hop": [
         "0.4"
     ],
-    "printer_structure": "corexy",
     "upward_compatible_machine": [
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab X1 0.4 nozzle",

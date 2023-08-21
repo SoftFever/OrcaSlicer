@@ -739,11 +739,13 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     arrangement::ArrangeParams         params;
     const GLCanvas3D::ArrangeSettings &settings = static_cast<const GLCanvas3D *>(p->canvas3D())->get_arrange_settings();
     auto &                             print    = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    const PrintConfig& print_config = print.config();
 
-    params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
-    params.clearance_height_to_lid             = print.config().extruder_clearance_height_to_lid.value;
-    params.cleareance_radius                   = print.config().extruder_clearance_max_radius.value;
-    params.printable_height                    = print.config().printable_height.value;
+    params.clearance_height_to_rod             = print_config.extruder_clearance_height_to_rod.value;
+    params.clearance_height_to_lid             = print_config.extruder_clearance_height_to_lid.value;
+    params.cleareance_radius                   = print_config.extruder_clearance_max_radius.value;
+    params.printable_height                    = print_config.printable_height.value;
+    params.align_center                        = print_config.best_object_pos.value;
     params.allow_rotations                     = settings.enable_rotation;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;

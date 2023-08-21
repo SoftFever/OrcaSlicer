@@ -127,6 +127,7 @@ struct ArrangeParams {
     float clearance_height_to_lid = 0;
     float cleareance_radius = 0;
     float printable_height = 256.0;
+    Vec2d align_center{ 0.5,0.5 };
 
     ArrangePolygons excluded_regions;   // regions cant't be used
     ArrangePolygons nonprefered_regions; // regions can be used but not prefered

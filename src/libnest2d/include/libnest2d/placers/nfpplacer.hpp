@@ -37,8 +37,9 @@ struct NfpPConfig {
         BOTTOM_RIGHT,
         TOP_LEFT,
         TOP_RIGHT,
-        DONT_ALIGN      //!> Warning: parts may end up outside the bin with the
+        DONT_ALIGN,     //!> Warning: parts may end up outside the bin with the
                         //! default object function.
+        USER_DEFINED
     };
 
     /// Which angles to try out for better results.
@@ -49,6 +50,8 @@ struct NfpPConfig {
 
     /// Where to start putting objects in the bin.
     Alignment starting_point;
+
+    TPoint<RawShape> best_object_pos;
 
     /**
      * @brief A function object representing the fitting function in the
@@ -1098,6 +1101,11 @@ private:
         case Config::Alignment::TOP_RIGHT: {
             ci = bb.maxCorner();
             cb = bbin.maxCorner();
+            break;
+        }
+        case Config::Alignment::USER_DEFINED: {
+            ci = bb.center();
+            cb = config_.best_object_pos;
             break;
         }
         default: ; // DONT_ALIGN

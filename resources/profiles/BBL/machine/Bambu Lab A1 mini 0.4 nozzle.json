@@ -50,10 +50,8 @@
         "179"
     ],
     "printer_structure": "i3",
-    "retract_lift_below": [
-        "179"
-    ],
     "scan_first_layer": "0",
+    "best_object_pos":"0.85x0.5",
     "upward_compatible_machine": [
         "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab P1P 0.4 nozzle",
