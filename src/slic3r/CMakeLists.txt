@@ -416,6 +416,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
+    GUI/CreatePresetsDialog.hpp
+    GUI/CreatePresetsDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp

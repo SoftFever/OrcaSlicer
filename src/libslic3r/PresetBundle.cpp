@@ -1202,7 +1202,6 @@ VendorProfile PresetBundle::get_custom_vendor_models() const
             iter_model = vendor.models.emplace(vendor.models.end(), VendorProfile::PrinterModel{});
             iter_model->name = model;
         }
-        iter_model->variants.push_back(variant);
     }
     return vendor;
 }

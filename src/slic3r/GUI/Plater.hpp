@@ -25,6 +25,7 @@
 #include "libslic3r/PrintBase.hpp"
 #include "libslic3r/Calib.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
+#include "CreatePresetsDialog.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 

@@ -2065,7 +2065,7 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return preset;
 }
 
-bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &)> modifier)
+bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &)> modifier, bool force_rewritten)
 {
     std::vector<Preset> new_presets;
     for (auto curr_preset : presets) {
@@ -2095,26 +2095,32 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
         preset.updated_time = (long long) Slic3r::Utils::get_current_time_utc();
     }
-    if (!failures.empty())
+    if (!failures.empty() && !force_rewritten)
         return false;
     lock();
     for (auto preset : new_presets) {
         auto it = this->find_preset_internal(preset.name);
-        assert(it == m_presets.end() || it->name != preset.name);
-        Preset & new_preset = *m_presets.insert(it, preset);
-        new_preset.save(nullptr);
+        assert((it == m_presets.end() || it->name != preset.name) || force_rewritten);
+        if (it == m_presets.end() || it->name != preset.name) {
+            Preset &new_preset = *m_presets.insert(it, preset);
+            new_preset.save(nullptr);
+        } else if (force_rewritten) {
+            *it = preset;
+            (*it).save(nullptr);
+        }
     }
     unlock();
     return true;
 }
 
-bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer)
+bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten)
 {
     return clone_presets(presets, failures, [printer](Preset &preset) {
         preset.name = preset.alias + " @ " + printer;
+        preset.alias                = preset.name;
         auto *compatible_printers     = dynamic_cast<ConfigOptionStrings*>(preset.config.option("compatible_printers"));
         compatible_printers->values = std::vector<std::string>{ printer };
-    });
+    }, force_rewritten);
 }
 
 bool PresetCollection::create_presets_from_template_for_printer(std::vector<std::string> const &templates, std::vector<std::string> &failures, std::string const &printer)
@@ -2125,13 +2131,15 @@ bool PresetCollection::create_presets_from_template_for_printer(std::vector<std:
 bool PresetCollection::clone_presets_for_filament(std::vector<Preset const *> const &presets,
                                                   std::vector<std::string> &         failures,
                                                   std::string const &                filament_name,
-                                                  std::string const &                filament_id)
+                                                  std::string const &                filament_id,
+                                                  bool force_rewritten)
 {
     return clone_presets(presets, failures, [filament_name, filament_id](Preset &preset) {
         preset.name        = filament_name + " " + preset.name.substr(preset.name.find_last_of('@'));
         preset.alias       = filament_name;
         preset.filament_id = filament_id;
-    });
+        },
+        force_rewritten);
 }
 
 std::map<std::string, std::vector<Preset const *>> PresetCollection::get_filament_presets() const

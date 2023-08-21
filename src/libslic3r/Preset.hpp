@@ -449,10 +449,10 @@ public:
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
 
-    bool clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &)> modifier);
-    bool clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer);
+    bool clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &)> modifier, bool force_rewritten = false);
+    bool clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten = false);
     bool create_presets_from_template_for_printer(std::vector<std::string> const &templates, std::vector<std::string> &failures, std::string const &printer);
-    bool clone_presets_for_filament(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &filament_name, std::string const &filament_id);
+    bool clone_presets_for_filament(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &filament_name, std::string const &filament_id, bool force_rewritten = false);
 
     std::map<std::string, std::vector<Preset const *>> get_filament_presets() const;
 

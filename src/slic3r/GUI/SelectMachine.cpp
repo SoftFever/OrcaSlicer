@@ -3682,7 +3682,7 @@ void SelectMachineDialog::set_default_normal()
     auto dialogSize = this->GetSize();
 
 #ifdef __WINDOWS__
-    if (screenSize.y < dialogSize.y) {
+    if (screenSize.GetHeight() < dialogSize.GetHeight()) {
         m_need_adaptation_screen = true;
         m_scrollable_view->SetScrollRate(0, 5);
         m_scrollable_view->SetSize(wxSize(-1, FromDIP(220)));
@@ -3843,7 +3843,7 @@ void SelectMachineDialog::set_default_from_sdcard()
     auto dialogSize = this->GetSize();
 
 #ifdef __WINDOWS__
-    if (screenSize.y < dialogSize.y) {
+    if (screenSize.GetHeight() < dialogSize.GetHeight()) {
         m_need_adaptation_screen = true;
         m_scrollable_view->SetScrollRate(0, 5);
         m_scrollable_view->SetSize(wxSize(-1, FromDIP(220)));
