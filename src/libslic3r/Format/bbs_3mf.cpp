@@ -116,6 +116,7 @@ const std::string BBL_DESIGNER_USER_ID_TAG          = "DesignerUserId";
 const std::string BBL_DESIGNER_COVER_FILE_TAG       = "DesignerCover";
 const std::string BBL_DESCRIPTION_TAG               = "Description";
 const std::string BBL_COPYRIGHT_TAG                 = "CopyRight";
+const std::string BBL_COPYRIGHT_NORMATIVE_TAG       = "Copyright";
 const std::string BBL_LICENSE_TAG                   = "License";
 const std::string BBL_REGION_TAG                    = "Region";
 const std::string BBL_MODIFICATION_TAG              = "ModificationDate";
@@ -226,11 +227,14 @@ static constexpr const char* HIT_NORMAL_ATTR      = "hit_normal";
 // BBS: encrypt
 static constexpr const char* RELATIONSHIP_TAG = "Relationship";
 static constexpr const char* PID_ATTR = "pid";
-static constexpr const char* PUUID_ATTR = "p:uuid";
+static constexpr const char* PUUID_ATTR = "p:UUID";
+static constexpr const char* PUUID_LOWER_ATTR = "p:uuid";
 static constexpr const char* PPATH_ATTR = "p:path";
 static constexpr const char *OBJECT_UUID_SUFFIX = "-61cb-4c03-9d28-80fed5dfa1dc";
 static constexpr const char *OBJECT_UUID_SUFFIX2 = "-71cb-4c03-9d28-80fed5dfa1dc";
-static constexpr const char* BUILD_UUID = "d8eb061-b1ec-4553-aec9-835e5b724bb4";
+static constexpr const char *SUB_OBJECT_UUID_SUFFIX = "-81cb-4c03-9d28-80fed5dfa1dc";
+static constexpr const char *COMPONENT_UUID_SUFFIX = "-b206-40ff-9872-83e8017abed1";
+static constexpr const char* BUILD_UUID = "2c7c17d8-22b5-4d84-8835-1976022ea369";
 static constexpr const char* BUILD_UUID_SUFFIX = "-b1ec-4553-aec9-835e5b724bb4";
 static constexpr const char* TARGET_ATTR = "Target";
 static constexpr const char* RELS_TYPE_ATTR = "Type";
@@ -3176,6 +3180,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_curr_object->name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
 
             m_curr_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
+            if (m_curr_object->uuid.empty()) { 
+                m_curr_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_LOWER_ATTR);
+            }
             m_curr_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
         }
 
@@ -3560,7 +3567,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found license = " << m_curr_characters;
             model_info.license = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_COPYRIGHT_TAG) {
-            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found copyright = " << m_curr_characters;
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found CopyRight = " << m_curr_characters;
+            model_info.copyright = xml_unescape(m_curr_characters);
+        } else if (m_curr_metadata_name == BBL_COPYRIGHT_NORMATIVE_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found Copyright = " << m_curr_characters;
             model_info.copyright = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_REGION_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found region = " << m_curr_characters;
@@ -4706,6 +4716,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             current_object->name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
 
             current_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
+            if (current_object->uuid.empty()) { 
+                current_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_LOWER_ATTR); 
+            }
             current_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
         }
 
@@ -6083,7 +6096,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_DESIGNER_USER_ID_TAG]     = user_id;
                 metadata_item_map[BBL_DESIGNER_COVER_FILE_TAG]  = xml_escape(design_cover);
                 metadata_item_map[BBL_DESCRIPTION_TAG]          = xml_escape(description);
-                metadata_item_map[BBL_COPYRIGHT_TAG]            = xml_escape(copyright);
+                metadata_item_map[BBL_COPYRIGHT_NORMATIVE_TAG]  = xml_escape(copyright);
                 metadata_item_map[BBL_LICENSE_TAG]              = xml_escape(license);
 
                 /* save model info */
@@ -6336,9 +6349,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             //add the transform of the volume
             if (ppath->empty())
-                stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_id; // << "\"/>\n";
+                stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_id;
             else
                 stream << "    <" << COMPONENT_TAG << " p:path=\"" << xml_escape(*ppath) << "\" objectid=\"" << volume_id; // << "\"/>\n";
+            stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) object_data.backup_id} << COMPONENT_UUID_SUFFIX;
             const Transform3d &transf = volume->get_matrix();
             stream << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c) {
@@ -6460,17 +6474,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             output_buffer += OBJECT_TAG;
             output_buffer += " id=\"";
             output_buffer += std::to_string(volume_id);
-            /*if (m_production_ext) {
+            if (m_production_ext) {
                 std::stringstream stream;
                 reset_stream(stream);
-                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id} << OBJECT_UUID_SUFFIX;
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) object_data.backup_id} << SUB_OBJECT_UUID_SUFFIX;
                 //output_buffer += "\" ";
                 //output_buffer += PUUID_ATTR;
                 //output_buffer += "=\"";
                 //output_buffer += std::to_string(hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id});
                 //output_buffer += OBJECT_UUID_SUFFIX;
                 output_buffer += stream.str();
-            }*/
+            }
             output_buffer += "\" type=\"";
             output_buffer += type;
             output_buffer += "\">\n";
@@ -6603,6 +6617,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         // This happens for empty projects
         if (build_items.size() == 0) {
+            stream << " <" << BUILD_TAG << "/>\n";
             return true;
         }
 
