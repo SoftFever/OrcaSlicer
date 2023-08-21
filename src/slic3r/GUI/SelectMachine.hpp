@@ -400,7 +400,7 @@ public:
     void check_fcous_state(wxWindow* window);
     void popup_filament_backup();
     void update_select_layout(MachineObject *obj);
-    void prepare_mode();
+    void prepare_mode(bool refresh_button = true);
     void sending_mode();
     void finish_mode();
 	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);

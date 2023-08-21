@@ -1681,7 +1681,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     Fit();
 }
 
-void SelectMachineDialog::prepare_mode()
+void SelectMachineDialog::prepare_mode(bool refresh_button)
 {
     // disable combobox
     m_comboBox_printer->Enable();
@@ -1696,8 +1696,10 @@ void SelectMachineDialog::prepare_mode()
     if (wxIsBusy())
         wxEndBusyCursor();
 
-    Enable_Send_Button(true);
-
+    if (refresh_button) {
+        Enable_Send_Button(true);
+    }
+    
     m_status_bar->reset();
     if (m_simplebook->GetSelection() != 0) {
         m_simplebook->SetSelection(0);
@@ -2014,13 +2016,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     else
         m_comboBox_printer->Enable();
 
-    // m_panel_warn m_simplebook
-    if (status == PrintDialogStatus::PrintStatusSending) {
-        sending_mode();
-    } else {
-        prepare_mode();
-    }
-
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
         update_print_status_msg(wxEmptyString, false, false);
@@ -2161,6 +2156,14 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
+    }
+
+    // m_panel_warn m_simplebook
+    if (status == PrintDialogStatus::PrintStatusSending) {
+        sending_mode();
+    }
+    else {
+        prepare_mode(false);
     }
 }
 
