@@ -1018,7 +1018,7 @@ void PerimeterGenerator::process_classic()
                     else
                         offset_top_surface = 0;
                     //don't takes into account too thin areas
-                    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), 1.0 * (double(perimeter_width)));
+                    double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(double(ext_perimeter_spacing / 2 + 10), 1.0 * (double(perimeter_width)));
 
                     //BBS: get boungding box of last
                     BoundingBox last_box   = get_extents(last);
@@ -1408,7 +1408,7 @@ void PerimeterGenerator::process_arachne()
                 infill_contour = diff_ex(infill_contour, bridge_area);
             }
             //BBS: filter small area and extend top surface a bit to hide the wall line
-            double min_width_top_surface = std::max(double(ext_perimeter_spacing / 4 + 10), double(perimeter_width / 4));
+            double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(double(ext_perimeter_spacing / 4 + 10), double(perimeter_width / 4));
             infill_contour = offset2_ex(infill_contour, -min_width_top_surface, min_width_top_surface + perimeter_width);
 
             //BBS: get the inner surface that not export to top

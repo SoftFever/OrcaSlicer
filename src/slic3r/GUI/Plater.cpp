@@ -8533,6 +8533,7 @@ void Plater::calib_flowrate(int pass)
         _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
         _obj->config.set_key_value("top_one_wall_type", new ConfigOptionEnum<TopOneWallType>(TopOneWallType::Topmost));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(35));
+        _obj->config.set_key_value("top_area_threshold", new ConfigOptionPercent(100));
         _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
         _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));

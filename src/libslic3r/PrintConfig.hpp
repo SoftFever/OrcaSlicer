@@ -712,6 +712,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            min_feature_size))
     ((ConfigOptionPercent,            min_bead_width))
     ((ConfigOptionEnum<TopOneWallType>, top_one_wall_type))
+    ((ConfigOptionPercent,            top_area_threshold))
     ((ConfigOptionBool,               only_one_wall_first_layer))
     // OrcaSlicer
     ((ConfigOptionPercent,            seam_gap))
