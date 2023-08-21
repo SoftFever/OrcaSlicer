@@ -2641,8 +2641,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
                     need_update = true;
                 }
-                else if (x < plate_origin(0) + margin) {
-                    x = plate_origin(0) + margin;
+                else if (x < margin) {
+                    x = margin;
                     need_update = true;
                 }
                 if (need_update) {
@@ -2655,8 +2655,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
                     need_update = true;
                 }
-                else if (y < plate_origin(1) + margin) {
-                    y = plate_origin(1) + margin;
+                else if (y < margin) {
+                    y = margin;
                     need_update = true;
                 }
                 if (need_update) {
