@@ -470,7 +470,7 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false, shrink_to_new_bed = false;
+    bool translate_old = false, regenerate_thumbnails = false, shrink_to_new_bed = false, filament_color_changed = false;
     int current_printable_width, current_printable_depth, current_printable_height;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
@@ -1620,6 +1620,14 @@ int CLI::run(int argc, char **argv)
                     if (!selected_filament_colors[index].empty())
                     {
                         BOOST_LOG_TRIVIAL(info) << boost::format("changed to new color %1%")%selected_filament_colors[index];
+                        unsigned char ori_rgb_color[4] = {}, new_rgb_color[4] = {};
+                        Slic3r::GUI::BitmapCache::parse_color4(project_filament_colors[index], ori_rgb_color);
+                        Slic3r::GUI::BitmapCache::parse_color4(selected_filament_colors[index], new_rgb_color);
+                        if ((ori_rgb_color[0] != new_rgb_color[0]) || (ori_rgb_color[1] != new_rgb_color[1]) || (ori_rgb_color[2] != new_rgb_color[2]) || (ori_rgb_color[3] != new_rgb_color[3]))
+                        {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("found color changes, need to regenerate thumbnail");
+                            filament_color_changed = true;
+                        }
                         project_filament_colors[index] = selected_filament_colors[index];
                     }
                 }
@@ -2177,11 +2185,9 @@ int CLI::run(int argc, char **argv)
     orients_requirement.clear();
     oriented_or_arranged |= need_arrange;
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("before arrange, need_arrange=%1%, duplicate_count %2%")%need_arrange%duplicate_count;
-    if (need_arrange)
+    BOOST_LOG_TRIVIAL(info) << boost::format("before arrange, need_arrange=%1%, duplicate_count %2%, filament_color_changed %3%")%need_arrange %duplicate_count %filament_color_changed;
+    if (need_arrange || filament_color_changed)
     {
-        ArrangePolygons selected, unselected, unprintable, locked_aps;
-
         for (int index = 0; index < partplate_list.get_plate_count(); index ++)
         {
             if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
@@ -2203,6 +2209,11 @@ int CLI::run(int argc, char **argv)
                 }
             }
         }
+    }
+
+    if (need_arrange)
+    {
+        ArrangePolygons selected, unselected, unprintable, locked_aps;
 
         //for (Model &model : m_models)
         if (m_models.size() > 0)
@@ -2742,8 +2753,6 @@ int CLI::run(int argc, char **argv)
             //BBS: slice 0 means all plates, i means plate i;
             plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
             bool pre_check = (plate_to_slice == 0)?true:false;
-            if (partplate_list.get_plate_count() == 1)
-                pre_check = false;
             bool finished = false;
 
             /*if (opt_key == "export_gcode" && printer_technology == ptSLA) {
@@ -2937,7 +2946,7 @@ int CLI::run(int argc, char **argv)
                             flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
                         }
                         else {
-                            if (pre_check) //continue to next plate directly
+                            if (pre_check && (partplate_list.get_plate_count() > 1)) //continue to next plate directly
                                 continue;
                             try {
                                 std::string outfile_final;
@@ -3075,7 +3084,7 @@ int CLI::run(int argc, char **argv)
                             }
                         }
                     }
-                    if (pre_check)
+                    if (pre_check&& (partplate_list.get_plate_count() > 1))
                         pre_check = false;
                     else
                         finished = true;
