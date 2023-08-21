@@ -5,6 +5,7 @@
 	margin: 0px;
     font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
 	border-color: #D7D7D7;
+	user-select: none;
 }
 
 html, body {
