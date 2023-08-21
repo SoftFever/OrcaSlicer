@@ -1,5 +1,6 @@
 {
   "type": "machine",
+  "setting_id": "GM_CREALITY_013",
   "name": "Creality CR-6 Max 0.8 nozzle",
   "from": "system",
   "instantiation": "true",
