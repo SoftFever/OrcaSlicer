@@ -72,7 +72,7 @@
             "FUNC_AUX_FAN": false,
             "FUNC_UPDATE_REMAIN": false,
             "FUNC_EXTRUSION_CALI": false,
-            "FUNC_AUTO_LEVELING": false
+            "FUNC_AUTO_LEVELING": true
         },
         "printer_arch" : "i3",
         "camera_resolution": [ "720p" ],
