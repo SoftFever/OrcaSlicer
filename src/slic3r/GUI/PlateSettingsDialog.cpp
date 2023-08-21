@@ -71,8 +71,19 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     }
     m_drag_canvas = new DragCanvas(this, extruder_colours, order);
     m_drag_canvas->Hide();
-    top_sizer->Add(0, 0, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(0, 0, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(0));
     top_sizer->Add(m_drag_canvas, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+
+    m_spiral_mode_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0, NULL, wxCB_READONLY);
+    m_spiral_mode_choice->Append(_L("Same as Global"));
+    m_spiral_mode_choice->Append(_L("Enable"));
+    m_spiral_mode_choice->Append(_L("Disable"));
+    m_spiral_mode_choice->SetSelection(0);
+    wxStaticText* spiral_mode_txt = new wxStaticText(this, wxID_ANY, _L("Spiral Vase"));
+    spiral_mode_txt->SetFont(Label::Body_14);
+    top_sizer->Add(spiral_mode_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_spiral_mode_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
 
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
 
@@ -163,6 +174,21 @@ void PlateSettingsDialog::sync_first_layer_print_seq(int selection, const std::v
         event.SetInt(selection);
         event.SetEventObject(m_first_layer_print_seq_choice);
         wxPostEvent(m_first_layer_print_seq_choice, event);
+    }
+}
+
+void PlateSettingsDialog::sync_spiral_mode(bool spiral_mode, bool as_global)
+{
+    if (m_spiral_mode_choice) {
+        if (as_global) {
+            m_spiral_mode_choice->SetSelection(0);
+        }
+        else {
+            if (spiral_mode)
+                m_spiral_mode_choice->SetSelection(1);
+            else
+                m_spiral_mode_choice->SetSelection(2);
+        }
     }
 }
 

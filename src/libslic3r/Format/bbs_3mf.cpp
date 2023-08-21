@@ -271,6 +271,7 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
 static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
 static constexpr const char* FIRST_LAYER_PRINT_SEQUENCE_ATTR = "first_layer_print_sequence";
+static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* TOP_FILE_ATTR = "top_file";
@@ -3876,6 +3877,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 };
                 m_curr_plater->config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
             }
+            else if (key == SPIRAL_VASE_MODE) {
+                bool spiral_mode = false;
+                std::istringstream(value) >> std::boolalpha >> spiral_mode;
+                m_curr_plater->config.set_key_value("spiral_mode", new ConfigOptionBool(spiral_mode));
+            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -7088,6 +7094,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     }
                     stream << "\"/>\n";
                 }
+
+                ConfigOption* spiral_mode_opt = plate_data->config.option("spiral_mode");
+                if (spiral_mode_opt)
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SPIRAL_VASE_MODE << "\" " << VALUE_ATTR << "=\"" << spiral_mode_opt->getBool() << "\"/>\n";
 
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";

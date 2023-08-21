@@ -237,6 +237,9 @@ public:
     // @return PrintSequence::{ByLayer,ByObject}
     PrintSequence get_real_print_seq() const;
 
+    bool has_spiral_mode_config() const;
+    bool get_spiral_vase_mode() const;
+    void set_spiral_vase_mode(bool spiral_mode, bool as_global);
 
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;

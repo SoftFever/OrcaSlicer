@@ -33,6 +33,7 @@ public:
     void sync_bed_type(BedType type);
     void sync_print_seq(int print_seq = 0);
     void sync_first_layer_print_seq(int selection, const std::vector<int>& seq = std::vector<int>());
+    void sync_spiral_mode(bool spiral_mode, bool as_global);
     wxString to_bed_type_name(BedType bed_type);
     wxString to_print_sequence_name(PrintSequence print_seq);
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -60,11 +61,23 @@ public:
 
     std::vector<int> get_first_layer_print_seq();
 
+    int get_spiral_mode_choice() {
+        int choice = 0;
+        if (m_spiral_mode_choice != nullptr)
+            choice = m_spiral_mode_choice->GetSelection();
+        return choice;
+    };
+
+    bool get_spiral_mode(){
+        return false;
+    }
+
 protected:
-    DragCanvas* m_drag_canvas;
-    ComboBox* m_first_layer_print_seq_choice { nullptr };
-    ComboBox* m_print_seq_choice { nullptr };
     ComboBox* m_bed_type_choice { nullptr };
+    ComboBox* m_print_seq_choice { nullptr };
+    ComboBox* m_first_layer_print_seq_choice { nullptr };
+    ComboBox* m_spiral_mode_choice { nullptr };
+    DragCanvas* m_drag_canvas;
     Button* m_button_ok;
     Button* m_button_cancel;
 };

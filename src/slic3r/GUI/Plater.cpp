@@ -12327,6 +12327,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             else
                 dlg.sync_first_layer_print_seq(1, curr_plate->get_first_layer_print_sequence());
 
+            dlg.sync_spiral_mode(curr_plate->get_spiral_vase_mode(), !curr_plate->has_spiral_mode_config());
+
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
                 BedType old_bed_type = curr_plate->get_bed_type();
@@ -12348,6 +12350,16 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
                     curr_plate->set_print_seq(PrintSequence(ps_sel - 1));
                 else
                     curr_plate->set_print_seq(PrintSequence::ByDefault);
+
+                int spiral_sel = dlg.get_spiral_mode_choice();
+                if (spiral_sel == 1) {
+                    curr_plate->set_spiral_vase_mode(true, false);
+                }else if (spiral_sel == 2) {
+                    curr_plate->set_spiral_vase_mode(false, false);
+                }else {
+                    curr_plate->set_spiral_vase_mode(false, true);
+                }
+
                 update_project_dirty_from_presets();
                 set_plater_dirty(true);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select print sequence %1% for plate %2% at plate side")%ps_sel %plate_index;

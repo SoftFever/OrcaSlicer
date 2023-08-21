@@ -252,6 +252,35 @@ PrintSequence PartPlate::get_real_print_seq() const
     return curr_plate_seq;
 }
 
+bool PartPlate::has_spiral_mode_config() const
+{
+	std::string key = "spiral_mode";
+	return m_config.has(key);
+}
+
+bool PartPlate::get_spiral_vase_mode() const
+{
+	std::string key = "spiral_mode";
+	if (m_config.has(key)) {
+		return m_config.opt_bool(key);
+	}
+	else {
+		DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+		if (global_config->has(key))
+			return global_config->opt_bool(key);
+	}
+	return false;
+}
+
+void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
+{
+	std::string key = "spiral_mode";
+	if (as_global)
+		m_config.erase(key);
+	else
+		m_config.set_key_value(key, new ConfigOptionBool(spiral_mode));
+}
+
 bool PartPlate::valid_instance(int obj_id, int instance_id)
 {
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
@@ -937,14 +966,15 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
 				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture, m_plate_name_edit_vbo_id);
 
 			if (m_partplate_list->render_plate_settings) {
+				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                    if (!has_plate_settings)
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
                     else
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture,
                                             m_plate_settings_vbo_id);
                 } else {
-                    if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
+                    if (!has_plate_settings)
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
                     else
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);
