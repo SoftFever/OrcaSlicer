@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4622,6 +4622,9 @@ msgstr "Andra"
 msgid "Login Region"
 msgstr "Logga in Region"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "Metrisk"
 
@@ -6342,6 +6345,9 @@ msgstr ""
 msgid "Gap infill"
 msgstr "Mellanrums ifyllnad"
 
+msgid "Skirt"
+msgstr ""
+
 msgid "Support interface"
 msgstr "Support kontaktyta"
 
@@ -6561,6 +6567,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Lagerhöjden kan inte överstiga nozzel diametern"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -7003,8 +7025,8 @@ msgstr ""
 msgid "Mouse ear"
 msgstr ""
 
-msgid "outer_only"
-msgstr ""
+msgid "Outer brim only"
+msgstr "Endast yttre brim"
 
 msgid "Inner brim only"
 msgstr "Endast inre kant"
@@ -9643,19 +9665,19 @@ msgstr ""
 msgid "Tool Volume"
 msgstr ""
 
+msgid "Subtract from"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
 msgid "selected"
 msgstr ""
 
 msgid "Part 1"
 msgstr ""
 
-msgid "Subtract from"
-msgstr ""
-
 msgid "Part 2"
-msgstr ""
-
-msgid "Subtract with"
 msgstr ""
 
 msgid "Delete input"
@@ -10196,9 +10218,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "Bambu Studio GUI-initiering misslyckades"
-
-#~ msgid "Outer brim only"
-#~ msgstr "Endast yttre brim"
 
 #~ msgid "Check cloud service status"
 #~ msgstr "Kontrollera molntjänstens status"

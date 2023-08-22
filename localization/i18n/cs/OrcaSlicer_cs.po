@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: 2023-07-17 21:51+0200\n"
 "Last-Translator: Momo <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -4655,6 +4655,9 @@ msgstr "Ostatní"
 msgid "Login Region"
 msgstr "Región přihlášení"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "Metrický"
 
@@ -6367,6 +6370,9 @@ msgstr "Vnitřní most"
 msgid "Gap infill"
 msgstr "Výplň mezery"
 
+msgid "Skirt"
+msgstr "Obrys"
+
 msgid "Support interface"
 msgstr "Kontaktní vrstva podpěr"
 
@@ -6593,6 +6599,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Výška vrstvy nemůže překročit průměr trysky"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -6970,7 +6992,7 @@ msgstr ""
 msgid "One wall threshold"
 msgstr "Hranice jedné stěny"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -6981,14 +7003,14 @@ msgid ""
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
-"Pokud má být tisknuta horní plocha a je částečně zakrytá jinou vrstvou, nebude "
-"brána v úvahu jako horní vrstva, pokud je její šířka nižší než tato hodnota. "
-"Toto může být užitečné, aby se zabránilo spuštění funkce 'jeden perimetr nahoře' "
-"na ploše, která by měla být pokryta pouze perimetry. Tato hodnota může být udávána "
-"v mm nebo jako % šířky extruze perimetru.\n"
-"Varování: Pokud je tato funkce povolena, mohou vzniknout artefakty, pokud máte na "
-"následující vrstvě nějaké tenké prvky, například písmena. Tuto volbu nastavte na 0, "
-"abyste se tyto artefakty odstranili."
+"Pokud má být tisknuta horní plocha a je částečně zakrytá jinou vrstvou, "
+"nebude brána v úvahu jako horní vrstva, pokud je její šířka nižší než tato "
+"hodnota. Toto může být užitečné, aby se zabránilo spuštění funkce 'jeden "
+"perimetr nahoře' na ploše, která by měla být pokryta pouze perimetry. Tato "
+"hodnota může být udávána v mm nebo jako % šířky extruze perimetru.\n"
+"Varování: Pokud je tato funkce povolena, mohou vzniknout artefakty, pokud "
+"máte na následující vrstvě nějaké tenké prvky, například písmena. Tuto volbu "
+"nastavte na 0, abyste se tyto artefakty odstranili."
 
 msgid "Only one wall on first layer"
 msgstr "Pouze jedna stěna v první vrstvě"
@@ -7053,7 +7075,7 @@ msgstr ""
 msgid "Mouse ear"
 msgstr "Uši myši"
 
-msgid "outer_only"
+msgid "Outer brim only"
 msgstr "Pouze vnější"
 
 msgid "Inner brim only"
@@ -7097,8 +7119,8 @@ msgid ""
 "parameter indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate"
 msgstr ""
-"Geometrie bude zredukována před detekcí ostrých úhlů. Tento parametr "
-"udává minimální délku odchylky pro redukci.\n"
+"Geometrie bude zredukována před detekcí ostrých úhlů. Tento parametr udává "
+"minimální délku odchylky pro redukci.\n"
 "0 pro deaktivaci"
 
 msgid "Compatible machine"
@@ -7528,8 +7550,8 @@ msgid ""
 "after the checks."
 msgstr ""
 "Zadejte procento smrštění, které filament získá po ochlazení (94% pokud "
-"naměříte 94mm místo 100mm). Část bude pro kompenzaci zmenšena v xy. Bere "
-"se v úvahu pouze filamentu použit pro obvod.\n"
+"naměříte 94mm místo 100mm). Část bude pro kompenzaci zmenšena v xy. Bere se "
+"v úvahu pouze filamentu použit pro obvod.\n"
 "Ujistěte se aby byl mezi objekty dostatek prostoru, protože tato kompenzace "
 "se provádí po kontrolách."
 
@@ -9750,7 +9772,8 @@ msgstr "Podpěry: šíření větví na vrstvě %d"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo .amf(.xml)"
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
+"amf(.xml)"
 
 msgid "Loading of a model file failed."
 msgstr "Nahrávání souboru modelu selhalo."
@@ -9759,7 +9782,8 @@ msgid "The supplied file couldn't be read because it's empty"
 msgstr "Nahraný soubor nemohl být načten, protože je prázdný."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
-msgstr "Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf nebo .zip.amf."
+msgstr ""
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf nebo .zip.amf."
 
 msgid "Canceled"
 msgstr "Zrušeno"
@@ -9821,20 +9845,20 @@ msgstr "Zdrojový objem"
 msgid "Tool Volume"
 msgstr "Objem nástroje"
 
+msgid "Subtract from"
+msgstr "Odečíst od"
+
+msgid "Subtract with"
+msgstr "Odečíst s"
+
 msgid "selected"
 msgstr "vybráno"
 
 msgid "Part 1"
 msgstr "Část 1"
 
-msgid "Subtract from"
-msgstr "Odečíst od"
-
 msgid "Part 2"
 msgstr "Část 2"
-
-msgid "Subtract with"
-msgstr "Odečíst s"
 
 msgid "Delete input"
 msgstr "Smazat vstup"
@@ -9850,8 +9874,7 @@ msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko (/)."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
-"Název nahrávaného souboru neskončí s \"%s\". Přejete si pokračovat?"
+msgstr "Název nahrávaného souboru neskončí s \"%s\". Přejete si pokračovat?"
 
 msgid "Upload"
 msgstr "Nahrát"
@@ -10369,9 +10392,6 @@ msgstr ""
 
 #~ msgid "&Cancel"
 #~ msgstr "&Storno"
-
-#~ msgid "Skirt"
-#~ msgstr "Obrys"
 
 #~ msgid "Post-processing scripts"
 #~ msgstr "Post-processing skripty"

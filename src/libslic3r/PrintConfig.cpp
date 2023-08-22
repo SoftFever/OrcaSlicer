@@ -881,7 +881,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("no_brim");
     def->enum_labels.emplace_back(L("Auto"));
     def->enum_labels.emplace_back(L("Mouse ear"));
-    def->enum_labels.emplace_back(L("outer_only"));
+    def->enum_labels.emplace_back(L("Outer brim only"));
     def->enum_labels.emplace_back(L("Inner brim only"));
     def->enum_labels.emplace_back(L("Outer and inner brim"));
     def->enum_labels.emplace_back(L("No-brim"));
