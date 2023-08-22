@@ -1,6 +1,8 @@
 #ifndef slic3r_ExtrusionProcessor_hpp_
 #define slic3r_ExtrusionProcessor_hpp_
 
+// This algorithm is copied from PrusaSlicer, original author is Pavel Mikus(pavel.mikus.mail@seznam.cz)
+
 #include "../AABBTreeLines.hpp"
 //#include "../SupportSpotsGenerator.hpp"
 #include "../libslic3r.h"
@@ -68,7 +70,7 @@ public:
 class CurvatureEstimator
 {
     static const size_t               sliders_count          = 3;
-    SlidingWindowCurvatureAccumulator sliders[sliders_count] = {{1.0},{4.0}, {10.0}};
+    SlidingWindowCurvatureAccumulator sliders[sliders_count] = {{3.0},{9.0}, {16.0}};
 
 public:
     void add_point(float distance, float angle)

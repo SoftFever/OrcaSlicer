@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4376,6 +4376,9 @@ msgstr ""
 msgid "Login Region"
 msgstr ""
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr ""
 
@@ -5970,6 +5973,9 @@ msgstr ""
 msgid "Gap infill"
 msgstr ""
 
+msgid "Skirt"
+msgstr ""
+
 msgid "Support interface"
 msgstr ""
 
@@ -6172,6 +6178,22 @@ msgid ""
 msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
+msgstr ""
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -6548,7 +6570,7 @@ msgstr ""
 msgid "Mouse ear"
 msgstr ""
 
-msgid "outer_only"
+msgid "Outer brim only"
 msgstr ""
 
 msgid "Inner brim only"
@@ -8903,19 +8925,19 @@ msgstr ""
 msgid "Tool Volume"
 msgstr ""
 
+msgid "Subtract from"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
 msgid "selected"
 msgstr ""
 
 msgid "Part 1"
 msgstr ""
 
-msgid "Subtract from"
-msgstr ""
-
 msgid "Part 2"
-msgstr ""
-
-msgid "Subtract with"
 msgstr ""
 
 msgid "Delete input"
