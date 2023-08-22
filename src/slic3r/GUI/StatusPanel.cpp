@@ -1405,11 +1405,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     return sizer;
 }
 
-void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_extrustion_cali)
+void StatusBasePanel::show_ams_group(bool show)
 {
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode(show, support_virtual_tray, support_extrustion_cali);
+    m_ams_control->show_noams_mode();
     if (m_show_ams_group != show) {
         Fit();
     }
@@ -2251,9 +2251,9 @@ void StatusPanel::update_ams(MachineObject *obj)
         CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
     }
 
-    bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
-    bool is_support_virtual_tray = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
+    bool is_support_virtual_tray    = obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY);
     bool is_support_filament_backup = obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP);
+    AMSModel ams_mode               = AMSModel::GENERIC_AMS;
 
     if (!obj
         || !obj->is_connected()
@@ -2269,11 +2269,18 @@ void StatusPanel::update_ams(MachineObject *obj)
             BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         }
 
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali);
+        
+        if (obj->printer_type == "N1") { ams_mode = AMSModel::EXTRA_AMS; }
+        m_ams_control->SetAmsModel(AMSModel::NO_AMS, ams_mode);
+
+        show_ams_group(false);
         m_ams_control->show_auto_refill(false);
     }
     else {
-        show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_TYAY), is_support_extrusion_cali);
+        if (obj->printer_type == "N1") { ams_mode = AMSModel::EXTRA_AMS; }
+        m_ams_control->SetAmsModel(ams_mode, ams_mode);
+
+        show_ams_group(true);
 
         if (!obj->m_is_support_show_bak || !is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
             m_ams_control->show_auto_refill(false); 
@@ -2307,7 +2314,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     //}
 
     // must select a current can
-    m_ams_control->UpdateAms(ams_info, false, is_support_extrusion_cali);
+    m_ams_control->UpdateAms(ams_info, false);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -2341,13 +2348,15 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     // set segment 3
     if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_ID)) {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->vt_tray.get_color());
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->m_ams_id, obj->vt_tray.get_color());
     } else {
-        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
+        m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, obj->m_ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
        
     }
 
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        update_filament_step();
+
         if (obj->m_tray_tar == std::to_string(VIRTUAL_TRAY_ID) && (obj->m_tray_now != std::to_string(VIRTUAL_TRAY_ID) || obj->m_tray_now != "255")) {
             // wait to heat hotend
             if (obj->ams_status_sub == 0x02) {
@@ -2418,6 +2427,14 @@ void StatusPanel::update_ams(MachineObject *obj)
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
+            }
+            else if (obj->ams_status_sub == 0x08) {
+                if (!obj->is_ams_unload()) {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
+                }
+                else {
+                    m_ams_control->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
+                }
             } else {
                 m_ams_control->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
             }
@@ -2475,10 +2492,10 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_curr_tray_selected = true;
     }
         
-    update_ams_control_state(is_support_extrusion_cali, is_curr_tray_selected);
+    update_ams_control_state(is_curr_tray_selected);
 }
 
-void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected)
+void StatusPanel::update_ams_control_state(bool is_curr_tray_selected)
 {
     // set default value to true
     bool enable[ACTION_BTN_COUNT];
@@ -2486,21 +2503,18 @@ void StatusPanel::update_ams_control_state(bool is_support_virtual_tray, bool is
     enable[ACTION_BTN_LOAD] = true;
     enable[ACTION_BTN_UNLOAD] = true;
 
-    if (!is_support_virtual_tray) {
-        enable[ACTION_BTN_CALI] = false;
-    }
-    else {
-        if (obj->is_in_printing()) {
-            if (obj->is_in_extrusion_cali()) {
-                enable[ACTION_BTN_LOAD] = false;
-                enable[ACTION_BTN_UNLOAD] = false;
-                enable[ACTION_BTN_CALI] = true;
-            } else {
-                enable[ACTION_BTN_CALI] = false;
-            }
-        } else {
+    if (obj->is_in_printing()) {
+        if (obj->is_in_extrusion_cali()) {
+            enable[ACTION_BTN_LOAD] = false;
+            enable[ACTION_BTN_UNLOAD] = false;
             enable[ACTION_BTN_CALI] = true;
         }
+        else {
+            enable[ACTION_BTN_CALI] = false;
+        }
+    }
+    else {
+        enable[ACTION_BTN_CALI] = true;
     }
 
     if (obj->is_in_printing() && !obj->can_resume()) {
@@ -2996,47 +3010,43 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
     on_ams_load_curr();
 }
 
+void StatusPanel::update_filament_step()
+{
+    m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
+    if (!obj->is_filament_at_extruder()) {
+        m_is_load_with_temp = true;
+    }
+    else {
+        m_is_load_with_temp = false;
+    }
+}
+
 void StatusPanel::on_ams_load_curr()
 {
     if (obj) {
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
-        m_ams_control->UpdateStepCtrl(obj->is_filament_at_extruder());
-        if(!obj->is_filament_at_extruder()){
-            m_is_load_with_temp = true;
-        }else{
-            m_is_load_with_temp = false;
-        }
         
-        
+        update_filament_step();
         //virtual tray
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            /*if (con_load_dlg == nullptr) {
-                con_load_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Confirm"));
-                con_load_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {*/
-                        int old_temp = -1;
-                        int new_temp = -1;
-                        AmsTray* curr_tray = &obj->vt_tray;
+            int old_temp = -1;
+            int new_temp = -1;
+            AmsTray* curr_tray = &obj->vt_tray;
 
-                        if (!curr_tray) return;
+            if (!curr_tray) return;
 
-                        try {
-                            if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
-                                old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
-                            if (!obj->vt_tray.nozzle_temp_max.empty() && !obj->vt_tray.nozzle_temp_min.empty())
-                                new_temp = (atoi(obj->vt_tray.nozzle_temp_min.c_str()) + atoi(obj->vt_tray.nozzle_temp_max.c_str())) / 2;
-                        }
-                        catch (...) {
-                            ;
-                        }
-                        obj->command_ams_switch(VIRTUAL_TRAY_ID, old_temp, new_temp);
-                    /*}
-                );
+            try {
+                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
+                    old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
+                if (!obj->vt_tray.nozzle_temp_max.empty() && !obj->vt_tray.nozzle_temp_min.empty())
+                    new_temp = (atoi(obj->vt_tray.nozzle_temp_min.c_str()) + atoi(obj->vt_tray.nozzle_temp_max.c_str())) / 2;
             }
-            con_load_dlg->update_text(_L("Please confirm the filament is ready?"));
-            con_load_dlg->on_show();*/
-            return;
+            catch (...) {
+                ;
+            }
+            obj->command_ams_switch(VIRTUAL_TRAY_ID, old_temp, new_temp);
         }
 
         std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);

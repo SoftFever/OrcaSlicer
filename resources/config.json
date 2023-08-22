@@ -26,7 +26,7 @@
         "ftp_folder": "sdcard/",
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
- {
+      {
         "display_name": "Bambu Lab P1S",
         "func": {
           "FUNC_CHAMBER_TEMP": false,
@@ -47,9 +47,9 @@
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
         "model_id": "C12",
-        "compatible_machine":["BL-P001", "BL-P002", "C11"],
+        "compatible_machine": [ "BL-P001", "BL-P002", "C11" ],
         "printer_type": "C12",
-        "ftp_folder" : "sdcard/",
+        "ftp_folder": "sdcard/",
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
       {

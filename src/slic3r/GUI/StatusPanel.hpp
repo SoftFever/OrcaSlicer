@@ -404,7 +404,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_extrustion_cali = true);
+    void show_ams_group(bool show = true);
 };
 
 
@@ -495,6 +495,7 @@ protected:
 
     /* extruder apis */
     void on_ams_load(SimpleEvent &event);
+    void update_filament_step();
     void on_ams_load_curr();
     void on_ams_unload(SimpleEvent &event);
     void on_ams_filament_backup(SimpleEvent& event);
@@ -544,7 +545,7 @@ protected:
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
-    void update_ams_control_state(bool is_support_virtual_tray, bool is_curr_tray_selected);
+    void update_ams_control_state(bool is_curr_tray_selected);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();
