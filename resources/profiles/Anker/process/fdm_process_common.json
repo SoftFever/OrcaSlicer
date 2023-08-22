@@ -59,7 +59,7 @@
     "spiral_mode": "0",
     "standby_temperature_delta": "-5",
     "enable_support": "0",
-    "resolution": "0.008",
+    "resolution": "0.012",
     "support_type": "normal(auto)",
     "support_on_build_plate_only": "0",
     "support_top_z_distance": "0.2",
