@@ -21,6 +21,9 @@
     "5x235"
   ],
   "printable_height": "250",
+  "retract_lift_below":[
+    "249"
+  ],
   "nozzle_type": "undefine",
   "auxiliary_fan": "0"
 }

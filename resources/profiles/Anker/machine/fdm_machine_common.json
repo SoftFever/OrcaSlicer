@@ -74,6 +74,9 @@
         "0.05"
     ],
     "printable_height": "250",
+    "retract_lift_below":[
+        "249"
+    ],
     "nozzle_diameter": [
         "0.4"
     ],

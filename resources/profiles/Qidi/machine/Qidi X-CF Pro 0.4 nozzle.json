@@ -17,6 +17,9 @@
         "0x250"
     ],
     "printable_height": "300",
+    "retract_lift_below":[
+        "299"
+    ],
     "nozzle_type": "hardened_steel",
     "auxiliary_fan": "0",
     "machine_max_acceleration_extruding": [

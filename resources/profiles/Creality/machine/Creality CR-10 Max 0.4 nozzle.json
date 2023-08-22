@@ -19,5 +19,8 @@
         "450x450",
         "0x450"
     ],
-    "printable_height": "470"
+    "printable_height": "470",
+    "retract_lift_below":[
+        "469"
+    ]
 }

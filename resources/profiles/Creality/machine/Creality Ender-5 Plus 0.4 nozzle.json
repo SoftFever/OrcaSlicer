@@ -17,6 +17,9 @@
         "0x350"
     ],
     "printable_height": "400",
+    "retract_lift_below":[
+        "399"
+    ],
     "machine_max_acceleration_e": [
         "1000"
     ],
