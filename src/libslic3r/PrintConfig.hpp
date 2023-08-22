@@ -211,6 +211,15 @@ enum NozzleType {
 };
 
 // BBS
+enum PrinterStructure {
+    psUndefine=0,
+    psCoreXY,
+    psI3,
+    psHbot,
+    psDelta
+};
+
+// BBS
 enum ZHopType {
     zhtAuto = 0,
     zhtNormal,
@@ -878,6 +887,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              template_custom_gcode))
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
+    ((ConfigOptionEnum<PrinterStructure>,printer_structure))
     ((ConfigOptionBool,                auxiliary_fan))
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                support_air_filtration))

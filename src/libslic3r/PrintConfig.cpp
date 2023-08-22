@@ -299,6 +299,15 @@ static t_config_enum_values s_keys_map_NozzleType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleType)
 
+static t_config_enum_values s_keys_map_PrinterStructure {
+    {"undefine",        int(PrinterStructure::psUndefine)},
+    {"corexy",          int(PrinterStructure::psCoreXY)},
+    {"i3",              int(PrinterStructure::psI3)},
+    {"hbot",            int(PrinterStructure::psHbot)},
+    {"delta",           int(PrinterStructure::psDelta)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrinterStructure)
+
 static t_config_enum_values s_keys_map_PerimeterGeneratorType{
     { "classic", int(PerimeterGeneratorType::Classic) },
     { "arachne", int(PerimeterGeneratorType::Arachne) }
@@ -1738,6 +1747,23 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Brass"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<NozzleType>(ntUndefine));
+
+    def = this->add("printer_structure", coEnum);
+    def->label = L("Printer structure");
+    def->tooltip = L("The physical arrangement and components of a printing device");
+    def->enum_keys_map = &ConfigOptionEnum<PrinterStructure>::get_enum_values();
+    def->enum_values.push_back("undefine");
+    def->enum_values.push_back("corexy");
+    def->enum_values.push_back("i3");
+    def->enum_values.push_back("hbot");
+    def->enum_values.push_back("delta");
+    def->enum_labels.push_back(L("Undefine"));
+    def->enum_labels.push_back(L("CoreXY"));
+    def->enum_labels.push_back(L("I3"));
+    def->enum_labels.push_back(L("Hbot"));
+    def->enum_labels.push_back(L("Delta"));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionEnum<PrinterStructure>(psUndefine));
 
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");
