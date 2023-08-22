@@ -1608,16 +1608,16 @@ void PerimeterGenerator::process_arachne()
                                 outer = arr_i;
                             break;
                         case 1: // first internal wall
-                            if (first_internal == -1 && arr_i > outer)
+                            if (first_internal==-1 && arr_i>outer && outer!=-1)
                                 first_internal = arr_i;
                             break;
                         case 2: // second internal wall
                             if (ordered_extrusions[arr_i].extrusion->inset_idx == 2 && second_internal == -1 &&
-                                arr_i > first_internal)
+                                arr_i > first_internal && outer!=-1)
                                 second_internal = arr_i;
                             break;
                         }
-                        if (second_internal != -1)
+                        if (outer >-1 && first_internal>-1 && second_internal>-1)
                             break; // found all three perimeters to re-order
                     }
                     if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
