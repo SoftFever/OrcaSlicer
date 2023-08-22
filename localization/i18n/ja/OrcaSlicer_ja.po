@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4529,6 +4529,9 @@ msgstr "その他"
 msgid "Login Region"
 msgstr "地域"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "メートル"
 
@@ -6185,6 +6188,9 @@ msgstr ""
 msgid "Gap infill"
 msgstr "隙間インフィル"
 
+msgid "Skirt"
+msgstr ""
+
 msgid "Support interface"
 msgstr "サポート接触面"
 
@@ -6405,6 +6411,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "積層ピッチはノズルの直径を超える為設定できません"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -6821,7 +6843,7 @@ msgstr ""
 msgid "Mouse ear"
 msgstr ""
 
-msgid "outer_only"
+msgid "Outer brim only"
 msgstr ""
 
 msgid "Inner brim only"
@@ -9341,19 +9363,19 @@ msgstr ""
 msgid "Tool Volume"
 msgstr ""
 
+msgid "Subtract from"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
 msgid "selected"
 msgstr ""
 
 msgid "Part 1"
 msgstr ""
 
-msgid "Subtract from"
-msgstr ""
-
 msgid "Part 2"
-msgstr ""
-
-msgid "Subtract with"
 msgstr ""
 
 msgid "Delete input"
@@ -9870,9 +9892,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "GUI初期化に失敗した"
-
-#~ msgid "Outer brim only"
-#~ msgstr "Outer brim only"
 
 #~ msgid "Check cloud service status"
 #~ msgstr "Check cloud service status"

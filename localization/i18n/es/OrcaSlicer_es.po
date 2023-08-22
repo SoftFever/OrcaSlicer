@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4721,6 +4721,9 @@ msgstr "Otros"
 msgid "Login Region"
 msgstr "Región de inicio de sesión"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "Métrico"
 
@@ -5417,8 +5420,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Cuando grabamos timelapse sin cabezal de impresión, es recomendable añadir "
 "un \"Torre de Purga de Intervalo\" \n"
@@ -6481,6 +6484,9 @@ msgstr "Puente Interior"
 msgid "Gap infill"
 msgstr "Relleno de huecos"
 
+msgid "Skirt"
+msgstr ""
+
 msgid "Support interface"
 msgstr "Interfaz de soporte"
 
@@ -6717,6 +6723,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "La altura de la capa no puede superar el diámetro de la boquilla"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -7196,7 +7218,7 @@ msgstr ""
 msgid "Mouse ear"
 msgstr "Oreja de ratón"
 
-msgid "outer_only"
+msgid "Outer brim only"
 msgstr "Solo borde de adherencia exterior"
 
 msgid "Inner brim only"
@@ -8006,10 +8028,10 @@ msgstr "Velocidad máxima del ventilador en la capa"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "La velocidad de ventilador se incrementará linealmente de cero a "
 "\"close_fan_the_first_x_layers\" al máximo de capa \"full_fan_speed_layer\". "
@@ -10058,20 +10080,20 @@ msgstr "Volumen de origen"
 msgid "Tool Volume"
 msgstr "Volumen de herramienta"
 
+msgid "Subtract from"
+msgstr "Restar de"
+
+msgid "Subtract with"
+msgstr "Restar con"
+
 msgid "selected"
 msgstr "seleccionado"
 
 msgid "Part 1"
 msgstr "Parte 1"
 
-msgid "Subtract from"
-msgstr "Restar de"
-
 msgid "Part 2"
 msgstr "Parte 2"
-
-msgid "Subtract with"
-msgstr "Restar con"
 
 msgid "Delete input"
 msgstr "Borrado de entrada"
@@ -10398,8 +10420,8 @@ msgid ""
 msgstr ""
 "Colocar en la cara\n"
 "¿Sabías que puedes orientar rápidamente un modelo para que una de sus caras "
-"quede sobre el lecho de impresión? Seleccione la función \"Colocar en la "
-"cara\" o pulse la tecla <b>F</b>."
+"quede sobre el lecho de impresión? Seleccione la función \"Colocar en la cara"
+"\" o pulse la tecla <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -10654,9 +10676,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "Ha fallado la inicialización de la interfaz gráfica de Bambu Studio"
-
-#~ msgid "Outer brim only"
-#~ msgstr "Outer brim only"
 
 #~ msgid "Check cloud service status"
 #~ msgstr "Check cloud service status"
