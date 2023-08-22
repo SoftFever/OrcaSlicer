@@ -46,6 +46,9 @@
         "0x180"
     ],
     "printable_height": "180",
+    "retract_lift_below":[
+        "179"
+    ],
     "printer_structure": "i3",
     "retract_lift_below": [
         "179"

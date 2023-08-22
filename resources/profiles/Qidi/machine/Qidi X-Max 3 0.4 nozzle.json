@@ -18,6 +18,9 @@
         "0x325"
     ],
     "printable_height": "320",
+    "retract_lift_below":[
+        "319"
+    ],
     "nozzle_type": "hardened_steel",
     "auxiliary_fan": "1",
     "max_layer_height": [

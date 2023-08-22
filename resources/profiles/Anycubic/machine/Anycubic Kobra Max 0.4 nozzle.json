@@ -20,6 +20,9 @@
 		"0x400"
 	],
 	"printable_height": "450",
+	"retract_lift_below":[
+		"449"
+	],
 	"nozzle_type": "undefine",
 	"auxiliary_fan": "0",
     "machine_max_acceleration_e": [

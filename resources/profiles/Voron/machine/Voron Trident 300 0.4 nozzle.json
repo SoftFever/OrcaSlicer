@@ -15,5 +15,8 @@
     "300x300",
     "0x300"
   ],
-  "printable_height": "250"
+  "printable_height": "250",
+  "retract_lift_below":[
+    "249"
+  ]
 }
