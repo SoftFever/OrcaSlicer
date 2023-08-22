@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "PolyLite PETG @base",
     "filament_max_volumetric_speed": [
-        "14"
+        "11"
     ],
     "nozzle_temperature_range_high": [
         "270"
