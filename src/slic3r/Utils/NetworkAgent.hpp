@@ -59,6 +59,7 @@ typedef int (*func_get_user_presets)(void *agent, std::map<std::string, std::map
 typedef std::string (*func_request_setting_id)(void *agent, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
 typedef int (*func_put_setting)(void *agent, std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
 typedef int (*func_get_setting_list)(void *agent, std::string bundle_version, ProgressFn pro_fn, WasCancelledFn cancel_fn);
+typedef int (*func_get_setting_list2)(void *agent, std::string bundle_version, CheckFn chk_fn, ProgressFn pro_fn, WasCancelledFn cancel_fn);
 typedef int (*func_delete_setting)(void *agent, std::string setting_id);
 typedef std::string (*func_get_studio_info_url)(void *agent);
 typedef int (*func_set_extra_http_header)(void *agent, std::map<std::string, std::string> extra_headers);
@@ -158,6 +159,7 @@ public:
     std::string request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
     int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
     int get_setting_list(std::string bundle_version, ProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    int get_setting_list2(std::string bundle_version, CheckFn chk_fn, ProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int delete_setting(std::string setting_id);
     std::string get_studio_info_url();
     int set_extra_http_header(std::map<std::string, std::string> extra_headers);
@@ -245,6 +247,7 @@ private:
     static func_request_setting_id             request_setting_id_ptr;
     static func_put_setting                    put_setting_ptr;
     static func_get_setting_list               get_setting_list_ptr;
+    static func_get_setting_list2              get_setting_list2_ptr;
     static func_delete_setting                 delete_setting_ptr;
     static func_get_studio_info_url            get_studio_info_url_ptr;
     static func_set_extra_http_header          set_extra_http_header_ptr;

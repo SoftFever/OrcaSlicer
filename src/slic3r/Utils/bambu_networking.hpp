@@ -128,6 +128,7 @@ typedef std::function<void(int progress)> ProgressFn;
 typedef std::function<void(int retcode, std::string info)> LoginFn;
 typedef std::function<void(int result, std::string info)> ResultFn;
 typedef std::function<bool()> CancelFn;
+typedef std::function<bool(std::map<std::string, std::string> info)> CheckFn;
 
 enum SendingPrintJobStage {
     PrintingStageCreate = 0,

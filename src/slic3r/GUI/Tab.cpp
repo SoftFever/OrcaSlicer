@@ -4136,7 +4136,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             Preset &current_preset = m_presets->get_selected_preset();
             if (!current_preset.setting_id.empty()) {
                 BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
-                m_presets->set_sync_info_and_save(current_preset.name, current_preset.setting_id, "delete");
+                m_presets->set_sync_info_and_save(current_preset.name, current_preset.setting_id, "delete", 0);
                 wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");

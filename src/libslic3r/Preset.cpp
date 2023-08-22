@@ -1386,7 +1386,7 @@ bool PresetCollection::reset_project_embedded_presets()
     return re_select;
 }
 
-void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo)
+void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time)
 {
     lock();
     for (auto it = m_presets.begin(); it != m_presets.end(); it++) {
@@ -1397,11 +1397,22 @@ void PresetCollection::set_sync_info_and_save(std::string name, std::string sett
             else
                 preset->sync_info = syncinfo;
             preset->setting_id = setting_id;
+            if (update_time > 0)
+                preset->updated_time = update_time;
             preset->save_info();
             break;
         }
     }
     unlock();
+}
+
+bool PresetCollection::need_sync(std::string name, std::string setting_id, long long update_time)
+{
+    lock();
+    auto preset = find_preset(name, false, true);
+    bool need   = preset == nullptr || preset->setting_id != setting_id || preset->updated_time < update_time;
+    unlock();
+    return need;
 }
 
 //BBS: get user presets
@@ -1449,6 +1460,8 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
     for (auto it = m_presets.begin(); it != m_presets.end(); it++) {
         Preset* preset = &m_presets[it - m_presets.begin()];
         if (!preset->is_user()) continue;
+        if (preset->sync_info != "save") continue;
+        preset->sync_info.clear();
         preset->file = path_from_name(preset->name);
 
         if (preset->is_custom_defined()) {
@@ -1565,7 +1578,6 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
         else {
             //update the one from cloud which is newer
             need_update = true;
-            iter->sync_info.clear();
         }
     }
 
@@ -1614,7 +1626,8 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             }
             iter->config = new_config;
             iter->updated_time = cloud_update_time;
-            iter->version = cloud_version.value();
+            iter->sync_info    = "save";
+            iter->version      = cloud_version.value();
             iter->user_id = cloud_user_id;
             iter->setting_id = cloud_setting_id;
             iter->base_id = cloud_base_id;
@@ -1630,7 +1643,8 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             preset.loaded = true;
             preset.config = new_config;
             preset.updated_time = cloud_update_time;
-            preset.version = cloud_version.value();
+            preset.sync_info   = "save";
+            preset.version      = cloud_version.value();
             preset.user_id = cloud_user_id;
             preset.setting_id = cloud_setting_id;
             preset.base_id = cloud_base_id;
@@ -2102,7 +2116,6 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             this->get_selected_preset().base_id = parent_preset->setting_id;
         }
     }
-    this->get_selected_preset().updated_time = (long long)Slic3r::Utils::get_current_time_utc();
     if (parent_preset)
         this->get_selected_preset().save(&(parent_preset->config));
     else

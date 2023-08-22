@@ -4475,17 +4475,19 @@ void GUI_App::sync_preset(Preset* preset)
     int result = -1;
     unsigned int http_code = 200;
     std::string updated_info;
+    long long update_time = 0;
     // only sync user's preset
     if (!preset->is_user()) return;
     if (preset->is_custom_defined()) return;
 
-    if (preset->setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
+    auto setting_id = preset->setting_id;
+    if (setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
         std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
             std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
             if (!new_setting_id.empty()) {
-                preset->setting_id = new_setting_id;
+                setting_id = new_setting_id;
                 result = 0;
             }
             else {
@@ -4511,7 +4513,7 @@ void GUI_App::sync_preset(Preset* preset)
         if (!ret) {
             std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
             if (!new_setting_id.empty()) {
-                preset->setting_id = new_setting_id;
+                setting_id = new_setting_id;
                 result = 0;
             }
             else {
@@ -4530,21 +4532,24 @@ void GUI_App::sync_preset(Preset* preset)
         }
     }
     else if ((preset->sync_info.compare("update") == 0) && !preset->base_id.empty()) {
-        if (!preset->setting_id.empty()) {
+        if (!setting_id.empty()) {
             std::map<std::string, std::string> values_map;
             int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
             if (!ret) {
-                if (values_map[BBL_JSON_KEY_BASE_ID] ==  preset->setting_id) {
+                if (values_map[BBL_JSON_KEY_BASE_ID] == setting_id) {
                     //clear the setting_id in this case
-                    preset->setting_id.clear();
+                    setting_id.clear();
                     result = 0;
                 }
                 else {
-                    result = m_agent->put_setting(preset->setting_id, preset->name, &values_map, &http_code);
+                    result = m_agent->put_setting(setting_id, preset->name, &values_map, &http_code);
                     if (http_code >= 400) {
                         result = 0;
                         updated_info = "hold";
-                        BOOST_LOG_TRIVIAL(error) << "[sync_preset] put setting_id = " << preset->setting_id << " failed, http_code = " << http_code;
+                        BOOST_LOG_TRIVIAL(error) << "[sync_preset] put setting_id = " << setting_id << " failed, http_code = " << http_code;
+                        auto update_time_str = values_map[BBL_JSON_KEY_UPDATE_TIME];
+                        if (!update_time_str.empty())
+                            update_time = std::atoll(update_time_str.c_str());
                     }
                 }
 
@@ -4568,11 +4573,11 @@ void GUI_App::sync_preset(Preset* preset)
 
         BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: " << preset->sync_info << " success! preset = " << preset->name;
         if (preset->type == Preset::Type::TYPE_FILAMENT) {
-            preset_bundle->filaments.set_sync_info_and_save(preset->name, preset->setting_id, updated_info);
+            preset_bundle->filaments.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
         } else if (preset->type == Preset::Type::TYPE_PRINT) {
-            preset_bundle->prints.set_sync_info_and_save(preset->name, preset->setting_id, updated_info);
+            preset_bundle->prints.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
         } else if (preset->type == Preset::Type::TYPE_PRINTER) {
-            preset_bundle->printers.set_sync_info_and_save(preset->name, preset->setting_id, updated_info);
+            preset_bundle->printers.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
         }
     }
 }
@@ -4621,7 +4626,24 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         [this, progressFn, cancelFn, finishFn] {
             // get setting list, update setting list
             std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
-            int ret = m_agent->get_setting_list(version, progressFn, cancelFn);
+            int ret = m_agent->get_setting_list2(version, [this](auto info) {
+                auto type = info[BBL_JSON_KEY_TYPE];
+                auto name = info[BBL_JSON_KEY_NAME];
+                auto setting_id = info[BBL_JSON_KEY_SETTING_ID];
+                auto update_time_str = info[BBL_JSON_KEY_UPDATE_TIME];
+                long long update_time = 0;
+                if (!update_time_str.empty())
+                    update_time = std::atoll(update_time_str.c_str());
+                if (type == "filament") {
+                    return preset_bundle->filaments.need_sync(name, setting_id, update_time);
+                } else if (type == "machine") {
+                    return preset_bundle->prints.need_sync(name, setting_id, update_time);
+                } else if (type == "printer") {
+                    return preset_bundle->printers.need_sync(name, setting_id, update_time);
+                } else {
+                    return true;
+                }
+            }, progressFn, cancelFn);
             finishFn(ret == 0);
 
             int count = 0, sync_count = 0;
