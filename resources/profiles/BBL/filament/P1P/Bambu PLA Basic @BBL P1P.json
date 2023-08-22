@@ -11,6 +11,9 @@
     "fan_min_speed": [
         "50"
     ],
+    "filament_max_volumetric_speed": [
+        "21"
+    ],
     "hot_plate_temp": [
         "65"
     ],

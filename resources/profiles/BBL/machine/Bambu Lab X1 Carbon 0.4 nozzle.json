@@ -10,6 +10,9 @@
     ],
     "printer_model": "Bambu Lab X1 Carbon",
     "printer_variant": "0.4",
+    "z_hop": [
+        "0.2"
+    ],
     "bed_exclude_area": [
         "0x0",
         "18x0",
