@@ -8,9 +8,6 @@
     "nozzle_diameter": [
         "0.4"
     ],
-    "z_hop": [
-        "0.2"
-    ],
     "printer_model": "Bambu Lab P1S",
     "printer_variant": "0.4",
     "bed_exclude_area": [
@@ -18,6 +15,9 @@
         "18x0",
         "18x28",
         "0x28"
+    ],
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL X1C"
     ],
     "default_print_profile": "0.20mm Standard @BBL X1C",
     "extruder_clearance_max_radius": "56",
@@ -30,6 +30,10 @@
     "machine_unload_filament_time": "28",
     "nozzle_type": "stainless_steel",
     "scan_first_layer": "0",
+    "z_hop": [
+        "0.2"
+    ],
+    "printer_structure": "corexy",
     "upward_compatible_machine": [
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab X1 0.4 nozzle",
