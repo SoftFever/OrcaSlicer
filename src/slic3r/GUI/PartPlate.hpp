@@ -442,6 +442,10 @@ public:
     //load pattern box data from file
     int load_pattern_box_data(std::string filename);
 
+    std::vector<int> get_first_layer_print_sequence() const;
+    void set_first_layer_print_sequence(const std::vector<int> &sorted_filaments);
+    void update_first_layer_print_sequence(size_t filament_nums);
+
     void print() const;
 
     friend class cereal::access;

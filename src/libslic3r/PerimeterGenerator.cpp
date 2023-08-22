@@ -1,5 +1,6 @@
 #include "PerimeterGenerator.hpp"
 #include "ClipperUtils.hpp"
+#include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "ShortestPath.hpp"
 #include "VariableWidth.hpp"

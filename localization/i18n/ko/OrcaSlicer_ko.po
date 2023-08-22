@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 20:42+0800\n"
-"PO-Revision-Date: 2023-08-03 10:45+0900\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
+"PO-Revision-Date: 2023-08-21 19:07+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
 "Language: ko_KR\n"
@@ -872,7 +872,7 @@ msgid "Fill bed with copies"
 msgstr "복제하여 베드 채우기"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr "베드의 나머지 영역을 선택한 객체의 복사본으로 채웁니다."
+msgstr "베드의 나머지 영역을 선택한 개체의 복사본으로 채웁니다"
 
 msgid "Printable"
 msgstr "출력 가능"
@@ -1275,11 +1275,11 @@ msgid "Renaming"
 msgstr "이름 변경 중"
 
 msgid "Repairing model object"
-msgstr "모델 개체 교정중"
+msgstr "모델 개체 수리 중"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
-msgstr[0] "다음 모델 개체가 교정되었습니다"
+msgstr[0] "다음 모델 개체가 수리되었습니다"
 
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
@@ -1322,7 +1322,7 @@ msgid "Manual"
 msgstr "수동"
 
 msgid "No-brim"
-msgstr "챙(브림) 비활성화"
+msgstr "챙 비활성화"
 
 msgid " "
 msgstr " "
@@ -1595,10 +1595,10 @@ msgid "Orienting"
 msgstr "방향 지정 중"
 
 msgid "Filling bed "
-msgstr "베드 채우기"
+msgstr "베드 채우기 "
 
 msgid "Bed filling canceled."
-msgstr "베드 채우기 취소됨"
+msgstr "베드 채우기 취소됨."
 
 msgid "Bed filling done."
 msgstr "베드 채우기 완료."
@@ -2947,7 +2947,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "개체가 플레이트 경계 위에 놓여 있습니다."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "G코드 경로가 출력 최대 높이를 넘어갑니다."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "G코드 경로가 플레이트 경계를 넘어갑니다."
@@ -3939,7 +3939,7 @@ msgid "Export successfully."
 msgstr "내보내기 성공."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "심각한 경고:"
 
 msgid " (Repair)"
 msgstr " (수리)"
@@ -4460,8 +4460,7 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
 msgstr ""
-"모델 메쉬에 부울 연산을 수행할 수 없습니다. 오직 양수 부분만 내보내질 것입니"
-"다"
+"모델 메쉬에 부울 연산을 수행할 수 없습니다. 오직 양수 부품만 내보내집니다."
 
 msgid ""
 "Print By Object: \n"
@@ -4491,7 +4490,7 @@ msgstr "현재 선택된 부품 수: %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "현재 선택된 개체 수: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -4590,6 +4589,9 @@ msgstr "기타"
 
 msgid "Login Region"
 msgstr "로그인 지역"
+
+msgid "Stealth Mode"
+msgstr ""
 
 msgid "Metric"
 msgstr "미터법"
@@ -4828,6 +4830,12 @@ msgstr "출력 순서"
 
 msgid "Plate name"
 msgstr "플레이트 이름"
+
+msgid "Customize"
+msgstr "사용자 지정"
+
+msgid "First Layer print sequence"
+msgstr "첫 레이어 출력 순서"
 
 msgid "Same as Global Bed Type"
 msgstr "글로벌 베드유형과 동일"
@@ -5291,7 +5299,7 @@ msgid "Bridge"
 msgstr "다리"
 
 msgid "Set speed for external and internal bridges"
-msgstr ""
+msgstr "외부 및 내부 다리 속도 설정"
 
 msgid "Travel speed"
 msgstr "이동 속도(트레블)"
@@ -6267,8 +6275,14 @@ msgstr "상단 표면"
 msgid "Bottom surface"
 msgstr "하단 표면"
 
+msgid "Internal Bridge"
+msgstr "내부 다리"
+
 msgid "Gap infill"
 msgstr "틈(갭) 채우기"
+
+msgid "Skirt"
+msgstr ""
 
 msgid "Support interface"
 msgstr "지지대 접점"
@@ -6490,6 +6504,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "레이어 높이는 노즐 직경을 초과할 수 없습니다"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -6725,6 +6755,9 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "프린터가 지원하는 침대 유형"
 
+msgid "First layer print sequence"
+msgstr "첫 레이어 출력 순서"
+
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "이 G코드는 Z를 올리기 전에 모든 레이어 변경에 삽입됩니다"
 
@@ -6827,7 +6860,7 @@ msgstr ""
 "위해 약간 줄일 수 있습니다"
 
 msgid "Bottom surface flow ratio"
-msgstr "하단 표면 비율"
+msgstr "하단 표면 유량 비율"
 
 msgid "This factor affects the amount of material for bottom solid infill"
 msgstr "이 인수는 하단 꽉찬 채우기의 압출량에 영향을 미칩니다"
@@ -6843,7 +6876,7 @@ msgstr ""
 "시킵니다."
 
 msgid "Only one wall on top surfaces"
-msgstr "상단 표면에서 벽 하나만 그리기"
+msgstr "상단 표면에 단일 벽 생성"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
@@ -6853,7 +6886,7 @@ msgstr ""
 "합니다"
 
 msgid "One wall threshold"
-msgstr ""
+msgstr "단일 벽 임계값"
 
 #, c-format, boost-format
 msgid ""
@@ -6866,9 +6899,16 @@ msgid ""
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
+"상단 표면을 출력해야 하고 부분적으로 다른 레이어로 덮여 있는 경우 너비가 이 "
+"값 미만인 상단 레이어에서는 고려되지 않습니다. 이는 둘레로만 덮여야 하는 표면"
+"에서 '상단 둘레 하나'가 발동되지 않도록 하는 데 유용할 수 있습니다. 이 값은 "
+"압출 너비의 mm 또는 % o로 설정됩니다.\n"
+"경고: 활성화된 경우, 의도치 않은 형상이 생성되는건 다음 레이어에 문자와 같은 "
+"일부 얇은 형상이 있기 때문입니다. 이러한 형상을 제거하려면 이 값을 0으로 설정"
+"하십시오."
 
 msgid "Only one wall on first layer"
-msgstr "첫 레이어에서 벽 하나만 그리기"
+msgstr "하단 표면에 단일 벽 생성"
 
 msgid ""
 "Use only one wall on first layer, to give more space to the bottom infill "
@@ -6892,7 +6932,7 @@ msgid "mm/s or %"
 msgstr "mm/s or %"
 
 msgid "External"
-msgstr ""
+msgstr "외부"
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "다리와 완전히 돌출된 돌출부 벽의 속도"
@@ -6901,12 +6941,14 @@ msgid "mm/s"
 msgstr "mm/s"
 
 msgid "Internal"
-msgstr ""
+msgstr "내부"
 
 msgid ""
 "Speed of internal bridge. If the value is expressed as a percentage, it will "
 "be calculated based on the bridge_speed. Default value is 150%."
 msgstr ""
+"내부 다리 속도. 값을 백분율로 표시하면 외부 다리 속도(bridge_speed)를 기준으"
+"로 계산됩니다. 기본값은 150%입니다."
 
 msgid "Brim width"
 msgstr "챙(브림) 너비"
@@ -6924,14 +6966,17 @@ msgstr ""
 "모델의 외부 그리고/또는 내부에서 챙(브림)의 생성을 제어합니다. 자동은 챙(브"
 "림) 너비가 자동으로 분석 및 계산됨을 의미합니다."
 
-msgid "outer_only"
+msgid "Mouse ear"
+msgstr "생쥐 귀"
+
+msgid "Outer brim only"
 msgstr "외부 챙(브림)만"
 
 msgid "Inner brim only"
-msgstr "내부 챙(브림)만"
+msgstr "내부 챙만"
 
 msgid "Outer and inner brim"
-msgstr "내부와 외부 챙(브림)"
+msgstr "내부와 외부 챙"
 
 msgid "Brim-object gap"
 msgstr "챙(브림)-개체 간격"
@@ -6942,6 +6987,36 @@ msgid ""
 msgstr ""
 "가장 안쪽 챙(브림) 라인과 개체 사이에 간격을 주어 쉽게 챙(브림)을 제거 할 수 "
 "있게 합니다"
+
+msgid "Brim ears"
+msgstr "챙(브림) 귀"
+
+msgid "Only draw brim over the sharp edges of the model."
+msgstr "모델의 날카로운 가장자리에만 챙을 그립니다."
+
+msgid "Brim ear max angle"
+msgstr "챙(브림) 귀 최대 각도"
+
+msgid ""
+"Maximum angle to let a brim ear appear. \n"
+"If set to 0, no brim will be created. \n"
+"If set to ~180, brim will be created on everything but straight sections."
+msgstr ""
+"챙 귀가 나타날 수 있는 최대 각도.\n"
+"0으로 설정하면 챙이 생성되지 않습니다.\n"
+"~180으로 설정하면 직선 부분을 제외한 모든 부분에 챙이 생성됩니다."
+
+msgid "Brim ear detection radius"
+msgstr "챙 귀 감지 반경"
+
+msgid ""
+"The geometry will be decimated before dectecting sharp angles. This "
+"parameter indicates the minimum length of the deviation for the decimation.\n"
+"0 to deactivate"
+msgstr ""
+"날카로운 각도를 감지하기 전에 형상이 무시됩니다. 이 매개변수는 무시하는 형상"
+"의 최소 길이를 나타냅니다.\n"
+"0으로 비활성화합니다"
 
 msgid "Compatible machine"
 msgstr "호환 장비"
@@ -7120,12 +7195,14 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "하단 표면 채우기의 선 패턴, 다리엔 적용 안됨"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "내부 꽉찬 채우기 패턴"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect nattow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
+"내부 꽉찬 채우기의 선 패턴. 좁은 내부 꽉찬 채우기 감지가 활성화된 경우 작은 "
+"영역에 동심 패턴이 사용됩니다."
 
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
@@ -7399,10 +7476,10 @@ msgid "money/kg"
 msgstr "원/kg"
 
 msgid "Vendor"
-msgstr ""
+msgstr "제조사"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "필라멘트 제조사"
 
 msgid "(Undefined)"
 msgstr "(정의되지 않음)"
@@ -7891,7 +7968,7 @@ msgstr ""
 "내부 드문 채우기의 선 너비. %로 입력 시 노즐 직경에 대한 비율로 계산됩니다."
 
 msgid "Infill/Wall overlap"
-msgstr "채우기/벽 겹침"
+msgstr "채우기/벽 겹치기"
 
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
@@ -8387,7 +8464,7 @@ msgid "Top Only"
 msgstr "상단 표면"
 
 msgid "Bottom Only"
-msgstr "하단 표면"
+msgstr "하단 표면만"
 
 msgid "Top and Bottom"
 msgstr "상단 및 하단 표면"
@@ -8693,10 +8770,11 @@ msgstr ""
 "부위에 대해서만 지지대를 생성합니다."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "작은 돌출부 제거"
 
 msgid "Remove small overhangs that possibly need no supports."
 msgstr ""
+"Remove small overhangs; 지지대가 필요하지 않은 작은 돌출부를 제거합니다."
 
 msgid "Top Z distance"
 msgstr "상단 Z 거리"
@@ -9266,10 +9344,10 @@ msgid "Load cached slicing data from directory"
 msgstr "디렉토리에 캐시된 슬라이싱 데이터 로드"
 
 msgid "Export STL"
-msgstr ""
+msgstr "STL 내보내기"
 
 msgid "Export the objects as multiple STL."
-msgstr ""
+msgstr "개체를 여러개의 STL로 내보내기."
 
 msgid "Slice"
 msgstr "슬라이스"
@@ -9287,10 +9365,10 @@ msgid "Update the configs values of 3mf to latest."
 msgstr "3mf의 구성 값을 최신으로 업데이트합니다."
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "기본 필라멘트 로드"
 
 msgid "Load first filament as default for those not loaded"
-msgstr ""
+msgstr "로드되지 않은 경우 기본값으로 첫 번째 필라멘트 로드"
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -9341,10 +9419,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "정렬 옵션: 0-사용 안 함, 1-사용, 기타-자동"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "반복 횟수"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "전체 모델의 반복 횟수"
 
 msgid "Convert Unit"
 msgstr "단위 변환"
@@ -9377,12 +9455,13 @@ msgid "Skip some objects in this print"
 msgstr "이 출력에서 일부 개체를 건너뜁니다"
 
 msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
+msgstr "uptodate 사용 시 최신 프로세스/프린터 설정 로드"
 
 msgid ""
 "load uptodate process/machine settings from the specified file when using "
 "uptodate"
 msgstr ""
+"uptodate를 사용할 때 지정된 파일에서 최신 프로세스/프린터 설정을 로드합니다"
 
 msgid "Data directory"
 msgstr "데이터 디렉토리"
@@ -9517,7 +9596,7 @@ msgid "Loading of a model file failed."
 msgstr "모델 파일 로드에 실패했습니다."
 
 msgid "The supplied file couldn't be read because it's empty"
-msgstr "제공된 파일이 비어 있어 읽을 수 없습니다."
+msgstr "제공된 파일이 비어 있어 읽을 수 없습니다"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -9530,138 +9609,138 @@ msgid "load_obj: failed to parse"
 msgstr "load_obj: 구문 분석에 실패"
 
 msgid "The file contains polygons with more than 4 vertices."
-msgstr "이 파일에는 꼭짓점이 4개 이상인 다각형이 포함되어 있습니다."
+msgstr "이 파일에는 꼭지점이 4개 이상인 다각형이 포함되어 있습니다."
 
 msgid "The file contains polygons with less than 2 vertices."
-msgstr "이 파일에는 꼭짓점이 2개 미만인 다각형이 포함되어 있습니다."
+msgstr "이 파일에는 꼭지점이 2개 미만인 다각형이 포함되어 있습니다."
 
 msgid "The file contains invalid vertex index."
-msgstr "파일에 잘못된 꼭짓점 인덱스가 포함되어 있습니다."
+msgstr "파일에 잘못된 꼭지점 인덱스가 포함되어 있습니다."
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "이 OBJ 파일은 비어 있어서 읽을 수 없습니다."
 
 msgid "Network lookup"
-msgstr ""
+msgstr "네트워크 조회"
 
 msgid "Address"
-msgstr ""
+msgstr "주소"
 
 msgid "Hostname"
-msgstr ""
+msgstr "호스트 이름"
 
 msgid "Service name"
-msgstr ""
+msgstr "서비스 이름"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "OctoPrint 버전"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "장치 검색 중"
 
 msgid "Finished"
 msgstr "완료됨"
 
 msgid "Unable to perform boolean operation on selected parts"
-msgstr ""
+msgstr "선택한 부품에서 부울 연산을 수행할 수 없습니다"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "메쉬 부울"
 
 msgid "Union"
-msgstr ""
+msgstr "합집합"
 
 msgid "Difference"
-msgstr ""
+msgstr "차집합"
 
 msgid "Intersection"
-msgstr ""
+msgstr "교집합"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "소스 볼륨"
 
 msgid "Tool Volume"
-msgstr ""
-
-msgid "selected"
-msgstr ""
-
-msgid "Part 1"
-msgstr ""
+msgstr "도구 볼륨"
 
 msgid "Subtract from"
-msgstr ""
-
-msgid "Part 2"
-msgstr ""
+msgstr "다음에서 잘라내기"
 
 msgid "Subtract with"
-msgstr ""
+msgstr "다음으로 잘라내기"
+
+msgid "selected"
+msgstr "선택됨"
+
+msgid "Part 1"
+msgstr "요소 1"
+
+msgid "Part 2"
+msgstr "요소 2"
 
 msgid "Delete input"
-msgstr ""
+msgstr "입력개체 삭제"
 
 msgid "Send to print"
-msgstr ""
+msgstr "프린터로 보내기"
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "다음 파일 이름으로 프린터 호스트에 업로드:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
+msgstr "필요한 경우 슬래시( / )를 디렉토리 구분 기호로 사용하십시오."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
+msgstr "업로드 파일 이름이 \"%s\"로 끝나지 않습니다. 계속하시겠습니까?"
 
 msgid "Upload"
-msgstr ""
+msgstr "업로드"
 
 msgid "Upload and Print"
-msgstr ""
+msgstr "업로드 및 출력"
 
 msgid "Simulate"
-msgstr ""
+msgstr "모의실험"
 
 msgid "Print host upload queue"
-msgstr ""
+msgstr "출력 호스트 업로드 대기열"
 
 msgid "ID"
-msgstr ""
+msgstr "아이디"
 
 msgid "Progress"
-msgstr ""
+msgstr "진행률"
 
 msgid "Host"
-msgstr ""
+msgstr "호스트"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "크기"
 
 msgid "Filename"
-msgstr ""
+msgstr "파일 이름"
 
 msgid "Error Message"
-msgstr ""
+msgstr "에러 메시지"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "선택 취소"
 
 msgid "Show error message"
-msgstr ""
+msgstr "오류 메시지 표시"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "대기 중"
 
 msgid "Uploading"
-msgstr "업로드 중..."
+msgstr "업로드 중"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "취소 중"
 
 msgid "Error uploading to print host:"
-msgstr ""
+msgstr "출력 호스트에 업로드하는 중 오류 발생:"
 
 msgid "PA Calibration"
 msgstr "PA 교정"
@@ -9857,8 +9936,8 @@ msgid ""
 "touchpanel in the 3D scene?"
 msgstr ""
 "3D 화면 작업\n"
-"3D 화면에서 마우스와 터치패널로 보기 및 개체/부품 선택을 제어하는 ​​방법을 알"
-"고 계셨습니까?"
+"3D 화면에서 마우스와 터치패널로 보기 및 개체/부품 선택을 제어하는 방법을 알"
+"고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -9867,8 +9946,8 @@ msgid ""
 "cutting tool?"
 msgstr ""
 "자르기 도구\n"
-"자르기 도구로 어떤 각도와 위치에서도 모델을 자를 수 있다는 사실을 알고 계셨습"
-"니까?"
+"자르기 도구로 어떤 각도와 위치에서도 모델을 자를 수 있다는 사실을 알고 있습니"
+"까?"
 
 #: resources/data/hints.ini: [hint:Fix Model]
 msgid ""
@@ -9878,7 +9957,7 @@ msgid ""
 msgstr ""
 "모델 수리\n"
 "많은 슬라이싱 문제를 피하기 위해 손상된 3D 모델을 수리할 수 있다는 것을 알고 "
-"계셨습니까?"
+"있습니까?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -9886,7 +9965,7 @@ msgid ""
 "Did you know that you can generate a timelapse video during each print?"
 msgstr ""
 "타임랩스\n"
-"출력할 때마다 타임랩스 비디오를 생성할 수 있다는 사실을 알고 계셨습니까?"
+"출력할 때마다 타임랩스 비디오를 생성할 수 있다는 사실을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Auto-Arrange]
 msgid ""
@@ -9894,7 +9973,7 @@ msgid ""
 "Did you know that you can auto-arrange all objects in your project?"
 msgstr ""
 "자동 정렬\n"
-"프로젝트의 모든 개체를 자동으로 정렬할 수 있다는 사실을 알고 계셨습니까?"
+"프로젝트의 모든 개체를 자동으로 정렬할 수 있다는 사실을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Auto-Orient]
 msgid ""
@@ -9904,7 +9983,7 @@ msgid ""
 msgstr ""
 "자동 방향\n"
 "간단한 클릭으로 인쇄를 위한 최적의 방향으로 개체를 회전할 수 있다는 사실을 알"
-"고 계셨습니까?"
+"고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
@@ -9915,8 +9994,8 @@ msgid ""
 msgstr ""
 "바닥면 선택\n"
 "모델의 면 중 하나가 프린터 베드에 놓이도록 모델의 방향을 빠르게 지정할 수 있"
-"다는 사실을 알고 계셨습니까? \"바닥면 선택\" 기능을 선택하거나 <b>F</b> 키를 "
-"누르십시오."
+"다는 사실을 알고 있습니까? \"바닥면 선택\" 기능을 선택하거나 <b>F</b> 키를 누"
+"르십시오."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -9926,7 +10005,7 @@ msgid ""
 msgstr ""
 "개체 목록\n"
 "목록의 모든 개체/부품을 보고 각 개체/부품에 대한 설정을 변경할 수 있다는 것"
-"을 알고 계셨습니까?"
+"을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -9936,9 +10015,9 @@ msgid ""
 "more in the documentation."
 msgstr ""
 "모델 단순화\n"
-"메쉬 단순화 기능을 사용하여 메쉬의 삼각형 수를 줄일 수 있다는 사실을 알고 계"
-"셨습니까? 모델을 마우스 오른쪽 버튼으로 클릭하고 모델 단순화를 선택합니다. 자"
-"세한 내용은 설명서를 참조하십시오."
+"메쉬 단순화 기능을 사용하여 메쉬의 삼각형 수를 줄일 수 있다는 사실을 알고 있"
+"습니까? 모델을 마우스 오른쪽 버튼으로 클릭하고 모델 단순화를 선택합니다. 자세"
+"한 내용은 설명서를 참조하십시오."
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -9948,7 +10027,7 @@ msgid ""
 msgstr ""
 "슬라이싱 매개변수 테이블\n"
 "테이블의 모든 개체/부품을 보고 각 개체/부품에 대한 설정을 변경할 수 있다는 것"
-"을 알고 계셨습니까?"
+"을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Split to Objects/Parts]
 msgid ""
@@ -9958,7 +10037,7 @@ msgid ""
 msgstr ""
 "개체/부품으로 분할\n"
 "쉽게 색칠하거나 출력하기 위해 큰 개체를 작은 개체로 나눌 수 있다는 것을 알고 "
-"계셨습니까?"
+"있습니까?"
 
 #: resources/data/hints.ini: [hint:Subtract a Part]
 msgid ""
@@ -9969,8 +10048,8 @@ msgid ""
 msgstr ""
 "부품 비우기\n"
 "비우기 부품 수정자를 사용하여 한 메쉬를 다른 메쉬에서 뺄 수 있다는 것을 알고 "
-"계셨습니까? 예를 들어 오르카 슬라이서에서 직접 쉽게 크기를 조정할 수 있는 구"
-"멍을 만들 수 있습니다. 자세한 내용은 설명서를 참조하십시오."
+"있습니까? 예를 들어 오르카 슬라이서에서 직접 쉽게 크기를 조정할 수 있는 구멍"
+"을 만들 수 있습니다. 자세한 내용은 설명서를 참조하십시오."
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
@@ -9982,7 +10061,7 @@ msgid ""
 msgstr ""
 "STEP\n"
 "STL 대신 STEP 파일을 슬라이싱하여 출력 품질을 향상시킬 수 있다는 사실을 알고 "
-"계셨습니까?\n"
+"있습니까?\n"
 "Orca Slicer는 STEP 파일 슬라이싱을 지원하여 저해상도 STL보다 부드러운 결과를 "
 "제공합니다. 시도해 보세요!"
 
@@ -9994,8 +10073,8 @@ msgid ""
 "the overall look of your model. Check it out!"
 msgstr ""
 "Z 솔기 위치\n"
-"Z 솔기의 위치를 ​​사용자 지정하고 출력물에 칠하여 잘 보이지 않는 위치에 배치할 "
-"수 있다는 사실을 알고 계셨습니까? 이렇게 하면 모델의 전반적인 모양이 향상됩니"
+"Z 솔기의 위치를 사용자 지정하고 출력물에 칠하여 잘 보이지 않는 위치에 배치할 "
+"수 있다는 사실을 알고 있습니까? 이렇게 하면 모델의 전반적인 모양이 향상됩니"
 "다. 확인해 보세요!"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
@@ -10006,7 +10085,7 @@ msgid ""
 "printed model by doing some fine-tuning."
 msgstr ""
 "유량 미세 조정\n"
-"더 보기 좋은 출력물을 위해 유량을 미세 조정할 수 있다는 사실을 알고 계셨습니"
+"더 보기 좋은 출력물을 위해 유량을 미세 조정할 수 있다는 사실을 알고 있습니"
 "까? 재료에 따라 약간의 미세 조정을 통해 출력된 모델의 전체적인 마감을 개선할 "
 "수 있습니다."
 
@@ -10019,7 +10098,7 @@ msgid ""
 msgstr ""
 "출력을 플레이트로 분할\n"
 "부품이 많은 모델을 출력할 준비가 된 개별 플레이트로 분할할 수 있다는 사실을 "
-"알고 계셨습니까? 이렇게 하면 모든 부품을 추적하는 프로세스가 간소화됩니다."
+"알고 있습니까? 이렇게 하면 모든 부품을 추적하는 프로세스가 간소화됩니다."
 
 #: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
 #: Height]
@@ -10030,7 +10109,7 @@ msgid ""
 msgstr ""
 "적응형 레이어 높이로 인쇄 속도 향상\n"
 "적응형 레이어 높이 옵션을 사용하여 모델을 더 빠르게 출력할 수 있다는 사실을 "
-"알고 계셨습니까? 확인해 보세요!"
+"알고 있습니까? 확인해 보세요!"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -10040,8 +10119,8 @@ msgid ""
 "model that actually need it."
 msgstr ""
 "지지대 칠하기\n"
-"지지대의 위치를 ​​칠할 수 있다는 것을 알고 계셨습니까? 이 기능을 사용하면 실제"
-"로 필요한 모델 부위에만 서포트 재료를 쉽게 배치할 수 있습니다."
+"지지대의 위치를 칠할 수 있다는 것을 알고 있습니까? 이 기능을 사용하면 실제로 "
+"필요한 모델 부위에만 서포트 재료를 쉽게 배치할 수 있습니다."
 
 #: resources/data/hints.ini: [hint:Different types of supports]
 msgid ""
@@ -10051,9 +10130,9 @@ msgid ""
 "print speed. Check them out!"
 msgstr ""
 "다양한 유형의 지지대\n"
-"여러 유형의 지지대 중에서 선택할 수 있다는 것을 알고 계셨습니까? 나무 지지대"
-"는 필라멘트를 절약하고 출력 속도를 향상시키면서 유기 모델에 적합합니다. 확인"
-"해 보세요!"
+"여러 유형의 지지대 중에서 선택할 수 있다는 것을 알고 있습니까? 나무 지지대는 "
+"필라멘트를 절약하고 출력 속도를 향상시키면서 유기 모델에 적합합니다. 확인해 "
+"보세요!"
 
 #: resources/data/hints.ini: [hint:Printing Silk Filament]
 msgid ""
@@ -10063,9 +10142,8 @@ msgid ""
 "the best results."
 msgstr ""
 "실크 필라멘트 출력\n"
-"실크 필라멘트를 성공적으로 출력하려면 특별한 주의가 필요하다는 사실을 알고 계"
-"셨습니까? 최상의 결과를 얻으려면 항상 더 높은 온도와 더 낮은 속도를 권장합니"
-"다."
+"실크 필라멘트를 성공적으로 출력하려면 특별한 주의가 필요하다는 사실을 알고 있"
+"습니까? 최상의 결과를 얻으려면 항상 더 높은 온도와 더 낮은 속도를 권장합니다."
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
@@ -10075,7 +10153,7 @@ msgid ""
 msgstr ""
 "더 나은 안착을 위한 챙(브림)\n"
 "출력 모델이 베드 표면과의 접촉면이 작을 때 챙(브림)를 사용하는 것이 좋다는 사"
-"실을 알고 계셨습니까?"
+"실을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Set parameters for multiple objects]
 msgid ""
@@ -10085,7 +10163,7 @@ msgid ""
 msgstr ""
 "여러 개체에 대한 매개변수 설정\n"
 "선택한 모든 개체에 대한 슬라이싱 매개변수를 한 번에 설정할 수 있다는 사실을 "
-"알고 계셨습니까?"
+"알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Stack objects]
 msgid ""
@@ -10093,7 +10171,7 @@ msgid ""
 "Did you know that you can stack objects as a whole one?"
 msgstr ""
 "개체 쌓기\n"
-"물건을 통째로 쌓을 수 있다는 사실을 알고 계셨나요?"
+"물건을 통째로 쌓을 수 있다는 사실을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
 msgid ""
@@ -10103,7 +10181,7 @@ msgid ""
 msgstr ""
 "지지대/개체/채우기에 쏟기(플러쉬)\n"
 "필라멘트를 교체하는 동안 낭비되는 필라멘트를 지지대/개체/채우기에 쏟기(플러"
-"쉬)하여 절약할 수 있다는 사실을 알고 계셨습니까?"
+"쉬)하여 절약할 수 있다는 사실을 알고 있습니까?"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
@@ -10113,7 +10191,7 @@ msgid ""
 msgstr ""
 "강도 향상\n"
 "모델의 강도를 개선하기 위해 더 많은 벽 루프와 더 높은 드문 채우기 밀도를 사용"
-"할 수 있다는 것을 알고 계셨습니까?"
+"할 수 있다는 것을 알고 있습니까?"
 
 #~ msgid ""
 #~ "The configuration may be generated by a newer version of BambuStudio."
@@ -10160,9 +10238,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "뱀부 스튜디오 GUI 초기화 실패"
-
-#~ msgid "Outer brim only"
-#~ msgstr "바깥쪽만"
 
 #~ msgid "Check cloud service status"
 #~ msgstr "클라우드 서비스 상태 확인"

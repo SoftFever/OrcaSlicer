@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 20:42+0800\n"
-"PO-Revision-Date: 2023-08-08 15:05+0300\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
+"PO-Revision-Date: 2023-08-20 18:07+0300\n"
 "Last-Translator: Ilya <Lizardjazz1@gmail.com>\n"
 "Language-Team: SPb 3D Printing\n"
 "Language: ru_RU\n"
@@ -873,10 +873,10 @@ msgid "Set as individual objects"
 msgstr "Установить как отдельные объекты"
 
 msgid "Fill bed with copies"
-msgstr ""
+msgstr "Заполнить весь стол копиями"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr ""
+msgstr "Заполните оставшуюся область стола копиями выбранного объекта"
 
 msgid "Printable"
 msgstr "Доступно для печати"
@@ -1626,13 +1626,13 @@ msgid "Orienting"
 msgstr "Ориентация"
 
 msgid "Filling bed "
-msgstr ""
+msgstr "Заполнить стол. "
 
 msgid "Bed filling canceled."
-msgstr ""
+msgstr "Заполнение стола отменено."
 
 msgid "Bed filling done."
-msgstr ""
+msgstr "Заполнение стола выполнено."
 
 msgid "Error! Unable to create thread!"
 msgstr "Ошибка! Невозможно создать тему!"
@@ -3021,7 +3021,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "Объект наложен на границу стола."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "Путь G-кода выходит за пределы максимальной высоты печати."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Путь G-кода выходит за пределы зоны печати."
@@ -4044,7 +4044,7 @@ msgid "Export successfully."
 msgstr "Экспорт успешно."
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "Серьезное предупреждение:"
 
 msgid " (Repair)"
 msgstr " (Ремонт)"
@@ -4572,6 +4572,8 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
 msgstr ""
+"Не удается выполнить логическую операцию с модельными сетками. Будут "
+"экспортированы только положительные части."
 
 msgid ""
 "Print By Object: \n"
@@ -4598,11 +4600,11 @@ msgstr "Параметры области"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
-msgstr ""
+msgstr "Количество выбранных в данный момент деталей: %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "Количество выбранных в данный момент объектов: %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -4703,6 +4705,9 @@ msgstr "Другие"
 
 msgid "Login Region"
 msgstr "Регион входа"
+
+msgid "Stealth Mode"
+msgstr ""
 
 msgid "Metric"
 msgstr "Метрические"
@@ -4948,6 +4953,12 @@ msgstr "Последовательность печати"
 
 msgid "Plate name"
 msgstr "Название области"
+
+msgid "Customize"
+msgstr "Настроить"
+
+msgid "First Layer print sequence"
+msgstr "Последовательность печати первого слоя"
 
 msgid "Same as Global Bed Type"
 msgstr "То же, что и глобальный тип стола"
@@ -5434,7 +5445,7 @@ msgid "Bridge"
 msgstr "Мост"
 
 msgid "Set speed for external and internal bridges"
-msgstr ""
+msgstr "Установка скорости для внешних и внутренних мостов"
 
 msgid "Travel speed"
 msgstr "Скорость перемещения"
@@ -6437,8 +6448,14 @@ msgstr "Верхний слой"
 msgid "Bottom surface"
 msgstr "Нижняя поверхность"
 
+msgid "Internal Bridge"
+msgstr "Внутренний мост"
+
 msgid "Gap infill"
 msgstr "Заполнение пробелов"
+
+msgid "Skirt"
+msgstr ""
 
 msgid "Support interface"
 msgstr "Интерфейс поддержки"
@@ -6671,6 +6688,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Высота слоя не может превышать диаметр сопла"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -6912,6 +6945,9 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Типы столов, поддерживаемые принтером"
 
+msgid "First layer print sequence"
+msgstr "Последовательность печати первого слоя"
+
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Типы столов, поддерживаемые принтером"
 
@@ -7052,9 +7088,9 @@ msgstr ""
 "предоставить больше места для верхнего массива заполнения"
 
 msgid "One wall threshold"
-msgstr ""
+msgstr "Порог одной стены"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -7065,6 +7101,15 @@ msgid ""
 "on the next layer, like letters. Set this setting to 0 to remove these "
 "artifacts."
 msgstr ""
+"Если необходимо напечатать верхнюю поверхность и она частично покрыта другим "
+"слоем, она не будет учитываться на верхнем слое, ширина которого меньше "
+"этого значения. Это может быть полезно, чтобы не допустить срабатывания "
+"функции \"один периметр сверху\" на поверхности, которая должна быть покрыта "
+"только периметрами. Это значение может составлять мм или % от ширины "
+"экструзии по периметру.\n"
+"Предупреждение: Если включено, артефакты могут создаваться, если у вас есть "
+"какие-то объекты на следующем слое, например буквы. Установите этот параметр "
+"равным 0, чтобы удалить эти артефакты."
 
 msgid "Only one wall on first layer"
 msgstr "Только один периметр на первом слое"
@@ -7093,7 +7138,7 @@ msgid "mm/s or %"
 msgstr "мм/с или %"
 
 msgid "External"
-msgstr ""
+msgstr "Внешний"
 
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Скорость моста и полностью свисающий периметр"
@@ -7102,12 +7147,14 @@ msgid "mm/s"
 msgstr "мм/с"
 
 msgid "Internal"
-msgstr ""
+msgstr "Внутренний"
 
 msgid ""
 "Speed of internal bridge. If the value is expressed as a percentage, it will "
 "be calculated based on the bridge_speed. Default value is 150%."
 msgstr ""
+"Скорость внутреннего моста. Если значение выражено в процентах, оно будет "
+"рассчитано на основе bridge_speed. Значение по умолчанию - 150%."
 
 msgid "Brim width"
 msgstr "Ширина каймы"
@@ -7126,8 +7173,11 @@ msgstr ""
 "стороне моделей. Auto означает, что ширина каймы анализируется и "
 "рассчитывается автоматически."
 
-msgid "outer_only"
-msgstr "кайма снаружи"
+msgid "Mouse ear"
+msgstr "На углах"
+
+msgid "Outer brim only"
+msgstr "Кайма снаружи"
 
 msgid "Inner brim only"
 msgstr "Кайма внутри"
@@ -7144,6 +7194,41 @@ msgid ""
 msgstr ""
 "Зазор между внутренней линией каймы и предметом может способствовать более "
 "легкому снятию каймы"
+
+msgid "Brim ears"
+msgstr "Кайма с ушами"
+
+msgid "Only draw brim over the sharp edges of the model."
+msgstr "Отрисовывать кайму только на острых углах модели."
+
+msgid "Brim ear max angle"
+msgstr ""
+"Максимальный угол\n"
+" каймы с \"ушами\""
+
+msgid ""
+"Maximum angle to let a brim ear appear. \n"
+"If set to 0, no brim will be created. \n"
+"If set to ~180, brim will be created on everything but straight sections."
+msgstr ""
+"Максимальный угол, при котором появляется кайма.\n"
+"Если установлено значение 0, кайма создаваться не будет.\n"
+"Если установлено значение ~180, кайма будет создаваться на всех участках, "
+"кроме прямых."
+
+msgid "Brim ear detection radius"
+msgstr ""
+"Радиус обнаружения\n"
+" ушей по краям"
+
+msgid ""
+"The geometry will be decimated before dectecting sharp angles. This "
+"parameter indicates the minimum length of the deviation for the decimation.\n"
+"0 to deactivate"
+msgstr ""
+"Геометрия будет упрощена перед обнаружением резких углов. Этот параметр "
+"указывает минимальную длину отклонения для упрощения. \n"
+" 0 для отключения"
 
 msgid "Compatible machine"
 msgstr "Совместимый принтер"
@@ -7331,12 +7416,15 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Узор заполнения нижней поверхности, но не мостов"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "Внутренний  рисунок сплошного заполнения"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect nattow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
+"Линейный рисунок внутреннего сплошного заполнения. если включено обнаружение "
+"сплошного внутреннего заполнения, для небольшой области будет использоваться "
+"концентрический узор ."
 
 msgid ""
 "Line width of outer wall. If expressed as a %, it will be computed over the "
@@ -7585,9 +7673,9 @@ msgid ""
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
 msgstr ""
-"Введите процент усадки, который произойдёт с филаментом после охлаждения "
-"(94% если вы измеряете 94 мм вместо 100 мм). Деталь будет масштабирована по "
-"xy для компенсации. Учитывается только филамент, используемый для измерения "
+"Введите процент усадки, который произойдёт с филаментом после охлаждения (94 "
+"% если вы измеряете 94 мм вместо 100 мм). Деталь будет масштабирована по xy "
+"для компенсации. Учитывается только филамент, используемый для измерения "
 "периметра.\n"
 "Обязательно оставляйте достаточное пространство между объектами, так как эта "
 "компенсация производится после проверок."
@@ -7638,10 +7726,10 @@ msgid "money/kg"
 msgstr "р/кг"
 
 msgid "Vendor"
-msgstr ""
+msgstr "Производитель"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "Производитель филамента. Только для статистики"
 
 msgid "(Undefined)"
 msgstr "(Неопределенный)"
@@ -7661,7 +7749,7 @@ msgstr "Плотность заполнения"
 
 #, fuzzy, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "Плотность внутреннего заполнения, 100% означает сплошное заполнение"
+msgstr "Плотность внутреннего заполнения, 100 % означает сплошное заполнение"
 
 msgid "Sparse infill pattern"
 msgstr "Узор заполнения"
@@ -8212,7 +8300,7 @@ msgid "All solid layer"
 msgstr "Весь сплошной слой"
 
 msgid "Ironing Pattern"
-msgstr ""
+msgstr "Узор для разглаживания"
 
 msgid "Ironing flow"
 msgstr "Поток разглаживании"
@@ -8997,10 +9085,10 @@ msgstr ""
 "консоль и т.д."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Удалите небольшие навесания"
 
 msgid "Remove small overhangs that possibly need no supports."
-msgstr ""
+msgstr "Удалите небольшие нависания, которые, возможно, не нуждаются в опорах."
 
 msgid "Top Z distance"
 msgstr "Верхнее расстояние Z"
@@ -9602,10 +9690,10 @@ msgid "Load cached slicing data from directory"
 msgstr "Загрузить кэшированные данные нарезки из каталога"
 
 msgid "Export STL"
-msgstr ""
+msgstr "Экспорт файла STL"
 
 msgid "Export the objects as multiple STL."
-msgstr ""
+msgstr "Экспортируйте объекты как несколько STL."
 
 msgid "Slice"
 msgstr "Нарезка"
@@ -9623,10 +9711,10 @@ msgid "Update the configs values of 3mf to latest."
 msgstr "Обновить значения конфигурации 3mf до последних."
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "Загрузите филамент по умолчанию"
 
 msgid "Load first filament as default for those not loaded"
-msgstr ""
+msgstr "Загрузите первый филамент по умолчанию для тех, которые не загружены"
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -9679,10 +9767,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Параметры упорядочивания: 0-disable, 1-enable, другие-auto"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "Количество повторений"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "Количество повторений всей модели"
 
 msgid "Convert Unit"
 msgstr "Преобразовать единицу измерения"
@@ -9715,12 +9803,14 @@ msgid "Skip some objects in this print"
 msgstr "Пропустить некоторые объекты в этом принте"
 
 msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
+msgstr "загрузить настройки проекта/принтера при использовании \"uptodate\""
 
 msgid ""
 "load uptodate process/machine settings from the specified file when using "
 "uptodate"
 msgstr ""
+"загружать актуальные настройки процесса/принтера из указанного файла при "
+"использовании обновления"
 
 msgid "Data directory"
 msgstr "Каталог данных"
@@ -9849,155 +9939,161 @@ msgstr "Поддержка: распространение ветвей на с�
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
+"Неизвестный формат файла. Входной файл должен иметь расширение .stl, .obj, ."
+"amf(.xml)."
 
 msgid "Loading of a model file failed."
-msgstr ""
+msgstr "Не удалось загрузить файл модели."
 
 msgid "The supplied file couldn't be read because it's empty"
-msgstr ""
+msgstr "Предоставленный файл не удалось прочитать, поскольку он пуст"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
+"Неизвестный формат файла. Входной файл должен иметь расширение .3mf или .zip."
+"amf."
 
 msgid "Canceled"
-msgstr ""
+msgstr "Отменено"
 
 msgid "load_obj: failed to parse"
-msgstr ""
+msgstr "load_obj: не удалось выполнить синтаксический анализ"
 
 msgid "The file contains polygons with more than 4 vertices."
-msgstr ""
+msgstr "Файл содержит многоугольники с более чем 4-мя вершинами."
 
 msgid "The file contains polygons with less than 2 vertices."
-msgstr ""
+msgstr "Файл содержит многоугольники с менее чем 2-мя вершинами."
 
 msgid "The file contains invalid vertex index."
-msgstr ""
+msgstr "Файл содержит недопустимый индекс вершины."
 
 msgid "This OBJ file couldn't be read because it's empty."
-msgstr ""
+msgstr "Этот OBJ-файл не удалось прочитать, потому что он пуст."
 
 msgid "Network lookup"
-msgstr ""
+msgstr "Поиск в сети"
 
 msgid "Address"
-msgstr ""
+msgstr "Адрес"
 
 msgid "Hostname"
-msgstr ""
+msgstr "Имя хоста"
 
 msgid "Service name"
-msgstr ""
+msgstr "Название службы"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "Версия OctoPrint"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "Поиск устройств"
 
 msgid "Finished"
-msgstr ""
+msgstr "Завершено"
 
 msgid "Unable to perform boolean operation on selected parts"
-msgstr ""
+msgstr "Невозможно выполнить логическую операцию над выбранными деталями"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "Логическое значение сетки"
 
 msgid "Union"
-msgstr ""
+msgstr "Союз"
 
 msgid "Difference"
-msgstr ""
+msgstr "Различия"
 
 msgid "Intersection"
-msgstr ""
+msgstr "Пересечение"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "Основной объём"
 
 msgid "Tool Volume"
-msgstr ""
-
-msgid "selected"
-msgstr ""
-
-msgid "Part 1"
-msgstr ""
+msgstr "Общий объем"
 
 msgid "Subtract from"
-msgstr ""
-
-msgid "Part 2"
-msgstr ""
+msgstr "Вычесть из"
 
 msgid "Subtract with"
-msgstr ""
+msgstr "Вычтите с помощью"
+
+msgid "selected"
+msgstr "выбранный"
+
+msgid "Part 1"
+msgstr "Часть 1"
+
+msgid "Part 2"
+msgstr "Часть 2"
 
 msgid "Delete input"
-msgstr ""
+msgstr "Удалить входные данные"
 
 msgid "Send to print"
-msgstr ""
+msgstr "Отправить на печать"
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "Отправить на узел принтера со следующим именем файла:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
+"При необходимости используйте косую черту (/) в качестве разделителя "
+"каталога."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
+msgstr "Имя загружаемого файла не заканчивается на \"%s2\". Продолжить?"
 
 msgid "Upload"
-msgstr ""
+msgstr "Загрузить"
 
 msgid "Upload and Print"
-msgstr ""
+msgstr "Загрузить и распечатать"
 
 msgid "Simulate"
-msgstr ""
+msgstr "Имитация"
 
 msgid "Print host upload queue"
-msgstr ""
+msgstr "Очередь загрузки узла печати"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
-msgstr ""
+msgstr "Прогресс"
 
 msgid "Host"
-msgstr ""
+msgstr "Хост"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "Размер"
 
 msgid "Filename"
-msgstr ""
+msgstr "Имя файла"
 
 msgid "Error Message"
-msgstr ""
+msgstr "Сообщение об ошибке"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "Отменить выбранное"
 
 msgid "Show error message"
-msgstr ""
+msgstr "Показать сообщение об ошибке"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "Поставлен в очередь"
 
 msgid "Uploading"
-msgstr ""
+msgstr "Загрузка"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "Отмена"
 
 msgid "Error uploading to print host:"
-msgstr ""
+msgstr "Ошибка загрузки на хост печати:"
 
 msgid "PA Calibration"
 msgstr "РА Калибровка"

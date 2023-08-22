@@ -372,6 +372,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProjectDirtyStateManager.cpp
     GUI/DesktopIntegrationDialog.cpp
     GUI/DesktopIntegrationDialog.hpp
+    GUI/DragCanvas.cpp
+    GUI/DragCanvas.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
 	GUI/RecenterDialog.cpp
@@ -524,6 +526,10 @@ if (SLIC3R_STATIC)
     # FIXME: This was previously exported by wx-config but the wxWidgets
     # cmake build forgets this and the build fails in debug mode (or on raspberry release)
     target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
+endif()
+
+if (HAVE_SPNAV)
+    target_link_libraries(libslic3r_gui spnav)
 endif()
 
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL AND UNIX AND NOT APPLE)

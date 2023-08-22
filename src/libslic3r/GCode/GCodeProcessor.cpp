@@ -1,3 +1,4 @@
+#include "ExtrusionEntity.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
@@ -2369,6 +2370,13 @@ bool GCodeProcessor::process_simplify3d_tags(const std::string_view comment)
         return true;
     }
 
+    // ; internal bridge
+    pos = cmt.find(" internal bridge");
+    if (pos == 0) {
+        set_extrusion_role(erInternalBridgeInfill);
+        return true;
+    }
+
     // ; support
     pos = cmt.find(" support");
     if (pos == 0) {
@@ -2520,6 +2528,8 @@ bool GCodeProcessor::process_ideamaker_tags(const std::string_view comment)
             set_extrusion_role(erInternalInfill);
         else if (type == "BRIDGE")
             set_extrusion_role(erBridgeInfill);
+        else if (type == "INTERNAL BRIDGE")
+            set_extrusion_role(erInternalBridgeInfill);
         else if (type == "SUPPORT")
             set_extrusion_role(erSupportMaterial);
         else {
@@ -2792,7 +2802,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         else if (m_extrusion_role == erExternalPerimeter)
             // cross section: rectangle
             m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05f * filament_radius)) / (delta_xyz * m_height);
-        else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
+        else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erInternalBridgeInfill || m_extrusion_role == erNone)
             // cross section: circle
             m_width = static_cast<float>(m_result.filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / delta_xyz);
         else
@@ -3249,7 +3259,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         else if (m_extrusion_role == erExternalPerimeter)
             //BBS: cross section: rectangle
             m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05f * filament_radius)) / (delta_xyz * m_height);
-        else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
+        else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erInternalBridgeInfill || m_extrusion_role == erNone)
             //BBS: cross section: circle
             m_width = static_cast<float>(m_result.filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / delta_xyz);
         else

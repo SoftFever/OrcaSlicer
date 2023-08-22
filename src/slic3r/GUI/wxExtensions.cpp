@@ -559,6 +559,55 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
     return bmps;
 }
 
+wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon_width, int icon_height)
+{
+    static Slic3r::GUI::BitmapCache bmp_cache;
+
+    std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width) + "-i" + label;
+
+    wxBitmap *bitmap = bmp_cache.find(bitmap_key);
+    if (bitmap == nullptr) {
+        // Paint the color icon.
+        // Slic3r::GUI::BitmapCache::parse_color(color, rgb);
+        // there is no neede to scale created solid bitmap
+        wxColor clr(color);
+        bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
+#ifndef __WXMSW__
+        wxMemoryDC dc;
+#else
+        wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
+        wxMemoryDC dc(&cdc);
+#endif
+        dc.SetFont(::Label::Body_12);
+        dc.SelectObject(*bitmap);
+        if (clr.Alpha() == 0) {
+            int             size        = icon_height * 2;
+            static wxBitmap transparent = *Slic3r::GUI::BitmapCache().load_svg("transparent", size, size);
+            if (transparent.GetHeight() != size) transparent = *Slic3r::GUI::BitmapCache().load_svg("transparent", size, size);
+            wxPoint pt(0, 0);
+            while (pt.x < icon_width) {
+                dc.DrawBitmap(transparent, pt);
+                pt.x += size;
+            }
+            clr.SetRGB(0xffffff); // for text color
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        } else {
+            dc.SetBackground(wxBrush(clr));
+            dc.Clear();
+            dc.SetBrush(wxBrush(clr));
+        }
+        if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
+            dc.SetPen(*wxGREY_PEN);
+            dc.DrawRectangle(0, 0, icon_width, icon_height);
+        }
+        auto size = dc.GetTextExtent(wxString(label));
+        dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
+        dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
+        dc.SelectObject(wxNullBitmap);
+    }
+    return bitmap;
+}
+
 
 void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl, 
                              wxWindow* parent,

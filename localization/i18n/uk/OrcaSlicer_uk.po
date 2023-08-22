@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 20:42+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.3.2\n"
 
 msgid "Supports Painting"
@@ -4695,6 +4695,9 @@ msgstr "Інші"
 msgid "Login Region"
 msgstr "Регіон входу"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "Метрика"
 
@@ -4938,6 +4941,12 @@ msgstr "Послідовність друку"
 
 msgid "Plate name"
 msgstr "Назва пластини"
+
+msgid "Customize"
+msgstr ""
+
+msgid "First Layer print sequence"
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr "Те ж, що й глобальний тип столу"
@@ -5368,8 +5377,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -6415,8 +6424,14 @@ msgstr "Верхній шар"
 msgid "Bottom surface"
 msgstr "Нижня поверхня"
 
+msgid "Internal Bridge"
+msgstr ""
+
 msgid "Gap infill"
 msgstr "Заповнення пропусків"
+
+msgid "Skirt"
+msgstr ""
 
 msgid "Support interface"
 msgstr "Інтерфейс підтримки"
@@ -6645,6 +6660,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Висота шару не може перевищувати діаметр сопла"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -6886,6 +6917,9 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Типи ліжок, які підтримує принтер"
 
+msgid "First layer print sequence"
+msgstr ""
+
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Типи ліжок, які підтримує принтер"
 
@@ -7098,7 +7132,10 @@ msgstr ""
 "Це керує формуванням поля на зовнішній та/або внутрішній сторонімоделей. "
 "Auto означає, що ширина поля аналізується та обчислюється автоматично."
 
-msgid "outer_only"
+msgid "Mouse ear"
+msgstr ""
+
+msgid "Outer brim only"
 msgstr "кайма зовні"
 
 msgid "Inner brim only"
@@ -7116,6 +7153,30 @@ msgid ""
 msgstr ""
 "Зазор між внутрішньою лінією кайми та предметом може сприяти легшому зняттю "
 "кайми"
+
+msgid "Brim ears"
+msgstr ""
+
+msgid "Only draw brim over the sharp edges of the model."
+msgstr ""
+
+msgid "Brim ear max angle"
+msgstr ""
+
+msgid ""
+"Maximum angle to let a brim ear appear. \n"
+"If set to 0, no brim will be created. \n"
+"If set to ~180, brim will be created on everything but straight sections."
+msgstr ""
+
+msgid "Brim ear detection radius"
+msgstr ""
+
+msgid ""
+"The geometry will be decimated before dectecting sharp angles. This "
+"parameter indicates the minimum length of the deviation for the decimation.\n"
+"0 to deactivate"
+msgstr ""
 
 msgid "Compatible machine"
 msgstr "Сумісна машина"
@@ -7858,10 +7919,10 @@ msgstr "Повна швидкість вентилятора на шарі"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Швидкість вентилятора лінійно збільшується від нуля на "
 "рівні«close_fan_the_first_x_layers» до максимуму на рівні "
@@ -9829,19 +9890,19 @@ msgstr ""
 msgid "Tool Volume"
 msgstr ""
 
+msgid "Subtract from"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
 msgid "selected"
 msgstr ""
 
 msgid "Part 1"
 msgstr ""
 
-msgid "Subtract from"
-msgstr ""
-
 msgid "Part 2"
-msgstr ""
-
-msgid "Subtract with"
 msgstr ""
 
 msgid "Delete input"

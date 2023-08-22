@@ -321,37 +321,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    //BBS
-    /*
-    if (config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne &&
-        config->opt_bool("overhang_speed_classic"))
-    {
-        wxString msg_text = _(L("Arachne engine doesn't work with classic overhang speed mode.\n")) + "\n";
-        if (is_global_config)
-            msg_text += "\n" + _(L("Turn off classic mode automatically? \n"
-                "Yes - Enable arachne with classic mode off\n"
-                "No  - Give up using arachne this time"));
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
-            wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        auto answer = dialog.ShowModal();
-        bool enable_overhang_slow_down_legacy = false;
-        if (!is_global_config || answer == wxID_YES) {
-            new_conf.set_key_value("overhang_speed_classic", new ConfigOptionBool(false));
-            enable_overhang_slow_down_legacy = true;
-        }
-        else {
-            new_conf.set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
-        }
-        apply(config, &new_conf);
-        if (cb_value_change) {
-            if (!enable_overhang_slow_down_legacy)
-                cb_value_change("overhang_speed_classic", false);
-        }
-        is_msg_dlg_already_exist = false;
-    }
-    */
     // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
 #if 0
@@ -597,6 +566,15 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("brim_width", have_brim_width);
     // wall_filament uses the same logic as in Print::extruders()
     toggle_field("wall_filament", have_perimeters || have_brim);
+
+    bool have_brim_ear = (config->opt_enum<BrimType>("brim_type") == btEar);
+    const auto brim_width = config->opt_float("brim_width");
+    // disable brim_ears_max_angle and brim_ears_detection_length if brim_width is 0
+    toggle_field("brim_ears_max_angle", brim_width > 0.0f);
+    toggle_field("brim_ears_detection_length", brim_width > 0.0f);
+    // hide brim_ears_max_angle and brim_ears_detection_length if brim_ear is not selected
+    toggle_line("brim_ears_max_angle", have_brim_ear);
+    toggle_line("brim_ears_detection_length", have_brim_ear);
 
     bool have_raft = config->opt_int("raft_layers") > 0;
     bool have_support_material = config->opt_bool("enable_support") || have_raft;

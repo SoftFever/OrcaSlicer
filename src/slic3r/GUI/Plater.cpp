@@ -5093,7 +5093,7 @@ void Plater::priv::reload_from_disk()
             std::vector<Preset*> project_presets;
 
             // BBS: backup
-            new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances, &plate_data, &project_presets);
+            new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel, &plate_data, &project_presets);
             for (ModelObject* model_object : new_model.objects)
             {
                 model_object->center_around_origin();
@@ -5102,7 +5102,7 @@ void Plater::priv::reload_from_disk()
 
             if (plate_data.size() > 0)
             {
-                partplate_list.load_from_3mf_structure(plate_data);
+                //partplate_list.load_from_3mf_structure(plate_data);
                 partplate_list.update_slice_context_to_current_plate(background_process);
                 this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                 release_PlateData_list(plate_data);
@@ -10922,6 +10922,12 @@ void Plater::on_filaments_change(size_t num_filaments)
     sidebar().on_filaments_change(num_filaments);
     sidebar().obj_list()->update_objects_list_filament_column(num_filaments);
 
+    Slic3r::GUI::PartPlateList &plate_list = get_partplate_list();
+    for (int i = 0; i < plate_list.get_plate_count(); ++i) {
+        PartPlate* part_plate = plate_list.get_plate(i);
+        part_plate->update_first_layer_print_sequence(num_filaments);
+    }    
+
     for (ModelObject* mo : wxGetApp().model().objects) {
         for (ModelVolume* mv : mo->volumes) {
             mv->update_extruder_count(num_filaments);
@@ -11929,6 +11935,12 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             else
                 dlg.sync_print_seq(0);
 
+            auto first_layer_print_seq = curr_plate->get_first_layer_print_sequence();
+            if (first_layer_print_seq.empty())
+                dlg.sync_first_layer_print_seq(0);
+            else
+                dlg.sync_first_layer_print_seq(1, curr_plate->get_first_layer_print_sequence());
+
             dlg.set_plate_name(from_u8(curr_plate->get_plate_name()));
 
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
@@ -11941,6 +11953,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                     set_plater_dirty(true);
                 }
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%bt_sel %plate_index;
+
+                if (dlg.get_first_layer_print_seq_choice() != 0)
+                    curr_plate->set_first_layer_print_sequence(dlg.get_first_layer_print_seq());
+                else
+                    curr_plate->set_first_layer_print_sequence({});
 
                 int ps_sel = dlg.get_print_seq_choice();
                 if (ps_sel != 0)

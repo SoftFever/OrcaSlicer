@@ -174,12 +174,19 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        } else if (params.density <= 0)
 		            continue;
 
-		        params.extrusion_role =
-		            is_bridge ?
-		                erBridgeInfill :
-		                (surface.is_solid() ?
-		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : erSolidInfill)) :
-		                    erInternalInfill);
+				params.extrusion_role = erInternalInfill;
+                if (is_bridge) {
+                    if(surface.is_internal_bridge())
+                        params.extrusion_role = erInternalBridgeInfill;
+                    else
+                        params.extrusion_role = erBridgeInfill;
+                } else if (surface.is_solid()) {
+                    if (surface.is_top()) {
+                        params.extrusion_role = erTopSolidInfill;
+                    } else {
+                        params.extrusion_role = erSolidInfill;
+                    }
+                }
 		        params.bridge_angle = float(surface.bridge_angle);
 		        params.angle 		= float(Geometry::deg2rad(region_config.infill_direction.value));
 		        

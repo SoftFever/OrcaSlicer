@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 20:42+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4529,6 +4529,9 @@ msgstr "その他"
 msgid "Login Region"
 msgstr "地域"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "メートル"
 
@@ -4766,6 +4769,12 @@ msgstr "造形シーケンス"
 
 msgid "Plate name"
 msgstr "Plate name"
+
+msgid "Customize"
+msgstr ""
+
+msgid "First Layer print sequence"
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr "全般設定の「ベッドタイプ」と同様"
@@ -6173,8 +6182,14 @@ msgstr "トップ面"
 msgid "Bottom surface"
 msgstr "底面"
 
+msgid "Internal Bridge"
+msgstr ""
+
 msgid "Gap infill"
 msgstr "隙間インフィル"
+
+msgid "Skirt"
+msgstr ""
 
 msgid "Support interface"
 msgstr "サポート接触面"
@@ -6397,6 +6412,22 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "積層ピッチはノズルの直径を超える為設定できません"
 
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "プレート %d: %s がフィラメント %s を使用できません"
@@ -6613,6 +6644,9 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "適応ベッド種類"
 
+msgid "First layer print sequence"
+msgstr ""
+
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "積層が変わる直前に実行するG-codeです。"
 
@@ -6806,7 +6840,10 @@ msgstr ""
 "This controls the generation of the brim at outer and/or inner side of "
 "models. Auto means the brim width is analyzed and calculated automatically."
 
-msgid "outer_only"
+msgid "Mouse ear"
+msgstr ""
+
+msgid "Outer brim only"
 msgstr ""
 
 msgid "Inner brim only"
@@ -6824,6 +6861,30 @@ msgid ""
 msgstr ""
 "ブリムを取り外しやすくする為、一番内側のブリムラインをモデルと少し距離を設け"
 "ます。"
+
+msgid "Brim ears"
+msgstr ""
+
+msgid "Only draw brim over the sharp edges of the model."
+msgstr ""
+
+msgid "Brim ear max angle"
+msgstr ""
+
+msgid ""
+"Maximum angle to let a brim ear appear. \n"
+"If set to 0, no brim will be created. \n"
+"If set to ~180, brim will be created on everything but straight sections."
+msgstr ""
+
+msgid "Brim ear detection radius"
+msgstr ""
+
+msgid ""
+"The geometry will be decimated before dectecting sharp angles. This "
+"parameter indicates the minimum length of the deviation for the decimation.\n"
+"0 to deactivate"
+msgstr ""
 
 msgid "Compatible machine"
 msgstr "対応機種"
@@ -9302,19 +9363,19 @@ msgstr ""
 msgid "Tool Volume"
 msgstr ""
 
+msgid "Subtract from"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
 msgid "selected"
 msgstr ""
 
 msgid "Part 1"
 msgstr ""
 
-msgid "Subtract from"
-msgstr ""
-
 msgid "Part 2"
-msgstr ""
-
-msgid "Subtract with"
 msgstr ""
 
 msgid "Delete input"
@@ -9831,9 +9892,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "GUI初期化に失敗した"
-
-#~ msgid "Outer brim only"
-#~ msgstr "Outer brim only"
 
 #~ msgid "Check cloud service status"
 #~ msgstr "Check cloud service status"
