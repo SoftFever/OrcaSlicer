@@ -10,9 +10,6 @@
     ],
     "printer_model": "Bambu Lab X1",
     "printer_variant": "0.4",
-    "z_hop": [
-        "0.2"
-    ],
     "auxiliary_fan": "0",
     "bed_exclude_area": [
         "0x0",
