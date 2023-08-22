@@ -782,6 +782,76 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     wxGetApp().plater()->update();
 }
 
+void ObjectList::search_object_list() {
+
+    auto found_size = m_found_list.size();
+
+    if (cur_pos >= found_size) {
+        cur_pos = 0;
+    }
+
+    if (cur_pos < found_size) {
+        wxDataViewItem cur_item = m_found_list.Item(cur_pos);
+        select_item(cur_item);
+        cur_pos++;
+        ensure_current_item_visible();
+        selection_changed();
+    }
+}
+
+void ObjectList::append_found_list(wxString current_search_text, wxDataViewItem item) {
+
+    wxString item_name = m_objects_model->GetName(item);
+    item_name = item_name.MakeLower();
+
+    if (item_name.find(current_search_text) != wxString::npos) {
+        m_found_list.Add(item);
+    }
+
+    ObjectDataViewModelNode* root = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    size_t child_count = root->GetChildCount();
+    for (size_t i = 0; i < child_count; ++i) {
+        append_found_list(current_search_text, wxDataViewItem(root->GetNthChild(i)));
+    }
+}
+
+void ObjectList::set_found_list(wxString current_search_text) {
+
+    m_found_list.clear();
+    PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+    current_search_text = current_search_text.MakeLower();
+    for (int i = 0; i < ppl.get_plate_count(); ++i) {
+        wxDataViewItem plate_item = m_objects_model->GetItemByPlateId(i);
+        append_found_list(current_search_text, plate_item);
+    }
+    if (current_search_text.empty()) {
+        if (ppl.get_plate_count() > 0) {
+            wxDataViewItem item = m_objects_model->GetItemByPlateId(0);
+            select_item(item);
+            ensure_current_item_visible();
+            selection_changed();
+        }
+        auto column = GetColumn(colName);
+        column->SetTitle(_L("Name"));
+    }
+    else {
+        auto column = GetColumn(colName);
+        wxString match_num = wxString::Format("%d", m_found_list.size());
+        wxString match_message = " (" + match_num + _L(" research result") + ")";
+        wxString column_name = _L("Name") + match_message;
+        column->SetTitle(column_name);
+    }
+}
+
+void ObjectList::set_cur_pos(int value) {
+    cur_pos = value;
+}
+
+void ObjectList::searchbar_kill_focus() {
+    auto column = GetColumn(colName);
+    column->SetTitle(_L("Name"));
+}
+
 void ObjectList::update_objects_list_filament_column(size_t filaments_count)
 {
     assert(filaments_count >= 1);

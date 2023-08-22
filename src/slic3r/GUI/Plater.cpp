@@ -322,6 +322,7 @@ struct Sidebar::priv
     wxPanel* m_panel_project_title;
     ScalableButton* m_filament_icon = nullptr;
     Button * m_flushing_volume_btn = nullptr;
+    wxSearchCtrl* m_search_bar = nullptr;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
@@ -348,7 +349,9 @@ struct Sidebar::priv
     ~priv();
 
     void show_preset_comboboxes();
-
+    void on_search_enter();
+    void on_search_update();
+    void on_kill_focus();
 #ifdef _WIN32
     wxString btn_reslice_tip;
     void show_rich_tip(const wxString& tooltip, wxButton* btn);
@@ -386,6 +389,23 @@ void Sidebar::priv::show_preset_comboboxes()
 
     scrolled->GetParent()->Layout();
     scrolled->Refresh();
+}
+
+void  Sidebar::priv::on_search_enter() {
+
+    m_object_list->search_object_list();
+
+}
+
+void Sidebar::priv::on_search_update() {
+
+    wxString search_text = m_search_bar->GetValue();
+    m_object_list->set_found_list(search_text);
+
+}
+
+void Sidebar::priv::on_kill_focus() {
+    m_object_list->searchbar_kill_focus();
 }
 
 #ifdef _WIN32
@@ -910,11 +930,30 @@ Sidebar::Sidebar(Plater *parent)
 
     //add project content
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
+
+    p->m_search_bar = new wxSearchCtrl(p->scrolled, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    p->m_search_bar->ShowSearchButton(true);
+    p->m_search_bar->ShowCancelButton(true);
+    p->m_search_bar->SetDescriptiveText(_L("Search plater, object and part."));
+    p->m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
+        this->p->on_search_update();});
+    p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
+        this->p->m_object_list->set_cur_pos(0);
+        this->p->on_search_update();
+        });
+    p->m_search_bar->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+        this->p->on_kill_focus();
+        e.Skip();
+        });
+    p->m_search_bar->Bind(wxEVT_SEARCH, [this](wxCommandEvent&) {this->p->on_search_enter();});
+
     p->m_object_list = new ObjectList(p->scrolled);
+
+    p->sizer_params->Add(p->m_search_bar, 0, wxALL | wxEXPAND, 0);
     p->sizer_params->Add(p->m_object_list, 1, wxEXPAND | wxTOP, 0);
     scrolled_sizer->Add(p->sizer_params, 2, wxEXPAND | wxLEFT, 0);
     p->m_object_list->Hide();
-
+    p->m_search_bar->Hide();
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
 #if !NEW_OBJECT_SETTING
@@ -1679,6 +1718,7 @@ void Sidebar::update_ui_from_settings()
 
 bool Sidebar::show_object_list(bool show) const
 {
+    p->m_search_bar->Show(show);
     if (!p->m_object_list->Show(show))
         return false;
     if (!show)
