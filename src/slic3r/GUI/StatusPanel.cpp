@@ -3782,11 +3782,6 @@ void StatusPanel::set_print_finish_status(bool is_finish) {
 
 void StatusPanel::set_hold_count(int& count)
 {
-    if (obj) {
-        if (obj->is_U0_firmware()) {
-        count = COMMAND_TIMEOUT_U0;
-        }
-    }
     count = COMMAND_TIMEOUT;
 }
 

@@ -711,16 +711,6 @@ bool MachineObject::can_unload_filament()
     return result;
 }
 
-bool MachineObject::is_U0_firmware()
-{
-    auto ota_ver_it = module_vers.find("ota");
-    if (ota_ver_it != module_vers.end()) {
-        if (ota_ver_it->second.sw_ver.compare("00.01.04.00") < 0)
-            return true;
-    }
-    return false;
-}
-
 bool MachineObject::is_support_ams_mapping()
 {
     if (get_printer_series() == PrinterSeries::SERIES_X1) {
