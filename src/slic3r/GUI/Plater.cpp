@@ -2569,7 +2569,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
             // update slice and print button
             wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, false);
-            update();
+            set_need_update(true);
         });
     }
     if (wxGetApp().is_gcode_viewer())
@@ -9475,16 +9475,17 @@ void Plater::add_file()
     }
 }
 
-void Plater::update(bool conside_update_flag)
+void Plater::update(bool conside_update_flag, bool force_background_processing_update)
 {
+    unsigned int flag = force_background_processing_update ? (unsigned int)Plater::priv::UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE : 0;
     if (conside_update_flag) {
         if (need_update()) {
-            p->update();
+            p->update(flag);
             p->set_need_update(false);
         }
     }
     else
-        p->update();
+        p->update(flag);
 }
 
 void Plater::object_list_changed() { p->object_list_changed(); }
