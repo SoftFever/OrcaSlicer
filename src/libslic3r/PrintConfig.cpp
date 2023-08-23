@@ -3574,11 +3574,11 @@ void PrintConfigDef::init_extruder_option_keys()
     m_extruder_retract_keys = {
         "deretraction_speed",
         "retract_before_wipe",
+        "retract_lift_above",
+        "retract_lift_below",
         "retract_restart_extra",
         "retract_when_changing_layer",
         "retraction_length",
-        "retract_lift_above",
-        "retract_lift_below",
         "retraction_minimum_travel",
         "retraction_speed",
         "wipe",
