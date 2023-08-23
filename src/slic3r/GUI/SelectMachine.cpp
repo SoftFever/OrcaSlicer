@@ -225,14 +225,14 @@ void MachineObjectPanel::doRender(wxDC &dc)
     }
     auto        sizet        = dc.GetTextExtent(dev_name);
     auto        text_end     = 0;
-    
+
     if (m_show_edit) {
         text_end = size.x - m_unbind_img.GetBmpSize().x - 30;
     }
     else {
         text_end = size.x - m_unbind_img.GetBmpSize().x;
     }
-       
+
     wxString finally_name =  dev_name;
     if (sizet.x > (text_end - left)) {
         auto limit_width = text_end - left - dc.GetTextExtent("...").x - 15;
@@ -268,7 +268,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
             dc.DrawBitmap(m_edit_name_img.bmp(), left, (size.y - m_edit_name_img.GetBmpSize().y) / 2);
         }
     }
-    
+
 }
 
 void MachineObjectPanel::update_machine_info(MachineObject *info, bool is_my_devices)
@@ -868,13 +868,15 @@ static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
     _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
     _L("Bamabu Engineering Plate"),
-    _L("Bamabu High Temperature Plate")};
+    _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
+    _L("Bamabu Textured PEI Plate")};
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     //"auto",
     "pc",
-    "pei",
     "pe",
+    "pei",
+    "pte",
 };
 
 void SelectMachineDialog::stripWhiteSpace(std::string& str)
@@ -1297,7 +1299,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_st_txt_error_desc = new Label(m_sw_print_failed_info, wxEmptyString);
     st_title_error_desc->SetForegroundColour(0x909090);
     st_title_error_desc_doc->SetForegroundColour(0x909090);
-    m_st_txt_error_desc->SetForegroundColour(0x909090); 
+    m_st_txt_error_desc->SetForegroundColour(0x909090);
     st_title_error_desc->SetFont(::Label::Body_13);
     st_title_error_desc_doc->SetFont(::Label::Body_13);
     m_st_txt_error_desc->SetFont(::Label::Body_13);
@@ -1314,7 +1316,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_st_txt_extra_info = new Label(m_sw_print_failed_info, wxEmptyString);
     st_title_extra_info->SetForegroundColour(0x909090);
     st_title_extra_info_doc->SetForegroundColour(0x909090);
-    m_st_txt_extra_info->SetForegroundColour(0x909090);    
+    m_st_txt_extra_info->SetForegroundColour(0x909090);
     st_title_extra_info->SetFont(::Label::Body_13);
     st_title_extra_info_doc->SetFont(::Label::Body_13);
     m_st_txt_extra_info->SetFont(::Label::Body_13);
@@ -1440,7 +1442,7 @@ void SelectMachineDialog::init_bind()
                 }
             }
         }
-    }); 
+    });
 
     m_bitmap_last_plate->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
         if (m_print_plate_idx > 0) {
@@ -1637,7 +1639,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
                 config->set_str("print", param, "0");
         }
         });
-    
+
     text->Bind(wxEVT_LEFT_DOWN, [this, check, param](wxMouseEvent &) {
         //if (!m_checkbox_state_list[param]) {return;}
         check->SetValue(check->GetValue() ? false : true);
@@ -1727,7 +1729,7 @@ void SelectMachineDialog::sending_mode()
         Fit();
     }
 
-    
+
     if (m_print_page_mode != PrintPageModeSending) {
         m_print_page_mode = PrintPageModeSending;
         for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
@@ -2266,7 +2268,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
 
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
-   
+
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
             if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002")) {
@@ -2351,7 +2353,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             else {
                 this->on_send_print();
             }
-            
+
         });
 
         confirm_text.push_back(_L("Please click the confirm button if you still want to proceed with printing.") + "\n");
@@ -3398,11 +3400,11 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_button_ensure->SetCornerRadius(FromDIP(12));
     m_status_bar->msw_rescale();
 
-    for (auto checkpire : m_checkbox_list) { 
+    for (auto checkpire : m_checkbox_list) {
         checkpire.second->Rescale();
     }
 
-    for (auto material1 : m_materialList) { 
+    for (auto material1 : m_materialList) {
         material1.second->item->msw_rescale();
     }
 
@@ -3483,7 +3485,7 @@ void SelectMachineDialog::set_default()
         filename = m_plater->get_export_gcode_filename("", true);
         if (filename.empty()) filename = _L("Untitled");
     }
-    
+
     fs::path filename_path(filename.c_str());
     m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
 
@@ -3579,7 +3581,7 @@ void SelectMachineDialog::set_default_normal()
     std::vector<std::string> materials;
     std::vector<std::string> brands;
     std::vector<std::string> display_materials;
-    
+
     auto preset_bundle = wxGetApp().preset_bundle;
     for (auto filament_name : preset_bundle->filament_presets) {
         for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
@@ -3597,7 +3599,7 @@ void SelectMachineDialog::set_default_normal()
         }
     }
 
-    //init MaterialItem 
+    //init MaterialItem
     auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
     BitmapCache bmcache;
 
@@ -3764,8 +3766,8 @@ void SelectMachineDialog::set_default_from_sdcard()
         materials.push_back(fo.type);
         brands.push_back(fo.brand);
     }
-  
-    //init MaterialItem 
+
+    //init MaterialItem
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
         int       id = iter->first;
@@ -3780,7 +3782,7 @@ void SelectMachineDialog::set_default_from_sdcard()
     m_materialList.clear();
     m_filaments.clear();
 
-    
+
     for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
         FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
 
@@ -3948,7 +3950,7 @@ bool SelectMachineDialog::Show(bool show)
                 if (obj_->is_connected()) {
                     obj_->disconnect();
                 }
-                
+
             }
         }
     }
