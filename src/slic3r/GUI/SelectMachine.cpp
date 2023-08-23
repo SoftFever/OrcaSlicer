@@ -3691,7 +3691,12 @@ void SelectMachineDialog::set_default_normal()
     }
 
     char weight[64];
-    ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+    if (wxGetApp().app_config->get("use_inches") == "1") {
+        ::sprintf(weight, "  %.2f oz", aprint_stats.total_weight * 0.035274);
+    }
+    else {
+        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+    }
 
     m_stext_time->SetLabel(time);
     m_stext_weight->SetLabel(weight);
