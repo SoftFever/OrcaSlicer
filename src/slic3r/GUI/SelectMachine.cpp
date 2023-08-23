@@ -1371,7 +1371,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(11));
     m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(16));
-    m_sizer_main->Add(m_sizer_select, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
+    m_sizer_main->Add(m_sizer_select, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1680,6 +1680,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     }
 
     m_sizer_select->Layout();
+    Layout();
     Fit();
 }
 
