@@ -83,7 +83,7 @@ bool json_diff::load_compatible_settings(std::string const &type, std::string co
     printer_version = version2;
     settings_base.clear();
     std::string config_file = Slic3r::resources_dir() + "/printers/" + type2 + ".json";
-    std::ifstream json_file(config_file.c_str());
+    boost::nowide::ifstream json_file(config_file.c_str());
     try {
         json versions;
         if (json_file.is_open()) {

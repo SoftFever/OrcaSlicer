@@ -5056,7 +5056,7 @@ json DeviceManager::filaments_blacklist = json::object();
 std::string DeviceManager::get_string_from_config(std::string type_str, std::string item)
 {
     std::string config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
-    std::ifstream json_file(config_file.c_str());
+    boost::nowide::ifstream json_file(config_file.c_str());
     try {
         json jj;
         if (json_file.is_open()) {
