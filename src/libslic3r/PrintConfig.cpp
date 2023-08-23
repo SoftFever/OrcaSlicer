@@ -1725,6 +1725,15 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this to enable the camera on printer to check the quality of first layer");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
+
+    // BBS
+    def = this->add("thumbnail_size", coPoints);
+    def->label = L("Thumbnail size");
+    def->tooltip = L("Decides the size of thumbnail stored in gcode files");
+    def->mode = comDevelop;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionPoints{ Vec2d(50,50) });
+
     //BBS
     // def = this->add("spaghetti_detector", coBool);
     // def->label = L("Enable spaghetti detector");

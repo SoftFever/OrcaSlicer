@@ -861,7 +861,7 @@ void TabPrinter::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area"|| opt_key=="thumbnail_size") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -3097,6 +3097,11 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+
+        option =optgroup->get_option("thumbnail_size");
+        option.opt.full_width=true;
+        optgroup->append_single_option_line(option);
+
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("use_relative_e_distances");
         // optgroup->append_single_option_line("spaghetti_detector");
@@ -3677,6 +3682,7 @@ void TabPrinter::toggle_options()
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
         //BBS: gcode_flavore of BBL printer can't be edited and changed
         toggle_option("gcode_flavor", !is_BBL_printer);
+        toggle_option("thumbnail_size",!is_BBL_printer);
         toggle_option("printer_structure", !is_BBL_printer);
         toggle_option("use_relative_e_distances", !is_BBL_printer);
         toggle_option("support_chamber_temp_control", 0);
