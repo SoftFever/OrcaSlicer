@@ -6163,6 +6163,7 @@ bool GLCanvas3D::_init_main_toolbar()
         }
     };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
+    item.left.toggable = false;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
     if (!m_main_toolbar.add_item(item))
         return false;
