@@ -1183,11 +1183,11 @@ int NetworkAgent::get_model_publish_url(std::string* url)
     return ret;
 }
 
-int NetworkAgent::get_subtask(BBLModelTask* task)
+int NetworkAgent::get_subtask(BBLModelTask* task, OnGetSubTaskFn getsub_fn)
 {
     int ret = 0;
     if (network_agent && get_subtask_ptr) {
-        ret = get_subtask_ptr(network_agent, task);
+        ret = get_subtask_ptr(network_agent, task, getsub_fn);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }

@@ -75,6 +75,8 @@ struct ScoreData
     std::vector<std::pair<wxString, std::string>>  local_to_url_image;
 };
 
+typedef std::function<void(BBLModelTask* subtask)> OnGetSubTaskFn;
+
 class ScoreDialog : public GUI::DPIDialog
 {
 public:
