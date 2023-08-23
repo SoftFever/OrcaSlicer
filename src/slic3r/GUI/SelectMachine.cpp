@@ -1915,10 +1915,10 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
     } else {
         msg = format_text(msg);
 
-        auto str_new = msg.ToStdString();
+        auto str_new = msg.utf8_string();
         stripWhiteSpace(str_new);
 
-        auto str_old = m_statictext_ams_msg->GetLabel().ToStdString();
+        auto str_old = m_statictext_ams_msg->GetLabel().utf8_string();
         stripWhiteSpace(str_old);
 
         if (str_new != str_old) {
