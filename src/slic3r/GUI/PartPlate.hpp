@@ -796,7 +796,8 @@ public:
     template<class Archive> void serialize(Archive& ar)
     {
         //ar(cereal::base_class<ObjectBase>(this));
-        ar(m_shape, m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
+        //Cancel undo/redo for m_shape ,Because the printing area of different models is different, currently if the grid changes, it cannot correspond to the model on the left ui
+        ar(m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
 
