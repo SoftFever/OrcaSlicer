@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -4760,6 +4760,9 @@ msgstr "Sonstiges"
 msgid "Login Region"
 msgstr "Login-Region"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "Metrisch"
 
@@ -6538,6 +6541,9 @@ msgstr "Interne Brücke"
 msgid "Gap infill"
 msgstr "Lückenfüllung"
 
+msgid "Skirt"
+msgstr ""
+
 msgid "Support interface"
 msgstr "Stützstruktur-Schnittstelle"
 
@@ -6772,6 +6778,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Schichthöhe darf den Düsendurchmesser nicht überschreiten."
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -7256,7 +7278,7 @@ msgstr ""
 msgid "Mouse ear"
 msgstr "Mausohren"
 
-msgid "outer_only"
+msgid "Outer brim only"
 msgstr "Nur Außen"
 
 msgid "Inner brim only"
@@ -10148,20 +10170,20 @@ msgstr "Quellvolumen"
 msgid "Tool Volume"
 msgstr "Werkzeugvolumen"
 
+msgid "Subtract from"
+msgstr "Abziehen von"
+
+msgid "Subtract with"
+msgstr "Abziehen mit"
+
 msgid "selected"
 msgstr "Ausgewählt"
 
 msgid "Part 1"
 msgstr ""
 
-msgid "Subtract from"
-msgstr "Abziehen von"
-
 msgid "Part 2"
 msgstr ""
-
-msgid "Subtract with"
-msgstr "Abziehen mit"
 
 msgid "Delete input"
 msgstr "Eingabe löschen"
@@ -10747,9 +10769,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "Initialisierung der Bambu Studio GUI ist fehlgeschlagen"
-
-#~ msgid "Outer brim only"
-#~ msgstr "Nur äußerer Rand"
 
 #~ msgid "Check cloud service status"
 #~ msgstr "Status des Cloud-Dienstes prüfen"

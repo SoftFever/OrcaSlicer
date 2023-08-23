@@ -1168,19 +1168,22 @@ void GUI_App::post_init()
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
 
-            // std::string http_url = get_http_url(app_config->get_country_code());
-            // std::string language = GUI::into_u8(current_language_code());
-            // std::string network_ver = Slic3r::NetworkAgent::get_version();
-            // bool        sys_preset  = app_config->get("sync_system_preset") == "true";
-            // this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
+            std::string http_url = get_http_url(app_config->get_country_code());
+            std::string language = GUI::into_u8(current_language_code());
+            std::string network_ver = Slic3r::NetworkAgent::get_version();
+            bool        sys_preset  = app_config->get("sync_system_preset") == "true";
+            this->preset_updater->sync(http_url, language, network_ver, sys_preset ? preset_bundle : nullptr);
 
-            //BBS: check new version
             this->check_new_version_sf();
-			//BBS: check privacy version
-            // if (is_user_login())
-                // this->check_privacy_version(0);
+            if (is_user_login() && app_config->get("stealth_mode") == "false") {
+              // this->check_privacy_version(0);
+              request_user_handle(0);
+            }
         });
     }
+
+    if (is_user_login())
+        request_user_handle(0);
 
     if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
@@ -2483,8 +2486,6 @@ bool GUI_App::on_init_inner()
     Bind(EVT_USER_LOGIN_HANDLE, &GUI_App::on_user_login_handle, this);
     Bind(EVT_CHECK_PRIVACY_VER, &GUI_App::on_check_privacy_update, this);
     Bind(EVT_CHECK_PRIVACY_SHOW, &GUI_App::show_check_privacy_dlg, this);
-
-    Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
 
     Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
 
@@ -4189,7 +4190,7 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
             evt->SetString((i_am_pre ? best_pre : best_release).to_string());
             GUI::wxGetApp().QueueEvent(evt);
             })
-            .perform_sync();;
+            .perform();
             
 }
 

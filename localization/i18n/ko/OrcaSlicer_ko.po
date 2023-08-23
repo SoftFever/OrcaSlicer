@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: 2023-08-21 19:07+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
@@ -4590,6 +4590,9 @@ msgstr "기타"
 msgid "Login Region"
 msgstr "로그인 지역"
 
+msgid "Stealth Mode"
+msgstr ""
+
 msgid "Metric"
 msgstr "미터법"
 
@@ -5248,8 +5251,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 시간 경과를 기록할 경우 \"시간 경과 제거 타워\"를 추가하는 것이 "
 "좋습니다\n"
@@ -6278,6 +6281,9 @@ msgstr "내부 다리"
 msgid "Gap infill"
 msgstr "틈(갭) 채우기"
 
+msgid "Skirt"
+msgstr ""
+
 msgid "Support interface"
 msgstr "지지대 접점"
 
@@ -6498,6 +6504,22 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "레이어 높이는 노즐 직경을 초과할 수 없습니다"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -6947,7 +6969,7 @@ msgstr ""
 msgid "Mouse ear"
 msgstr "생쥐 귀"
 
-msgid "outer_only"
+msgid "Outer brim only"
 msgstr "외부 챙(브림)만"
 
 msgid "Inner brim only"
@@ -7700,10 +7722,10 @@ msgstr "팬 최대 속도 레이어"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "팬 속도는 \"close_fan_the_first_x_layers\" 의 0에서 \"full_fan_speed_layer\" "
 "의 최고 속도까지 선형적으로 증가합니다. \"full_fan_speed_layer\"가 "
@@ -9640,20 +9662,20 @@ msgstr "소스 볼륨"
 msgid "Tool Volume"
 msgstr "도구 볼륨"
 
+msgid "Subtract from"
+msgstr "다음에서 잘라내기"
+
+msgid "Subtract with"
+msgstr "다음으로 잘라내기"
+
 msgid "selected"
 msgstr "선택됨"
 
 msgid "Part 1"
 msgstr "요소 1"
 
-msgid "Subtract from"
-msgstr "다음에서 잘라내기"
-
 msgid "Part 2"
 msgstr "요소 2"
-
-msgid "Subtract with"
-msgstr "다음으로 잘라내기"
 
 msgid "Delete input"
 msgstr "입력개체 삭제"
@@ -10216,9 +10238,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "뱀부 스튜디오 GUI 초기화 실패"
-
-#~ msgid "Outer brim only"
-#~ msgstr "바깥쪽만"
 
 #~ msgid "Check cloud service status"
 #~ msgstr "클라우드 서비스 상태 확인"

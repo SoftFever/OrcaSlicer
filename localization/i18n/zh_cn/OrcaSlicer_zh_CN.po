@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 22:08+0800\n"
+"POT-Creation-Date: 2023-08-22 19:19+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4485,6 +4485,9 @@ msgstr "其他"
 msgid "Login Region"
 msgstr "登录区域"
 
+msgid "Stealth Mode"
+msgstr "局域网模式"
+
 msgid "Metric"
 msgstr "公制"
 
@@ -6122,6 +6125,9 @@ msgstr "内部搭桥"
 msgid "Gap infill"
 msgstr "填缝"
 
+msgid "Skirt"
+msgstr ""
+
 msgid "Support interface"
 msgstr "支撑面"
 
@@ -6326,6 +6332,22 @@ msgstr "使用了支撑添加器但没有打开支撑。请打开支撑。"
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "层高不能超过喷嘴直径"
+
+msgid ""
+"Relative extruder addressing requires resetting the extruder position at "
+"each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
+"layer_gcode."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
+"absolute extruder addressing."
+msgstr ""
+
+msgid ""
+"\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
+"extruder addressing."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -6727,7 +6749,7 @@ msgstr ""
 msgid "Mouse ear"
 msgstr "圆盘"
 
-msgid "outer_only"
+msgid "Outer brim only"
 msgstr "仅外侧"
 
 msgid "Inner brim only"
@@ -9229,20 +9251,20 @@ msgstr ""
 msgid "Tool Volume"
 msgstr ""
 
+msgid "Subtract from"
+msgstr "从中减去"
+
+msgid "Subtract with"
+msgstr "与之相减"
+
 msgid "selected"
 msgstr "已选中"
 
 msgid "Part 1"
 msgstr "零件 1"
 
-msgid "Subtract from"
-msgstr "从中减去"
-
 msgid "Part 2"
 msgstr "零件 2"
-
-msgid "Subtract with"
-msgstr "与之相减"
 
 msgid "Delete input"
 msgstr "删除输入"
@@ -12187,9 +12209,6 @@ msgstr ""
 
 #~ msgid "No brim"
 #~ msgstr "无"
-
-#~ msgid "Outer brim only"
-#~ msgstr "仅外侧"
 
 #~ msgid "X/Y Axis"
 #~ msgstr "X/Y 轴"
