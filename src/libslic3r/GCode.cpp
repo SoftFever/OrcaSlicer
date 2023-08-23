@@ -1293,16 +1293,13 @@ namespace DoExport {
 	                    output((boost::format("; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
 
 	                    unsigned int row_count = 0;
-	                    while (encoded.size() > max_row_length)
-	                    {
-	                        output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
-	                        encoded = encoded.substr(max_row_length);
+	                    //BBS: optimize performance ,reduce too much memeory operation 
+	                    size_t current_index = 0;
+	                    while(current_index<encoded.size()){
+	                        output((boost::format("; %s\n") % encoded.substr(current_index, max_row_length)).str().c_str());
+	                        current_index+=std::min(max_row_length,encoded.size()-current_index);
 	                        ++row_count;
 	                    }
-
-	                    if (encoded.size() > 0)
-	                    	output((boost::format("; %s\n") % encoded).str().c_str());
-
 	                    output("; thumbnail end\n");
                         output("; THUMBNAIL_BLOCK_END\n\n");
 
@@ -1563,10 +1560,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     //BBS: add plate id into thumbnail render logic
-    //DoExport::export_thumbnails_to_file(thumbnail_cb, print.get_plate_index(), THUMBNAIL_SIZE,
-    //    [&file](const char* sz) { file.write(sz); },
-    //    [&print]() { print.throw_if_canceled(); });
-
+    if(!print.is_BBL_Printer()){
+        DoExport::export_thumbnails_to_file(thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnail_size")->values,
+            [&file](const char* sz) { file.write(sz); },
+            [&print]() { print.throw_if_canceled(); });
+    }
 
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();

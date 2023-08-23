@@ -1359,7 +1359,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         else if (opt_key == "bed_exclude_area") {
             return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         }
-
+        else if (opt_key == "thumbnail_size") {
+            return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        }
         Vec2d val = config.opt<ConfigOptionPoints>(opt_key)->get_at(opt_idx);
         return from_u8((boost::format("[%1%]") % ConfigOptionPoint(val).serialize()).str());
     }
