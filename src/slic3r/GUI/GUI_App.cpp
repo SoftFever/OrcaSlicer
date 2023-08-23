@@ -1182,6 +1182,9 @@ void GUI_App::post_init()
         });
     }
 
+    if (is_user_login())
+        request_user_handle(0);
+
     if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
@@ -4189,7 +4192,7 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
             evt->SetString((i_am_pre ? best_pre : best_release).to_string());
             GUI::wxGetApp().QueueEvent(evt);
             })
-            .perform_sync();;
+            .perform();
             
 }
 
