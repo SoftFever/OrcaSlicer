@@ -4265,7 +4265,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 if (m_upload_status_code == StatusCode::UPLOAD_IMG_FAILED) {
                     std::string   upload_failed_images = into_u8(_L("The following issues occurred during the process of uploading images. Do you want to ignore them?\n\n"));
                     MessageDialog dlg_info(this, upload_failed_images + error_info, wxString(_L("info")), wxOK | wxNO | wxCENTER);
-                    if (dlg_info.ShowModal() == wxID_OK) { m_upload_status_code == StatusCode::UPLOAD_PROGRESS; }
+                    if (dlg_info.ShowModal() == wxID_OK) { m_upload_status_code = StatusCode::UPLOAD_PROGRESS; }
                 }
             }
         }

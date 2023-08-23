@@ -52,6 +52,7 @@ public:
 	static wxFont Body_10;
 	static wxFont Body_11;
 	static wxFont Body_9;
+	static wxFont Body_8;
 	
 	static void initSysFont();
 

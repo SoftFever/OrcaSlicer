@@ -2413,33 +2413,30 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
 
-    /*m_button_extrusion_cali = new Button(m_button_area, _L("Cali"));
-    m_button_extrusion_cali->SetToolTip(_L("Calibration of extrusion"));
-    m_button_extrusion_cali->SetBackgroundColor(btn_bg_green);
-    m_button_extrusion_cali->SetBorderColor(btn_bd_green);
-    m_button_extrusion_cali->SetTextColor(btn_text_green);
-    m_button_extrusion_cali->SetFont(Label::Body_13);
-    if (wxGetApp().app_config->get("language") == "de_DE") m_button_extrusion_cali->SetFont(Label::Body_9);
-    if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extrusion_cali->SetFont(Label::Body_9);*/
-
     m_button_extruder_feed = new Button(m_button_area, _L("Load Filament"));
+    m_button_extruder_feed->SetFont(Label::Body_13);
+
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
     m_button_extruder_feed->SetTextColor(btn_text_green);
-    m_button_extruder_feed->SetFont(Label::Body_13);
+    
+
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_feed->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "ru_RU") m_button_extruder_feed->SetFont(Label::Body_8);
+
 
     m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetTextColor(btn_text_white);
     m_button_extruder_back->SetFont(Label::Body_13);
+
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_back->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "ru_RU") m_button_extruder_back->SetFont(Label::Body_8);
 
     m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
-    //m_sizer_button_area->Add(m_button_extrusion_cali, 0, wxLEFT, FromDIP(5));
     m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
     m_sizer_button_area->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(6));
 
@@ -2611,6 +2608,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_guide->SetFont(Label::Body_13);
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_guide->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "ru_RU") m_button_guide->SetFont(Label::Body_8);
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
     m_button_guide->SetTextColor(btn_text_white);
@@ -2621,6 +2619,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_retry->SetFont(Label::Body_13);
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_retry->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "ru_RU") m_button_retry->SetFont(Label::Body_8);
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
     m_button_retry->SetTextColor(btn_text_white);
@@ -2723,7 +2722,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     UpdateStepCtrl(false);
 
-    //m_button_extrusion_cali->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_extrusion_cali), NULL, this);
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
     m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_unload), NULL, this);
     
@@ -2769,8 +2767,6 @@ void AMSControl::on_retry()
 
 void AMSControl::init_scaled_buttons()
 {
-    //m_button_extrusion_cali->SetMinSize(wxSize(-1, FromDIP(24)));
-    //m_button_extrusion_cali->SetCornerRadius(FromDIP(12));
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetCornerRadius(FromDIP(12));
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -2810,9 +2806,6 @@ wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
 
 void AMSControl::SetActionState(bool button_status[])
 {
-    /*if (button_status[ActionButton::ACTION_BTN_CALI]) m_button_extrusion_cali->Enable();
-    else m_button_extrusion_cali->Disable();*/
-
     if (button_status[ActionButton::ACTION_BTN_LOAD]) m_button_extruder_feed->Enable();
     else m_button_extruder_feed->Disable();
 
@@ -2958,7 +2951,6 @@ void AMSControl::msw_rescale()
     m_extruder->msw_rescale();
     m_vams_extra_road->msw_rescale();
 
-    //m_button_extrusion_cali->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_ams_setting->SetMinSize(wxSize(FromDIP(25), FromDIP(24)));
@@ -3424,7 +3416,7 @@ bool AMSControl::Enable(bool enable)
         AmsCansWindow *cans = m_ams_cans_list[i];
         cans->amsCans->Enable(enable);
     }
-    //m_button_extrusion_cali->Enable(enable);
+
     m_button_extruder_feed->Enable(enable);
     m_button_extruder_back->Enable(enable);
     m_button_ams_setting->Enable(enable);

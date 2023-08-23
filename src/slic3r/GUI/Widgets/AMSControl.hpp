@@ -627,7 +627,6 @@ protected:
     ScalableBitmap m_button_ams_setting_normal;
     ScalableBitmap m_button_ams_setting_hover;
     ScalableBitmap m_button_ams_setting_press;
-    Button *m_button_extrusion_cali= {nullptr};
     Button *m_button_guide = {nullptr};
     Button *m_button_retry = {nullptr};
     wxWindow* m_button_area = {nullptr};
