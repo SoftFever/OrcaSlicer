@@ -155,7 +155,7 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (m_lan_proto > MachineObject::LVL_None && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
+    if (m_lan_proto > MachineObject::LVL_None && (m_lan_mode || m_lan_proto == MachineObject::LVL_Local || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
         m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
         if (m_lan_proto == MachineObject::LVL_Local)
             m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
