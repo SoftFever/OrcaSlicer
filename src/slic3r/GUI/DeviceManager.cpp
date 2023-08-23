@@ -4424,7 +4424,35 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                 } else {
                     if (subtask_id.compare("0") == 0)
                         return;
-                    m_agent->get_task_plate_index(subtask_id, &plate_index);
+
+                    std::string subtask_json;
+                    unsigned http_code = 0;
+                    std::string http_body;
+                    if (m_agent->get_subtask_info(subtask_id, &subtask_json, &http_code, &http_body) == 0) {
+                        try  {
+                            json task_j = json::parse(subtask_json);
+                            if (task_j.contains("content")) {
+                                std::string content_str = task_j["content"].get<std::string>();
+                                json content_j = json::parse(content_str);
+                                plate_index = content_j["info"]["plate_idx"].get<int>();
+                            }
+
+                            if (task_j.contains("context") && task_j["context"].contains("plates")) {
+                                for (int i = 0; i < task_j["context"]["plates"].size(); i++) {
+                                    if (task_j["context"]["plates"][i].contains("index") && task_j["context"]["plates"][i]["index"].get<int>() == plate_index) {
+                                        slice_info->thumbnail_url = task_j["context"]["plates"][i]["thumbnail"]["url"].get<std::string>();
+                                        BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
+                                    }
+                                }
+                            } else {
+                                BOOST_LOG_TRIVIAL(error) << "task_info: no context or plates";
+                            }
+                        }
+                        catch(...) {
+                        }
+                    } else {
+                        BOOST_LOG_TRIVIAL(error) << "task_info: get subtask id failed!";
+                    }
                 }
 
                 if (plate_index >= 0) {
@@ -4439,7 +4467,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                         if (!j["weight"].is_null())
                             slice_info->weight = j["weight"].get<float>();
                         if (!j["thumbnail"].is_null()) {
-                            slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
+                            //slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
                             BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
                         }
                         if (!j["filaments"].is_null()) {
