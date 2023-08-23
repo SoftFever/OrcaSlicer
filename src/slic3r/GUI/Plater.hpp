@@ -269,7 +269,7 @@ public:
 
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
-    void update(bool conside_update_flag = false);
+    void update(bool conside_update_flag = false, bool force_background_processing_update = false);
     //BBS
     void object_list_changed();
     void stop_jobs();
