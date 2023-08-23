@@ -414,6 +414,22 @@ void Selection::add_curr_plate()
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::add_object_from_idx(std::vector<int>& object_idxs) {
+    if (!m_valid)
+        return;
+
+    m_mode = Instance;
+    clear();
+
+    for (int obj_idx = 0; obj_idx < object_idxs.size(); obj_idx++) {
+        std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(object_idxs[obj_idx]);
+        do_add_volumes(volume_idxs);
+    }
+
+    update_type();
+    this->set_bounding_boxes_dirty();
+}
+
 void Selection::remove_curr_plate()
 {
     if (!m_valid)
@@ -455,6 +471,20 @@ void Selection::center()
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_selected_plate();
 
     // calc distance
+    Vec3d src_pos = this->get_bounding_box().center();
+    Vec3d tar_pos = plate->get_center_origin();
+    Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);
+
+    this->move_to_center(distance);
+    wxGetApp().plater()->get_view3D_canvas3D()->do_move(L("Move Object"));
+    return;
+}
+
+void Selection::center_plate(const int plate_idx) {
+
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+
+
     Vec3d src_pos = this->get_bounding_box().center();
     Vec3d tar_pos = plate->get_center_origin();
     Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);

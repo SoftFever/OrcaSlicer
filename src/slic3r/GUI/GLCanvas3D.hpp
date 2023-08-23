@@ -876,6 +876,7 @@ public:
 
     //BBS
     void select_curr_plate_all();
+    void select_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate_all();
     void update_plate_thumbnails();
 
@@ -941,6 +942,7 @@ public:
     void do_scale(const std::string& snapshot_type);
     void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
     void do_center();
+    void do_center_plate(const int plate_idx);
     void do_mirror(const std::string& snapshot_type);
 
     void update_gizmos_on_off_state();

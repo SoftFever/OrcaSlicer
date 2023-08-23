@@ -5780,13 +5780,31 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     auto idx = combo->get_filament_idx();
 
+    // BBS:Save the plate parameters before switching
+    PartPlateList& old_plate_list = this->partplate_list;
+    PartPlate* old_plate = old_plate_list.get_selected_plate();
+    Vec3d old_plate_pos = old_plate->get_center_origin();
+
+    // BBS: Save the model in the current platelist
+    std::vector<vector<int> > plate_object;
+    for (size_t i = 0; i < old_plate_list.get_plate_count(); ++i) {
+        PartPlate* plate = old_plate_list.get_plate(i);
+        std::vector<int> obj_idxs;
+        for (int obj_idx = 0; obj_idx < model.objects.size(); obj_idx++) {
+            if (plate && plate->contain_instance(obj_idx, 0)) {
+                obj_idxs.emplace_back(obj_idx);
+            }
+        }
+        plate_object.emplace_back(obj_idxs);
+    }
+
     //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
     //! but the OSX version derived from wxOwnerDrawnCombo.
     //! So, to get selected string we do
     //!     combo->GetString(combo->GetSelection())
     //! instead of
     //!     combo->GetStringSelection().ToUTF8().data());
-
+ 
     std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type,
         Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
 
@@ -5826,6 +5844,21 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
      * and for SLA presets they should be deleted
      */
         wxGetApp().obj_list()->update_object_list_by_printer_technology();
+
+        // BBS:Model reset by plate center
+        PartPlateList& cur_plate_list = this->partplate_list;
+        PartPlate* cur_plate = cur_plate_list.get_curr_plate();
+        Vec3d cur_plate_pos = cur_plate->get_center_origin();
+
+        if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y()) {
+            for (int i = 0; i < plate_object.size(); ++i) {
+                view3D->select_object_from_idx(plate_object[i]);
+                this->sidebar->obj_list()->update_selections();
+                view3D->center_selected_plate(i);
+            }
+
+            view3D->deselect_all();
+        }
     }
 
 #ifdef __WXMSW__

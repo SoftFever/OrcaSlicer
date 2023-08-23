@@ -260,9 +260,11 @@ public:
 
     //BBS
     void add_curr_plate();
+    void add_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate();
     void clone(int numbers = 1);
     void center();
+    void center_plate(const int plate_idx);
     void set_printable(bool printable);
 
     void add_all();

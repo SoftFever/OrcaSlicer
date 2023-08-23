@@ -2069,6 +2069,11 @@ void GLCanvas3D::select_curr_plate_all()
     m_dirty = true;
 }
 
+void GLCanvas3D::select_object_from_idx(std::vector<int>& object_idxs) {
+    m_selection.add_object_from_idx(object_idxs);
+    m_dirty = true;
+}
+
 //BBS
 void GLCanvas3D::remove_curr_plate_all()
 {
@@ -4736,6 +4741,13 @@ void GLCanvas3D::do_center()
         return;
 
     m_selection.center();
+}
+
+void GLCanvas3D::do_center_plate(const int plate_idx) {
+    if (m_model == nullptr)
+        return;
+
+    m_selection.center_plate(plate_idx);
 }
 
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)

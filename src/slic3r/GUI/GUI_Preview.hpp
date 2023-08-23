@@ -58,12 +58,14 @@ public:
 
     //BBS
     void select_curr_plate_all();
+    void select_object_from_idx(std::vector<int> &object_idxs);
     void remove_curr_plate_all();
 
     void select_all();
     void deselect_all();
     void delete_selected();
     void center_selected();
+    void center_selected_plate(const int plate_idx);
     void mirror_selection(Axis axis);
 
     bool is_layers_editing_enabled() const;
