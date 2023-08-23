@@ -2621,6 +2621,11 @@ void StatusPanel::update_basic_print_data(bool def)
 
 void StatusPanel::update_model_info()
 {
+    auto get_subtask_fn = [this](BBLModelTask* subtask) {
+        obj->set_modeltask(subtask);
+    };
+
+     
     if (wxGetApp().getAgent() && obj) {
 
         BBLSubTask* curr_task = obj->get_subtask();
@@ -2629,11 +2634,7 @@ void StatusPanel::update_model_info()
             if (!curr_model_task) {
                 curr_model_task = new BBLModelTask();
                 curr_model_task->task_id = curr_task->task_id;
-                int result = wxGetApp().getAgent()->get_subtask(curr_model_task);
-                
-                if (result > -1) {
-                    obj->set_modeltask(curr_model_task);
-                }
+                wxGetApp().getAgent()->get_subtask(curr_model_task,  get_subtask_fn);
             }
         }
     }
