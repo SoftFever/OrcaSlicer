@@ -28,6 +28,10 @@ static std::string MachineBedTypeString[5] = {
 std::string get_calib_mode_name(CalibMode cali_mode, int stage)
 {
     switch(cali_mode) {
+    case CalibMode::Calib_PA_Line:
+        return "pa_line_calib_mode";
+    case CalibMode::Calib_PA_Pattern:
+        return "pa_pattern_calib_mode";
     case CalibMode::Calib_Flow_Rate:
         if (stage == 1)
             return "flow_rate_coarse_calib_mode";
@@ -51,7 +55,15 @@ std::string get_calib_mode_name(CalibMode cali_mode, int stage)
 
 CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_stage)
 {
-    if (name == "flow_rate_coarse_calib_mode") {
+    if (name == "pa_line_calib_mode") {
+        cali_stage = 0;
+        return CalibMode::Calib_PA_Line;
+    }
+    else if (name == "pa_pattern_calib_mode") {
+        cali_stage = 1;
+        return CalibMode::Calib_PA_Line;
+    }
+    else if (name == "flow_rate_coarse_calib_mode") {
         cali_stage = 1;
         return CalibMode::Calib_Flow_Rate;
     }
@@ -444,15 +456,77 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::stri
     send_to_print(calib_info, error_message, pass);
 }
 
+void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
+{
+    DynamicPrintConfig& print_config    = calib_info.print_prest->config;
+    DynamicPrintConfig& filament_config = calib_info.filament_prest->config;
+    DynamicPrintConfig& printer_config  = calib_info.printer_prest->config;
+
+    DynamicPrintConfig full_config;
+    full_config.apply(FullPrintConfig::defaults());
+    full_config.apply(print_config);
+    full_config.apply(filament_config);
+    full_config.apply(printer_config);
+
+    float nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+        print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
+    }
+
+    print_config.set_key_value("outer_wall_speed",
+        new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
+            full_config, print_config.get_abs_value("line_width"),
+            print_config.get_abs_value("layer_height"), 0)));
+    
+    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+        print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
+    }
+
+    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
+        print_config.set_key_value(opt.first, new ConfigOptionInt(opt.second));
+    }
+
+    print_config.set_key_value(SuggestedConfigCalibPAPattern().brim_pair.first,
+        new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second));
+
+    //DynamicPrintConfig full_config;
+    full_config.apply(FullPrintConfig::defaults());
+    full_config.apply(print_config);
+    full_config.apply(filament_config);
+    full_config.apply(printer_config);
+
+    Vec3d plate_origin(0, 0, 0);
+    CalibPressureAdvancePattern pa_pattern(calib_info.params, full_config, true, model, plate_origin);
+
+    Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
+    double  current_width = bedfs[2].x() - bedfs[0].x();
+    double  current_depth = bedfs[2].y() - bedfs[0].y();
+    Vec3d   half_pattern_size = Vec3d(pa_pattern.print_size_x() / 2, pa_pattern.print_size_y() / 2, 0);
+    Vec3d   offset            = Vec3d(current_width / 2, current_depth / 2, 0) - half_pattern_size;
+    pa_pattern.set_start_offset(offset);
+
+    pa_pattern.generate_custom_gcodes(full_config, true, model, plate_origin);
+    model.calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
+}
+
 void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &error_message)
 {
     const Calib_Params &params = calib_info.params;
-    if (params.mode != CalibMode::Calib_PA_Line)
+    if (params.mode != CalibMode::Calib_PA_Line && params.mode != CalibMode::Calib_PA_Pattern)
         return;
 
     Model model;
-    std::string input_file = Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl";
+    std::string input_file;
+    if (params.mode == CalibMode::Calib_PA_Line)
+        input_file = Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl";
+    else if (params.mode == CalibMode::Calib_PA_Pattern)
+        input_file = Slic3r::resources_dir() + "/calib/pressure_advance/pa_pattern.3mf";
+
     read_model_from_file(input_file, model);
+
+    if (params.mode == CalibMode::Calib_PA_Pattern)
+        calib_pa_pattern(calib_info, model);
 
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
@@ -764,8 +838,13 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     plate_size[1] = bedfs[2].y() - bedfs[0].y();
     plate_size[2] = print_height;
 
-    // todo: adjust the objects position
-    if (model->objects.size() == 1) {
+    if (params.mode == CalibMode::Calib_PA_Pattern) {
+        ModelInstance *instance = model->objects[0]->instances[0];
+        Vec3d offset = model->calib_pa_pattern->get_start_offset() +
+                       Vec3d(model->calib_pa_pattern->handle_xy_size() / 2, -model->calib_pa_pattern->handle_xy_size() / 2 - model->calib_pa_pattern->handle_spacing(), 0);
+        instance->set_offset(offset);
+    }
+    else if (model->objects.size() == 1) {
         ModelInstance *instance = model->objects[0]->instances[0];
         instance->set_offset(instance->get_offset() + Vec3d(current_width / 2, current_depth / 2, 0));
     } else {

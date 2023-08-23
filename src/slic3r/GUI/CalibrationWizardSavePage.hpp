@@ -119,6 +119,7 @@ public:
         long style = wxTAB_TRAVERSAL);
     void create_panel(wxWindow* parent);
     void set_save_img();
+    void set_pa_cali_method(ManualPaCaliMethod method);
 
     void set_machine_obj(MachineObject* obj) { m_obj = obj; }
 
@@ -130,6 +131,7 @@ public:
 
 protected:
     wxBoxSizer* m_top_sizer;
+    Label *          m_complete_text;
     CaliPagePicture* m_picture_panel;
     ::TextInput* m_save_name_input;
     ::TextInput* m_k_val;
@@ -149,11 +151,13 @@ public:
         long style = wxTAB_TRAVERSAL);
     void create_panel(wxWindow* parent);
     void set_save_img();
+    void set_pa_cali_method(ManualPaCaliMethod method);
 
     bool get_result(float* out_k, float* out_n);
 
 protected:
     wxBoxSizer* m_top_sizer;
+    Label *          m_complete_text;
     CaliPagePicture* m_picture_panel;
     ::TextInput* m_k_val;
     ::TextInput* m_n_val;

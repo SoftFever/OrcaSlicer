@@ -50,6 +50,8 @@ public:
     static bool get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult> &flow_ratio_calib_results);
     static void calib_flowrate(int pass, const CalibInfo& calib_info, std::string& error_message);
 
+    static void calib_pa_pattern(const CalibInfo &calib_info, Model &model);
+
     static void calib_generic_PA(const CalibInfo& calib_info, std::string &error_message);
     static void calib_temptue(const CalibInfo& calib_info, std::string& error_message);
     static void calib_max_vol_speed(const CalibInfo& calib_info, std::string& error_message);

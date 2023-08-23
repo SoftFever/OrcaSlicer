@@ -462,10 +462,10 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
     auto complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     complete_text_panel->SetBackgroundColour(*wxWHITE);
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new Label(complete_text_panel, _L("Please find the best line on your plate"));
-    complete_text->SetFont(Label::Head_14);
-    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0);
+    m_complete_text = new Label(complete_text_panel, _L("Please find the best line on your plate"));
+    m_complete_text->SetFont(Label::Head_14);
+    m_complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    complete_text_sizer->Add(m_complete_text, 0);
     complete_text_panel->SetSizer(complete_text_sizer);
     m_top_sizer->Add(complete_text_panel, 0, wxEXPAND, 0);
 
@@ -520,6 +520,21 @@ void CaliPASaveManualPanel::set_save_img() {
         m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result_CN", nullptr, 330));
     } else {
         m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 330));
+    }
+}
+
+void CaliPASaveManualPanel::set_pa_cali_method(ManualPaCaliMethod method)
+{
+    if (method == ManualPaCaliMethod::PA_LINE) {
+        m_complete_text->SetLabel(_L("Please find the best line on your plate"));
+        set_save_img();
+    } else if (method == ManualPaCaliMethod::PA_PATTERN) {
+        m_complete_text->SetLabel(_L("Please find the cornor with perfect degree of extrusion"));
+        if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result_CN", nullptr, 350));
+        } else {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result", nullptr, 350));
+        }
     }
 }
 
@@ -610,10 +625,10 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
     auto complete_text_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     complete_text_panel->SetBackgroundColour(*wxWHITE);
     wxBoxSizer* complete_text_sizer = new wxBoxSizer(wxVERTICAL);
-    auto complete_text = new Label(complete_text_panel, _L("Please find the best line on your plate"));
-    complete_text->SetFont(Label::Head_14);
-    complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
-    complete_text_sizer->Add(complete_text, 0, wxEXPAND);
+    m_complete_text = new Label(complete_text_panel, _L("Please find the best line on your plate"));
+    m_complete_text->SetFont(Label::Head_14);
+    m_complete_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    complete_text_sizer->Add(m_complete_text, 0, wxEXPAND);
     complete_text_panel->SetSizer(complete_text_sizer);
     m_top_sizer->Add(complete_text_panel, 0, wxEXPAND, 0);
 
@@ -659,6 +674,22 @@ void CaliPASaveP1PPanel::set_save_img() {
         m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result_CN", nullptr, 350));
     } else {
         m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 350));
+    }
+}
+
+void CaliPASaveP1PPanel::set_pa_cali_method(ManualPaCaliMethod method)
+{
+    if (method == ManualPaCaliMethod::PA_LINE) {
+        m_complete_text->SetLabel(_L("Please find the best line on your plate"));
+        set_save_img();
+    }
+    else if (method == ManualPaCaliMethod::PA_PATTERN) {
+        m_complete_text->SetLabel(_L("Please find the cornor with perfect degree of extrusion"));
+        if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result_CN", nullptr, 350));
+        } else {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result", nullptr, 350));
+        }
     }
 }
 
@@ -808,6 +839,7 @@ void CalibrationPASavePage::sync_cali_result(MachineObject* obj)
 void CalibrationPASavePage::show_panels(CalibrationMethod method, const PrinterSeries printer_ser) {
     if (printer_ser == PrinterSeries::SERIES_X1) {
         if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
+            m_manual_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
             m_manual_panel->Show();
             m_auto_panel->Show(false);
         }
@@ -820,10 +852,12 @@ void CalibrationPASavePage::show_panels(CalibrationMethod method, const PrinterS
     else if (printer_ser == PrinterSeries::SERIES_P1P) {
         m_auto_panel->Show(false);
         m_manual_panel->Show(false);
+        m_p1p_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
         m_p1p_panel->Show();
     } else {
         m_auto_panel->Show(false);
         m_manual_panel->Show(false);
+        m_p1p_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
         m_p1p_panel->Show();
         assert(false);
     }

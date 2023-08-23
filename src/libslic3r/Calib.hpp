@@ -219,6 +219,9 @@ public:
 
     void generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin);
 
+    void set_start_offset(const Vec3d &offset);
+    Vec3d get_start_offset();
+
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_speed")->value; };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloat>("outer_wall_speed")->value; };
@@ -290,6 +293,7 @@ private:
     GCodeWriter        m_writer;
     bool               m_is_delta;
     Vec3d              m_starting_point;
+    bool               m_is_start_point_fixed = false;
 
     const double m_handle_xy_size{5};
     const double m_handle_spacing{2};

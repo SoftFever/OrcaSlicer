@@ -125,6 +125,17 @@ void CalibrationCaliPage::set_cali_img()
     }
 }
 
+void CalibrationCaliPage::set_pa_cali_image(int stage)
+{
+    if (m_cali_mode == CalibMode::Calib_PA_Line && m_cali_method == CALI_METHOD_MANUAL) {
+        if (stage == 0) {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual", nullptr, 400));
+        } else if (stage == 1) {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual", nullptr, 400));
+        }
+    }
+}
+
 void CalibrationCaliPage::clear_last_job_status()
 {
     m_is_between_start_and_running = true;

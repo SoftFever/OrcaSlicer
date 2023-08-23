@@ -121,6 +121,11 @@ enum AmsOptionType {
     AMS_OP_CALIBRATE_REMAIN
 };
 
+enum ManualPaCaliMethod {
+    PA_LINE = 0,
+    PA_PATTERN,
+};
+
 class AmsTray {
 public:
     AmsTray(std::string tray_id) {
@@ -584,6 +589,7 @@ public:
     float                      cache_flow_ratio { 0.0 };
     bool                       cali_finished = true;
 
+    ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
     std::vector<PACalibResult> pa_calib_tab;
     float                      pa_calib_tab_nozzle_dia;
